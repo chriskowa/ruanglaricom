@@ -563,13 +563,16 @@
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Jarak (Opsional)</label>
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Jarak (Pilihan)</label>
                         <select name="race_distance_ids" id="submit_event_race_distance_ids" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" multiple>
                             @foreach($raceDistances as $distance)
                                 <option value="{{ $distance->id }}">{{ $distance->name }}</option>
                             @endforeach
                         </select>
-                        <div class="text-[11px] text-slate-500">Bisa pilih lebih dari satu.</div>
+                        <div class="text-[11px] text-slate-500 mb-1.5">Bisa pilih lebih dari satu.</div>
+                        
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mt-1.5">Atau Tambahkan Jarak Baru (jika belum ada)</label>
+                        <input type="text" name="custom_distances" id="submit_event_custom_distances" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon placeholder-slate-700" placeholder="Contoh: 7K, 100K, 50 mil (pisahkan dengan koma)">
                     </div>
                     <div class="space-y-1 md:col-span-2">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran (Opsional)</label>

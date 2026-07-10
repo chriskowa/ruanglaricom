@@ -6,6 +6,9 @@ use App\Models\EventSubmission;
 use App\Models\EventSubmissionOtp;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\RaceDistance;
+use App\Helpers\WhatsApp;
+use App\Mail\AdminEventSubmissionAlertMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -123,6 +126,7 @@ class PublicRunningEventSubmissionController extends Controller
             'race_type_id' => 'nullable|exists:race_types,id',
             'race_distance_ids' => 'nullable|array|max:10',
             'race_distance_ids.*' => 'integer|exists:race_distances,id',
+            'custom_distances' => 'nullable|string|max:500',
 
             'registration_link' => 'nullable|url|max:255',
             'social_media_link' => 'nullable|url|max:255',
@@ -270,6 +274,18 @@ class PublicRunningEventSubmissionController extends Controller
             }
         }
 
+        $distanceIds = $validated['race_distance_ids'] ?? [];
+        if (!empty($validated['custom_distances'])) {
+            $customItems = explode(',', $validated['custom_distances']);
+            foreach ($customItems as $item) {
+                $itemClean = trim($item);
+                if ($itemClean !== '') {
+                    $distanceIds[] = $this->parseOrCreateDistance($itemClean);
+                }
+            }
+        }
+        $distanceIds = array_values(array_unique($distanceIds));
+
         $submission = EventSubmission::create([
             'status' => 'pending',
             'event_name' => $validated['event_name'],
@@ -281,7 +297,7 @@ class PublicRunningEventSubmissionController extends Controller
             'city_id' => $validated['city_id'] ?? null,
             'city_text' => $validated['city_text'] ?? null,
             'race_type_id' => $validated['race_type_id'] ?? null,
-            'race_distance_ids' => isset($validated['race_distance_ids']) ? array_values(array_unique($validated['race_distance_ids'])) : null,
+            'race_distance_ids' => count($distanceIds) > 0 ? $distanceIds : null,
             'registration_link' => $validated['registration_link'] ?? null,
             'social_media_link' => $validated['social_media_link'] ?? null,
             'organizer_name' => $validated['organizer_name'] ?? null,
@@ -295,7 +311,8 @@ class PublicRunningEventSubmissionController extends Controller
             'ua_hash' => $uaHash,
         ]);
 
-        $adminIds = User::query()->where('role', 'admin')->pluck('id')->all();
+        $admins = User::query()->where('role', 'admin')->get();
+        $adminIds = $admins->pluck('id')->all();
         if ($adminIds) {
             $title = 'Submit Event Lari Baru';
             $message = $submission->event_name.' • '.optional($submission->event_date)->format('d M Y');
@@ -316,6 +333,35 @@ class PublicRunningEventSubmissionController extends Controller
                 ];
             }
             Notification::insert($rows);
+
+            // Send WhatsApp & Mail Alert to each admin
+            foreach ($admins as $admin) {
+                if ($admin->email) {
+                    try {
+                        Mail::to($admin->email)->send(new AdminEventSubmissionAlertMail($submission));
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to send event submission email to admin: ' . $e->getMessage());
+                    }
+                }
+
+                if ($admin->phone) {
+                    try {
+                        $waMsg = "*[RuangLari] Pengajuan Event Baru*\n\n"
+                            . "Halo Admin, ada pengajuan event lari baru yang membutuhkan review Anda:\n\n"
+                            . "• Nama Event: *" . $submission->event_name . "*\n"
+                            . "• Tanggal: " . ($submission->event_date ? $submission->event_date->format('d M Y') : '-') . "\n"
+                            . "• Lokasi: " . $submission->location_name . "\n"
+                            . "• Kota: " . ($submission->city_text ?: (optional($submission->city)->name ?: '-')) . "\n"
+                            . "• Kontributor: " . $submission->contributor_name . " (" . $submission->contributor_email . ")\n\n"
+                            . "Mohon lakukan review detail di dashboard admin:\n"
+                            . route('admin.event-submissions.show', $submission);
+
+                        WhatsApp::send($admin->phone, $waMsg);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to send event submission WhatsApp to admin: ' . $e->getMessage());
+                    }
+                }
+            }
         }
 
         return response()->json([
@@ -348,5 +394,41 @@ class PublicRunningEventSubmissionController extends Controller
         }
 
         return hash('sha256', $ua.'|'.(string) config('app.key'));
+    }
+
+    private function parseOrCreateDistance(string $rawName): int
+    {
+        $name = trim($rawName);
+        $slug = Str::slug($name);
+
+        $existing = RaceDistance::where('slug', $slug)
+            ->orWhere('name', 'like', $name)
+            ->first();
+
+        if ($existing) {
+            return $existing->id;
+        }
+
+        $meters = 0;
+        $cleanName = strtolower($name);
+        if (preg_match('/^(\d+(?:\.\d+)?)\s*(?:k|km|kilometer|kilometers)$/', $cleanName, $matches)) {
+            $meters = (int) (floatval($matches[1]) * 1000);
+        } elseif (preg_match('/^(\d+(?:\.\d+)?)\s*(?:m|meter|meters)$/', $cleanName, $matches)) {
+            $meters = (int) floatval($matches[1]);
+        } elseif (preg_match('/^(\d+(?:\.\d+)?)\s*(?:mil|mile|miles)$/', $cleanName, $matches)) {
+            $meters = (int) (floatval($matches[1]) * 1609.34);
+        } elseif ($cleanName === 'half marathon' || $cleanName === 'half-marathon' || $cleanName === '21k' || $cleanName === '21.1k') {
+            $meters = 21097;
+        } elseif ($cleanName === 'marathon' || $cleanName === 'full marathon' || $cleanName === 'full-marathon' || $cleanName === '42k' || $cleanName === '42.2k') {
+            $meters = 42195;
+        }
+
+        $newDistance = RaceDistance::create([
+            'name' => $name,
+            'slug' => $slug,
+            'distance_meter' => $meters,
+        ]);
+
+        return $newDistance->id;
     }
 }

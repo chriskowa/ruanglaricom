@@ -148,4 +148,86 @@ class EventSubmissionFlowTest extends TestCase
         $this->assertNotNull($event);
         $this->assertNotEmpty($event->slug);
     }
+
+    public function test_public_can_submit_event_with_custom_distances(): void
+    {
+        Mail::fake();
+        Http::fake([
+            'https://www.google.com/recaptcha/api/siteverify' => Http::response(['success' => true], 200),
+        ]);
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+
+        $email = 'submitter_custom@example.com';
+
+        $otp = EventSubmissionOtp::create([
+            'id' => (string) Str::uuid(),
+            'email' => $email,
+            'code_hash' => Hash::make('654321'),
+            'expires_at' => now()->addMinutes(10),
+            'attempts' => 0,
+            'max_attempts' => 5,
+            'used_at' => null,
+            'ip_hash' => hash('sha256', '127.0.0.1|'.(string) config('app.key')),
+            'ua_hash' => hash('sha256', 'Symfony|'.(string) config('app.key')),
+        ]);
+
+        $payload = [
+            'otp_id' => $otp->id,
+            'otp_code' => '654321',
+            'event_name' => 'Custom Distance Run',
+            'event_date' => now()->addDays(7)->toDateString(),
+            'start_time' => '06:00',
+            'location_name' => 'GBK',
+            'location_address' => 'Jakarta',
+            'city_id' => null,
+            'city_text' => 'Jakarta',
+            'race_type_id' => null,
+            'race_distance_ids' => [],
+            'custom_distances' => '7K, 100K, 1500m',
+            'registration_link' => 'https://example.com/register',
+            'social_media_link' => 'https://instagram.com/example',
+            'organizer_name' => 'EO Test',
+            'organizer_contact' => 'wa.me/628123',
+            'contributor_name' => 'Submitter',
+            'contributor_email' => $email,
+            'contributor_phone' => '08123',
+            'notes' => 'Some notes',
+            'started_at' => (int) floor(microtime(true) * 1000) - 10_000,
+            'website' => '',
+            'g-recaptcha-response' => 'token',
+        ];
+
+        $res = $this->withHeaders(['User-Agent' => 'Symfony'])
+            ->postJson(route('events.submissions.store'), $payload);
+
+        $res->assertOk()->assertJson([
+            'success' => true,
+        ]);
+
+        // Check if distances are created in db
+        $this->assertDatabaseHas('race_distances', [
+            'slug' => '7k',
+            'distance_meter' => 7000,
+        ]);
+
+        $this->assertDatabaseHas('race_distances', [
+            'slug' => '100k',
+            'distance_meter' => 100000,
+        ]);
+
+        $this->assertDatabaseHas('race_distances', [
+            'slug' => '1500m',
+            'distance_meter' => 1500,
+        ]);
+
+        $submission = EventSubmission::query()->where('contributor_email', $email)->first();
+        $this->assertNotNull($submission);
+
+        // Assert distance IDs are saved inside the JSON column
+        $this->assertCount(3, $submission->race_distance_ids);
+    }
 }

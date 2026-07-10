@@ -95,6 +95,11 @@
                                     </label>
                                 @endforeach
                             </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Atau Tambahkan Jarak Baru (pisahkan dengan koma)</label>
+                                <input type="text" name="custom_distances" value="{{ old('custom_distances') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Contoh: 7K, 100K, 50 mil">
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -117,6 +117,7 @@ class EventController extends Controller
             'race_type_id' => 'nullable|exists:race_types,id',
             'race_distances' => 'nullable|array',
             'race_distances.*' => 'exists:race_distances,id',
+            'custom_distances' => 'nullable|string|max:500',
             'registration_link' => 'nullable|url',
             'social_media_link' => 'nullable|url',
             'organizer_name' => 'nullable|string|max:255',
@@ -160,8 +161,20 @@ class EventController extends Controller
             'is_active' => true,
         ]);
 
-        if (! empty($validated['race_distances'])) {
-            $event->raceDistances()->sync($validated['race_distances']);
+        $distanceIds = $validated['race_distances'] ?? [];
+        if (!empty($validated['custom_distances'])) {
+            $customItems = explode(',', $validated['custom_distances']);
+            foreach ($customItems as $item) {
+                $itemClean = trim($item);
+                if ($itemClean !== '') {
+                    $distanceIds[] = $this->parseOrCreateDistance($itemClean);
+                }
+            }
+        }
+        $distanceIds = array_values(array_unique($distanceIds));
+
+        if (! empty($distanceIds)) {
+            $event->raceDistances()->sync($distanceIds);
         }
 
         return redirect()->route('admin.events.index')->with('success', 'Event created successfully.');
@@ -190,6 +203,7 @@ class EventController extends Controller
             'race_type_id' => 'nullable|exists:race_types,id',
             'race_distances' => 'nullable|array',
             'race_distances.*' => 'exists:race_distances,id',
+            'custom_distances' => 'nullable|string|max:500',
             'registration_link' => 'nullable|url',
             'social_media_link' => 'nullable|url',
             'organizer_name' => 'nullable|string|max:255',
@@ -221,13 +235,25 @@ class EventController extends Controller
             'organizer_name' => $validated['organizer_name'] ?? null,
             'organizer_contact' => $validated['organizer_contact'] ?? null,
             'contributor_contact' => $validated['contributor_contact'] ?? null,
-            'template' => $validated['template'] ?? null,
+            'template' => $validated['template'] ?? $event->template ?? 'paolo-fest',
             'event_kind' => $validated['event_kind'],
             'status' => $validated['status'],
         ]);
 
-        if (isset($validated['race_distances'])) {
-            $event->raceDistances()->sync($validated['race_distances']);
+        $distanceIds = $validated['race_distances'] ?? [];
+        if (!empty($validated['custom_distances'])) {
+            $customItems = explode(',', $validated['custom_distances']);
+            foreach ($customItems as $item) {
+                $itemClean = trim($item);
+                if ($itemClean !== '') {
+                    $distanceIds[] = $this->parseOrCreateDistance($itemClean);
+                }
+            }
+        }
+        $distanceIds = array_values(array_unique($distanceIds));
+
+        if (! empty($distanceIds)) {
+            $event->raceDistances()->sync($distanceIds);
         } else {
             $event->raceDistances()->detach();
         }
@@ -766,5 +792,41 @@ class EventController extends Controller
             'success' => false,
             'message' => 'Gambar tidak ditemukan di galeri.',
         ], 422);
+    }
+
+    private function parseOrCreateDistance(string $rawName): int
+    {
+        $name = trim($rawName);
+        $slug = Str::slug($name);
+
+        $existing = RaceDistance::where('slug', $slug)
+            ->orWhere('name', 'like', $name)
+            ->first();
+
+        if ($existing) {
+            return $existing->id;
+        }
+
+        $meters = 0;
+        $cleanName = strtolower($name);
+        if (preg_match('/^(\d+(?:\.\d+)?)\s*(?:k|km|kilometer|kilometers)$/', $cleanName, $matches)) {
+            $meters = (int) (floatval($matches[1]) * 1000);
+        } elseif (preg_match('/^(\d+(?:\.\d+)?)\s*(?:m|meter|meters)$/', $cleanName, $matches)) {
+            $meters = (int) floatval($matches[1]);
+        } elseif (preg_match('/^(\d+(?:\.\d+)?)\s*(?:mil|mile|miles)$/', $cleanName, $matches)) {
+            $meters = (int) (floatval($matches[1]) * 1609.34);
+        } elseif ($cleanName === 'half marathon' || $cleanName === 'half-marathon' || $cleanName === '21k' || $cleanName === '21.1k') {
+            $meters = 21097;
+        } elseif ($cleanName === 'marathon' || $cleanName === 'full marathon' || $cleanName === 'full-marathon' || $cleanName === '42k' || $cleanName === '42.2k') {
+            $meters = 42195;
+        }
+
+        $newDistance = RaceDistance::create([
+            'name' => $name,
+            'slug' => $slug,
+            'distance_meter' => $meters,
+        ]);
+
+        return $newDistance->id;
     }
 }
