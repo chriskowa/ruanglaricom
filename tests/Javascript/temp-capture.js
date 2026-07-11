@@ -1,201 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capture - {{ $session->name }} - Ruang Lari</title>
-    
-    <!-- Fonts and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Dexie (IndexedDB) -->
-    <script src="https://unpkg.com/dexie@4.0.7/dist/dexie.min.js"></script>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        neon: '#ccff00',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #060a17; color: white; overflow: hidden; }
-        .pulse-red { animation: pulseRed 1.5s infinite; }
-        @keyframes pulseRed {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-                #video-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; overflow: hidden; }
-        #camera-feed, #canvas-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform: scaleX(1);
-            object-fit: contain; /* Default to Contain (Landscape) */
-            transition: object-fit 0.2s ease;
-        }
-        #canvas-overlay { z-index: 10; pointer-events: none; }
-        
-        /* Analysis Zone Indicators */
-        .zone-line { position: absolute; top: 0; bottom: 0; width: 4px; z-index: 20; opacity: 0.5; pointer-events: none; }
-        .zone-line-left { left: 15%; background: linear-gradient(to right, transparent, #ccff00); border-right: 2px dashed #ccff00; }
-        .zone-line-right { right: 15%; background: linear-gradient(to left, transparent, #ccff00); border-left: 2px dashed #ccff00; }
-        .zone-active .zone-line-left, .zone-active .zone-line-right { border-color: #ef4444; background: transparent; opacity: 1; border-style: solid; }
-    </style>
-</head>
-<body class="h-screen w-screen flex flex-col">
-
-    <!-- Top Navigation Bar -->
-    <header class="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-30 shrink-0">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.running-analysis.sessions.show', $session) }}" class="text-slate-400 hover:text-white transition-colors" title="Exit Capture">
-                <i class="fas fa-times text-xl"></i>
-            </a>
-            <div class="h-6 w-px bg-slate-700"></div>
-            <div>
-                <h1 class="font-black italic tracking-tighter text-sm uppercase">Ruang<span class="text-neon">Lari</span> Analysis</h1>
-                <div class="text-xs text-slate-500 truncate max-w-[200px]">{{ $session->name }}</div>
-            </div>
-        </div>
-
-        <!-- Camera Controls -->
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-xs">
-                <label class="text-slate-400 font-semibold uppercase">Camera:</label>
-                <select id="camera-selector" class="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 outline-none focus:border-neon max-w-[200px]">
-                    <option value="">Loading cameras...</option>
-                </select>
-            </div>
-            <div class="flex items-center gap-2 text-xs">
-                <label class="text-slate-400 font-semibold uppercase">Resolution:</label>
-                <select id="resolution-selector" class="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 outline-none focus:border-neon">
-                    <option value="1920x1080">1080p (FHD)</option>
-                    <option value="1280x720" selected>720p (HD)</option>
-                    <option value="640x480">480p (SD)</option>
-                </select>
-            </div>
-            <div class="flex items-center gap-2 text-xs">
-                <label class="text-slate-400 font-semibold uppercase">FPS:</label>
-                <select id="fps-selector" class="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 outline-none focus:border-neon">
-                    <option value="60">60 fps</option>
-                    <option value="30" selected>30 fps</option>
-                </select>
-            </div>
-            <div class="flex items-center gap-2 text-xs">
-                <label class="text-slate-400 font-semibold uppercase">View Mode:</label>
-                <select id="view-mode-selector" onchange="setViewMode(this.value)" class="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 outline-none focus:border-neon">
-                    <option value="contain" selected>Landscape (Contain)</option>
-                    <option value="cover">Full Screen (Cover)</option>
-                </select>
-            </div>
-            <button id="apply-camera-btn" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors">Apply</button>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <div class="flex-1 flex overflow-hidden">
-        
-        <!-- Sidebar: Runner Queue & Settings -->
-        <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shrink-0">
-            <!-- Active Runner Card -->
-            <div class="p-4 border-b border-slate-800 bg-slate-800/50">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Up Next</h2>
-                <div id="active-runner-card" class="bg-slate-950 border border-neon rounded-lg p-3 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
-                    <!-- Populated by JS -->
-                    <div class="text-center py-4 text-slate-500 italic text-sm">No runners in queue</div>
-                </div>
-            </div>
-
-            <!-- Capture Mode Toggle -->
-            <div class="p-4 border-b border-slate-800 bg-slate-900/30 shrink-0">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Capture Mode</h2>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="mode-auto-btn" onclick="setCaptureMode('auto')" type="button" class="px-2 py-1.5 rounded text-[10px] font-black uppercase tracking-wider text-center border bg-neon text-black border-neon transition-all focus:outline-none">
-                        <i class="fas fa-magic mr-1"></i> Auto
-                    </button>
-                    <button id="mode-manual-btn" onclick="setCaptureMode('manual')" type="button" class="px-2 py-1.5 rounded text-[10px] font-black uppercase tracking-wider text-center border bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white transition-all focus:outline-none">
-                        <i class="fas fa-hand-pointer mr-1"></i> Manual
-                    </button>
-                </div>
-                <p id="mode-description" class="text-[9px] text-slate-500 mt-1.5 leading-relaxed font-sans">
-                    Auto-starts ketika pelvis memasuki zona aktif. Auto-stops ketika keluar.
-                </p>
-            </div>
-
-            <!-- Queue List -->
-            <div class="flex-1 overflow-y-auto p-2" id="runner-queue-list">
-                <!-- Populated by JS -->
-            </div>
-
-            <!-- Settings / Debug Info -->
-            <div class="p-4 border-t border-slate-800 bg-slate-950 text-xs font-mono text-slate-400 space-y-1">
-                <div class="flex justify-between"><span>Model:</span> <span id="model-status" class="text-yellow-400">Loading...</span></div>
-                <div class="flex justify-between"><span>Inference:</span> <span id="inference-fps">0</span> fps</div>
-                <div class="flex justify-between"><span>Stream:</span> <span id="actual-resolution">-</span> @ <span id="actual-fps">-</span> fps</div>
-                <div class="flex justify-between"><span>Visibility:</span> <span id="pose-visibility">No Pose</span></div>
-            </div>
-        </aside>
-
-        <!-- Center: Camera Feed -->
-        <main class="flex-1 relative bg-black flex flex-col">
-            <!-- Video Container -->
-            <div id="video-container" class="flex-1 w-full relative">
-                <video id="camera-feed" autoplay playsinline muted></video>
-                <canvas id="canvas-overlay"></canvas>
-                
-                <!-- Zone Lines -->
-                <div class="zone-line zone-line-left"></div>
-                <div class="zone-line zone-line-right"></div>
-
-                <!-- Capture Overlay UI -->
-                <div class="absolute top-6 left-1/2 -translate-x-1/2 flex gap-4 z-30">
-                    <div id="capture-status-badge" class="bg-slate-900/80 backdrop-blur border border-slate-700 text-slate-300 px-4 py-2 rounded-full font-bold uppercase tracking-wider text-sm transition-all duration-300">
-                        Waiting for Runner
-                    </div>
-                </div>
-
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4">
-                    <button id="manual-record-btn" class="w-16 h-16 rounded-full border-4 border-slate-700 bg-slate-800 hover:border-red-500 hover:bg-red-500 transition-all flex items-center justify-center group outline-none hidden">
-                        <div class="w-6 h-6 rounded-sm bg-white group-hover:scale-90 transition-transform"></div>
-                    </button>
-                    <div id="recording-timer" class="text-white font-mono text-xl font-bold bg-black/50 px-3 py-1 rounded hidden pulse-red">00:00.0</div>
-                </div>
-            </div>
-
-            <!-- Toast Notification Container -->
-            <div id="toast-container" class="absolute top-20 right-4 flex flex-col gap-2 z-50"></div>
-        </main>
-    </div>
-
-    <!-- Data passed to JS -->
-    <script>
-        window.SessionData = {
-            id: "{{ $session->id }}",
-            runners: {!! json_encode($session->runners->map(fn($r) => [
-                'id' => $r->id,
-                'name' => $r->name,
-                'username' => $r->username,
-                'avatar' => $r->avatar_url,
-                'gender' => $r->gender,
-                'status' => $r->pivot->status,
-                'sequence_no' => $r->pivot->sequence_no
-            ])->values()) !!}
-        };
-    </script>
-
-    <!-- App Logic -->
-    <script type="module">
         import { FilesetResolver, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
         // State
         const state = {
@@ -2147,11 +1950,11 @@
             for (const item of pending) {
                 try {
                     // 1. Create Trial (Idempotent)
-                    const storeRes = await fetch(`{{ url('/admin/running-analysis/sessions/' . $session->id . '/trials') }}`, {
+                    const storeRes = await fetch(`"http://localhost"`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '"token"'
                         },
                         body: JSON.stringify({
                             id: item.trialId,
@@ -2178,10 +1981,10 @@
                     formData.append('file', jsonFile);
                     formData.append('sha256', item.hash);
 
-                    const uploadRes = await fetch(`{{ url('/admin/running-analysis/trials') }}/${item.trialId}/artifacts`, {
+                    const uploadRes = await fetch(`"http://localhost"/${item.trialId}/artifacts`, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '"token"'
                         },
                         body: formData
                     });
@@ -2206,9 +2009,9 @@
                         videoFormData.append('file', videoFile);
                         videoFormData.append('sha256', videoHashHex);
 
-                        const videoUploadRes = await fetch(`{{ url('/admin/running-analysis/trials') }}/${item.trialId}/artifacts`, {
+                        const videoUploadRes = await fetch(`"http://localhost"/${item.trialId}/artifacts`, {
                             method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            headers: { 'X-CSRF-TOKEN': '"token"' },
                             body: videoFormData
                         });
 
@@ -2221,10 +2024,10 @@
                     }
 
                     // 4. Finalize
-                    const finalizeRes = await fetch(`{{ url('/admin/running-analysis/trials') }}/${item.trialId}/finalize`, {
+                    const finalizeRes = await fetch(`"http://localhost"/${item.trialId}/finalize`, {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '"token"'
                         }
                     });
 
@@ -2264,6 +2067,4 @@
 
         boot();
 
-    </script>
-</body>
-</html>
+    

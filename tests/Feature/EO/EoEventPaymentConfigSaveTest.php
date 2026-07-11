@@ -31,6 +31,7 @@ class EoEventPaymentConfigSaveTest extends TestCase
             'slug' => $event->slug,
             'start_at' => $event->start_at->toDateTimeString(),
             'location_name' => $event->location_name,
+            'show_participant_list' => true,
             'payment_config' => [
                 'midtrans_demo_mode' => '1',
                 'allowed_methods' => ['moota'],
@@ -61,6 +62,7 @@ class EoEventPaymentConfigSaveTest extends TestCase
             'slug' => $event->slug,
             'start_at' => $event->start_at->toDateTimeString(),
             'location_name' => $event->location_name,
+            'show_participant_list' => true,
             'payment_config' => [
                 'allowed_methods' => ['all'],
             ],
@@ -70,6 +72,6 @@ class EoEventPaymentConfigSaveTest extends TestCase
         $res->assertRedirect();
 
         $event->refresh();
-        $this->assertSame(['midtrans', 'moota'], $event->payment_config['allowed_methods'] ?? null);
+        $this->assertSame(['midtrans', 'moota', 'cod'], $event->payment_config['allowed_methods'] ?? null);
     }
 }

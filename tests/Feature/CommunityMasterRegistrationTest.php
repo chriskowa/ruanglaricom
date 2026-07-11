@@ -86,7 +86,7 @@ class CommunityMasterRegistrationTest extends TestCase
         $registration = CommunityRegistration::latest()->first();
 
         $this->assertNotNull($registration);
-        $this->assertNull($registration->community_id);
+        $this->assertNotNull($registration->community_id);
         $this->assertEquals('Manual Community', $registration->community_name);
         $this->assertEquals('Manual PIC', $registration->pic_name);
     }

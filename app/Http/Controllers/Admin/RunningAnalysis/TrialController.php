@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\RunningAnalysis;
 use App\Http\Controllers\Controller;
 use App\Models\RunningAnalysis\Session;
 use App\Models\RunningAnalysis\Trial;
+use App\Models\RunningAnalysis\Artifact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -70,7 +71,7 @@ class TrialController extends Controller
     public function uploadArtifact(Request $request, Trial $trial)
     {
         $validated = $request->validate([
-            'type'   => 'required|string|in:pose_landmarks,video_clip',
+            'type'   => 'required|string|in:pose_landmarks,video_clip,preview_image',
             'file'   => 'required|file',
             'sha256' => 'required|string|size:64',
         ]);
@@ -79,12 +80,20 @@ class TrialController extends Controller
         $hash = hash_file('sha256', $file->path());
 
         if ($hash !== $validated['sha256']) {
-            return response()->json(['error' => 'Checksum mismatch'], 400);
+            return response()->json(['error' => 'Checksum mismatch', 'server_hash' => $hash, 'client_hash' => $validated['sha256']], 400);
         }
+
+        // Determine extension from type
+        $extensionMap = [
+            'pose_landmarks'  => 'json',
+            'video_clip'      => 'webm',
+            'preview_image'   => 'gif',
+        ];
+        $ext = $extensionMap[$validated['type']] ?? $file->getClientOriginalExtension() ?: 'bin';
 
         $path = $file->storeAs(
             'running-analysis/' . $trial->id,
-            $validated['type'] . '_' . time() . '.' . $file->getClientOriginalExtension(),
+            $validated['type'] . '_' . time() . '.' . $ext,
             'local'
         );
 
@@ -130,5 +139,83 @@ class TrialController extends Controller
         }
 
         return response()->json(['status' => $trial->status]);
+    }
+
+    /**
+     * Display the review details page for a trial.
+     */
+    public function review(Trial $trial)
+    {
+        $trial->load([
+            'runner', 
+            'session', 
+            'artifacts', 
+            'metrics', 
+            'findings', 
+            'recommendations'
+        ]);
+
+        $poseData = null;
+        $poseArtifact = $trial->artifacts->where('type', 'pose_landmarks')->first();
+        
+        if ($poseArtifact && \Illuminate\Support\Facades\Storage::disk($poseArtifact->disk)->exists($poseArtifact->path)) {
+            $poseData = \Illuminate\Support\Facades\Storage::disk($poseArtifact->disk)->get($poseArtifact->path);
+        }
+
+        return view('admin.running-analysis.trials.review', compact('trial', 'poseData'));
+    }
+
+    /**
+     * Reject a trial (mark as invalid).
+     */
+    public function reject(Request $request, Trial $trial)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $trial->update([
+            'status'         => Trial::STATUS_INVALID,
+            'invalid_reason' => $validated['reason'] ?? 'Rejected by admin.',
+        ]);
+
+        return redirect()
+            ->route('admin.running-analysis.trials.review', $trial)
+            ->with('success', 'Trial has been rejected.');
+    }
+
+    /**
+     * Approve and publish a trial.
+     */
+    public function approve(Trial $trial)
+    {
+        $trial->update([
+            'status'      => Trial::STATUS_PUBLISHED,
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'published_at'=> now(),
+        ]);
+
+        return redirect()
+            ->route('admin.running-analysis.trials.review', $trial)
+            ->with('success', 'Trial has been approved and published.');
+    }
+
+    /**
+     * Serve an artifact file from local storage.
+     */
+    public function serveArtifact(Trial $trial, Artifact $artifact)
+    {
+        abort_unless($artifact->trial_id === $trial->id, 404);
+
+        if (!\Illuminate\Support\Facades\Storage::disk($artifact->disk)->exists($artifact->path)) {
+            abort(404, 'Artifact file not found.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk($artifact->disk)->response(
+            $artifact->path,
+            basename($artifact->path),
+            ['Content-Type' => $artifact->mime_type]
+        );
     }
 }

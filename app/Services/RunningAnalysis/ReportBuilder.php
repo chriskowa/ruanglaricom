@@ -59,8 +59,36 @@ class ReportBuilder
                 ]);
             }
 
-            // 3. Calculate Metrics
+            // 3. Calculate Biomechanical metrics and Shoulder-Hip Skeletal Ratio
             $metricsData = $this->metricCalculator->calculate($events);
+            
+            // Calculate skeletal proportions (Shoulder-to-Hip ratio)
+            $totalRatio = 0;
+            $ratioCount = 0;
+            foreach ($frames as $frame) {
+                // Landmarks can be nested in 'landmarks' index or flat in the array element
+                $landmarks = $frame['landmarks'] ?? $frame; 
+                if (isset($landmarks[11], $landmarks[12], $landmarks[23], $landmarks[24])) {
+                    $lS = $landmarks[11];
+                    $rS = $landmarks[12];
+                    $lH = $landmarks[23];
+                    $rH = $landmarks[24];
+                    
+                    if (($lS['visibility'] ?? 0) > 0.5 && ($rS['visibility'] ?? 0) > 0.5 &&
+                        ($lH['visibility'] ?? 0) > 0.5 && ($rH['visibility'] ?? 0) > 0.5) {
+                        
+                        $shoulderWidth = sqrt(pow($lS['x'] - $rS['x'], 2) + pow($lS['y'] - $rS['y'], 2));
+                        $hipWidth = sqrt(pow($lH['x'] - $rH['x'], 2) + pow($lH['y'] - $rH['y'], 2));
+                        
+                        if ($hipWidth > 0) {
+                            $totalRatio += ($shoulderWidth / $hipWidth);
+                            $ratioCount++;
+                        }
+                    }
+                }
+            }
+            $avgRatio = $ratioCount > 0 ? $totalRatio / $ratioCount : 1.0;
+            $predictedGender = ($avgRatio < 1.22) ? 'female' : 'male';
             
             // Save Metrics (EAV structure)
             $metricsToSave = [
@@ -68,6 +96,7 @@ class ReportBuilder
                 ['code' => 'GCT_LEFT_MS', 'val' => $metricsData['contact_time_ms_left'], 'unit' => 'ms'],
                 ['code' => 'GCT_RIGHT_MS', 'val' => $metricsData['contact_time_ms_right'], 'unit' => 'ms'],
                 ['code' => 'FLIGHT_TIME_MS', 'val' => $metricsData['flight_time_ms'], 'unit' => 'ms'],
+                ['code' => 'SKELETAL_GENDER_RATIO', 'val' => $avgRatio, 'unit' => 'ratio'],
             ];
 
             foreach ($metricsToSave as $m) {
@@ -83,6 +112,16 @@ class ReportBuilder
 
             // 4. Evaluate Findings
             $findingsData = $this->ruleEngine->evaluate($metricsData);
+            
+            // Check for profile gender vs skeletal predicted gender mismatch
+            $profileGender = $trial->runner->gender ?? null;
+            if ($profileGender && $profileGender !== $predictedGender) {
+                $findingsData[] = [
+                    'type' => 'gender_mismatch',
+                    'severity' => 'moderate',
+                    'description' => 'Ketidakcocokan gender skeletal: Struktur tulang terdeteksi sebagai ' . $predictedGender . ' (Shoulder-to-Hip ratio: ' . round($avgRatio, 2) . '), sedangkan profile pelari adalah ' . $profileGender . '.',
+                ];
+            }
             
             // Save Findings
             $savedFindings = [];

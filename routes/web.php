@@ -833,7 +833,10 @@ Route::middleware('auth')->group(function () {
             Route::post('/trials/{trial}/finalize', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'finalize'])->name('trials.finalize');
             
             // Trial Review placeholders
-            Route::get('/trials/{trial}/review', function() { return 'Review UI placeholder'; })->name('trials.review');
+            Route::get('/trials/{trial}/review', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'review'])->name('trials.review');
+            Route::post('/trials/{trial}/reject', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'reject'])->name('trials.reject');
+            Route::post('/trials/{trial}/approve', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'approve'])->name('trials.approve');
+            Route::get('/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveArtifact'])->name('trials.artifact');
         });
 
         // Event Calendar Management
