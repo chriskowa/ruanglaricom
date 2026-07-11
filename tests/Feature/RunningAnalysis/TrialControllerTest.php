@@ -102,6 +102,8 @@ class TrialControllerTest extends TestCase
 
     public function test_can_finalize_trial()
     {
+        \Illuminate\Support\Facades\Queue::fake();
+
         $admin = User::factory()->admin()->create();
         $session = Session::factory()->create();
         $runner = User::factory()->runner()->create();

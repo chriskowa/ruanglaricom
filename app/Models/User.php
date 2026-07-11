@@ -15,13 +15,15 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($user) {
-            if (empty($user->username) && !empty($user->name)) {
-                $username = \Illuminate\Support\Str::slug($user->name);
-                $count = 1;
-                while (static::where('username', $username)->exists()) {
-                    $username = \Illuminate\Support\Str::slug($user->name) . $count++;
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
+                if (empty($user->username) && !empty($user->name)) {
+                    $username = \Illuminate\Support\Str::slug($user->name);
+                    $count = 1;
+                    while (static::where('username', $username)->exists()) {
+                        $username = \Illuminate\Support\Str::slug($user->name) . $count++;
+                    }
+                    $user->username = $username;
                 }
-                $user->username = $username;
             }
         });
     }

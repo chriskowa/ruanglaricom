@@ -258,6 +258,33 @@
 @endpush
 
 @section('content')
+    @if(request()->has('embed'))
+        <style>
+            #ph-sidebar { display: none !important; }
+            #main-content-wrapper { padding-left: 0 !important; padding-top: 0 !important; margin: 0 !important; }
+            #pacerhub-nav { display: none !important; }
+            #chatbox-toggle { display: none !important; }
+            body { padding-top: 0 !important; background: transparent !important; }
+            header { display: none !important; }
+            main { padding-top: 0 !important; margin: 0 !important; }
+            .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            #rl-calculator { padding-top: 0 !important; }
+            .rlc-header { display: none !important; }
+        </style>
+        <script>
+            (function() {
+                if (window.parent && window.parent !== window) {
+                    function reportHeight() {
+                        const height = document.documentElement.scrollHeight || document.body.scrollHeight;
+                        window.parent.postMessage({ type: 'resize-iframe-calculator', height: height }, '*');
+                    }
+                    window.addEventListener('load', reportHeight);
+                    window.addEventListener('resize', reportHeight);
+                    setInterval(reportHeight, 400);
+                }
+            })();
+        </script>
+    @endif
     <div id="rl-calculator" class="w-full pt-10">
         <div class="rlc-wrap max-w-5xl mx-auto">
                 <div class="rlc-header">

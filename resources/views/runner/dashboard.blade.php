@@ -11,16 +11,9 @@
             cursor: pointer;
         }
         .tab-btn.active {
-            color: #ccff00 !important;
-        }
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: #ccff00;
+            background-color: #ccff00 !important;
+            color: #121212 !important;
+            box-shadow: 0 4px 12px rgba(204, 255, 0, 0.25);
         }
     </style>
 @endpush
@@ -34,15 +27,18 @@
                 <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter truncate">{{ strtoupper(auth()->user()->name) }}</h1>
                 
                 <!-- Tab Switching Pills -->
-                <div class="mt-6 flex gap-6">
-                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white active">
-                        Ringkasan (Overview)
+                <div class="mt-6 inline-flex p-1 bg-zinc-900/80 border border-zinc-800 rounded-xl">
+                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white active">
+                        Ringkasan
                     </button>
-                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white">
-                        Jadwal Lari (Calendar)
+                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        Jadwal Lari
                     </button>
-                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white">
-                        Strava Activity
+                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        Strava
+                    </button>
+                    <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        Kalkulator
                     </button>
                 </div>
             </div>
@@ -1345,6 +1341,11 @@
             <iframe id="strava-iframe" data-src="/calendar?embed=1#strava" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
         </div>
 
+        <!-- Tab Content Calculator (Iframe loader) -->
+        <div id="tab-content-calculator" class="tab-content mt-6 hidden">
+            <iframe id="calculator-iframe" data-src="/tools/calculator?embed=1" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
+        </div>
+
     </div> <!-- closes max-w-7xl mx-auto -->
 </div> <!-- closes wrapper -->
 @push('scripts')
@@ -2015,6 +2016,14 @@
                 iframe.setAttribute('src', iframe.getAttribute('data-src'));
             }
         }
+
+        // Lazy load Calculator iframe
+        if (tabName === 'calculator') {
+            const iframe = document.getElementById('calculator-iframe');
+            if (iframe && !iframe.getAttribute('src')) {
+                iframe.setAttribute('src', iframe.getAttribute('data-src'));
+            }
+        }
     }
 
     // Auto-switch based on URL parameter on load
@@ -2025,6 +2034,8 @@
             switchTab('calendar');
         } else if (tab === 'strava') {
             switchTab('strava');
+        } else if (tab === 'calculator') {
+            switchTab('calculator');
         } else {
             switchTab('overview');
         }
@@ -2034,6 +2045,13 @@
     window.addEventListener('message', function(e) {
         if (e.data && e.data.type === 'resize-iframe') {
             const iframe = document.getElementById('strava-iframe');
+            if (iframe && e.data.height) {
+                // Add minor padding to prevent clipping
+                iframe.style.height = (e.data.height + 20) + 'px';
+            }
+        }
+        if (e.data && e.data.type === 'resize-iframe-calculator') {
+            const iframe = document.getElementById('calculator-iframe');
             if (iframe && e.data.height) {
                 // Add minor padding to prevent clipping
                 iframe.style.height = (e.data.height + 20) + 'px';

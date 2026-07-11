@@ -73,6 +73,7 @@ class EoEventTicketEmailQrPreferenceTest extends TestCase
             $table->json('payment_config')->nullable();
             $table->json('whatsapp_config')->nullable();
             $table->boolean('is_featured')->default(false);
+            $table->boolean('show_participant_list')->default(true);
             $table->string('status')->default('draft');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -102,6 +103,7 @@ class EoEventTicketEmailQrPreferenceTest extends TestCase
             'start_at' => now()->addDays(7)->toDateTimeString(),
             'location_name' => 'GBK',
             'ticket_email_use_qr' => '0',
+            'show_participant_list' => true,
             'categories' => [
                 [
                     'name' => '5K',
@@ -131,6 +133,7 @@ class EoEventTicketEmailQrPreferenceTest extends TestCase
             'location_name' => 'GBK',
             'ticket_email_use_qr' => true,
             'premium_amenities' => [],
+            'show_participant_list' => true,
         ]);
 
         $response = $this->actingAs($eo)->put(route('eo.events.update', $event), [
@@ -138,6 +141,7 @@ class EoEventTicketEmailQrPreferenceTest extends TestCase
             'start_at' => $event->start_at->toDateTimeString(),
             'location_name' => $event->location_name,
             'ticket_email_use_qr' => '0',
+            'show_participant_list' => true,
         ]);
 
         $response->assertRedirect(route('eo.events.index'));
