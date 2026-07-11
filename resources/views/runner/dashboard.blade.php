@@ -27,18 +27,30 @@
                 <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter truncate">{{ strtoupper(auth()->user()->name) }}</h1>
                 
                 <!-- Tab Switching Pills -->
-                <div class="mt-6 inline-flex p-1 bg-zinc-900/80 border border-zinc-800 rounded-xl">
-                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white active">
-                        Ringkasan
+                <div class="mt-6 inline-flex w-full sm:w-auto p-1 bg-zinc-900/80 border border-zinc-800 rounded-xl justify-between sm:justify-start">
+                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-400 hover:text-white active">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span class="hidden sm:inline">Ringkasan</span>
                     </button>
-                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
-                        Jadwal Lari
+                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Jadwal Lari</span>
                     </button>
-                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
-                        Strava
+                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Strava</span>
                     </button>
-                    <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn px-5 py-2 font-black uppercase tracking-wider text-xs transition-all rounded-lg text-slate-400 hover:text-white">
-                        Kalkulator
+                    <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Kalkulator</span>
                     </button>
                 </div>
             </div>
