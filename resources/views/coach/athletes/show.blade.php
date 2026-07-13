@@ -546,9 +546,17 @@
                         </div>
 
                         <!-- Edit Button -->
-                        <div class="mb-4" v-if="!selectedSession.extendedProps.is_strava">
+                        <div class="mb-2" v-if="!selectedSession.extendedProps.is_strava">
                             <button @click="openForm(null, selectedSession)" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700">
                                 <i class="fa-solid fa-pen"></i> @{{ selectedSession.extendedProps.is_custom ? 'Edit Custom Workout' : 'Customize / Edit Workout' }}
+                            </button>
+                        </div>
+
+                        <!-- Reschedule Button -->
+                        <div class="mb-4">
+                            <button @click="openRescheduleModal(selectedSession)" class="w-full text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-amber-500/30">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Reschedule Sesi
                             </button>
                         </div>
 
@@ -951,6 +959,53 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Reschedule Modal -->
+        <div v-if="showRescheduleModal" class="fixed inset-0 z-[200] flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showRescheduleModal = false"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-base font-bold text-white uppercase tracking-tight">Reschedule Sesi</h3>
+                        <p class="text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">@{{ rescheduleTarget?.title }}</p>
+                    </div>
+                    <button @click="showRescheduleModal = false" class="text-slate-500 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex items-center gap-3 text-xs">
+                        <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <div>
+                            <div class="text-slate-500">Tanggal Saat Ini</div>
+                            <div class="text-white font-bold">@{{ rescheduleTarget ? formatDate(rescheduleTarget.start) : '-' }}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Baru</label>
+                        <input type="date" v-model="rescheduleForm.new_date"
+                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-amber-400 focus:border-amber-400 outline-none">
+                    </div>
+
+                    <div v-if="rescheduleError" class="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                        @{{ rescheduleError }}
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" @click="showRescheduleModal = false"
+                        class="flex-1 py-2.5 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
+                        class="flex-1 py-2.5 text-sm font-black text-dark bg-amber-400 rounded-xl hover:bg-amber-300 transition disabled:opacity-50">
+                        @{{ rescheduleLoading ? 'Menyimpan...' : 'Simpan Jadwal' }}
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1514,6 +1569,68 @@ createApp({
             }
         };
 
+
+        // ─── Reschedule State & Methods ──────────────────────────────
+        const showRescheduleModal = ref(false);
+        const rescheduleTarget = ref(null);
+        const rescheduleForm = reactive({ new_date: '' });
+        const rescheduleLoading = ref(false);
+        const rescheduleError = ref('');
+
+        const openRescheduleModal = (session) => {
+            rescheduleTarget.value = session;
+            // Pre-fill with current session date
+            const d = session.startStr ? session.startStr.split('T')[0] : '';
+            rescheduleForm.new_date = d;
+            rescheduleError.value = '';
+            showRescheduleModal.value = true;
+        };
+
+        const submitReschedule = async () => {
+            if (!rescheduleForm.new_date) {
+                rescheduleError.value = 'Pilih tanggal baru terlebih dahulu.';
+                return;
+            }
+            rescheduleLoading.value = true;
+            rescheduleError.value = '';
+            try {
+                const session = rescheduleTarget.value;
+                const isCustom = session.extendedProps.is_custom;
+                const payload = {
+                    new_date: rescheduleForm.new_date,
+                    type: isCustom ? 'custom_workout' : 'program_session',
+                };
+                if (isCustom) {
+                    payload.workout_id = session.extendedProps.id;
+                } else {
+                    payload.session_day = session.extendedProps.session_day ?? session.extendedProps.day;
+                }
+
+                const url = `{{ route('coach.athletes.reschedule', $enrollment->id) }}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showRescheduleModal.value = false;
+                    alert(data.message || 'Jadwal berhasil diubah!');
+                    window.location.reload();
+                } else {
+                    rescheduleError.value = data.message || 'Gagal mengubah jadwal.';
+                }
+            } catch (e) {
+                rescheduleError.value = 'Terjadi kesalahan. Silakan coba lagi.';
+            } finally {
+                rescheduleLoading.value = false;
+            }
+        };
+        // ─────────────────────────────────────────────────────────────
 
         // Workout Form State
         const showFormModal = ref(false);

@@ -270,9 +270,11 @@
 
         <form action="{{ route('coach.athletes.enroll') }}" method="POST" class="space-y-4">
             @csrf
+            <input type="hidden" name="existing_user_id" id="enroll_existing_user_id">
+
             <div>
                 <label for="enroll_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
-                <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="onEnrollProgramChange()">
                     @foreach($programs as $program)
                         <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
                             {{ $program->title }}
@@ -281,7 +283,50 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            {{-- ── AJAX Runner Search ─────────────────────────────────── --}}
+            <div class="relative" id="enroll-search-wrap">
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Cari Runner yang Sudah Terdaftar (Opsional)</label>
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                    </svg>
+                    <input type="text" id="enroll_user_search" autocomplete="off"
+                        placeholder="Ketik nama, email, atau no HP..."
+                        class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-9 pr-4 py-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none"
+                        oninput="searchEnrollUsers(this.value)">
+                    <span id="enroll-search-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                        <svg class="w-4 h-4 text-slate-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </span>
+                </div>
+
+                {{-- Dropdown results --}}
+                <div id="enroll-user-dropdown" class="hidden absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto"></div>
+
+                {{-- Selected badge --}}
+                <div id="enroll-selected-user" class="hidden mt-2 flex items-center gap-2 bg-neon/10 border border-neon/30 rounded-xl px-3 py-2">
+                    <div id="enroll-selected-avatar" class="w-7 h-7 rounded-lg bg-neon/20 text-neon font-black text-xs flex items-center justify-center flex-shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                        <div id="enroll-selected-name" class="text-white font-bold text-xs truncate"></div>
+                        <div id="enroll-selected-email" class="text-slate-400 text-[10px] truncate"></div>
+                    </div>
+                    <button type="button" onclick="clearEnrollSelection()" class="text-slate-400 hover:text-white transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            {{-- ──────────────────────────────────────────────────────── --}}
+
+            <div id="enroll-manual-fields" class="space-y-4">
+                <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                    <div class="flex-1 h-px bg-slate-800"></div>
+                    <span>atau isi data baru</span>
+                    <div class="flex-1 h-px bg-slate-800"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="enroll_name" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nama Runner</label>
                     <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
@@ -358,6 +403,8 @@
                 <span class="text-slate-400 font-medium">Estimasi VDOT Score:</span>
                 <span class="text-neon font-black font-mono text-sm" id="vdot-preview-val">-</span>
             </div>
+
+            </div>{{-- end enroll-manual-fields --}}
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
                 <button type="button" onclick="closeEnrollModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
@@ -791,6 +838,121 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
+
+    // ── AJAX Runner Search ──────────────────────────────────────────
+    let enrollSearchTimer = null;
+
+    window.onEnrollProgramChange = function() {
+        // Re-run search if there's an active query
+        const q = document.getElementById('enroll_user_search').value;
+        if (q.length >= 2) searchEnrollUsers(q);
+        clearEnrollSelection();
+    };
+
+    window.searchEnrollUsers = function(q) {
+        const dropdown = document.getElementById('enroll-user-dropdown');
+        const loading = document.getElementById('enroll-search-loading');
+        const programId = document.getElementById('enroll_program_id').value;
+
+        clearTimeout(enrollSearchTimer);
+
+        if (q.length < 2) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        loading.classList.remove('hidden');
+
+        enrollSearchTimer = setTimeout(async () => {
+            try {
+                const url = `{{ route('coach.athletes.search-users') }}?q=${encodeURIComponent(q)}&program_id=${programId}`;
+                const res = await fetch(url, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const users = await res.json();
+
+                if (users.length === 0) {
+                    dropdown.innerHTML = '<div class="px-4 py-3 text-xs text-slate-500 text-center">Tidak ada runner ditemukan</div>';
+                } else {
+                    dropdown.innerHTML = users.map(u => `
+                        <button type="button"
+                            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700/80 transition text-left"
+                            onclick="selectEnrollUser(${JSON.stringify(u).replace(/"/g, '&quot;')})">
+                            <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-sm ${
+                                u.avatar ? '' : 'bg-slate-700 text-slate-300'
+                            }">
+                                ${u.avatar
+                                    ? `<img src="${u.avatar}" class="w-8 h-8 rounded-lg object-cover">`
+                                    : u.initials}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-white text-sm font-bold truncate">${u.name}</div>
+                                <div class="text-slate-400 text-xs truncate">${u.email}</div>
+                            </div>
+                            ${u.phone ? `<div class="text-slate-500 text-[10px] flex-shrink-0">${u.phone}</div>` : ''}
+                        </button>
+                    `).join('<div class="border-t border-slate-700/60"></div>');
+                }
+
+                dropdown.classList.remove('hidden');
+            } catch(e) {
+                console.error('Search error', e);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }, 300);
+    };
+
+    window.selectEnrollUser = function(user) {
+        // Fill hidden id
+        document.getElementById('enroll_existing_user_id').value = user.id;
+
+        // Auto-fill visible fields
+        document.getElementById('enroll_name').value = user.name;
+        document.getElementById('enroll_email').value = user.email;
+        document.getElementById('enroll_phone').value = user.phone || '';
+
+        // Make name & email read-only
+        document.getElementById('enroll_name').readOnly = true;
+        document.getElementById('enroll_name').classList.add('opacity-60', 'cursor-not-allowed');
+        document.getElementById('enroll_email').readOnly = true;
+        document.getElementById('enroll_email').classList.add('opacity-60', 'cursor-not-allowed');
+
+        // Show selected badge
+        const badge = document.getElementById('enroll-selected-user');
+        badge.classList.remove('hidden');
+        document.getElementById('enroll-selected-name').textContent = user.name;
+        document.getElementById('enroll-selected-email').textContent = user.email;
+        document.getElementById('enroll-selected-avatar').textContent = user.initials;
+
+        // Clear search input & dropdown
+        document.getElementById('enroll_user_search').value = '';
+        document.getElementById('enroll-user-dropdown').classList.add('hidden');
+        document.getElementById('enroll-user-dropdown').innerHTML = '';
+    };
+
+    window.clearEnrollSelection = function() {
+        document.getElementById('enroll_existing_user_id').value = '';
+        document.getElementById('enroll_name').value = '';
+        document.getElementById('enroll_email').value = '';
+        document.getElementById('enroll_phone').value = '';
+        document.getElementById('enroll_name').readOnly = false;
+        document.getElementById('enroll_name').classList.remove('opacity-60', 'cursor-not-allowed');
+        document.getElementById('enroll_email').readOnly = false;
+        document.getElementById('enroll_email').classList.remove('opacity-60', 'cursor-not-allowed');
+        document.getElementById('enroll-selected-user').classList.add('hidden');
+    };
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('enroll-search-wrap');
+        if (wrap && !wrap.contains(e.target)) {
+            const dd = document.getElementById('enroll-user-dropdown');
+            if (dd) dd.classList.add('hidden');
+        }
+    });
+    // ───────────────────────────────────────────────────────────────
 
     window.confirmDeleteAthlete = function(enrollmentId, runnerName, programTitle) {
         if (!confirm(`Apakah Anda yakin ingin menghapus atlet "${runnerName}" dari program "${programTitle}"?\nSemua log tracking latihan atlet tersebut pada program ini juga akan dihapus secara permanen.`)) {

@@ -1428,22 +1428,62 @@ class AthleteController extends Controller
     }
 
     /**
+     * AJAX search for existing runner users (for manual enrollment autocomplete)
+     */
+    public function searchUsers(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+        $programId = $request->get('program_id');
+
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $users = \App\Models\User::where('role', 'runner')
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%");
+            })
+            ->when($programId, function ($q) use ($programId) {
+                // Exclude runners already enrolled in this program
+                $q->whereDoesntHave('programEnrollments', function ($eq) use ($programId) {
+                    $eq->where('program_id', $programId);
+                });
+            })
+            ->select('id', 'name', 'email', 'phone', 'avatar')
+            ->limit(8)
+            ->get()
+            ->map(fn ($u) => [
+                'id'     => $u->id,
+                'name'   => $u->name,
+                'email'  => $u->email,
+                'phone'  => $u->phone ?? '',
+                'avatar' => $u->avatar ? asset('storage/' . $u->avatar) : null,
+                'initials' => strtoupper(substr($u->name, 0, 1)),
+            ]);
+
+        return response()->json($users);
+    }
+
+    /**
      * Enroll runner manually
      */
     public function enrollRunner(Request $request)
     {
         $validated = $request->validate([
-            'program_id' => 'required|exists:programs,id',
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'start_date' => 'required|date',
-            'vdot' => 'nullable|numeric|min:10|max:85',
-            'vdot_mode' => 'nullable|string|in:direct,pb,balke',
-            'pb_distance' => 'nullable|string|in:5k,10k,21k,42k',
-            'pb_time' => 'nullable|string|regex:/^([0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}$/',
-            'pb_balke' => 'nullable|numeric|min:100|max:10000',
-            'password' => 'nullable|string|min:6',
+            'program_id'       => 'required|exists:programs,id',
+            'existing_user_id' => 'nullable|exists:users,id',
+            'name'             => 'required_without:existing_user_id|string|max:255',
+            'email'            => 'required_without:existing_user_id|email|max:255',
+            'phone'            => 'nullable|string|max:20',
+            'start_date'       => 'required|date',
+            'vdot'             => 'nullable|numeric|min:10|max:85',
+            'vdot_mode'        => 'nullable|string|in:direct,pb,balke',
+            'pb_distance'      => 'nullable|string|in:5k,10k,21k,42k',
+            'pb_time'          => 'nullable|string|regex:/^([0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}$/',
+            'pb_balke'         => 'nullable|numeric|min:100|max:10000',
+            'password'         => 'nullable|string|min:6',
         ]);
 
         $program = \App\Models\Program::findOrFail($validated['program_id']);
@@ -1473,6 +1513,33 @@ class AthleteController extends Controller
                 // Ignore
             }
         }
+
+        // ── Fast-path: use existing user selected via AJAX search ──
+        if (!empty($validated['existing_user_id'])) {
+            $runner = \App\Models\User::findOrFail($validated['existing_user_id']);
+
+            // Check already enrolled
+            $exists = ProgramEnrollment::where('program_id', $program->id)
+                ->where('runner_id', $runner->id)
+                ->exists();
+            if ($exists) {
+                return back()->with('error', "{$runner->name} sudah terdaftar dalam program ini.");
+            }
+
+            // Enroll directly into Program Bag
+            ProgramEnrollment::create([
+                'program_id'     => $program->id,
+                'runner_id'      => $runner->id,
+                'start_date'     => null,
+                'end_date'       => null,
+                'status'         => 'purchased',
+                'payment_status' => 'paid',
+                'current_vdot'   => $computedVdot ?? $runner->vdot,
+            ]);
+
+            return back()->with('success', "{$runner->name} berhasil didaftarkan ke program bag.");
+        }
+        // ────────────────────────────────────────────────────────────
 
         // Find or create runner
         $runner = \App\Models\User::where('email', $validated['email'])->first();

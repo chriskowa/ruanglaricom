@@ -1067,6 +1067,7 @@ Route::middleware('auth')->group(function () {
 
         // Athlete Monitoring
         Route::get('/athletes', [App\Http\Controllers\Coach\AthleteController::class, 'index'])->name('athletes.index');
+        Route::get('/athletes/search-users', [App\Http\Controllers\Coach\AthleteController::class, 'searchUsers'])->name('athletes.search-users');
         Route::post('/athletes/enroll', [App\Http\Controllers\Coach\AthleteController::class, 'enrollRunner'])->name('athletes.enroll');
         Route::post('/athletes/import-enroll', [App\Http\Controllers\Coach\AthleteController::class, 'importEnroll'])->name('athletes.import-enroll');
         Route::get('/athletes/import-template', [App\Http\Controllers\Coach\AthleteController::class, 'downloadImportTemplate'])->name('athletes.import-template');
