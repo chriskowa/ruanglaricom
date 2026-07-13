@@ -1535,17 +1535,13 @@ class AthleteController extends Controller
             return back()->with('error', "Runner dengan email {$validated['email']} sudah terdaftar dalam program ini.");
         }
 
-        // Enroll
-        $durationWeeks = $program->duration_weeks ?? 12;
-        $startDate = Carbon::parse($validated['start_date']);
-        $endDate = $startDate->copy()->addWeeks($durationWeeks);
-
+        // Enroll (go to Program Bag first)
         ProgramEnrollment::create([
             'program_id' => $program->id,
             'runner_id' => $runner->id,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'status' => 'active',
+            'start_date' => null,
+            'end_date' => null,
+            'status' => 'purchased',
             'payment_status' => 'paid', // manually enrolled by coach
             'current_vdot' => $computedVdot ?? $runner->vdot,
         ]);
@@ -1738,16 +1734,13 @@ class AthleteController extends Controller
                 continue;
             }
 
-            // Enroll
-            $startDate = Carbon::parse($data['start_date'] ?? now());
-            $endDate = $startDate->copy()->addWeeks($durationWeeks);
-
+            // Enroll (go to Program Bag first)
             ProgramEnrollment::create([
                 'program_id' => $program->id,
                 'runner_id' => $runner->id,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'status' => 'active',
+                'start_date' => null,
+                'end_date' => null,
+                'status' => 'purchased',
                 'payment_status' => 'paid',
                 'current_vdot' => $computedVdot ?? $runner->vdot,
             ]);

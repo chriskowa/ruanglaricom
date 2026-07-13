@@ -260,7 +260,7 @@
     <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="enrollModalContent">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Daftarkan Runner Manual</h3>
+                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Daftarkan Runner Manual</h3>
                 <p class="text-xs text-slate-400 mt-1">Daftarkan atlet baru atau hubungkan atlet yang sudah terdaftar.</p>
             </div>
             <button onclick="closeEnrollModal()" class="text-slate-500 hover:text-white transition-colors">
@@ -271,7 +271,7 @@
         <form action="{{ route('coach.athletes.enroll') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label for="enroll_program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Pilih Program Latihan</label>
+                <label for="enroll_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
                 <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                     @foreach($programs as $program)
                         <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
@@ -283,33 +283,33 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="enroll_name" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Nama Runner</label>
+                    <label for="enroll_name" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nama Runner</label>
                     <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                 </div>
                 <div>
-                    <label for="enroll_phone" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">No HP / WhatsApp (Opsional)</label>
+                    <label for="enroll_phone" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">No HP / WhatsApp (Opsional)</label>
                     <input type="text" name="phone" id="enroll_phone" placeholder="Contoh: 081234567890" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="enroll_email" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Email Runner</label>
+                    <label for="enroll_email" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email Runner</label>
                     <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                 </div>
                 <div>
-                    <label for="enroll_start_date" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Tanggal Mulai</label>
+                    <label for="enroll_start_date" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Tanggal Mulai</label>
                     <input type="date" name="start_date" id="enroll_start_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                 </div>
             </div>
 
             <div>
-                <label for="enroll_password" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Password (Opsional)</label>
+                <label for="enroll_password" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Password (Opsional)</label>
                 <input type="text" name="password" id="enroll_password" placeholder="Kosongkan untuk auto-generate" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
                 <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button type="button" onclick="setVdotMode('direct')" id="btn-vdot-direct" class="py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark">
                         Direct VDOT
@@ -326,14 +326,14 @@
 
             <!-- VDOT Input Sections -->
             <div id="sec-vdot-direct" class="space-y-2">
-                <label for="enroll_vdot" class="block text-xs font-mono text-cyan-400 uppercase tracking-wider">VDOT Score (Opsional)</label>
+                <label for="enroll_vdot" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">VDOT Score (Opsional)</label>
                 <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
             </div>
 
             <div id="sec-vdot-pb" class="space-y-3 hidden">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="enroll_pb_distance" class="block text-xs font-mono text-cyan-400 mb-1.5 uppercase tracking-wider">Jarak PB</label>
+                        <label for="enroll_pb_distance" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Jarak PB</label>
                         <select name="pb_distance" id="enroll_pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="calculatePreviewVDOT()">
                             <option value="5k">5K (5.000m)</option>
                             <option value="10k">10K (10.000m)</option>
@@ -342,14 +342,14 @@
                         </select>
                     </div>
                     <div>
-                        <label for="enroll_pb_time" class="block text-xs font-mono text-cyan-400 mb-1.5 uppercase tracking-wider">Waktu (MM:SS / HH:MM:SS)</label>
+                        <label for="enroll_pb_time" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Waktu (MM:SS / HH:MM:SS)</label>
                         <input type="text" name="pb_time" id="enroll_pb_time" placeholder="Waktu (e.g. 22:30)" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
                     </div>
                 </div>
             </div>
 
             <div id="sec-vdot-balke" class="space-y-2 hidden">
-                <label for="enroll_pb_balke" class="block text-xs font-mono text-cyan-400 uppercase tracking-wider">Jarak Tempuh Balke (Meter - 15 Menit)</label>
+                <label for="enroll_pb_balke" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Jarak Tempuh Balke (Meter - 15 Menit)</label>
                 <input type="number" name="pb_balke" id="enroll_pb_balke" placeholder="Contoh: 3100" min="100" max="10000" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
             </div>
 
@@ -377,7 +377,7 @@
     <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="importModalContent">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Import Runner</h3>
+                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Import Runner</h3>
                 <p class="text-xs text-slate-400 mt-1">Import beberapa runner sekaligus menggunakan file CSV atau JSON.</p>
             </div>
             <button onclick="closeImportModal()" class="text-slate-500 hover:text-white transition-colors">
@@ -388,7 +388,7 @@
         <form action="{{ route('coach.athletes.import-enroll') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <div>
-                <label for="import_program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Pilih Program Latihan</label>
+                <label for="import_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
                 <select name="program_id" id="import_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                     @foreach($programs as $program)
                         <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
@@ -399,7 +399,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Upload File (CSV / JSON)</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Upload File (CSV / JSON)</label>
                 <div class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center hover:border-neon/60 transition-colors relative cursor-pointer group bg-slate-800/20">
                     <input type="file" name="file" id="import_file" required accept=".csv,.json" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)">
                     <svg class="w-10 h-10 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
