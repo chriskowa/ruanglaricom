@@ -1841,107 +1841,56 @@ class AthleteController extends Controller
     }
 
     /**
-     * Reschedule a workout (Drag & Drop) for coach
+     * Reschedule the entire program for a runner (coach action)
      */
     public function reschedule(Request $request, $enrollmentId)
     {
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+
         if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
         $validated = $request->validate([
-            'type' => 'required|in:program_session,custom_workout',
-            'new_date' => 'required|date',
-            // For custom workout
-            'workout_id' => 'nullable|required_if:type,custom_workout|exists:custom_workouts,id',
-            // For program session
-            'session_day' => 'nullable|required_if:type,program_session|integer',
+            'new_start_date' => 'required|date',
         ]);
 
-        $newDate = Carbon::parse($validated['new_date']);
-        $runnerId = $enrollment->runner_id;
+        $startDate    = Carbon::parse($validated['new_start_date']);
+        $program      = $enrollment->program;
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $endDate      = $startDate->copy()->addWeeks($durationWeeks);
+        $runnerId     = $enrollment->runner_id;
 
-        if ($validated['type'] === 'custom_workout') {
-            $workout = \App\Models\CustomWorkout::where('id', $validated['workout_id'])
-                ->where('runner_id', $runnerId)
-                ->firstOrFail();
-
-            try {
-                $workout->update(['workout_date' => $newDate]);
-            } catch (\Illuminate\Database\QueryException $e) {
-                // Swapping if duplicate date constraint
-                if ($e->errorInfo[1] == 1062) {
-                    $existingWorkout = \App\Models\CustomWorkout::where('runner_id', $runnerId)
-                        ->where('workout_date', $newDate->format('Y-m-d'))
-                        ->first();
-
-                    if ($existingWorkout) {
-                        \DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
-                            $originalDate = $workout->workout_date;
-                            $tempDate = Carbon::parse('1970-01-01');
-                            while (\App\Models\CustomWorkout::where('runner_id', $workout->runner_id)->where('workout_date', $tempDate->format('Y-m-d'))->exists()) {
-                                $tempDate->subDay();
-                            }
-
-                            $existingWorkout->update(['workout_date' => $tempDate]);
-                            $workout->update(['workout_date' => $newDate]);
-                            $existingWorkout->update(['workout_date' => $originalDate]);
-                        });
-
-                        // Notify Runner
-                        \App\Models\Notification::create([
-                            'user_id' => $runnerId,
-                            'type' => 'workout_rescheduled',
-                            'title' => 'Workout Rescheduled',
-                            'message' => 'Coach ' . auth()->user()->name . ' swapped your workouts for ' . $newDate->format('d M Y'),
-                            'reference_type' => 'custom_workout',
-                            'reference_id' => $workout->id,
-                            'is_read' => false,
-                        ]);
-
-                        return response()->json(['success' => true, 'message' => 'Jadwal latihan ditukar karena tanggal tujuan sudah terisi.']);
-                    }
-                }
-                throw $e;
-            }
-
-            // Notify Runner
-            \App\Models\Notification::create([
-                'user_id' => $runnerId,
-                'type' => 'workout_rescheduled',
-                'title' => 'Workout Rescheduled',
-                'message' => 'Coach ' . auth()->user()->name . ' rescheduled your workout to ' . $newDate->format('d M Y'),
-                'reference_type' => 'custom_workout',
-                'reference_id' => $workout->id,
-                'is_read' => false,
+        \DB::transaction(function () use ($enrollment, $startDate, $endDate) {
+            // Update enrollment dates
+            $enrollment->update([
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+                'status'     => 'active',
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Custom workout rescheduled']);
-        } else {
-            ProgramSessionTracking::updateOrCreate(
-                [
-                    'enrollment_id' => $enrollment->id,
-                    'session_day' => $validated['session_day'],
-                ],
-                [
-                    'rescheduled_date' => $newDate,
-                ]
-            );
+            // Clear all per-session reschedule overrides so sessions align to new start
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+                ->update(['rescheduled_date' => null]);
+        });
 
-            // Notify Runner
-            \App\Models\Notification::create([
-                'user_id' => $runnerId,
-                'type' => 'workout_rescheduled',
-                'title' => 'Workout Rescheduled',
-                'message' => 'Coach ' . auth()->user()->name . ' rescheduled your program session to ' . $newDate->format('d M Y'),
-                'reference_type' => 'program_enrollment',
-                'reference_id' => $enrollment->id,
-                'is_read' => false,
-            ]);
+        // Notify runner
+        \App\Models\Notification::create([
+            'user_id'        => $runnerId,
+            'type'           => 'program_rescheduled',
+            'title'          => 'Program Dijadwalkan Ulang',
+            'message'        => 'Coach ' . auth()->user()->name . ' telah mengubah jadwal program "' . $program->title . '" mulai ' . $startDate->format('d M Y') . '.',
+            'reference_type' => 'program_enrollment',
+            'reference_id'   => $enrollment->id,
+            'is_read'        => false,
+        ]);
 
-            return response()->json(['success' => true, 'message' => 'Program session rescheduled']);
-        }
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Program berhasil dijadwalkan ulang mulai ' . $startDate->format('d M Y') . '.',
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date'   => $endDate->format('Y-m-d'),
+        ]);
     }
 
     /**
