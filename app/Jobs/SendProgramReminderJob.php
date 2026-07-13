@@ -37,8 +37,8 @@ class SendProgramReminderJob implements ShouldQueue
      */
     public function handle(OpenAiService $openAiService, RunningProfileService $profileService): void
     {
-        if (!$this->user->phone) {
-            Log::info("Skipping program reminder for User #{$this->user->id}: No phone number.");
+        if (!$this->user->phone || !$this->user->is_receive_wa) {
+            Log::info("Skipping program reminder for User #{$this->user->id}: No phone number or WA notifications disabled.");
             return;
         }
 
@@ -50,12 +50,11 @@ class SendProgramReminderJob implements ShouldQueue
             $prompt = $this->buildPrompt($profileData);
 
             // Generate message using OpenAI
-            $systemMessage = "Anda adalah pelatih lari pribadi (Coach lari) dari Ruang Lari. Tulis pesan WhatsApp singkat yang super natural, hangat, akrab (gunakan sapaan santai kasual, seolah mengirim chat WhatsApp pribadi dari teman atau pelatih dekat), dan memotivasi atlet.\n\n"
-                . "ATURAN PENTING:\n"
-                . "- JANGAN gunakan format formal atau kaku. Gunakan bahasa Indonesia santai sehari-hari (casual Indonesian).\n"
-                . "- Batasi maksimal 2-3 kalimat agar tidak terlalu panjang.\n"
-                . "- Sisipkan placeholder '[LINK_CALENDAR]' di bagian akhir kalimat yang pas untuk mengarahkan atlet melihat detail kalender latihan mereka.\n"
-                . "- Jangan gunakan panggilan kaku seperti 'Halo Atlet', sebut nama panggilan atlet secara langsung.";
+            $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok serta link program.\n\n"
+                . "ATURAN:\n"
+                . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
+                . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
+                . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.";
             
             $message = $openAiService->getAiResponse($prompt, $systemMessage);
             $calendarUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
@@ -116,27 +115,25 @@ class SendProgramReminderJob implements ShouldQueue
         $pacesInfo = "";
         if (!empty($profileData['paces'])) {
             $paces = $profileData['paces'];
-            $pacesInfo = "Pace Latihan Atlet: Easy (" . ($paces['easy'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? '-') . "), Interval (" . ($paces['interval'] ?? '-') . ").";
+            $pacesInfo = "Pace Latihan: Easy (" . ($paces['easy'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? '-') . "), Interval (" . ($paces['interval'] ?? '-') . ").";
         }
 
-        $prompt = "Tolong buatkan pesan WhatsApp natural untuk mengingatkan jadwal program lari besok kepada atlet saya.\n\n";
+        $prompt = "Buatkan pesan WhatsApp pengingat jadwal program lari besok.\n\n";
         $prompt .= "Nama Atlet: {$this->user->name}\n";
         $prompt .= "Nama Program: {$this->program->title}\n";
-        $prompt .= $pacesInfo . "\n\n";
+        if ($pacesInfo) $prompt .= $pacesInfo . "\n";
 
         if ($isRest) {
             $prompt .= "Jadwal Besok: REST DAY (Hari Istirahat/Pemulihan).\n";
-            $prompt .= "Instruksi Khusus: Ingatkan dia untuk istirahat, beri semangat, dan sarankan sedikit tips active recovery ringan atau penguatan (strengthening/mobility) karena besok jadwalnya kosong. Pastikan bahasanya natural seperti asisten pelatih yang peduli. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi: Tulis pesan singkat yang hangat agar atlet beristirahat dengan baik besok. Wajib sertakan '[LINK_CALENDAR]'.";
         } else {
             $prompt .= "Jadwal Besok: {$this->sessionData['type']}\n";
             if ($distance) $prompt .= "Jarak: {$distance} km\n";
             if ($duration) $prompt .= "Durasi: {$duration}\n";
             if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
             
-            $prompt .= "Instruksi Khusus: Beri tahu jadwal besok and beri motivasi singkat yang berapi-api agar dia semangat latihan besok pagi. Pastikan bahasanya natural seperti chat WhatsApp dari asisten pelatih yang akrab. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
         }
-
-        $prompt .= "\nTambahan: Ingatkan juga atlet untuk memperbarui data PB (Personal Best) mereka di aplikasi agar perhitungan pacing latihan yang diberikan pelatih tetap tepat dan sesuai.";
 
         return $prompt;
     }
@@ -150,13 +147,14 @@ class SendProgramReminderJob implements ShouldQueue
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
 
         if ($isRest) {
-            return "Halo {$this->user->name}! Besok jadwal program *{$this->program->title}* kamu itu *Rest Day* ya. Manfaatin waktu istirahat sebaik mungkin biar ototnya recovery dengan maksimal. Oya, jangan lupa update data PB (Personal Best) kamu di profil ya, biar pacing latihan berikutnya tetap pas dan akurat! Tetap semangat! 💪\n\nCek kalendermu di sini: {$calendarUrl}";
+            return "Halo {$this->user->name}, besok jadwal program *{$this->program->title}* kamu adalah *Rest Day* ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
         }
 
         $detail = "";
-        if (!empty($this->sessionData['distance'])) $detail .= " Jarak: {$this->sessionData['distance']}km.";
+        if (!empty($this->sessionData['distance'])) $detail .= " Jarak: {$this->sessionData['distance']} km.";
         if (!empty($this->sessionData['duration'])) $detail .= " Durasi: {$this->sessionData['duration']}.";
+        if (!empty($this->sessionData['target_pace'])) $detail .= " Target Pace: {$this->sessionData['target_pace']}.";
         
-        return "Halo {$this->user->name}! Mengingatkan saja, besok jadwal kamu adalah sesi *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Yuk, persiapkan sepatu dan kelengkapannya malam ini biar besok tinggal gas! Oh ya, pastikan data PB (Personal Best) kamu di profil sudah terupdate ya agar pacing latihan kamu selalu tepat dan sesuai. Semangat! 🔥\n\nDetail kalender: {$calendarUrl}";
+        return "Halo {$this->user->name}, besok jadwal kamu adalah *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Semangat! Detail latihan: {$calendarUrl}";
     }
 }
