@@ -129,10 +129,6 @@ class User extends Authenticatable
         return $this->hasOne(Pacer::class);
     }
 
-    public function programEnrollments()
-    {
-        return $this->hasMany(\App\Models\ProgramEnrollment::class, 'runner_id');
-    }
 
     /**
      * The attributes that should be hidden for serialization.
