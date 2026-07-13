@@ -70,10 +70,18 @@ class ProgramController extends Controller
             ->take(8)
             ->get();
 
+        // 4. Get completed and inactive enrollments (History)
+        $historyEnrollments = ProgramEnrollment::where('runner_id', $user->id)
+            ->whereIn('status', ['inactive', 'completed'])
+            ->with(['program.coach'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         return view('runner.programs', [
             'activePrograms' => $activePrograms,
             'programBag' => $programBag,
             'marketPrograms' => $marketPrograms,
+            'historyPrograms' => $historyEnrollments,
         ]);
     }
 }

@@ -115,7 +115,7 @@ class PublicProgramController extends Controller
         if (auth()->check() && auth()->user()->role === 'runner') {
             $isEnrolled = $program->enrollments()
                 ->where('runner_id', auth()->id())
-                ->where('status', '!=', 'cancelled')
+                ->whereIn('status', ['purchased', 'active'])
                 ->exists();
         }
 

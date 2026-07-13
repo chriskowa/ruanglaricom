@@ -184,6 +184,74 @@
         @endif
     </div>
 
+    <!-- History & Expired Programs Section -->
+    <div class="mb-10" id="riwayat-program">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-slate-500 rounded-full"></span>
+            Riwayat & Program Non-aktif (Expired / Selesai)
+        </h2>
+
+        @if($historyPrograms->count() > 0)
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($historyPrograms as $hist)
+                    @php
+                        $prog = $hist->program;
+                        $coach = $prog->coach;
+                    @endphp
+                    <div class="rounded-2xl bg-slate-900/40 border border-slate-800/60 p-5 flex flex-col justify-between hover:border-slate-700 transition">
+                        <div>
+                            <!-- Header Info -->
+                            <div class="flex justify-between items-start gap-3 mb-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider 
+                                    @if($hist->status === 'inactive') bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                    @else bg-blue-500/10 text-blue-400 border border-blue-500/20 @endif">
+                                    {{ $hist->status === 'inactive' ? 'Non-aktif (Expired)' : 'Selesai' }}
+                                </span>
+                                <span class="text-xs text-slate-500 font-mono font-bold">{{ $prog->duration_weeks ?? 12 }} Minggu</span>
+                            </div>
+
+                            <h3 class="text-base font-bold text-slate-300 uppercase tracking-tight line-clamp-2 min-h-[3rem]">{{ $prog->title }}</h3>
+
+                            <!-- Coach Profile -->
+                            @if($coach)
+                            <div class="flex items-center gap-2.5 my-4">
+                                <img src="{{ $coach->avatar ? (str_starts_with($coach->avatar, 'http') ? $coach->avatar : (str_starts_with($coach->avatar, '/storage') ? asset(ltrim($coach->avatar, '/')) : asset('storage/' . $coach->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ $coach->name }}" class="w-6 h-6 rounded-full object-cover">
+                                <span class="text-xs font-bold text-slate-400">{{ $coach->name }}</span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Buy Again / Renew Button -->
+                        <div class="mt-4">
+                            @if($prog->price == 0)
+                                <form action="{{ route('runner.programs.enroll-free', $prog->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-redo"></i>
+                                        Ambil Gratis Lagi
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('marketplace.cart.add', $prog->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        Beli / Daftar Ulang
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <!-- Empty state history -->
+            <div class="rounded-2xl border border-dashed border-slate-800 bg-slate-900/10 p-6 text-center max-w-xl">
+                <p class="text-xs text-slate-500">Belum ada riwayat program selesai atau program kedaluwarsa.</p>
+            </div>
+        @endif
+    </div>
+
     <!-- Recommended / Market Section -->
     <div class="border-t border-slate-800/80 pt-10">
         <div class="flex items-center justify-between gap-4 mb-6">
@@ -254,9 +322,13 @@
                             </div>
 
                             @php
-                                $isEnrolled = auth()->user() ? \App\Models\ProgramEnrollment::where('runner_id', auth()->id())
-                                    ->where('program_id', $prog->id)
-                                    ->exists() : false;
+                                $isEnrolled = false;
+                                if (auth()->user()) {
+                                    $isEnrolled = \App\Models\ProgramEnrollment::where('runner_id', auth()->id())
+                                        ->where('program_id', $prog->id)
+                                        ->whereIn('status', ['purchased', 'active'])
+                                        ->exists();
+                                }
                             @endphp
 
                             <div class="w-full">

@@ -97,7 +97,16 @@
                                 </button>
                             </div>
                         </div>
-                        <p class="text-neon font-mono text-sm tracking-widest uppercase mt-1">{{ $enrollment->program->title }}</p>
+                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                            <span class="text-neon font-mono text-sm tracking-widest uppercase">{{ $enrollment->program->title }}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border
+                                @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
+                                @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
+                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Program Bag' : $enrollment->status) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

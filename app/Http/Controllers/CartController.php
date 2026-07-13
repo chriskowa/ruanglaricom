@@ -40,14 +40,13 @@ class CartController extends Controller
             return back()->withErrors(['error' => 'Program tidak tersedia.']);
         }
 
-        $user = Auth::user();
         $isEnrolled = $program->enrollments()
             ->where('runner_id', $user->id)
-            ->where('status', '!=', 'cancelled')
+            ->whereIn('status', ['purchased', 'active'])
             ->exists();
 
         if ($isEnrolled) {
-            return back()->withErrors(['error' => 'Anda sudah terdaftar di program ini.']);
+            return back()->withErrors(['error' => 'Anda sedang menjalankan program aktif ini. Harap selesaikan terlebih dahulu sebelum mendaftar ulang.']);
         }
 
         // Check if already in cart

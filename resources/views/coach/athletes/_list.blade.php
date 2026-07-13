@@ -79,7 +79,16 @@
 
                                 <div class="mb-4">
                                     <div class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Active Program</div>
-                                    <div class="font-medium text-slate-300 text-sm truncate">{{ $enrollment->program->title }}</div>
+                                    <div class="font-medium text-slate-300 text-sm truncate flex items-center justify-between">
+                                        <span>{{ $enrollment->program->title }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[9px] uppercase font-bold border ml-2
+                                            @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                            @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
+                                            @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                            @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
+                                            {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Program Bag' : $enrollment->status) }}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <!-- Pace zones -->
@@ -225,6 +234,13 @@
                             <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-slate-700 text-slate-300">
                                 {{ $enrollment->program->difficulty }}
                             </span>
+                            <span class="ml-1 px-2 py-0.5 rounded text-[10px] uppercase font-bold border
+                                @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
+                                @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
+                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Program Bag' : $enrollment->status) }}
+                            </span>
                         </td>
                         <td class="py-4 font-mono text-sm font-bold">
                             @if($enrollment->runner->vdot)
@@ -306,6 +322,13 @@
                             </div>
                             <span class="px-2 py-0.5 rounded text-[9px] uppercase font-black bg-slate-700 text-slate-300">
                                 {{ $enrollment->program->difficulty }}
+                            </span>
+                            <span class="ml-1 px-2 py-0.5 rounded text-[9px] uppercase font-bold border
+                                @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
+                                @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
+                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Program Bag' : $enrollment->status) }}
                             </span>
                         </div>
 

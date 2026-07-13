@@ -33,6 +33,10 @@ class AthleteController extends Controller
         })
             ->with(['runner', 'program']);
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
         if ($search) {
             $query->whereHas('runner', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")

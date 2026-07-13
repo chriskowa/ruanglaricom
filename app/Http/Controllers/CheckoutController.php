@@ -145,7 +145,7 @@ class CheckoutController extends Controller
 
                     $existingEnrollment = ProgramEnrollment::where('program_id', $program->id)
                         ->where('runner_id', $user->id)
-                        ->where('status', '!=', 'cancelled')
+                        ->whereIn('status', ['purchased', 'active'])
                         ->first();
 
                     if (! $existingEnrollment) {

@@ -64,7 +64,7 @@
                 <input type="hidden" name="tab" value="{{ $tab }}">
                 
                 <div class="grid grid-cols-12 gap-4 items-end">
-                    <div class="col-span-4">
+                    <div class="col-span-3">
                         <label for="search" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Search Runner</label>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors group-focus-within:text-neon">
@@ -76,7 +76,7 @@
                                 class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 pl-10 placeholder-slate-500 transition-all focus:bg-slate-800/80 focus:shadow-neon-cyan">
                         </div>
                     </div>
-                    <div class="col-span-4">
+                    <div class="col-span-3">
                         <label for="program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Filter Program</label>
                         <div class="relative">
                             <select name="program_id" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
@@ -92,7 +92,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-span-4">
+                    <div class="col-span-3">
+                        <label for="status" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Status Program</label>
+                        <div class="relative">
+                            <select name="status" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
+                                <option value="">Semua Status</option>
+                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Non-aktif (Expired)</option>
+                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                                <option value="purchased" {{ request('status') == 'purchased' ? 'selected' : '' }}>Kantong Program</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-span-3">
                         <label for="sort_by" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Urutkan</label>
                         <div class="relative">
                             <select name="sort_by" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
