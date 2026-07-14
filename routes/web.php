@@ -448,6 +448,7 @@ Route::get('/api/run-connect/runner/{userId}/profile', [RunConnectController::cl
 Route::get('/api/run-connect/buddies', [RunConnectController::class, 'getRunningBuddies'])->name('api.run-connect.buddies');
 Route::post('/api/run-connect/threads/{id}/recap', [RunConnectController::class, 'uploadRecap'])->name('api.run-connect.recap');
 Route::get('/api/run-connect/leaderboard', [RunConnectController::class, 'getLeaderboard'])->name('api.run-connect.leaderboard');
+Route::get('/api/strava/leaderboard', [App\Http\Controllers\HomeController::class, 'stravaLeaderboard'])->name('api.strava.leaderboard');
 
 // Notifications API
 Route::get('/api/notifications', [RunConnectController::class, 'getNotifications'])->name('api.notifications.index');

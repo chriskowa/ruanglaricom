@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index(StravaClubService $stravaService)
+    public function index()
     {
         $homepageContent = Cache::remember('home.content', 3600, function () {
             return HomepageContent::first();
@@ -38,24 +38,7 @@ class HomeController extends Controller
                 ->first();
         });
 
-        $leaderboard = Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
-            try {
-                $data = $stravaService->getLeaderboard();
-
-                return (is_array($data) && ($data['fastest'] || $data['distance'] || $data['elevation'])) ? $data : null;
-            } catch (\Throwable $e) {
-                return null;
-            }
-        });
-
-        // Fallback to permanent cache if recent fetch failed/returned null but we have old data
-        if (! $leaderboard) {
-            $leaderboard = Cache::get('home.leaderboard.last');
-        } else {
-            // Update permanent cache
-            Cache::forever('home.leaderboard.last', $leaderboard);
-            Cache::forever('home.leaderboard.last_at', now()->toISOString());
-        }
+        // Leaderboard is loaded asynchronously via AJAX — no blocking Strava call here.
 /*
         $topStats = Cache::remember('home.top_stats', 3600, function () {
             // OPTIMIZATION: Use role index (added in migration)
@@ -90,13 +73,45 @@ class HomeController extends Controller
 */
         return view('home.index', [
             'homepageContent' => $homepageContent,
-            'featuredEvent' => $featuredEvent,
-            'leaderboard' => $leaderboard,
+            'featuredEvent'   => $featuredEvent,
+            'leaderboard'     => null, // Loaded asynchronously via AJAX
             //'topRunner' => $topStats['runner'],
             //'topPacer' => $topStats['pacer'],
             //'topCoach' => $topStats['coach'],
             //'topCoachData' => $topStats['coachData'],
             //'totalUsers' => $topStats['totalUsers'] ?? 0,
         ]);
+    }
+
+    /**
+     * Public JSON API for home Strava leaderboard widget.
+     * Called asynchronously so it never blocks the page render.
+     */
+    public function stravaLeaderboard(StravaClubService $stravaService)
+    {
+        // Serve from persistent cache first (stale-while-revalidate pattern)
+        $leaderboard = Cache::get('home.leaderboard.data') ?? Cache::get('home.leaderboard.last');
+
+        if ($leaderboard) {
+            return response()->json([
+                'ok'   => true,
+                'data' => $leaderboard,
+                'cached_at' => Cache::get('home.leaderboard.last_at'),
+            ]);
+        }
+
+        // Cache miss — fetch live and cache result
+        try {
+            $data = $stravaService->getLeaderboard();
+            $valid = is_array($data) && ($data['fastest'] || $data['distance'] || $data['elevation']);
+            if ($valid) {
+                Cache::put('home.leaderboard.data', $data, 3600);
+                Cache::forever('home.leaderboard.last', $data);
+                Cache::forever('home.leaderboard.last_at', now()->toISOString());
+                return response()->json(['ok' => true, 'data' => $data]);
+            }
+        } catch (\Throwable $e) {}
+
+        return response()->json(['ok' => false, 'data' => null]);
     }
 }

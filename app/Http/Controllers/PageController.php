@@ -34,8 +34,10 @@ class PageController extends Controller
             return Menu::where('location', 'primary_navigation')->with('items.children')->first();
         });
 
-        // Get homepage template or default
-        $homepageTemplate = PageTemplate::homepage()->active()->first();
+        // Get homepage template or default (cached 30 min)
+        $homepageTemplate = Cache::remember('home.page_template', 1800, function () {
+            return PageTemplate::homepage()->active()->first();
+        });
         
         $featuredEvents = Cache::remember('home.featured_events', 300, function () {
             return Event::query()
@@ -88,29 +90,15 @@ class PageController extends Controller
                 ->get();
         });
 
-        $leaderboard = Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
-            try {
-                $data = $stravaService->getLeaderboard();
-                return (is_array($data) && ($data['fastest'] || $data['distance'] || $data['elevation'])) ? $data : null;
-            } catch (\Throwable $e) {
-                return null;
-            }
-        });
 
-        if (!$leaderboard) {
-            $leaderboard = Cache::get('home.leaderboard.last');
-        } else {
-            Cache::forever('home.leaderboard.last', $leaderboard);
-            Cache::forever('home.leaderboard.last_at', now()->toISOString());
-        }
 
         return view('home.index', [
             'homepageContent' => $homepageContent,
-            'featuredEvent' => $featuredEvent,
-            'featuredEvents' => $featuredEvents,
+            'featuredEvent'   => $featuredEvent,
+            'featuredEvents'  => $featuredEvents,
             'featuredArticles' => $featuredArticles,
-            'leaderboard' => $leaderboard,
-            'primaryMenu' => $primaryMenu,
+            'leaderboard'     => null, // Loaded asynchronously via AJAX
+            'primaryMenu'     => $primaryMenu,
             'skipHeavyAssets' => true,
         ]);
     }

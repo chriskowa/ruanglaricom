@@ -467,135 +467,65 @@
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    @if(isset($leaderboard) && ($leaderboard['fastest'] || $leaderboard['distance'] || $leaderboard['elevation']))
-                        
-                        <!-- 1. Fastest Pace (Speed Demon) -->
-                        @if($leaderboard['fastest'])
-                        <div class="group relative" data-aos="fade-up" data-aos-delay="0">
-                            <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-blue-500/50 transition duration-300 h-full flex flex-col justify-between">
-                                <!-- Icon / Rank Badge -->
-                                <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] text-white text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
-                                    <i class="fas fa-bolt"></i> Speed Demon
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="leaderboardGrid">
+                    <!-- Skeleton Loaders (shown while AJAX loads) -->
+                    <div class="leaderboard-skeleton group relative" data-aos="fade-up" data-aos-delay="0">
+                        <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden h-full">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] px-4 py-2 rounded-bl-2xl">
+                                <div class="h-3 w-20 bg-slate-700 rounded animate-pulse"></div>
+                            </div>
+                            <div class="pt-6 flex items-center gap-4 mb-6">
+                                <div class="w-16 h-16 rounded-full bg-slate-700 animate-pulse flex-shrink-0"></div>
+                                <div class="space-y-2 flex-1">
+                                    <div class="h-4 bg-slate-700 rounded animate-pulse w-3/4"></div>
+                                    <div class="h-3 bg-slate-800 rounded animate-pulse w-1/2"></div>
                                 </div>
-                                
-                                <div class="pt-6">
-                                    <!-- Profile -->
-                                    <div class="flex items-center gap-4 mb-6">
-                                        <div class="relative">
-                                            <div class="w-16 h-16 rounded-full p-0.5 bg-blue-500">
-                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-[#0E1A2D]">
-                                            </div>
-                                            <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#0E1A2D]">#1</div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-white font-bold text-base leading-tight">{{ $leaderboard['fastest']['name'] }}</h4>
-                                            <p class="text-[#94A3B8] text-xs uppercase tracking-wider font-semibold">Fastest pace</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Stats -->
-                                <div class="mt-4">
-                                    <div class="flex items-end justify-between mb-2">
-                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Pace</span>
-                                        <span class="text-3xl font-black text-white">{{ $leaderboard['fastest']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
-                                    </div>
-                                    <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
-                                        <div class="h-full bg-blue-500 w-[95%]"></div>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <div class="h-3 bg-slate-800 rounded animate-pulse w-1/3"></div>
+                                <div class="h-8 bg-slate-700 rounded animate-pulse w-1/2 ml-auto"></div>
+                                <div class="h-2 bg-slate-800 rounded-full animate-pulse w-full"></div>
                             </div>
                         </div>
-                        @endif
-
-                        <!-- 2. Longest Distance (Distance Monster) -->
-                        @if($leaderboard['distance'])
-                        <div class="group relative transform md:-translate-y-4" data-aos="fade-up" data-aos-delay="100">
-                            <!-- MVP Crown Banner -->
-                            <div class="absolute top-0 right-0 bg-[#FC4C02] text-white text-[10px] font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5 z-20">
-                                <i class="fas fa-crown"></i> MVP Leader
+                    </div>
+                    <div class="leaderboard-skeleton group relative transform md:-translate-y-4" data-aos="fade-up" data-aos-delay="100">
+                        <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden h-full">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] px-4 py-2 rounded-bl-2xl">
+                                <div class="h-3 w-20 bg-slate-700 rounded animate-pulse"></div>
                             </div>
-                            <div class="relative bg-[#0E1A2D] border border-[#B8FF00]/50 rounded-3xl p-6 overflow-hidden transition duration-300 h-full flex flex-col justify-between shadow-[0_0_30px_rgba(184,255,0,0.05)]">
-                                
-                                <div class="pt-6">
-                                    <!-- Profile -->
-                                    <div class="flex items-center gap-4 mb-6">
-                                        <div class="relative">
-                                            <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-[#B8FF00] to-emerald-400">
-                                                <img src="{{ $leaderboard['distance']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-4 border-[#0E1A2D]">
-                                            </div>
-                                            <div class="absolute -bottom-1 -right-1 bg-[#B8FF00] text-[#08111F] text-xs font-black px-2 py-0.5 rounded-full border-2 border-[#0E1A2D]">MVP</div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['distance']['name'] }}</h4>
-                                            <p class="text-[#B8FF00] text-xs uppercase tracking-wider font-semibold">Distance Leader</p>
-                                        </div>
-                                    </div>
+                            <div class="pt-6 flex items-center gap-4 mb-6">
+                                <div class="w-20 h-20 rounded-full bg-slate-700 animate-pulse flex-shrink-0"></div>
+                                <div class="space-y-2 flex-1">
+                                    <div class="h-4 bg-slate-700 rounded animate-pulse w-3/4"></div>
+                                    <div class="h-3 bg-slate-800 rounded animate-pulse w-1/2"></div>
                                 </div>
-
-                                <!-- Stats -->
-                                <div class="mt-4">
-                                    <div class="flex items-end justify-between mb-2">
-                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Distance</span>
-                                        <span class="text-4xl font-black text-white">{{ $leaderboard['distance']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
-                                    </div>
-                                    <div class="w-full h-3 bg-[#111F35] rounded-full overflow-hidden">
-                                        <div class="h-full bg-gradient-to-r from-[#B8FF00] to-emerald-400 w-[88%]"></div>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <div class="h-3 bg-slate-800 rounded animate-pulse w-1/3"></div>
+                                <div class="h-10 bg-slate-700 rounded animate-pulse w-2/3 ml-auto"></div>
+                                <div class="h-3 bg-slate-800 rounded-full animate-pulse w-full"></div>
                             </div>
                         </div>
-                        @endif
-
-                        <!-- 3. Highest Elevation (Elevation King) -->
-                        @if($leaderboard['elevation'])
-                        <div class="group relative" data-aos="fade-up" data-aos-delay="200">
-                            <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-purple-500/50 transition duration-300 h-full flex flex-col justify-between">
-                                <!-- Icon / Rank Badge -->
-                                <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] text-white text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
-                                    <i class="fas fa-mountain"></i> Elevation King
-                                </div>
-                                
-                                <div class="pt-6">
-                                    <!-- Profile -->
-                                    <div class="flex items-center gap-4 mb-6">
-                                        <div class="relative">
-                                            <div class="w-16 h-16 rounded-full p-0.5 bg-purple-500">
-                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-[#0E1A2D]">
-                                            </div>
-                                            <div class="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#0E1A2D]">#1</div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-white font-bold text-base leading-tight">{{ $leaderboard['elevation']['name'] }}</h4>
-                                            <p class="text-[#94A3B8] text-xs uppercase tracking-wider font-semibold">Highest climb</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Stats -->
-                                <div class="mt-4">
-                                    <div class="flex items-end justify-between mb-2">
-                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Elevation</span>
-                                        <span class="text-3xl font-black text-white">{{ $leaderboard['elevation']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
-                                    </div>
-                                    <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
-                                        <div class="h-full bg-purple-500 w-[75%]"></div>
-                                    </div>
+                    </div>
+                    <div class="leaderboard-skeleton group relative" data-aos="fade-up" data-aos-delay="200">
+                        <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden h-full">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] px-4 py-2 rounded-bl-2xl">
+                                <div class="h-3 w-20 bg-slate-700 rounded animate-pulse"></div>
+                            </div>
+                            <div class="pt-6 flex items-center gap-4 mb-6">
+                                <div class="w-16 h-16 rounded-full bg-slate-700 animate-pulse flex-shrink-0"></div>
+                                <div class="space-y-2 flex-1">
+                                    <div class="h-4 bg-slate-700 rounded animate-pulse w-3/4"></div>
+                                    <div class="h-3 bg-slate-800 rounded animate-pulse w-1/2"></div>
                                 </div>
                             </div>
-                        </div>
-                        @endif
-
-                    @else
-                        <!-- Empty State if no real data yet -->
-                        <div class="col-span-3 text-center py-10">
-                            <div class="inline-block p-8 rounded-3xl bg-[#0E1A2D] border border-[#1F2D44] max-w-md">
-                                <p class="text-[#94A3B8] mb-6 leading-relaxed">Belum ada data aktivitas lari minggu ini dari klub Strava. Jadilah yang pertama dengan menyambungkan Strava Anda!</p>
-                                <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#FC4C02] text-white font-bold rounded-xl hover:bg-[#E34402] transition uppercase text-xs tracking-wider">Hubungkan Strava</a>
+                            <div class="mt-4 space-y-2">
+                                <div class="h-3 bg-slate-800 rounded animate-pulse w-1/3"></div>
+                                <div class="h-8 bg-slate-700 rounded animate-pulse w-1/2 ml-auto"></div>
+                                <div class="h-2 bg-slate-800 rounded-full animate-pulse w-full"></div>
                             </div>
                         </div>
-                    @endif
+                    </div>
                 </div>
 
                 <div class="mt-12 text-center">
@@ -606,6 +536,86 @@
                 </div>
             </div>
         </section>
+
+        <script>
+        (function () {
+            function buildLeaderboardCard(data, label, color, badge, badgeColor, barWidth, isCenter) {
+                const avatar = data.avatar || 'https://www.gravatar.com/avatar/?d=mp';
+                const name   = data.name   || '—';
+                const value  = data.value  || '—';
+                const unit   = data.unit   || '';
+
+                const borderClass  = isCenter ? `border-[#B8FF00]/50 shadow-[0_0_30px_rgba(184,255,0,0.05)]` : `border-[#1F2D44] hover:border-${color}-500/50`;
+                const ringClass    = isCenter ? `bg-gradient-to-br from-[#B8FF00] to-emerald-400 w-20 h-20 p-1 border-4` : `bg-${color}-500 w-16 h-16 p-0.5 border-2`;
+                const badgeBg      = isCenter ? `bg-[#B8FF00] text-[#08111F]` : `bg-${color}-600 text-white`;
+                const badgeSz      = isCenter ? `text-xs px-2 py-0.5` : `text-[9px] px-1.5 py-0.5`;
+                const badgeText    = isCenter ? 'MVP' : '#1';
+                const nameSize     = isCenter ? `text-lg` : `text-base`;
+                const subColor     = isCenter ? `text-[#B8FF00]` : `text-[#94A3B8]`;
+                const statSize     = isCenter ? `text-4xl` : `text-3xl`;
+                const barColor     = isCenter ? `bg-gradient-to-r from-[#B8FF00] to-emerald-400` : `bg-${color}-500`;
+                const barH         = isCenter ? `h-3` : `h-2`;
+
+                const topBadgeBg   = isCenter ? `bg-[#FC4C02] text-white` : `bg-slate-800 text-white border-l border-b border-[#1F2D44]`;
+                const translateY   = isCenter ? `transform md:-translate-y-4` : ``;
+
+                return `
+                <div class="group relative ${translateY}">
+                    <div class="relative bg-[#0E1A2D] border ${borderClass} rounded-3xl p-6 overflow-hidden transition duration-300 h-full flex flex-col justify-between">
+                        <div class="absolute top-0 right-0 ${topBadgeBg} text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
+                            ${badge}
+                        </div>
+                        <div class="pt-6">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="relative flex-shrink-0">
+                                    <div class="${ringClass} rounded-full border-[#0E1A2D] flex items-center justify-center overflow-hidden">
+                                        <img src="${avatar}" loading="lazy" class="w-full h-full rounded-full object-cover">
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 ${badgeBg} ${badgeSz} font-black rounded-full border-2 border-[#0E1A2D]">${badgeText}</div>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold ${nameSize} leading-tight">${name}</h4>
+                                    <p class="${subColor} text-xs uppercase tracking-wider font-semibold">${label}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-end justify-between mb-2">
+                                <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">${label.split(' ')[0]}</span>
+                                <span class="${statSize} font-black text-white">${value} <span class="text-xs text-slate-500 font-normal">${unit}</span></span>
+                            </div>
+                            <div class="w-full ${barH} bg-[#111F35] rounded-full overflow-hidden">
+                                <div class="h-full ${barColor}" style="width:${barWidth}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            fetch('{{ route("api.strava.leaderboard") }}')
+                .then(r => r.json())
+                .then(res => {
+                    const grid = document.getElementById('leaderboardGrid');
+                    if (!res.ok || !res.data) {
+                        grid.innerHTML = `
+                            <div class="col-span-3 text-center py-10">
+                                <div class="inline-block p-8 rounded-3xl bg-[#0E1A2D] border border-[#1F2D44] max-w-md">
+                                    <p class="text-[#94A3B8] mb-6 leading-relaxed">Belum ada data aktivitas lari minggu ini dari klub Strava. Jadilah yang pertama!</p>
+                                    <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#FC4C02] text-white font-bold rounded-xl hover:bg-[#E34402] transition uppercase text-xs tracking-wider">Hubungkan Strava</a>
+                                </div>
+                            </div>`;
+                        return;
+                    }
+                    const d = res.data;
+                    let html = '';
+                    if (d.fastest)   html += buildLeaderboardCard(d.fastest,   'Fastest Pace',      'blue',   '<i class="fas fa-bolt"></i> Speed Demon',      'blue',   '95%', false);
+                    if (d.distance)  html += buildLeaderboardCard(d.distance,  'Distance Leader',   'neon',   '<i class="fas fa-crown"></i> MVP Leader',       'neon',   '88%', true);
+                    if (d.elevation) html += buildLeaderboardCard(d.elevation, 'Highest Climb',     'purple', '<i class="fas fa-mountain"></i> Elevation King', 'purple', '75%', false);
+                    if (html) grid.innerHTML = html;
+                })
+                .catch(() => {});
+        })();
+        </script>
 
         <!-- NEWS & ARTICLES SECTION -->
         <section id="blog" class="py-24 bg-[#08111F] border-t border-[#1F2D44]">
@@ -740,10 +750,12 @@
 @endpush
 
 @push('scripts')
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script>
-    AOS.init({duration:800, once:true, offset:50});
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') AOS.init({duration:800, once:true, offset:50});
+    });
 
     (function () {
         var track = document.getElementById('heroFeaturedTrack');
@@ -875,8 +887,7 @@
         if(!c)return;
         c.innerHTML='<div class="col-span-3 text-center text-slate-500 animate-pulse py-10">Memuat artikel...</div>';
         try{
-            const base=(window.location.pathname.indexOf('/ruanglari/public')!==-1)?'/ruanglari/public':'';
-            const r=await fetch(base+'/api/blog/latest');
+            const r=await fetch('{{ route("api.blog.latest") }}');
             const p=await r.json();
             c.innerHTML='';
             if(!p || p.length===0){
@@ -927,8 +938,7 @@
         const c=document.getElementById('homeEvents');
         if(!c)return;
         try{
-            const base=(window.location.pathname.indexOf('/ruanglari/public')!==-1)?'/ruanglari/public':'';
-            const r=await fetch(base+'/api/events/upcoming');
+            const r=await fetch('{{ route("api.events.upcoming") }}');
             const events=await r.json();
             c.innerHTML='';
             
@@ -1013,5 +1023,10 @@
         loadLatestBlogs();
         loadUpcomingEvents();
     });
+    // In case DOMContentLoaded already fired (script loaded late)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        loadLatestBlogs();
+        loadUpcomingEvents();
+    }
 </script>
 @endpush
