@@ -432,15 +432,15 @@
                         <!-- Weekly Report Tab -->
                         <div v-if="profileTab === 'weekly_report'" class="space-y-6">
                             <!-- Nudge Strava Banner inside tab if not connected -->
-                            <div v-if="!trainingProfile.strava_connected" class="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+                            <div v-if="!trainingProfile.strava_connected" class="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="text-lg">⚠️</span>
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
                                     <div class="text-left">
                                         <div class="text-xs font-bold text-white">Strava Belum Terhubung</div>
                                         <div class="text-[10px] text-slate-400">Atlet ini belum menyinkronkan Strava. Anda dapat meminta mereka menyinkronkan token di dashboard mereka.</div>
                                     </div>
                                 </div>
-                                <button type="button" @click="nudgeStrava" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark font-black text-xs transition whitespace-nowrap">
+                                <button type="button" @click="nudgeStrava" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition whitespace-nowrap">
                                     Nudge in App
                                 </button>
                             </div>
@@ -449,8 +449,8 @@
                                 <!-- Report Form (Col-span-2) -->
                                 <div class="md:col-span-2 space-y-4">
                                     <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
-                                        <h4 class="text-sm font-black text-white italic tracking-tight mb-4 flex items-center gap-1.5">
-                                            <span>📝</span> Tulis Laporan Mingguan
+                                        <h4 class="text-sm font-black text-white tracking-tight mb-4">
+                                            Tulis Laporan Mingguan
                                         </h4>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                             <div>
@@ -458,10 +458,10 @@
                                                 <input type="number" min="1" max="52" v-model.number="weeklyReportForm.week_number" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none font-bold">
                                             </div>
                                             <div class="flex items-end">
-                                                <button type="button" @click="generateWeeklyReport" :disabled="weeklyReportLoading" class="w-full px-4 py-2.5 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-xs rounded-xl transition flex items-center justify-center gap-2">
-                                                    <span v-if="!weeklyReportLoading">🤖 Hasilkan AI Draft</span>
+                                                <button type="button" @click="generateWeeklyReport" :disabled="weeklyReportLoading" class="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                                                    <span v-if="!weeklyReportLoading">Hasilkan AI Draft</span>
                                                     <span v-else class="flex items-center gap-1">
-                                                        <svg class="animate-spin h-3.5 w-3.5 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <svg class="animate-spin h-3.5 w-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                         </svg>
@@ -477,8 +477,8 @@
                                         </div>
 
                                         <div class="mt-4 flex justify-end">
-                                            <button type="button" @click="publishWeeklyReport" :disabled="weeklyReportPublishing" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-xs rounded-xl transition flex items-center gap-1.5">
-                                                <span v-if="!weeklyReportPublishing">🚀 Terbitkan Rapor Mingguan</span>
+                                            <button type="button" @click="publishWeeklyReport" :disabled="weeklyReportPublishing" class="px-5 py-2.5 bg-neon text-dark font-black text-xs rounded-xl hover:bg-neon/90 transition shadow-lg shadow-neon/15 flex items-center gap-1.5">
+                                                <span v-if="!weeklyReportPublishing">Terbitkan Rapor Mingguan</span>
                                                 <span v-else class="w-3.5 h-3.5 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
                                             </button>
                                         </div>
@@ -488,17 +488,17 @@
                                 <!-- History List (Col-span-1) -->
                                 <div class="md:col-span-1 space-y-4">
                                     <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
-                                        <h4 class="text-sm font-black text-white italic tracking-tight mb-4 flex items-center gap-1.5">
-                                            <span>📂</span> Riwayat Rapor Mingguan
+                                        <h4 class="text-sm font-black text-white tracking-tight mb-4">
+                                            Riwayat Rapor Mingguan
                                         </h4>
-                                        <div v-if="weeklyReportsList.length === 0" class="text-center py-6 text-xs text-slate-500 italic">
+                                        <div v-if="weeklyReportsList.length === 0" class="text-center py-6 text-xs text-slate-500">
                                             Belum ada laporan mingguan yang diterbitkan.
                                         </div>
                                         <div v-else class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
                                             <div v-for="rep in weeklyReportsList" :key="rep.id" @click="selectWeeklyReport(rep)" class="p-3 bg-slate-900/50 hover:bg-slate-900 border border-slate-800 rounded-xl cursor-pointer transition">
                                                 <div class="flex justify-between items-center mb-1">
-                                                    <span class="text-xs font-black text-white">Minggu ke-@{{ rep.week_number }}</span>
-                                                    <span class="text-[9px] text-slate-500 font-mono">@{{ formatDateShort(rep.created_at) }}</span>
+                                                     <span class="text-xs font-black text-white">Minggu ke-@{{ rep.week_number }}</span>
+                                                     <span class="text-[9px] text-slate-500 font-mono">@{{ formatDateShort(rep.created_at) }}</span>
                                                 </div>
                                                 <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">@{{ rep.report_text }}</p>
                                             </div>
@@ -507,6 +507,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -1305,7 +1306,7 @@
                                 type="text" 
                                 v-model="eventSearchQuery"
                                 @focus="showEventDropdown = true"
-                                @blur="setTimeout(() => showEventDropdown = false, 200)"
+                                @blur="hideEventDropdown"
                                 placeholder="Type to search event..."
                                 class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon focus:outline-none pl-8"
                             >
@@ -1319,12 +1320,12 @@
                             <ul>
                                 <li v-for="event in filteredEvents" :key="event.id"
                                     @click="selectRuangLariEvent(event)"
-                                    class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0"
+                                    class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0 text-slate-200"
                                 >
-                                    <div class="text-xs font-bold text-white">@{{ event.title }}</div>
-                                    <div class="text-[10px] text-slate-400 flex justify-between mt-1">
-                                        <span><i class="fa-solid fa-calendar text-[10px] text-slate-500 mr-1"></i>@{{ event.date }}</span>
-                                        <span><i class="fa-solid fa-location-dot text-[10px] text-slate-500 mr-1"></i>@{{ event.location }}</span>
+                                    <div class="text-xs font-bold text-white">@{{ event.name || event.title }}</div>
+                                    <div class="text-[10px] text-slate-300 flex justify-between mt-1">
+                                        <span><i class="fa-solid fa-calendar text-[10px] text-slate-400 mr-1"></i>@{{ event.date || event.start_at }}</span>
+                                        <span><i class="fa-solid fa-location-dot text-[10px] text-slate-400 mr-1"></i>@{{ event.location || event.location_name }}</span>
                                     </div>
                                 </li>
                             </ul>
@@ -2085,6 +2086,12 @@ createApp({
             eventSearchQuery.value = event.name || event.title;
             showEventDropdown.value = false;
             onSelectRuangLariEvent(event);
+        };
+
+        const hideEventDropdown = () => {
+            setTimeout(() => {
+                showEventDropdown.value = false;
+            }, 200);
         };
 
         const onSelectRuangLariEvent = (event) => {
@@ -3560,7 +3567,7 @@ createApp({
             exportCalendar,
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
             stravaAiAnalysis, stravaAiAnalysisLoading, stravaWorkoutClassification,
-            showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
+            showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent, hideEventDropdown,
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder
             builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise,
