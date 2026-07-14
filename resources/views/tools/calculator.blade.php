@@ -304,9 +304,9 @@
 
                 <div class="rlc-card">
                     <div class="tab-navigation">
-                        <button class="tab-btn active" onclick="openTab(event, 'magicMile')">Magic Mile</button>
+                        <button class="tab-btn" onclick="openTab(event, 'magicMile')">Magic Mile</button>
                         <button class="tab-btn" onclick="openTab(event, 'marathon')">Marathon Pace</button>
-                        <button class="tab-btn" onclick="openTab(event, 'pace')">Pace</button>
+                        <button class="tab-btn active" onclick="openTab(event, 'pace')">Pace</button>
                         <button class="tab-btn" onclick="openTab(event, 'predictor')">Predictor</button>
                         <button class="tab-btn" onclick="openTab(event, 'improvement')">Improvement</button>
                         <button class="tab-btn" onclick="openTab(event, 'splits')">Splits</button>
@@ -433,7 +433,7 @@
                         </div>
                     </div>
 
-                    <div id="magicMile" class="tab-content active" data-hash="magicmile">
+                    <div id="magicMile" class="tab-content" data-hash="magicmile">
                         <div class="info-note">
                             Prediksi waktu race berdasarkan waktu lari 1 mile. Magic Mile akurat untuk benchmark dan target pace.
                         </div>
@@ -469,7 +469,7 @@
                         <button type="button" class="rlc-export-btn" id="marathonExportBtn" onclick="exportResults('marathonResults', 'Marathon Pace')">Export Hasil (PNG)</button>
                     </div>
 
-                    <div id="pace" class="tab-content" data-hash="pacecalculator">
+                    <div id="pace" class="tab-content active" data-hash="pacecalculator">
                         <div class="info-note">Hitung pace berdasarkan jarak dan waktu lari Anda.</div>
                         <div class="form-row">
                             <div class="form-group">
@@ -2224,6 +2224,9 @@
             const hash = window.location.hash.substring(1);
             if (hash) {
                 openTabByHash(hash);
+            } else {
+                window.location.hash = 'pacecalculator';
+                openTabByHash('pacecalculator');
             }
         });
         

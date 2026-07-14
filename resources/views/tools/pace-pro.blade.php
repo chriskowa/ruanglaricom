@@ -14,7 +14,7 @@
         <div class="max-w-7xl mx-auto">
             <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white">
+                    <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white">
                         PACE<span class="text-neon">PRO</span> PLANNER
                     </h1>
                     <p class="text-slate-400 mt-1 max-w-2xl">
@@ -26,8 +26,7 @@
             <div class="grid lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-4 space-y-6">
                     <div class="bg-card/70 backdrop-blur border border-slate-700/50 rounded-2xl p-6">
-                        <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="text-neon">⚙</span>
+                        <h2 class="text-lg font-bold mb-4">
                             Konfigurasi Lomba
                         </h2>
 
@@ -73,7 +72,7 @@
                             <!-- Search Location -->
                             <div class="flex gap-2">
                                 <input type="text" id="pp-draw-search-input" placeholder="Cari lokasi (Enter)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:border-neon outline-none">
-                                <button id="pp-draw-search-btn" type="button" class="bg-slate-800 text-white hover:bg-slate-700 px-3 rounded-lg text-xs font-bold border border-slate-700">🔍</button>
+                                <button id="pp-draw-search-btn" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 rounded-lg text-xs font-bold border border-slate-700">Search</button>
                             </div>
 
                             <div class="p-4 bg-slate-900/50 border border-slate-700 rounded-xl space-y-3">
@@ -141,19 +140,15 @@
                             </div>
 
                             <div>
-                                <div class="flex justify-between mb-1">
-                                    <label class="block text-xs font-bold text-slate-400 uppercase">Map Style</label>
-                                    <span id="pp-map-style-label" class="text-xs font-bold text-neon">Dark</span>
-                                </div>
-                                <input type="range" id="pp-map-style-slider" min="0" max="1" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
-                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                    <span>Dark</span>
-                                    <span>Light</span>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Map Style</label>
+                                <div class="flex p-1 bg-slate-800 rounded-lg">
+                                    <button type="button" id="pp-map-style-dark" class="flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all">Dark</button>
+                                    <button type="button" id="pp-map-style-light" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all">Light</button>
                                 </div>
                             </div>
 
-                            <button id="pp-generate" type="button" class="w-full bg-neon text-dark font-black py-4 rounded-xl hover:bg-white transition shadow-[0_0_15px_rgba(204,255,0,0.3)] mt-4">
-                                GENERATE STRATEGY ⚡
+                            <button id="pp-generate" type="button" class="w-full bg-neon text-dark font-black py-4 rounded-xl hover:bg-white transition shadow-[0_0_15px_rgba(204,255,0,0.2)] mt-4">
+                                GENERATE STRATEGY
                             </button>
                         </div>
                     </div>
@@ -275,8 +270,8 @@
                 strategyLabel: document.getElementById('pp-strategy-label'),
                 hillSlider: document.getElementById('pp-hill-slider'),
                 hillLabel: document.getElementById('pp-hill-label'),
-                mapStyleSlider: document.getElementById('pp-map-style-slider'),
-                mapStyleLabel: document.getElementById('pp-map-style-label'),
+                mapStyleDark: document.getElementById('pp-map-style-dark'),
+                mapStyleLight: document.getElementById('pp-map-style-light'),
                 generate: document.getElementById('pp-generate'),
                 statsCard: document.getElementById('pp-stats-card'),
                 avgPace: document.getElementById('pp-avg-pace'),
@@ -286,6 +281,21 @@
                 exportImage: document.getElementById('pp-export-image'),
                 captureArea: document.getElementById('pp-capture-area'),
             };
+
+            function isMapStyleLight() {
+                return els.mapStyleLight && els.mapStyleLight.classList.contains('bg-slate-600');
+            }
+
+            function setMapStyle(isLight) {
+                if (isLight) {
+                    els.mapStyleLight.className = 'flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all';
+                    els.mapStyleDark.className = 'flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all';
+                } else {
+                    els.mapStyleDark.className = 'flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all';
+                    els.mapStyleLight.className = 'flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all';
+                }
+                localStorage.setItem('paceProMapStyle', isLight ? 'light' : 'dark');
+            }
 
             function switchMode(mode) {
                 inputMode = mode;
@@ -412,8 +422,7 @@
                 if (!map) return;
                 var latlngs = points.map(function (p) { return [p.lat, p.lon]; });
                 if (polyline) map.removeLayer(polyline);
-                
-                var isLight = els.mapStyleSlider && parseInt(els.mapStyleSlider.value) === 1;
+                var isLight = isMapStyleLight();
                 var color = isLight ? '#E60000' : '#CCFF00';
 
                 polyline = L.polyline(latlngs, { color: color, weight: 4 }).addTo(map);
@@ -474,7 +483,7 @@
                 }
 
                 var latlngs = drawRoutePts.map(function(p) { return [p.lat, p.lng||p.lon]; });
-                var isLight = els.mapStyleSlider && parseInt(els.mapStyleSlider.value) === 1;
+                var isLight = isMapStyleLight();
                 var color = isLight ? '#E60000' : '#CCFF00';
                 
                 drawPolyline = L.polyline(latlngs, { color: color, weight: 4 }).addTo(map);
@@ -754,11 +763,7 @@
                 // Init Map Style from LocalStorage
                 var storedStyle = localStorage.getItem('paceProMapStyle') || 'dark';
                 var isLight = storedStyle === 'light';
-                
-                if (els.mapStyleSlider) {
-                    els.mapStyleSlider.value = isLight ? '1' : '0';
-                    els.mapStyleLabel.textContent = isLight ? 'Light' : 'Dark';
-                }
+                setMapStyle(isLight);
 
                 map = L.map('pp-map').setView([-6.2088, 106.8456], 13);
 
@@ -790,19 +795,21 @@
                 
                 var tileLayer = L.tileLayer(getTileUrl(isLight), getTileOpts(isLight)).addTo(map);
 
-                if (els.mapStyleSlider) {
-                    els.mapStyleSlider.addEventListener('input', function (e) {
-                        var isLight = parseInt(e.target.value) === 1;
-                        els.mapStyleLabel.textContent = isLight ? 'Light' : 'Dark';
-                        localStorage.setItem('paceProMapStyle', isLight ? 'light' : 'dark');
-
+                if (els.mapStyleDark && els.mapStyleLight) {
+                    var handleStyleChange = function(light) {
+                        setMapStyle(light);
                         if (tileLayer) map.removeLayer(tileLayer);
-                        tileLayer = L.tileLayer(getTileUrl(isLight), getTileOpts(isLight)).addTo(map);
+                        tileLayer = L.tileLayer(getTileUrl(light), getTileOpts(light)).addTo(map);
 
                         if (polyline) {
-                            polyline.setStyle({ color: isLight ? '#E60000' : '#CCFF00' });
+                            polyline.setStyle({ color: light ? '#E60000' : '#CCFF00' });
                         }
-                    });
+                        if (drawPolyline) {
+                            drawPolyline.setStyle({ color: light ? '#E60000' : '#CCFF00' });
+                        }
+                    };
+                    els.mapStyleDark.addEventListener('click', function() { handleStyleChange(false); });
+                    els.mapStyleLight.addEventListener('click', function() { handleStyleChange(true); });
                 }
 
                 fillGpxLibrary();
