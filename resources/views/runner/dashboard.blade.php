@@ -2058,15 +2058,21 @@
         if (e.data && e.data.type === 'resize-iframe') {
             const iframe = document.getElementById('strava-iframe');
             if (iframe && e.data.height) {
-                // Add minor padding to prevent clipping
-                iframe.style.height = (e.data.height + 20) + 'px';
+                const newHeight = e.data.height + 10;
+                const currentHeight = parseInt(iframe.style.height) || 0;
+                if (Math.abs(currentHeight - newHeight) > 15) {
+                    iframe.style.height = newHeight + 'px';
+                }
             }
         }
         if (e.data && e.data.type === 'resize-iframe-calculator') {
             const iframe = document.getElementById('calculator-iframe');
             if (iframe && e.data.height) {
-                // Add minor padding to prevent clipping
-                iframe.style.height = (e.data.height + 20) + 'px';
+                const newHeight = e.data.height + 10;
+                const currentHeight = parseInt(iframe.style.height) || 0;
+                if (Math.abs(currentHeight - newHeight) > 15) {
+                    iframe.style.height = newHeight + 'px';
+                }
             }
         }
     }, false);
