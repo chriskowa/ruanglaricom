@@ -531,7 +531,7 @@
                                 Export PDF
                             </button>
                             <button @click="openRaceForm" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                                🏆 Add Race Event
+                                Add Race Event
                             </button>
                         </div>
                     </div>
@@ -1290,14 +1290,14 @@
 
     <!-- Race Modal -->
         <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-5 relative">
                 <button @click="showRaceModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-                <h3 class="text-xl font-black text-white mb-6">🏆 Add Race Event</h3>
+                <h3 class="text-lg font-black text-white mb-4">Add Race Event</h3>
                 
-                <form @submit.prevent="saveRace" class="space-y-4">
+                <form @submit.prevent="saveRace" class="space-y-3">
                     <!-- RuangLari Import -->
-                    <div class="mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700 relative">
-                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Import from RuangLari</label>
+                    <div class="mb-3 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Import from RuangLari</label>
                         
                         <!-- Search Input -->
                         <div class="relative">
@@ -1307,10 +1307,10 @@
                                 @focus="showEventDropdown = true"
                                 @blur="setTimeout(() => showEventDropdown = false, 200)"
                                 placeholder="Type to search event..."
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none pl-8"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon focus:outline-none pl-8"
                             >
-                            <span class="absolute left-3 top-2.5 text-slate-500">🔍</span>
-                            <button v-if="eventSearchQuery" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white">✕</button>
+                            <span class="absolute left-3 top-2.5 text-slate-500"><i class="fa-solid fa-search text-[10px]"></i></span>
+                            <button v-if="eventSearchQuery" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white text-xs">✕</button>
                         </div>
 
                         <!-- Dropdown List -->
@@ -1321,10 +1321,10 @@
                                     @click="selectRuangLariEvent(event)"
                                     class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0"
                                 >
-                                    <div class="text-sm font-bold text-white">@{{ event.title }}</div>
-                                    <div class="text-xs text-slate-400 flex justify-between mt-1">
-                                        <span>📅 @{{ event.date }}</span>
-                                        <span>📍 @{{ event.location }}</span>
+                                    <div class="text-xs font-bold text-white">@{{ event.title }}</div>
+                                    <div class="text-[10px] text-slate-400 flex justify-between mt-1">
+                                        <span><i class="fa-solid fa-calendar text-[10px] text-slate-500 mr-1"></i>@{{ event.date }}</span>
+                                        <span><i class="fa-solid fa-location-dot text-[10px] text-slate-500 mr-1"></i>@{{ event.location }}</span>
                                     </div>
                                 </li>
                             </ul>
@@ -1333,22 +1333,22 @@
                             No events found.
                         </div>
 
-                        <div v-if="loadingEvents" class="text-xs text-yellow-500 mt-1 italic">Loading events...</div>
+                        <div v-if="loadingEvents" class="text-[10px] text-cyan-400 mt-1 italic">Loading events...</div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Event Name</label>
-                        <input v-model="raceForm.name" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="e.g. Jakarta Marathon" required>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Event Name</label>
+                        <input v-model="raceForm.name" type="text" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="e.g. Jakarta Marathon" required>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Date</label>
-                            <input v-model="raceForm.date" type="date" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" required>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Date</label>
+                            <input v-model="raceForm.date" type="date" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance</label>
-                            <select v-model="raceForm.distance" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Distance</label>
+                            <select v-model="raceForm.distance" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none">
                                 <option value="5k">5K</option>
                                 <option value="10k">10K</option>
                                 <option value="21k">Half Marathon</option>
@@ -1359,17 +1359,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Goal Time (Optional)</label>
-                        <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="hh:mm:ss">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Goal Time (Optional)</label>
+                        <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="hh:mm:ss">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Notes</label>
-                        <textarea v-model="raceForm.notes" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="Target pace strategy, etc."></textarea>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Notes</label>
+                        <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="Target pace strategy, etc."></textarea>
                     </div>
 
-                    <div class="pt-4">
-                        <button type="submit" :disabled="loading" class="w-full py-3 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <div class="pt-2">
+                        <button type="submit" :disabled="loading" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition shadow-lg shadow-neon/15 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
                             @{{ loading ? 'Saving...' : 'Add to Calendar' }}
                         </button>
                     </div>
@@ -1377,6 +1377,7 @@
             </div>
         </div>
     </div>
+
     <!-- Strava Graph Modal -->
     <div v-if="showStravaGraphModal" class="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
         <div class="w-full max-w-5xl h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl p-6 relative flex flex-col shadow-2xl shadow-neon/10">
