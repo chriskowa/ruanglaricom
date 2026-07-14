@@ -406,20 +406,20 @@
                     <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Splits</div>
                     <h3 class="text-sm font-black text-white italic tracking-tight uppercase mb-3">Split Breakdown</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
+                        <table class="w-full text-sm text-left text-slate-300">
                             <thead class="text-xs text-slate-400 uppercase bg-slate-800/50">
                                 <tr>
-                                    <th class="px-4 py-3 rounded-l-lg">Km</th>
-                                    <th class="px-4 py-3">Pace</th>
-                                    <th class="px-4 py-3">Elev</th>
-                                    <th class="px-4 py-3 rounded-r-lg">HR</th>
+                                    <th class="px-4 py-3 rounded-l-lg text-slate-300">Km</th>
+                                    <th class="px-4 py-3 text-slate-300">Pace</th>
+                                    <th class="px-4 py-3 text-slate-300">Elev</th>
+                                    <th class="px-4 py-3 rounded-r-lg text-slate-300">HR</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
                                 <tr v-for="(split, index) in detail.strava_splits" :key="index" class="hover:bg-slate-800/30 transition">
-                                    <td class="px-4 py-3 font-mono">@{{ split.split }}</td>
+                                    <td class="px-4 py-3 font-mono text-slate-300">@{{ split.split }}</td>
                                     <td class="px-4 py-3 font-mono font-bold text-white">@{{ formatPaceFromSec(split.moving_time / (split.distance / 1000)) }}</td>
-                                    <td class="px-4 py-3 font-mono">@{{ split.elevation_difference?.toFixed(0) }}m</td>
+                                    <td class="px-4 py-3 font-mono text-slate-300">@{{ split.elevation_difference?.toFixed(0) }}m</td>
                                     <td class="px-4 py-3 font-mono text-rose-400">@{{ split.average_heartrate ? Math.round(split.average_heartrate) : '-' }}</td>
                                 </tr>
                             </tbody>
