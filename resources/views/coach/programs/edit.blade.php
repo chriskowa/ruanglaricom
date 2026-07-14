@@ -1069,6 +1069,12 @@ createApp({
             };
             event.dataTransfer.setData('json', JSON.stringify(data));
             event.dataTransfer.effectAllowed = 'copy';
+
+            // Fix cursor offset during drag due to parent element sticky positioning
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            event.dataTransfer.setDragImage(event.currentTarget, x, y);
         };
 
         const openBuilderAdd = (day) => {
@@ -1400,6 +1406,12 @@ createApp({
             };
             event.dataTransfer.setData('json', JSON.stringify(data));
             event.dataTransfer.effectAllowed = 'move';
+
+            // Fix cursor offset during drag due to parent element sticky positioning
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            event.dataTransfer.setDragImage(event.currentTarget, x, y);
         };
 
         const handleDrop = (event, day) => {

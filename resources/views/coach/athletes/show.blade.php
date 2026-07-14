@@ -530,7 +530,7 @@
                                 </svg>
                                 Export PDF
                             </button>
-                            <button @click="openRaceForm" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-yellow-500 text-dark font-black hover:bg-yellow-400 transition shadow text-xs flex items-center justify-center gap-1.5">
+                            <button @click="openRaceForm" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
                                 🏆 Add Race Event
                             </button>
                         </div>
@@ -897,7 +897,7 @@
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showFormModal = false"></div>
             <div class="relative z-10 max-w-lg mx-auto my-10 bg-slate-900 border border-slate-700 rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-white font-bold text-xl italic">Add Workout</h3>
+                    <h3 class="text-white font-bold text-xl">Add Workout</h3>
                     <button class="text-slate-400 hover:text-white" @click="showFormModal = false">×</button>
                 </div>
                 <form @submit.prevent="saveCustomWorkout" class="space-y-3">
@@ -1292,7 +1292,7 @@
         <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
                 <button @click="showRaceModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-                <h3 class="text-xl font-black text-white italic mb-6">🏆 Add Race Event</h3>
+                <h3 class="text-xl font-black text-white mb-6">🏆 Add Race Event</h3>
                 
                 <form @submit.prevent="saveRace" class="space-y-4">
                     <!-- RuangLari Import -->
@@ -3123,6 +3123,7 @@ createApp({
                 firstDay: 1,
                 editable: true,
                 eventDrop: handleEventDrop,
+                fixedMirrorParent: document.body,
                 eventClassNames: (arg) => {
                     const cls = [];
                     const props = arg.event.extendedProps || {};
