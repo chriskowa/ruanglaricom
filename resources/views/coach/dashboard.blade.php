@@ -29,7 +29,7 @@
         <div class="flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
                 <p class="text-cyan-400 font-mono text-sm tracking-widest uppercase mb-1">Coach Command Center</p>
-                <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
+                <h1 class="text-4xl md:text-5xl font-black text-white tracking-tighter">
                     {{ strtoupper(auth()->user()->name) }}
                 </h1>
             </div>
@@ -38,7 +38,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                     Create Program
                 </a>
-                <a href="{{ route('coach.athletes.index') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-black hover:scale-105 transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+                <a href="{{ route('coach.athletes.index') }}" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 hover:scale-105 transition-all shadow-lg shadow-neon/15 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                     Manage Athletes
                 </a>
@@ -135,13 +135,13 @@
     </div>
 
     <!-- Coach Command Center Workspace -->
-    <div class="mt-12 relative z-10" data-aos="fade-up">
+    <div class="mt-12 mb-16 relative z-10" data-aos="fade-up">
         <div class="bg-card/40 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 md:p-8">
             
             <!-- Header & Tabs -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-700/50 pb-6">
                 <div>
-                    <h2 class="text-2xl font-black text-white italic tracking-tight">Interactive Command Workspace</h2>
+                    <h2 class="text-2xl font-black text-white tracking-tight">Interactive Command Workspace</h2>
                     <p class="text-xs text-slate-400 mt-1">Manage all your training programs and runner progress in real-time.</p>
                 </div>
                 
@@ -325,7 +325,7 @@
                         <button @click="openImportModal = true" class="px-5 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white font-bold text-xs transition flex items-center gap-2">
                             <i class="fa-solid fa-file-import"></i> Import JSON
                         </button>
-                        <a href="{{ route('coach.programs.create') }}" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-black text-xs hover:scale-[1.02] transition shadow-lg flex items-center gap-2">
+                        <a href="{{ route('coach.programs.create') }}" class="px-5 py-3 rounded-2xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition shadow-lg shadow-neon/15 flex items-center gap-2">
                             <i class="fa-solid fa-plus"></i> Create Plan
                         </a>
                     </div>
@@ -352,7 +352,7 @@
                                 </div>
 
                                 <!-- Title & Details -->
-                                <h3 class="text-lg font-black text-white italic group-hover:text-cyan-400 transition-colors" x-text="prog.title"></h3>
+                                <h3 class="text-lg font-black text-white group-hover:text-cyan-400 transition-colors" x-text="prog.title"></h3>
                                 <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400 font-mono">
                                     <span x-text="'Target: ' + prog.distance_target.toUpperCase()"></span>
                                     <span>·</span>
@@ -413,7 +413,7 @@
             <div class="bg-card/30 border border-slate-700 rounded-2xl p-6">
                 <div class="flex items-start justify-between gap-4 mb-5">
                     <div>
-                        <h3 class="text-lg font-black text-white italic tracking-tight">Today Queue</h3>
+                        <h3 class="text-lg font-black text-white tracking-tight">Today Queue</h3>
                         <div class="text-xs text-slate-400 mt-1">Prioritas: risk, overdue, needs review, due today, unread chat.</div>
                     </div>
                     <a href="{{ route('coach.athletes.index') }}" class="text-sm text-cyan-400 hover:underline font-bold">View Athletes</a>
@@ -457,19 +457,19 @@
                                             </div>
                                             <div class="mt-2 flex flex-wrap gap-2">
                                                 @if(!empty($it['flags']['risk']))
-                                                    <span class="px-2 py-1 rounded-lg bg-red-600/20 text-red-300 border border-red-600/30 text-[11px] font-black">Risk</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-850/30 text-[10px] font-black uppercase tracking-tight">Risk</span>
                                                 @endif
                                                 @if(!empty($it['flags']['overdue']))
-                                                    <span class="px-2 py-1 rounded-lg bg-orange-600/20 text-orange-300 border border-orange-600/30 text-[11px] font-black">Overdue</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-red-950/30 text-red-400 border border-red-850/30 text-[10px] font-black uppercase tracking-tight">Overdue</span>
                                                 @endif
                                                 @if(!empty($it['flags']['needs_review']))
-                                                    <span class="px-2 py-1 rounded-lg bg-yellow-600/20 text-yellow-300 border border-yellow-600/30 text-[11px] font-black">Needs Review</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-755 text-slate-300 text-[10px] font-bold uppercase tracking-tight">Needs Review</span>
                                                 @endif
                                                 @if(!empty($it['flags']['due_today']))
-                                                    <span class="px-2 py-1 rounded-lg bg-cyan-600/20 text-cyan-300 border border-cyan-600/30 text-[11px] font-black">Due Today</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-755 text-slate-300 text-[10px] font-bold uppercase tracking-tight">Due Today</span>
                                                 @endif
                                                 @if(!empty($it['unread_count']))
-                                                    <span class="px-2 py-1 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-600/30 text-[11px] font-black">{{ (int) $it['unread_count'] }} Unread</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-755 text-slate-300 text-[10px] font-bold uppercase tracking-tight">{{ (int) $it['unread_count'] }} Unread</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -493,7 +493,7 @@
             <div class="bg-card/30 border border-slate-700 rounded-2xl p-6">
                 <div class="flex items-start justify-between gap-4 mb-5">
                     <div>
-                        <h3 class="text-lg font-black text-white italic tracking-tight">Recent Activity</h3>
+                        <h3 class="text-lg font-black text-white tracking-tight">Recent Activity</h3>
                         <div class="text-xs text-slate-400 mt-1">Aktivitas selesai (7 hari terakhir).</div>
                     </div>
                     <a href="{{ route('chat.index') }}" class="text-sm text-slate-300 hover:text-white font-bold">Open Chat</a>
@@ -541,9 +541,9 @@
                                                     <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-200 font-bold capitalize">{{ $a['feeling'] }}</span>
                                                 @endif
                                                 @if(empty($a['coach_rating']))
-                                                    <span class="px-2 py-1 rounded-lg bg-yellow-600/20 text-yellow-300 border border-yellow-600/30 text-[11px] font-black">Not Reviewed</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-755 text-slate-400 text-[10px] font-bold uppercase tracking-tight">Not Reviewed</span>
                                                 @else
-                                                    <span class="px-2 py-1 rounded-lg bg-green-600/20 text-green-300 border border-green-600/30 text-[11px] font-black">Reviewed</span>
+                                                    <span class="px-2 py-1 rounded-lg bg-emerald-950/30 text-emerald-400 border border-emerald-900/30 text-[10px] font-bold uppercase tracking-tight">Reviewed</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -577,11 +577,10 @@
 
         <!-- Quick Actions Sidebar -->
         <div class="space-y-6">
-            <div class="bg-gradient-to-br from-purple-900/50 to-slate-900 border border-purple-500/30 rounded-2xl p-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
+            <div class="bg-card/30 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
                 <h3 class="text-white font-bold text-lg mb-2">Coach Hub</h3>
                 <p class="text-slate-400 text-sm mb-6">Manage your athletes, review training logs, and provide feedback.</p>
-                <a href="{{ route('coach.athletes.index') }}" class="block w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-center rounded-xl transition-colors shadow-lg shadow-purple-500/25">
+                <a href="{{ route('coach.athletes.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 font-bold text-center rounded-xl transition-colors shadow-lg">
                     Open Hub
                 </a>
             </div>
@@ -635,7 +634,7 @@
     <div x-show="targetModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="targetModalOpen = false"></div>
         <div class="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl transition-all" x-show="targetModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-            <h3 class="text-xl font-black text-white italic tracking-tight mb-2">Adjust Weekly Target</h3>
+            <h3 class="text-xl font-black text-white tracking-tight mb-2">Adjust Weekly Target</h3>
             <p class="text-xs text-slate-400 mb-6">Update the weekly target volume (in kilometers) for <span class="font-bold text-cyan-400" x-text="targetAthlete?.runner_name"></span>.</p>
             
             <form @submit.prevent="submitWeeklyTarget">
@@ -664,7 +663,7 @@
     <div x-show="openImportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="openImportModal = false"></div>
         <div class="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl transition-all" x-show="openImportModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-            <h3 class="text-xl font-black text-white italic tracking-tight mb-2">Import Program JSON</h3>
+            <h3 class="text-xl font-black text-white tracking-tight mb-2">Import Program JSON</h3>
             <p class="text-xs text-slate-400 mb-6">Upload a valid training plan JSON file to instantiate or extend your catalog.</p>
             
             <form @submit.prevent="submitJsonImport" enctype="multipart/form-data">
