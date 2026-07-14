@@ -134,28 +134,25 @@
                             
                              <!-- Header Profile -->
                              <div class="flex items-center gap-6 mb-8 relative z-10">
-                                 <!-- Shield/Badge Shape Profile -->
-                                 <div class="w-24 h-24 shrink-0 relative">
-                                     <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-2xl" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                         <defs>
-                                             <linearGradient id="shareProfileGradient" x1="-23.823" x2="36.668" y1="-14.783" y2="76.122" gradientUnits="userSpaceOnUse">
-                                                 <stop stop-color="#ffffff"></stop>
-                                                 <stop offset="0.5" stop-color="#fc5200"></stop>
-                                                 <stop offset="1" stop-color="#4d0000"></stop>
-                                             </linearGradient>
-                                             <clipPath id="shareProfileClip">
-                                                 <path d="M51.428 1.75a3.323 3.323 0 0 1 3.322 3.322V46.08c0 1.222-.67 2.337-1.73 2.916l-.218.11-22.356 10.157a5.914 5.914 0 0 1-4.598.124l-.294-.124L3.198 49.105a3.323 3.323 0 0 1-1.948-3.026V5.072A3.323 3.323 0 0 1 4.572 1.75h46.856Z" transform="translate(4, 1.229)"></path>
-                                             </clipPath>
-                                         </defs>
-                                         <!-- Profile Image Clipped to Shield -->
-                                         <g clip-path="url(#shareProfileClip)">
-                                             <image :href="getProxiedProfile()" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"></image>
-                                         </g>
-                                         <!-- Shield Gradient Outline -->
-                                         <path d="M51.428 1.75a3.323 3.323 0 0 1 3.322 3.322V46.08c0 1.222-.67 2.337-1.73 2.916l-.218.11-22.356 10.157a5.914 5.914 0 0 1-4.598.124l-.294-.124L3.198 49.105a3.323 3.323 0 0 1-1.948-3.026V5.072A3.323 3.323 0 0 1 4.572 1.75h46.856Z" 
-                                               fill="none" stroke="url(#shareProfileGradient)" stroke-width="2.5" transform="translate(4, 1.229)"></path>
-                                     </svg>
-                                 </div>
+                                  <!-- Shield/Badge Shape Profile -->
+                                  <div class="w-24 h-24 shrink-0 relative">
+                                      <!-- Profile Image Clipped using HTML border-radius inside the SVG frame -->
+                                      <div class="absolute bg-slate-950" style="top: 5%; bottom: 9%; left: 13%; right: 13%; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; overflow: hidden;">
+                                          <img :src="getProxiedProfile()" class="w-full h-full object-cover" crossorigin="anonymous">
+                                      </div>
+                                      <!-- Shield Gradient Outline (drawn on top) -->
+                                      <svg viewBox="0 0 64 64" class="absolute inset-0 w-full h-full pointer-events-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <defs>
+                                              <linearGradient id="shareProfileGradient" x1="-23.823" x2="36.668" y1="-14.783" y2="76.122" gradientUnits="userSpaceOnUse">
+                                                  <stop stop-color="#ffffff"></stop>
+                                                  <stop offset="0.5" stop-color="#fc5200"></stop>
+                                                  <stop offset="1" stop-color="#4d0000"></stop>
+                                              </linearGradient>
+                                          </defs>
+                                          <path d="M51.428 1.75a3.323 3.323 0 0 1 3.322 3.322V46.08c0 1.222-.67 2.337-1.73 2.916l-.218.11-22.356 10.157a5.914 5.914 0 0 1-4.598.124l-.294-.124L3.198 49.105a3.323 3.323 0 0 1-1.948-3.026V5.072A3.323 3.323 0 0 1 4.572 1.75h46.856Z" 
+                                                fill="none" stroke="url(#shareProfileGradient)" stroke-width="2.5" transform="translate(4, 1.229)"></path>
+                                      </svg>
+                                  </div>
                                  <div>
                                      <div class="flex items-center gap-3">
                                          <h2 class="text-3xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h2>
