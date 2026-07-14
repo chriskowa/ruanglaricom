@@ -152,9 +152,6 @@
                     <button @click="activeTab = 'programs'" :class="activeTab === 'programs' ? 'bg-neon text-dark font-black shadow-lg shadow-neon/15' : 'text-slate-400 hover:text-white font-bold'" class="flex-grow md:flex-none px-5 py-2.5 rounded-xl text-sm transition-all">
                         <i class="fa-solid fa-person-running mr-2"></i> My Programs
                     </button>
-                    <button @click="activeTab = 'calendar'" :class="activeTab === 'calendar' ? 'bg-neon text-dark font-black shadow-lg shadow-neon/15' : 'text-slate-400 hover:text-white font-bold'" class="flex-grow md:flex-none px-5 py-2.5 rounded-xl text-sm transition-all">
-                        <i class="fa-solid fa-calendar mr-2"></i> Team Calendar
-                    </button>
                 </div>
             </div>
 
@@ -404,49 +401,7 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Team Calendar -->
-            <div x-show="activeTab === 'calendar'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
-                <!-- Athlete Selector -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h3 class="text-lg font-black text-white italic tracking-tight uppercase">Athlete Calendars</h3>
-                        <p class="text-xs text-slate-400 mt-1">Select an athlete to view and edit their calendar training schedules.</p>
-                    </div>
-                    <div class="relative w-full sm:w-80">
-                        <select x-model="selectedCalendarAthleteId" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon appearance-none cursor-pointer">
-                            <option value="">-- Choose Athlete --</option>
-                            <template x-for="ath in athletes" :key="ath.id">
-                                <option :value="ath.id" x-text="ath.runner_name + ' (' + ath.program_title + ')'"></option>
-                            </template>
-                        </select>
-                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
-                            <i class="fa-solid fa-chevron-down text-xs"></i>
-                        </span>
-                    </div>
-                </div>
 
-                <!-- Calendar View Container -->
-                <div>
-                    <!-- Empty State -->
-                    <div x-show="!selectedCalendarAthleteId" class="py-20 text-center bg-slate-900/20 border border-dashed border-slate-800 rounded-3xl">
-                        <i class="fa-solid fa-calendar-days text-4xl text-slate-600 mb-3 block"></i>
-                        <h4 class="text-white font-bold">No Athlete Selected</h4>
-                        <p class="text-xs text-slate-500 mt-1">Please select an athlete from the dropdown above to manage their training calendar.</p>
-                    </div>
-
-                    <!-- Iframe Workspace -->
-                    <template x-if="selectedCalendarAthleteId">
-                        <div class="h-[800px] w-full rounded-3xl overflow-hidden border border-slate-850 bg-slate-950/80 shadow-2xl relative">
-                            <!-- Loading indicator inside iframe container -->
-                            <div class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center gap-3 z-0">
-                                <span class="animate-spin inline-block w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full"></span>
-                                <span class="text-xs font-mono text-slate-400 uppercase tracking-widest">Loading Monitor Panel...</span>
-                            </div>
-                            <iframe :src="'/coach/athletes/' + selectedCalendarAthleteId + '?embed=1'" class="w-full h-full border-none relative z-10 bg-transparent" @load="iframeLoaded = true"></iframe>
-                        </div>
-                    </template>
-                </div>
-            </div>
 
         </div>
     </div>
