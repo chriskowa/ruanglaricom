@@ -1584,8 +1584,8 @@
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-bold text-purple-400 uppercase block mb-1.5">Pilih Rentang Waktu Analisis</label>
-                        <select v-model="stravaAnalysisRange" class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs focus:border-purple-500 focus:outline-none">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Pilih Rentang Waktu Analisis</label>
+                        <select v-model="stravaAnalysisRange" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon focus:outline-none">
                             <option value="7">7 Hari Terakhir</option>
                             <option value="14">14 Hari Terakhir (Direkomendasikan)</option>
                             <option value="30">30 Hari Terakhir</option>
@@ -1607,10 +1607,9 @@
                     </div>
 
                     <div class="pt-3.5 border-t border-slate-800 flex justify-end gap-2">
-                        <button type="button" class="px-3.5 py-2 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold uppercase tracking-wider" @click="showStravaAnalysisModal = false">Batal</button>
-                        <button type="button" @click="runStravaAnalysis" :disabled="stravaStatus && !stravaStatus.strava_connected" class="px-5 py-2 rounded-[6px] bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider">
-                            <span>⚡</span>
-                            <span>Mulai Analisis AI</span>
+                        <button type="button" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold uppercase tracking-wider" @click="showStravaAnalysisModal = false">Batal</button>
+                        <button type="button" @click="runStravaAnalysis" :disabled="stravaStatus && !stravaStatus.strava_connected" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-xs flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider">
+                            Mulai Analisis AI
                         </button>
                     </div>
                 </div>
@@ -1618,8 +1617,8 @@
                 <!-- Step 2: Loading State -->
                 <div v-if="stravaAnalysisLoading" class="py-12 flex flex-col items-center justify-center space-y-4">
                     <div class="relative w-16 h-16">
-                        <div class="absolute inset-0 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin"></div>
-                        <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center text-xl">⚡</div>
+                        <div class="absolute inset-0 rounded-full border-4 border-neon/20 border-t-neon animate-spin"></div>
+                        <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center text-sm"><i class="fa-solid fa-bolt text-neon"></i></div>
                     </div>
                     <p class="text-white font-bold text-sm">AI Coach sedang memproses data latihan Anda...</p>
                     <p class="text-xs text-slate-400 text-center max-w-md">Mengelompokkan lari (Easy, Tempo, Interval, Long Run), mengestimasi VDOT lari Anda, dan mengevaluasi status pemulihan.</p>
@@ -1642,7 +1641,7 @@
                             <div class="text-lg font-bold text-white mt-1">@{{ stravaAnalysisResult.statistics.avg_pace_str }}/km</div>
                         </div>
                         <div class="bg-slate-900/60 p-3 rounded-[6px] border border-slate-800 text-center relative overflow-hidden group">
-                            <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-neon"></div>
+                            <div class="absolute top-0 left-0 right-0 h-0.5 bg-neon"></div>
                             <div class="text-[10px] uppercase text-slate-500 tracking-wider">Estimasi VDOT</div>
                             <div class="text-lg font-bold text-neon mt-1">@{{ stravaAnalysisResult.estimated_vdot }}</div>
                         </div>
@@ -1691,10 +1690,9 @@
                     </div>
 
                     <!-- AI Coach Insights -->
-                    <div class="bg-purple-900/10 border border-purple-500/20 rounded-[6px] p-4 relative">
-                        <div class="absolute top-2 right-3 text-xl opacity-20">💬</div>
-                        <h4 class="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                            <span>🤖</span> Coach AI Insights
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 relative">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-robot text-neon"></i> Coach AI Insights
                         </h4>
                         <div class="text-slate-300 text-xs leading-relaxed" v-html="parseMarkdown(stravaAnalysisResult.ai_insights)"></div>
                     </div>
@@ -1703,11 +1701,11 @@
                     <div class="pt-4 border-t border-slate-800 space-y-3">
                         <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rekomendasi Langkah Berikutnya:</div>
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <button @click="applyAnalysisToGenerator" class="flex-1 px-4 py-2.5 rounded-[6px] bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20 uppercase tracking-wider">
-                                <span>🎯</span> Generate Program Lari (Autofill)
+                            <button @click="applyAnalysisToGenerator" class="flex-1 px-4 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-neon/15 uppercase tracking-wider">
+                                Generate Program Lari (Autofill)
                             </button>
-                            <a href="/marketplace" class="flex-1 px-4 py-2.5 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-center font-bold hover:bg-slate-700 hover:text-white transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider">
-                                <span>🏃</span> Hubungi Personal Coach
+                            <a href="/marketplace" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-center font-bold hover:bg-slate-700 hover:text-white transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider">
+                                Hubungi Personal Coach
                             </a>
                         </div>
                     </div>

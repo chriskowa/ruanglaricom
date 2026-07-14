@@ -123,6 +123,11 @@ body {
   background-color: rgba(20, 184, 166, 0.08) !important;
   color: #14b8a6 !important;
 }
+.fc-event.workout-time_trial {
+  border-left: 3px solid #ff5722 !important;
+  background-color: rgba(255, 87, 34, 0.08) !important;
+  color: #ff5722 !important;
+}
 
 
 /* Mobile List View Styling (Clean Card Style) */
@@ -162,6 +167,7 @@ body {
 .fc-list-event.workout-repetition { border-left: 3px solid #d946ef !important; }
 .fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 3px solid #ec4899 !important; }
 .fc-list-event.workout-recovery_run { border-left: 3px solid #14b8a6 !important; }
+.fc-list-event.workout-time_trial { border-left: 3px solid #ff5722 !important; }
 
 @media (max-width: 640px) {
     .fc .fc-header-toolbar {

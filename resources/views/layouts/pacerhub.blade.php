@@ -464,7 +464,7 @@
                 return prefix + cleanPath;
             }
             function showBox(){ box.classList.remove('hidden'); }
-            function hideBox(){ box.classList.add('hidden'); stopPoll(); }
+            function hideBox(){ box.classList.add('hidden'); stopPoll(); setOpen(''); }
             function showConversations(){ convList.classList.remove('hidden'); msgPanel.classList.add('hidden'); backBtn.classList.add('hidden'); }
             function showMessages(){ convList.classList.add('hidden'); msgPanel.classList.remove('hidden'); backBtn.classList.remove('hidden'); }
             function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
@@ -513,8 +513,8 @@
                         var row = document.createElement('div');
                         row.className = 'flex '+(own?'justify-end':'justify-start');
                         var bubble = document.createElement('div');
-                        bubble.className = 'max-w-[70%] px-3 py-2 rounded-xl text-sm '+(own?'bg-neon text-dark':'bg-slate-800 text-white');
-                        bubble.innerHTML = m.message.replace(/\n/g,'<br>')+'<div class="text-[10px] mt-1 '+(own?'text-white/70':'text-slate-400')+'">'+formatTime(m.created_at)+'</div>';
+                        bubble.className = 'max-w-[70%] px-3 py-2 rounded-xl text-sm font-bold '+(own?'bg-neon text-slate-950':'bg-slate-800 text-white');
+                        bubble.innerHTML = m.message.replace(/\n/g,'<br>')+'<div class="text-[10px] mt-1 '+(own?'text-slate-950/70':'text-slate-400')+'">'+formatTime(m.created_at)+'</div>';
                         row.appendChild(bubble);
                         msgBody.appendChild(row);
                     });
