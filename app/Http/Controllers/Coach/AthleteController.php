@@ -499,6 +499,7 @@ class AthleteController extends Controller
                     'elevation_difference' => data_get($s, 'elevation_difference'),
                     'average_speed' => $splitSpeed,
                     'pace' => $api->formatPaceFromSpeed($splitSpeed),
+                    'average_heartrate' => data_get($s, 'average_heartrate'),
                 ];
             }
         }

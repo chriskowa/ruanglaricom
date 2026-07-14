@@ -418,7 +418,7 @@
                             <tbody class="divide-y divide-slate-800">
                                 <tr v-for="(split, index) in detail.strava_splits" :key="index" class="hover:bg-slate-800/30 transition">
                                     <td class="px-4 py-3 font-mono text-slate-300">@{{ split.split }}</td>
-                                    <td class="px-4 py-3 font-mono font-bold text-white">@{{ formatPaceFromSec(split.moving_time / (split.distance / 1000)) }}</td>
+                                    <td class="px-4 py-3 font-mono font-bold text-white">@{{ split.pace || '-' }}</td>
                                     <td class="px-4 py-3 font-mono text-slate-300">@{{ split.elevation_difference?.toFixed(0) }}m</td>
                                     <td class="px-4 py-3 font-mono text-rose-400">@{{ split.average_heartrate ? Math.round(split.average_heartrate) : '-' }}</td>
                                 </tr>
