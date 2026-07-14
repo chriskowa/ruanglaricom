@@ -616,7 +616,7 @@ Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])
 
 // Public API: Upcoming events for home page
 Route::get('/api/events/upcoming', function () {
-    return Illuminate\Support\Facades\Cache::remember('api.events.upcoming', 600, function () {
+    $result = Illuminate\Support\Facades\Cache::remember('api.events.upcoming', 600, function () {
         try {
             if (! Illuminate\Support\Facades\Schema::hasTable('events')) {
                 return [];
@@ -648,13 +648,13 @@ Route::get('/api/events/upcoming', function () {
                 $dt = $e->start_at ?: $e->created_at;
 
                 return [
-                    'name' => $e->name,
-                    'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
-                    'is_eo' => $e->is_eo,
-                    'date' => optional($dt)->format('Y-m-d'),
-                    'time' => optional($dt)->format('H:i'),
-                    'location' => $e->location_name,
-                    'url' => $e->public_url,
+                    'name'      => $e->name,
+                    'slug'      => $e->slug ?: Illuminate\Support\Str::slug($e->name),
+                    'is_eo'     => $e->is_eo,
+                    'date'      => optional($dt)->format('Y-m-d'),
+                    'time'      => optional($dt)->format('H:i'),
+                    'location'  => $e->location_name,
+                    'url'       => $e->public_url,
                     'distances' => $e->categories->pluck('name')->toArray(),
                 ];
             })->toArray();
@@ -662,11 +662,12 @@ Route::get('/api/events/upcoming', function () {
             return [];
         }
     });
-})->name('api.events.upcoming');
+    return response()->json($result ?? []);
+})->middleware('throttle:60,1')->name('api.events.upcoming');
 
 // Public API: Latest blog articles for home page
 Route::get('/api/blog/latest', function () {
-    return Illuminate\Support\Facades\Cache::remember('api.blog.latest', 600, function () {
+    $result = Illuminate\Support\Facades\Cache::remember('api.blog.latest', 600, function () {
         try {
             if (! Illuminate\Support\Facades\Schema::hasTable('articles')) {
                 return [];
@@ -686,19 +687,20 @@ Route::get('/api/blog/latest', function () {
                     $dt = $a->published_at ?: $a->created_at;
 
                     return [
-                        'title' => $a->localized_title,
-                        'slug' => $a->slug,
+                        'title'   => $a->localized_title,
+                        'slug'    => $a->slug,
                         'excerpt' => $a->localized_excerpt,
-                        'date' => optional($dt)->format('Y-m-d'),
-                        'image' => $img,
-                        'url' => $a->localized_canonical_url ?: route('blog.show', $a->slug),
+                        'date'    => optional($dt)->format('Y-m-d'),
+                        'image'   => $img,
+                        'url'     => $a->localized_canonical_url ?: route('blog.show', $a->slug),
                     ];
                 })->toArray();
         } catch (\Throwable $e) {
             return [];
         }
     });
-})->name('api.blog.latest');
+    return response()->json($result ?? []);
+})->middleware('throttle:60,1')->name('api.blog.latest');
 
 // Public API: Cyberpunk Leaderboard (40days)
 Route::get('/api/leaderboard/40days', [\App\Http\Controllers\LeaderboardController::class, 'index'])
