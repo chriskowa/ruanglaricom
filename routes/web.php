@@ -624,7 +624,9 @@ Route::get('/api/events/upcoming', function () {
 
             $now = now();
 
-            $baseQuery = App\Models\Event::with('categories')->select('id', 'name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
+            $baseQuery = App\Models\Event::with('categories')
+                ->select('id', 'name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
+                ->published()
                 ->where('start_at', '>=', $now)
                 ->orderBy('start_at', 'asc');
 
@@ -652,7 +654,10 @@ Route::get('/api/events/upcoming', function () {
                     'slug'      => $e->slug ?: Illuminate\Support\Str::slug($e->name),
                     'is_eo'     => $e->is_eo,
                     'date'      => optional($dt)->format('Y-m-d'),
-                    'time'      => optional($dt)->format('H:i'),
+                    'time'      => (function() use ($dt) {
+                        $t = optional($dt)->format('H:i');
+                        return ($t === '00:00') ? '05:00' : $t;
+                    })(),
                     'location'  => $e->location_name,
                     'url'       => $e->public_url,
                     'distances' => $e->categories->pluck('name')->toArray(),
