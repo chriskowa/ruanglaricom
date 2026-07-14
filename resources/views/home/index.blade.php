@@ -33,7 +33,7 @@
                         
                         <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-none mb-6 text-[#F8FAFC] tracking-tighter uppercase">
                             LARI TANPA <br class="hidden md:block">
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#B8FF00] via-[#9FE000] to-emerald-400 italic">BATAS.</span>
+                            <span class="text-[#B8FF00]">BATAS.</span>
                         </h1>
                         
                         <p class="text-[#94A3B8] text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
@@ -51,7 +51,7 @@
 
                         <div class="mt-12 flex items-center justify-center md:justify-start gap-4">
                             <div class="text-left">
-                                <div class="flex text-yellow-400 text-xs mb-1">
+                                <div class="flex text-white text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
                                 <p class="text-sm text-[#94A3B8]"><span class="text-white font-bold">1000+</span> Pelari Telah Bergabung</p>
@@ -214,7 +214,7 @@
                     <!-- Card 1: Running Tools & Performance -->
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="0">
                         <div>
-                            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 border border-blue-500/20 group-hover:scale-105 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pantau & Tingkatkan Latihan</h3>
@@ -239,7 +239,7 @@
                     <!-- Card 2: Community & Network -->
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="100">
                         <div>
-                            <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] mb-6 border border-[#B8FF00]/20 group-hover:scale-105 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Terhubung dengan Komunitas</h3>
@@ -260,7 +260,7 @@
                     <!-- Card 3: Event Ticketing -->
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="200">
                         <div>
-                            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 border border-purple-500/20 group-hover:scale-105 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pendaftaran Event Lari</h3>
@@ -277,7 +277,7 @@
                     <!-- Card 4: Gear Marketplace -->
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="300">
                         <div>
-                            <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 mb-6 border border-orange-500/20 group-hover:scale-105 transition">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pasar Perlengkapan Lari</h3>
@@ -311,7 +311,7 @@
                         </div>
                         <h2 class="text-4xl md:text-5xl font-black text-white tracking-tight uppercase leading-none mb-6">
                             Temukan Teman Lari <br>
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Terdekat Anda!</span>
+                            <span class="text-[#B8FF00]">Terdekat Anda!</span>
                         </h2>
                         
                         <p class="text-[#94A3B8] text-base md:text-lg mb-8 leading-relaxed font-normal">
@@ -321,7 +321,7 @@
                         <!-- Key Points -->
                         <div class="space-y-4 mb-10">
                             <div class="flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0 mt-0.5 border border-blue-500/20">
+                                <div class="w-8 h-8 rounded-xl bg-slate-800/80 flex items-center justify-center text-white shrink-0 mt-0.5 border border-slate-700">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 </div>
                                 <div>
@@ -330,7 +330,7 @@
                                 </div>
                             </div>
                             <div class="flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] shrink-0 mt-0.5 border border-[#B8FF00]/20">
+                                <div class="w-8 h-8 rounded-xl bg-slate-800/80 flex items-center justify-center text-white shrink-0 mt-0.5 border border-slate-700">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 </div>
                                 <div>
@@ -339,7 +339,7 @@
                                 </div>
                             </div>
                             <div class="flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5 border border-emerald-500/20">
+                                <div class="w-8 h-8 rounded-xl bg-slate-800/80 flex items-center justify-center text-white shrink-0 mt-0.5 border border-slate-700">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                                 </div>
                                 <div>
@@ -366,7 +366,7 @@
                             <!-- Overlay Badge -->
                             <div class="absolute bottom-6 left-6 right-6 z-20 bg-[#0E1A2D]/95 backdrop-blur-md p-4 rounded-xl border border-[#1F2D44]">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                    <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center text-white border border-slate-700">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                                     </div>
                                     <div class="min-w-0">
@@ -409,7 +409,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="0">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 border border-blue-500/20">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Kuota & Kategori Real-time</h3>
@@ -417,7 +417,7 @@
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="100">
-                        <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] mb-6 border border-[#B8FF00]/20">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5 5.5L4 19l5.5-5.5M14 9l5.5-5.5L20 4l-5.5 5.5M6 6l12 12" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Promo, Kupon, & Jersey Add-on</h3>
@@ -425,7 +425,7 @@
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="200">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 border border-purple-500/20">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v1c0 1.105 1.343 2 3 2s3 .895 3 2v1c0 1.105-1.343 2-3 2m0-14v2m0 16v2m9-10a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Pembayaran Online Otomatis</h3>
@@ -433,8 +433,8 @@
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="300">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Dashboard Rekap & Race Day Ops</h3>
                         <p class="text-[#94A3B8] text-sm leading-relaxed">Ekspor data peserta berformat Excel untuk tim timer (BIB tagging) dan kelola check-in kehadiran secara live saat race day.</p>
@@ -450,7 +450,7 @@
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16" data-aos="fade-up">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#FC4C02]/20 bg-[#FC4C02]/10 backdrop-blur-sm text-[#FC4C02] text-xs font-bold uppercase tracking-wider mb-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/80 text-white text-xs font-bold uppercase tracking-wider mb-6">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                         Powered by Strava
                     </div>
@@ -459,7 +459,7 @@
                             <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="text-[10px] text-slate-500 hover:text-white ml-2">[Admin: Re-Connect Strava]</a>
                         @endif
                     @endauth
-                    <h2 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
+                    <h2 class="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">
                         Weekly <span class="text-[#B8FF00]">Leaderboard</span>
                     </h2>
                     <p class="text-[#94A3B8] max-w-2xl mx-auto text-base">
@@ -475,7 +475,7 @@
                         <div class="group relative" data-aos="fade-up" data-aos-delay="0">
                             <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-blue-500/50 transition duration-300 h-full flex flex-col justify-between">
                                 <!-- Icon / Rank Badge -->
-                                <div class="absolute top-0 right-0 bg-blue-500/10 border-l border-b border-[#1F2D44] text-blue-400 text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
+                                <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] text-white text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
                                     <i class="fas fa-bolt"></i> Speed Demon
                                 </div>
                                 
@@ -499,7 +499,7 @@
                                 <div class="mt-4">
                                     <div class="flex items-end justify-between mb-2">
                                         <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Pace</span>
-                                        <span class="text-3xl font-black text-white italic">{{ $leaderboard['fastest']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
+                                        <span class="text-3xl font-black text-white">{{ $leaderboard['fastest']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
                                     </div>
                                     <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
                                         <div class="h-full bg-blue-500 w-[95%]"></div>
@@ -538,7 +538,7 @@
                                 <div class="mt-4">
                                     <div class="flex items-end justify-between mb-2">
                                         <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Distance</span>
-                                        <span class="text-4xl font-black text-white italic">{{ $leaderboard['distance']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
+                                        <span class="text-4xl font-black text-white">{{ $leaderboard['distance']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
                                     </div>
                                     <div class="w-full h-3 bg-[#111F35] rounded-full overflow-hidden">
                                         <div class="h-full bg-gradient-to-r from-[#B8FF00] to-emerald-400 w-[88%]"></div>
@@ -553,7 +553,7 @@
                         <div class="group relative" data-aos="fade-up" data-aos-delay="200">
                             <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-purple-500/50 transition duration-300 h-full flex flex-col justify-between">
                                 <!-- Icon / Rank Badge -->
-                                <div class="absolute top-0 right-0 bg-purple-500/10 border-l border-b border-[#1F2D44] text-purple-400 text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
+                                <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-[#1F2D44] text-white text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
                                     <i class="fas fa-mountain"></i> Elevation King
                                 </div>
                                 
@@ -577,7 +577,7 @@
                                 <div class="mt-4">
                                     <div class="flex items-end justify-between mb-2">
                                         <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Elevation</span>
-                                        <span class="text-3xl font-black text-white italic">{{ $leaderboard['elevation']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
+                                        <span class="text-3xl font-black text-white">{{ $leaderboard['elevation']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
                                     </div>
                                     <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
                                         <div class="h-full bg-purple-500 w-[75%]"></div>
@@ -983,11 +983,11 @@
                         
                         <div class="space-y-2 mb-6">
                             <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
-                                <svg class="w-4 h-4 text-[#B8FF00] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 <span class="truncate">${ev.location||'TBA'}</span>
                             </div>
                             <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
-                                <svg class="w-4 h-4 text-[#B8FF00] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 <span>${ev.time||'TBA'} WIB</span>
                             </div>
                         </div>
