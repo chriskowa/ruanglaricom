@@ -132,37 +132,44 @@
                                 <svg class="w-40 h-40 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             
-                            <!-- Header Profile -->
-                            <div class="flex items-center gap-6 mb-8 relative z-10">
-                                <!-- Shield/Badge Shape Profile -->
-                                <div class="w-24 h-28 shrink-0 relative drop-shadow-2xl filter">
-                                    <!-- Gradient Border/Background -->
-                                    <div class="absolute inset-0 bg-gradient-to-b from-[#FC4C02] via-[#FC4C02] to-[#ccff00] rounded-t-2xl rounded-b-[4rem]"></div>
-                                    <!-- Image Container (slightly smaller) -->
-                                    <div class="absolute inset-[3px] bg-slate-900 rounded-t-[14px] rounded-b-[3.8rem] overflow-hidden">
-                                        <img :src="getProxiedProfile()" class="w-full h-full object-cover" crossorigin="anonymous">
-                                    </div>
-                                    <!-- Shine Effect -->
-                                    <div class="absolute inset-0 rounded-t-2xl rounded-b-[4rem] ring-1 ring-white/30 pointer-events-none"></div>
-                                    <!-- Badge Icon/Star at bottom -->
-                                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#0f172a] p-1.5 rounded-full border border-[#ccff00]">
-                                        <svg class="w-4 h-4 text-[#ccff00]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-3">
-                                        <h2 class="text-3xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h2>
-                                        <span class="bg-neon/10 text-neon text-[10px] font-bold px-2 py-1 rounded border border-neon/30 uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(204,255,0,0.2)]">
-                                            <span>@{{ filteredStats.archetypeIcon }}</span> @{{ filteredStats.archetype }}
-                                        </span>
-                                    </div>
-                                    <p class="text-slate-400">@{{ athlete.city || 'Runner' }} • @{{ analysisWeeks }} Week Analysis</p>
-                                </div>
-                                <div class="ml-auto text-right">
-                                    <p class="text-xs text-slate-500 uppercase tracking-wider">Powered by</p>
-                                    <p class="text-lg font-bold text-neon">RUANG LARI</p>
-                                </div>
-                            </div>
+                             <!-- Header Profile -->
+                             <div class="flex items-center gap-6 mb-8 relative z-10">
+                                 <!-- Shield/Badge Shape Profile -->
+                                 <div class="w-24 h-24 shrink-0 relative">
+                                     <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-2xl" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                         <defs>
+                                             <linearGradient id="shareProfileGradient" x1="-23.823" x2="36.668" y1="-14.783" y2="76.122" gradientUnits="userSpaceOnUse">
+                                                 <stop stop-color="#ffffff"></stop>
+                                                 <stop offset="0.5" stop-color="#fc5200"></stop>
+                                                 <stop offset="1" stop-color="#4d0000"></stop>
+                                             </linearGradient>
+                                             <clipPath id="shareProfileClip">
+                                                 <path d="M51.428 1.75a3.323 3.323 0 0 1 3.322 3.322V46.08c0 1.222-.67 2.337-1.73 2.916l-.218.11-22.356 10.157a5.914 5.914 0 0 1-4.598.124l-.294-.124L3.198 49.105a3.323 3.323 0 0 1-1.948-3.026V5.072A3.323 3.323 0 0 1 4.572 1.75h46.856Z" transform="translate(4, 1.229)"></path>
+                                             </clipPath>
+                                         </defs>
+                                         <!-- Profile Image Clipped to Shield -->
+                                         <g clip-path="url(#shareProfileClip)">
+                                             <image :href="getProxiedProfile()" x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"></image>
+                                         </g>
+                                         <!-- Shield Gradient Outline -->
+                                         <path d="M51.428 1.75a3.323 3.323 0 0 1 3.322 3.322V46.08c0 1.222-.67 2.337-1.73 2.916l-.218.11-22.356 10.157a5.914 5.914 0 0 1-4.598.124l-.294-.124L3.198 49.105a3.323 3.323 0 0 1-1.948-3.026V5.072A3.323 3.323 0 0 1 4.572 1.75h46.856Z" 
+                                               fill="none" stroke="url(#shareProfileGradient)" stroke-width="2.5" transform="translate(4, 1.229)"></path>
+                                     </svg>
+                                 </div>
+                                 <div>
+                                     <div class="flex items-center gap-3">
+                                         <h2 class="text-3xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h2>
+                                         <span class="bg-neon/10 text-neon text-[10px] font-bold px-2 py-1 rounded border border-neon/30 uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(204,255,0,0.2)]">
+                                             @{{ filteredStats.archetype }}
+                                         </span>
+                                     </div>
+                                     <p class="text-slate-400">@{{ athlete.city || 'Runner' }} • @{{ analysisWeeks }} Week Analysis</p>
+                                 </div>
+                                 <div class="ml-auto text-right flex flex-col items-end">
+                                     <p class="text-[10px] text-slate-500 uppercase tracking-wider">Powered by</p>
+                                     <img src="{{ asset('images/logo ruang lari putih.png') }}" class="h-6 mt-1 object-contain" alt="Ruang Lari">
+                                 </div>
+                             </div>
 
                             <!-- Grid Stats -->
                             <div class="grid grid-cols-2 gap-4 mb-6 relative z-10">
