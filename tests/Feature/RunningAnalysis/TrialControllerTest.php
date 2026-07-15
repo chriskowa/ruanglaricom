@@ -140,4 +140,78 @@ class TrialControllerTest extends TestCase
             'status' => 'captured',
         ]);
     }
+
+    public function test_publishing_trial_creates_notification_and_lets_runner_review_and_stream()
+    {
+        $admin = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $otherRunner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'status'     => Trial::STATUS_REVIEW_REQUIRED,
+        ]);
+
+        // 1. Approve & Publish
+        $response = $this->actingAs($admin)->post(route('admin.running-analysis.trials.approve', $trial));
+        $response->assertRedirect(route('admin.running-analysis.trials.review', $trial));
+
+        $this->assertDatabaseHas('running_analysis_trials', [
+            'id'     => $trial->id,
+            'status' => Trial::STATUS_PUBLISHED,
+        ]);
+
+        // Verify Notification is created in database
+        $this->assertDatabaseHas('notifications', [
+            'user_id'        => $runner->id,
+            'type'           => 'running_analysis',
+            'reference_type' => Trial::class,
+            'reference_id'   => $trial->id,
+        ]);
+
+        // 2. Runner Views Review Page
+        $response = $this->actingAs($runner)->get(route('runner.running-analysis.trials.review', $trial));
+        $response->assertStatus(200);
+
+        // 3. Other Runner Is Denied Access
+        $response = $this->actingAs($otherRunner)->get(route('runner.running-analysis.trials.review', $trial));
+        $response->assertStatus(403);
+
+        // 4. Trial is unpublished - Denied access
+        $unpublishedTrial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'status'     => Trial::STATUS_REVIEW_REQUIRED,
+        ]);
+        $response = $this->actingAs($runner)->get(route('runner.running-analysis.trials.review', $unpublishedTrial));
+        $response->assertStatus(403);
+
+        // 5. Runner serves artifact
+        Storage::fake('local');
+        $artifact = $trial->artifacts()->create([
+            'type'       => 'video_clip',
+            'disk'       => 'local',
+            'path'       => 'dummy.mp4',
+            'mime_type'  => 'video/mp4',
+            'sha256'     => 'hash',
+            'size_bytes' => 100,
+        ]);
+        Storage::disk('local')->put('dummy.mp4', 'dummy data');
+
+        $response = $this->actingAs($runner)->get(route('runner.running-analysis.trials.artifact', [$trial, $artifact]));
+        $response->assertStatus(200);
+
+        // Other runner is denied artifact
+        $response = $this->actingAs($otherRunner)->get(route('runner.running-analysis.trials.artifact', [$trial, $artifact]));
+        $response->assertStatus(403);
+    }
+
+    public function test_runner_dashboard_compiles_successfully()
+    {
+        $runner = User::factory()->runner()->create();
+        $response = $this->actingAs($runner)->get(route('runner.dashboard'));
+        $response->assertStatus(200);
+    }
 }

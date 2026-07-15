@@ -39,6 +39,8 @@
                                     <a href="{{ route('feed.index') }}#post-{{ $notification->reference_id }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @elseif($notification->reference_type === 'EventSubmission' && $notification->reference_id && auth()->user()?->role === 'admin')
                                     <a href="{{ route('admin.event-submissions.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
+                                @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
+                                    <a href="{{ route('runner.running-analysis.trials.review', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @else
                                     <a href="javascript:void(0)" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @endif
@@ -46,6 +48,8 @@
                                     <a href="{{ route('feed.index') }}#post-{{ $notification->reference_id }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @elseif($notification->reference_type === 'EventSubmission' && $notification->reference_id && auth()->user()?->role === 'admin')
                                     <a href="{{ route('admin.event-submissions.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
+                                @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
+                                    <a href="{{ route('runner.running-analysis.trials.review', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @else
                                     <a href="javascript:void(0)" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @endif

@@ -1,5 +1,5 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
+@php $withSidebar = true; @endphp
 
 @section('title', 'Runner Dashboard')
 
@@ -129,7 +129,7 @@
                     <div x-show="!collapsed" x-transition class="mt-5">
 
                     @if(!empty($todayWorkout))
-                        @php($todayStatus = (string) ($todayWorkout['status'] ?? 'pending'))
+                        @php($todayStatus = $todayWorkout['status'] ?? 'pending')
                         <div class="mt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
@@ -192,7 +192,7 @@
                                 </a>
                             </div>
                         </div>
-                                      @if(($activeEnrollments->count() ?? 0) <= 0)
+                                      @if($activeEnrollments->count() <= 0)
                             @if($programBag->count() > 0)
                                 @php($pendingProgram = $programBag->first())
                                 <div class="mt-5 bg-gradient-to-r from-green-950/40 to-[#ccff00]/5 border border-green-500/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_30px_rgba(204,255,0,0.05)] animate-pulse-slow">
@@ -425,8 +425,8 @@
                     </div>
                     <div x-show="!collapsed" x-transition class="mt-4 -mx-2 px-2 overflow-x-auto">
                         <div class="flex gap-2 min-w-max">
-                            @foreach(($weekStrip ?? []) as $d)
-                                @php($st = (string) ($d['status'] ?? 'rest'))
+                            @foreach($weekStrip ?? [] as $d)
+                                @php($st = $d['status'] ?? 'rest')
                                 <a href="{{ route('runner.calendar') }}" class="flex flex-col items-center justify-center w-16 h-20 rounded-2xl border {{ ($d['is_today'] ?? false) ? 'border-neon/40 bg-neon/10' : 'border-slate-700/60 bg-slate-900/40' }} hover:border-neon/40 transition">
                                     <div class="text-[11px] font-mono {{ ($d['is_today'] ?? false) ? 'text-neon' : 'text-slate-400' }}">{{ $d['day_short'] ?? '' }}</div>
                                     <div class="text-xl font-black text-white">{{ $d['day_num'] ?? '' }}</div>
@@ -458,7 +458,7 @@
 
                     <div x-show="!collapsed" x-transition>
 
-                    @php($rows = array_slice(($upcomingWorkouts ?? []), 0, 3))
+                    @php($rows = array_slice($upcomingWorkouts ?? [], 0, 3))
                     <div class="mt-4 space-y-2">
                         @forelse($rows as $w)
                             <div class="flex items-start justify-between gap-3 bg-slate-900/40 border border-slate-700/60 rounded-xl px-4 py-3">
@@ -474,7 +474,7 @@
                                     </div>
                                 </div>
                                 <div class="shrink-0 text-right">
-                                    @php($s = (string) ($w['status'] ?? 'pending'))
+                                    @php($s = $w['status'] ?? 'pending')
                                     <div class="text-xs font-bold {{ $s === 'completed' ? 'text-green-300' : ($s === 'started' ? 'text-yellow-300' : 'text-slate-400') }}">
                                         {{ strtoupper($s) }}
                                     </div>
@@ -521,6 +521,68 @@
                             </div>
                         @endforeach
                     </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Running Form Analysis Section -->
+                @if(isset($publishedTrials) && $publishedTrials->count() > 0)
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5 cursor-pointer select-none" @click="collapsed = !collapsed">
+                        <div class="min-w-0">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Analysis</div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Running Form Analysis</h2>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="shrink-0" @click.stop>
+                            <span class="px-3 py-1.5 rounded-lg bg-[#ccff00]/15 border border-[#ccff00]/30 text-[10px] text-[#ccff00] font-black uppercase tracking-wider">
+                                {{ $publishedTrials->count() }} Analisis
+                            </span>
+                        </div>
+                    </div>
+
+                    <div x-show="!collapsed" x-transition>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($publishedTrials as $trial)
+                                @php($score = $trial->quality_score ? round((float) $trial->quality_score * 100) : null)
+                                @php($report = $trial->latestReport)
+                                @php($narrative = $report ? $report->runner_narrative_json : null)
+                                @php($coachMessage = is_array($narrative) ? ($narrative['coach_message'] ?? null) : null)
+                                <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-850 hover:border-[#ccff00]/40 transition-all flex flex-col justify-between gap-3">
+                                    <div>
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <div class="font-bold text-sm text-white">Trial Attempt #{{ $trial->attempt_no }}</div>
+                                            @if($score)
+                                                <span class="px-2 py-0.5 rounded bg-[#ccff00]/10 border border-[#ccff00]/30 text-[#ccff00] text-[10px] font-black tracking-tight">
+                                                    {{ $score }} Pts
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 font-mono">
+                                            Session: {{ $trial->session->name ?? 'Default Session' }}
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 mt-1 font-sans">
+                                            Tanggal: <span class="font-semibold text-slate-300">{{ $trial->published_at ? $trial->published_at->format('d M Y') : $trial->created_at->format('d M Y') }}</span>
+                                        </div>
+                                        @if($coachMessage)
+                                            <p class="text-slate-400 text-xs mt-2 italic line-clamp-2">
+                                                "{{ is_array($coachMessage) ? implode(' ', array_values($coachMessage)) : $coachMessage }}"
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{{ route('runner.running-analysis.trials.review', $trial) }}" 
+                                           class="w-full py-2 rounded-lg bg-[#ccff00] text-black hover:bg-[#b3e600] font-black text-center text-xs uppercase italic tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm">
+                                            Lihat Analisis Detail <i class="fas fa-arrow-right text-[10px]"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 @endif

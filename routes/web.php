@@ -958,6 +958,11 @@ Route::middleware('auth')->group(function () {
     // Runner routes
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Running Analysis Review for Runner
+        Route::get('/running-analysis/trials/{trial}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'runnerReview'])->name('running-analysis.trials.review');
+        Route::get('/running-analysis/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveRunnerArtifact'])->name('running-analysis.trials.artifact');
+
         Route::post('/profile/toggle-wa', [DashboardController::class, 'toggleWaNotification'])->name('profile.toggle-wa');
         Route::get('/programs', [App\Http\Controllers\Runner\ProgramController::class, 'index'])->name('programs');
 

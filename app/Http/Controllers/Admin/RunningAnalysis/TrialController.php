@@ -197,9 +197,6 @@ class TrialController extends Controller
             ->with('success', 'Trial has been rejected.');
     }
 
-    /**
-     * Approve and publish a trial.
-     */
     public function approve(Trial $trial)
     {
         $trial->update([
@@ -207,6 +204,17 @@ class TrialController extends Controller
             'approved_by' => auth()->id(),
             'approved_at' => now(),
             'published_at'=> now(),
+        ]);
+
+        // Create Database Notification for Runner
+        \App\Models\Notification::create([
+            'user_id'        => $trial->runner_id,
+            'type'           => 'running_analysis',
+            'title'          => 'Running Form Analysis Published',
+            'message'        => 'Analisis lari Anda (Attempt #' . $trial->attempt_no . ') telah selesai dinilai dan dipublikasikan.',
+            'reference_type' => \App\Models\RunningAnalysis\Trial::class,
+            'reference_id'   => $trial->id,
+            'is_read'        => false,
         ]);
 
         return redirect()
@@ -322,5 +330,45 @@ class TrialController extends Controller
 
             return redirect()->back()->with('error', 'Analysis failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Display the review details page for a runner (only if it belongs to them and is published).
+     */
+    public function runnerReview(Trial $trial)
+    {
+        abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
+        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+
+        $trial->load([
+            'runner', 
+            'session', 
+            'artifacts', 
+            'metrics', 
+            'findings', 
+            'recommendations',
+            'latestReport'
+        ]);
+
+        $poseData = null;
+        $poseArtifact = $trial->artifacts->where('type', 'pose_landmarks')->first();
+        
+        if ($poseArtifact && \Illuminate\Support\Facades\Storage::disk($poseArtifact->disk)->exists($poseArtifact->path)) {
+            $poseData = \Illuminate\Support\Facades\Storage::disk($poseArtifact->disk)->get($poseArtifact->path);
+        }
+
+        return view('admin.running-analysis.trials.review', compact('trial', 'poseData'));
+    }
+
+    /**
+     * Serve an artifact file from local storage for a runner (only if it belongs to them and is published).
+     */
+    public function serveRunnerArtifact(Trial $trial, Artifact $artifact)
+    {
+        abort_unless($artifact->trial_id === $trial->id, 404);
+        abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
+        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+
+        return $this->serveArtifact($trial, $artifact);
     }
 }

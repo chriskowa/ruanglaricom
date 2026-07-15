@@ -355,7 +355,14 @@ class DashboardController extends Controller
         });
 
         // Get Run Connect history
-        $runConnectHistory = \App\Models\RunThread::where('creator_id', $user->id)
+        $runConnectHistory = \App\Models\RunningAnalysis\Trial::where('runner_id', $user->id)
+            ->where('status', \App\Models\RunningAnalysis\Trial::STATUS_PUBLISHED)
+            ->with(['session', 'latestReport'])
+            ->orderBy('published_at', 'desc')
+            ->get();
+
+        // Backup original Run Connect history
+        $runConnectHistoryOriginal = \App\Models\RunThread::where('creator_id', $user->id)
             ->orWhereHas('participants', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->whereIn('status', ['joined', 'pending']);
@@ -392,7 +399,8 @@ class DashboardController extends Controller
             'cancelledPrograms' => $cancelledPrograms,
             'trainingProfile' => $trainingProfile,
             'isEnrolled40Days' => $isEnrolled40Days,
-            'runConnectHistory' => $runConnectHistory,
+            'runConnectHistory' => $runConnectHistoryOriginal,
+            'publishedTrials' => $runConnectHistory,
         ]);
     }
 

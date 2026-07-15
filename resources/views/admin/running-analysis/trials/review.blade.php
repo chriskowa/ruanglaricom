@@ -104,10 +104,13 @@
                                 'avi'  => 'video/x-msvideo',
                                 default => 'video/mp4'
                             };
+                            $videoSourceUrl = auth()->user()?->role === 'admin' 
+                                ? route('admin.running-analysis.trials.artifact', [$trial, $videoArtifact])
+                                : route('runner.running-analysis.trials.artifact', [$trial, $videoArtifact]);
                         @endphp
                         <video id="video-player" preload="auto"
                             class="absolute inset-0 w-full h-full object-contain">
-                            <source src="{{ route('admin.running-analysis.trials.artifact', [$trial, $videoArtifact]) }}"
+                            <source src="{{ $videoSourceUrl }}"
                                 type="{{ $videoMime }}">
                         </video>
                         @endif
@@ -117,6 +120,44 @@
                             class="absolute inset-0 w-full h-full object-contain pointer-events-none"
                             style="{{ !$poseData ? 'display:none' : ($videoArtifact ? 'display:none' : '') }}">
                         </canvas>
+
+                        <!-- Floating AI Biomechanical Annotation Tooltip -->
+                        <style>
+                        #ai-moment-tooltip {
+                            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+                        #ai-moment-tooltip.show {
+                            opacity: 1 !important;
+                            pointer-events: auto !important;
+                            transform: translateY(0) !important;
+                        }
+                        </style>
+                        <div id="ai-moment-tooltip" class="absolute top-4 right-4 z-30 max-w-[280px] md:max-w-[340px] bg-slate-950/90 backdrop-blur-md border border-slate-800/80 rounded-xl p-4 shadow-2xl transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <div class="min-w-0">
+                                    <div class="text-[9px] font-mono text-cyan-400 uppercase tracking-widest mb-0.5">AI Biomechanics Feedback</div>
+                                    <h4 id="tooltip-title" class="text-sm font-black text-white italic tracking-tight truncate">Landing Position</h4>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <span id="tooltip-status" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border">OK</span>
+                                    <button type="button" onclick="window.hideGaitMomentTooltip()" class="text-slate-400 hover:text-white transition-colors text-xs p-1">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <p id="tooltip-summary" class="text-slate-300 text-xs mb-3 font-medium leading-relaxed"></p>
+                            
+                            <div id="tooltip-findings-container" class="mb-3">
+                                <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Findings</div>
+                                <ul id="tooltip-findings" class="space-y-1 text-slate-300 text-[11px] leading-relaxed"></ul>
+                            </div>
+                            
+                            <div id="tooltip-actions-container">
+                                <div class="text-[9px] font-bold text-[#ccff00] uppercase tracking-widest mb-1.5">Correction Actions</div>
+                                <ul id="tooltip-actions" class="space-y-1 text-slate-300 text-[11px] leading-relaxed"></ul>
+                            </div>
+                        </div>
 
                         {{-- Video error overlay --}}
                         <div id="video-error-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-3" style="display: none;">
@@ -197,7 +238,7 @@
                                     };
                                 @endphp
                                 <button type="button" 
-                                    onclick="seekToGaitEvent({{ $event->timestamp_ms }})"
+                                    onclick="seekToGaitEvent({{ $event->timestamp_ms }}, '{{ $event->event_type }}')"
                                     class="flex flex-col items-start text-left p-3 rounded-lg bg-slate-800/60 border border-slate-700/50 hover:border-[#ccff00] hover:bg-slate-800 transition-all duration-300 group">
                                     <div class="flex items-center justify-between w-full mb-1.5">
                                         <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border {{ $sideBadgeColor }} uppercase">{{ $event->side }}</span>
@@ -217,49 +258,51 @@
 
 
                 <!-- Action Bar -->
-                @if(!in_array($trial->status, ['invalid', 'published']))
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex gap-3 justify-end items-center">
-                    <span class="text-xs text-slate-500 mr-auto italic">Actions update trial status permanently.</span>
-                    @if($videoArtifact)
-                    <a href="{{ route('admin.running-analysis.upload-video.form', $trial->session_id) }}?trial_id={{ $trial->id }}"
-                        class="px-6 py-2 rounded text-sm font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-colors">
-                        Re-analyze
-                    </a>
-                    @endif
-                    <button onclick="document.getElementById('reject-modal').classList.remove('hidden')"
-                        class="px-6 py-2 rounded text-sm font-bold bg-red-900/50 text-red-400 border border-red-700 hover:bg-red-900 transition-colors">
-                        Reject Trial
-                    </button>
-                    @if(in_array($trial->status, ['queued', 'analyzing', 'failed']))
-                    <form action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" method="POST" class="inline-block">
-                        @csrf
-                        <button type="submit"
-                            class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
-                            <i class="fas fa-play mr-2"></i> Analyze Now
+                @if(auth()->user()?->role === 'admin')
+                    @if(!in_array($trial->status, ['invalid', 'published']))
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex gap-3 justify-end items-center">
+                        <span class="text-xs text-slate-500 mr-auto italic">Actions update trial status permanently.</span>
+                        @if($videoArtifact)
+                        <a href="{{ route('admin.running-analysis.upload-video.form', $trial->session_id) }}?trial_id={{ $trial->id }}"
+                            class="px-6 py-2 rounded text-sm font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-colors">
+                            Re-analyze
+                        </a>
+                        @endif
+                        <button onclick="document.getElementById('reject-modal').classList.remove('hidden')"
+                            class="px-6 py-2 rounded text-sm font-bold bg-red-900/50 text-red-400 border border-red-700 hover:bg-red-900 transition-colors">
+                            Reject Trial
                         </button>
-                    </form>
+                        @if(in_array($trial->status, ['queued', 'analyzing', 'failed']))
+                        <form action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" method="POST" class="inline-block">
+                            @csrf
+                            <button type="submit"
+                                class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
+                                <i class="fas fa-play mr-2"></i> Analyze Now
+                            </button>
+                        </form>
+                        @else
+                        <form action="{{ route('admin.running-analysis.trials.approve', $trial) }}" method="POST" id="approve-form">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Approve and publish this trial to the runner?')"
+                                class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
+                                Approve & Publish
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                     @else
-                    <form action="{{ route('admin.running-analysis.trials.approve', $trial) }}" method="POST" id="approve-form">
-                        @csrf
-                        <button type="submit" onclick="return confirm('Approve and publish this trial to the runner?')"
-                            class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
-                            Approve & Publish
-                        </button>
-                    </form>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
+                        @if($trial->status === 'published')
+                            <i class="fas fa-check-circle text-[#ccff00]"></i>
+                            <span class="text-sm text-slate-300">This trial has been <strong class="text-[#ccff00]">published</strong> and is visible to the runner.</span>
+                        @else
+                            <i class="fas fa-times-circle text-red-400"></i>
+                            <span class="text-sm text-slate-300">This trial has been <strong class="text-red-400">rejected</strong>.
+                                @if($trial->invalid_reason) Reason: {{ $trial->invalid_reason }} @endif
+                            </span>
+                        @endif
+                    </div>
                     @endif
-                </div>
-                @else
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
-                    @if($trial->status === 'published')
-                        <i class="fas fa-check-circle text-[#ccff00]"></i>
-                        <span class="text-sm text-slate-300">This trial has been <strong class="text-[#ccff00]">published</strong> and is visible to the runner.</span>
-                    @else
-                        <i class="fas fa-times-circle text-red-400"></i>
-                        <span class="text-sm text-slate-300">This trial has been <strong class="text-red-400">rejected</strong>.
-                            @if($trial->invalid_reason) Reason: {{ $trial->invalid_reason }} @endif
-                        </span>
-                    @endif
-                </div>
                 @endif
             </div>
 
@@ -451,6 +494,7 @@
 </div>
 
 <!-- Reject Modal -->
+@if(auth()->user()?->role === 'admin')
 <div id="reject-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-red-700/50 rounded-xl p-6 w-full max-w-md shadow-2xl">
         <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-times-circle text-red-400 mr-2"></i> Reject Trial</h3>
@@ -474,6 +518,7 @@
         </form>
     </div>
 </div>
+@endif
 
 @if($poseData || isset($videoArtifact))
 <script>
@@ -1186,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Works in both VIDEO mode (seeks video player) and SKELETON-ONLY
         // mode (seeks the timeline scrubber directly).
         // ---------------------------------------------------------------
-        window.seekToGaitEvent = function(timestampMs) {
+        window.seekToGaitEvent = function(timestampMs, eventType) {
             const eventBaseMs = {{ $trial->gaitEvents->min('timestamp_ms') ?? 0 }};
             const targetRelativeMs = timestampMs - eventBaseMs;
             const targetSec = targetRelativeMs / 1000;
@@ -1214,7 +1259,178 @@ document.addEventListener('DOMContentLoaded', () => {
             if (vp && vp.style.display !== 'none') {
                 window.seekVideoTo(targetSec);
             }
+
+            // 4. Show AI Biomechanical feedback tooltip
+            if (eventType && typeof window.showGaitMomentTooltip === 'function') {
+                window.showGaitMomentTooltip(eventType);
+            }
         }; // end seekToGaitEvent
+
+        // ---------------------------------------------------------------
+        // AI Biomechanical Annotation Tooltip Overlay Logic
+        // ---------------------------------------------------------------
+        const tooltipEl = document.getElementById('ai-moment-tooltip');
+
+        window.hideGaitMomentTooltip = function() {
+            if (tooltipEl) {
+                tooltipEl.classList.remove('show');
+            }
+        };
+
+        window.showGaitMomentTooltip = function(eventType) {
+            if (!tooltipEl) return;
+
+            const GAIT_PHASE_MAP = {
+                'initial_contact': 'landing',
+                'midstance': 'lever',
+                'toe_off': 'push',
+                'max_swing_flexion': 'pull'
+            };
+            
+            const GAIT_PHASE_TITLES = {
+                'initial_contact': 'Landing Position',
+                'midstance': 'Lever (Mid-Stance)',
+                'toe_off': 'Push-Off Position',
+                'max_swing_flexion': 'Knee Pull Position'
+            };
+
+            const phaseCode = GAIT_PHASE_MAP[eventType];
+            if (!phaseCode) return;
+
+            const title = GAIT_PHASE_TITLES[eventType] || 'Gait Moment';
+            const titleEl = document.getElementById('tooltip-title');
+            if (titleEl) titleEl.textContent = title;
+
+            // Fetch from formReport
+            const formReport = {!! $report ? json_encode($report->deterministic_summary_json['form_report'] ?? []) : '[]' !!} || [];
+            let phaseData = formReport.find(item => item.code === phaseCode);
+
+            // Fallback to database findings if formReport doesn't have it
+            if (!phaseData) {
+                const dbFindings = {!! json_encode($trial->findings) !!} || [];
+                const dbRecommendations = {!! json_encode($trial->recommendations) !!} || [];
+
+                const FINDINGS_PHASE_MAP = {
+                    'LANDING_AHEAD_OF_PELVIS': 'landing',
+                    'LOW_LANDING_KNEE_FLEXION': 'landing',
+                    'NON_VERTICAL_SHIN_AT_CONTACT': 'landing',
+                    'EXCESSIVE_TRUNK_LEAN': 'posture',
+                    'LIMITED_TRAILING_LEG': 'push',
+                    'LIMITED_HIP_EXTENSION_PROXY': 'push',
+                    'DELAYED_LEG_RECOVERY': 'pull',
+                    'LOW_SWING_KNEE_FLEXION': 'pull'
+                };
+
+                const matchedFindings = dbFindings.filter(f => FINDINGS_PHASE_MAP[f.finding_code] === phaseCode);
+                
+                if (matchedFindings.length > 0) {
+                    const findingsList = matchedFindings.map(f => {
+                        if (f.evidence_json && f.evidence_json.metric_value) {
+                            return f.evidence_json.metric_value;
+                        }
+                        return f.explanation_key ? f.explanation_key.replace(/_/g, ' ') : f.finding_code.replace(/_/g, ' ');
+                    });
+
+                    // Gather recommendations for these findings
+                    const findingIds = matchedFindings.map(f => f.id);
+                    const matchedRecs = dbRecommendations.filter(r => findingIds.includes(r.finding_id));
+                    const actionsList = matchedRecs.map(r => r.recommendation_code.replace(/_/g, ' '));
+
+                    phaseData = {
+                        status: 'warn',
+                        summary: 'AI Analysis detected biomechanical concerns in this position.',
+                        findings: findingsList,
+                        actions: actionsList.length > 0 ? actionsList : ['Focus on optimizing joint alignment and strike mechanics.']
+                    };
+                } else {
+                    phaseData = {
+                        status: 'ok',
+                        summary: 'No issues detected for this position.',
+                        findings: [],
+                        actions: ['Running form metrics are within optimal ranges in this position.']
+                    };
+                }
+            }
+
+            // Populate HTML
+            const statusEl = document.getElementById('tooltip-status');
+            if (statusEl) {
+                statusEl.textContent = phaseData.status.toUpperCase();
+                statusEl.className = 'px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ';
+                if (phaseData.status === 'ok') {
+                    statusEl.classList.add('bg-[#ccff00]/10', 'border-[#ccff00]/30', 'text-[#ccff00]');
+                } else if (phaseData.status === 'warn') {
+                    statusEl.classList.add('bg-yellow-900/30', 'border-yellow-700', 'text-yellow-400');
+                } else if (phaseData.status === 'issue') {
+                    statusEl.classList.add('bg-red-900/30', 'border-red-700', 'text-red-400');
+                } else {
+                    statusEl.classList.add('bg-blue-900/30', 'border-blue-700', 'text-blue-400');
+                }
+            }
+
+            const summaryEl = document.getElementById('tooltip-summary');
+            if (summaryEl) summaryEl.textContent = phaseData.summary || '';
+
+            // Populate findings
+            const findingsContainer = document.getElementById('tooltip-findings-container');
+            const findingsListEl = document.getElementById('tooltip-findings');
+            if (findingsListEl) {
+                findingsListEl.innerHTML = '';
+                if (phaseData.findings && phaseData.findings.length > 0) {
+                    if (findingsContainer) findingsContainer.style.display = 'block';
+                    phaseData.findings.forEach(f => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-start gap-1.5 mb-1';
+                        li.innerHTML = `<span class="text-cyan-400 mt-0.5 shrink-0">•</span> <span class="text-slate-300">${f}</span>`;
+                        findingsListEl.appendChild(li);
+                    });
+                } else {
+                    if (findingsContainer) findingsContainer.style.display = 'none';
+                }
+            }
+
+            // Populate actions
+            const actionsContainer = document.getElementById('tooltip-actions-container');
+            const actionsListEl = document.getElementById('tooltip-actions');
+            if (actionsListEl) {
+                actionsListEl.innerHTML = '';
+                if (phaseData.actions && phaseData.actions.length > 0) {
+                    if (actionsContainer) actionsContainer.style.display = 'block';
+                    phaseData.actions.forEach(a => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-start gap-1.5 mb-1';
+                        li.innerHTML = `<span class="text-[#ccff00] mt-0.5 shrink-0">•</span> <span class="text-slate-200">${a}</span>`;
+                        actionsListEl.appendChild(li);
+                    });
+                } else {
+                    if (actionsContainer) actionsContainer.style.display = 'none';
+                }
+            }
+
+            // Show tooltip
+            tooltipEl.classList.add('show');
+        };
+
+        // Attach event listeners to dismiss tooltip on timeline scrub or playback
+        if (videoPlayer) {
+            videoPlayer.addEventListener('play', window.hideGaitMomentTooltip);
+        }
+        const videoTimeline = document.getElementById('video-timeline');
+        if (videoTimeline) {
+            videoTimeline.addEventListener('input', window.hideGaitMomentTooltip);
+        }
+        const skTimeline = document.getElementById('timeline');
+        if (skTimeline) {
+            skTimeline.addEventListener('input', window.hideGaitMomentTooltip);
+        }
+        const videoPlayBtn = document.getElementById('video-play-btn');
+        if (videoPlayBtn) {
+            videoPlayBtn.addEventListener('click', window.hideGaitMomentTooltip);
+        }
+        const skPlayBtn = document.getElementById('play-btn');
+        if (skPlayBtn) {
+            skPlayBtn.addEventListener('click', window.hideGaitMomentTooltip);
+        }
 
         // Time synchronization with Video Player
         window.syncSkeletonFrame = function() {
