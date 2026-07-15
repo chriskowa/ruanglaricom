@@ -107,19 +107,26 @@
 
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div class="min-w-0">
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Today</div>
-                            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Latihan Hari Ini</h2>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Latihan Hari Ini</h2>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <div class="shrink-0">
+                        <div class="shrink-0" @click.stop>
                             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-300">
                                 <span class="text-slate-400">Active</span>
                                 <span class="font-bold text-white">{{ number_format((int) ($activeEnrollments->count() ?? 0)) }}</span>
                             </div>
                         </div>
                     </div>
+
+                    <div x-show="!collapsed" x-transition class="mt-5">
 
                     @if(!empty($todayWorkout))
                         @php($todayStatus = (string) ($todayWorkout['status'] ?? 'pending'))
@@ -289,21 +296,29 @@
                             </div>
                         @endif
                     @endif
+                    </div>
                 </div>
 
                 <!-- Event Lari Anda Section -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div class="min-w-0">
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Events</div>
-                            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Event Lari Anda</h2>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Event Lari Anda</h2>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <div class="shrink-0">
+                        <div class="shrink-0" @click.stop>
                             <a href="{{ route('events.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon text-dark font-black text-xs transition hover:bg-neon/90">
                                 Jelajahi Event
                             </a>
                         </div>
                     </div>
+
+                    <div x-show="!collapsed" x-transition class="mt-5">
 
                     @if($eventRegistrations->isEmpty())
                         <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 text-center">
@@ -392,17 +407,23 @@
                             @endforeach
                         </div>
                     @endif
+                    </div>
                 </div>
 
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Week</div>
-                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">7 Hari ke Depan</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">7 Hari ke Depan</h3>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold">Lihat</a>
+                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold" @click.stop>Lihat</a>
                     </div>
-                    <div class="mt-4 -mx-2 px-2 overflow-x-auto">
+                    <div x-show="!collapsed" x-transition class="mt-4 -mx-2 px-2 overflow-x-auto">
                         <div class="flex gap-2 min-w-max">
                             @foreach(($weekStrip ?? []) as $d)
                                 @php($st = (string) ($d['status'] ?? 'rest'))
@@ -421,14 +442,21 @@
                     </div>
                 </div>
 
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Next Up</div>
-                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Latihan Berikutnya</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Latihan Berikutnya</h3>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold">Calendar</a>
+                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold" @click.stop>Calendar</a>
                     </div>
+
+                    <div x-show="!collapsed" x-transition>
 
                     @php($rows = array_slice(($upcomingWorkouts ?? []), 0, 3))
                     <div class="mt-4 space-y-2">
@@ -459,18 +487,26 @@
                             <div class="text-sm text-slate-400">Belum ada plan 7 hari ke depan.</div>
                         @endforelse
                     </div>
+                    </div>
                 </div>
 
                 @if($programBag->count() > 0)
                 <!-- Program Bag Sidebar Widget -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 mb-4">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 mb-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Bag</div>
-                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Program Bag</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Program Bag</h3>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <button onclick="switchTab('calendar')" class="text-sm text-neon hover:underline font-bold">Lihat Semua</button>
+                        <button onclick="switchTab('calendar')" class="text-sm text-neon hover:underline font-bold" @click.stop>Lihat Semua</button>
                     </div>
+
+                    <div x-show="!collapsed" x-transition>
                     <div class="space-y-3">
                         @foreach($programBag as $bg)
                             <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col gap-3">
@@ -485,22 +521,30 @@
                             </div>
                         @endforeach
                     </div>
+                    </div>
                 </div>
                 @endif
 
                 <!-- Riwayat Run Connect Section -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div class="min-w-0">
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Connect</div>
-                            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Riwayat Run Connect</h2>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Riwayat Run Connect</h2>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
-                        <div class="shrink-0">
+                        <div class="shrink-0" @click.stop>
                             <a href="{{ route('run-connect.index') }}" class="px-3 py-1.5 rounded-lg bg-neon/15 border border-neon/30 text-[10px] text-neon hover:bg-neon/20 transition-all font-black uppercase tracking-wider">
                                 Cari Buddy Lari
                             </a>
                         </div>
                     </div>
+
+                    <div x-show="!collapsed" x-transition>
 
                     <div class="space-y-3.5 max-h-[400px] overflow-y-auto pr-1 scroll-thin">
                         @forelse($runConnectHistory as $thread)
@@ -555,23 +599,31 @@
                             </div>
                         @endforelse
                     </div>
+                    </div>
                 </div>
             </div>
 
             <div class="space-y-6">
                 <!-- Weekly Report Cards from Coach -->
                 @if(isset($weeklyReports) && count($weeklyReports) > 0)
-                    <div class="bg-slate-800/40 backdrop-blur-md border border-neon/30 rounded-[2rem] p-6 shadow-xl shadow-neon/5 relative overflow-hidden">
+                    <div x-data="{ collapsed: false }" class="bg-slate-800/40 backdrop-blur-md border border-neon/30 rounded-[2rem] p-6 shadow-xl shadow-neon/5 relative overflow-hidden">
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/10 rounded-full blur-3xl"></div>
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                             <div>
                                 <div class="text-[10px] font-mono text-neon uppercase tracking-widest leading-none">Weekly Insight</div>
-                                <h3 class="text-xl font-black text-white italic tracking-tight mt-1 leading-none">Rapor Mingguan</h3>
+                                <div class="flex items-center gap-2 mt-1 leading-none">
+                                    <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Rapor Mingguan</h3>
+                                    <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
-                            <span class="px-2.5 py-1 rounded-xl bg-neon/10 text-neon font-black text-[10px] uppercase border border-neon/20">
+                            <span class="px-2.5 py-1 rounded-xl bg-neon/10 text-neon font-black text-[10px] uppercase border border-neon/20" @click.stop>
                                 Active Coaching
                             </span>
                         </div>
+
+                        <div x-show="!collapsed" x-transition>
 
                         <div class="space-y-4">
                             @foreach($weeklyReports as $index => $report)
@@ -593,6 +645,7 @@
                                     </button>
                                 </div>
                             @endif
+                        </div>
                         </div>
                     </div>
 
@@ -623,13 +676,20 @@
                 @endif
 
                 <!-- Card Update Personal Best -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute -right-10 -top-10 w-24 h-24 bg-neon/5 rounded-full blur-2xl group-hover:bg-neon/10 transition-all duration-700"></div>
                     
-                    <div class="flex items-center gap-2 mb-3">
+                    <div class="flex items-center gap-2 mb-3 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <span class="text-lg">⚡</span>
-                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Personal Best & Parameter Test</div>
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span>Personal Best & Parameter Test</span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </div>
+
+                    <div x-show="!collapsed" x-transition>
                     
                     <div class="space-y-4">
                         <div>
@@ -719,10 +779,20 @@
                             </div>
                         @endif
                     </div>
+                    </div>
                 </div>
 
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Progress</div>
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-center justify-between cursor-pointer select-none mb-3" @click="collapsed = !collapsed">
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span>Progress</span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="!collapsed" x-transition>
                     <div class="mt-2 flex items-end justify-between gap-3">
                         <div class="min-w-0">
                             <div class="text-2xl font-black text-white">
@@ -743,21 +813,29 @@
                         @php($pct = $planned > 0 ? min(100, max(0, ($done / $planned) * 100)) : 0)
                         <div class="bg-neon h-full rounded-full" style="width: {{ $pct }}%"></div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- VDOT & Paces Card -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-center justify-between">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-center justify-between cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
                             <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Training Science</div>
-                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">VDOT & Target Pace</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <h3 class="text-lg font-black text-white italic tracking-tight uppercase">VDOT & Target Pace</h3>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                         @if(auth()->user()->vdot)
-                            <div class="px-2.5 py-1 rounded-full bg-neon text-dark font-black text-xs flex items-center gap-1 font-mono">
+                            <div class="px-2.5 py-1 rounded-full bg-neon text-dark font-black text-xs flex items-center gap-1 font-mono" @click.stop>
                                 ⚡ VDOT {{ round(auth()->user()->vdot, 1) }}
                             </div>
                         @endif
                     </div>
+
+                    <div x-show="!collapsed" x-transition>
 
                     @if(auth()->user()->vdot && auth()->user()->training_paces)
                         @php($p = auth()->user()->training_paces)
@@ -803,10 +881,20 @@
                             </a>
                         </div>
                     @endif
+                    </div>
                 </div>
 
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Quick</div>
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-center justify-between cursor-pointer select-none mb-3" @click="collapsed = !collapsed">
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span>Quick Links</span>
+                            <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="!collapsed" x-transition>
                     <div class="mt-4 grid grid-cols-2 gap-3">
                         <a href="{{ route('runner.calendar') }}" class="p-3 rounded-xl bg-slate-900/40 border border-slate-700/60 hover:border-neon/40 transition">
                             <div class="text-xs text-slate-400">Training</div>
@@ -824,6 +912,7 @@
                             <div class="text-xs text-slate-400">Account</div>
                             <div class="text-sm font-black text-white">Profile</div>
                         </a>
+                    </div>
                     </div>
                 </div>
 

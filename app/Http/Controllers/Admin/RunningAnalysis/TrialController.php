@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RunningAnalysis\Session;
 use App\Models\RunningAnalysis\Trial;
 use App\Models\RunningAnalysis\Artifact;
+use App\Services\RunningAnalysis\ReportBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -89,7 +90,14 @@ class TrialController extends Controller
             'video_clip'      => 'webm',
             'preview_image'   => 'gif',
         ];
-        $ext = $extensionMap[$validated['type']] ?? $file->getClientOriginalExtension() ?: 'bin';
+        $ext = $file->getClientOriginalExtension() ?: ($extensionMap[$validated['type']] ?? 'bin');
+
+        // Delete existing artifact of the same type to keep it clean on retries
+        $existing = $trial->artifacts()->where('type', $validated['type'])->first();
+        if ($existing) {
+            \Illuminate\Support\Facades\Storage::disk($existing->disk)->delete($existing->path);
+            $existing->delete();
+        }
 
         $path = $file->storeAs(
             'running-analysis/' . $trial->id,
@@ -115,6 +123,10 @@ class TrialController extends Controller
      */
     public function finalize(Request $request, Trial $trial)
     {
+        if (in_array($trial->status, [Trial::STATUS_QUEUED, Trial::STATUS_ANALYZING, Trial::STATUS_REVIEW_REQUIRED, Trial::STATUS_APPROVED, Trial::STATUS_PUBLISHED])) {
+            return response()->json(['status' => 'already_finalized']);
+        }
+
         if ($trial->status !== Trial::STATUS_CAPTURING) {
             return response()->json(['error' => 'Trial is not in capturing state.'], 400);
         }
@@ -152,7 +164,8 @@ class TrialController extends Controller
             'artifacts', 
             'metrics', 
             'findings', 
-            'recommendations'
+            'recommendations',
+            'latestReport'
         ]);
 
         $poseData = null;
@@ -208,14 +221,106 @@ class TrialController extends Controller
     {
         abort_unless($artifact->trial_id === $trial->id, 404);
 
-        if (!\Illuminate\Support\Facades\Storage::disk($artifact->disk)->exists($artifact->path)) {
+        $disk = \Illuminate\Support\Facades\Storage::disk($artifact->disk);
+        if (!$disk->exists($artifact->path)) {
             abort(404, 'Artifact file not found.');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk($artifact->disk)->response(
-            $artifact->path,
-            basename($artifact->path),
-            ['Content-Type' => $artifact->mime_type]
-        );
+        $path = $disk->path($artifact->path);
+        
+        if (!file_exists($path)) {
+            abort(404, 'Artifact file does not exist on disk.');
+        }
+
+        $fileSize = filesize($path);
+        $mime = $artifact->mime_type ?: 'video/mp4';
+
+        $fp = @fopen($path, 'rb');
+        if (!$fp) {
+            abort(500, 'Cannot open file.');
+        }
+
+        $size = $fileSize;
+        $start = 0;
+        $end = $size - 1;
+
+        $headers = [
+            'Content-Type' => $mime,
+            'Accept-Ranges' => 'bytes',
+        ];
+
+        // Clean out any output buffers that might interfere with streaming
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        if (request()->headers->has('Range')) {
+            $range = request()->header('Range');
+            if (preg_match('/bytes=\s*(\d+)-(\d*)/', $range, $matches)) {
+                $start = intval($matches[1]);
+                if (!empty($matches[2])) {
+                    $end = intval($matches[2]);
+                }
+            }
+
+            if ($start > $end || $start >= $size) {
+                fclose($fp);
+                return response('Requested Range Not Satisfiable', 416, [
+                    'Content-Range' => "bytes */$size"
+                ]);
+            }
+
+            $length = $end - $start + 1;
+            fseek($fp, $start);
+
+            $headers['Content-Length'] = $length;
+            $headers['Content-Range'] = "bytes $start-$end/$size";
+
+            return response()->stream(function () use ($fp, $length) {
+                $buffer = 1024 * 8;
+                $bytes_sent = 0;
+                while (!feof($fp) && $bytes_sent < $length) {
+                    $to_read = min($buffer, $length - $bytes_sent);
+                    $data = fread($fp, $to_read);
+                    echo $data;
+                    flush();
+                    $bytes_sent += strlen($data);
+                }
+                fclose($fp);
+            }, 206, $headers);
+        }
+
+        $headers['Content-Length'] = $size;
+        return response()->stream(function () use ($fp) {
+            $buffer = 1024 * 8;
+            while (!feof($fp)) {
+                echo fread($fp, $buffer);
+                flush();
+            }
+            fclose($fp);
+        }, 200, $headers);
+    }
+
+    /**
+     * Force synchronous execution of the analysis rules engine (bypassing asynchronous queues).
+     */
+    public function analyzeSync(Trial $trial, ReportBuilder $builder)
+    {
+        @set_time_limit(300);
+
+        try {
+            $trial->update(['status' => Trial::STATUS_ANALYZING]);
+            
+            $builder->process($trial);
+
+            return redirect()->back()->with('success', 'Analysis processed successfully.');
+        } catch (\Exception $e) {
+            $trial->update([
+                'status' => Trial::STATUS_FAILED,
+                'invalid_reason' => $e->getMessage()
+            ]);
+
+            return redirect()->back()->with('error', 'Analysis failed: ' . $e->getMessage());
+        }
     }
 }

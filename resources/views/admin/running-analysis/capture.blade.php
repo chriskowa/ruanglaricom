@@ -795,7 +795,7 @@
                             const hip = lms[side === 'left' ? 23 : 24];
                             const pelvis = midpoint(lms[23], lms[24]);
                             
-                            if (ankle && pelvis) landingLever = ((pelvis.x - ankle.x) * dirMult) / refLegLength;
+                            if (ankle && pelvis) landingLever = ((ankle.x - pelvis.x) * dirMult) / refLegLength;
                             if (ankle && hip) landingLegExtension = distance2D(hip, ankle) / refLegLength;
                             if (icFrame.angles.trunk_lean?.value !== null) trunkLeanAtContact = icFrame.angles.trunk_lean.value;
                         }

@@ -14,6 +14,29 @@ class Trial extends Model
 {
     use HasFactory, HasUuids;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($trial) {
+            foreach ($trial->artifacts as $artifact) {
+                try {
+                    \Illuminate\Support\Facades\Storage::disk($artifact->disk)->delete($artifact->path);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to delete physical file {$artifact->path} on trial delete: " . $e->getMessage());
+                }
+                $artifact->delete();
+            }
+
+            $trial->gaitEvents()->delete();
+            $trial->metrics()->delete();
+            $trial->findings()->delete();
+            $trial->recommendations()->delete();
+            $trial->reports()->delete();
+            $trial->aiRuns()->delete();
+        });
+    }
+
     protected $table = 'running_analysis_trials';
 
     protected $keyType = 'string';

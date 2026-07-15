@@ -106,10 +106,19 @@ class SessionController extends Controller
     {
         Gate::authorize('manageRunners', $session);
 
+        // Fetch and delete all associated trials (triggers files and metrics deletion)
+        $trials = \App\Models\RunningAnalysis\Trial::where('session_id', $session->id)
+            ->where('runner_id', $user->id)
+            ->get();
+
+        foreach ($trials as $trial) {
+            $trial->delete();
+        }
+
         $session->runners()->detach($user->id);
 
         return redirect()->route('admin.running-analysis.sessions.show', $session)
-            ->with('success', 'Runner removed from session queue.');
+            ->with('success', 'Runner removed from session queue. All associated video files and analysis data have been deleted.');
     }
 
     public function searchRunners(Request $request, Session $session)

@@ -39,10 +39,94 @@ class ReportBuilder
         $jsonStr = Storage::disk($poseArtifact->disk)->get($poseArtifact->path);
         $data = json_decode($jsonStr, true);
         
-        $frames = $data['landmarks'] ?? [];
+        $rawFrames = $data['landmarks'] ?? [];
+        $frames = [];
+        if (is_array($rawFrames)) {
+            foreach ($rawFrames as $f) {
+                if (isset($f[29]) || isset($f[0])) {
+                    $frames[] = $f;
+                } elseif (isset($f['landmarks'])) {
+                    $frames[] = $f['landmarks'];
+                }
+            }
+        }
+        if (empty($frames) && isset($data['frames']) && is_array($data['frames'])) {
+            foreach ($data['frames'] as $f) {
+                if (isset($f['landmarks'])) {
+                    $frames[] = $f['landmarks'];
+                }
+            }
+        }
 
         return DB::transaction(function () use ($trial, $frames, $data) {
             $summary = $data['summary'] ?? null;
+
+            // Normalize nested summary keys if present (for real client-side analysis files)
+            if (is_array($summary)) {
+                // If cadence_spm is nested object, extract 'median'
+                if (isset($summary['cadence_spm']['median'])) {
+                    $summary['cadence_spm'] = $summary['cadence_spm']['median'];
+                }
+                
+                // If angles is present, extract sub-keys
+                if (isset($summary['angles']['trunk_lean_at_contact_median'])) {
+                    $summary['trunk_lean_deg'] = $summary['angles']['trunk_lean_at_contact_median'];
+                }
+                
+                // Knee flexion (average of peak knee flexion or left knee flexion)
+                if (isset($summary['angles']['peak_knee_flexion_left_median']) && isset($summary['angles']['peak_knee_flexion_right_median'])) {
+                    $summary['knee_flex_deg'] = ($summary['angles']['peak_knee_flexion_left_median'] + $summary['angles']['peak_knee_flexion_right_median']) / 2;
+                } elseif (isset($summary['angles']['left_knee_at_contact_median'])) {
+                    $summary['knee_flex_deg'] = $summary['angles']['left_knee_at_contact_median'];
+                }
+                
+                // Elbow angle (average of left/right elbow angle if present, otherwise default to 90)
+                if (isset($summary['angles']['left_elbow_median']) && isset($summary['angles']['right_elbow_median'])) {
+                    $summary['elbow_angle_deg'] = ($summary['angles']['left_elbow_median'] + $summary['angles']['right_elbow_median']) / 2;
+                } else {
+                    $summary['elbow_angle_deg'] = 90.0;
+                }
+                
+                // Asymmetry
+                if (isset($summary['symmetry']['gct_asymmetry_percent'])) {
+                    $summary['asymmetry'] = $summary['symmetry']['gct_asymmetry_percent'];
+                }
+                
+                // Confidence from quality overall score
+                if (isset($data['quality']['overall_score'])) {
+                    $summary['confidence'] = $data['quality']['overall_score'];
+                }
+                
+                // Samples count from valid_frame_count
+                if (isset($summary['valid_frame_count'])) {
+                    $summary['samples'] = $summary['valid_frame_count'];
+                }
+                
+                // Defaults for arm cross / heel strike / vertical oscillation / overstride if not directly calculated by heuristic
+                if (!isset($summary['arm_cross_pct'])) {
+                    $summary['arm_cross_pct'] = 0.0;
+                }
+                if (!isset($summary['heel_strike_pct'])) {
+                    $summary['heel_strike_pct'] = 50.0;
+                }
+                if (!isset($summary['vertical_oscillation'])) {
+                    $summary['vertical_oscillation'] = 0.08;
+                }
+                if (!isset($summary['overstride_pct'])) {
+                    $hasOverstride = false;
+                    if (isset($summary['flags']) && is_array($summary['flags'])) {
+                        foreach ($summary['flags'] as $flag) {
+                            if (($flag['code'] ?? '') === 'possible_overstride') {
+                                $hasOverstride = true;
+                            }
+                        }
+                    }
+                    $summary['overstride_pct'] = $hasOverstride ? 100.0 : 0.0;
+                }
+                if (!isset($summary['shin_angle_deg'])) {
+                    $summary['shin_angle_deg'] = 5.0;
+                }
+            }
 
             if ($summary) {
                 // RUN BIOMECHANICS V2 PROCESS
@@ -198,6 +282,27 @@ class ReportBuilder
                         'catalog_version' => '2.0',
                     ]);
                 }
+
+                // Save report narrative (coach message and positives)
+                \App\Models\RunningAnalysis\Report::updateOrCreate(
+                    ['trial_id' => $trial->id],
+                    [
+                        'runner_id' => $trial->runner_id,
+                        'report_version' => 2,
+                        'status' => \App\Models\RunningAnalysis\Report::STATUS_DRAFT,
+                        'deterministic_summary_json' => $analysisResult,
+                        'runner_narrative_json' => [
+                            'coach_message' => $analysisResult['coach_message'] ?? null,
+                            'positives' => $analysisResult['positives'] ?? [],
+                        ],
+                        'disclaimer_version' => '1.0',
+                        'published_at' => null,
+                    ]
+                );
+
+                $trial->update([
+                    'quality_score' => isset($analysisResult['score']) ? ($analysisResult['score'] / 100.0) : null,
+                ]);
             } else {
                 // FALLBACK TO LEGACY PROCESS FOR V1
                 // 2. Detect Events

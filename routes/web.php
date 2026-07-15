@@ -835,6 +835,9 @@ Route::middleware('auth')->group(function () {
             // Capture
             Route::get('/capture/{session}', [App\Http\Controllers\Admin\RunningAnalysis\CaptureController::class, 'show'])->name('capture');
             
+            // Upload Manual Video
+            Route::get('/sessions/{session}/upload-video', [App\Http\Controllers\Admin\RunningAnalysis\CaptureController::class, 'showUploadForm'])->name('upload-video.form');
+            
             // Trial API (used by Capture UI)
             Route::post('/sessions/{session}/trials', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'store'])->name('trials.store');
             Route::post('/trials/{trial}/artifacts', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'uploadArtifact'])->name('trials.artifacts.upload');
@@ -845,6 +848,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/trials/{trial}/reject', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'reject'])->name('trials.reject');
             Route::post('/trials/{trial}/approve', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'approve'])->name('trials.approve');
             Route::get('/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveArtifact'])->name('trials.artifact');
+            Route::post('/trials/{trial}/analyze-sync', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'analyzeSync'])->name('trials.analyze-sync');
         });
 
         // Event Calendar Management

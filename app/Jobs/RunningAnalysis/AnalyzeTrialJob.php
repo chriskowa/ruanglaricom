@@ -30,6 +30,8 @@ class AnalyzeTrialJob implements ShouldQueue
      */
     public function handle(ReportBuilder $builder): void
     {
+        @set_time_limit(300);
+
         try {
             $this->trial->update(['status' => Trial::STATUS_ANALYZING]);
             

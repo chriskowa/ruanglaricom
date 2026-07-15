@@ -25,9 +25,14 @@
                 <div class="bg-[#0f172a] rounded-xl border border-slate-800 overflow-hidden">
                     <div class="px-6 py-5 border-b border-slate-800 flex justify-between items-center">
                         <h3 class="text-xl font-bold text-white uppercase italic tracking-wider">Runner Queue</h3>
-                        <button onclick="openAddRunnersModal()" class="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded hover:bg-slate-700 transition-colors">
-                            <i class="fas fa-plus mr-1"></i> Add Runners
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.running-analysis.upload-video.form', $session) }}" class="px-4 py-2 bg-slate-850 hover:bg-slate-750 text-white text-sm font-semibold rounded border border-slate-700 transition-colors flex items-center gap-1.5">
+                                <i class="fas fa-upload text-slate-400"></i> Upload Manual Video
+                            </a>
+                            <button onclick="openAddRunnersModal()" class="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded hover:bg-slate-700 transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Add Runners
+                            </button>
+                        </div>
                     </div>
                     <div class="p-0">
                         @if($session->runners->count() > 0)
@@ -77,12 +82,16 @@
                                                     $latestTrial = $session->trials->where('runner_id', $runner->id)->sortByDesc('created_at')->first();
                                                 @endphp
                                                 @if($latestTrial)
-                                                    <a href="{{ route('admin.running-analysis.trials.review', $latestTrial->id) }}" class="text-xs font-semibold text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded transition-colors">
+                                                    <a href="{{ route('admin.running-analysis.trials.review', $latestTrial->id) }}" class="text-xs font-semibold text-white bg-slate-750 hover:bg-slate-650 px-3 py-1.5 rounded border border-slate-700 transition-colors">
                                                         Review Trial
                                                     </a>
                                                 @else
                                                     <span class="text-xs text-slate-500 mr-2">No trials yet</span>
                                                 @endif
+
+                                                <a href="{{ route('admin.running-analysis.upload-video.form', $session) }}?runner_id={{ $runner->id }}" class="text-xs font-semibold text-black bg-[#ccff00] hover:bg-white px-3 py-1.5 rounded transition-colors flex items-center gap-1">
+                                                    <i class="fas fa-upload text-[10px]"></i> Upload Video
+                                                </a>
 
                                                 <form action="{{ route('admin.running-analysis.sessions.runners.remove', [$session, $runner]) }}" method="POST" onsubmit="return confirm('Remove {{ $runner->name }} from this session?')" class="inline-block">
                                                     @csrf
