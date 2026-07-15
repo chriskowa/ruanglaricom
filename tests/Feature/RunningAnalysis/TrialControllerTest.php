@@ -208,10 +208,78 @@ class TrialControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
+
     public function test_runner_dashboard_compiles_successfully()
     {
         $runner = User::factory()->runner()->create();
         $response = $this->actingAs($runner)->get(route('runner.dashboard'));
         $response->assertStatus(200);
+    }
+
+    public function test_admin_can_download_pdf_for_trial()
+    {
+        $admin  = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'operator_id'=> $admin->id,
+            'status'     => Trial::STATUS_PUBLISHED,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.running-analysis.trials.pdf', $trial));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+
+        $disposition = $response->headers->get('Content-Disposition') ?? '';
+        $this->assertStringContainsString('.pdf', $disposition,
+            'Content-Disposition header should contain .pdf filename');
+    }
+
+    public function test_runner_can_download_own_pdf_report()
+    {
+        $admin  = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'operator_id'=> $admin->id,
+            'status'     => Trial::STATUS_PUBLISHED,
+        ]);
+
+        $response = $this->actingAs($runner)
+            ->get(route('runner.running-analysis.trials.pdf', $trial));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+    }
+
+    public function test_other_runner_cannot_download_pdf_report()
+    {
+        $admin  = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $otherRunner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'operator_id'=> $admin->id,
+            'status'     => Trial::STATUS_PUBLISHED,
+        ]);
+
+        $response = $this->actingAs($otherRunner)
+            ->get(route('runner.running-analysis.trials.pdf', $trial));
+
+        $response->assertStatus(403);
     }
 }

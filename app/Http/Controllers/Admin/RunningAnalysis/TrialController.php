@@ -7,6 +7,7 @@ use App\Models\RunningAnalysis\Session;
 use App\Models\RunningAnalysis\Trial;
 use App\Models\RunningAnalysis\Artifact;
 use App\Services\RunningAnalysis\ReportBuilder;
+use App\Services\RunningAnalysis\TrialPdfExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -176,6 +177,35 @@ class TrialController extends Controller
         }
 
         return view('admin.running-analysis.trials.review', compact('trial', 'poseData'));
+    }
+
+    /**
+     * Generate and download a PDF report for a trial.
+     */
+    public function downloadPdf(Trial $trial): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $trial->load([
+            'runner',
+            'session',
+            'artifacts',
+            'metrics',
+            'findings',
+            'recommendations',
+            'gaitEvents',
+            'latestReport',
+        ]);
+
+        $pdf      = app(TrialPdfExportService::class)->generate($trial);
+        $filename = 'running-analysis-'
+            . \Illuminate\Support\Str::slug($trial->runner->name)
+            . '-attempt-' . $trial->attempt_no
+            . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
     }
 
     /**
@@ -370,5 +400,37 @@ class TrialController extends Controller
         abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
 
         return $this->serveArtifact($trial, $artifact);
+    }
+
+    /**
+     * Download PDF report for a runner (only their own published trials).
+     */
+    public function runnerDownloadPdf(Trial $trial): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
+        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+
+        $trial->load([
+            'runner',
+            'session',
+            'artifacts',
+            'metrics',
+            'findings',
+            'recommendations',
+            'gaitEvents',
+            'latestReport',
+        ]);
+
+        $pdf      = app(TrialPdfExportService::class)->generate($trial);
+        $filename = 'running-analysis-'
+            . \Illuminate\Support\Str::slug($trial->runner->name)
+            . '-attempt-' . $trial->attempt_no
+            . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
     }
 }

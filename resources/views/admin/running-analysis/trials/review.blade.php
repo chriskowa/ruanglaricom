@@ -18,6 +18,10 @@
     $coachMessage = $narrative['coach_message'] ?? null;
     $positives = $narrative['positives'] ?? [];
     $score = $trial->quality_score ? round((float) $trial->quality_score * 100) : null;
+    
+    $pdfRoute = auth()->user()?->role === 'admin'
+        ? 'admin.running-analysis.trials.pdf'
+        : 'runner.running-analysis.trials.pdf';
 @endphp
 
 @section('title', 'Review Trial - ' . $trial->runner->name)
@@ -59,10 +63,23 @@
                     </div>
                 </div>
             </div>
-            <div>
+            <div class="flex items-center gap-3">
                 <span class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border {{ $statusColor }}">
                     {{ str_replace('_', ' ', strtoupper($trial->status)) }}
                 </span>
+                {{-- PDF download — only makes sense once there is analysis data --}}
+                @if($trial->latestReport || $trial->findings->count() > 0 || $trial->metrics->count() > 0)
+                <a href="{{ route($pdfRoute, $trial) }}"
+                   target="_blank"
+                   id="btn-download-pdf"
+                   title="Download PDF Report"
+                   class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-slate-800 border border-slate-700
+                          text-slate-300 hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00]
+                          transition-all duration-200 shadow-sm group">
+                    <i class="fas fa-file-pdf text-red-400 group-hover:text-black transition-colors"></i>
+                    Download PDF
+                </a>
+                @endif
             </div>
         </div>
 
@@ -213,46 +230,201 @@
                     </div>
                     @endif
                     
-                    <!-- Key Gait Moments (Click to seek) -->
+                    <!-- Key Gait Moments — Horizontal Scroll Slider -->
                     @if($trial->gaitEvents->count() > 0)
-                    <div class="p-4 bg-slate-900/60 border-t border-slate-800/80">
-                        <div class="text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i class="fas fa-camera text-[#ccff00]"></i> Key Gait Moments (Click to seek video)
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            @foreach($trial->gaitEvents->sortBy('timestamp_ms') as $event)
-                                @php
-                                    $label = match($event->event_type) {
-                                        'initial_contact' => 'Landing (Land)',
-                                        'midstance'       => 'Midstance',
-                                        'toe_off'         => 'Push Off (Push)',
-                                        'max_swing_flexion' => 'Knee Pull (Pull)',
-                                        default           => ucfirst(str_replace('_', ' ', $event->event_type)),
-                                    };
-                                    $sideBadgeColor = $event->side === 'left' ? 'text-lime-450 bg-lime-950/40 border-lime-800' : 'text-blue-450 bg-blue-950/40 border-blue-800';
-                                    $icon = match($event->event_type) {
-                                        'initial_contact' => 'fa-shoe-prints',
-                                        'toe_off'         => 'fa-running',
-                                        'max_swing_flexion' => 'fa-arrow-up',
-                                        default           => 'fa-stopwatch',
-                                    };
-                                @endphp
-                                <button type="button" 
-                                    onclick="seekToGaitEvent({{ $event->timestamp_ms }}, '{{ $event->event_type }}')"
-                                    class="flex flex-col items-start text-left p-3 rounded-lg bg-slate-800/60 border border-slate-700/50 hover:border-[#ccff00] hover:bg-slate-800 transition-all duration-300 group">
-                                    <div class="flex items-center justify-between w-full mb-1.5">
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border {{ $sideBadgeColor }} uppercase">{{ $event->side }}</span>
-                                        <i class="fas {{ $icon }} text-slate-500 group-hover:text-[#ccff00] transition-colors text-xs"></i>
-                                    </div>
-                                    <div class="text-xs font-bold text-white mb-0.5 truncate w-full">{{ $label }}</div>
-                                    <div class="text-[10px] font-mono text-slate-400 mt-2 flex items-center justify-between w-full">
-                                        <span>{{ number_format(($event->timestamp_ms - ($trial->gaitEvents->min('timestamp_ms') ?? 0)) / 1000, 2) }}s</span>
-                                        <span class="text-[8px] uppercase tracking-wider text-slate-500 group-hover:text-[#ccff00] font-bold">Seek <i class="fas fa-chevron-right ml-0.5"></i></span>
-                                    </div>
+                    @php
+                        $sortedEvents = $trial->gaitEvents->sortBy('timestamp_ms')->values();
+                        $eventBaseMs  = $sortedEvents->min('timestamp_ms') ?? 0;
+                        $totalEvents  = $sortedEvents->count();
+                    @endphp
+                    <div class="border-t border-slate-800/80 bg-slate-900/40">
+                        <!-- Header row -->
+                        <div class="px-4 pt-3 pb-1 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <i class="fas fa-camera text-[#ccff00]"></i>
+                                Key Gait Moments
+                                <span class="bg-slate-800 text-slate-400 border border-slate-700 rounded-full text-[9px] px-1.5 py-px font-black">{{ $totalEvents }}</span>
+                            </div>
+                            <!-- Scroll nav arrows -->
+                            <div class="flex items-center gap-1">
+                                <button id="gait-scroll-left" type="button"
+                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px] disabled:opacity-30"
+                                    onclick="document.getElementById('gait-scroll-track').scrollBy({left:-220, behavior:'smooth'})">
+                                    <i class="fas fa-chevron-left"></i>
                                 </button>
-                            @endforeach
+                                <button id="gait-scroll-right" type="button"
+                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px]"
+                                    onclick="document.getElementById('gait-scroll-track').scrollBy({left:220, behavior:'smooth'})">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+
+                        <!-- Scroll progress indicator -->
+                        <div class="px-4 mb-1.5">
+                            <div class="h-[2px] w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div id="gait-progress-bar" class="h-full bg-[#ccff00]/60 rounded-full transition-all duration-200" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable card track -->
+                        <div id="gait-scroll-track"
+                            class="flex gap-2.5 px-4 pb-4 overflow-x-auto scrollbar-none"
+                            style="scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none;">
+
+                            @foreach($sortedEvents as $idx => $event)
+                            @php
+                                $seqNo    = $idx + 1;
+                                $relSec   = number_format(($event->timestamp_ms - $eventBaseMs) / 1000, 2);
+                                $label    = match($event->event_type) {
+                                    'initial_contact'   => 'Landing',
+                                    'midstance'         => 'Midstance',
+                                    'toe_off'           => 'Push Off',
+                                    'max_swing_flexion' => 'Knee Pull',
+                                    default             => ucfirst(str_replace('_', ' ', $event->event_type)),
+                                };
+                                $subLabel = match($event->event_type) {
+                                    'initial_contact'   => 'Foot Strike',
+                                    'midstance'         => 'Mid-Stance',
+                                    'toe_off'           => 'Toe-Off',
+                                    'max_swing_flexion' => 'Swing Phase',
+                                    default             => '',
+                                };
+                                $icon     = match($event->event_type) {
+                                    'initial_contact'   => 'fa-shoe-prints',
+                                    'toe_off'           => 'fa-running',
+                                    'max_swing_flexion' => 'fa-arrow-up',
+                                    default             => 'fa-stopwatch',
+                                };
+                                $phaseColor = match($event->event_type) {
+                                    'initial_contact'   => 'from-sky-900/60 to-slate-900 border-sky-800/60 hover:border-sky-500/80',
+                                    'midstance'         => 'from-violet-900/60 to-slate-900 border-violet-800/60 hover:border-violet-500/80',
+                                    'toe_off'           => 'from-orange-900/60 to-slate-900 border-orange-800/60 hover:border-orange-500/80',
+                                    'max_swing_flexion' => 'from-emerald-900/60 to-slate-900 border-emerald-800/60 hover:border-emerald-500/80',
+                                    default             => 'from-slate-800/60 to-slate-900 border-slate-700/60 hover:border-[#ccff00]/60',
+                                };
+                                $iconColor = match($event->event_type) {
+                                    'initial_contact'   => 'text-sky-400',
+                                    'midstance'         => 'text-violet-400',
+                                    'toe_off'           => 'text-orange-400',
+                                    'max_swing_flexion' => 'text-emerald-400',
+                                    default             => 'text-[#ccff00]',
+                                };
+                                $sideIsLeft = $event->side === 'left';
+                                $sidePill   = $sideIsLeft
+                                    ? 'bg-lime-950/60 border-lime-700 text-lime-400'
+                                    : 'bg-blue-950/60 border-blue-700 text-blue-400';
+                            @endphp
+                            <button type="button"
+                                data-gait-card="{{ $idx }}"
+                                onclick="seekToGaitEvent({{ $event->timestamp_ms }}, '{{ $event->event_type }}'); if(window._highlightGaitCard) window._highlightGaitCard({{ $idx }});"
+                                class="gait-moment-card flex-none w-[160px] flex flex-col items-start text-left p-3 rounded-xl
+                                       bg-gradient-to-b {{ $phaseColor }}
+                                       border transition-all duration-300 group
+                                       focus:outline-none focus:ring-1 focus:ring-[#ccff00]/60"
+                                style="scroll-snap-align: start;">
+
+                                <!-- Sequence + side -->
+                                <div class="flex items-center justify-between w-full mb-2">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-4 h-4 rounded-full bg-slate-700 border border-slate-600 text-slate-300 text-[8px] font-black flex items-center justify-center flex-none">{{ $seqNo }}</span>
+                                        <span class="px-1.5 py-px rounded border text-[8px] font-black uppercase {{ $sidePill }}">{{ $event->side }}</span>
+                                    </div>
+                                    <i class="fas {{ $icon }} {{ $iconColor }} text-[11px] group-hover:scale-110 transition-transform duration-200"></i>
+                                </div>
+
+                                <!-- Phase name -->
+                                <div class="text-[11px] font-black text-white leading-tight mb-px tracking-tight">{{ $label }}</div>
+                                <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest mb-2.5">{{ $subLabel }}</div>
+
+                                <!-- Timestamp -->
+                                <div class="mt-auto w-full flex items-center justify-between border-t border-white/5 pt-2">
+                                    <span class="font-mono text-[10px] text-slate-400 font-bold">+{{ $relSec }}s</span>
+                                    <span class="text-[8px] uppercase tracking-wider font-bold text-slate-600 group-hover:text-[#ccff00] transition-colors duration-200 flex items-center gap-0.5">
+                                        Seek <i class="fas fa-play text-[7px] ml-0.5"></i>
+                                    </span>
+                                </div>
+                            </button>
+                            @endforeach
+
+                        </div><!-- end track -->
+                    </div><!-- end slider wrapper -->
+                    <script>
+                    (function() {
+                        const track = document.getElementById('gait-scroll-track');
+                        const progressBar = document.getElementById('gait-progress-bar');
+                        const cards = document.querySelectorAll('.gait-moment-card');
+                        let activeCard = null;
+
+                        function updateProgress() {
+                            if (!track) return;
+                            const scrollLeft = track.scrollLeft;
+                            const maxScroll = track.scrollWidth - track.clientWidth;
+                            const pct = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+                            if (progressBar) progressBar.style.width = Math.min(100, pct) + '%';
+                        }
+
+                        if (track) {
+                            track.addEventListener('scroll', updateProgress, { passive: true });
+                            updateProgress();
+
+                            // drag-to-scroll (mouse only — touch uses native momentum scroll)
+                            let isDragging = false, startX, scrollStart, didDrag = false;
+                            const DRAG_THRESHOLD = 8; // px before drag is considered intentional
+
+                            track.addEventListener('mousedown', function(e) {
+                                // ignore right-click or clicks on buttons (let them through)
+                                if (e.button !== 0) return;
+                                isDragging = true;
+                                didDrag = false;
+                                startX = e.pageX;
+                                scrollStart = track.scrollLeft;
+                                track.style.cursor = 'grabbing';
+                                track.style.userSelect = 'none';
+                            });
+
+                            window.addEventListener('mousemove', function(e) {
+                                if (!isDragging) return;
+                                const dx = e.pageX - startX;
+                                if (Math.abs(dx) > DRAG_THRESHOLD) {
+                                    didDrag = true;
+                                    track.scrollLeft = scrollStart - dx;
+                                }
+                            });
+
+                            window.addEventListener('mouseup', function(e) {
+                                if (!isDragging) return;
+                                isDragging = false;
+                                track.style.cursor = '';
+                                track.style.userSelect = '';
+                                // If we dragged, suppress the next click on the track
+                                if (didDrag) {
+                                    track.addEventListener('click', function stopClick(ev) {
+                                        ev.stopPropagation();
+                                        ev.preventDefault();
+                                        track.removeEventListener('click', stopClick, true);
+                                    }, { capture: true, once: true });
+                                }
+                                didDrag = false;
+                            });
+                        }
+
+                        // Highlight active card when seeked
+                        window._highlightGaitCard = function(dataIdx) {
+                            cards.forEach(function(c) {
+                                c.classList.remove('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                            });
+                            if (activeCard) activeCard.classList.remove('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                            const target = document.querySelector('[data-gait-card="' + dataIdx + '"]');
+                            if (target) {
+                                target.classList.add('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                                activeCard = target;
+                                // scroll card into view inside track
+                                target.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                            }
+                        };
+                    })();
+                    </script>
                     @endif
                 </div>
 

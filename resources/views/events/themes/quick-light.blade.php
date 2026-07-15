@@ -138,8 +138,8 @@
     <meta name="twitter:image:alt" content="{{ $metaTitle }}">
     <script type="application/ld+json">{!! json_encode($schemaEvent, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     @if($showMidtrans && $midtransClientKey)
         <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
@@ -1038,7 +1038,7 @@
                 @endif
 
                 <div class="flex-1 min-h-[350px] md:min-h-[450px] relative">
-                    <div id="route-leaflet-map" class="w-full h-full min-h-[350px] md:min-h-[450px] z-10"></div>
+                    <div id="route-mapbox-map" class="w-full h-full min-h-[350px] md:min-h-[450px] z-10"></div>
                     
                     {{-- Fallback Iframe container if Leaflet has issues or fallback is needed --}}
                     <div id="route-iframe-container" class="hidden w-full h-full min-h-[350px] md:min-h-[450px]">
@@ -1090,7 +1090,6 @@
 
     <script>
         var routeMap = null;
-        var routePolyline = null;
         var startMarker = null;
         var finishMarker = null;
         var gpxTracks = @json($gpxList);
@@ -1103,7 +1102,7 @@
             const modal = document.getElementById('routeModal');
             modal.classList.remove('hidden');
             
-            // Allow DOM to update and render layout, then init Leaflet
+            // Allow DOM to update and render layout, then init Mapbox
             setTimeout(initRouteMap, 100);
         }
 
@@ -1113,26 +1112,34 @@
         }
 
         function initRouteMap() {
-            if (!window.L) {
-                // If Leaflet is not loaded, show fallback iframe
+            const mapboxToken = '{{ config('services.mapbox.token') }}';
+            if (!mapboxToken || !window.mapboxgl) {
+                // If Mapbox is not loaded or token missing, show fallback iframe
                 showIframeFallback();
                 return;
             }
 
             if (!routeMap) {
-                routeMap = L.map('route-leaflet-map', {
-                    zoomControl: true,
-                    attributionControl: true
+                mapboxgl.accessToken = mapboxToken;
+                routeMap = new mapboxgl.Map({
+                    container: 'route-mapbox-map',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    center: eventLng && eventLat ? [eventLng, eventLat] : [106.8271, -6.1754],
+                    zoom: 13
                 });
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(routeMap);
-            } else {
-                routeMap.invalidateSize();
-            }
+                routeMap.addControl(new mapboxgl.NavigationControl());
 
+                routeMap.on('load', function() {
+                    triggerGpxOrEventLocation();
+                });
+            } else {
+                routeMap.resize();
+                triggerGpxOrEventLocation();
+            }
+        }
+
+        function triggerGpxOrEventLocation() {
             if (hasGpx && gpxTracks.length > 0) {
                 // Trigger first GPX file
                 const firstBtn = document.querySelector('.gpx-tab-btn');
@@ -1141,21 +1148,22 @@
                 }
             } else if (eventLat && eventLng) {
                 // Center map at event location and put a marker
-                routeMap.setView([eventLat, eventLng], 14);
+                routeMap.setCenter([eventLng, eventLat]);
+                routeMap.setZoom(14);
                 
                 if (startMarker) {
-                    routeMap.removeLayer(startMarker);
+                    startMarker.remove();
                 }
                 
-                startMarker = L.marker([eventLat, eventLng], {
-                    icon: L.divIcon({
-                        className: '',
-                        html: '<div style="width:24px;height:24px;border-radius:999px;background:#f1631e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="fa-solid fa-location-dot"></i></div>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    })
-                }).addTo(routeMap);
-                startMarker.bindPopup("<b>{{ $event->location_name }}</b>").openPopup();
+                const el = document.createElement('div');
+                el.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#f1631e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="fa-solid fa-location-dot"></i></div>';
+
+                startMarker = new mapboxgl.Marker(el)
+                    .setLngLat([eventLng, eventLat])
+                    .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML("<b>{{ $event->location_name }}</b>"))
+                    .addTo(routeMap);
+
+                startMarker.togglePopup();
             } else {
                 // Fallback to Iframe
                 showIframeFallback();
@@ -1163,7 +1171,7 @@
         }
 
         function showIframeFallback() {
-            document.getElementById('route-leaflet-map').classList.add('hidden');
+            document.getElementById('route-mapbox-map').classList.add('hidden');
             document.getElementById('route-iframe-container').classList.remove('hidden');
         }
 
@@ -1197,54 +1205,89 @@
                         const lat = parseFloat(pt.getAttribute('lat'));
                         const lon = parseFloat(pt.getAttribute('lon'));
                         if (!isNaN(lat) && !isNaN(lon)) {
-                            points.push([lat, lon]);
+                            // Mapbox expects [longitude, latitude]
+                            points.push([lon, lat]);
                         }
                     });
 
                     if (points.length === 0) return;
 
-                    // Clear previous layers
-                    if (routePolyline) routeMap.removeLayer(routePolyline);
-                    if (startMarker) routeMap.removeLayer(startMarker);
-                    if (finishMarker) routeMap.removeLayer(finishMarker);
-
-                    // Draw route polyline
-                    routePolyline = L.polyline(points, {
-                        color: '#f1631e',
-                        weight: 5,
-                        opacity: 0.85
-                    }).addTo(routeMap);
-
-                    // Create start/finish markers
-                    const startPt = points[0];
-                    const finishPt = points[points.length - 1];
-
-                    // Start marker (Green Play / Dot)
-                    startMarker = L.marker(startPt, {
-                        icon: L.divIcon({
-                            className: '',
-                            html: '<div style="width:24px;height:24px;border-radius:999px;background:#22c55e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-play ml-0.5"></i></div>',
-                            iconSize: [24, 24],
-                            iconAnchor: [12, 12]
-                        })
-                    }).addTo(routeMap).bindPopup('<b>Start</b>');
-
-                    // Finish marker (Red Checkered / Flag)
-                    finishMarker = L.marker(finishPt, {
-                        icon: L.divIcon({
-                            className: '',
-                            html: '<div style="width:24px;height:24px;border-radius:999px;background:#ef4444;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-flag-checkered"></i></div>',
-                            iconSize: [24, 24],
-                            iconAnchor: [12, 12]
-                        })
-                    }).addTo(routeMap).bindPopup('<b>Finish</b>');
-
-                    // Fit map bounds
-                    routeMap.fitBounds(routePolyline.getBounds(), { padding: [30, 30] });
+                    drawRouteOnMap(points);
                 })
                 .catch(err => {
                     console.error('Error loading GPX file:', err);
                 });
+        }
+
+        function drawRouteOnMap(points) {
+            if (!routeMap || !routeMap.isStyleLoaded()) {
+                // Retry if style is not loaded yet (prevents Mapbox asynchronous race conditions)
+                setTimeout(function() {
+                    drawRouteOnMap(points);
+                }, 100);
+                return;
+            }
+
+            // Clear previous layers/markers
+            if (startMarker) startMarker.remove();
+            if (finishMarker) finishMarker.remove();
+
+            if (routeMap.getLayer('route-line')) routeMap.removeLayer('route-line');
+            if (routeMap.getSource('route-source')) routeMap.removeSource('route-source');
+
+            // Draw route polyline via GeoJSON
+            routeMap.addSource('route-source', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: points
+                    }
+                }
+            });
+
+            routeMap.addLayer({
+                id: 'route-line',
+                type: 'line',
+                source: 'route-source',
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                paint: {
+                    'line-color': '#f1631e',
+                    'line-width': 5,
+                    'line-opacity': 0.85
+                }
+            });
+
+            // Create start/finish markers
+            const startPt = points[0];
+            const finishPt = points[points.length - 1];
+
+            // Start marker (Green Play / Dot)
+            const elStart = document.createElement('div');
+            elStart.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#22c55e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-play ml-0.5"></i></div>';
+
+            startMarker = new mapboxgl.Marker(elStart)
+                .setLngLat(startPt)
+                .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<b>Start</b>'))
+                .addTo(routeMap);
+
+            // Finish marker (Red Checkered / Flag)
+            const elFinish = document.createElement('div');
+            elFinish.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#ef4444;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-flag-checkered"></i></div>';
+
+            finishMarker = new mapboxgl.Marker(elFinish)
+                .setLngLat(finishPt)
+                .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<b>Finish</b>'))
+                .addTo(routeMap);
+
+            // Fit map bounds
+            const bounds = new mapboxgl.LngLatBounds();
+            points.forEach(p => bounds.extend(p));
+            routeMap.fitBounds(bounds, { padding: 40, duration: 1000 });
         }
     </script>
 

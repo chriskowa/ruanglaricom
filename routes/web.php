@@ -845,6 +845,7 @@ Route::middleware('auth')->group(function () {
             
             // Trial Review placeholders
             Route::get('/trials/{trial}/review', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'review'])->name('trials.review');
+            Route::get('/trials/{trial}/pdf', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'downloadPdf'])->name('trials.pdf');
             Route::post('/trials/{trial}/reject', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'reject'])->name('trials.reject');
             Route::post('/trials/{trial}/approve', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'approve'])->name('trials.approve');
             Route::get('/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveArtifact'])->name('trials.artifact');
@@ -961,6 +962,7 @@ Route::middleware('auth')->group(function () {
         
         // Running Analysis Review for Runner
         Route::get('/running-analysis/trials/{trial}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'runnerReview'])->name('running-analysis.trials.review');
+        Route::get('/running-analysis/trials/{trial}/pdf', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'runnerDownloadPdf'])->name('running-analysis.trials.pdf');
         Route::get('/running-analysis/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveRunnerArtifact'])->name('running-analysis.trials.artifact');
 
         Route::post('/profile/toggle-wa', [DashboardController::class, 'toggleWaNotification'])->name('profile.toggle-wa');
