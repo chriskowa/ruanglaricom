@@ -176,7 +176,8 @@
         ])) !!},
         poseLandmarker: null,
         videoFile: null,
-        processing: false
+        processing: false,
+        uploading: false   // Mutex to prevent parallel processOutbox calls
     };
 
     const ANALYSIS_CONFIG = {
@@ -1165,6 +1166,7 @@
     // Start processing
     startBtn.addEventListener('click', async () => {
         if (state.processing) return;
+        startBtn.setAttribute('disabled', 'true');
         
         const runnerId = document.getElementById('runner-selector').value;
         const fps = parseInt(document.getElementById('fps-selector').value) || 30;
@@ -1276,14 +1278,15 @@
             // Update UI count
             updatePendingCount();
 
-            // Trigger instant upload processing
-            processOutbox();
+            // Trigger instant upload processing (await to keep overlay visible until done)
+            await processOutbox();
 
         } catch (err) {
             console.error("Error during manual video analysis", err);
             showToast("Analysis Error: " + err.message, true);
         } finally {
             state.processing = false;
+            startBtn.removeAttribute('disabled');
             document.getElementById('processing-overlay').classList.add('hidden');
         }
     });
@@ -1293,8 +1296,11 @@
         document.getElementById('progress-desc').innerText = message;
     }
 
-    // Dexie Upload Engine
+    // Dexie Upload Engine (with mutex to prevent parallel execution)
     async function processOutbox() {
+        if (state.uploading) return; // Prevent parallel runs
+        state.uploading = true;
+        try {
         const pending = await db.outbox.where('status').equals('pending').toArray();
         updatePendingCount();
         
@@ -1398,6 +1404,9 @@
             }
         }
         updatePendingCount();
+        } finally {
+            state.uploading = false;
+        }
     }
 
     async function updatePendingCount() {
