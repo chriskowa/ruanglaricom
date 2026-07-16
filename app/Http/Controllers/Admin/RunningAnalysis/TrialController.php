@@ -307,10 +307,11 @@ class TrialController extends Controller
         $headers = [
             'Content-Type' => $mime,
             'Accept-Ranges' => 'bytes',
+            'X-Accel-Buffering' => 'no', // Disable Nginx/FastCGI buffering
         ];
 
-        // Clean out any output buffers that might interfere with streaming
-        if (ob_get_level()) {
+        // Clean out all output buffers that might interfere with streaming
+        while (ob_get_level() > 0) {
             ob_end_clean();
         }
 
