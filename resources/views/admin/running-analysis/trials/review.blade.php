@@ -23,6 +23,8 @@
     $pdfRoute = auth()->user()?->role === 'admin'
         ? 'admin.running-analysis.trials.pdf'
         : 'runner.running-analysis.trials.pdf';
+
+    $videoArtifact = $trial->artifacts->where('type', 'video_clip')->first();
 @endphp
 
 @section('title', 'Review Trial - ' . $trial->runner->name)
@@ -127,9 +129,7 @@
             <div class="lg:col-span-2 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(204,255,0,0.05)]">
 
-                    @php
-                        $videoArtifact = $trial->artifacts->where('type', 'video_clip')->first();
-                    @endphp
+
 
                     <!-- View Mode Tabs -->
                     @if($poseData || $videoArtifact)
