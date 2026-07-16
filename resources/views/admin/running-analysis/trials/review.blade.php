@@ -83,6 +83,18 @@
                 </form>
                 @endif
 
+                {{-- Export Video with Skeleton --}}
+                @if($poseData && $videoArtifact)
+                <button type="button" id="btn-export-video"
+                   title="Export Video with Skeleton Overlay"
+                   class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-slate-800 border border-slate-700
+                          text-slate-300 hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00]
+                          transition-all duration-200 shadow-sm group">
+                    <i class="fas fa-video text-[#ccff00] group-hover:text-black transition-colors"></i>
+                    Export Video
+                </button>
+                @endif
+
                 {{-- PDF download — only makes sense once there is analysis data --}}
                 @if($trial->latestReport || $trial->findings->count() > 0 || $trial->metrics->count() > 0)
                 <a href="{{ route($pdfRoute, $trial) }}"
@@ -1823,6 +1835,122 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+        // ---------------------------------------------------------------
+        // Video Export Engine (Frame-by-Frame Offline Export)
+        // ---------------------------------------------------------------
+        const exportBtn = document.getElementById('btn-export-video');
+        if (exportBtn && videoPlayer) {
+            exportBtn.addEventListener('click', async () => {
+                if (frames.length === 0) {
+                    showToast("No skeleton data available to export.", true);
+                    return;
+                }
+
+                // Show progress overlay
+                const overlay = document.getElementById('export-overlay');
+                const progressBar = document.getElementById('export-progress');
+                const progressText = document.getElementById('export-percent');
+                if (overlay) overlay.classList.remove('hidden');
+
+                // Mute and pause player
+                const wasMuted = videoPlayer.muted;
+                const wasPaused = videoPlayer.paused;
+                videoPlayer.pause();
+                videoPlayer.muted = true;
+
+                // Setup export canvas
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = videoPlayer.videoWidth || 1280;
+                exportCanvas.height = videoPlayer.videoHeight || 720;
+                const exportCtx = exportCanvas.getContext('2d');
+
+                // Setup MediaRecorder on export canvas stream
+                const fps = 30;
+                const stream = exportCanvas.captureStream(fps);
+                
+                let mimeType = 'video/webm;codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm;codecs=vp8';
+                }
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'video/webm';
+                }
+                
+                const recorder = new MediaRecorder(stream, { mimeType });
+                const chunks = [];
+                recorder.ondataavailable = e => {
+                    if (e.data && e.data.size > 0) chunks.push(e.data);
+                };
+                
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: mimeType });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `running-analysis-{{ $trial->id }}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    // Restore player state
+                    videoPlayer.muted = wasMuted;
+                    window.seekVideoTo(startSec);
+                    if (!wasPaused) videoPlayer.play();
+
+                    if (overlay) overlay.classList.add('hidden');
+                };
+
+                recorder.start();
+
+                // Export frame-by-frame
+                const startTs = frames[0] ? Number(frames[0].timestamp_ms ?? frames[0].ts ?? 0) : 0;
+                const endTs = frames[frames.length - 1] ? Number(frames[frames.length - 1].timestamp_ms ?? frames[frames.length - 1].ts ?? 0) : 0;
+                let currentSec = startTs / 1000;
+                const endSecVal = endTs / 1000;
+                const totalDuration = endSecVal - currentSec;
+                const step = 1 / fps;
+
+                const exportNextFrame = async () => {
+                    if (currentSec > endSecVal) {
+                        recorder.stop();
+                        return;
+                    }
+
+                    // Seek video player to current timestamp
+                    window.seekVideoTo(currentSec);
+
+                    // Wait for seeked event
+                    await new Promise(resolve => {
+                        const onSeeked = () => {
+                            videoPlayer.removeEventListener('seeked', onSeeked);
+                            resolve();
+                        };
+                        videoPlayer.addEventListener('seeked', onSeeked);
+                    });
+
+                    // Draw video frame to export canvas
+                    exportCtx.drawImage(videoPlayer, 0, 0, exportCanvas.width, exportCanvas.height);
+
+                    // Sync the skeleton frame to playbackCanvas
+                    window.syncSkeletonFrame();
+
+                    // Overlay the skeleton canvas onto export canvas
+                    exportCtx.drawImage(canvas, 0, 0, exportCanvas.width, exportCanvas.height);
+
+                    // Update progress UI
+                    const elapsed = currentSec - (startTs / 1000);
+                    const percent = Math.min(100, Math.round((elapsed / totalDuration) * 100));
+                    if (progressBar) progressBar.style.width = `${percent}%`;
+                    if (progressText) progressText.innerText = `${percent}%`;
+
+                    // Advance time
+                    currentSec += step;
+                    requestAnimationFrame(exportNextFrame);
+                };
+
+                // Start the frame loop
+                exportNextFrame();
+            });
+        }
         
     } catch (e) {
         console.error("Error parsing pose data", e);
@@ -1830,5 +1958,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endif
+
+{{-- Video Export Progress Overlay --}}
+<div id="export-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-50 hidden">
+    <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-sm w-full mx-4 shadow-2xl text-center space-y-4">
+        <div class="relative w-20 h-20 mx-auto">
+            <div class="absolute inset-0 rounded-full border-4 border-slate-800"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-t-[#ccff00] animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fas fa-video text-2xl text-[#ccff00]"></i>
+            </div>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-white uppercase italic tracking-wider">Exporting Video</h3>
+            <p class="text-xs text-slate-400 mt-1">Merging video with skeleton overlay...</p>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div id="export-progress" class="bg-[#ccff00] h-full w-0 transition-all duration-200"></div>
+        </div>
+        <div id="export-percent" class="text-xs font-black text-[#ccff00] tracking-wider">0%</div>
+    </div>
+</div>
 
 @endsection

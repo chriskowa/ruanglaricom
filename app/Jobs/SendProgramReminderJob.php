@@ -54,7 +54,8 @@ class SendProgramReminderJob implements ShouldQueue
                 . "ATURAN:\n"
                 . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
                 . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
-                . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.";
+                . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.\n"
+                . "- Jangan gunakan emoji sama sekali di dalam pesan.";
             
             $message = $openAiService->getAiResponse($prompt, $systemMessage);
             $calendarUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
@@ -111,6 +112,7 @@ class SendProgramReminderJob implements ShouldQueue
         $distance = $this->sessionData['distance'] ?? '';
         $duration = $this->sessionData['duration'] ?? '';
         $targetPace = $this->sessionData['target_pace'] ?? '';
+        $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? '';
         
         $pacesInfo = "";
         if (!empty($profileData['paces'])) {
@@ -131,8 +133,9 @@ class SendProgramReminderJob implements ShouldQueue
             if ($distance) $prompt .= "Jarak: {$distance} km\n";
             if ($duration) $prompt .= "Durasi: {$duration}\n";
             if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
+            if ($description) $prompt .= "Deskripsi Latihan (Instruksi Coach): {$description}\n";
             
-            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
         }
 
         return $prompt;
@@ -150,11 +153,24 @@ class SendProgramReminderJob implements ShouldQueue
             return "Halo {$this->user->name}, besok jadwal program *{$this->program->title}* kamu adalah *Rest Day* ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
         }
 
+        $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? '';
+
         $detail = "";
-        if (!empty($this->sessionData['distance'])) $detail .= " Jarak: {$this->sessionData['distance']} km.";
-        if (!empty($this->sessionData['duration'])) $detail .= " Durasi: {$this->sessionData['duration']}.";
-        if (!empty($this->sessionData['target_pace'])) $detail .= " Target Pace: {$this->sessionData['target_pace']}.";
+        if (!empty($description)) {
+            $detail .= "\n- Deskripsi: {$description}";
+        }
+        if (!empty($this->sessionData['distance'])) {
+            $detail .= "\n- Jarak: {$this->sessionData['distance']} km";
+        }
+        if (!empty($this->sessionData['duration'])) {
+            $detail .= "\n- Durasi: {$this->sessionData['duration']}";
+        }
+        if (!empty($this->sessionData['target_pace'])) {
+            $detail .= "\n- Target Pace: {$this->sessionData['target_pace']}";
+        }
         
-        return "Halo {$this->user->name}, besok jadwal kamu adalah *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Semangat! Detail latihan: {$calendarUrl}";
+        return "Halo {$this->user->name}, besok jadwal kamu adalah *{$this->sessionData['type']}* untuk program *{$this->program->title}*."
+            . (!empty($detail) ? "\n\nDetail latihan:{$detail}" : "")
+            . "\n\nSemangat! Detail latihan: {$calendarUrl}";
     }
 }

@@ -168,12 +168,10 @@ class ScheduleProgramReminders extends Command
             return 0;
         }
 
-        // Dispatch jobs dengan rate limit aman: mengirim 5 pesan setiap 30 menit (batching).
-        // Setiap runner di dalam batch yang sama akan diberi jeda (stagger) 1 menit untuk keamanan API.
+        // Dispatch jobs dengan rate limit sangat aman: mengirim 1 pesan per runner setiap 2 menit
+        // untuk menghindari pemblokiran nomor WhatsApp oleh sistem anti-spam.
         foreach ($jobsToDispatch as $index => $data) {
-            $batchIndex = floor($index / 5);
-            $staggerMinutes = $index % 5;
-            $delayMinutes = ($batchIndex * 30) + $staggerMinutes;
+            $delayMinutes = $index * 2;
             
             SendProgramReminderJob::dispatch($data['runner'], $data['session'], $data['program'])
                 ->delay(now()->addMinutes($delayMinutes));
