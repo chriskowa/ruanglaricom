@@ -1846,6 +1846,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // Calculate bounds at the beginning of scope so they are shared
+                const startTs = frames[0] ? Number(frames[0].timestamp_ms ?? frames[0].ts ?? 0) : 0;
+                const endTs = frames[frames.length - 1] ? Number(frames[frames.length - 1].timestamp_ms ?? frames[frames.length - 1].ts ?? 0) : 0;
+                const startSecVal = startTs / 1000;
+                const endSecVal = endTs / 1000;
+
                 // Show progress overlay
                 const overlay = document.getElementById('export-overlay');
                 const progressBar = document.getElementById('export-progress');
@@ -1893,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Restore player state
                     videoPlayer.muted = wasMuted;
-                    window.seekVideoTo(startSec);
+                    window.seekVideoTo(startSecVal);
                     if (!wasPaused) videoPlayer.play();
 
                     if (overlay) overlay.classList.add('hidden');
@@ -1902,11 +1908,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 recorder.start();
 
                 // Export frame-by-frame
-                const startTs = frames[0] ? Number(frames[0].timestamp_ms ?? frames[0].ts ?? 0) : 0;
-                const endTs = frames[frames.length - 1] ? Number(frames[frames.length - 1].timestamp_ms ?? frames[frames.length - 1].ts ?? 0) : 0;
-                let currentSec = startTs / 1000;
-                const endSecVal = endTs / 1000;
-                const totalDuration = endSecVal - currentSec;
+                let currentSec = startSecVal;
+                const totalDuration = endSecVal - startSecVal;
                 const step = 1 / fps;
 
                 const exportNextFrame = async () => {
