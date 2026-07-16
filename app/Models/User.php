@@ -26,6 +26,14 @@ class User extends Authenticatable
                 }
             }
         });
+
+        static::deleting(function ($user) {
+            // Delete all trials where this user is the runner, triggering trial deletion event to clear files
+            $trials = \App\Models\RunningAnalysis\Trial::where('runner_id', $user->id)->get();
+            foreach ($trials as $trial) {
+                $trial->delete();
+            }
+        });
     }
 
     protected $appends = ['avatar_url', 'vdot', 'training_paces'];

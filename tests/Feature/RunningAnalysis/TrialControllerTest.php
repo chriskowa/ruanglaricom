@@ -282,4 +282,167 @@ class TrialControllerTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_serve_s3_artifact_redirects_to_temporary_url()
+    {
+        $admin  = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'operator_id'=> $admin->id,
+            'status'     => Trial::STATUS_PUBLISHED,
+        ]);
+
+        $artifact = $trial->artifacts()->create([
+            'type'       => 'video_clip',
+            'disk'       => 's3',
+            'path'       => 'trials/video.mp4',
+            'sha256'     => 'dummy',
+            'mime_type'  => 'video/mp4',
+            'size_bytes' => 1024,
+            'created_at' => now(),
+        ]);
+
+        $mockDisk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $mockDisk->shouldReceive('exists')->with('trials/video.mp4')->andReturn(true);
+        $mockDisk->shouldReceive('temporaryUrl')
+            ->with('trials/video.mp4', \Mockery::type(\DateTimeInterface::class))
+            ->andReturn('https://s3.amazonaws.com/ruanglari/trials/video.mp4?signature=dummy');
+
+        Storage::shouldReceive('disk')->with('s3')->andReturn($mockDisk);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.running-analysis.trials.artifact', [$trial, $artifact]));
+
+        $response->assertRedirect('https://s3.amazonaws.com/ruanglari/trials/video.mp4?signature=dummy');
+    }
+
+    public function test_deleting_runner_deletes_associated_trials_and_physical_files()
+    {
+        Storage::fake('local');
+
+        $admin  = User::factory()->admin()->create();
+        $runner = User::factory()->runner()->create();
+        $session = Session::factory()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'operator_id'=> $admin->id,
+            'status'     => Trial::STATUS_PUBLISHED,
+        ]);
+
+        Storage::disk('local')->put('running-analysis/' . $trial->id . '/video.webm', 'dummy contents');
+
+        $artifact = $trial->artifacts()->create([
+            'type'       => 'video_clip',
+            'disk'       => 'local',
+            'path'       => 'running-analysis/' . $trial->id . '/video.webm',
+            'sha256'     => hash('sha256', 'dummy contents'),
+            'mime_type'  => 'video/webm',
+            'size_bytes' => 14,
+            'created_at' => now(),
+        ]);
+
+        Storage::disk('local')->assertExists('running-analysis/' . $trial->id . '/video.webm');
+
+        // Delete the runner user
+        $runner->delete();
+
+        // Assert that the trial database record is gone
+        $this->assertDatabaseMissing('running_analysis_trials', ['id' => $trial->id]);
+        $this->assertDatabaseMissing('running_analysis_artifacts', ['id' => $artifact->id]);
+
+        // Assert that the physical file is deleted from local storage
+        Storage::disk('local')->assertMissing('running-analysis/' . $trial->id . '/video.webm');
+    }
+
+    public function test_can_finalize_trial_synchronously()
+    {
+        $admin = User::factory()->admin()->create();
+        $session = Session::factory()->create();
+        $runner = User::factory()->runner()->create();
+        $session->runners()->attach($runner->id, ['sequence_no' => 1, 'status' => 'pending']);
+
+        $trial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id' => $runner->id,
+            'status' => Trial::STATUS_CAPTURING
+        ]);
+        
+        // Save dummy landmark JSON to disk so the ReportBuilder can read it
+        Storage::fake('local');
+        Storage::disk('local')->put('dummy/landmarks.json', json_encode([
+            'metadata' => [
+                'video_duration_sec' => 3.5,
+                'direction' => 'right',
+                'original_fps' => 30,
+            ],
+            'landmarks' => [
+                // minimum dummy frame
+                [
+                    'time_ms' => 0,
+                    'keypoints' => [
+                        'left_hip' => ['x' => 0.5, 'y' => 0.5, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_knee' => ['x' => 0.5, 'y' => 0.7, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_ankle' => ['x' => 0.5, 'y' => 0.9, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_shoulder' => ['x' => 0.55, 'y' => 0.3, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_ear' => ['x' => 0.55, 'y' => 0.2, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_heel' => ['x' => 0.5, 'y' => 0.92, 'z' => 0.0, 'visibility' => 0.99],
+                        'left_foot_index' => ['x' => 0.48, 'y' => 0.95, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_hip' => ['x' => 0.5, 'y' => 0.5, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_knee' => ['x' => 0.5, 'y' => 0.7, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_ankle' => ['x' => 0.5, 'y' => 0.9, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_shoulder' => ['x' => 0.55, 'y' => 0.3, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_ear' => ['x' => 0.55, 'y' => 0.2, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_heel' => ['x' => 0.5, 'y' => 0.92, 'z' => 0.0, 'visibility' => 0.99],
+                        'right_foot_index' => ['x' => 0.48, 'y' => 0.95, 'z' => 0.0, 'visibility' => 0.99],
+                    ]
+                ]
+            ],
+            'summary' => [
+                'cadence_spm' => ['value' => 170.0],
+                'torso_angle_deg' => ['mean' => 5.2],
+                'knee_flexion_deg' => ['mean' => 35.0],
+                'overstride_landing_m' => ['mean' => 0.02],
+                'overall_score' => 88.0,
+                'positive_points' => ['Good knee pull', 'Consistent stride'],
+                'recommendations' => [
+                    ['category' => 'strength', 'title' => 'Plank', 'description' => 'Planks hold for core strength'],
+                    ['category' => 'drills', 'title' => 'A-skips', 'description' => 'A-skips for knee drive'],
+                    ['category' => 'cues', 'title' => 'Lean forward', 'description' => 'Lean slightly forward from ankles']
+                ]
+            ]
+        ]));
+
+        $trial->artifacts()->create([
+            'type' => 'pose_landmarks',
+            'disk' => 'local',
+            'path' => 'dummy/landmarks.json',
+            'mime_type' => 'application/json',
+            'sha256' => hash('sha256', 'dummy'),
+            'size_bytes' => 100,
+            'created_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->postJson(route('admin.running-analysis.trials.finalize', $trial) . '?sync=true');
+        
+        $response->assertStatus(200);
+        
+        $this->assertDatabaseHas('running_analysis_trials', [
+            'id' => $trial->id,
+            'status' => Trial::STATUS_REVIEW_REQUIRED, // should bypass queued/analyzing
+        ]);
+
+        $this->assertDatabaseHas('running_analysis_session_runner', [
+            'session_id' => $session->id,
+            'runner_id' => $runner->id,
+            'status' => 'captured',
+        ]);
+    }
 }

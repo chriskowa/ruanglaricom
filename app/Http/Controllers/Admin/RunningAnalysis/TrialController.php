@@ -122,7 +122,7 @@ class TrialController extends Controller
     /**
      * Finalize the upload sequence and queue for analysis.
      */
-    public function finalize(Request $request, Trial $trial)
+    public function finalize(Request $request, Trial $trial, ReportBuilder $builder)
     {
         if (in_array($trial->status, [Trial::STATUS_QUEUED, Trial::STATUS_ANALYZING, Trial::STATUS_REVIEW_REQUIRED, Trial::STATUS_APPROVED, Trial::STATUS_PUBLISHED])) {
             return response()->json(['status' => 'already_finalized']);
@@ -137,10 +137,26 @@ class TrialController extends Controller
             return response()->json(['error' => 'Missing pose data artifact'], 400);
         }
 
-        $trial->update(['status' => Trial::STATUS_QUEUED]);
+        $isSync = filter_var($request->input('sync'), FILTER_VALIDATE_BOOLEAN);
 
-        // Queue analysis job
-        dispatch(new \App\Jobs\RunningAnalysis\AnalyzeTrialJob($trial));
+        if ($isSync) {
+            @set_time_limit(300);
+            try {
+                $trial->update(['status' => Trial::STATUS_ANALYZING]);
+                $builder->process($trial);
+                $trial->update(['status' => Trial::STATUS_REVIEW_REQUIRED]);
+            } catch (\Exception $e) {
+                $trial->update([
+                    'status'         => Trial::STATUS_CAPTURING, // fallback
+                    'invalid_reason' => $e->getMessage(),
+                ]);
+                return response()->json(['error' => 'Gagal menganalisis secara langsung: ' . $e->getMessage()], 500);
+            }
+        } else {
+            $trial->update(['status' => Trial::STATUS_QUEUED]);
+            // Queue analysis job
+            dispatch(new \App\Jobs\RunningAnalysis\AnalyzeTrialJob($trial));
+        }
 
         // Update session runner status
         $sessionRunner = \App\Models\RunningAnalysis\SessionRunner::where('session_id', $trial->session_id)
@@ -262,6 +278,12 @@ class TrialController extends Controller
         $disk = \Illuminate\Support\Facades\Storage::disk($artifact->disk);
         if (!$disk->exists($artifact->path)) {
             abort(404, 'Artifact file not found.');
+        }
+
+        // For remote/cloud storage (like S3), stream via temporary redirect URL
+        if ($artifact->disk === 's3') {
+            $url = $disk->temporaryUrl($artifact->path, now()->addMinutes(60));
+            return redirect()->away($url);
         }
 
         $path = $disk->path($artifact->path);

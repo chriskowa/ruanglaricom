@@ -91,6 +91,13 @@
                                 </select>
                             </div>
                             <div class="flex justify-between items-center text-xs">
+                                <span class="text-slate-400 font-semibold uppercase">Execution Mode</span>
+                                <select id="exec-mode" class="bg-slate-950 border border-slate-850 text-white rounded px-2 py-1 outline-none">
+                                    <option value="sync" selected>Direct / Sync</option>
+                                    <option value="queue">Queue (Background)</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
                                 <span class="text-slate-400 font-semibold uppercase">Pose Model</span>
                                 <span class="text-slate-300 font-mono">pose_landmarker_full</span>
                             </div>
@@ -1363,7 +1370,8 @@
                 }
 
                 // 4. Finalize
-                const finalizeRes = await fetch(`{{ url('/admin/running-analysis/trials') }}/${item.trialId}/finalize`, {
+                const isSync = document.getElementById('exec-mode').value === 'sync';
+                const finalizeRes = await fetch(`{{ url('/admin/running-analysis/trials') }}/${item.trialId}/finalize?sync=${isSync}`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
