@@ -370,7 +370,17 @@ class TrialController extends Controller
         @set_time_limit(300);
 
         try {
-            $trial->update(['status' => Trial::STATUS_ANALYZING]);
+            // Clean up any previous analysis data to prevent duplicates on re-analyze
+            $trial->gaitEvents()->delete();
+            $trial->metrics()->delete();
+            $trial->findings()->delete();
+            $trial->recommendations()->delete();
+            $trial->reports()->delete();
+
+            $trial->update([
+                'status' => Trial::STATUS_ANALYZING,
+                'invalid_reason' => null,
+            ]);
             
             $builder->process($trial);
 

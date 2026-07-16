@@ -3,6 +3,7 @@
     $withSidebar = true;
 
     $statusColors = [
+        'capturing'       => 'bg-amber-900 text-amber-300 border-amber-700',
         'queued'          => 'bg-blue-900 text-blue-300 border-blue-700',
         'analyzing'       => 'bg-yellow-900 text-yellow-300 border-yellow-700',
         'review_required' => 'bg-orange-900 text-orange-300 border-orange-700',
@@ -67,6 +68,21 @@
                 <span class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border {{ $statusColor }}">
                     {{ str_replace('_', ' ', strtoupper($trial->status)) }}
                 </span>
+
+                {{-- Re-analyze button for trials stuck in capturing/failed that already have artifacts --}}
+                @if(in_array($trial->status, ['capturing', 'failed']) && $trial->artifacts->where('type', 'pose_landmarks')->count() > 0)
+                <form method="POST" action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" class="inline">
+                    @csrf
+                    <button type="submit" id="btn-reanalyze"
+                        class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-amber-600 border border-amber-500
+                               text-white hover:bg-amber-500 transition-all duration-200 shadow-sm"
+                        onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyzing...'; this.form.submit();">
+                        <i class="fas fa-redo"></i>
+                        Re-analyze
+                    </button>
+                </form>
+                @endif
+
                 {{-- PDF download — only makes sense once there is analysis data --}}
                 @if($trial->latestReport || $trial->findings->count() > 0 || $trial->metrics->count() > 0)
                 <a href="{{ route($pdfRoute, $trial) }}"
@@ -82,6 +98,17 @@
                 @endif
             </div>
         </div>
+
+        {{-- Error banner for trials that failed analysis --}}
+        @if($trial->invalid_reason)
+        <div class="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle mt-0.5 text-red-400"></i>
+            <div>
+                <p class="font-bold text-sm text-red-200">Analysis gagal:</p>
+                <p class="text-xs mt-1 font-mono">{{ $trial->invalid_reason }}</p>
+            </div>
+        </div>
+        @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Panel: Visualizer -->
