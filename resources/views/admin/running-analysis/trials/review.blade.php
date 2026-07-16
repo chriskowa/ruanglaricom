@@ -1431,17 +1431,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // mode (seeks the timeline scrubber directly).
         // ---------------------------------------------------------------
         window.seekToGaitEvent = function(timestampMs, eventType) {
-            const eventBaseMs = {{ $trial->gaitEvents->min('timestamp_ms') ?? 0 }};
-            const targetRelativeMs = timestampMs - eventBaseMs;
-            const targetSec = targetRelativeMs / 1000;
+            const targetSec = timestampMs / 1000;
 
-            // 1. Find closest skeleton frame
+            // 1. Find closest skeleton frame using absolute timestampMs
             let closestIdx = 0;
             let minDiff = Infinity;
             for (let i = 0; i < frames.length; i++) {
                 const fTs = Number(frames[i].timestamp_ms ?? frames[i].ts ?? 0);
-                const relativeFrameMs = fTs - frameBaseMs;
-                const diff = Math.abs(relativeFrameMs - targetRelativeMs);
+                const diff = Math.abs(fTs - timestampMs);
                 if (diff < minDiff) {
                     minDiff = diff;
                     closestIdx = i;
@@ -1635,12 +1632,24 @@ document.addEventListener('DOMContentLoaded', () => {
         window.syncSkeletonFrame = function() {
             if (window.currentViewMode !== 'video' || !videoPlayer || frames.length === 0) return;
             const elapsedMs = videoPlayer.currentTime * 1000;
+            
+            // If the video time is outside the skeleton frames range, clear the canvas
+            const firstFrameTs = Number(frames[0].timestamp_ms ?? frames[0].ts ?? 0);
+            const lastFrameTs = Number(frames[frames.length - 1].timestamp_ms ?? frames[frames.length - 1].ts ?? 0);
+            if (elapsedMs < firstFrameTs - 100 || elapsedMs > lastFrameTs + 100) {
+                const canvasPlayback = document.getElementById('playback-canvas');
+                if (canvasPlayback) {
+                    const ctxPlayback = canvasPlayback.getContext('2d');
+                    ctxPlayback.clearRect(0, 0, canvasPlayback.width, canvasPlayback.height);
+                }
+                return;
+            }
+
             let closestFrameIdx = 0;
             let minDiff = Infinity;
             for (let i = 0; i < frames.length; i++) {
                 const frameTs = Number(frames[i].timestamp_ms ?? frames[i].ts ?? 0);
-                const relativeFrameMs = frameTs - frameBaseMs;
-                const diff = Math.abs(relativeFrameMs - elapsedMs);
+                const diff = Math.abs(frameTs - elapsedMs);
                 if (diff < minDiff) {
                     minDiff = diff;
                     closestFrameIdx = i;
@@ -1653,14 +1662,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const startTs = frames[0] ? Number(frames[0].timestamp_ms ?? frames[0].ts ?? 0) : 0;
             const endTs = frames[frames.length - 1] ? Number(frames[frames.length - 1].timestamp_ms ?? frames[frames.length - 1].ts ?? 0) : 0;
             
-            let startSec = 0;
-            let endSec = (endTs - startTs) / 1000;
+            let startSec = startTs / 1000;
+            let endSec = endTs / 1000;
 
             function applyRange() {
                 const duration = videoPlayer.duration || 0;
                 if (duration > 0) {
-                    if (startSec < 0 || endSec > duration || startSec >= endSec) {
+                    if (startSec < 0 || startSec >= duration) {
                         startSec = 0;
+                    }
+                    if (endSec <= startSec || endSec > duration) {
                         endSec = duration;
                     }
                 }
