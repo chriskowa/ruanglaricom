@@ -50,15 +50,15 @@
                         <!-- Size warning container -->
                         <div id="size-warning-container" class="hidden p-3 bg-red-950/40 border border-red-500/30 rounded-xl text-[11px] text-red-400 leading-relaxed">
                             <i class="fas fa-exclamation-triangle mr-1"></i> 
-                            <span>File size (<span id="warn-file-size">0</span>MB) exceeds ideal limit (15MB). Please compress the video or select a smaller/shorter clip to prevent upload failures (HTTP 413).</span>
+                            <span>File size (<span id="warn-file-size">0</span>MB) exceeds ideal limit (100MB). Please compress the video or select a smaller/shorter clip to prevent upload failures (HTTP 413).</span>
                         </div>
 
                         <!-- Ideal Video Guide -->
                         <div class="p-3 bg-slate-900/40 border border-slate-800 rounded-xl space-y-1.5 text-[11px] text-slate-400">
                             <div class="font-bold text-white uppercase tracking-wider mb-1">Ideal Video Guide</div>
                             <div class="flex items-center gap-1.5"><i class="fas fa-check text-[#ccff00]"></i> Side-view lateral shot</div>
-                            <div class="flex items-center gap-1.5"><i class="fas fa-check text-[#ccff00]"></i> 2 - 5 seconds duration</div>
-                            <div class="flex items-center gap-1.5"><i class="fas fa-check text-[#ccff00]"></i> Max size: 15MB</div>
+                            <div class="flex items-center gap-1.5"><i class="fas fa-check text-[#ccff00]"></i> 2 - 15 seconds duration</div>
+                            <div class="flex items-center gap-1.5"><i class="fas fa-check text-[#ccff00]"></i> Max size: 100MB</div>
                         </div>
 
                         <!-- Trim Video Range -->
@@ -261,33 +261,86 @@
         return sorted[clamp(idx, 0, sorted.length - 1)];
     };
 
-    // Landmark Exponential Moving Average Filter
+    // One Euro Filter 1D Dimension Helper
+    class OneEuroFilter1D {
+        constructor(minCutoff = 0.8, beta = 0.03, dCutoff = 1.0) {
+            this.minCutoff = minCutoff;
+            this.beta = beta;
+            this.dCutoff = dCutoff;
+            this.xPrev = null;
+            this.dxPrev = 0;
+        }
+
+        filter(value, dt) {
+            if (this.xPrev === null) {
+                this.xPrev = value;
+                return value;
+            }
+
+            // Estimate velocity
+            const dx = (value - this.xPrev) / dt;
+            const alphaD = this.getAlpha(dt, this.dCutoff);
+            const dxSmooth = alphaD * dx + (1 - alphaD) * this.dxPrev;
+            this.dxPrev = dxSmooth;
+
+            // Cutoff frequency based on velocity
+            const cutoff = this.minCutoff + this.beta * Math.abs(dxSmooth);
+            const alpha = this.getAlpha(dt, cutoff);
+            
+            const valueSmooth = alpha * value + (1 - alpha) * this.xPrev;
+            this.xPrev = valueSmooth;
+            
+            return valueSmooth;
+        }
+
+        getAlpha(dt, cutoff) {
+            const tau = 1.0 / (2 * Math.PI * cutoff);
+            return 1.0 / (1.0 + tau / dt);
+        }
+    }
+
+    // Landmark Noise Reduction using Adaptive One Euro Filter
     class LandmarkFilter {
-        constructor(alpha = 0.35) {
-            this.alpha = alpha;
-            this.previousSmooth = null;
+        constructor() {
+            this.filters = {
+                x: new OneEuroFilter1D(0.8, 0.03, 1.0),
+                y: new OneEuroFilter1D(0.8, 0.03, 1.0),
+                z: new OneEuroFilter1D(0.8, 0.03, 1.0)
+            };
+            this.hasPrevious = false;
         }
         
         filter(current, visibility, deltaMs) {
             if (!current) {
-                this.previousSmooth = null;
+                this.hasPrevious = false;
                 return null;
             }
             if (visibility < ANALYSIS_CONFIG.minVisibility || deltaMs > ANALYSIS_CONFIG.maximumDeltaMs) {
-                this.previousSmooth = null;
+                this.hasPrevious = false;
                 return current;
             }
-            if (!this.previousSmooth) {
-                this.previousSmooth = { ...current };
-                return current;
+            
+            const dt = deltaMs / 1000;
+            if (dt <= 0) return current;
+
+            if (!this.hasPrevious) {
+                this.filters.x.xPrev = current.x;
+                this.filters.y.xPrev = current.y;
+                this.filters.z.xPrev = current.z;
+                this.filters.x.dxPrev = 0;
+                this.filters.y.dxPrev = 0;
+                this.filters.z.dxPrev = 0;
+                this.hasPrevious = true;
+                return { ...current };
             }
-            const smoothed = {};
-            for (const key of ['x', 'y', 'z']) {
-                smoothed[key] = this.alpha * current[key] + (1 - this.alpha) * this.previousSmooth[key];
-            }
-            smoothed.visibility = current.visibility;
-            smoothed.presence = current.presence;
-            this.previousSmooth = smoothed;
+
+            const smoothed = {
+                x: this.filters.x.filter(current.x, dt),
+                y: this.filters.y.filter(current.y, dt),
+                z: this.filters.z.filter(current.z, dt),
+                visibility: current.visibility,
+                presence: current.presence
+            };
             return smoothed;
         }
     }
@@ -552,11 +605,49 @@
         });
     }
 
-    function detectGaitEvents(frames) {
+    function detectGaitEvents(frames, travelDirection) {
         const events = [];
         let prevLeftContact = false, prevRightContact = false;
         let lastLeftIcTime = 0, lastLeftToTime = 0;
         let lastRightIcTime = 0, lastRightToTime = 0;
+        
+        const dirMult = travelDirection === 'right_to_left' ? -1 : 1;
+
+        // Kinematic peak horizontal offset refinement
+        const refineIndex = (approxIdx, type, side) => {
+            const windowSize = 3;
+            let bestIdx = approxIdx;
+            let bestVal = type === 'initial_contact' ? -Infinity : Infinity;
+
+            for (let offset = -windowSize; offset <= windowSize; offset++) {
+                const checkIdx = approxIdx + offset;
+                if (checkIdx < 0 || checkIdx >= frames.length) continue;
+                
+                const frame = frames[checkIdx];
+                const lms = frame.smoothed_landmarks;
+                if (!lms) continue;
+                
+                const ankle = lms[side === 'left' ? 27 : 28];
+                const lHip = lms[23], rHip = lms[24];
+                if (!ankle || !lHip || !rHip) continue;
+                
+                const pelvisX = (lHip.x + rHip.x) / 2;
+                const val = (ankle.x - pelvisX) * dirMult;
+                
+                if (type === 'initial_contact') {
+                    if (val > bestVal) {
+                        bestVal = val;
+                        bestIdx = checkIdx;
+                    }
+                } else { // toe_off
+                    if (val < bestVal) {
+                        bestVal = val;
+                        bestIdx = checkIdx;
+                    }
+                }
+            }
+            return bestIdx;
+        };
         
         frames.forEach((frame, idx) => {
             const leftContact = frame.contact.left.is_contact;
@@ -565,24 +656,52 @@
             
             if (leftContact && !prevLeftContact) {
                 if (timeMs - lastLeftIcTime > ANALYSIS_CONFIG.minimumStepDurationMs) {
-                    events.push({ type: "initial_contact", side: "left", frame_index: idx, timestamp_ms: timeMs, confidence: frame.contact.left.confidence });
+                    const refinedIdx = refineIndex(idx, "initial_contact", "left");
+                    events.push({ 
+                        type: "initial_contact", 
+                        side: "left", 
+                        frame_index: refinedIdx, 
+                        timestamp_ms: frames[refinedIdx].timestamp_ms, 
+                        confidence: frames[refinedIdx].contact.left.confidence 
+                    });
                     lastLeftIcTime = timeMs;
                 }
             } else if (!leftContact && prevLeftContact) {
                 if (timeMs - lastLeftToTime > ANALYSIS_CONFIG.minimumStepDurationMs) {
-                    events.push({ type: "toe_off", side: "left", frame_index: idx, timestamp_ms: timeMs, confidence: frame.contact.left.confidence });
+                    const refinedIdx = refineIndex(idx, "toe_off", "left");
+                    events.push({ 
+                        type: "toe_off", 
+                        side: "left", 
+                        frame_index: refinedIdx, 
+                        timestamp_ms: frames[refinedIdx].timestamp_ms, 
+                        confidence: frames[refinedIdx].contact.left.confidence 
+                    });
                     lastLeftToTime = timeMs;
                 }
             }
             
             if (rightContact && !prevRightContact) {
                 if (timeMs - lastRightIcTime > ANALYSIS_CONFIG.minimumStepDurationMs) {
-                    events.push({ type: "initial_contact", side: "right", frame_index: idx, timestamp_ms: timeMs, confidence: frame.contact.right.confidence });
+                    const refinedIdx = refineIndex(idx, "initial_contact", "right");
+                    events.push({ 
+                        type: "initial_contact", 
+                        side: "right", 
+                        frame_index: refinedIdx, 
+                        timestamp_ms: frames[refinedIdx].timestamp_ms, 
+                        confidence: frames[refinedIdx].contact.right.confidence 
+                    });
                     lastRightIcTime = timeMs;
                 }
             } else if (!rightContact && prevRightContact) {
                 if (timeMs - lastRightToTime > ANALYSIS_CONFIG.minimumStepDurationMs) {
-                    events.push({ type: "toe_off", side: "right", frame_index: idx, timestamp_ms: timeMs, confidence: frame.contact.right.confidence });
+                    const refinedIdx = refineIndex(idx, "toe_off", "right");
+                    events.push({ 
+                        type: "toe_off", 
+                        side: "right", 
+                        frame_index: refinedIdx, 
+                        timestamp_ms: frames[refinedIdx].timestamp_ms, 
+                        confidence: frames[refinedIdx].contact.right.confidence 
+                    });
                     lastRightToTime = timeMs;
                 }
             }
@@ -627,16 +746,22 @@
                     let landingLever = null;
                     let landingLegExtension = null;
                     let trunkLeanAtContact = null;
+                    let heelStrike = null;
                     
                     if (icFrame && icFrame.smoothed_landmarks) {
                         const lms = icFrame.smoothed_landmarks;
                         const ankle = lms[side === 'left' ? 27 : 28];
                         const hip = lms[side === 'left' ? 23 : 24];
                         const pelvis = midpoint(lms[23], lms[24]);
+                        const heel = lms[side === 'left' ? 29 : 30];
+                        const footIndex = lms[side === 'left' ? 31 : 32];
                         
                         if (ankle && pelvis) landingLever = ((ankle.x - pelvis.x) * dirMult) / refLegLength;
                         if (ankle && hip) landingLegExtension = distance2D(hip, ankle) / refLegLength;
                         if (icFrame.angles.trunk_lean?.value !== null) trunkLeanAtContact = icFrame.angles.trunk_lean.value;
+                        if (heel && footIndex) {
+                            heelStrike = (heel.y - footIndex.y) > 0.015;
+                        }
                     }
                     
                     let maxKneeFlexion = 0;
@@ -678,7 +803,8 @@
                         cadence_spm: cadence,
                         landing: {
                             trunk_lean_degree: trunkLeanAtContact,
-                            leg_extension_ratio: landingLegExtension
+                            leg_extension_ratio: landingLegExtension,
+                            heel_strike: heelStrike
                         },
                         push: { label: "estimated_push" },
                         pull: { label: "estimated_pull" },
@@ -728,6 +854,7 @@
         const trunkLeanAtContact = [];
         const landingLeverLeft = [];
         const landingLeverRight = [];
+        const heelStrikes = [];
 
         validSteps.forEach(s => {
             if (s.side === 'left') {
@@ -740,6 +867,7 @@
                 landingLeverRight.push(s.lever.landing_lever_ratio);
             }
             if (s.landing.trunk_lean_degree !== null) trunkLeanAtContact.push(s.landing.trunk_lean_degree);
+            if (s.landing.heel_strike !== null) heelStrikes.push(s.landing.heel_strike);
         });
 
         const medianCadence = median(cadences);
@@ -747,6 +875,15 @@
         const medianRightGct = median(rightGcts);
         const medianFlight = median(flightTimes);
         const gctSymmetry = calculateSymmetryDiff(medianLeftGct, medianRightGct);
+
+        const overstrideSteps = validSteps.filter(s => {
+            const ratio = s.lever.landing_lever_ratio;
+            return ratio !== null && ratio > ANALYSIS_CONFIG.overstrideThreshold;
+        });
+        const overstridePct = validSteps.length > 0 ? (overstrideSteps.length / validSteps.length) * 100 : 0;
+
+        const heelStrikeSteps = heelStrikes.filter(x => x === true);
+        const heelStrikePct = heelStrikes.length > 0 ? (heelStrikeSteps.length / heelStrikes.length) * 100 : 50;
         
         return {
             duration_ms: frames.length > 0 ? (frames[frames.length - 1].timestamp_ms - frames[0].timestamp_ms) : 0,
@@ -756,6 +893,8 @@
             cadence_spm: { median: safeNumber(medianCadence), confidence: validSteps.length > 2 ? 0.85 : 0.5 },
             contact_time_ms: { left_median: safeNumber(medianLeftGct), right_median: safeNumber(medianRightGct) },
             flight_time_ms: { median: safeNumber(medianFlight) },
+            heel_strike_pct: safeNumber(Math.round(heelStrikePct)),
+            overstride_pct: safeNumber(Math.round(overstridePct)),
             angles: {
                 left_knee_at_contact_median: safeNumber(median(leftKneeAtContact)),
                 right_knee_at_contact_median: safeNumber(median(rightKneeAtContact)),
@@ -906,7 +1045,7 @@
         const framesWithContact = estimateFrameContacts(smoothedFrames, ground.ground_y_normalized, proportions.refLegLength);
         const framesWithAngles = calculateFrameAngles(framesWithContact);
         const framesWithPhases = estimateFramePhases(framesWithAngles, proportions.travelDirection);
-        const events = detectGaitEvents(framesWithPhases);
+        const events = detectGaitEvents(framesWithPhases, proportions.travelDirection);
         const steps = buildSteps(framesWithPhases, events, proportions.refLegLength, proportions.travelDirection);
         const summary = generateTrialSummary(framesWithPhases, steps, proportions.travelDirection, proportions.refLegLength);
         const qualityReport = generateQualityReport(framesWithPhases, steps);
@@ -1035,10 +1174,10 @@
             const warningEl = document.getElementById('size-warning-container');
             const sizeTextEl = document.getElementById('warn-file-size');
             
-            if (sizeInMB > 15) {
+            if (sizeInMB > 100) {
                 warningEl.classList.remove('hidden');
                 sizeTextEl.innerText = sizeInMB.toFixed(1);
-                showToast(`File size (${sizeInMB.toFixed(1)}MB) is too large. Ideal limit is 15MB.`, true);
+                showToast(`File size (${sizeInMB.toFixed(1)}MB) is too large. Ideal limit is 100MB.`, true);
                 state.videoFile = null;
                 document.getElementById('file-label').innerText = "Click or drag video here";
                 fileInput.value = ""; // clear selection

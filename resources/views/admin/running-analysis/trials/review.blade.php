@@ -1,139 +1,345 @@
 @extends('layouts.pacerhub')
+
 @php
     $withSidebar = true;
+    $isAdmin = auth()->user()?->role === 'admin';
 
     $statusColors = [
-        'capturing'       => 'bg-amber-900 text-amber-300 border-amber-700',
-        'queued'          => 'bg-blue-900 text-blue-300 border-blue-700',
-        'analyzing'       => 'bg-yellow-900 text-yellow-300 border-yellow-700',
-        'review_required' => 'bg-orange-900 text-orange-300 border-orange-700',
-        'approved'        => 'bg-green-900 text-green-300 border-green-700',
-        'published'       => 'bg-[#ccff00] text-black border-[#ccff00]',
-        'invalid'         => 'bg-red-900 text-red-300 border-red-700',
-        'failed'          => 'bg-red-900 text-red-300 border-red-700',
+        'capturing'       => 'bg-white/[0.035] text-slate-300 border-white/10',
+        'queued'          => 'bg-white/[0.035] text-slate-300 border-white/10',
+        'analyzing'       => 'bg-white/[0.035] text-slate-300 border-white/10',
+        'review_required' => 'bg-white/[0.035] text-slate-200 border-white/10',
+        'approved'        => 'bg-[#ccff00]/10 text-[#ccff00] border-[#ccff00]/20',
+        'published'       => 'bg-[#ccff00] text-[#07101c] border-[#ccff00]',
+        'invalid'         => 'bg-rose-400/10 text-rose-300 border-rose-400/20',
+        'failed'          => 'bg-rose-400/10 text-rose-300 border-rose-400/20',
     ];
-    $statusColor = $statusColors[$trial->status] ?? 'bg-slate-800 text-slate-300 border-slate-700';
+
+    $statusLabels = [
+        'capturing'       => 'Perekaman',
+        'queued'          => 'Dalam Antrean',
+        'analyzing'       => 'Sedang Dianalisis',
+        'review_required' => 'Perlu Ditinjau',
+        'approved'        => 'Disetujui',
+        'published'       => 'Dipublikasikan',
+        'invalid'         => 'Tidak Valid',
+        'failed'          => 'Analisis Gagal',
+    ];
+
+    $statusIcons = [
+        'capturing'       => 'fa-circle-dot',
+        'queued'          => 'fa-clock',
+        'analyzing'       => 'fa-spinner fa-spin',
+        'review_required' => 'fa-eye',
+        'approved'        => 'fa-check',
+        'published'       => 'fa-check-double',
+        'invalid'         => 'fa-ban',
+        'failed'          => 'fa-triangle-exclamation',
+    ];
+
+    $statusColor = $statusColors[$trial->status] ?? 'bg-slate-400/10 text-slate-300 border-slate-400/20';
+    $statusLabel = $statusLabels[$trial->status] ?? ucwords(str_replace('_', ' ', $trial->status));
+    $statusIcon = $statusIcons[$trial->status] ?? 'fa-circle-info';
 
     $report = $trial->latestReport;
-    $narrative = $report ? $report->runner_narrative_json : null;
+    $narrative = is_array($report?->runner_narrative_json) ? $report->runner_narrative_json : [];
     $coachMessage = $narrative['coach_message'] ?? null;
-    $positives = $narrative['positives'] ?? [];
-    $score = $trial->quality_score ? round((float) $trial->quality_score * 100) : null;
-    
-    $pdfRoute = auth()->user()?->role === 'admin'
+    $positives = is_array($narrative['positives'] ?? null) ? $narrative['positives'] : [];
+    $score = $trial->quality_score !== null ? round((float) $trial->quality_score * 100) : null;
+
+    $toText = function ($value) use (&$toText) {
+        if (is_array($value)) {
+            return trim(implode(' ', array_filter(array_map(fn ($item) => $toText($item), $value))));
+        }
+        if (is_bool($value)) {
+            return $value ? 'Ya' : 'Tidak';
+        }
+        return is_scalar($value) ? trim((string) $value) : '';
+    };
+
+    $coachMessageText = $toText($coachMessage);
+
+    if ($score === null) {
+        $scoreCategory = 'Belum tersedia';
+        $scoreDescription = 'Analisis belum menghasilkan skor form.';
+        $scoreAccent = 'text-slate-400';
+        $scoreRing = 'border-white/10';
+        $scoreBar = 'bg-slate-600';
+    } elseif ($score >= 85) {
+        $scoreCategory = 'Excellent';
+        $scoreDescription = 'Teknik lari sangat baik dengan koreksi minimal.';
+        $scoreAccent = 'text-white';
+        $scoreRing = 'border-white/10';
+        $scoreBar = 'bg-[#ccff00]';
+    } elseif ($score >= 70) {
+        $scoreCategory = 'Good';
+        $scoreDescription = 'Fondasi teknik baik; beberapa detail masih dapat ditingkatkan.';
+        $scoreAccent = 'text-white';
+        $scoreRing = 'border-white/10';
+        $scoreBar = 'bg-[#ccff00]';
+    } elseif ($score >= 55) {
+        $scoreCategory = 'Needs Improvement';
+        $scoreDescription = 'Terdapat pola gerak yang perlu dikoreksi secara bertahap.';
+        $scoreAccent = 'text-white';
+        $scoreRing = 'border-white/10';
+        $scoreBar = 'bg-[#ccff00]';
+    } else {
+        $scoreCategory = 'Priority Correction';
+        $scoreDescription = 'Prioritaskan koreksi form sebelum meningkatkan beban latihan.';
+        $scoreAccent = 'text-white';
+        $scoreRing = 'border-white/10';
+        $scoreBar = 'bg-[#ccff00]';
+    }
+
+    $severityOrder = ['significant' => 1, 'moderate' => 2, 'minor' => 3];
+    $findings = $trial->findings
+        ->sortBy(fn ($finding) => $severityOrder[$finding->severity] ?? 99)
+        ->values();
+    $priorityFindings = $findings->take(3);
+    $priorityIssueCount = $findings->whereIn('severity', ['significant', 'moderate'])->count();
+
+    $recommendations = $trial->recommendations;
+    $cues = $recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_CUE);
+    $drills = $recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_DRILL);
+    $strengths = $recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_STRENGTH);
+
+    $metricLabels = [
+        'knee_flexion'        => 'Knee Flexion',
+        'hip_flexion'         => 'Hip Flexion',
+        'hip_drop'            => 'Hip Drop',
+        'ground_contact_time' => 'Ground Contact Time',
+        'cadence'             => 'Cadence',
+        'vertical_oscillation'=> 'Vertical Oscillation',
+        'trunk_lean'          => 'Trunk Lean',
+        'ankle_dorsiflexion'  => 'Ankle Dorsiflexion',
+        'stride_length'       => 'Stride Length',
+    ];
+
+    $flattenEvidence = function ($value, $prefix = '') use (&$flattenEvidence) {
+        $rows = [];
+        if (is_array($value)) {
+            foreach ($value as $key => $item) {
+                $label = is_string($key) ? ucwords(str_replace('_', ' ', $key)) : $prefix;
+                $nextPrefix = $prefix && $label ? $prefix . ' · ' . $label : ($label ?: $prefix);
+                if (is_array($item)) {
+                    $rows = array_merge($rows, $flattenEvidence($item, $nextPrefix));
+                } elseif ($item !== null && $item !== '') {
+                    $rows[] = [
+                        'label' => $nextPrefix ?: 'Evidence',
+                        'value' => is_bool($item) ? ($item ? 'Ya' : 'Tidak') : (string) $item,
+                    ];
+                }
+            }
+        } elseif ($value !== null && $value !== '') {
+            $rows[] = ['label' => $prefix ?: 'Evidence', 'value' => (string) $value];
+        }
+        return $rows;
+    };
+
+    $videoArtifact = $trial->artifacts->where('type', 'video_clip')->first();
+    $poseArtifact = $trial->artifacts->where('type', 'pose_landmarks')->first();
+
+    $analysisChecks = [
+        'Video' => (bool) $videoArtifact,
+        'Pose landmarks' => (bool) $poseArtifact || !empty($poseData),
+        'Metrik' => $trial->metrics->count() > 0,
+        'Temuan' => $trial->findings->count() > 0,
+        'Report' => (bool) $report,
+    ];
+    $analysisReadiness = (int) round((collect($analysisChecks)->filter()->count() / max(count($analysisChecks), 1)) * 100);
+
+    $pdfRoute = $isAdmin
         ? 'admin.running-analysis.trials.pdf'
         : 'runner.running-analysis.trials.pdf';
 
-    $videoArtifact = $trial->artifacts->where('type', 'video_clip')->first();
+    $backUrl = $isAdmin
+        ? route('admin.running-analysis.sessions.show', $trial->session)
+        : url()->previous();
 @endphp
 
 @section('title', 'Review Trial - ' . $trial->runner->name)
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
-    <div class="max-w-7xl mx-auto">
-        <!-- Breadcrumb -->
-        <div class="mb-6 flex items-center text-slate-400 text-sm font-medium">
-            <a href="{{ route('admin.running-analysis.sessions.show', $trial->session) }}" class="hover:text-[#ccff00] transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Session
+<style>
+    html { scroll-behavior: smooth; }
+    .review-grid-bg { background: #070b12; }
+    .review-card {
+        background: #0b111c;
+        border: 1px solid rgba(148, 163, 184, .12);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+    }
+    .review-card-soft {
+        background: #0a101a;
+        border: 1px solid rgba(148, 163, 184, .10);
+    }
+    .section-anchor { scroll-margin-top: 110px; }
+    .metric-value { font-variant-numeric: tabular-nums; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { scrollbar-width: none; }
+</style>
+
+<div class="min-h-screen bg-[#070b12] text-white pt-20 pb-16 relative overflow-hidden review-grid-bg">
+
+    <div class="relative max-w-[1500px] mx-auto px-4 md:px-8">
+        {{-- Breadcrumb and context --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <a href="{{ $backUrl }}" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-[#ccff00] transition-colors w-fit">
+                <span class="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </span>
+                Kembali ke sesi
             </a>
+            <div class="text-[10px] uppercase tracking-[0.24em] text-slate-600 font-bold">
+                Running Analysis / Trial Review
+            </div>
         </div>
 
         @if(session('success'))
-        <div class="bg-green-900/50 border border-green-500/50 text-green-400 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
+        <div class="mb-6 rounded-2xl border border-[#ccff00]/20 bg-[#ccff00]/10 px-4 py-3 flex items-start gap-3 text-slate-200">
+            <i class="fas fa-circle-check mt-0.5 text-[#ccff00]"></i>
+            <div class="text-sm font-medium">{{ session('success') }}</div>
         </div>
         @endif
 
         @if(session('error'))
-        <div class="bg-red-900/50 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
-            <i class="fas fa-exclamation-triangle mr-2"></i> {{ session('error') }}
+        <div class="mb-6 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 flex items-start gap-3 text-rose-200">
+            <i class="fas fa-triangle-exclamation mt-0.5 text-rose-300"></i>
+            <div class="text-sm font-medium">{{ session('error') }}</div>
         </div>
         @endif
 
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center gap-4">
-                <img src="{{ $trial->runner->avatar_url ?? asset('images/default-avatar.png') }}" class="w-16 h-16 rounded-full border-2 border-slate-700 object-cover bg-slate-800">
-                <div>
-                    <h1 class="text-3xl font-black italic tracking-tighter uppercase text-white">{{ $trial->runner->name }}</h1>
-                    <div class="text-slate-400 text-sm mt-1">
-                        Trial #{{ $trial->attempt_no }}
-                        &bull; {{ $trial->created_at->format('d M Y, H:i') }}
-                        @if($trial->camera_width)
-                            &bull; {{ $trial->camera_width }}×{{ $trial->camera_height }} @ {{ $trial->camera_fps }} fps
-                        @endif
+        {{-- Runner header --}}
+        <section class="review-card rounded-2xl p-5 md:p-7 mb-6 relative overflow-hidden">
+            <div class="relative flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+                <div class="flex items-start sm:items-center gap-4 min-w-0">
+                    <div class="relative shrink-0">
+                        <img src="{{ $trial->runner->avatar_url ?? asset('images/default-avatar.png') }}"
+                            alt="{{ $trial->runner->name }}"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-2xl border border-white/10 object-cover bg-slate-800">
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ccff00]">Trial Review</span>
+                            <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider {{ $statusColor }}">
+                                <i class="fas {{ $statusIcon }} mr-1.5"></i>{{ $statusLabel }}
+                            </span>
+                        </div>
+                        <h1 class="text-2xl md:text-4xl font-bold tracking-[-0.035em] text-white truncate">
+                            {{ $trial->runner->name }}
+                        </h1>
+                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-slate-400">
+                            <span><i class="fas fa-hashtag mr-1.5 text-slate-600"></i>{{ $trial->attempt_no }}</span>
+                            <span><i class="far fa-calendar mr-1.5 text-slate-600"></i>{{ $trial->created_at->format('d M Y, H:i') }}</span>
+                            @if($trial->camera_width)
+                                <span><i class="fas fa-camera mr-1.5 text-slate-600"></i>{{ $trial->camera_width }}×{{ $trial->camera_height }} @ {{ $trial->camera_fps }} fps</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
+                    @if($isAdmin && in_array($trial->status, ['capturing', 'failed']) && $trial->artifacts->where('type', 'pose_landmarks')->count() > 0)
+                    <form method="POST" action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" class="w-full sm:w-auto">
+                        @csrf
+                        <button type="submit" id="btn-reanalyze"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/[0.04] border border-white/10 text-slate-300 hover:border-white/20 hover:text-white transition-all"
+                            onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyzing...'; this.form.submit();">
+                            <i class="fas fa-rotate-right"></i> Re-analyze
+                        </button>
+                    </form>
+                    @endif
+
+                    @if($poseData && $videoArtifact)
+                    <button type="button" id="btn-export-video"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/[0.04] border border-white/10 text-slate-200 hover:border-[#ccff00]/50 hover:text-[#ccff00] transition-all">
+                        <i class="fas fa-video"></i> Export Video
+                    </button>
+                    @endif
+
+                    @if($trial->latestReport || $trial->findings->count() > 0 || $trial->metrics->count() > 0)
+                    <a href="{{ route($pdfRoute, $trial) }}" target="_blank" id="btn-download-pdf"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#ccff00] border border-[#ccff00] text-[#07101c] hover:bg-[#b7e800] transition-all ">
+                        <i class="fas fa-file-arrow-down"></i> PDF Report
+                    </a>
+                    @endif
+                </div>
+            </div>
+        </section>
+
+        @if($trial->invalid_reason)
+        <div class="mb-6 rounded-2xl border border-rose-400/25 bg-rose-400/[0.08] px-4 py-4 flex items-start gap-3">
+            <span class="w-9 h-9 rounded-xl bg-rose-400/10 border border-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                <i class="fas fa-triangle-exclamation"></i>
+            </span>
+            <div class="min-w-0">
+                <p class="font-bold text-sm text-rose-200">Analisis tidak dapat diselesaikan</p>
+                <p class="text-xs md:text-sm mt-1 font-mono text-rose-200/70 break-words">{{ $trial->invalid_reason }}</p>
+            </div>
+        </div>
+        @endif
+
+        {{-- KPI strip --}}
+        <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+            <div class="review-card-soft rounded-2xl p-4 col-span-2 lg:col-span-1">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Form Score</div>
+                <div class="flex items-end justify-between gap-3">
+                    <div>
+                        <div class="text-3xl font-bold metric-value {{ $scoreAccent }}">{{ $score ?? '—' }}</div>
+                        <div class="text-[11px] text-slate-400 mt-1">{{ $scoreCategory }}</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl border {{ $scoreRing }} flex items-center justify-center {{ $scoreAccent }}">
+                        <i class="fas fa-gauge-high"></i>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border {{ $statusColor }}">
-                    {{ str_replace('_', ' ', strtoupper($trial->status)) }}
-                </span>
-
-                {{-- Re-analyze button for trials stuck in capturing/failed that already have artifacts --}}
-                @if(in_array($trial->status, ['capturing', 'failed']) && $trial->artifacts->where('type', 'pose_landmarks')->count() > 0)
-                <form method="POST" action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" class="inline">
-                    @csrf
-                    <button type="submit" id="btn-reanalyze"
-                        class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-amber-600 border border-amber-500
-                               text-white hover:bg-amber-500 transition-all duration-200 shadow-sm"
-                        onclick="this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyzing...'; this.form.submit();">
-                        <i class="fas fa-redo"></i>
-                        Re-analyze
-                    </button>
-                </form>
-                @endif
-
-                {{-- Export Video with Skeleton --}}
-                @if($poseData && $videoArtifact)
-                <button type="button" id="btn-export-video"
-                   title="Export Video with Skeleton Overlay"
-                   class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-slate-800 border border-slate-700
-                          text-slate-300 hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00]
-                          transition-all duration-200 shadow-sm group">
-                    <i class="fas fa-video text-[#ccff00] group-hover:text-black transition-colors"></i>
-                    Export Video
-                </button>
-                @endif
-
-                {{-- PDF download — only makes sense once there is analysis data --}}
-                @if($trial->latestReport || $trial->findings->count() > 0 || $trial->metrics->count() > 0)
-                <a href="{{ route($pdfRoute, $trial) }}"
-                   target="_blank"
-                   id="btn-download-pdf"
-                   title="Download PDF Report"
-                   class="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-slate-800 border border-slate-700
-                          text-slate-300 hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00]
-                          transition-all duration-200 shadow-sm group">
-                    <i class="fas fa-file-pdf text-red-400 group-hover:text-black transition-colors"></i>
-                    Download PDF
-                </a>
-                @endif
+            <div class="review-card-soft rounded-2xl p-4">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Temuan Prioritas</div>
+                <div class="text-3xl font-bold metric-value text-white">{{ $priorityIssueCount }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Significant + moderate</div>
             </div>
-        </div>
-
-        {{-- Error banner for trials that failed analysis --}}
-        @if($trial->invalid_reason)
-        <div class="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
-            <i class="fas fa-exclamation-triangle mt-0.5 text-red-400"></i>
-            <div>
-                <p class="font-bold text-sm text-red-200">Analysis gagal:</p>
-                <p class="text-xs mt-1 font-mono">{{ $trial->invalid_reason }}</p>
+            <div class="review-card-soft rounded-2xl p-4">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Metrik</div>
+                <div class="text-3xl font-bold metric-value text-white">{{ $trial->metrics->count() }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Biomechanical values</div>
             </div>
-        </div>
-        @endif
+            <div class="review-card-soft rounded-2xl p-4">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Gait Events</div>
+                <div class="text-3xl font-bold metric-value text-white">{{ $trial->gaitEvents->count() }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Momen terdeteksi</div>
+            </div>
+            <div class="review-card-soft rounded-2xl p-4">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Kelengkapan Data</div>
+                <div class="flex items-end justify-between gap-3">
+                    <div class="text-3xl font-bold metric-value text-white">{{ $analysisReadiness }}%</div>
+                    <div class="text-[10px] text-slate-500">{{ collect($analysisChecks)->filter()->count() }}/{{ count($analysisChecks) }}</div>
+                </div>
+                <div class="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <div class="h-full rounded-full bg-[#ccff00]" style="width: {{ $analysisReadiness }}%"></div>
+                </div>
+            </div>
+        </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Panel: Visualizer -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(204,255,0,0.05)]">
-
-
-
+        {{-- Primary review workspace --}}
+        <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_370px] gap-6 items-start mb-8">
+            <div class="min-w-0 space-y-4">
+                <div class="review-card rounded-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white/[0.015]">
+                        <div>
+                            <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ccff00]">Trial Playback</div>
+                            <h2 class="text-lg font-bold text-white mt-1">Video dan Overlay Gerak</h2>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
+                            <span class="px-2.5 py-1 rounded-full border {{ $videoArtifact ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-600' }}">
+                                <i class="fas fa-video mr-1"></i>{{ $videoArtifact ? 'Video ready' : 'No video' }}
+                            </span>
+                            <span class="px-2.5 py-1 rounded-full border {{ !empty($poseData) ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-600' }}">
+                                <i class="fas fa-person-running mr-1"></i>{{ !empty($poseData) ? 'Pose ready' : 'No pose' }}
+                            </span>
+                        </div>
+                    </div>
                     <!-- View Mode Tabs -->
                     @if($poseData || $videoArtifact)
-                    <div class="flex border-b border-slate-800 bg-slate-950">
+                    <div class="flex border-b border-white/5 bg-[#080f1d] px-2">
                         @if($videoArtifact)
                         <button onclick="switchView('video')" id="tab-video"
                             class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 border-[#ccff00] text-[#ccff00]">
@@ -149,7 +355,7 @@
                     </div>
                     @endif
 
-                    <div class="aspect-video bg-black relative flex items-center justify-center">
+                    <div class="aspect-video bg-black relative flex items-center justify-center ring-1 ring-inset ring-white/5">
                         {{-- Video player layer --}}
                         @if($videoArtifact)
                         @php
@@ -177,50 +383,65 @@
                             style="{{ !$poseData ? 'display:none' : ($videoArtifact ? 'display:none' : '') }}">
                         </canvas>
 
-                        <!-- Floating AI Biomechanical Annotation Tooltip -->
+                        <!-- Biomechanical review tooltip -->
                         <style>
                         #ai-moment-tooltip {
-                            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                            transition: opacity 0.3s ease, transform 0.3s ease;
                         }
-                        #ai-moment-tooltip.show {
-                            opacity: 1 !important;
-                            pointer-events: auto !important;
-                            transform: translateY(0) !important;
+                        @media (max-width: 639px) {
+                            #ai-moment-tooltip {
+                                transform: translateY(100%) !important;
+                            }
+                            #ai-moment-tooltip.show {
+                                opacity: 1 !important;
+                                pointer-events: auto !important;
+                                transform: translateY(0) !important;
+                            }
+                        }
+                        @media (min-width: 640px) {
+                            #ai-moment-tooltip {
+                                transform: translateY(8px) !important;
+                            }
+                            #ai-moment-tooltip.show {
+                                opacity: 1 !important;
+                                pointer-events: auto !important;
+                                transform: translateY(0) !important;
+                            }
                         }
                         </style>
-                        <div id="ai-moment-tooltip" class="absolute top-4 right-4 z-30 max-w-[280px] md:max-w-[340px] bg-slate-950/90 backdrop-blur-md border border-slate-800/80 rounded-xl p-4 shadow-2xl transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2">
+                        <div id="ai-moment-tooltip" class="absolute bottom-0 inset-x-0 sm:bottom-auto sm:top-4 sm:right-4 sm:left-auto z-30 w-full sm:max-w-[340px] bg-[#070b13] border-t border-x sm:border border-slate-700/80 rounded-t-xl sm:rounded-xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.9)] transition-all duration-300 opacity-0 pointer-events-none">
                             <div class="flex items-start justify-between gap-3 mb-2">
                                 <div class="min-w-0">
-                                    <div class="text-[9px] font-mono text-cyan-400 uppercase tracking-widest mb-0.5">AI Biomechanics Feedback</div>
-                                    <h4 id="tooltip-title" class="text-sm font-black text-white italic tracking-tight truncate">Landing Position</h4>
+                                    <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-0.5">Umpan Balik Biomekanik</div>
+                                    <h4 id="tooltip-title" class="text-sm font-bold text-white tracking-tight truncate">Landing Position</h4>
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <span id="tooltip-status" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border">OK</span>
+                                    <span id="tooltip-status" class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border">OK</span>
                                     <button type="button" onclick="window.hideGaitMomentTooltip()" class="text-slate-400 hover:text-white transition-colors text-xs p-1">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
                             
-                            <p id="tooltip-summary" class="text-slate-300 text-xs mb-3 font-medium leading-relaxed"></p>
+                            <p id="tooltip-summary" class="text-slate-200 text-xs mb-3 font-medium leading-relaxed"></p>
                             
                             <div id="tooltip-findings-container" class="mb-3">
-                                <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Findings</div>
-                                <ul id="tooltip-findings" class="space-y-1 text-slate-300 text-[11px] leading-relaxed"></ul>
+                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Temuan</div>
+                                <ul id="tooltip-findings" class="space-y-1 text-slate-200 text-[11px] leading-relaxed"></ul>
                             </div>
                             
                             <div id="tooltip-actions-container">
-                                <div class="text-[9px] font-bold text-[#ccff00] uppercase tracking-widest mb-1.5">Correction Actions</div>
-                                <ul id="tooltip-actions" class="space-y-1 text-slate-300 text-[11px] leading-relaxed"></ul>
+                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tindakan Koreksi</div>
+                                <ul id="tooltip-actions" class="space-y-1 text-slate-200 text-[11px] leading-relaxed"></ul>
                             </div>
                         </div>
 
                         {{-- Video error overlay --}}
                         <div id="video-error-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-3" style="display: none;">
                             <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
-                            <div class="text-slate-350 text-sm text-center px-4">
-                                <p class="font-bold text-white mb-1">Failed to load video</p>
-                                <p class="text-xs">The video could not be loaded or played. Please try reloading the page.</p>
+                            <div class="text-slate-300 text-sm text-center px-4">
+                                <p class="font-bold text-white mb-1">Video gagal dimuat</p>
+                                <p class="text-xs">Video tidak dapat dimuat atau diputar. Muat ulang halaman lalu coba kembali.</p>
                             </div>
                         </div>
 
@@ -228,8 +449,8 @@
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
                             <i class="fas fa-exclamation-triangle text-3xl text-yellow-500"></i>
                             <div class="text-slate-400 font-mono text-sm text-center">
-                                <p class="font-bold text-white mb-1">No pose data or video found.</p>
-                                <p class="text-xs">Upload may have failed during capture. Try recapturing this runner.</p>
+                                <p class="font-bold text-white mb-1">Data pose dan video tidak tersedia.</p>
+                                <p class="text-xs">Proses unggah mungkin gagal saat perekaman. Lakukan perekaman ulang untuk pelari ini.</p>
                             </div>
                         </div>
                         @endif
@@ -237,7 +458,7 @@
 
                     {{-- Custom Video Controls (mirrors skeleton controls style) --}}
                     @if($videoArtifact)
-                    <div id="video-controls" class="p-4 bg-slate-800 border-t border-slate-700 flex items-center gap-4"
+                    <div id="video-controls" class="p-4 bg-[#0b1424] border-t border-white/5 flex items-center gap-4"
                         style="{{ ($videoArtifact && !$poseData) ? '' : 'display:none' }}">
                         <button id="video-play-btn" class="w-10 h-10 rounded-full bg-[#ccff00] text-black hover:bg-[#b3e600] flex items-center justify-center transition-colors shadow-[0_0_10px_rgba(204,255,0,0.3)]">
                             <i class="fas fa-play" id="video-play-icon"></i>
@@ -256,7 +477,7 @@
 
                     {{-- Skeleton Playback Controls (only if pose data and in skeleton mode) --}}
                     @if($poseData)
-                    <div id="skeleton-controls" class="p-4 bg-slate-800 border-t border-slate-700 flex items-center gap-4" style="{{ $videoArtifact ? 'display:none' : '' }}">
+                    <div id="skeleton-controls" class="p-4 bg-[#0b1424] border-t border-white/5 flex items-center gap-4" style="{{ $videoArtifact ? 'display:none' : '' }}">
                         <button id="play-btn" class="w-10 h-10 rounded-full bg-[#ccff00] text-black hover:bg-[#b3e600] flex items-center justify-center transition-colors shadow-[0_0_10px_rgba(204,255,0,0.3)]">
                             <i class="fas fa-play" id="play-icon"></i>
                         </button>
@@ -269,20 +490,20 @@
                     </div>
                     @endif
                     
-                    <!-- Key Gait Moments — Horizontal Scroll Slider -->
+                    <!-- Momen Kunci Siklus Lari — Horizontal Scroll Slider -->
                     @if($trial->gaitEvents->count() > 0)
                     @php
                         $sortedEvents = $trial->gaitEvents->sortBy('timestamp_ms')->values();
                         $eventBaseMs  = $sortedEvents->min('timestamp_ms') ?? 0;
                         $totalEvents  = $sortedEvents->count();
                     @endphp
-                    <div class="border-t border-slate-800/80 bg-slate-900/40">
+                    <div class="border-t border-white/5 bg-[#080f1d]/90">
                         <!-- Header row -->
                         <div class="px-4 pt-3 pb-1 flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                 <i class="fas fa-camera text-[#ccff00]"></i>
-                                Key Gait Moments
-                                <span class="bg-slate-800 text-slate-400 border border-slate-700 rounded-full text-[9px] px-1.5 py-px font-black">{{ $totalEvents }}</span>
+                                Momen Kunci Siklus Lari
+                                <span class="bg-slate-800 text-slate-400 border border-slate-700 rounded-full text-[9px] px-1.5 py-px font-bold">{{ $totalEvents }}</span>
                             </div>
                             <!-- Scroll nav arrows -->
                             <div class="flex items-center gap-1">
@@ -309,7 +530,7 @@
                         <!-- Scrollable card track -->
                         <div id="gait-scroll-track"
                             class="flex gap-2.5 px-4 pb-4 overflow-x-auto scrollbar-none"
-                            style="scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none;">
+                            style="scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
 
                             @foreach($sortedEvents as $idx => $event)
                             @php
@@ -335,30 +556,15 @@
                                     'max_swing_flexion' => 'fa-arrow-up',
                                     default             => 'fa-stopwatch',
                                 };
-                                $phaseColor = match($event->event_type) {
-                                    'initial_contact'   => 'from-sky-900/60 to-slate-900 border-sky-800/60 hover:border-sky-500/80',
-                                    'midstance'         => 'from-violet-900/60 to-slate-900 border-violet-800/60 hover:border-violet-500/80',
-                                    'toe_off'           => 'from-orange-900/60 to-slate-900 border-orange-800/60 hover:border-orange-500/80',
-                                    'max_swing_flexion' => 'from-emerald-900/60 to-slate-900 border-emerald-800/60 hover:border-emerald-500/80',
-                                    default             => 'from-slate-800/60 to-slate-900 border-slate-700/60 hover:border-[#ccff00]/60',
-                                };
-                                $iconColor = match($event->event_type) {
-                                    'initial_contact'   => 'text-sky-400',
-                                    'midstance'         => 'text-violet-400',
-                                    'toe_off'           => 'text-orange-400',
-                                    'max_swing_flexion' => 'text-emerald-400',
-                                    default             => 'text-[#ccff00]',
-                                };
-                                $sideIsLeft = $event->side === 'left';
-                                $sidePill   = $sideIsLeft
-                                    ? 'bg-lime-950/60 border-lime-700 text-lime-400'
-                                    : 'bg-blue-950/60 border-blue-700 text-blue-400';
+                                $phaseColor = 'bg-[#0a101a] border-white/10 hover:border-white/20 hover:bg-white/[0.025]';
+                                $iconColor = 'text-slate-400 group-hover:text-[#ccff00]';
+                                $sidePill = 'bg-white/[0.035] border-white/10 text-slate-400';
                             @endphp
                             <button type="button"
                                 data-gait-card="{{ $idx }}"
                                 onclick="seekToGaitEvent({{ $event->timestamp_ms }}, '{{ $event->event_type }}'); if(window._highlightGaitCard) window._highlightGaitCard({{ $idx }});"
                                 class="gait-moment-card flex-none w-[160px] flex flex-col items-start text-left p-3 rounded-xl
-                                       bg-gradient-to-b {{ $phaseColor }}
+                                       {{ $phaseColor }}
                                        border transition-all duration-300 group
                                        focus:outline-none focus:ring-1 focus:ring-[#ccff00]/60"
                                 style="scroll-snap-align: start;">
@@ -366,21 +572,21 @@
                                 <!-- Sequence + side -->
                                 <div class="flex items-center justify-between w-full mb-2">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-4 h-4 rounded-full bg-slate-700 border border-slate-600 text-slate-300 text-[8px] font-black flex items-center justify-center flex-none">{{ $seqNo }}</span>
-                                        <span class="px-1.5 py-px rounded border text-[8px] font-black uppercase {{ $sidePill }}">{{ $event->side }}</span>
+                                        <span class="w-4 h-4 rounded-full bg-slate-700 border border-slate-600 text-slate-300 text-[8px] font-bold flex items-center justify-center flex-none">{{ $seqNo }}</span>
+                                        <span class="px-1.5 py-px rounded border text-[8px] font-bold uppercase {{ $sidePill }}">{{ $event->side }}</span>
                                     </div>
-                                    <i class="fas {{ $icon }} {{ $iconColor }} text-[11px] group-hover:scale-110 transition-transform duration-200"></i>
+                                    <i class="fas {{ $icon }} {{ $iconColor }} text-[11px] transition-colors duration-200"></i>
                                 </div>
 
                                 <!-- Phase name -->
-                                <div class="text-[11px] font-black text-white leading-tight mb-px tracking-tight">{{ $label }}</div>
+                                <div class="text-[11px] font-bold text-white leading-tight mb-px tracking-tight">{{ $label }}</div>
                                 <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest mb-2.5">{{ $subLabel }}</div>
 
                                 <!-- Timestamp -->
                                 <div class="mt-auto w-full flex items-center justify-between border-t border-white/5 pt-2">
                                     <span class="font-mono text-[10px] text-slate-400 font-bold">+{{ $relSec }}s</span>
                                     <span class="text-[8px] uppercase tracking-wider font-bold text-slate-600 group-hover:text-[#ccff00] transition-colors duration-200 flex items-center gap-0.5">
-                                        Seek <i class="fas fa-play text-[7px] ml-0.5"></i>
+                                        Lihat <i class="fas fa-play text-[7px] ml-0.5"></i>
                                     </span>
                                 </div>
                             </button>
@@ -451,12 +657,12 @@
                         // Highlight active card when seeked
                         window._highlightGaitCard = function(dataIdx) {
                             cards.forEach(function(c) {
-                                c.classList.remove('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                                c.classList.remove('ring-1', 'ring-[#ccff00]');
                             });
-                            if (activeCard) activeCard.classList.remove('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                            if (activeCard) activeCard.classList.remove('ring-1', 'ring-[#ccff00]');
                             const target = document.querySelector('[data-gait-card="' + dataIdx + '"]');
                             if (target) {
-                                target.classList.add('ring-1', 'ring-[#ccff00]', 'scale-[1.03]');
+                                target.classList.add('ring-1', 'ring-[#ccff00]');
                                 activeCard = target;
                                 // scroll card into view inside track
                                 target.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
@@ -468,26 +674,113 @@
                 </div>
 
 
-                <!-- Action Bar -->
-                @if(auth()->user()?->role === 'admin')
+
+            </div>
+
+            {{-- Sticky decision panel --}}
+            <aside class="xl:sticky xl:top-24 space-y-4">
+                <section class="review-card rounded-2xl p-5 overflow-hidden relative">
+                    <div class="relative">
+                        <div class="flex items-center justify-between gap-3 mb-5">
+                            <div>
+                                <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Review Snapshot</div>
+                                <h2 class="text-base font-bold text-white mt-1">Ringkasan Analisis</h2>
+                            </div>
+                            <span class="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#ccff00]">
+                                <i class="fas fa-chart-simple"></i>
+                            </span>
+                        </div>
+
+                        <div class="rounded-2xl bg-black/20 border border-white/[0.06] p-4 mb-4">
+                            <div class="flex items-end justify-between gap-4">
+                                <div>
+                                    <div class="text-5xl font-bold tracking-[-0.06em] metric-value {{ $scoreAccent }}">{{ $score ?? '—' }}</div>
+                                    <div class="text-xs text-slate-500 mt-1">dari 100</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs font-bold uppercase tracking-wider {{ $scoreAccent }}">{{ $scoreCategory }}</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 max-w-[150px]">{{ $scoreDescription }}</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 h-2 rounded-full bg-slate-800 overflow-hidden">
+                                <div class="h-full rounded-full {{ $scoreBar }}" style="width: {{ $score ?? 0 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            @foreach($analysisChecks as $label => $ready)
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">{{ $label }}</span>
+                                <span class="inline-flex items-center gap-1.5 {{ $ready ? 'text-[#ccff00]' : 'text-slate-600' }}">
+                                    <i class="fas {{ $ready ? 'fa-circle-check' : 'fa-circle-minus' }}"></i>
+                                    {{ $ready ? 'Tersedia' : 'Belum ada' }}
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </section>
+
+                @if($coachMessageText || count($positives) > 0)
+                <section class="review-card rounded-2xl p-5">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="w-8 h-8 rounded-lg bg-[#ccff00]/10 border border-[#ccff00]/20 flex items-center justify-center text-[#ccff00] text-xs">
+                            <i class="fas fa-comment-dots"></i>
+                        </span>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">Coach Feedback</div>
+                            <div class="text-sm font-bold text-white">Catatan Utama</div>
+                        </div>
+                    </div>
+
+                    @if($coachMessageText)
+                    <blockquote class="text-sm leading-relaxed text-slate-300 border-l-2 border-[#ccff00] pl-3 italic">
+                        “{{ $coachMessageText }}”
+                    </blockquote>
+                    @endif
+
+                    @if(count($positives) > 0)
+                    <div class="mt-4 pt-4 border-t border-white/5 space-y-2.5">
+                        @foreach(collect($positives)->take(3) as $positive)
+                        <div class="flex items-start gap-2.5">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/20 text-[#ccff00] flex items-center justify-center text-[9px] shrink-0">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <div class="text-xs leading-relaxed min-w-0">
+                                @if(is_array($positive))
+                                    <div class="font-bold text-slate-200">{{ $positive['title'] ?? $toText($positive) }}</div>
+                                    @if(!empty($positive['description']))
+                                        <div class="text-slate-500 mt-0.5">{{ $positive['description'] }}</div>
+                                    @endif
+                                @else
+                                    <div class="text-slate-300">{{ $positive }}</div>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+                </section>
+                @endif
+
+                {{-- Review decision actions --}}
+                @if($isAdmin)
+                <section class="review-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">Admin Decision</div>
+                            <div class="text-sm font-bold text-white mt-1">Keputusan Review</div>
+                        </div>
+                        <i class="fas fa-user-shield text-slate-600"></i>
+                    </div>
+
                     @if(!in_array($trial->status, ['invalid', 'published']))
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex gap-3 justify-end items-center">
-                        <span class="text-xs text-slate-500 mr-auto italic">Actions update trial status permanently.</span>
-                        @if($videoArtifact)
-                        <a href="{{ route('admin.running-analysis.upload-video.form', $trial->session_id) }}?trial_id={{ $trial->id }}"
-                            class="px-6 py-2 rounded text-sm font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition-colors">
-                            Re-analyze
-                        </a>
-                        @endif
-                        <button onclick="document.getElementById('reject-modal').classList.remove('hidden')"
-                            class="px-6 py-2 rounded text-sm font-bold bg-red-900/50 text-red-400 border border-red-700 hover:bg-red-900 transition-colors">
-                            Reject Trial
-                        </button>
+                    <p class="text-xs leading-relaxed text-slate-500 mb-4">Pastikan video, skeleton, temuan, dan rekomendasi sudah sesuai sebelum hasil dipublikasikan.</p>
+                    <div class="space-y-2.5">
                         @if(in_array($trial->status, ['queued', 'analyzing', 'failed']))
-                        <form action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" method="POST" class="inline-block">
+                        <form action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" method="POST">
                             @csrf
-                            <button type="submit"
-                                class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
+                            <button type="submit" class="w-full h-11 rounded-xl bg-[#ccff00] text-[#07101c] font-bold text-xs uppercase tracking-wider hover:bg-[#b7e800] transition-colors">
                                 <i class="fas fa-play mr-2"></i> Analyze Now
                             </button>
                         </form>
@@ -495,238 +788,306 @@
                         <form action="{{ route('admin.running-analysis.trials.approve', $trial) }}" method="POST" id="approve-form">
                             @csrf
                             <button type="submit" onclick="return confirm('Approve and publish this trial to the runner?')"
-                                class="px-6 py-2 rounded text-sm font-bold bg-[#ccff00] text-black border border-[#ccff00] hover:bg-[#b3e600] transition-colors shadow-[0_0_10px_rgba(204,255,0,0.2)]">
-                                Approve & Publish
+                                class="w-full h-11 rounded-xl bg-[#ccff00] text-[#07101c] font-bold text-xs uppercase tracking-wider hover:bg-[#b7e800] transition-colors">
+                                <i class="fas fa-check-double mr-2"></i> Approve & Publish
                             </button>
                         </form>
                         @endif
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            @if($videoArtifact)
+                            <a href="{{ route('admin.running-analysis.upload-video.form', $trial->session_id) }}?trial_id={{ $trial->id }}"
+                                class="h-10 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 hover:text-white hover:border-white/20 transition-colors flex items-center justify-center text-xs font-bold">
+                                <i class="fas fa-rotate-right mr-2"></i> Re-analyze
+                            </a>
+                            @else
+                            <span class="h-10 rounded-xl bg-white/[0.02] border border-white/[0.06] text-slate-700 flex items-center justify-center text-xs font-bold cursor-not-allowed">
+                                <i class="fas fa-rotate-right mr-2"></i> Re-analyze
+                            </span>
+                            @endif
+                            <button type="button" onclick="document.getElementById('reject-modal').classList.remove('hidden')"
+                                class="h-10 rounded-xl bg-rose-400/10 border border-rose-400/20 text-rose-300 hover:bg-rose-400 hover:text-white transition-colors text-xs font-bold">
+                                <i class="fas fa-ban mr-2"></i> Reject
+                            </button>
+                        </div>
                     </div>
                     @else
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
-                        @if($trial->status === 'published')
-                            <i class="fas fa-check-circle text-[#ccff00]"></i>
-                            <span class="text-sm text-slate-300">This trial has been <strong class="text-[#ccff00]">published</strong> and is visible to the runner.</span>
-                        @else
-                            <i class="fas fa-times-circle text-red-400"></i>
-                            <span class="text-sm text-slate-300">This trial has been <strong class="text-red-400">rejected</strong>.
-                                @if($trial->invalid_reason) Reason: {{ $trial->invalid_reason }} @endif
-                            </span>
-                        @endif
+                    <div class="rounded-2xl p-4 {{ $trial->status === 'published' ? 'bg-[#ccff00]/10 border border-[#ccff00]/20' : 'bg-rose-400/10 border border-rose-400/20' }}">
+                        <div class="flex items-start gap-3">
+                            <i class="fas {{ $trial->status === 'published' ? 'fa-circle-check text-[#ccff00]' : 'fa-circle-xmark text-rose-300' }} mt-0.5"></i>
+                            <div>
+                                <div class="text-sm font-bold {{ $trial->status === 'published' ? 'text-[#ccff00]' : 'text-rose-200' }}">{{ $statusLabel }}</div>
+                                <div class="text-xs text-slate-400 mt-1">
+                                    {{ $trial->status === 'published' ? 'Hasil sudah tersedia bagi pelari.' : 'Trial ditandai tidak valid dan tidak ditampilkan kepada pelari.' }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     @endif
+                </section>
                 @endif
+            </aside>
+        </div>
+
+        {{-- In-page navigation --}}
+        <nav class="section-anchor sticky top-16 z-20 mb-6 rounded-2xl bg-[#0a101a]/95 backdrop-blur-sm border border-white/10 p-2 overflow-x-auto hide-scrollbar">
+            <div class="flex min-w-max gap-1">
+                <a href="#findings" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-crosshairs mr-2"></i>Temuan</a>
+                <a href="#metrics" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-chart-line mr-2"></i>Metrik</a>
+                <a href="#training" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-dumbbell mr-2"></i>Program Latihan</a>
+                <a href="#artifacts" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-folder-open mr-2"></i>Artefak</a>
+            </div>
+        </nav>
+
+        {{-- Findings --}}
+        <section id="findings" class="section-anchor review-card rounded-2xl p-5 md:p-7 mb-6">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+                <div>
+                    <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ccff00]">Review Summary</div>
+                    <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Temuan Biomekanik</h2>
+                    <p class="text-sm text-slate-500 mt-2">Diurutkan berdasarkan tingkat dampak agar reviewer dapat mengambil keputusan lebih cepat.</p>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'significant')->count() }} Significant</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'moderate')->count() }} Moderate</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'minor')->count() }} Minor</span>
+                </div>
             </div>
 
-            <!-- Right Panel: Data -->
-            <div class="space-y-6">
-                <!-- Score Card -->
-                @if($score)
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg relative overflow-hidden group">
-                    <div class="absolute -right-4 -bottom-4 text-slate-800/10 text-8xl font-black italic tracking-tighter group-hover:scale-110 transition-transform select-none">
-                        SCORE
-                    </div>
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"><i class="fas fa-medal mr-2 text-[#ccff00]"></i> Form Score</h2>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-5xl font-black italic text-white tracking-tighter">{{ $score }}</span>
-                        <span class="text-slate-500 text-sm">/ 100</span>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Coach Message & Positives -->
-                @if($coachMessage || count($positives) > 0)
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider"><i class="fas fa-comment-dots mr-2 text-[#ccff00]"></i> Coach Feedback</h2>
-                    
-                    @if($coachMessage)
-                    <div class="p-4 bg-slate-950 border border-slate-850 rounded-lg text-sm text-slate-300 leading-relaxed font-medium relative">
-                        <i class="fas fa-quote-left absolute top-3 left-3 text-slate-800 text-xl"></i>
-                        <div class="pl-6 italic">"{{ is_array($coachMessage) ? implode(' ', array_values($coachMessage)) : $coachMessage }}"</div>
-                    </div>
-                    @endif
-
-                    @if(count($positives) > 0)
-                    <div class="space-y-2">
-                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">What Went Well</div>
-                        @foreach($positives as $pos)
-                        <div class="flex items-start gap-2.5 text-xs text-slate-300">
-                            <span class="w-5 h-5 shrink-0 rounded-full bg-green-950/60 border border-green-800/40 flex items-center justify-center text-green-400 text-[10px] mt-0.5">
-                                <i class="fas fa-check"></i>
+            @if($findings->count() > 0)
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                @foreach($findings as $index => $finding)
+                @php
+                    $severityConfig = match($finding->severity) {
+                        'significant' => [
+                            'label' => 'Significant',
+                            'icon' => 'fa-arrow-trend-up',
+                            'accent' => 'text-rose-300',
+                            'badge' => 'bg-white/[0.03] border-white/10 text-rose-300',
+                            'line' => 'bg-rose-400',
+                        ],
+                        'moderate' => [
+                            'label' => 'Moderate',
+                            'icon' => 'fa-triangle-exclamation',
+                            'accent' => 'text-amber-300',
+                            'badge' => 'bg-white/[0.03] border-white/10 text-amber-300',
+                            'line' => 'bg-amber-400',
+                        ],
+                        default => [
+                            'label' => 'Minor',
+                            'icon' => 'fa-circle-info',
+                            'accent' => 'text-slate-400',
+                            'badge' => 'bg-white/[0.03] border-white/10 text-slate-400',
+                            'line' => 'bg-slate-500',
+                        ],
+                    };
+                    $findingTitle = ucwords(str_replace('_', ' ', strtolower($finding->explanation_key ?? $finding->finding_code)));
+                    $evidenceRows = $flattenEvidence($finding->evidence_json);
+                @endphp
+                <article class="relative rounded-2xl bg-white/[0.018] border border-white/[0.07] p-4 md:p-5 overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 {{ $severityConfig['line'] }}"></div>
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div class="flex items-start gap-3 min-w-0">
+                            <span class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center {{ $severityConfig['accent'] }} shrink-0">
+                                <i class="fas {{ $severityConfig['icon'] }}"></i>
                             </span>
-                            <div class="leading-relaxed">
-                                @if(is_array($pos))
-                                    @if(isset($pos['title']))
-                                        <strong class="text-white block">{{ $pos['title'] }}</strong>
-                                        @if(isset($pos['description']))
-                                            <span class="text-slate-400 text-[11px] block mt-0.5">{{ $pos['description'] }}</span>
-                                        @endif
-                                    @else
-                                        {{ implode(' ', array_values($pos)) }}
-                                    @endif
-                                @else
-                                    {{ $pos }}
-                                @endif
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-mono text-slate-600 mb-1">{{ $finding->finding_code }}</div>
+                                <h3 class="text-sm md:text-base font-bold text-white leading-snug">{{ $findingTitle }}</h3>
                             </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider shrink-0 {{ $severityConfig['badge'] }}">{{ $severityConfig['label'] }}</span>
+                    </div>
+
+                    @if(count($evidenceRows) > 0)
+                    <div class="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] divide-y divide-white/[0.05]">
+                        @foreach(array_slice($evidenceRows, 0, 5) as $row)
+                        <div class="px-3 py-2.5 flex items-start justify-between gap-4 text-xs">
+                            <span class="text-slate-500">{{ $row['label'] }}</span>
+                            <span class="font-mono text-slate-200 text-right break-all">{{ $row['value'] }}</span>
                         </div>
                         @endforeach
                     </div>
                     @endif
-                </div>
-                @endif
+                </article>
+                @endforeach
+            </div>
+            @else
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center">
+                <span class="w-12 h-12 mx-auto rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/20 text-[#ccff00] flex items-center justify-center mb-3">
+                    <i class="fas fa-check"></i>
+                </span>
+                <div class="font-bold text-white">Tidak ada temuan biomekanik</div>
+                <div class="text-sm text-slate-500 mt-1">Temuan akan muncul setelah proses analisis selesai.</div>
+            </div>
+            @endif
+        </section>
 
-                <!-- Recommendations -->
-                @if($trial->recommendations->count() > 0)
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-dumbbell mr-2 text-[#ccff00]"></i> Training Program</h2>
-                    <div class="space-y-4">
-                        @php
-                            $cues = $trial->recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_CUE);
-                            $drills = $trial->recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_DRILL);
-                            $strengths = $trial->recommendations->where('type', \App\Models\RunningAnalysis\Recommendation::TYPE_STRENGTH);
-                        @endphp
+        {{-- Metrics --}}
+        <section id="metrics" class="section-anchor review-card rounded-2xl p-5 md:p-7 mb-6">
+            <div class="mb-6">
+                <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Measurement Layer</div>
+                <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Metrik Biomekanik</h2>
+                <p class="text-sm text-slate-500 mt-2">Nilai ditampilkan secara netral; interpretasi klinis atau performance range harus berasal dari rule backend.</p>
+            </div>
 
-                        @if($cues->count() > 0)
-                        <div>
-                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Posture & Gait Cues</div>
-                            <div class="space-y-2">
-                                @foreach($cues as $cue)
-                                <div class="p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-xs">
-                                    <div class="font-bold text-[#ccff00] mb-0.5">{{ $cue->title }}</div>
-                                    <div class="text-slate-400 leading-relaxed">{{ $cue->description }}</div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($drills->count() > 0)
-                        <div>
-                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Recommended Drills</div>
-                            <div class="space-y-2">
-                                @foreach($drills as $drill)
-                                <div class="p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-xs">
-                                    <div class="font-bold text-white mb-0.5">{{ $drill->title }}</div>
-                                    <div class="text-slate-400 leading-relaxed">{{ $drill->description }}</div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
-
-                        @if($strengths->count() > 0)
-                        <div>
-                            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Strength Exercises</div>
-                            <div class="space-y-2">
-                                @foreach($strengths as $strength)
-                                <div class="p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-xs">
-                                    <div class="font-bold text-white mb-0.5">{{ $strength->title }}</div>
-                                    <div class="text-slate-400 leading-relaxed">{{ $strength->description }}</div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        @endif
+            @if($trial->metrics->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                @foreach($trial->metrics as $metric)
+                @php
+                    $metricLabel = $metricLabels[$metric->metric_code] ?? ucwords(str_replace('_', ' ', $metric->metric_code));
+                    $sideClass = 'bg-white/[0.03] border-white/10 text-slate-400';
+                @endphp
+                <article class="rounded-2xl border border-white/[0.07] bg-black/15 p-4 hover:border-white/15 transition-colors">
+                    <div class="flex items-start justify-between gap-3 mb-5">
+                        <div class="text-xs font-bold text-slate-300 leading-snug">{{ $metricLabel }}</div>
+                        <span class="px-2 py-0.5 rounded-full border text-[9px] uppercase font-bold tracking-wider {{ $sideClass }}">
+                            {{ $metric->side ? ucfirst($metric->side) : 'General' }}
+                        </span>
                     </div>
-                </div>
-                @endif
+                    <div class="flex items-end gap-2">
+                        <div class="text-3xl font-bold text-white metric-value tracking-tight">{{ round((float) $metric->value_decimal, 2) }}</div>
+                        <div class="text-xs text-slate-500 mb-1">{{ $metric->unit }}</div>
+                    </div>
+                    <div class="mt-4 h-px bg-white/[0.07]"></div>
+                </article>
+                @endforeach
+            </div>
+            @else
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">
+                Metrik belum dihasilkan untuk trial ini.
+            </div>
+            @endif
+        </section>
 
-                <!-- Artifacts Info -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-file-archive mr-2 text-[#ccff00]"></i> Artifacts</h2>
-                    @if($trial->artifacts->count() > 0)
-                        <div class="space-y-2">
-                            @foreach($trial->artifacts as $artifact)
-                            <div class="flex items-center justify-between text-xs py-2 border-b border-slate-800 last:border-0">
-                                <span class="text-slate-400 font-mono">{{ $artifact->type }}</span>
-                                <span class="text-slate-500">{{ number_format($artifact->size_bytes / 1024, 1) }} KB</span>
-                            </div>
-                            @endforeach
+        {{-- Training --}}
+        <section id="training" class="section-anchor review-card rounded-2xl p-5 md:p-7 mb-6">
+            <div class="mb-6">
+                <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ccff00]">Training Plan</div>
+                <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Program Latihan & Koreksi</h2>
+                <p class="text-sm text-slate-500 mt-2">Rekomendasi dipisahkan berdasarkan cue, drill teknik, dan latihan kekuatan.</p>
+            </div>
+
+            @if($recommendations->count() > 0)
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+                @php
+                    $trainingGroups = [
+                        ['title' => 'Running Cues', 'subtitle' => 'Pengingat singkat saat berlari', 'icon' => 'fa-comment-dots', 'accent' => 'text-slate-300', 'items' => $cues],
+                        ['title' => 'Technique Drills', 'subtitle' => 'Latihan pola gerak spesifik', 'icon' => 'fa-person-running', 'accent' => 'text-slate-300', 'items' => $drills],
+                        ['title' => 'Strength Exercises', 'subtitle' => 'Penguatan pendukung form', 'icon' => 'fa-dumbbell', 'accent' => 'text-slate-300', 'items' => $strengths],
+                    ];
+                @endphp
+                @foreach($trainingGroups as $group)
+                <div class="rounded-2xl border border-white/[0.07] bg-black/15 p-4">
+                    <div class="flex items-start gap-3 mb-4">
+                        <span class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center {{ $group['accent'] }} shrink-0">
+                            <i class="fas {{ $group['icon'] }}"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">{{ $group['title'] }}</h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">{{ $group['subtitle'] }}</p>
                         </div>
+                    </div>
+
+                    @if($group['items']->count() > 0)
+                    <div class="space-y-2.5">
+                        @foreach($group['items'] as $item)
+                        <article class="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3.5">
+                            <div class="font-bold text-sm text-slate-100">{{ $item->title }}</div>
+                            <div class="text-xs leading-relaxed text-slate-500 mt-1.5">{{ $item->description }}</div>
+                        </article>
+                        @endforeach
+                    </div>
                     @else
-                        <div class="text-slate-600 text-sm italic py-4 text-center">No artifacts uploaded.</div>
+                    <div class="rounded-xl border border-dashed border-white/[0.07] py-8 text-center text-xs text-slate-600">Belum ada rekomendasi.</div>
                     @endif
                 </div>
+                @endforeach
+            </div>
+            @else
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">
+                Program latihan belum tersedia.
+            </div>
+            @endif
+        </section>
 
-                <!-- Metrics -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-chart-line mr-2 text-[#ccff00]"></i> Biomechanical Metrics</h2>
-                    @if($trial->metrics->count() > 0)
-                        <div class="space-y-3">
-                            @foreach($trial->metrics as $metric)
-                            <div class="flex justify-between items-center pb-2 border-b border-slate-800 last:border-0 last:pb-0">
-                                <div class="text-slate-300 text-sm">
-                                    {{ str_replace('_', ' ', $metric->metric_code) }}
-                                    @if($metric->side) <span class="text-xs text-slate-500 ml-1">({{ $metric->side }})</span> @endif
-                                </div>
-                                <div class="text-[#ccff00] font-mono font-bold text-sm">
-                                    {{ round((float) $metric->value_decimal, 1) }}
-                                    <span class="text-slate-500 font-normal text-xs">{{ $metric->unit }}</span>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-slate-600 text-sm italic py-6 text-center bg-slate-950 rounded-lg border border-slate-800/50">Metrics not generated yet.</div>
-                    @endif
+        {{-- Artifacts --}}
+        <section id="artifacts" class="section-anchor review-card rounded-2xl p-5 md:p-7">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+                <div>
+                    <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Analysis Files</div>
+                    <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Artefak Analisis</h2>
+                    <p class="text-sm text-slate-500 mt-2">Daftar file sumber dan keluaran yang digunakan pada trial.</p>
                 </div>
+                <span class="px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-xs font-bold text-slate-400">{{ $trial->artifacts->count() }} file</span>
+            </div>
 
-                <!-- Findings -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
-                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-search mr-2 text-[#ccff00]"></i> AI Findings</h2>
-                    @if($trial->findings->count() > 0)
-                        <div class="space-y-3">
-                            @foreach($trial->findings as $finding)
-                            @php
-                                $sevColor = match($finding->severity) {
-                                    'significant' => 'text-red-400 bg-red-900/30 border-red-700',
-                                    'moderate'    => 'text-yellow-400 bg-yellow-900/30 border-yellow-700',
-                                    default       => 'text-blue-400 bg-blue-900/30 border-blue-700',
-                                };
-                            @endphp
-                            <div class="p-3 rounded-lg bg-slate-800 border border-slate-700">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded border {{ $sevColor }} uppercase">{{ $finding->severity }}</span>
-                                    <span class="text-xs text-slate-400 font-mono">{{ $finding->finding_code }}</span>
-                                </div>
-                                <div class="text-sm text-slate-300">{{ str_replace('_', ' ', ucfirst(strtolower($finding->explanation_key ?? $finding->finding_code))) }}</div>
-                                @if($finding->evidence_json)
-                                    <div class="text-xs text-slate-500 mt-1">{{ is_array($finding->evidence_json) ? implode(', ', array_map(fn($k,$v)=>"$k: $v", array_keys($finding->evidence_json), $finding->evidence_json)) : $finding->evidence_json }}</div>
-                                @endif
+            @if($trial->artifacts->count() > 0)
+            <div class="overflow-hidden rounded-2xl border border-white/[0.07]">
+                <div class="hidden md:grid grid-cols-[1fr_180px_120px] gap-4 px-4 py-3 bg-white/[0.035] text-[10px] uppercase tracking-[0.16em] font-bold text-slate-500">
+                    <div>Artifact</div>
+                    <div>Format</div>
+                    <div class="text-right">Ukuran</div>
+                </div>
+                <div class="divide-y divide-white/[0.06]">
+                    @foreach($trial->artifacts as $artifact)
+                    @php
+                        $artifactType = ucwords(str_replace('_', ' ', $artifact->type));
+                        $artifactSizeKb = ((float) ($artifact->size_bytes ?? 0)) / 1024;
+                    @endphp
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_180px_120px] gap-2 md:gap-4 px-4 py-3.5 items-center bg-black/10 hover:bg-white/[0.02] transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 text-slate-400 flex items-center justify-center shrink-0">
+                                <i class="fas {{ $artifact->type === 'video_clip' ? 'fa-video' : ($artifact->type === 'pose_landmarks' ? 'fa-person' : 'fa-file-code') }}"></i>
+                            </span>
+                            <div class="min-w-0">
+                                <div class="text-sm font-bold text-slate-200 truncate">{{ $artifactType }}</div>
+                                <div class="text-[10px] font-mono text-slate-600 truncate">{{ $artifact->path ?? 'Stored artifact' }}</div>
                             </div>
-                            @endforeach
                         </div>
-                    @else
-                        <div class="text-slate-600 text-sm italic py-6 text-center bg-slate-950 rounded-lg border border-slate-800/50">No AI findings available.</div>
-                    @endif
+                        <div class="text-xs text-slate-500 md:text-slate-400">{{ $artifact->mime_type ?? '—' }}</div>
+                        <div class="text-xs font-mono text-slate-400 md:text-right">{{ number_format($artifactSizeKb, 1) }} KB</div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
-        </div>
+            @else
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">Belum ada artefak yang diunggah.</div>
+            @endif
+        </section>
     </div>
 </div>
 
-<!-- Reject Modal -->
-@if(auth()->user()?->role === 'admin')
-<div id="reject-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-red-700/50 rounded-xl p-6 w-full max-w-md shadow-2xl">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-times-circle text-red-400 mr-2"></i> Reject Trial</h3>
-        <p class="text-slate-400 text-sm mb-4">This will mark the trial as <strong class="text-red-400">Invalid</strong>. The runner will not see this result.</p>
-        <form action="{{ route('admin.running-analysis.trials.reject', $trial) }}" method="POST">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Reason (optional)</label>
-                <textarea name="reason" rows="3" placeholder="e.g. Camera angle too far, runner not in frame, obstructed view..."
-                    class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-red-500 resize-none"></textarea>
+{{-- Reject modal --}}
+@if($isAdmin)
+<div id="reject-modal" class="hidden fixed inset-0 bg-[#02050b]/85 backdrop-blur-md z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
+    <div class="review-card rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden">
+        <div class="relative">
+            <div class="flex items-start gap-3 mb-5">
+                <span class="w-10 h-10 rounded-xl bg-rose-400/10 border border-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                    <i class="fas fa-ban"></i>
+                </span>
+                <div>
+                    <h3 id="reject-modal-title" class="text-lg font-bold text-white">Tolak Trial</h3>
+                    <p class="text-slate-500 text-sm mt-1">Trial akan ditandai tidak valid dan tidak ditampilkan kepada pelari.</p>
+                </div>
             </div>
-            <div class="flex gap-3 justify-end">
-                <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
-                    class="px-4 py-2 rounded text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">
-                    Cancel
-                </button>
-                <button type="submit" class="px-6 py-2 rounded text-sm font-bold bg-red-700 text-white hover:bg-red-600 transition-colors">
-                    <i class="fas fa-times mr-2"></i> Confirm Reject
-                </button>
-            </div>
-        </form>
+            <form action="{{ route('admin.running-analysis.trials.reject', $trial) }}" method="POST">
+                @csrf
+                <label for="reject-reason" class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.16em] mb-2">Alasan penolakan</label>
+                <textarea id="reject-reason" name="reason" rows="4" placeholder="Contoh: sudut kamera tidak sesuai, tubuh pelari keluar frame, atau video terhalang..."
+                    class="w-full bg-black/20 border border-white/10 text-white rounded-2xl px-4 py-3 text-sm outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/10 resize-none placeholder:text-slate-700"></textarea>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
+                        class="h-11 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 hover:text-white hover:border-white/20 transition-colors text-sm font-bold">
+                        Batal
+                    </button>
+                    <button type="submit" class="h-11 rounded-xl bg-rose-500 text-white hover:bg-rose-400 transition-colors text-sm font-bold">
+                        <i class="fas fa-ban mr-2"></i> Konfirmasi
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endif
@@ -1468,14 +1829,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.seekVideoTo(targetSec);
             }
 
-            // 4. Show AI Biomechanical feedback tooltip
+            // 4. Show biomechanical review tooltip
             if (eventType && typeof window.showGaitMomentTooltip === 'function') {
                 window.showGaitMomentTooltip(eventType);
             }
         }; // end seekToGaitEvent
 
         // ---------------------------------------------------------------
-        // AI Biomechanical Annotation Tooltip Overlay Logic
+        // Biomechanical review tooltip overlay logic
         // ---------------------------------------------------------------
         const tooltipEl = document.getElementById('ai-moment-tooltip');
 
@@ -1546,7 +1907,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     phaseData = {
                         status: 'warn',
-                        summary: 'AI Analysis detected biomechanical concerns in this position.',
+                        summary: 'Biomechanical review detected concerns in this position.',
                         findings: findingsList,
                         actions: actionsList.length > 0 ? actionsList : ['Focus on optimizing joint alignment and strike mechanics.']
                     };
@@ -1564,7 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusEl = document.getElementById('tooltip-status');
             if (statusEl) {
                 statusEl.textContent = phaseData.status.toUpperCase();
-                statusEl.className = 'px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ';
+                statusEl.className = 'px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ';
                 if (phaseData.status === 'ok') {
                     statusEl.classList.add('bg-[#ccff00]/10', 'border-[#ccff00]/30', 'text-[#ccff00]');
                 } else if (phaseData.status === 'warn') {
@@ -1572,7 +1933,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (phaseData.status === 'issue') {
                     statusEl.classList.add('bg-red-900/30', 'border-red-700', 'text-red-400');
                 } else {
-                    statusEl.classList.add('bg-blue-900/30', 'border-blue-700', 'text-blue-400');
+                    statusEl.classList.add('bg-white/[0.04]', 'border-white/10', 'text-slate-400');
                 }
             }
 
@@ -1589,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     phaseData.findings.forEach(f => {
                         const li = document.createElement('li');
                         li.className = 'flex items-start gap-1.5 mb-1';
-                        li.innerHTML = `<span class="text-cyan-400 mt-0.5 shrink-0">•</span> <span class="text-slate-300">${f}</span>`;
+                        li.innerHTML = `<span class="text-slate-400 mt-0.5 shrink-0">•</span> <span class="text-slate-200">${f}</span>`;
                         findingsListEl.appendChild(li);
                     });
                 } else {
@@ -1607,7 +1968,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     phaseData.actions.forEach(a => {
                         const li = document.createElement('li');
                         li.className = 'flex items-start gap-1.5 mb-1';
-                        li.innerHTML = `<span class="text-[#ccff00] mt-0.5 shrink-0">•</span> <span class="text-slate-200">${a}</span>`;
+                        li.innerHTML = `<span class="text-[#ccff00] mt-0.5 shrink-0">•</span> <span class="text-slate-100">${a}</span>`;
                         actionsListEl.appendChild(li);
                     });
                 } else {
@@ -1973,13 +2334,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
         <div>
-            <h3 class="text-lg font-bold text-white uppercase italic tracking-wider">Exporting Video</h3>
-            <p class="text-xs text-slate-400 mt-1">Merging video with skeleton overlay...</p>
+            <h3 class="text-lg font-semibold text-white">Mengekspor Video</h3>
+            <p class="text-xs text-slate-400 mt-1">Menggabungkan video dengan skeleton overlay...</p>
         </div>
         <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
             <div id="export-progress" class="bg-[#ccff00] h-full w-0 transition-all duration-200"></div>
         </div>
-        <div id="export-percent" class="text-xs font-black text-[#ccff00] tracking-wider">0%</div>
+        <div id="export-percent" class="text-xs font-bold text-[#ccff00] tracking-wider">0%</div>
     </div>
 </div>
 
