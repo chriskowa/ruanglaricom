@@ -796,6 +796,8 @@ class BiomechanicsAnalysisService
     {
         $openAiService = app(OpenAiService::class);
         
+        $runnerName = $meta['runner_name'] ?? ($meta['display']['runner_name'] ?? 'Pelari');
+
         $confidence = $biomech['confidence'] ?? 'unknown';
         $samples = $biomech['samples'] ?? 'unknown';
         $heelStrike = $biomech['heel_strike_pct'] ?? 'unknown';
@@ -815,7 +817,9 @@ class BiomechanicsAnalysisService
         $fps = $meta['fps'] ?? 'unknown';
         $size = $meta['size_bytes'] ?? 'unknown';
 
-        $systemMessage = "Anda adalah Asisten Coach Lari AI Profesional dari Ruang Lari. Anda ahli dalam menganalisis biomekanika lari (running form) berdasarkan data kuantitatif yang dikirimkan. Analisis Anda harus detail, personal, memotivasi, dan akurat dalam Bahasa Indonesia yang kasual namun profesional (gaya 'Coach Gaul' Ruang Lari).
+        $systemMessage = "Anda adalah Asisten Coach Lari AI Profesional dari Ruang Lari. Anda ahli dalam menganalisis biomekanika lari (running form) berdasarkan data kuantitatif yang dikirimkan. Analisis Anda harus objektif, detail, berbasis data sport science, kritis, dan akurat dalam Bahasa Indonesia yang profesional dan lugas. Hindari bahasa yang terlalu ramah, basa-basi kosong, atau pujian berlebihan. Berikan evaluasi jujur dan arahan teknis yang jelas demi peningkatan performa, bukan sekadar pujian kosong.
+
+PENTING: Sapa pelari langsung menggunakan nama mereka yaitu \"{$runnerName}\" di dalam \"coach_message\". Jangan menggunakan sebutan generik seperti \"pelari hebat\" atau \"pelari\".
 
 Penting: Jawab HANYA dengan format JSON yang valid, tanpa penjelasan markdown (seperti ```json ... ```) di luar JSON tersebut.";
 
@@ -884,7 +888,7 @@ Berdasarkan data di atas, tolong berikan analisis lengkap. Anda harus menghitung
    - \"title\" (string)
    - \"message\" (string)
    - \"severity\" (\"info\")
-9. \"coach_message\" (string): Pesan motivasi & ringkasan dari Anda sebagai Coach AI Gaul Ruang Lari dalam Bahasa Indonesia. Berikan tips spesifik untuk pelari ini.
+9. \"coach_message\" (string): Ringkasan analisis biomekanika dan evaluasi objektif dalam Bahasa Indonesia yang profesional dan lugas. Berikan temuan kritis dan tips perbaikan spesifik berdasarkan data untuk pelari ini.
 10. \"form_report\" (array of 6 objects): Laporan detail untuk 6 fase/bagian form lari berikut:
     - code: \"landing\" (pendaratan kaki/footstrike & overstride)
     - code: \"lever\" (knee flex & shin angle)

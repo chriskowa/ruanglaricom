@@ -223,6 +223,7 @@ class ReportBuilder
                     'height' => $trial->camera_height,
                     'fps' => $trial->camera_fps,
                     'size_bytes' => null,
+                    'runner_name' => optional($trial->runner)->name ?? 'Pelari',
                 ];
                 $analysisResult = $analysisService->analyze($summary, $meta);
                 

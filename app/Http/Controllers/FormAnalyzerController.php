@@ -219,6 +219,7 @@ class FormAnalyzerController extends Controller
                 'optimized' => $optimizedMeta,
                 'display' => $optimizedMeta ?: $originalMeta,
                 'compression' => $compression,
+                'runner_name' => auth()->user()?->name ?? 'Pelari',
             ];
 
             $analysisResult = $analysisService->analyze($metrics, $meta, $compressionWarnings);
