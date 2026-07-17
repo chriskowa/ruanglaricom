@@ -75,6 +75,9 @@ class Trial extends Model
     {
         return [
             'attempt_no'    => 'integer',
+            'runner_id'     => 'integer',
+            'operator_id'   => 'integer',
+            'approved_by'   => 'integer',
             'camera_width'  => 'integer',
             'camera_height' => 'integer',
             'camera_fps'    => 'decimal:2',

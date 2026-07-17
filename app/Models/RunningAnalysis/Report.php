@@ -29,6 +29,7 @@ class Report extends Model
     protected function casts(): array
     {
         return [
+            'runner_id'                  => 'integer',
             'report_version'             => 'integer',
             'deterministic_summary_json' => 'array',
             'runner_narrative_json'      => 'array',

@@ -9,27 +9,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
 
 // Homepage with template support
-Route::get('/debug-auth', function() {
-    $trial = \App\Models\RunningAnalysis\Trial::find('32cb560d-178e-4d11-af2e-16bb35cedcf7');
-    $user = auth()->user();
-    return response()->json([
-        'auth_user' => $user ? [
-            'id' => $user->id,
-            'email' => $user->email,
-            'role' => $user->role,
-        ] : null,
-        'trial' => $trial ? [
-            'id' => $trial->id,
-            'runner_id' => $trial->runner_id,
-            'status' => $trial->status,
-        ] : null,
-        'runner_id_type' => $trial ? gettype($trial->runner_id) : null,
-        'auth_id_type' => $user ? gettype($user->id) : null,
-        'is_match' => $trial && $user ? ($trial->runner_id == $user->id) : null,
-        'is_strict_match' => $trial && $user ? ($trial->runner_id === $user->id) : null,
-        'is_published' => $trial ? $trial->isPublished() : null,
-    ]);
-});
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
 Route::get('/about', function () {
