@@ -774,7 +774,7 @@
                         <i class="fas fa-user-shield text-slate-600"></i>
                     </div>
 
-                    @if(!in_array($trial->status, ['invalid', 'published']))
+                    @if(!$trial->isPublished() && $trial->status !== 'invalid')
                     <p class="text-xs leading-relaxed text-slate-500 mb-4">Pastikan video, skeleton, temuan, dan rekomendasi sudah sesuai sebelum hasil dipublikasikan.</p>
                     <div class="space-y-2.5">
                         @if(in_array($trial->status, ['queued', 'analyzing', 'failed']))
@@ -812,13 +812,13 @@
                         </div>
                     </div>
                     @else
-                    <div class="rounded-2xl p-4 {{ $trial->status === 'published' ? 'bg-[#ccff00]/10 border border-[#ccff00]/20' : 'bg-rose-400/10 border border-rose-400/20' }}">
+                    <div class="rounded-2xl p-4 {{ $trial->isPublished() ? 'bg-[#ccff00]/10 border border-[#ccff00]/20' : 'bg-rose-400/10 border border-rose-400/20' }}">
                         <div class="flex items-start gap-3">
-                            <i class="fas {{ $trial->status === 'published' ? 'fa-circle-check text-[#ccff00]' : 'fa-circle-xmark text-rose-300' }} mt-0.5"></i>
+                            <i class="fas {{ $trial->isPublished() ? 'fa-circle-check text-[#ccff00]' : 'fa-circle-xmark text-rose-300' }} mt-0.5"></i>
                             <div>
-                                <div class="text-sm font-bold {{ $trial->status === 'published' ? 'text-[#ccff00]' : 'text-rose-200' }}">{{ $statusLabel }}</div>
+                                <div class="text-sm font-bold {{ $trial->isPublished() ? 'text-[#ccff00]' : 'text-rose-200' }}">{{ $statusLabel }}</div>
                                 <div class="text-xs text-slate-400 mt-1">
-                                    {{ $trial->status === 'published' ? 'Hasil sudah tersedia bagi pelari.' : 'Trial ditandai tidak valid dan tidak ditampilkan kepada pelari.' }}
+                                    {{ $trial->isPublished() ? 'Hasil sudah tersedia bagi pelari.' : 'Trial ditandai tidak valid dan tidak ditampilkan kepada pelari.' }}
                                 </div>
                             </div>
                         </div>

@@ -9,6 +9,23 @@ use Illuminate\Support\Facades\Route;
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
 
 // Homepage with template support
+Route::get('/debug-blade', function() {
+    $filePath = resource_path('views/admin/running-analysis/trials/review.blade.php');
+    if (!file_exists($filePath)) {
+        return response()->json(['error' => 'File not found']);
+    }
+    $lines = file($filePath);
+    $results = [];
+    foreach ($lines as $i => $line) {
+        if (str_contains($line, 'isAdmin') || str_contains($line, '@if') || str_contains($line, 'status')) {
+            $results[] = [
+                'line_no' => $i + 1,
+                'content' => trim($line),
+            ];
+        }
+    }
+    return response()->json($results);
+});
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
 Route::get('/about', function () {
