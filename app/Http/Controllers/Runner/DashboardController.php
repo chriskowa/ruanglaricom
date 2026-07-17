@@ -356,7 +356,10 @@ class DashboardController extends Controller
 
         // Get Run Connect history
         $runConnectHistory = \App\Models\RunningAnalysis\Trial::where('runner_id', $user->id)
-            ->where('status', \App\Models\RunningAnalysis\Trial::STATUS_PUBLISHED)
+            ->whereIn('status', [
+                \App\Models\RunningAnalysis\Trial::STATUS_PUBLISHED,
+                \App\Models\RunningAnalysis\Trial::STATUS_APPROVED
+            ])
             ->with(['session', 'latestReport'])
             ->orderBy('published_at', 'desc')
             ->get();

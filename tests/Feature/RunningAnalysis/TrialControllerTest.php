@@ -188,6 +188,15 @@ class TrialControllerTest extends TestCase
         $response = $this->actingAs($runner)->get(route('runner.running-analysis.trials.review', $unpublishedTrial));
         $response->assertStatus(403);
 
+        // 4b. Trial is approved - Allowed access
+        $approvedTrial = Trial::factory()->create([
+            'session_id' => $session->id,
+            'runner_id'  => $runner->id,
+            'status'     => Trial::STATUS_APPROVED,
+        ]);
+        $response = $this->actingAs($runner)->get(route('runner.running-analysis.trials.review', $approvedTrial));
+        $response->assertStatus(200);
+
         // 5. Runner serves artifact
         Storage::fake('local');
         $artifact = $trial->artifacts()->create([

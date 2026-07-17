@@ -225,8 +225,8 @@ class ProductController extends Controller
             abort(403);
         }
 
-        if ($order->status !== 'paid' && $order->status !== 'pending') {
-            return response()->json(['success' => false, 'message' => 'Hanya pesanan paid atau pending yang dapat diproses.'], 400);
+        if ($order->status !== 'paid') {
+            return response()->json(['success' => false, 'message' => 'Hanya pesanan yang sudah dibayar (paid) yang dapat diproses.'], 400);
         }
 
         $trackingNumber = $request->input('tracking_number') ?: 'TRK-' . strtoupper(Str::random(10));

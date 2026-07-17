@@ -401,7 +401,7 @@ class TrialController extends Controller
     public function runnerReview(Trial $trial)
     {
         abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
-        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+        abort_unless($trial->isPublished(), 403, 'Trial is not published yet.');
 
         $trial->load([
             'runner', 
@@ -430,7 +430,7 @@ class TrialController extends Controller
     {
         abort_unless($artifact->trial_id === $trial->id, 404);
         abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
-        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+        abort_unless($trial->isPublished(), 403, 'Trial is not published yet.');
 
         return $this->serveArtifact($trial, $artifact);
     }
@@ -441,7 +441,7 @@ class TrialController extends Controller
     public function runnerDownloadPdf(Trial $trial): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         abort_unless($trial->runner_id === auth()->id(), 403, 'Unauthorized.');
-        abort_unless($trial->status === Trial::STATUS_PUBLISHED, 403, 'Trial is not published yet.');
+        abort_unless($trial->isPublished(), 403, 'Trial is not published yet.');
 
         $trial->load([
             'runner',

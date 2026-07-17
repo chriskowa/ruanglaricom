@@ -1,0 +1,937 @@
+<?php
+
+namespace App\Services\RunningAnalysis;
+
+use App\Services\OpenAiService;
+use Illuminate\Support\Facades\Log;
+
+class BiomechanicsAnalysisService
+{
+    /**
+     * Core analyze method running deterministic rules and optional AI refinement.
+     */
+    public function analyze(array $metrics, array $meta = [], array $compressionWarnings = []): array
+    {
+        $biomech = $this->normalizeBiomechMetrics($metrics);
+        
+        $compression = $meta['compression'] ?? [
+            'used' => false,
+            'original_bytes' => null,
+            'optimized_bytes' => null,
+            'saved_bytes' => null,
+            'saved_percent' => null,
+        ];
+        
+        [$score, $issues, $suggestions, $coachMessage, $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore] =
+            $this->makeFeedback($meta, $compression, $compressionWarnings, $biomech);
+
+        $formReport = $this->buildFormReport($biomech, $metrics);
+
+        // Attempt to enhance with OpenAI Chat API
+        if (is_array($biomech) && !empty(config('services.openai.api_key'))) {
+            try {
+                $aiFeedback = $this->getAiFeedback($meta, $compression, $compressionWarnings, $biomech, $metrics);
+                if ($aiFeedback && isset($aiFeedback['score'])) {
+                    $score = (int) $aiFeedback['score'];
+                    $formScore = (int) ($aiFeedback['form_score'] ?? $score);
+                    if (isset($aiFeedback['positives']) && is_array($aiFeedback['positives'])) {
+                        $positives = $aiFeedback['positives'];
+                    }
+                    if (isset($aiFeedback['issues']) && is_array($aiFeedback['issues'])) {
+                        $issues = $aiFeedback['issues'];
+                    }
+                    if (isset($aiFeedback['suggestions']) && is_array($aiFeedback['suggestions'])) {
+                        $suggestions = $aiFeedback['suggestions'];
+                    }
+                    if (isset($aiFeedback['form_issues']) && is_array($aiFeedback['form_issues'])) {
+                        $formIssues = $aiFeedback['form_issues'];
+                    }
+                    if (isset($aiFeedback['strength_plan']) && is_array($aiFeedback['strength_plan'])) {
+                        $strengthPlan = $aiFeedback['strength_plan'];
+                    }
+                    if (isset($aiFeedback['recovery_plan']) && is_array($aiFeedback['recovery_plan'])) {
+                        $recoveryPlan = $aiFeedback['recovery_plan'];
+                    }
+                    if (isset($aiFeedback['coach_message']) && is_string($aiFeedback['coach_message'])) {
+                        $coachMessage = $aiFeedback['coach_message'];
+                    }
+                    if (isset($aiFeedback['form_report']) && is_array($aiFeedback['form_report'])) {
+                        $formReport = $aiFeedback['form_report'];
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('BiomechanicsAnalysisService AI Feedback failed, using rule-based fallback: ' . $e->getMessage());
+            }
+        }
+
+        return [
+            'score' => $score,
+            'video_score' => $videoScore,
+            'form_score' => $formScore,
+            'positives' => $positives,
+            'issues' => $issues,
+            'suggestions' => $suggestions,
+            'form_issues' => $formIssues,
+            'form_report' => $formReport,
+            'strength_plan' => $strengthPlan,
+            'recovery_plan' => $recoveryPlan,
+            'coach_message' => $coachMessage,
+        ];
+    }
+
+    public function normalizeBiomechMetrics(?array $metrics): ?array
+    {
+        if (! is_array($metrics)) {
+            return null;
+        }
+
+        $num = function ($key) use ($metrics) {
+            $v = $metrics[$key] ?? null;
+            if ($v === null || $v === '') {
+                return null;
+            }
+            if (is_numeric($v)) {
+                return (float) $v;
+            }
+
+            return null;
+        };
+
+        $int = function ($key) use ($metrics) {
+            $v = $metrics[$key] ?? null;
+            if ($v === null || $v === '') {
+                return null;
+            }
+            if (is_numeric($v)) {
+                return (int) $v;
+            }
+
+            return null;
+        };
+
+        return [
+            'confidence' => $num('confidence'),
+            'samples' => $int('samples'),
+            'heel_strike_pct' => $num('heel_strike_pct'),
+            'overstride_pct' => $num('overstride_pct'),
+            'shin_angle_deg' => $num('shin_angle_deg'),
+            'knee_flex_deg' => $num('knee_flex_deg'),
+            'trunk_lean_deg' => $num('trunk_lean_deg'),
+            'arm_cross_pct' => $num('arm_cross_pct'),
+            'cadence_spm' => $num('cadence_spm'),
+            'elbow_angle_deg' => $num('elbow_angle_deg'),
+            'vertical_oscillation' => $num('vertical_oscillation'),
+            'asymmetry' => $num('asymmetry'),
+        ];
+    }
+
+    private function buildBiomechFeedback(?array $biomech): array
+    {
+        $formIssues = [];
+        $strengthPlan = [];
+        $recoveryPlan = [];
+        $coachLines = [];
+        $positives = [];
+
+        if (! $biomech) {
+            $formIssues[] = [
+                'code' => 'biomech_missing',
+                'title' => 'Analisis form belum tersedia',
+                'message' => 'Tidak ada data pose yang terbaca dari video. Pastikan tubuh full terlihat, terang, dan tampak samping.',
+                'severity' => 'medium',
+            ];
+            $coachLines[] = 'Analisis form (heel strike, overstride, dll) butuh deteksi pose. Rekam lebih terang dan pastikan tubuh full di frame.';
+
+            return [$formIssues, $strengthPlan, $recoveryPlan, $coachLines, $positives];
+        }
+
+        $confidence = $biomech['confidence'] ?? null;
+        $samples = $biomech['samples'] ?? null;
+        if (is_numeric($confidence) && $confidence < 0.45) {
+            $formIssues[] = [
+                'code' => 'biomech_low_conf',
+                'title' => 'Kepercayaan analisis rendah',
+                'message' => 'Sendi tidak terbaca stabil (pencahayaan, blur, atau tubuh tidak full). Anggap hasil ini sebagai indikasi, bukan kepastian.',
+                'severity' => 'high',
+            ];
+        } elseif (is_numeric($confidence) && $confidence >= 0.7) {
+            $positives[] = [
+                'code' => 'biomech_conf_good',
+                'title' => 'Kualitas deteksi pose bagus',
+                'message' => 'Sendi terbaca cukup stabil sehingga indikasi form lebih bisa dipercaya.',
+                'severity' => 'good',
+            ];
+        }
+
+        if (is_numeric($samples) && $samples > 0) {
+            $positives[] = [
+                'code' => 'biomech_samples',
+                'title' => 'Sampel cukup',
+                'message' => "Dianalisis dari {$samples} potongan frame untuk melihat pola, bukan 1 frame saja.",
+                'severity' => 'good',
+            ];
+        }
+
+        $heel = $biomech['heel_strike_pct'] ?? null;
+        if (is_numeric($heel)) {
+            if ($heel >= 70) {
+                $formIssues[] = [
+                    'code' => 'heel_strike_high',
+                    'title' => 'Heel strike dominan',
+                    'message' => 'Indikasi tumit mendarat lebih dulu di mayoritas langkah. Ini sering berpasangan dengan overstriding dan beban ke lutut/tibia.',
+                    'severity' => 'high',
+                ];
+                $strengthPlan[] = [
+                    'code' => 'hs_strength',
+                    'title' => 'Penguatan (2–3x/minggu)',
+                    'message' => 'Calf raise eksentrik 3x12, tibialis raise 3x15, glute bridge 3x12, dead bug 3x10/side.',
+                    'severity' => 'info',
+                ];
+                $strengthPlan[] = [
+                    'code' => 'hs_drill',
+                    'title' => 'Drill teknik (2–3 set)',
+                    'message' => 'Wall lean drill 3x20 detik, “quick feet” 3x20 langkah, stride pendek fokus mendarat di bawah pinggul.',
+                    'severity' => 'info',
+                ];
+                $recoveryPlan[] = [
+                    'code' => 'hs_recovery',
+                    'title' => 'Pemulihan & penanganan awal',
+                    'message' => 'Kurangi intensitas 7–14 hari jika muncul nyeri tulang kering/lutut. Prioritaskan easy run, tidur cukup, dan evaluasi sepatu/permukaan.',
+                    'severity' => 'info',
+                ];
+            } elseif ($heel >= 40) {
+                $formIssues[] = [
+                    'code' => 'heel_strike_mid',
+                    'title' => 'Heel strike cukup sering',
+                    'message' => 'Masih muncul cukup sering. Fokus ke langkah lebih pendek dan mendarat lebih dekat ke pinggul.',
+                    'severity' => 'medium',
+                ];
+                $strengthPlan[] = [
+                    'code' => 'hs_mid_strength',
+                    'title' => 'Penguatan',
+                    'message' => 'Calf raise 3x12 + glute med (side plank clamshell) 3x10/side.',
+                    'severity' => 'info',
+                ];
+            } else {
+                $positives[] = [
+                    'code' => 'heel_strike_low',
+                    'title' => 'Footstrike relatif aman',
+                    'message' => 'Indikasi heel strike tidak dominan. Pertahankan dan fokus ke konsistensi.',
+                    'severity' => 'good',
+                ];
+            }
+        }
+
+        $over = $biomech['overstride_pct'] ?? null;
+        if (is_numeric($over)) {
+            if ($over >= 60) {
+                $formIssues[] = [
+                    'code' => 'overstride_high',
+                    'title' => 'Overstriding dominan',
+                    'message' => 'Pendaratan kaki terlalu jauh di depan pinggul. Ini menyebabkan gaya hambat (braking force) yang membebani lutut dan pinggul.',
+                    'severity' => 'high',
+                ];
+                $strengthPlan[] = [
+                    'code' => 'os_strength',
+                    'title' => 'Penguatan rantai belakang (posterior chain)',
+                    'message' => 'Single-leg RDL 3x8/side, hip thrust 3x10, hamstring bridge 3x10.',
+                    'severity' => 'info',
+                ];
+            } elseif ($over >= 35) {
+                $formIssues[] = [
+                    'code' => 'overstride_mid',
+                    'title' => 'Overstriding ringan',
+                    'message' => 'Ada kecenderungan mendarat agak jauh di depan pinggul. Cadence yang sedikit lebih tinggi dapat membantu.',
+                    'severity' => 'medium',
+                ];
+            } else {
+                $positives[] = [
+                    'code' => 'overstride_low',
+                    'title' => 'Pendaratan kaki efisien',
+                    'message' => 'Kaki mendarat dekat dengan pusat massa tubuh (di bawah pinggul), meminimalkan hentakan rem.',
+                    'severity' => 'good',
+                ];
+            }
+        }
+
+        $shin = $biomech['shin_angle_deg'] ?? null;
+        if (is_numeric($shin) && $shin >= 18) {
+            $formIssues[] = [
+                'code' => 'shin_angle_high',
+                'title' => 'Shin angle terlalu miring ke depan (braking)',
+                'message' => 'Tulang kering condong menahan laju tubuh saat mendarat. Fokus ke pendaratan yang lebih datar di bawah pinggul.',
+                'severity' => 'medium',
+            ];
+        }
+
+        $knee = $biomech['knee_flex_deg'] ?? null;
+        if (is_numeric($knee) && $knee < 20) {
+            $formIssues[] = [
+                'code' => 'knee_flex_low',
+                'title' => 'Pendaratan lutut kaku',
+                'message' => 'Sudut tekukan lutut terlalu kecil saat landing. Kurang optimal menyerap beban benturan lari.',
+                'severity' => 'high',
+            ];
+        }
+
+        $trunk = $biomech['trunk_lean_deg'] ?? null;
+        if (is_numeric($trunk)) {
+            if ($trunk > 18) {
+                $formIssues[] = [
+                    'code' => 'trunk_lean_excessive',
+                    'title' => 'Badan terlalu condong ke depan',
+                    'message' => 'Bungkuk berlebih di area pinggang membebani punggung bawah dan mengurangi efisiensi dorongan kaki.',
+                    'severity' => 'medium',
+                ];
+            } elseif ($trunk < -5) {
+                $formIssues[] = [
+                    'code' => 'trunk_lean_backwards',
+                    'title' => 'Badan tegak atau condong ke belakang',
+                    'message' => 'Membuat pendaratan tumit lebih keras dan menghambat laju linear lari.',
+                    'severity' => 'medium',
+                ];
+            }
+        }
+
+        $arm = $biomech['arm_cross_pct'] ?? null;
+        if (is_numeric($arm) && $arm >= 55) {
+            $formIssues[] = [
+                'code' => 'arm_cross_high',
+                'title' => 'Ayunan tangan menyilang midline',
+                'message' => 'Tangan menyilang garis tengah tubuh. Ini memicu rotasi torso yang tidak perlu dan membuang energi lari.',
+                'severity' => 'medium',
+            ];
+        }
+
+        return [$formIssues, $strengthPlan, $recoveryPlan, $coachLines, $positives];
+    }
+
+    public function buildFormReport(?array $biomech, ?array $metrics): array
+    {
+        $coverage = (is_array($metrics) && isset($metrics['coverage']) && is_array($metrics['coverage'])) ? $metrics['coverage'] : null;
+        $missing = [];
+        if (is_array($metrics) && isset($metrics['coverage_missing']) && is_array($metrics['coverage_missing'])) {
+            $missing = array_values(array_filter($metrics['coverage_missing'], fn ($x) => is_string($x) && $x !== ''));
+        }
+
+        $num = function ($key) use ($biomech) {
+            if (! is_array($biomech)) {
+                return null;
+            }
+            $v = $biomech[$key] ?? null;
+
+            return is_numeric($v) ? (float) $v : null;
+        };
+
+        $section = function (string $code, string $title) {
+            return [
+                'code' => $code,
+                'title' => $title,
+                'status' => 'ok',
+                'summary' => null,
+                'findings' => [],
+                'actions' => [],
+                'strength' => [],
+            ];
+        };
+
+        $setStatus = function (array &$s, string $status, ?string $summary = null) {
+            $priority = ['missing' => 3, 'issue' => 2, 'warn' => 1, 'ok' => 0];
+            $cur = $s['status'] ?? 'ok';
+            if (($priority[$status] ?? 0) >= ($priority[$cur] ?? 0)) {
+                $s['status'] = $status;
+                if ($summary) {
+                    $s['summary'] = $summary;
+                }
+            }
+        };
+
+        $landing = $section('landing', 'Landing');
+        $lever = $section('lever', 'Lever (mid-stance)');
+        $push = $section('push', 'Push (toe-off)');
+        $pull = $section('pull', 'Pull (swing)');
+        $arm = $section('arm_swing', 'Ayunan Tangan');
+        $posture = $section('posture', 'Postur & Stabilitas');
+
+        if (! is_array($biomech)) {
+            foreach ([$landing, $lever, $push, $pull, $arm, $posture] as &$s) {
+                $setStatus($s, 'missing', 'Data pose belum cukup untuk menilai form.');
+                $s['actions'][] = 'Rekam tampak samping, tubuh full terlihat, cahaya cukup, dan pace stabil 5–10 detik.';
+            }
+            unset($s);
+
+            return [$landing, $lever, $push, $pull, $arm, $posture];
+        }
+
+        if (! empty($missing)) {
+            foreach ([$landing, $lever, $push, $pull, $arm, $posture] as &$s) {
+                $s['findings'][] = 'Cakupan frame belum lengkap untuk semua kategori gerak.';
+            }
+            unset($s);
+        }
+
+        $heel = $num('heel_strike_pct');
+        $over = $num('overstride_pct');
+        $shin = $num('shin_angle_deg');
+        $knee = $num('knee_flex_deg');
+        $trunk = $num('trunk_lean_deg');
+        $armCross = $num('arm_cross_pct');
+        $vo = $num('vertical_oscillation');
+        $conf = $num('confidence');
+
+        if (is_numeric($heel)) {
+            $landing['findings'][] = "Heel strike: {$heel}%";
+            if ($heel >= 70) {
+                $setStatus($landing, 'issue', 'Heel strike dominan');
+                $landing['actions'][] = 'Kurangi langkah panjang; fokus mendarat lebih dekat ke pinggul.';
+                $landing['actions'][] = 'Naikkan cadence +3–7% pada easy run tanpa menambah pace.';
+                $landing['strength'][] = 'Calf raise eksentrik 3x12 + tibialis raise 3x15 (2–3x/minggu).';
+            } elseif ($heel >= 40) {
+                $setStatus($landing, 'warn', 'Heel strike cukup sering');
+                $landing['actions'][] = 'Fokus langkah lebih pendek dan “quick feet”.';
+                $landing['strength'][] = 'Calf raise 3x12 + glute bridge 3x12 (2–3x/minggu).';
+            } else {
+                $landing['actions'][] = 'Pertahankan footstrike yang sudah relatif aman.';
+            }
+        }
+
+        if (is_numeric($over)) {
+            $landing['findings'][] = "Overstride: {$over}%";
+            if ($over >= 60) {
+                $setStatus($landing, 'issue', 'Overstriding');
+                $landing['actions'][] = 'Jaga kaki mendarat “di bawah pinggul” untuk mengurangi braking force.';
+                $landing['strength'][] = 'Single-leg RDL 3x8/side + split squat 3x8/side (2x/minggu).';
+            } elseif ($over >= 35) {
+                $setStatus($landing, 'warn', 'Overstriding ringan');
+                $landing['actions'][] = 'Naikkan cadence sedikit dan kontrol trunk.';
+            }
+        }
+
+        if (is_numeric($shin)) {
+            $lever['findings'][] = "Shin angle: {$shin}°";
+            if ($shin >= 18) {
+                $setStatus($lever, 'warn', 'Shin angle cenderung “mengerem”');
+                $lever['actions'][] = 'Fokus “push ke belakang” (dorong) dibanding “brake di depan”.';
+                $lever['strength'][] = 'Hamstring bridge 3x10 + hip hinge (RDL) 3x8 (2x/minggu).';
+            } else {
+                $lever['actions'][] = 'Pertahankan shin angle agar braking force tetap rendah.';
+            }
+        }
+
+        if (is_numeric($knee)) {
+            $lever['findings'][] = "Knee flex: {$knee}°";
+            if ($knee < 20) {
+                $setStatus($lever, 'issue', 'Landing cenderung kaku (shock absorption rendah)');
+                $lever['actions'][] = 'Latih landing lebih “empuk” dengan kontrol lutut dan pinggul.';
+                $lever['strength'][] = 'Step-down 3x8/side + squat tempo 3x6 (2x/minggu).';
+            } elseif ($knee >= 30 && $knee <= 55) {
+                $lever['actions'][] = 'Knee flexion terlihat cukup untuk menyerap beban.';
+            }
+        }
+
+        if (is_numeric($vo)) {
+            $push['findings'][] = "Vertical oscillation: {$vo}";
+            if ($vo >= 0.012) {
+                $setStatus($push, 'warn', 'Bounce cukup tinggi');
+                $push['actions'][] = 'Coba langkah lebih pendek + cadence naik tipis; fokus “meluncur ke depan”.';
+                $push['strength'][] = 'Calf/ankle stiffness: pogo hops ringan 3x20 (2x/minggu) jika tanpa nyeri.';
+            } else {
+                $push['actions'][] = 'Gerak vertikal relatif efisien.';
+            }
+        }
+
+        if (is_numeric($trunk)) {
+            $posture['findings'][] = "Trunk lean: {$trunk}°";
+            if ($trunk > 18) {
+                $setStatus($posture, 'warn', 'Condong berlebihan dari pinggang');
+                $posture['actions'][] = 'Coba lean dari pergelangan kaki, bukan membungkuk dari pinggang.';
+                $posture['strength'][] = 'Plank 3x30–45s + dead bug 3x10/side (2–3x/minggu).';
+            } else {
+                $posture['actions'][] = 'Postur tubuh atas relatif stabil.';
+            }
+        }
+
+        if (is_numeric($armCross)) {
+            $arm['findings'][] = "Arm cross: {$armCross}%";
+            if ($armCross >= 55) {
+                $setStatus($arm, 'warn', 'Ayunan tangan cenderung menyilang');
+                $arm['actions'][] = 'Ayun tangan maju-mundur sejajar arah lari; hindari menyilang garis tengah tubuh.';
+                $arm['strength'][] = 'Scapular retraction row band 3x12 + wall slide 3x10 (2x/minggu).';
+            } else {
+                $arm['actions'][] = 'Ayunan tangan relatif rapi.';
+            }
+        }
+
+        if (is_numeric($conf)) {
+            if ($conf < 0.45) {
+                foreach ([$landing, $lever, $push, $pull, $arm, $posture] as &$s) {
+                    $s['findings'][] = 'Kepercayaan deteksi pose rendah; anggap hasil sebagai indikasi.';
+                    $setStatus($s, 'warn');
+                }
+                unset($s);
+            }
+        }
+
+        if ($coverage) {
+            foreach ([$landing, $lever, $push, $pull, $arm, $posture] as &$s) {
+                $code = $s['code'];
+                if (isset($coverage[$code]['count'], $coverage[$code]['min'])) {
+                    $c = (int) $coverage[$code]['count'];
+                    $m = (int) $coverage[$code]['min'];
+                    $s['findings'][] = "Cakupan frame: {$c}/{$m}";
+                    if ($c < $m) {
+                        $setStatus($s, 'missing', 'Frame belum cukup untuk kategori ini');
+                    }
+                }
+            }
+            unset($s);
+        }
+
+        return [$landing, $lever, $push, $pull, $arm, $posture];
+    }
+
+    private function makeFeedback(array $meta, array $compression, array $compressionWarnings, ?array $biomech): array
+    {
+        $issues = [];
+        $suggestions = [];
+        $positives = [];
+        $formIssues = [];
+        $strengthPlan = [];
+        $recoveryPlan = [];
+
+        $duration = $meta['duration_seconds'] ?? null;
+        $width = $meta['width'] ?? null;
+        $height = $meta['height'] ?? null;
+        $fps = $meta['fps'] ?? null;
+        $size = $meta['size_bytes'] ?? null;
+        $isPortrait = $meta['is_portrait'] ?? null;
+
+        $videoScore = 100;
+
+        if ($duration) {
+            if ($duration < 4) {
+                $videoScore -= 25;
+                $issues[] = [
+                    'code' => 'duration_too_short',
+                    'title' => 'Durasi terlalu pendek',
+                    'message' => 'Usahakan 5–10 detik lari stabil agar ada cukup langkah untuk dianalisis.',
+                    'severity' => 'high',
+                ];
+                $suggestions[] = [
+                    'code' => 'duration_fix',
+                    'title' => 'Rekam ulang 5–10 detik',
+                    'message' => 'Mulai rekam 1–2 detik sebelum lari stabil, lalu ambil 8–10 detik.',
+                    'severity' => 'info',
+                ];
+            } elseif ($duration > 20) {
+                $videoScore -= 15;
+                $issues[] = [
+                    'code' => 'duration_too_long',
+                    'title' => 'Durasi terlalu panjang',
+                    'message' => 'Video panjang membuat upload lambat dan tidak menambah akurasi. Idealnya 5–10 detik.',
+                    'severity' => 'medium',
+                ];
+                $suggestions[] = [
+                    'code' => 'duration_trim',
+                    'title' => 'Trim bagian paling stabil',
+                    'message' => 'Ambil segmen 6–12 detik saat pace sudah stabil dan tubuh full terlihat.',
+                    'severity' => 'info',
+                ];
+            } elseif ($duration >= 5 && $duration <= 12) {
+                $positives[] = [
+                    'code' => 'duration_good',
+                    'title' => 'Durasi ideal',
+                    'message' => 'Rentang 5–12 detik biasanya cukup untuk menangkap beberapa langkah stabil.',
+                    'severity' => 'good',
+                ];
+            } else {
+                $videoScore -= 5;
+            }
+        } else {
+            $videoScore -= 10;
+            $issues[] = [
+                'code' => 'duration_unknown',
+                'title' => 'Durasi tidak terbaca',
+                'message' => 'Metadata durasi tidak terbaca dari video. Analisis tetap jalan tapi feedback kualitas jadi terbatas.',
+                'severity' => 'medium',
+            ];
+        }
+
+        if ($width && $height) {
+            $minSide = min($width, $height);
+            if ($minSide < 480) {
+                $videoScore -= 25;
+                $issues[] = [
+                    'code' => 'resolution_low',
+                    'title' => 'Resolusi terlalu rendah',
+                    'message' => 'Detail lutut & ankle berisiko tidak terbaca jelas.',
+                    'severity' => 'high',
+                ];
+                $suggestions[] = [
+                    'code' => 'resolution_fix',
+                    'title' => 'Naikkan resolusi',
+                    'message' => 'Gunakan minimal 720p dan hindari zoom digital.',
+                    'severity' => 'info',
+                ];
+            } elseif ($minSide < 720) {
+                $videoScore -= 10;
+                $issues[] = [
+                    'code' => 'resolution_mid',
+                    'title' => 'Resolusi cukup, tapi bisa lebih tajam',
+                    'message' => 'Untuk hasil paling rapi, usahakan 720p atau lebih.',
+                    'severity' => 'medium',
+                ];
+            } else {
+                $positives[] = [
+                    'code' => 'resolution_good',
+                    'title' => 'Resolusi bagus',
+                    'message' => 'Detail lutut dan ankle lebih mudah terbaca di resolusi ini.',
+                    'severity' => 'good',
+                ];
+            }
+
+            if ($isPortrait === true) {
+                $videoScore -= 10;
+                $issues[] = [
+                    'code' => 'portrait',
+                    'title' => 'Orientasi portrait',
+                    'message' => 'Landscape biasanya lebih stabil untuk menangkap seluruh tubuh dengan ruang langkah yang cukup.',
+                    'severity' => 'medium',
+                ];
+                $suggestions[] = [
+                    'code' => 'landscape',
+                    'title' => 'Gunakan landscape',
+                    'message' => 'Putar HP horizontal dan posisikan pelari full-body di frame.',
+                    'severity' => 'info',
+                ];
+            } else {
+                $positives[] = [
+                    'code' => 'orientation_ok',
+                    'title' => 'Orientasi mendukung analisis',
+                    'message' => 'Frame memberi ruang langkah dan tubuh full lebih mudah masuk.',
+                    'severity' => 'good',
+                ];
+            }
+        } else {
+            $videoScore -= 10;
+            $issues[] = [
+                'code' => 'resolution_unknown',
+                'title' => 'Resolusi tidak terbaca',
+                'message' => 'Metadata resolusi tidak terbaca. Pastikan video jelas dan tubuh full terlihat.',
+                'severity' => 'medium',
+            ];
+        }
+
+        if ($fps) {
+            if ($fps < 24) {
+                $videoScore -= 20;
+                $issues[] = [
+                    'code' => 'fps_low',
+                    'title' => 'FPS rendah',
+                    'message' => 'Gerakan cepat (kaki/ankle) rentan blur dan sulit dianalisis.',
+                    'severity' => 'high',
+                ];
+                $suggestions[] = [
+                    'code' => 'fps_fix',
+                    'title' => 'Rekam 30fps atau 60fps',
+                    'message' => 'Aktifkan mode 30fps/60fps, pencahayaan cukup, dan hindari panning kamera.',
+                    'severity' => 'info',
+                ];
+            } elseif ($fps < 30) {
+                $videoScore -= 8;
+                $issues[] = [
+                    'code' => 'fps_mid',
+                    'title' => 'FPS cukup, tapi ideal 30fps',
+                    'message' => 'Kalau memungkinkan, gunakan 30fps untuk detail langkah yang lebih jelas.',
+                    'severity' => 'medium',
+                ];
+            } else {
+                $positives[] = [
+                    'code' => 'fps_good',
+                    'title' => 'FPS ideal',
+                    'message' => 'Gerakan kaki/ankle lebih tajam dan minim blur.',
+                    'severity' => 'good',
+                ];
+            }
+        } else {
+            $videoScore -= 6;
+            $issues[] = [
+                'code' => 'fps_unknown',
+                'title' => 'FPS tidak terbaca',
+                'message' => 'Metadata fps tidak terbaca. Pastikan video tidak patah-patah.',
+                'severity' => 'low',
+            ];
+        }
+
+        if ($size && $size > 70 * 1024 * 1024) {
+            $videoScore -= 8;
+            $issues[] = [
+                'code' => 'size_large',
+                'title' => 'Ukuran file besar',
+                'message' => 'Upload akan lebih lama dan rawan gagal jika koneksi tidak stabil.',
+                'severity' => 'medium',
+            ];
+            $suggestions[] = [
+                'code' => 'size_fix',
+                'title' => 'Gunakan durasi pendek & 720p',
+                'message' => 'Video 5–10 detik 720p biasanya cukup dan jauh lebih ringan.',
+                'severity' => 'info',
+            ];
+        }
+
+        foreach ($compressionWarnings as $w) {
+            $issues[] = $w;
+        }
+        if (! empty($compression['used'])) {
+            $saved = $compression['saved_percent'] ?? null;
+            $positives[] = [
+                'code' => 'optimized_upload',
+                'title' => 'Upload sudah dioptimalkan',
+                'message' => is_numeric($saved) ? "Ukuran file berhasil diperkecil (hemat {$saved}%)." : 'Ukuran file berhasil dioptimalkan.',
+                'severity' => 'good',
+            ];
+        }
+
+        $videoScore = (int) max(0, min(100, round($videoScore)));
+
+        $formScore = null;
+
+        [$formIssues, $strengthPlan, $recoveryPlan, $formCoachLines, $formPositives] = $this->buildBiomechFeedback($biomech);
+        foreach ($formPositives as $p) {
+            $positives[] = $p;
+        }
+
+        if (is_array($biomech) && (($biomech['samples'] ?? null) || ($biomech['source'] ?? null))) {
+            $formScoreVal = 100.0;
+
+            $over = $biomech['overstride_pct'] ?? null;
+            if (is_numeric($over)) {
+                if ($over >= 60) {
+                    $formScoreVal -= 35;
+                } elseif ($over >= 35) {
+                    $formScoreVal -= 20;
+                } elseif ($over >= 20) {
+                    $formScoreVal -= 10;
+                }
+            }
+
+            $arm = $biomech['arm_cross_pct'] ?? null;
+            if (is_numeric($arm)) {
+                if ($arm >= 60) {
+                    $formScoreVal -= 25;
+                } elseif ($arm >= 40) {
+                    $formScoreVal -= 15;
+                } elseif ($arm >= 25) {
+                    $formScoreVal -= 8;
+                }
+            }
+
+            $shin = $biomech['shin_angle_deg'] ?? null;
+            if (is_numeric($shin) && $shin >= 18) {
+                $formScoreVal -= 8;
+            }
+
+            $knee = $biomech['knee_flex_deg'] ?? null;
+            if (is_numeric($knee) && $knee < 20) {
+                $formScoreVal -= 10;
+            }
+
+            $trunk = $biomech['trunk_lean_deg'] ?? null;
+            if (is_numeric($trunk) && ($trunk > 18 || $trunk < -5)) {
+                $formScoreVal -= 6;
+            }
+
+            $vo = $biomech['vertical_oscillation'] ?? null;
+            if (is_numeric($vo) && $vo >= 0.012) {
+                $formScoreVal -= 6;
+            }
+
+            $conf = $biomech['confidence'] ?? null;
+            if (is_numeric($conf) && $conf < 0.5) {
+                $formScoreVal -= 8;
+            }
+
+            $formScoreVal = max(0, min(100, $formScoreVal));
+            $formScore = (int) round($formScoreVal);
+        }
+
+        $score = $formScore ?? $videoScore;
+
+        $coachLines = [];
+        $coachLines[] = 'Saya sudah analisis form lari kamu (landing, lever, push, pull, ayunan tangan, postur). Ini ringkasannya:';
+        $coachLines[] = '';
+        $coachLines[] = '1) Fokus perbaiki 1–2 poin terbesar dulu (lihat “Laporan Form”).';
+        $coachLines[] = '2) Latih 2–3x/minggu sesuai rencana penguatan, lalu rekam ulang untuk cek progres.';
+        $coachLines[] = '3) Kalau banyak status “missing”, rekam tampak samping, tubuh full terlihat, pencahayaan cukup (5–10 detik).';
+        $coachLines[] = '';
+        if ($videoScore >= 85) {
+            $coachLines[] = '';
+            $coachLines[] = 'Kualitas data sudah sangat layak. Hasil feedback akan lebih konsisten.';
+        } elseif ($videoScore >= 70) {
+            $coachLines[] = '';
+            $coachLines[] = 'Kualitas data cukup oke. Kalau mau hasil lebih presisi, perbaiki pencahayaan dan pastikan tubuh full terlihat.';
+        } elseif ($videoScore >= 55) {
+            $coachLines[] = '';
+            $coachLines[] = 'Ada beberapa hal yang perlu dibenahi supaya analisis tidak “melenceng”. Fokus perbaiki yang statusnya paling berat dulu.';
+        } else {
+            $coachLines[] = '';
+            $coachLines[] = 'Data pose berisiko menghasilkan feedback kurang akurat. Rekam ulang dengan tampak samping, tubuh full, dan cahaya cukup.';
+        }
+
+        if (! empty($formCoachLines)) {
+            $coachLines[] = '';
+            foreach ($formCoachLines as $l) {
+                $coachLines[] = $l;
+            }
+        }
+
+        $suggestions = array_values($suggestions);
+        $issues = array_values($issues);
+        $positives = array_values($positives);
+
+        return [$score, $issues, $suggestions, implode("\n", $coachLines), $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore];
+    }
+
+    private function getAiFeedback(array $meta, array $compression, array $compressionWarnings, array $biomech, array $metrics): ?array
+    {
+        $openAiService = app(OpenAiService::class);
+        
+        $runnerName = $meta['runner_name'] ?? ($meta['display']['runner_name'] ?? 'Pelari');
+
+        $confidence = $biomech['confidence'] ?? 'unknown';
+        $samples = $biomech['samples'] ?? 'unknown';
+        $heelStrike = $biomech['heel_strike_pct'] ?? 'unknown';
+        $overstride = $biomech['overstride_pct'] ?? 'unknown';
+        $shinAngle = $biomech['shin_angle_deg'] ?? 'unknown';
+        $kneeFlex = $biomech['knee_flex_deg'] ?? 'unknown';
+        $trunkLean = $biomech['trunk_lean_deg'] ?? 'unknown';
+        $armCross = $biomech['arm_cross_pct'] ?? 'unknown';
+        $cadence = $biomech['cadence_spm'] ?? 'unknown';
+        $elbowAngle = $biomech['elbow_angle_deg'] ?? 'unknown';
+        $verticalOsc = $biomech['vertical_oscillation'] ?? 'unknown';
+        $asymmetry = $biomech['asymmetry'] ?? 'unknown';
+
+        $duration = $meta['duration_seconds'] ?? 'unknown';
+        $width = $meta['width'] ?? 'unknown';
+        $height = $meta['height'] ?? 'unknown';
+        $fps = $meta['fps'] ?? 'unknown';
+        $size = $meta['size_bytes'] ?? 'unknown';
+
+        $systemMessage = "Anda adalah Asisten Coach Lari AI Profesional dari Ruang Lari. Anda ahli dalam menganalisis biomekanika lari (running form) berdasarkan data kuantitatif yang dikirimkan. Analisis Anda harus objektif, detail, berbasis data sport science, kritis, dan akurat dalam Bahasa Indonesia yang profesional dan lugas. Hindari bahasa yang terlalu ramah, basa-basi kosong, atau pujian berlebihan. Berikan evaluasi jujur dan arahan teknis yang jelas demi peningkatan performa, bukan sekadar pujian kosong.
+
+PENTING: Sapa pelari langsung menggunakan nama mereka yaitu \"{$runnerName}\" di dalam \"coach_message\". Jangan menggunakan sebutan generik seperti \"pelari hebat\" atau \"pelari\".
+
+Penting: Jawab HANYA dengan format JSON yang valid, tanpa penjelasan markdown (seperti ```json ... ```) di luar JSON tersebut.";
+
+        $prompt = "Berikut adalah data biomekanika lari dari pelari:
+Metrics Biomekanika:
+- Deteksi pose percaya diri (confidence): {$confidence}
+- Jumlah sampel frame dianalisis: {$samples}
+- Persentase Heel Strike: {$heelStrike}% (Tumit mendarat lebih dulu)
+- Persentase Overstride: {$overstride}% (Kaki mendarat terlalu jauh di depan pinggul)
+- Sudut tibia/tulang kering saat landing (shin angle): {$shinAngle}°
+- Sudut fleksi lutut saat landing (knee flexion): {$kneeFlex}°
+- Sudut kemiringan badan (trunk lean): {$trunkLean}°
+- Persentase ayunan tangan menyilang (arm cross): {$armCross}%
+- Cadence (langkah per menit): {$cadence} SPM
+- Sudut siku tangan (elbow angle): {$elbowAngle}°
+- Osilasi vertikal (vertical oscillation): {$verticalOsc}
+- Asimetri langkah (asymmetry): {$asymmetry}
+
+Metadata Video:
+- Durasi: {$duration} detik
+- Resolusi: {$width}x{$height}
+- FPS: {$fps}
+- Ukuran: {$size} bytes
+
+Panduan Biomekanika Acuan:
+- Heel strike: Tumit mendarat lebih dulu. Jika Heel strike > 70% dianggap tinggi/dominan. Idealnya mendarat di midfoot/forefoot (heel strike < 40%).
+- Overstride: Kaki mendarat jauh di depan pinggul. Idealnya kaki mendarat di bawah pinggul (overstride < 35%). Overstride > 60% dianggap tinggi.
+- Shin angle (sudut betis): Sudut betis saat menyentuh tanah. Idealnya <= 10 derajat. Jika >= 18 derajat, kaki mengerem gerakan maju (braking force tinggi).
+- Knee flexion (fleksi lutut): Sudut tekukan lutut saat landing. Idealnya antara 30 hingga 55 derajat untuk menyerap benturan (shock absorption). Jika < 20 derajat, pendaratan terlalu kaku dan membebani sendi lutut/pinggul.
+- Trunk lean (postur condong badan): Kemiringan badan ke depan dari pergelangan kaki. Idealnya 5 hingga 15 derajat. Jika > 18 derajat (terlalu condong dari pinggang) atau < -5 derajat (terlalu tegak atau condong ke belakang), postur kurang efisien.
+- Arm cross: Ayunan tangan menyilang garis tengah tubuh (midline). Idealnya tangan di samping tubuh sejajar arah lari (arm cross < 45%). Jika >= 55%, menyebabkan torso berputar dan membuang energi.
+- Cadence: Jumlah langkah per menit. Rentang efisien: 165 - 190 SPM. Di bawah 155 SPM terlalu rendah dan biasanya berhubungan dengan overstriding.
+- Vertical oscillation (bounce): Naik turunnya tubuh. Idealnya rendah (< 0.012 unit deteksi). Bounce tinggi memboroskan energi ke atas bukannya ke depan.
+- Asymmetry: Ketidakseimbangan langkah kanan dan kiri. Idealnya < 0.25. Jika >= 0.25, terdeteksi ketidakseimbangan yang dapat memicu cedera unilateral.
+
+Berdasarkan data di atas, tolong berikan analisis lengkap. Anda harus menghitung/menentukan:
+1. \"score\" (integer 0-100): Nilai form lari keseluruhan pelari berdasarkan biomekanika.
+2. \"form_score\" (integer 0-100): Nilai murni biomekanika lari.
+3. \"positives\" (array of objects): Hal-hal yang sudah bagus dari form lari pelari. Maksimal 3. Setiap objek harus memiliki:
+   - \"code\" (string, camelCase/snake_case)
+   - \"title\" (string, ringkas & jelas)
+   - \"message\" (string, penjelasan mengapa ini bagus)
+   - \"severity\" (selalu \"good\")
+4. \"issues\" (array of objects): Masalah kualitas video atau biomekanika ringan. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+5. \"suggestions\" (array of objects): Saran taktis koreksi form lari. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+6. \"form_issues\" (array of objects): Masalah khusus biomekanika yang terdeteksi. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+7. \"strength_plan\" (array of objects): Lencana latihan penguatan otot (strength training) yang disesuaikan dengan kelemahan form mereka. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (\"info\")
+8. \"recovery_plan\" (array of objects): Rencana pemulihan atau pencegahan cedera awal. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (\"info\")
+9. \"coach_message\" (string): Ringkasan analisis biomekanika dan evaluasi objektif dalam Bahasa Indonesia yang profesional dan lugas. Berikan temuan kritis dan tips perbaikan spesifik berdasarkan data untuk pelari ini.
+10. \"form_report\" (array of 6 objects): Laporan detail untuk 6 fase/bagian form lari berikut:
+    - code: \"landing\" (pendaratan kaki/footstrike & overstride)
+    - code: \"lever\" (knee flex & shin angle)
+    - code: \"push\" (vertical oscillation / bounce)
+    - code: \"pull\" (swing/angkatan kaki)
+    - code: \"arm_swing\" (ayunan tangan)
+    - code: \"posture\" (posisi badan/trunk lean)
+    Setiap bagian di form_report wajib memiliki:
+    - \"code\" (string: \"landing\", \"lever\", \"push\", \"pull\", \"arm_swing\", atau \"posture\")
+    - \"title\" (string: \"Landing\", \"Lever (mid-stance)\", \"Push (toe-off)\", \"Pull (swing)\", \"Ayunan Tangan\", atau \"Postur & Stabilitas\")
+    - \"status\" (string: \"ok\", \"warn\", \"issue\", atau \"missing\")
+    - \"summary\" (string: kesimpulan singkat, contoh: \"Footstrike relatif aman\" atau \"Heel strike dominan\")
+    - \"findings\" (array of strings: temuan kuantitatif, contoh: [\"Heel strike: 45%\", \"Overstride: 12%\"])
+    - \"actions\" (array of strings: tindakan koreksi yang harus dilakukan)
+    - \"strength\" (array of strings: latihan kekuatan khusus untuk bagian ini)
+
+Format output harus JSON murni seperti ini:
+{
+  \"score\": 82,
+  \"form_score\": 82,
+  \"positives\": [...],
+  \"issues\": [...],
+  \"suggestions\": [...],
+  \"form_issues\": [...],
+  \"strength_plan\": [...],
+  \"recovery_plan\": [...],
+  \"coach_message\": \"...\",
+  \"form_report\": [...]
+}";
+
+        $responseContent = $openAiService->getAiResponse($prompt, $systemMessage);
+
+        if ($responseContent) {
+            $cleaned = $responseContent;
+            if (preg_match('/^\s*```(?:json)?\s*(.*?)\s*```\s*$/s', $cleaned, $matches)) {
+                $cleaned = $matches[1];
+            }
+            $decoded = json_decode($cleaned, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+        
+        return null;
+    }
+}

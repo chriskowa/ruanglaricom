@@ -198,7 +198,7 @@ class Trial extends Model
 
     public function isPublished(): bool
     {
-        return $this->status === self::STATUS_PUBLISHED;
+        return in_array($this->status, [self::STATUS_PUBLISHED, self::STATUS_APPROVED]);
     }
 
     public function isInvalid(): bool
