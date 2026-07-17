@@ -823,6 +823,17 @@
                             </div>
                         </div>
                     </div>
+                    @if($trial->isPublished())
+                    <div class="mt-3">
+                        <form action="{{ route('admin.running-analysis.trials.approve', $trial) }}" method="POST" id="reapprove-form">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Re-approve and publish this trial again?')"
+                                class="w-full h-10 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 hover:text-white hover:border-[#ccff00]/50 transition-colors flex items-center justify-center text-xs font-bold">
+                                <i class="fas fa-check-double mr-2"></i> Re-approve & Publish
+                            </button>
+                        </form>
+                    </div>
+                    @endif
                     @endif
                 </section>
                 @endif
