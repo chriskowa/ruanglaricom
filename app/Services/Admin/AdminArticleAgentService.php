@@ -16,6 +16,7 @@ class AdminArticleAgentService
 
     private string $modelBrainstorm = 'gpt-5.6';
     private string $modelSummary    = 'gpt-4o-mini';
+    private string $modelTranslate  = 'gpt-4o-mini';
     private string $modelWriting    = 'gpt-5.5';
 
     public function __construct()
@@ -315,6 +316,80 @@ class AdminArticleAgentService
     }
 
     /**
+     * Langkah 4b: Translate/Generate versi EN dari artikel ID yang sudah dibuat.
+     * Menggunakan research_summary + selected_option_data yang sama, lalu
+     * menerjemahkan & mengadaptasi ke bahasa Inggris (SEO EN).
+     */
+    public function step3_doWriteEn(string $uuid): array
+    {
+        $session = ArticleAgent::find($uuid);
+        if (!$session) {
+            throw new Exception("Session not found.");
+        }
+
+        $generatedId = $session->generated_article_content;
+        if (!is_array($generatedId)) {
+            $generatedId = json_decode($generatedId, true) ?: [];
+        }
+        if (empty($generatedId['content'])) {
+            throw new Exception("Konten ID belum dibuat. Generate versi Indonesia terlebih dahulu.");
+        }
+
+        $selectedData = $session->selected_option_data ?? [];
+        $idContent     = $generatedId['content'];
+
+        $systemPrompt = "You are a highly skilled SEO specialist and high-quality content writer for a running blog (Ruang Lari).\n" .
+                        "Your task is to translate and adapt the following Indonesian running article into fluent, natural English.\n" .
+                        "Keep the same structure, headings, lists, tables, and the [Gambar: ...] image prompt markers exactly as they are.\n" .
+                        "Adapt the title, meta description, excerpt, and slug for an English-speaking audience with proper English SEO keywords.\n" .
+                        "The article must be 100% unique, plagiarism-free, and read like human-written English.\n" .
+                        "Do NOT add a conclusion at the end.\n" .
+
+                        "HTML STRUCTURE INSTRUCTIONS (IMPORTANT):\n" .
+                        "- Use <h2> for main sub-headings. Do not use <h1>.\n" .
+                        "- Use <h3> for sub-sub-headings if needed.\n" .
+                        "- Use <p> for each paragraph.\n" .
+                        "- Use <strong> for bold and <em> for italic.\n" .
+                        "- Use 1 <a> tag with target='_blank' for an external hyperlink to one of the sources.\n" .
+                        "- For bullet points, use <ul>/<ol> with <li>.\n" .
+                        "- For comparison/statistics data, use <table> with <thead>/<tbody>.\n" .
+                        "- For quotes, use <blockquote>.\n" .
+                        "- Do not wrap output in markdown code blocks. Return raw HTML string.\n" .
+
+                        "IMAGE PROMPT INSTRUCTIONS (REQUIRED):\n" .
+                        "- Keep every [Gambar: ...] marker exactly as in the source, translated to English inside the brackets.\n" .
+                        "- Format must be exactly: [Gambar: detailed visual description...]\n" .
+
+                        "Return format: JSON object with keys: 'content' (HTML body), 'title', 'meta_description', 'excerpt', 'slug'.\n" .
+                        "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
+
+        $userPrompt = "Original Indonesian Title: {$generatedId['title']}\n" .
+                      "Focus Keyword (ID): {$selectedData['keyword']}\n" .
+                      "Indonesian Article Content (translate & adapt to English):\n{$idContent}\n";
+
+        $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
+
+        $decoded = json_decode($rawResponse, true);
+        if (!is_array($decoded)) {
+            $decoded = ['content' => $rawResponse];
+        }
+
+        $decoded['title']   = $decoded['title'] ?? ($generatedId['title'] ?? '');
+        $decoded['keyword'] = $selectedData['keyword'] ?? '';
+
+        $session->update(['generated_article_content_en' => $decoded]);
+
+        $content = $decoded['content'] ?? '';
+        $imagePrompts = $this->parseImagePrompts($content);
+
+        return [
+            'uuid'          => $uuid,
+            'result'        => $decoded,
+            'image_prompts' => $imagePrompts,
+        ];
+    }
+
+    /**
      * Simpan hasil agent ke Article (create baru atau update existing).
      */
     public function applyToArticle(string $uuid, ?int $articleId = null, ?string $contentOverride = null): Article
@@ -327,6 +402,11 @@ class AdminArticleAgentService
         $generated = $session->generated_article_content;
         if (!is_array($generated)) {
             $generated = json_decode($generated, true) ?: [];
+        }
+
+        $generatedEn = $session->generated_article_content_en;
+        if (!is_array($generatedEn)) {
+            $generatedEn = json_decode($generatedEn, true) ?: [];
         }
 
         $selected = $session->selected_option_data ?? [];
@@ -356,6 +436,16 @@ class AdminArticleAgentService
             'status'           => 'draft',
             'user_id'          => auth()->id(),
         ];
+
+        // Isi versi EN jika sudah digenerate.
+        if (!empty($generatedEn['content'])) {
+            $data['title_en']            = $generatedEn['title'] ?? null;
+            $data['excerpt_en']          = $generatedEn['excerpt'] ?? $generatedEn['meta_description'] ?? null;
+            $data['content_en']          = $generatedEn['content'];
+            $data['meta_title_en']       = $generatedEn['title'] ?? null;
+            $data['meta_description_en'] = $generatedEn['meta_description'] ?? null;
+            $data['meta_keywords_en']    = $selected['keyword'] ?? null;
+        }
 
         if ($articleId) {
             $article = Article::findOrFail($articleId);

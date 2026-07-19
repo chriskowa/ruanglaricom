@@ -913,6 +913,7 @@ Route::middleware('auth')->group(function () {
         Route::post('blog/articles/agent/brainstorm', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'brainstorm'])->name('blog.articles.agent.brainstorm');
         Route::post('blog/articles/agent/research', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'research'])->name('blog.articles.agent.research');
         Route::post('blog/articles/agent/write', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'write'])->name('blog.articles.agent.write');
+        Route::post('blog/articles/agent/write-en', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'writeEn'])->name('blog.articles.agent.write-en');
         Route::post('blog/articles/agent/apply', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'apply'])->name('blog.articles.agent.apply');
         Route::post('blog/articles/{article}/toggle-featured', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'toggleFeatured'])->name('blog.articles.toggle-featured');
         Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');

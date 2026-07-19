@@ -20,6 +20,7 @@ class ArticleAgent extends Model
         'research_raw_tavily',
         'research_summary',
         'generated_article_content',
+        'generated_article_content_en',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class ArticleAgent extends Model
         'selected_option_data'      => 'array',
         'research_raw_tavily'       => 'array',
         'generated_article_content' => 'array',
+        'generated_article_content_en' => 'array',
     ];
 
     public function parent(): BelongsTo

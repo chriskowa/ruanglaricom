@@ -79,6 +79,23 @@ class ArticleAgentController extends Controller
     }
 
     /**
+     * Step 3b: Generate versi EN dari artikel ID yang sudah dibuat.
+     */
+    public function writeEn(Request $request)
+    {
+        $request->validate([
+            'uuid' => 'required|string',
+        ]);
+
+        try {
+            $result = $this->service->step3_doWriteEn($request->uuid);
+            return response()->json(['success' => true, ...$result]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Terapkan hasil agent ke Article (create baru atau update existing).
      */
     public function apply(Request $request)

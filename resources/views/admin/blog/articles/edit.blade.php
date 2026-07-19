@@ -319,6 +319,9 @@
                     <button type="button" onclick="aaGotoStep(2)" id="aa-btn-back-write" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-all hidden">
                         &larr; Pilih
                     </button>
+                    <button type="button" onclick="aaGenerateEn()" id="aa-btn-generate-en" class="py-3 rounded-xl bg-indigo-600 border border-indigo-400 text-white font-semibold hover:bg-indigo-500 transition-all flex items-center justify-center gap-2 hidden">
+                        <i class="fas fa-language"></i> Generate EN
+                    </button>
                     <button type="button" onclick="aaApply()" id="aa-btn-apply" class="flex-[2] py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all flex items-center justify-center gap-2 hidden">
                         Generate Ulang Artikel Ini
                     </button>
@@ -912,6 +915,8 @@
             '<div class="text-fuchsia-300 text-xs mb-2">' + (result.meta_description || '') + '</div>' +
             '<div class="text-slate-300 text-xs">' + previewText + (aaContent ? '...' : '') + '</div>';
         btnApply.classList.remove('hidden');
+        const btnEn = document.getElementById('aa-btn-generate-en');
+        if (btnEn) btnEn.classList.remove('hidden');
         const backWrite = document.getElementById('aa-btn-back-write');
         if (backWrite) backWrite.classList.remove('hidden');
 
@@ -989,6 +994,27 @@
             document.execCommand('copy'); document.body.removeChild(ta);
             alert('Prompt tersalin ke clipboard.');
         });
+    }
+
+    async function aaGenerateEn() {
+        if (!aaUuid) { alert('Generate artikel Indonesia dulu.'); return; }
+        const btn = document.getElementById('aa-btn-generate-en');
+        const status = document.getElementById('aa-write-status');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generate EN...';
+        status.textContent = 'Menerjemahkan ke bahasa Inggris... (30-60 detik)';
+
+        const res = await aaPost('{{ route("admin.blog.articles.agent.write-en") }}', { uuid: aaUuid });
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-language"></i> Generate EN';
+        if (!res.success) { status.textContent = 'Gagal EN: ' + (res.message || 'Unknown'); return; }
+
+        status.textContent = 'Versi EN selesai! Klik "Generate Ulang Artikel Ini" untuk menyimpan ke kolom EN.';
+        const result = res.result || {};
+        if (result.title) {
+            const preview = document.getElementById('aa-result-preview');
+            preview.classList.remove('hidden');
+            preview.innerHTML = '<div class="text-xs text-indigo-300 font-bold mb-1">EN: ' + result.title + '</div>' +
+                '<div class="text-slate-300 text-xs">' + (result.meta_description || '').replace(/</g, '&lt;') + '</div>';
+        }
     }
 
     async function aaApply() {
