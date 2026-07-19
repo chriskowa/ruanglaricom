@@ -293,6 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (isHidden) {
                     menu.classList.remove('hidden');
+                    // Lazy-load notifications when the bell is opened
+                    if (toggle.menu === 'nav-bell-dropdown') {
+                        fetchNotifications(true);
+                    }
                 }
             });
         }
@@ -320,11 +324,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
             return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
+        if (notif.reference_type === 'App\\Models\\RunningAnalysis\\AnalysisRequest') {
+            if (userRole === 'admin' && notif.reference_id) {
+                return @json(route('admin.running-analysis.requests.show', ':id')).replace(':id', notif.reference_id);
+            }
+            if (notif.reference_id) {
+                return @json(route('runner.analysis-requests.index'));
+            }
+        }
         return @json(route('notifications.index'));
     }
 
-    function fetchNotifications() {
+    function fetchNotifications(showLoading = false) {
         if (!isAuthenticated || !supportsCartAndNotif) return;
+
+        if (showLoading && notifList) {
+            notifList.innerHTML =
+                '<div class="p-8 text-center">' +
+                    '<div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>' +
+                    '<p class="text-slate-400 text-sm">Memuat notifikasi...</p>' +
+                '</div>';
+        }
 
         fetch('{{ route("notifications.unread") }}', {
             headers: { 'Accept': 'application/json' }

@@ -37,6 +37,14 @@
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && authRole === 'admin') {
             return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
+        if (notif.reference_type === 'App\\Models\\RunningAnalysis\\AnalysisRequest') {
+            if (authRole === 'admin' && notif.reference_id) {
+                return @json(route('admin.running-analysis.requests.show', ':id')).replace(':id', notif.reference_id);
+            }
+            if (notif.reference_id) {
+                return @json(route('runner.analysis-requests.index'));
+            }
+        }
         return @json(route("notifications.index"));
     }
     

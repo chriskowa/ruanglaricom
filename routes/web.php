@@ -353,7 +353,7 @@ Route::post('/pacer-bookings/webhook', [App\Http\Controllers\PacerBookingWebhook
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
 Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])
-    ->where('username', '^(?!dashboard$)(?!calendar$)(?!programs$)[A-Za-z0-9._-]+$')
+    ->where('username', '^(?!dashboard$)(?!calendar$)(?!programs$)(?!analysis-requests$)[A-Za-z0-9._]+$')
     ->name('runner.profile.show');
 
 // Coach Registration Routes
@@ -850,6 +850,16 @@ Route::middleware('auth')->group(function () {
             Route::post('/trials/{trial}/approve', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'approve'])->name('trials.approve');
             Route::get('/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveArtifact'])->name('trials.artifact');
             Route::post('/trials/{trial}/analyze-sync', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'analyzeSync'])->name('trials.analyze-sync');
+
+            // Runner Analysis Requests (Admin management)
+            Route::prefix('requests')->name('requests.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'index'])->name('index');
+                Route::get('/{analysisRequest}', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'show'])->name('show');
+                Route::post('/{analysisRequest}/approve', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'approve'])->name('approve');
+                Route::post('/{analysisRequest}/reject', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'reject'])->name('reject');
+                Route::post('/{analysisRequest}/schedule', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'schedule'])->name('schedule');
+                Route::post('/{analysisRequest}/complete', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'complete'])->name('complete');
+            });
         });
 
         // Event Calendar Management
@@ -966,6 +976,13 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
+        // Running Analysis Requests (Runner-initiated)
+        Route::prefix('analysis-requests')->name('analysis-requests.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Runner\AnalysisRequestController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Runner\AnalysisRequestController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\Runner\AnalysisRequestController::class, 'store'])->name('store');
+        });
+
         // Running Analysis Review for Runner
         Route::get('/running-analysis/trials/{trial}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'runnerReview'])->name('running-analysis.trials.review');
         Route::get('/running-analysis/trials/{trial}/pdf', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'runnerDownloadPdf'])->name('running-analysis.trials.pdf');

@@ -35,9 +35,21 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('admin.running-analysis.sessions.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.running-analysis.*') ? $activeClass : $inactiveClass }}">
+                                <a href="{{ route('admin.running-analysis.sessions.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.running-analysis.sessions.*', 'admin.running-analysis.trials.*', 'admin.running-analysis.capture', 'admin.running-analysis.upload-video.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-person-running"></i></span>
                                     <span>Analisis Lari</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.running-analysis.requests.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.running-analysis.requests.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-clipboard-list"></i></span>
+                                    <span>Permintaan Analisis</span>
+                                    @php
+                                        $pendingReqCount = \App\Models\RunningAnalysis\AnalysisRequest::where('status', 'pending')->count();
+                                    @endphp
+                                    @if ($pendingReqCount > 0)
+                                        <span class="ml-auto text-[10px] font-black bg-neon text-[#121212] rounded-full px-1.5 py-0.5">{{ $pendingReqCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li>
@@ -202,6 +214,12 @@
                                 <a href="{{ route('challenge.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('challenge.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-trophy"></i></span>
                                     <span>Leaderboard 40days</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('runner.analysis-requests.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.analysis-requests.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-person-running"></i></span>
+                                    <span>Analisis Lari</span>
                                 </a>
                             </li>
                         @elseif(auth()->user()->isEventOrganizer())
