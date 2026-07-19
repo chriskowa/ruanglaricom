@@ -48,6 +48,10 @@ return [
         'endpoint' => env('OPENAI_ENDPOINT', 'responses'),
     ],
 
+    'tavily' => [
+        'api_key' => env('TAVILY_API_KEY'),
+    ],
+
     'tinymce' => [
         'api_key' => env('TINYMCE_API_KEY'),
     ],

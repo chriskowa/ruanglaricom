@@ -900,9 +900,15 @@ Route::middleware('auth')->group(function () {
 
         // Blog Management
         Route::post('blog/articles/generate', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'generate'])->name('blog.articles.generate');
+        Route::post('blog/articles/agent/brainstorm', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'brainstorm'])->name('blog.articles.agent.brainstorm');
+        Route::post('blog/articles/agent/research', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'research'])->name('blog.articles.agent.research');
+        Route::post('blog/articles/agent/write', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'write'])->name('blog.articles.agent.write');
+        Route::post('blog/articles/agent/apply', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'apply'])->name('blog.articles.agent.apply');
         Route::post('blog/articles/{article}/toggle-featured', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'toggleFeatured'])->name('blog.articles.toggle-featured');
         Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');
         Route::resource('blog/categories', App\Http\Controllers\Admin\Blog\CategoryController::class)->names('blog.categories');
+        Route::resource('blog/ai-topics', App\Http\Controllers\Admin\Blog\AiArticleTopicController::class)->names('blog.ai-topics')->except(['show']);
+        Route::post('blog/ai-topics/seed', [App\Http\Controllers\Admin\Blog\AiArticleTopicController::class, 'seed'])->name('blog.ai-topics.seed');
         Route::post('blog/images/upload', [App\Http\Controllers\Admin\Blog\ImageController::class, 'upload'])->name('blog.images.upload');
         Route::get('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'index'])->name('blog.import');
         Route::post('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'store'])->name('blog.import.store');
