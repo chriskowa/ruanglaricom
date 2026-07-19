@@ -460,9 +460,49 @@
 
     const copyBtn = document.getElementById('btn-copy-id-to-en');
     if (copyBtn) {
-        copyBtn.addEventListener('click', () => {
-            copyIdToEn();
-            setLangTab('en');
+        copyBtn.addEventListener('click', async () => {
+            const originalLabel = copyBtn.innerHTML;
+            copyBtn.disabled = true;
+            copyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menerjemahkan...';
+
+            try {
+                const idEditor = tinymce.get('editor_id');
+                const payload = {
+                    title: document.querySelector('input[name="title"]')?.value || '',
+                    excerpt: document.querySelector('textarea[name="excerpt"]')?.value || '',
+                    content: idEditor ? idEditor.getContent() : '',
+                    meta_title: document.querySelector('input[name="meta_title"]')?.value || '',
+                    meta_description: document.querySelector('textarea[name="meta_description"]')?.value || '',
+                    meta_keywords: document.querySelector('input[name="meta_keywords"]')?.value || '',
+                };
+
+                const res = await aaPost('{{ route("admin.blog.articles.agent.translate") }}', payload);
+
+                if (res.success) {
+                    const setVal = (sel, val) => {
+                        const el = document.querySelector(sel);
+                        if (el && val) el.value = val;
+                    };
+                    setVal('input[name="title_en"]', res.title);
+                    setVal('textarea[name="excerpt_en"]', res.excerpt);
+                    setVal('input[name="meta_title_en"]', res.meta_title);
+                    setVal('textarea[name="meta_description_en"]', res.meta_description);
+                    setVal('input[name="meta_keywords_en"]', res.meta_keywords);
+
+                    const enEditor = tinymce.get('editor_en');
+                    if (enEditor && res.content) {
+                        enEditor.setContent(res.content);
+                    }
+                } else {
+                    alert('Gagal menerjemahkan: ' + (res.message || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan saat menerjemahkan.');
+            } finally {
+                copyBtn.disabled = false;
+                copyBtn.innerHTML = originalLabel;
+                setLangTab('en');
+            }
         });
     }
 

@@ -252,7 +252,7 @@ class AdminArticleAgentService
                         "- Jika ada kutipan, gunakan <blockquote>.\n" .
                         "- Jangan sertakan markdown code block. Berikan raw string HTML.\n" .
 
-                        "Selain itu, buatlah meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat, dan slug pendek.\n" .
+                        "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat, dan slug pendek.\n" .
                         "Jangan buat focus keyword menjadi bold di dalam artikel.\n" .
 
                         "INSTRUKSI PROMPT GAMBAR (WAJIB):\n" .
@@ -262,7 +262,7 @@ class AdminArticleAgentService
                         "- Letakkan teks prompt tersebut di dalam tag <p> tersendiri atau tepat di bawah <h2>.\n" .
                         "- Jangan gunakan tanda kurung biasa, HARUS diawali dan diakhiri dengan tanda kurung siku [ dan ].\n" .
 
-                        "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_description', 'excerpt', 'slug'.\n" .
+                        "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug'.\n" .
                         "IMPORTANT: Pastikan semua double quote di dalam 'content' ter-escape agar JSON valid.";
 
         $userPrompt = "Title: {$selectedData['title']}\n" .
@@ -390,6 +390,56 @@ class AdminArticleAgentService
     }
 
     /**
+     * Terjemahkan konten ID (dari form artikel) ke EN secara langsung.
+     * Menerima field ID dan mengembalikan hasil terjemahan EN.
+     */
+    public function translateToEn(array $input): array
+    {
+        $titleId     = trim($input['title'] ?? '');
+        $excerptId   = trim($input['excerpt'] ?? '');
+        $contentId   = trim($input['content'] ?? '');
+        $metaTitleId = trim($input['meta_title'] ?? '');
+        $metaDescId  = trim($input['meta_description'] ?? '');
+        $keywordsId  = trim($input['meta_keywords'] ?? '');
+
+        if ($titleId === '' && $contentId === '') {
+            throw new Exception("Konten ID (title/content) kosong. Tidak ada yang diterjemahkan.");
+        }
+
+        $systemPrompt = "You are a professional translator and SEO editor for a running blog (Ruang Lari).\n" .
+                        "Translate and adapt the provided Indonesian article fields into fluent, natural English.\n" .
+                        "Keep the same HTML structure (headings, lists, tables, links) and the [Gambar: ...] image prompt markers exactly as they are.\n" .
+                        "Adapt the title, meta title, meta description, and keywords for an English-speaking audience with proper English SEO.\n" .
+                        "The result must read like human-written English, 100% unique and plagiarism-free.\n" .
+                        "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'.\n" .
+                        "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
+
+        $userPrompt = "Translate the following Indonesian article fields into English:\n\n" .
+                      "Title (ID): {$titleId}\n" .
+                      "Excerpt (ID): {$excerptId}\n" .
+                      "Meta Title (ID): {$metaTitleId}\n" .
+                      "Meta Description (ID): {$metaDescId}\n" .
+                      "Meta Keywords (ID): {$keywordsId}\n" .
+                      "Content (ID HTML):\n{$contentId}\n";
+
+        $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
+
+        $decoded = json_decode($rawResponse, true);
+        if (!is_array($decoded)) {
+            $decoded = ['content' => $rawResponse];
+        }
+
+        return [
+            'title'            => $decoded['title'] ?? '',
+            'excerpt'          => $decoded['excerpt'] ?? '',
+            'content'          => $decoded['content'] ?? '',
+            'meta_title'       => $decoded['meta_title'] ?? '',
+            'meta_description' => $decoded['meta_description'] ?? '',
+            'meta_keywords'    => $decoded['meta_keywords'] ?? '',
+        ];
+    }
+
+    /**
      * Simpan hasil agent ke Article (create baru atau update existing).
      */
     public function applyToArticle(string $uuid, ?int $articleId = null, ?string $contentOverride = null): Article
@@ -431,6 +481,7 @@ class AdminArticleAgentService
             'slug'             => $slug,
             'excerpt'          => $generated['excerpt'] ?? $generated['meta_description'] ?? null,
             'content'          => $content,
+            'meta_title'       => $generated['meta_title'] ?? null,
             'meta_description' => $generated['meta_description'] ?? null,
             'meta_keywords'    => $selected['keyword'] ?? null,
             'status'           => 'draft',
@@ -442,7 +493,7 @@ class AdminArticleAgentService
             $data['title_en']            = $generatedEn['title'] ?? null;
             $data['excerpt_en']          = $generatedEn['excerpt'] ?? $generatedEn['meta_description'] ?? null;
             $data['content_en']          = $generatedEn['content'];
-            $data['meta_title_en']       = $generatedEn['title'] ?? null;
+            $data['meta_title_en']       = $generatedEn['meta_title'] ?? $generatedEn['title'] ?? null;
             $data['meta_description_en'] = $generatedEn['meta_description'] ?? null;
             $data['meta_keywords_en']    = $selected['keyword'] ?? null;
         }

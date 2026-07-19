@@ -96,6 +96,30 @@ class ArticleAgentController extends Controller
     }
 
     /**
+     * Terjemahkan konten ID (dari form) ke EN secara langsung.
+     */
+    public function translate(Request $request)
+    {
+        $request->validate([
+            'title'            => 'nullable|string',
+            'excerpt'          => 'nullable|string',
+            'content'          => 'nullable|string',
+            'meta_title'       => 'nullable|string',
+            'meta_description' => 'nullable|string',
+            'meta_keywords'    => 'nullable|string',
+        ]);
+
+        try {
+            $result = $this->service->translateToEn($request->only(
+                'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'
+            ));
+            return response()->json(['success' => true, ...$result]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Terapkan hasil agent ke Article (create baru atau update existing).
      */
     public function apply(Request $request)
