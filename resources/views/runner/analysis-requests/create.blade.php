@@ -74,6 +74,21 @@
                 @enderror
             </div>
 
+            <!-- Video Link -->
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Link Video Lari</label>
+                <input type="url" name="video_url" maxlength="2000" value="{{ old('video_url') }}"
+                       class="w-full rounded-xl bg-slate-900/60 border border-slate-700 text-slate-100 px-4 py-3 text-sm focus:border-neon focus:outline-none transition"
+                       placeholder="https://drive.google.com/... atau link lainnya">
+                <p class="text-slate-500 text-xs mt-1.5 flex items-start gap-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Upload video lari Anda ke Google Drive, Dropbox, atau layanan lain, lalu tempelkan link-nya di sini. Pastikan akses diatur ke <b>"Siapa saja yang memiliki link"</b> agar admin bisa membukanya.</span>
+                </p>
+                @error('video_url')
+                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
             <!-- Preferred Location -->
             <div>
                 <label class="block text-sm font-bold text-slate-200 mb-2">Lokasi Preferensi</label>

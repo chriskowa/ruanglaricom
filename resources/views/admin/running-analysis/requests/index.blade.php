@@ -29,16 +29,6 @@
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6 relative z-10">
-        @php
-            $statTabs = [
-                'all' => ['label' => 'Total', 'count' => $counts['all'], 'color' => 'slate'],
-                'pending' => ['label' => 'Menunggu', 'count' => $counts['pending'], 'color' => 'yellow'],
-                'approved' => ['label' => 'Disetujui', 'count' => $counts['approved'], 'color' => 'green'],
-                'scheduled' => ['label' => 'Dijadwal', 'count' => $counts['scheduled'], 'color' => 'blue'],
-                'completed' => ['label' => 'Selesai', 'count' => $counts['completed'], 'color' => 'purple'],
-                'rejected' => ['label' => 'Ditolak', 'count' => $counts['rejected'], 'color' => 'red'],
-            ];
-        @endphp
         @foreach ($statTabs as $key => $tab)
             <a href="{{ route('admin.running-analysis.requests.index', ['status' => $key]) }}"
                class="bg-card/50 backdrop-blur-md border rounded-2xl p-4 transition-all hover:scale-[1.02]

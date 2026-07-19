@@ -21,6 +21,7 @@ class AnalysisRequest extends Model
         'focus_area',
         'goals',
         'notes',
+        'video_url',
         'preferred_location',
         'preferred_date',
         'status',
@@ -36,6 +37,11 @@ class AnalysisRequest extends Model
             'preferred_date' => 'date',
             'handled_at'     => 'datetime',
         ];
+    }
+
+    public function hasVideo(): bool
+    {
+        return ! empty($this->video_url);
     }
 
     // ------------------------------------------------------------------
@@ -109,3 +115,7 @@ class AnalysisRequest extends Model
         };
     }
 }
+
+
+
+

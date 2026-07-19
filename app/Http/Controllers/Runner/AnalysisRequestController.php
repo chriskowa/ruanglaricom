@@ -74,6 +74,7 @@ class AnalysisRequestController extends Controller
             'focus_area'         => ['required', 'string', 'in:' . implode(',', array_keys(AnalysisRequest::FOCUS_AREAS))],
             'goals'              => ['nullable', 'string', 'max:1000'],
             'notes'              => ['nullable', 'string', 'max:1000'],
+            'video_url'          => ['nullable', 'string', 'url', 'max:2000'],
             'preferred_location' => ['nullable', 'string', 'max:255'],
             'preferred_date'     => ['nullable', 'date', 'after_or_equal:today'],
         ]);
@@ -85,6 +86,7 @@ class AnalysisRequestController extends Controller
             'focus_area'         => $validated['focus_area'],
             'goals'              => $validated['goals'] ?? null,
             'notes'              => $validated['notes'] ?? null,
+            'video_url'          => $validated['video_url'] ?? null,
             'preferred_location' => $validated['preferred_location'] ?? null,
             'preferred_date'     => $validated['preferred_date'] ?? null,
             'status'             => AnalysisRequest::STATUS_PENDING,

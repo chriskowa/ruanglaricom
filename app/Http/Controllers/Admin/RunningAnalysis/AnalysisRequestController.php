@@ -34,10 +34,20 @@ class AnalysisRequestController extends Controller
             'rejected'  => AnalysisRequest::where('status', AnalysisRequest::STATUS_REJECTED)->count(),
         ];
 
+        $statTabs = [
+            'all'       => ['label' => 'Total', 'count' => $counts['all'], 'color' => 'slate'],
+            'pending'   => ['label' => 'Menunggu', 'count' => $counts['pending'], 'color' => 'yellow'],
+            'approved'  => ['label' => 'Disetujui', 'count' => $counts['approved'], 'color' => 'green'],
+            'scheduled' => ['label' => 'Dijadwal', 'count' => $counts['scheduled'], 'color' => 'blue'],
+            'completed' => ['label' => 'Selesai', 'count' => $counts['completed'], 'color' => 'purple'],
+            'rejected'  => ['label' => 'Ditolak', 'count' => $counts['rejected'], 'color' => 'red'],
+        ];
+
         return view('admin.running-analysis.requests.index', [
             'requests' => $requests,
             'counts'   => $counts,
             'status'   => $status,
+            'statTabs' => $statTabs,
         ]);
     }
 
