@@ -424,8 +424,19 @@ class AdminArticleAgentService
 
         $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
 
-        $decoded = json_decode($rawResponse, true);
+        // Bersihkan code fence (```json ... ```) dan teks pengantar sebelum decode.
+        $cleanJson = trim(str_replace(['```json', '```'], '', $rawResponse));
+        $decoded   = json_decode($cleanJson, true);
+
+        // Fallback: ekstrak substring JSON pertama jika masih gagal.
         if (!is_array($decoded)) {
+            if (preg_match('/\{.*\}/s', $cleanJson, $m)) {
+                $decoded = json_decode($m[0], true);
+            }
+        }
+
+        if (!is_array($decoded)) {
+            // Gagal parse: kembalikan raw sebagai content agar tidak kosong.
             $decoded = ['content' => $rawResponse];
         }
 
