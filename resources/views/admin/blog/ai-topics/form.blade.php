@@ -12,7 +12,7 @@
             <div class="mb-4 px-4 py-3 rounded-xl bg-green-500/20 border border-green-500/40 text-green-300 text-sm">{{ session('success') }}</div>
         @endif
 
-        <form method="POST" action="{{ $topic ? route('blog.ai-topics.update', $topic) : route('blog.ai-topics.store') }}" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 space-y-5">
+        <form method="POST" action="{{ $topic ? route('admin.blog.ai-topics.update', $topic) : route('admin.blog.ai-topics.store') }}" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 space-y-5">
             @csrf
             @if($topic) @method('PUT') @endif
 
@@ -41,7 +41,7 @@
                 <button type="submit" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all">
                     {{ $topic ? 'Simpan' : 'Tambah' }}
                 </button>
-                <a href="{{ route('blog.ai-topics.index') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold">
+                <a href="{{ route('admin.blog.ai-topics.index') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold">
                     Batal
                 </a>
             </div>

@@ -34,7 +34,7 @@ class AiArticleTopicController extends Controller
 
         AiArticleTopic::create($data);
 
-        return redirect()->route('blog.ai-topics.index')
+        return redirect()->route('admin.blog.ai-topics.index')
             ->with('success', 'Topik auto-blog berhasil ditambahkan.');
     }
 
@@ -55,7 +55,7 @@ class AiArticleTopicController extends Controller
 
         $aiTopic->update($data);
 
-        return redirect()->route('blog.ai-topics.index')
+        return redirect()->route('admin.blog.ai-topics.index')
             ->with('success', 'Topik auto-blog berhasil diperbarui.');
     }
 
@@ -63,7 +63,7 @@ class AiArticleTopicController extends Controller
     {
         $aiTopic->delete();
 
-        return redirect()->route('blog.ai-topics.index')
+        return redirect()->route('admin.blog.ai-topics.index')
             ->with('success', 'Topik auto-blog berhasil dihapus.');
     }
 
@@ -90,7 +90,7 @@ class AiArticleTopicController extends Controller
             }
         }
 
-        return redirect()->route('blog.ai-topics.index')
+        return redirect()->route('admin.blog.ai-topics.index')
             ->with('success', "Seeded {$added} topik dunia lari default.");
     }
 }

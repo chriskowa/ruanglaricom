@@ -22,7 +22,7 @@
             <a href="{{ route('admin.blog.categories.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">
                 Manage Categories
             </a>
-            <a href="{{ route('blog.ai-topics.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">
+            <a href="{{ route('admin.blog.ai-topics.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">
                 Auto Blog Topics
             </a>
             <a href="{{ route('admin.blog.articles.create') }}" class="px-4 py-2 rounded-xl bg-neon text-dark hover:bg-neon/90 transition-all font-bold text-sm flex items-center gap-2">

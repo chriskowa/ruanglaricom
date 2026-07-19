@@ -12,13 +12,13 @@
             <p class="text-slate-400 mt-1">Topik untuk generator artikel otomatis harian (draft). Dijalankan tiap 01:00 via scheduler.</p>
         </div>
         <div class="flex gap-3">
-            <form action="{{ route('blog.ai-topics.seed') }}" method="POST">
+            <form action="{{ route('admin.blog.ai-topics.seed') }}" method="POST">
                 @csrf
                 <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">
                     Seed Topik Lari
                 </button>
             </form>
-            <a href="{{ route('blog.ai-topics.create') }}" class="px-4 py-2 rounded-xl bg-neon text-dark hover:bg-neon/90 transition-all font-bold text-sm flex items-center gap-2">
+            <a href="{{ route('admin.blog.ai-topics.create') }}" class="px-4 py-2 rounded-xl bg-neon text-dark hover:bg-neon/90 transition-all font-bold text-sm flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                 Topik Baru
             </a>
@@ -53,8 +53,8 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right whitespace-nowrap">
-                            <a href="{{ route('blog.ai-topics.edit', $t) }}" class="text-fuchsia-400 hover:text-fuchsia-300 text-sm font-bold mr-3">Edit</a>
-                            <form action="{{ route('blog.ai-topics.destroy', $t) }}" method="POST" class="inline" onsubmit="return confirm('Hapus topik ini?')">
+                            <a href="{{ route('admin.blog.ai-topics.edit', $t) }}" class="text-fuchsia-400 hover:text-fuchsia-300 text-sm font-bold mr-3">Edit</a>
+                            <form action="{{ route('admin.blog.ai-topics.destroy', $t) }}" method="POST" class="inline" onsubmit="return confirm('Hapus topik ini?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-red-400 hover:text-red-300 text-sm font-bold">Hapus</button>
                             </form>
