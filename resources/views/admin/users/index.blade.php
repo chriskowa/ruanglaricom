@@ -91,7 +91,6 @@
 
     init() {
         this.initPaginationListener();
-        this.initWaToggleListener();
         this.$watch('activeTab', (tab) => {
             if (tab === 'wallet') this.ensureWalletTransactionsLoaded();
         });
@@ -153,57 +152,6 @@
                     this.fetchUsers(href);
                 }
             }
-        });
-    },
-
-    initWaToggleListener() {
-        const container = document.getElementById('users-table-container');
-        if (!container) return;
-
-        container.addEventListener('click', (e) => {
-            const btn = e.target.closest('.wa-toggle');
-            if (!btn || !container.contains(btn)) return;
-            e.preventDefault();
-
-            if (btn.dataset.busy === '1') return;
-            btn.dataset.busy = '1';
-
-            const url = btn.dataset.url;
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            })
-            .then(async (res) => {
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok || !data.success) {
-                    throw new Error(data.message || 'Gagal mengubah status WhatsApp.');
-                }
-                const on = data.is_receive_wa;
-                btn.dataset.state = on ? '1' : '0';
-                btn.classList.toggle('bg-green-500', on);
-                btn.classList.toggle('bg-slate-600', !on);
-                btn.title = on ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable';
-                const knob = btn.querySelector('.wa-knob');
-                if (knob) {
-                    knob.classList.toggle('translate-x-6', on);
-                    knob.classList.toggle('translate-x-1', !on);
-                }
-            })
-            .catch((err) => {
-                console.error('WA toggle error:', err);
-                alert(err.message || 'Terjadi kesalahan.');
-            })
-            .finally(() => {
-                btn.dataset.busy = '0';
-            });
         });
     },
 
@@ -1027,6 +975,71 @@
         // Catch specific Alpine.js errors or other common JS errors
         console.error('Global error caught:', event.message, event.filename, event.lineno);
     });
+
+    // WA Notify toggle (decoupled from Alpine; uses event delegation so it
+    // keeps working after the table is re-rendered via fetchUsers()).
+    (function () {
+        function bindWaToggle() {
+            var container = document.getElementById('users-table-container');
+            if (!container || container.dataset.waBound === '1') return;
+            container.dataset.waBound = '1';
+
+            container.addEventListener('click', function (e) {
+                var btn = e.target.closest('.wa-toggle');
+                if (!btn || !container.contains(btn)) return;
+                e.preventDefault();
+
+                if (btn.dataset.busy === '1') return;
+                btn.dataset.busy = '1';
+
+                var url = btn.dataset.url;
+                var token = '';
+                var meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) token = meta.getAttribute('content') || '';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        if (!res.ok || !data.success) {
+                            throw new Error((data && data.message) || 'Gagal mengubah status WhatsApp.');
+                        }
+                        var on = !!data.is_receive_wa;
+                        btn.dataset.state = on ? '1' : '0';
+                        btn.classList.toggle('bg-green-500', on);
+                        btn.classList.toggle('bg-slate-600', !on);
+                        btn.title = on ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable';
+                        var knob = btn.querySelector('.wa-knob');
+                        if (knob) {
+                            knob.classList.toggle('translate-x-6', on);
+                            knob.classList.toggle('translate-x-1', !on);
+                        }
+                    });
+                })
+                .catch(function (err) {
+                    console.error('WA toggle error:', err);
+                    alert(err.message || 'Terjadi kesalahan.');
+                })
+                .finally(function () {
+                    btn.dataset.busy = '0';
+                });
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindWaToggle);
+        } else {
+            bindWaToggle();
+        }
+    })();
 </script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 @endpush
