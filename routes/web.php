@@ -868,6 +868,9 @@ Route::middleware('auth')->group(function () {
         Route::post('events/sync', [App\Http\Controllers\Admin\EventController::class, 'sync'])->name('events.sync');
         Route::resource('events', App\Http\Controllers\Admin\EventController::class);
         Route::resource('communities', App\Http\Controllers\Admin\CommunityController::class);
+
+        // WhatsApp Logs (Admin)
+        Route::get('whatsapp-logs', [App\Http\Controllers\Admin\WhatsAppLogController::class, 'index'])->name('whatsapp-logs.index');
         Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
         Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
         Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');
@@ -884,6 +887,7 @@ Route::middleware('auth')->group(function () {
         Route::get('users/{user}/transactions', [App\Http\Controllers\Admin\UserController::class, 'transactions'])->name('users.transactions');
         Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
         Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('users/{user}/toggle-wa', [App\Http\Controllers\Admin\UserController::class, 'toggleWaNotify'])->name('users.toggle-wa');
         Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');

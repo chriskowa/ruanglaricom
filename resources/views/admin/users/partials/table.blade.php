@@ -6,6 +6,7 @@
                         <th class="px-6 py-4">User</th>
                         <th class="px-6 py-4">Role</th>
                         <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">WA Notify</th>
                         <th class="px-6 py-4">Joined</th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
@@ -50,6 +51,14 @@
                                 <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-green-400' : 'bg-slate-400' }}"></span>
                                 {{ $user->is_active ? 'Active' : 'Inactive' }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <form action="{{ route('admin.users.toggle-wa', $user) }}" method="POST" class="inline" onsubmit="return confirm('{{ $user->is_receive_wa ? 'Disable' : 'Enable' }} WhatsApp notifications for {{ $user->name }}?')">
+                                @csrf
+                                <button type="submit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 {{ $user->is_receive_wa ? 'bg-green-500' : 'bg-slate-600' }}" title="{{ $user->is_receive_wa ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable' }}">
+                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $user->is_receive_wa ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                </button>
+                            </form>
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-400">
                             {{ $user->created_at->format('M d, Y') }}
@@ -102,7 +111,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 <p class="text-lg font-medium">No users found</p>

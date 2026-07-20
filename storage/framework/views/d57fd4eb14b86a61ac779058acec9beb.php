@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+
+    <?php
+        $isDashboard = (isset($withSidebar) && $withSidebar) || request()->is('admin/*', 'runner/*', 'coach/*', 'eo/*', 'admin', 'runner', 'coach', 'eo');
+        $gsc = \App\Models\AppSettings::get('google_search_console');
+        $bsc = \App\Models\AppSettings::get('bing_search_console');
+        $ga = \App\Models\AppSettings::get('google_analytics');
+        $gads = \App\Models\AppSettings::get('google_ads_tag');
+    ?>
+
+    <?php if($isDashboard): ?>
+    <script>
+        (function() {
+            var state = localStorage.getItem('sidebar_expanded');
+            if (state === 'false') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            } else {
+                document.documentElement.classList.remove('sidebar-collapsed');
+            }
+        })();
+    </script>
+    <?php endif; ?>
+
+    <?php if($gsc): ?>
+    <meta name="google-site-verification" content="<?php echo e($gsc); ?>" />
+    <?php endif; ?>
+    <?php if($bsc): ?>
+    <meta name="msvalidate.01" content="<?php echo e($bsc); ?>" />
+    <?php endif; ?>
+
+    <?php if($ga || $gads): ?>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo e($ga ?: $gads); ?>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      <?php if($ga): ?>
+      gtag('config', '<?php echo e($ga); ?>');
+      <?php endif; ?>
+      <?php if($gads): ?>
+      gtag('config', '<?php echo e($gads); ?>');
+      <?php endif; ?>
+    </script>
+    <?php endif; ?>
+
+    <!-- Primary Meta Tags -->
+    <title><?php echo $__env->yieldContent('title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?></title>
+    <meta name="title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
+    <meta name="description" content="<?php echo $__env->yieldContent('meta_description', 'Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.'); ?>">
+
+    <!-- Keywords -->
+    <meta name="keywords" content="<?php echo $__env->yieldContent('meta_keywords', 'ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon'); ?>">
+
+    <!-- Author -->
+    <meta name="author" content="Ruang Lari Indonesia">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="<?php echo $__env->yieldContent('og_type', 'website'); ?>">
+    <meta property="og:url" content="<?php echo $__env->yieldContent('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current()); ?>">
+    <meta property="og:site_name" content="Ruang Lari">
+    <meta property="og:title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
+    <meta property="og:description" content="<?php echo $__env->yieldContent('meta_description', 'Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.'); ?>">
+    <meta property="og:image" content="<?php echo $__env->yieldContent('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'); ?>">
+    <?php if(trim($__env->yieldContent('article_published_time'))): ?>
+    <meta property="article:published_time" content="<?php echo $__env->yieldContent('article_published_time'); ?>">
+    <?php endif; ?>
+    <?php if(trim($__env->yieldContent('article_modified_time'))): ?>
+    <meta property="article:modified_time" content="<?php echo $__env->yieldContent('article_modified_time'); ?>">
+    <?php endif; ?>
+    <?php if(trim($__env->yieldContent('article_author'))): ?>
+    <meta property="article:author" content="<?php echo $__env->yieldContent('article_author'); ?>">
+    <?php endif; ?>
+    <?php if(trim($__env->yieldContent('article_section'))): ?>
+    <meta property="article:section" content="<?php echo $__env->yieldContent('article_section'); ?>">
+    <?php endif; ?>
+    <?php if(trim($__env->yieldContent('article_tags'))): ?>
+    <meta property="article:tag" content="<?php echo $__env->yieldContent('article_tags'); ?>">
+    <?php endif; ?>
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="<?php echo $__env->yieldContent('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current()); ?>">
+    <meta name="twitter:title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
+    <meta name="twitter:description" content="<?php echo $__env->yieldContent('meta_description', 'Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.'); ?>">
+    <meta name="twitter:image" content="<?php echo $__env->yieldContent('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'); ?>">
+    <?php if(trim($__env->yieldContent('meta_robots'))): ?>
+    <meta name="robots" content="<?php echo $__env->yieldContent('meta_robots'); ?>">
+    <?php endif; ?>
+
+    <!-- Canonical -->
+    <link rel="canonical" href="<?php echo $__env->yieldContent('canonical_url', url()->current()); ?>">   
+
+    <!-- Favicon default -->
+    <link rel="icon" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>" type="image/x-icon">
+
+    <!-- Versi PNG -->
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('images/green/favicon-16x16.png')); ?>">
+
+    <!-- Versi Apple Touch -->
+    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo e(asset('images/green/apple-touch-icon.png')); ?>">
+
+    <!-- Versi Android/Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/android-icon-192x192.png">
+    
+    <!-- Preconnect & Preload for Speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preload" href="https://cdn.tailwindcss.com?plugins=typography" as="script">
+
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <?php if(empty($skipHeavyAssets)): ?>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <?php endif; ?>
+
+    <?php ($recaptchaSiteKeyV3 = env('RECAPTCHA_SITE_KEY_v3')); ?>
+    <?php if($recaptchaSiteKeyV3): ?>
+        <script src="https://www.google.com/recaptcha/api.js?render=<?php echo e($recaptchaSiteKeyV3); ?>"></script>
+    <?php endif; ?>
+    <?php if(empty($skipHeavyAssets)): ?>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php endif; ?>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
+    <?php if(empty($skipHeavyAssets)): ?>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/duration.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script>
+        dayjs.extend(window.dayjs_plugin_duration);
+        dayjs.extend(window.dayjs_plugin_relativeTime);
+    </script>
+    <?php endif; ?>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '360px',
+                    },
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        neon: {
+                            DEFAULT: '#ccff00',
+                        },
+                        primary: '#ccff00',
+                        strava: '#fc4c02',
+                        accent: '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        .animate-pulse { animation: loaderPulse 1.5s ease-in-out infinite; }
+        @keyframes loaderPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.98)} }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* FullCalendar Customization */
+        :root {
+            --fc-border-color: #334155;
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: #1e293b;
+            --fc-list-event-hover-bg-color: #334155;
+            --fc-today-bg-color: rgba(204, 255, 0, 0.05);
+        }
+        .fc-toolbar-title { color: white; font-family: 'Inter', sans-serif; font-weight: 800; }
+        .fc-col-header-cell-cushion { color: #ccff00; text-decoration: none; }
+        .fc-daygrid-day-number { color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-decoration: none; }
+        .fc-event { cursor: pointer; border: none !important; }
+        .fc-button-primary { background-color: #1e293b !important; border-color: #475569 !important; color: #cbd5e1 !important; }
+        .fc-button-active { background-color: #ccff00 !important; color: #0f172a !important; }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #ccff00;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Force White Calendar Icon */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) !important;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        /* Hide reCAPTCHA v3 badge */
+        .grecaptcha-badge { visibility: hidden !important; }
+
+        /* Fixed full-height sidebar layout */
+        <?php if($isDashboard): ?>
+        #ph-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 16rem !important;
+            height: 100vh !important;
+            z-index: 50 !important;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
+        }
+        #ph-sidebar.show {
+            transform: translateX(0) !important;
+        }
+        #pacerhub-nav {
+            transition: left 0.2s ease-in-out, width 0.2s ease-in-out;
+        }
+        #main-content-wrapper {
+            transition: padding-left 0.2s ease-in-out;
+        }
+
+        @media (min-width: 1024px) {
+            #ph-sidebar {
+                transform: translateX(0) !important;
+            }
+            html.sidebar-collapsed #ph-sidebar {
+                transform: translateX(-100%) !important;
+            }
+            html:not(.sidebar-collapsed) #main-content-wrapper {
+                padding-left: 16rem !important;
+            }
+            html:not(.sidebar-collapsed) #pacerhub-nav {
+                left: 16rem !important;
+                width: calc(100% - 16rem) !important;
+            }
+            html:not(.sidebar-collapsed) #pacerhub-nav .nav-logo {
+                opacity: 0 !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                margin-right: 0 !important;
+                padding-left: 0 !important;
+                overflow: hidden !important;
+            }
+        }
+        <?php endif; ?>
+    </style>
+    <?php echo $__env->yieldPushContent('styles'); ?>
+    <?php echo $__env->yieldPushContent('structured_data'); ?>
+</head>
+<body class="<?php echo e(isset($lightMode) && $lightMode ? 'bg-slate-50 text-slate-900' : 'bg-dark text-white'); ?> font-sans antialiased flex flex-col min-h-screen">
+
+    <div id="loader" class="loader-overlay" style="<?php echo e(isset($lightMode) && $lightMode ? 'background: #f8fafc;' : ''); ?>">
+        <div class="text-4xl font-black italic tracking-tighter animate-pulse <?php echo e(isset($lightMode) && $lightMode ? 'text-slate-900' : ''); ?>">
+            RUANG<span class="text-primary" style="<?php echo e(isset($lightMode) && $lightMode ? 'color: #000000ff;' : ''); ?>">LARI</span>
+        </div>
+    </div>
+
+    <div id="app" class="flex flex-col min-h-screen">
+        
+        <?php if($isDashboard): ?>
+            <!-- Sidebar backdrop for mobile -->
+            <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
+            <?php echo $__env->make('layouts.components.pacerhub-sidebar', ['lightMode' => $lightMode ?? false], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php endif; ?>
+
+        <div id="main-content-wrapper" class="flex flex-col min-h-screen flex-grow">
+            <?php if(!isset($hideNav) || !$hideNav): ?>
+                <?php echo $__env->make('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false, 'isDashboard' => $isDashboard], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            <?php endif; ?>
+
+            <main class="flex-grow w-full <?php echo e((!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : ''); ?>">
+                <?php echo $__env->yieldContent('content'); ?>
+            </main>
+
+            <?php if(!isset($hideFooter) || !$hideFooter): ?>
+                <?php echo $__env->make('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            <?php endif; ?>
+        </div>
+
+    </div>
+
+    <?php echo $__env->make('layouts.components.auth-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+    <?php if(auth()->guard()->check()): ?>
+    <?php if((!isset($hideChat) || !$hideChat) && auth()->user()->role !== 'eo'): ?>
+    <button id="chatbox-toggle" class="fixed bottom-5 right-6 z-50 w-14 h-14 rounded-full bg-neon text-dark font-black shadow-lg shadow-neon/30 flex items-center justify-center hover:bg-lime-400 transition">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-7 8l4-4h8a4 4 0 004-4V6a4 4 0 00-4-4H7a4 4 0 00-4 4v10a4 4 0 004 4z"/></svg>
+        <span id="ph-chat-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+    </button>
+    <div id="ph-chatbox" class="fixed bottom-20 right-6 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl hidden">
+        <div class="flex items-center justify-between p-3 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+                <div id="ph-chat-avatar" class="w-8 h-8 rounded-full bg-slate-700 overflow-hidden"></div>
+                <div>
+                    <div id="ph-chat-title" class="text-sm font-bold text-white">Chat</div>
+                    <div id="ph-chat-status" class="text-[10px] text-green-400">Online</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="ph-chat-back" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs hidden">Back</button>
+                <button id="ph-chat-close" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs">Close</button>
+            </div>
+        </div>
+        <div class="p-0">
+            <div id="ph-chat-conv" class="max-h-80 overflow-y-auto divide-y divide-slate-800">
+                <div class="p-4 text-center text-slate-400 text-sm">Memuat percakapan...</div>
+            </div>
+            <div id="ph-chat-msg" class="hidden">
+                <div id="ph-chat-msg-body" class="max-h-64 overflow-y-auto p-3 space-y-3"></div>
+                <div class="border-t border-slate-800 p-2">
+                    <div class="flex items-end gap-2">
+                        <textarea id="ph-chat-input" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" rows="2" placeholder="Tulis pesan..."></textarea>
+                        <button id="ph-chat-send" class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-sm">Kirim</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
+
+    <?php echo $__env->yieldPushContent('scripts'); ?>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        try {
+            if (window.AOS && typeof window.AOS.init === 'function') {
+                window.AOS.init({
+                    duration: 800,
+                    once: true,
+                });
+            }
+        } catch (e) {}
+        
+        (function () {
+            function hideLoader() {
+                var loader = document.getElementById('loader');
+                if (!loader) return;
+                if (loader.dataset.hidden === '1') return;
+                loader.style.opacity = '0';
+                setTimeout(function () {
+                    loader.dataset.hidden = '1';
+                    try { loader.remove(); } catch (e) { loader.style.display = 'none'; }
+                }, 500);
+            }
+
+            window.phHideLoader = hideLoader;
+            window.addEventListener('load', hideLoader);
+            document.addEventListener('DOMContentLoaded', hideLoader);
+            window.addEventListener('pageshow', hideLoader);
+        })();
+        (function(){
+            var btn = document.getElementById('ph-sidebar-toggle');
+            var sidebar = document.getElementById('ph-sidebar');
+            var backdrop = document.getElementById('ph-sidebar-backdrop');
+            
+            function toggleSidebar() {
+                if (window.innerWidth >= 1024) {
+                    var isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar_expanded', isCollapsed ? 'false' : 'true');
+                } else {
+                    if (sidebar) {
+                        if (sidebar.classList.contains('show')) {
+                            sidebar.classList.remove('show');
+                            if (backdrop) backdrop.classList.add('hidden');
+                        } else {
+                            sidebar.classList.add('show');
+                            if (backdrop) backdrop.classList.remove('hidden');
+                        }
+                    }
+                }
+            }
+
+            function closeMobileSidebar() {
+                if (sidebar) sidebar.classList.remove('show');
+                if (backdrop) backdrop.classList.add('hidden');
+            }
+
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
+            }
+            if (backdrop) {
+                backdrop.addEventListener('click', closeMobileSidebar);
+            }
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeMobileSidebar();
+                }
+            });
+        })();
+    </script>
+    <script>
+        (function(){
+            var toggle = document.getElementById('chatbox-toggle');
+            if(!toggle) return;
+            var box = document.getElementById('ph-chatbox');
+            var convList = document.getElementById('ph-chat-conv');
+            var msgPanel = document.getElementById('ph-chat-msg');
+            var msgBody = document.getElementById('ph-chat-msg-body');
+            var input = document.getElementById('ph-chat-input');
+            var sendBtn = document.getElementById('ph-chat-send');
+            var backBtn = document.getElementById('ph-chat-back');
+            var closeBtn = document.getElementById('ph-chat-close');
+            var titleEl = document.getElementById('ph-chat-title');
+            var avatarEl = document.getElementById('ph-chat-avatar');
+            var statusEl = document.getElementById('ph-chat-status');
+            var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+            var csrf = metaCsrf ? metaCsrf.getAttribute('content') : '';
+            var baseUrl = <?php echo json_encode(url('/'), 15, 512) ?>;
+            var storageBase = <?php echo json_encode(asset('storage/'), 15, 512) ?>;
+            var defaultAvatar17 = <?php echo json_encode(asset('images/profile/17.jpg'), 15, 512) ?>;
+            var authId = <?php echo json_encode(auth()->id() ?: 0, 15, 512) ?>;
+            var isAuthenticated = <?php echo e(auth()->check() ? 'true' : 'false'); ?>;
+            var poll;
+            var currentUserId = null;
+            function getAvatarUrl(path) {
+                if (!path) return defaultAvatar17;
+                if (path.indexOf('http') === 0) return path;
+                // If path already contains storage/, use baseUrl instead of storageBase
+                if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
+                     var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                     return baseUrl + '/' + cleanPath;
+                }
+                
+                // Ensure slash between storageBase and path
+                var prefix = storageBase;
+                if (prefix.slice(-1) !== '/') prefix += '/';
+                var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                
+                return prefix + cleanPath;
+            }
+            function showBox(){ box.classList.remove('hidden'); }
+            function hideBox(){ box.classList.add('hidden'); stopPoll(); setOpen(''); }
+            function showConversations(){ convList.classList.remove('hidden'); msgPanel.classList.add('hidden'); backBtn.classList.add('hidden'); }
+            function showMessages(){ convList.classList.add('hidden'); msgPanel.classList.remove('hidden'); backBtn.classList.remove('hidden'); }
+            function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
+            function formatTime(iso){ try{ return dayjs(iso).fromNow(); }catch(e){ return iso; } }
+            function setDraft(userId, text){ try{ sessionStorage.setItem('phChatDraft:'+userId, text||''); }catch(e){} }
+            function getDraft(userId){ try{ return sessionStorage.getItem('phChatDraft:'+userId)||''; }catch(e){ return ''; } }
+            function setOpen(userId){ try{ sessionStorage.setItem('phChatOpen', String(userId||'')); }catch(e){} }
+            function getOpen(){ try{ return sessionStorage.getItem('phChatOpen')||''; }catch(e){ return ''; } }
+            function fetchConversations(){
+                if(!isAuthenticated){
+                    convList.innerHTML = '<div class="p-4 text-center text-slate-400 text-sm">Login untuk menggunakan chat</div>';
+                    return;
+                }
+                fetch(<?php echo json_encode(route('chat.conversations'), 15, 512) ?>, { headers:{'Accept':'application/json'} })
+                .then(function(r){ if(!r.ok) throw new Error('err'); return r.json(); })
+                .then(function(data){
+                    convList.innerHTML = '';
+                    var list = (data && data.conversations) ? data.conversations : [];
+                    var badge = document.getElementById('ph-chat-badge');
+                    var unread = 0;
+                    for(var i=0;i<list.length;i++){ if(list[i] && list[i].unread_count) unread += Number(list[i].unread_count)||0; }
+                    if(badge){ if(unread>0){ badge.textContent = unread>99 ? '99+' : String(unread); badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); } }
+                    if(!list.length){ convList.innerHTML = '<div class="p-4 text-center text-slate-400 text-sm">Belum ada percakapan</div>'; return; }
+                    list.forEach(function(conv){
+                        var li = document.createElement('div');
+                        li.className = 'p-3 hover:bg-slate-800 cursor-pointer flex items-center gap-1';
+                        var avatar = getAvatarUrl(conv.user_avatar);
+                        var last = String(conv.last_message || '').replace(/\s+/g, ' ').trim();
+                        var preview = last.length > 30 ? (last.substring(0, 30) + '...') : last;
+                        li.innerHTML = '<img src="'+avatar+'" class="w-8 h-8 rounded-full border border-slate-700"><div class="flex-1 min-w-0"><div class="text-sm text-white font-bold">'+conv.user_name+'</div><div class="text-[11px] text-slate-400 truncate">'+preview+'</div></div>'+(conv.unread_count>0?'<span class="text-[10px] px-2 py-0.5 rounded bg-red-500 text-white">'+conv.unread_count+'</span>':'');
+                        li.addEventListener('click', function(){ openChat(conv.user_id, conv.user_name, conv.user_avatar); });
+                        convList.appendChild(li);
+                    });
+                })
+                .catch(function(){ convList.innerHTML = '<div class="p-4 text-center text-red-400 text-sm">Gagal memuat percakapan</div>'; });
+            }
+            function loadMessages(userId, silent){
+                if(!isAuthenticated) return;
+                fetch(baseUrl+'/api/chat/'+userId+'/messages', { headers:{'Accept':'application/json'} })
+                .then(function(r){ if(!r.ok) throw new Error('err'); return r.json(); })
+                .then(function(data){
+                    var msgs = (data && data.messages) ? data.messages : [];
+                    msgBody.innerHTML = '';
+                    msgs.forEach(function(m){
+                        var own = Number(m.sender_id) === Number(authId);
+                        var row = document.createElement('div');
+                        row.className = 'flex '+(own?'justify-end':'justify-start');
+                        var bubble = document.createElement('div');
+                        bubble.className = 'max-w-[70%] px-3 py-2 rounded-xl text-sm font-bold '+(own?'bg-neon text-slate-950':'bg-slate-800 text-white');
+                        bubble.innerHTML = m.message.replace(/\n/g,'<br>')+'<div class="text-[10px] mt-1 '+(own?'text-slate-950/70':'text-slate-400')+'">'+formatTime(m.created_at)+'</div>';
+                        row.appendChild(bubble);
+                        msgBody.appendChild(row);
+                    });
+                    var saved = sessionStorage.getItem('phChatScroll:'+userId);
+                    if(saved){ var v = Number(saved)||0; msgBody.scrollTop = v; } else { msgBody.scrollTop = msgBody.scrollHeight; }
+                })
+                .catch(function(){});
+            }
+            function sendMessage(){
+                if(!isAuthenticated) return;
+                if(!currentUserId) return;
+                var text = (input.value||'').trim();
+                if(!text) return;
+                
+                // Show loading state if it's AI Coach (usually a specific ID or name)
+                var isAiCoach = titleEl.textContent.toLowerCase().includes('coach') || titleEl.textContent.toLowerCase().includes('ai');
+                var loadingEl = null;
+                
+                if(isAiCoach) {
+                    loadingEl = document.createElement('div');
+                    loadingEl.id = 'ph-chat-loading';
+                    loadingEl.className = 'flex justify-start';
+                    loadingEl.innerHTML = '<div class="max-w-[70%] px-3 py-2 rounded-xl text-sm bg-slate-800 text-white flex items-center gap-2"><div class="loader w-4 h-4"></div><span class="text-xs text-slate-400 italic">Coach sedang mengetik...</span></div>';
+                    msgBody.appendChild(loadingEl);
+                    msgBody.scrollTop = msgBody.scrollHeight;
+                }
+
+                input.disabled = true; sendBtn.disabled = true;
+                fetch(baseUrl+'/chat/'+currentUserId, {
+                    method:'POST',
+                    headers:{'X-CSRF-TOKEN': csrf, 'Content-Type':'application/json', 'Accept':'application/json'},
+                    body: JSON.stringify({ message: text })
+                })
+                .then(function(r){ return r.json(); })
+                .then(function(res){
+                    if(res && res.success){
+                        input.value = '';
+                        setDraft(currentUserId, '');
+                        loadMessages(currentUserId);
+                        fetchConversations();
+                    }
+                })
+                .finally(function(){ 
+                    if(loadingEl) loadingEl.remove();
+                    input.disabled = false; sendBtn.disabled = false; input.focus(); 
+                });
+            }
+            function openChat(userId, name, avatar, initialMessage){
+                currentUserId = userId;
+                titleEl.textContent = name || 'Chat';
+                statusEl.textContent = 'Online';
+                var avatarUrl = getAvatarUrl(avatar);
+                avatarEl.innerHTML = '<a href="'+avatarUrl+'" target="_blank" rel="noopener"><img src="'+avatarUrl+'" class="w-8 h-8"></a>';
+                showMessages();
+                showBox();
+                loadMessages(userId);
+                input.value = initialMessage || getDraft(userId);
+                setOpen(userId);
+                stopPoll();
+                poll = setInterval(function(){ loadMessages(userId, true); }, 4000);
+            }
+            window.openChat = openChat;
+            toggle.addEventListener('click', function(){
+                if(box.classList.contains('hidden')){ showBox(); showConversations(); fetchConversations(); } else { hideBox(); }
+            });
+            backBtn.addEventListener('click', function(){ showConversations(); stopPoll(); currentUserId=null; setOpen(''); });
+            closeBtn.addEventListener('click', function(){ hideBox(); });
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', function(e){
+                if(e.key === 'Enter' && !e.shiftKey){
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            input.addEventListener('input', function(){ if(currentUserId) setDraft(currentUserId, input.value); });
+            msgBody.addEventListener('scroll', function(){ if(currentUserId){ sessionStorage.setItem('phChatScroll:'+currentUserId, String(msgBody.scrollTop)); } });
+            document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ hideBox(); } });
+            var reopen = getOpen();
+            var canAutoOpen = false;
+            try { canAutoOpen = window.matchMedia && window.matchMedia('(min-width: 768px)').matches; } catch (e) { canAutoOpen = false; }
+            if(reopen && isAuthenticated && canAutoOpen){ fetch(baseUrl+'/api/chat/'+reopen+'/messages', { headers:{'Accept':'application/json'} }).then(function(r){ if(r.ok){ r.json().then(function(j){ openChat(Number(reopen), (j && j.user && j.user.name) ? j.user.name : 'Chat', (j && j.user && j.user.avatar) ? j.user.avatar : null); }); } }); }
+        })();
+    </script>
+    <script>
+        (function(){
+            if (window.location.pathname.startsWith('/admin')) return;
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            var csrf = meta ? meta.getAttribute('content') : '';
+            var baseUrl = <?php echo json_encode(url('/'), 15, 512) ?>;
+            var styleId = 'ph-popup-runtime-style';
+            if (!document.getElementById(styleId)) {
+                var style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = '.ph-popup-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .2s ease;z-index:1000}.ph-popup-overlay.show{opacity:1}.ph-popup{max-width:640px;width:100%;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.45);transform:translateY(16px) scale(.98);opacity:0;transition:transform .25s ease,opacity .25s ease}.ph-popup.show{transform:translateY(0) scale(1);opacity:1}.ph-popup-top{align-items:flex-start;padding-top:80px}.ph-popup-bottom{align-items:flex-end;padding-bottom:80px}.ph-popup-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:999px;background:rgba(15,23,42,.7);color:#e2e8f0;display:flex;align-items:center;justify-content:center}.ph-popup-block img{width:100%;border-radius:16px}.ph-popup-block button,.ph-popup-block a{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:999px;font-weight:700}.ph-popup-input{width:100%;padding:10px 14px;border-radius:12px;background:#0f172a;border:1px solid #334155;color:#e2e8f0}';
+                document.head.appendChild(style);
+            }
+            function safeUrl(url) {
+                try {
+                    var u = new URL(url, baseUrl);
+                    if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+                    return '';
+                } catch (e) {
+                    return '';
+                }
+            }
+            function getFrequencyKey(popup) {
+                return 'ph_popup_shown_' + (popup.slug || popup.id);
+            }
+            function canShow(popup) {
+                var freq = popup.rules && popup.rules.frequency ? popup.rules.frequency : { mode: 'session', interval_hours: 24 };
+                var mode = freq.mode || 'session';
+                var key = getFrequencyKey(popup);
+                if (mode === 'session') {
+                    return !sessionStorage.getItem(key);
+                }
+                if (mode === 'day') {
+                    var today = new Date().toDateString();
+                    return localStorage.getItem(key) !== today;
+                }
+                var interval = Number(freq.interval_hours || 24) * 60 * 60 * 1000;
+                var last = Number(localStorage.getItem(key) || 0);
+                return Date.now() - last > interval;
+            }
+            function markShown(popup) {
+                var freq = popup.rules && popup.rules.frequency ? popup.rules.frequency : { mode: 'session', interval_hours: 24 };
+                var mode = freq.mode || 'session';
+                var key = getFrequencyKey(popup);
+                if (mode === 'session') {
+                    sessionStorage.setItem(key, '1');
+                } else if (mode === 'day') {
+                    localStorage.setItem(key, new Date().toDateString());
+                } else {
+                    localStorage.setItem(key, String(Date.now()));
+                }
+            }
+            function track(popup, event) {
+                fetch(baseUrl + '/popups/' + popup.id + '/track', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: event })
+                });
+            }
+            function createBlock(block, accent) {
+                var wrap = document.createElement('div');
+                wrap.className = 'ph-popup-block mb-3';
+                if (block.type === 'text') {
+                    var text = document.createElement('div');
+                    text.textContent = block.content || '';
+                    var style = block.style || {};
+                    var sizeMap = { sm: '0.9rem', md: '1rem', lg: '1.25rem', xl: '1.5rem' };
+                    text.style.fontSize = sizeMap[style.size] || '1rem';
+                    text.style.fontWeight = style.weight === 'bold' ? '700' : '400';
+                    text.style.textAlign = style.align || 'left';
+                    wrap.appendChild(text);
+                } else if (block.type === 'image') {
+                    var img = document.createElement('img');
+                    img.src = safeUrl(block.content || '');
+                    img.alt = block.style && block.style.alt ? block.style.alt : 'Popup image';
+                    wrap.appendChild(img);
+                } else if (block.type === 'button') {
+                    var link = document.createElement('a');
+                    var href = safeUrl(block.style && block.style.url ? block.style.url : '#');
+                    link.href = href || '#';
+                    link.textContent = block.content || 'Action';
+                    link.setAttribute('data-popup-action', 'click');
+                    link.style.background = accent || '#ccff00';
+                    link.style.color = '#0f172a';
+                    wrap.appendChild(link);
+                } else if (block.type === 'form') {
+                    var label = document.createElement('div');
+                    label.textContent = block.content || 'Form';
+                    label.style.fontWeight = '700';
+                    label.style.marginBottom = '8px';
+                    wrap.appendChild(label);
+                    var fields = (block.style && block.style.fields) || ['email'];
+                    fields.forEach(function(field) {
+                        var input = document.createElement('input');
+                        input.className = 'ph-popup-input mb-2';
+                        input.placeholder = field;
+                        input.type = field.toLowerCase().includes('email') ? 'email' : 'text';
+                        wrap.appendChild(input);
+                    });
+                    var submit = document.createElement('button');
+                    submit.type = 'button';
+                    submit.textContent = block.style && block.style.submit_label ? block.style.submit_label : 'Submit';
+                    submit.style.background = accent || '#ccff00';
+                    submit.style.color = '#0f172a';
+                    submit.setAttribute('data-popup-action', 'conversion');
+                    wrap.appendChild(submit);
+                }
+                return wrap;
+            }
+            function showPopup(popup) {
+                if (!canShow(popup)) return;
+                var settings = popup.settings || {};
+                var overlay = document.createElement('div');
+                overlay.className = 'ph-popup-overlay';
+                if (settings.position === 'top') overlay.classList.add('ph-popup-top');
+                if (settings.position === 'bottom') overlay.classList.add('ph-popup-bottom');
+                overlay.style.background = settings.overlay || 'rgba(15, 23, 42, 0.7)';
+                overlay.style.zIndex = settings.z_index || 1000;
+                var dialog = document.createElement('div');
+                dialog.className = 'ph-popup';
+                dialog.setAttribute('role', 'dialog');
+                dialog.setAttribute('aria-modal', 'true');
+                dialog.setAttribute('aria-label', popup.name || 'Popup');
+                dialog.style.background = settings.background || '#0f172a';
+                dialog.style.color = settings.text_color || '#e2e8f0';
+                dialog.style.padding = '28px';
+                dialog.style.position = 'relative';
+                var closeBtn = document.createElement('button');
+                closeBtn.className = 'ph-popup-close';
+                closeBtn.setAttribute('aria-label', 'Close popup');
+                closeBtn.innerHTML = '&times;';
+                closeBtn.addEventListener('click', function(){ overlay.remove(); });
+                dialog.appendChild(closeBtn);
+                var content = document.createElement('div');
+                var blocks = popup.content && Array.isArray(popup.content.blocks) ? popup.content.blocks : [];
+                blocks.forEach(function(block){ content.appendChild(createBlock(block, settings.accent)); });
+                dialog.appendChild(content);
+                overlay.appendChild(dialog);
+                document.body.appendChild(overlay);
+                setTimeout(function(){ overlay.classList.add('show'); dialog.classList.add('show'); }, 20);
+                markShown(popup);
+                track(popup, 'view');
+                overlay.addEventListener('click', function(e){
+                    if (e.target === overlay && settings.close_on_backdrop !== false) overlay.remove();
+                });
+                document.addEventListener('keydown', function(e){
+                    if (e.key === 'Escape' && settings.close_on_esc !== false) overlay.remove();
+                }, { once: true });
+                overlay.addEventListener('click', function(e){
+                    var action = e.target.getAttribute('data-popup-action');
+                    if (action === 'click') track(popup, 'click');
+                    if (action === 'conversion') track(popup, 'conversion');
+                });
+                var focusable = dialog.querySelectorAll('button, a, input, textarea, select, [tabindex]');
+                var first = focusable[0];
+                var last = focusable[focusable.length - 1];
+                if (first) first.focus();
+                dialog.addEventListener('keydown', function(e){
+                    if (e.key === 'Tab' && focusable.length) {
+                        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                    }
+                });
+            }
+            fetch(baseUrl + '/popups/active?path=' + encodeURIComponent(window.location.pathname), { headers: { 'Accept': 'application/json' } })
+                .then(function(r){ return r.ok ? r.json() : null; })
+                .then(function(data){
+                    if (!data || !Array.isArray(data.popups)) return;
+                    var popup = data.popups[0];
+                    if (popup) showPopup(popup);
+                }).catch(function(){});
+        })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('<?php echo e(asset('sw.js')); ?>').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
+<?php /**PATH C:\laragon\www\ruanglari\resources\views/layouts/pacerhub.blade.php ENDPATH**/ ?>

@@ -319,6 +319,19 @@ class UserController extends Controller
     }
 
     /**
+     * Toggle WhatsApp notification opt-in for the user.
+     */
+    public function toggleWaNotify(User $user)
+    {
+        $user->is_receive_wa = ! $user->is_receive_wa;
+        $user->save();
+
+        $status = $user->is_receive_wa ? 'enabled' : 'disabled';
+
+        return back()->with('success', "WhatsApp notifications for {$user->name} have been {$status}.");
+    }
+
+    /**
      * Login as the selected user.
      */
     public function impersonate(User $user)
