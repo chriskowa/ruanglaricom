@@ -91,6 +91,7 @@
 
     init() {
         this.initPaginationListener();
+        this.initWaToggleListener();
         this.$watch('activeTab', (tab) => {
             if (tab === 'wallet') this.ensureWalletTransactionsLoaded();
         });
@@ -152,6 +153,57 @@
                     this.fetchUsers(href);
                 }
             }
+        });
+    },
+
+    initWaToggleListener() {
+        const container = document.getElementById('users-table-container');
+        if (!container) return;
+
+        container.addEventListener('click', (e) => {
+            const btn = e.target.closest('.wa-toggle');
+            if (!btn || !container.contains(btn)) return;
+            e.preventDefault();
+
+            if (btn.dataset.busy === '1') return;
+            btn.dataset.busy = '1';
+
+            const url = btn.dataset.url;
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    throw new Error(data.message || 'Gagal mengubah status WhatsApp.');
+                }
+                const on = data.is_receive_wa;
+                btn.dataset.state = on ? '1' : '0';
+                btn.classList.toggle('bg-green-500', on);
+                btn.classList.toggle('bg-slate-600', !on);
+                btn.title = on ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable';
+                const knob = btn.querySelector('.wa-knob');
+                if (knob) {
+                    knob.classList.toggle('translate-x-6', on);
+                    knob.classList.toggle('translate-x-1', !on);
+                }
+            })
+            .catch((err) => {
+                console.error('WA toggle error:', err);
+                alert(err.message || 'Terjadi kesalahan.');
+            })
+            .finally(() => {
+                btn.dataset.busy = '0';
+            });
         });
     },
 

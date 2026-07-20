@@ -50,7 +50,7 @@ class UserController extends Controller
         }
 
         $users = $query
-            ->select(['id', 'name', 'email', 'role', 'is_active', 'avatar', 'created_at'])
+            ->select(['id', 'name', 'email', 'role', 'is_active', 'is_receive_wa', 'avatar', 'created_at'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -321,12 +321,20 @@ class UserController extends Controller
     /**
      * Toggle WhatsApp notification opt-in for the user.
      */
-    public function toggleWaNotify(User $user)
+    public function toggleWaNotify(Request $request, User $user)
     {
         $user->is_receive_wa = ! $user->is_receive_wa;
         $user->save();
 
         $status = $user->is_receive_wa ? 'enabled' : 'disabled';
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_receive_wa' => (bool) $user->is_receive_wa,
+                'message' => "WhatsApp notifications for {$user->name} have been {$status}.",
+            ]);
+        }
 
         return back()->with('success', "WhatsApp notifications for {$user->name} have been {$status}.");
     }

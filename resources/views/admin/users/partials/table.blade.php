@@ -53,12 +53,13 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <form action="{{ route('admin.users.toggle-wa', $user) }}" method="POST" class="inline" onsubmit="return confirm('{{ $user->is_receive_wa ? 'Disable' : 'Enable' }} WhatsApp notifications for {{ $user->name }}?')">
-                                @csrf
-                                <button type="submit" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 {{ $user->is_receive_wa ? 'bg-green-500' : 'bg-slate-600' }}" title="{{ $user->is_receive_wa ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable' }}">
-                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $user->is_receive_wa ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                                </button>
-                            </form>
+                            <button type="button"
+                                class="wa-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 {{ $user->is_receive_wa ? 'bg-green-500' : 'bg-slate-600' }}"
+                                data-url="{{ route('admin.users.toggle-wa', $user) }}"
+                                data-state="{{ $user->is_receive_wa ? '1' : '0' }}"
+                                title="{{ $user->is_receive_wa ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable' }}">
+                                <span class="wa-knob inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $user->is_receive_wa ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                            </button>
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-400">
                             {{ $user->created_at->format('M d, Y') }}
