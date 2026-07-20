@@ -43,6 +43,24 @@ class SendProgramReminderJob implements ShouldQueue
         }
 
         try {
+            // Dedupe: jangan kirim lebih dari 1x per hari ke nomor yang sama.
+            $phoneNormalized = preg_replace('/\D+/', '', (string) $this->user->phone);
+            if ($phoneNormalized !== '') {
+                if (str_starts_with($phoneNormalized, '0')) {
+                    $phoneNormalized = '62' . substr($phoneNormalized, 1);
+                } elseif (!str_starts_with($phoneNormalized, '62')) {
+                    $phoneNormalized = '62' . $phoneNormalized;
+                }
+            }
+            $alreadySent = \App\Models\WhatsAppLog::where('to', $phoneNormalized)
+                ->where('message', 'like', 'Halo ' . $this->user->name . '%')
+                ->where('created_at', '>=', now()->startOfDay())
+                ->exists();
+            if ($alreadySent) {
+                Log::info("Skipping program reminder for User #{$this->user->id}: already sent today.");
+                return;
+            }
+
             // Get user profile data for AI context
             $profileData = $profileService->getProfile($this->user);
             
@@ -55,41 +73,28 @@ class SendProgramReminderJob implements ShouldQueue
                 . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
                 . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
                 . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.\n"
-                . "- Jangan gunakan emoji sama sekali di dalam pesan.";
+                . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
+                . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
             
             $message = $openAiService->getAiResponse($prompt, $systemMessage);
-            $calendarUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'login.token',
-                now()->addDays(7),
-                ['user' => $this->user->id, 'redirect' => route('runner.calendar')]
-            );
 
-            // Shorten the temporary calendar URL
-            $shortLink = \App\Models\ShortLink::where('original_url', $calendarUrl)->first();
-            if ($shortLink) {
-                $calendarUrlShort = route('shortlink.redirect', $shortLink->code);
-            } else {
-                do {
-                    $code = \Illuminate\Support\Str::random(6);
-                } while (\App\Models\ShortLink::where('code', $code)->exists());
-
-                $newLink = \App\Models\ShortLink::create([
-                    'code' => $code,
-                    'original_url' => $calendarUrl,
-                ]);
-                $calendarUrlShort = route('shortlink.redirect', $newLink->code);
-            }
+            // Link langsung ke kalender (tanpa token login agar tidak di-flag spam/phishing).
+            $calendarUrl = route('runner.calendar');
 
             if ($message) {
-                $message = str_replace('[LINK_CALENDAR]', $calendarUrlShort, $message);
+                $message = $this->sanitizeMessage($message);
+                $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
                 // Fallback if AI forgot to include the calendar link
-                if (!str_contains($message, $calendarUrlShort)) {
-                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrlShort;
+                if (!str_contains($message, $calendarUrl)) {
+                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
                 }
             } else {
                 // Fallback message if OpenAI fails
-                $message = $this->getFallbackMessage($calendarUrlShort);
+                $message = $this->getFallbackMessage($calendarUrl);
             }
+
+            // Tambahkan footer berhenti berlangganan (anti-spam WA).
+            $message .= "\n\nBalas STOP untuk berhenti menerima pengingat.";
 
             // Send via WhatsApp
             WhatsApp::send($this->user->phone, $message);
@@ -99,6 +104,23 @@ class SendProgramReminderJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::error("Failed to send program reminder to User #{$this->user->id}: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Bersihkan output AI agar aman dikirim via WhatsApp:
+     * - hapus markdown (*bold*, _miring_)
+     * - hapus emoji
+     * - normalisasi whitespace
+     */
+    private function sanitizeMessage(string $message): string
+    {
+        // Hapus formatting markdown
+        $message = preg_replace('/[*_~`]+/', '', $message);
+        // Hapus emoji (range unicode)
+        $message = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{2190}-\x{21FF}\x{2B00}-\x{2BFF}\x{FE00}-\x{FE0F}]/u', '', $message);
+        // Rapikan spasi berlebih
+        $message = preg_replace('/\s+/', ' ', $message);
+        return trim($message);
     }
 
     /**
@@ -150,7 +172,7 @@ class SendProgramReminderJob implements ShouldQueue
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
 
         if ($isRest) {
-            return "Halo {$this->user->name}, besok jadwal program *{$this->program->title}* kamu adalah *Rest Day* ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
+            return "Halo {$this->user->name}, besok jadwal program {$this->program->title} kamu adalah Rest Day ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
         }
 
         $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? '';
@@ -169,7 +191,7 @@ class SendProgramReminderJob implements ShouldQueue
             $detail .= "\n- Target Pace: {$this->sessionData['target_pace']}";
         }
         
-        return "Halo {$this->user->name}, besok jadwal kamu adalah *{$this->sessionData['type']}* untuk program *{$this->program->title}*."
+        return "Halo {$this->user->name}, besok jadwal kamu adalah {$this->sessionData['type']} untuk program {$this->program->title}."
             . (!empty($detail) ? "\n\nDetail latihan:{$detail}" : "")
             . "\n\nSemangat! Detail latihan: {$calendarUrl}";
     }

@@ -168,10 +168,10 @@ class ScheduleProgramReminders extends Command
             return 0;
         }
 
-        // Dispatch jobs dengan rate limit sangat aman: mengirim 1 pesan per runner setiap 2 menit
+        // Dispatch jobs dengan rate limit sangat aman: mengirim 1 pesan per runner setiap 10 menit
         // untuk menghindari pemblokiran nomor WhatsApp oleh sistem anti-spam.
         foreach ($jobsToDispatch as $index => $data) {
-            $delayMinutes = $index * 2;
+            $delayMinutes = $index * 10;
             
             SendProgramReminderJob::dispatch($data['runner'], $data['session'], $data['program'])
                 ->delay(now()->addMinutes($delayMinutes));
