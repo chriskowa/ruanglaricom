@@ -2056,6 +2056,271 @@ class AthleteController extends Controller
     }
 
     /**
+     * Send manual program reminder to runner (coach action)
+     */
+    public function sendReminder(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'session_day' => 'nullable|integer',
+            'custom_workout_id' => 'nullable|integer',
+            'channel' => 'required|in:wa,email,both',
+            'custom_message' => 'nullable|string',
+        ]);
+
+        $runner = $enrollment->runner;
+        $program = $enrollment->program;
+        $sessionData = null;
+
+        if ($request->filled('custom_workout_id')) {
+            $customWorkout = \App\Models\CustomWorkout::findOrFail($validated['custom_workout_id']);
+            if ((int) $customWorkout->runner_id !== (int) $runner->id) {
+                abort(403);
+            }
+            $sessionData = [
+                'type' => $customWorkout->type,
+                'distance' => $customWorkout->distance,
+                'duration' => $customWorkout->duration,
+                'target_pace' => $customWorkout->workout_structure['target_pace'] ?? null,
+                'description' => $customWorkout->description,
+                'notes' => $customWorkout->notes,
+            ];
+        } elseif ($request->filled('session_day')) {
+            $sessions = $program->program_json['sessions'] ?? [];
+            $session = collect($sessions)->firstWhere('day', $validated['session_day']);
+            if (!$session) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sesi program tidak ditemukan.'
+                ], 404);
+            }
+            $sessionData = $session;
+        } else {
+            // Automatically resolve tomorrow's session, or today's session, or the next upcoming session
+            if (!$enrollment->start_date) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Program belum dimulai oleh atlet.'
+                ], 422);
+            }
+
+            $sessions = $program->program_json['sessions'] ?? [];
+            $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+
+            $tomorrow = Carbon::tomorrow()->toDateString();
+            $today = Carbon::today()->toDateString();
+
+            $tomorrowSession = null;
+            $todaySession = null;
+            $upcomingSession = null;
+            $minUpcomingDiff = null;
+
+            foreach ($sessions as $session) {
+                $day = (int) ($session['day'] ?? 0);
+                if ($day <= 0) continue;
+
+                $sessionDate = $enrollment->start_date->copy()->addDays($day - 1);
+                $tracking = $trackings->get($day);
+                if ($tracking && $tracking->rescheduled_date) {
+                    $sessionDate = Carbon::parse($tracking->rescheduled_date);
+                }
+
+                $sessionDateStr = $sessionDate->toDateString();
+
+                if ($sessionDateStr === $tomorrow) {
+                    $tomorrowSession = $session;
+                }
+                if ($sessionDateStr === $today) {
+                    $todaySession = $session;
+                }
+                if ($sessionDateStr >= $today) {
+                    $diff = Carbon::parse($sessionDateStr)->diffInDays(Carbon::today());
+                    if ($minUpcomingDiff === null || $diff < $minUpcomingDiff) {
+                        $minUpcomingDiff = $diff;
+                        $upcomingSession = $session;
+                    }
+                }
+            }
+
+            // Also check custom workouts for tomorrow or today
+            $tomorrowCustom = \App\Models\CustomWorkout::where('runner_id', $runner->id)
+                ->whereDate('workout_date', $tomorrow)
+                ->first();
+            $todayCustom = \App\Models\CustomWorkout::where('runner_id', $runner->id)
+                ->whereDate('workout_date', $today)
+                ->first();
+
+            if ($tomorrowCustom) {
+                $sessionData = [
+                    'type' => $tomorrowCustom->type,
+                    'distance' => $tomorrowCustom->distance,
+                    'duration' => $tomorrowCustom->duration,
+                    'target_pace' => $tomorrowCustom->workout_structure['target_pace'] ?? null,
+                    'description' => $tomorrowCustom->description,
+                    'notes' => $tomorrowCustom->notes,
+                ];
+            } elseif ($tomorrowSession) {
+                $sessionData = $tomorrowSession;
+            } elseif ($todayCustom) {
+                $sessionData = [
+                    'type' => $todayCustom->type,
+                    'distance' => $todayCustom->distance,
+                    'duration' => $todayCustom->duration,
+                    'target_pace' => $todayCustom->workout_structure['target_pace'] ?? null,
+                    'description' => $todayCustom->description,
+                    'notes' => $todayCustom->notes,
+                ];
+            } elseif ($todaySession) {
+                $sessionData = $todaySession;
+            } elseif ($upcomingSession) {
+                $sessionData = $upcomingSession;
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada sesi latihan aktif atau mendatang yang ditemukan untuk atlet ini.'
+                ], 422);
+            }
+        }
+
+        $message = $validated['custom_message'] ?? null;
+
+        if (!$message) {
+            // Generate using OpenAI or fallback
+            try {
+                $profileService = app(\App\Services\RunningProfileService::class);
+                $openAiService = app(\App\Services\OpenAiService::class);
+                $profileData = $profileService->getProfile($runner);
+                
+                $type = strtolower($sessionData['type'] ?? 'rest');
+                $isRest = in_array($type, ['rest', 'rest day', 'libur']);
+                
+                $distance = $sessionData['distance'] ?? '';
+                $duration = $sessionData['duration'] ?? '';
+                $targetPace = $sessionData['target_pace'] ?? '';
+                $description = $sessionData['description'] ?? $sessionData['notes'] ?? $sessionData['instruction'] ?? '';
+                
+                $pacesInfo = "";
+                if (!empty($profileData['paces'])) {
+                    $paces = $profileData['paces'];
+                    $pacesInfo = "Pace Latihan: Easy (" . ($paces['easy'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? '-') . "), Interval (" . ($paces['interval'] ?? '-') . ").";
+                }
+
+                $prompt = "Buatkan pesan WhatsApp pengingat jadwal program lari besok.\n\n";
+                $prompt .= "Nama Atlet: {$runner->name}\n";
+                $prompt .= "Nama Program: {$program->title}\n";
+                if ($pacesInfo) $prompt .= $pacesInfo . "\n";
+
+                if ($isRest) {
+                    $prompt .= "Jadwal Besok: REST DAY (Hari Istirahat/Pemulihan).\n";
+                    $prompt .= "Instruksi: Tulis pesan singkat yang hangat agar atlet beristirahat dengan baik besok. Wajib sertakan '[LINK_CALENDAR]'.";
+                } else {
+                    $prompt .= "Jadwal Besok: {$sessionData['type']}\n";
+                    if ($distance) $prompt .= "Jarak: {$distance} km\n";
+                    if ($duration) $prompt .= "Durasi: {$duration}\n";
+                    if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
+                    if ($description) $prompt .= "Deskripsi Latihan (Instruksi Coach): {$description}\n";
+                    
+                    $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
+                }
+
+                $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok serta link program.\n\n"
+                    . "ATURAN:\n"
+                    . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
+                    . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
+                    . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.\n"
+                    . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
+                    . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
+                
+                $message = $openAiService->getAiResponse($prompt, $systemMessage);
+                
+                $calendarUrl = route('runner.calendar');
+                if ($message) {
+                    $message = preg_replace('/[*_~`]+/', '', $message);
+                    $message = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{2190}-\x{21FF}\x{2B00}-\x{2BFF}\x{FE00}-\x{FE0F}]/u', '', $message);
+                    $message = preg_replace('/\s+/', ' ', $message);
+                    $message = trim($message);
+                    
+                    $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
+                    if (!str_contains($message, $calendarUrl)) {
+                        $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
+                    }
+                } else {
+                    $message = $this->getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl);
+                }
+            } catch (\Exception $e) {
+                $calendarUrl = route('runner.calendar');
+                $message = $this->getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl);
+            }
+        }
+
+        $sentChannels = [];
+
+        if ($validated['channel'] === 'wa' || $validated['channel'] === 'both') {
+            if (!$runner->phone) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Runner tidak memiliki nomor telepon terdaftar untuk WhatsApp.'
+                ], 422);
+            }
+            $waMessage = $message . "\n\nBalas STOP untuk berhenti menerima pengingat.";
+            \App\Helpers\WhatsApp::send($runner->phone, $waMessage);
+            $sentChannels[] = 'WhatsApp';
+        }
+
+        if ($validated['channel'] === 'email' || $validated['channel'] === 'both') {
+            if (!$runner->email) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Runner tidak memiliki email terdaftar.'
+                ], 422);
+            }
+            \Illuminate\Support\Facades\Mail::to($runner->email)->send(
+                new \App\Mail\ProgramReminderMail($runner, $sessionData, $program, $message)
+            );
+            $sentChannels[] = 'Email';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengingat berhasil dikirim via ' . implode(' & ', $sentChannels) . '.'
+        ]);
+    }
+
+    private function getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl)
+    {
+        $type = strtolower($sessionData['type'] ?? 'rest');
+        $isRest = in_array($type, ['rest', 'rest day', 'libur']);
+
+        if ($isRest) {
+            return "Halo {$runner->name}, besok jadwal program {$program->title} kamu adalah Rest Day ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
+        }
+
+        $description = $sessionData['description'] ?? $sessionData['notes'] ?? $sessionData['instruction'] ?? '';
+        $detail = "";
+        if (!empty($description)) {
+            $detail .= "\n- Deskripsi: {$description}";
+        }
+        if (!empty($sessionData['distance'])) {
+            $detail .= "\n- Jarak: {$sessionData['distance']} km";
+        }
+        if (!empty($sessionData['duration'])) {
+            $detail .= "\n- Durasi: {$sessionData['duration']}";
+        }
+        if (!empty($sessionData['target_pace'])) {
+            $detail .= "\n- Target Pace: {$sessionData['target_pace']}";
+        }
+        
+        return "Halo {$runner->name}, besok jadwal kamu adalah {$sessionData['type']} untuk program {$program->title}."
+            . (!empty($detail) ? "\n\nDetail latihan:{$detail}" : "")
+            . "\n\nSemangat! Detail latihan: {$calendarUrl}";
+    }
+
+    /**
      * Delete an athlete's enrollment
      */
     public function destroy($enrollmentId)

@@ -564,10 +564,18 @@
                         </div>
 
                         <!-- Reschedule Program Button -->
-                        <div class="mb-4">
+                        <div class="mb-2">
                             <button @click="openRescheduleModal()" class="w-full text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-blue-500/30">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 Reschedule Program
+                            </button>
+                        </div>
+
+                        <!-- Send Reminder Button -->
+                        <div class="mb-4" v-if="!selectedSession.extendedProps.is_strava && selectedSession.extendedProps.status !== 'completed'">
+                            <button @click="openReminderModal()" class="w-full text-xs bg-neon/10 hover:bg-neon/20 text-neon hover:text-neon/80 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-neon/30">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                Send Program Reminder
                             </button>
                         </div>
 
@@ -1032,6 +1040,67 @@
                     <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
                         class="flex-1 py-2.5 text-sm font-black text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition disabled:opacity-50">
                         @{{ rescheduleLoading ? 'Menyimpan...' : 'Shift Calendar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Program Reminder Modal -->
+        <div v-if="showReminderModal" class="fixed inset-0 z-[200] overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showReminderModal = false"></div>
+            <div class="relative z-10 max-w-md mx-auto my-10 mx-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h3 class="text-base font-bold text-white uppercase tracking-tight">Kirim Pengingat Program</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Kirim pengingat sesi latihan ke atlet</p>
+                    </div>
+                    <button @click="showReminderModal = false" class="text-slate-500 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Session Info Card -->
+                <div class="bg-neon/10 border border-neon/20 rounded-xl p-4 mb-5 space-y-1.5" v-if="selectedSession">
+                    <div class="text-xs text-neon">Sesi: <span class="font-bold text-white">@{{ selectedSession.title }}</span></div>
+                    <div class="text-xs text-neon" v-if="selectedSession.extendedProps.distance">Jarak: <span class="font-bold text-white">@{{ selectedSession.extendedProps.distance }} km</span></div>
+                    <div class="text-xs text-neon" v-if="selectedSession.extendedProps.description">Deskripsi: <span class="font-bold text-white">@{{ selectedSession.extendedProps.description }}</span></div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Saluran Pengiriman (Channel)</label>
+                        <select v-model="reminderForm.channel" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none">
+                            <option value="both">WhatsApp & Email</option>
+                            <option value="wa">WhatsApp Saja</option>
+                            <option value="email">Email Saja</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Pesan Kustom (Opsional)</label>
+                        <textarea v-model="reminderForm.custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
+                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
+                        <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
+                    </div>
+
+                    <div v-if="reminderError" class="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                        @{{ reminderError }}
+                    </div>
+
+                    <div v-if="reminderSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
+                        @{{ reminderSuccess }}
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" @click="showReminderModal = false"
+                        class="flex-1 py-2.5 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitReminder" :disabled="reminderLoading"
+                        class="flex-1 py-2.5 text-sm font-black text-black bg-neon rounded-xl hover:bg-neon/90 transition disabled:opacity-50">
+                        @{{ reminderLoading ? 'Mengirim...' : 'Kirim Pengingat' }}
                     </button>
                 </div>
             </div>
@@ -1651,6 +1720,63 @@ createApp({
                 rescheduleError.value = 'Terjadi kesalahan. Silakan coba lagi.';
             } finally {
                 rescheduleLoading.value = false;
+            }
+        };
+
+        // ─── Send Program Reminder State & Methods ───────────────────
+        const showReminderModal = ref(false);
+        const reminderForm      = reactive({ channel: 'both', custom_message: '' });
+        const reminderLoading   = ref(false);
+        const reminderError     = ref('');
+        const reminderSuccess   = ref('');
+
+        const openReminderModal = () => {
+            reminderForm.channel = 'both';
+            reminderForm.custom_message = '';
+            reminderError.value = '';
+            reminderSuccess.value = '';
+            showReminderModal.value = true;
+        };
+
+        const submitReminder = async () => {
+            if (!selectedSession.value) return;
+            reminderLoading.value = true;
+            reminderError.value = '';
+            reminderSuccess.value = '';
+            try {
+                const url = `{{ route('coach.athletes.send-reminder', $enrollment->id) }}`;
+                const payload = {
+                    channel: reminderForm.channel,
+                    custom_message: reminderForm.custom_message,
+                };
+                if (selectedSession.value.extendedProps.is_custom) {
+                    payload.custom_workout_id = selectedSession.value.extendedProps.id;
+                } else {
+                    payload.session_day = selectedSession.value.extendedProps.session_day;
+                }
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    reminderSuccess.value = data.message || 'Pengingat berhasil dikirim!';
+                    setTimeout(() => {
+                        showReminderModal.value = false;
+                    }, 1500);
+                } else {
+                    reminderError.value = data.message || 'Gagal mengirim pengingat.';
+                }
+            } catch (e) {
+                reminderError.value = 'Terjadi kesalahan. Silakan coba lagi.';
+            } finally {
+                reminderLoading.value = false;
             }
         };
         // ─────────────────────────────────────────────────────────────
@@ -3582,6 +3708,9 @@ createApp({
             // Reschedule Program
             showRescheduleModal, rescheduleForm, rescheduleLoading, rescheduleError,
             openRescheduleModal, submitReschedule, previewRescheduleEndDate,
+            // Send Program Reminder
+            showReminderModal, reminderForm, reminderLoading, reminderError, reminderSuccess,
+            openReminderModal, submitReminder,
             weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
         };
     }

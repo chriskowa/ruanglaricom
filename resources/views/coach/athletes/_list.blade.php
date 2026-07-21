@@ -121,6 +121,9 @@
                                 @endif
 
                                 <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
+                                    <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-3 py-2 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-xs transition">
+                                        Send Reminder
+                                    </button>
                                     <a href="{{ route('coach.athletes.show', $enrollment->id) }}" class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white font-black text-xs hover:bg-slate-700 hover:text-neon transition">
                                         Monitor & Grade
                                     </a>
@@ -178,6 +181,9 @@
                                     <div class="font-medium text-slate-400 text-sm truncate">{{ $enrollment->program->title }}</div>
                                 </div>
                                 <div class="flex justify-end pt-3 border-t border-slate-800 gap-2">
+                                    <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-3 py-2 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-xs transition">
+                                        Send Reminder
+                                    </button>
                                     <a href="{{ route('coach.athletes.show', $enrollment->id) }}" class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs hover:bg-slate-700 hover:text-white transition">
                                         Monitor & Grade
                                     </a>
@@ -272,6 +278,9 @@
                         </td>
                         <td class="py-4 text-right pr-4">
                             <div class="flex items-center justify-end gap-2">
+                                <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-3 py-2 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-xs transition">
+                                    Send Reminder
+                                </button>
                                 <a href="{{ route('coach.athletes.show', $enrollment->id) }}" class="px-4 py-2 rounded-lg bg-neon text-dark font-black text-xs hover:bg-neon/90 transition inline-block">
                                     Monitor & Grade
                                 </a>
@@ -303,6 +312,9 @@
                             <div class="text-xs text-slate-500 truncate">{{ $enrollment->runner->email }}</div>
                         </div>
                         <div class="flex gap-2">
+                            <button onclick="openReminderModal('{{ $enrollment->id }}')" class="w-10 h-10 rounded-xl bg-neon/10 text-neon border border-neon/20 flex items-center justify-center hover:bg-neon hover:text-dark transition" title="Send Reminder">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                            </button>
                             <a href="{{ route('coach.athletes.show', $enrollment->id) }}" class="w-10 h-10 rounded-xl bg-neon flex items-center justify-center text-dark">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7-7"></path></svg>
                             </a>

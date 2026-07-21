@@ -493,6 +493,55 @@
         </form>
     </div>
 </div>
+
+<!-- Send Program Reminder Modal -->
+<div id="reminderModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeReminderModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="reminderModalContent">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Kirim Pengingat Program</h3>
+                <p class="text-xs text-slate-400 mt-1">Kirim pengingat sesi latihan besok ke atlet</p>
+            </div>
+            <button onclick="closeReminderModal()" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <form id="reminderForm" onsubmit="submitReminderForm(event)" class="space-y-4">
+            @csrf
+            <input type="hidden" name="enrollment_id" id="reminder_enrollment_id">
+
+            <div>
+                <label for="reminder_channel" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Saluran Pengiriman (Channel)</label>
+                <select name="channel" id="reminder_channel" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                    <option value="both">WhatsApp & Email</option>
+                    <option value="wa">WhatsApp Saja</option>
+                    <option value="email">Email Saja</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="reminder_custom_message" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pesan Kustom (Opsional)</label>
+                <textarea name="custom_message" id="reminder_custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
+                    class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
+                <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
+            </div>
+
+            <div id="reminder-error-msg" class="hidden text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3"></div>
+            <div id="reminder-success-msg" class="hidden text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3"></div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
+                <button type="button" onclick="closeReminderModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                    Batal
+                </button>
+                <button type="submit" id="reminder-submit-btn" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                    Kirim Pengingat
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -967,6 +1016,84 @@ document.addEventListener('DOMContentLoaded', function() {
             if (dd) dd.classList.add('hidden');
         }
     });
+    // ───────────────────────────────────────────────────────────────
+
+    // ── Send Program Reminder Modal ───────────────────────────────
+    const reminderModal = document.getElementById('reminderModal');
+    const reminderModalContent = document.getElementById('reminderModalContent');
+
+    window.openReminderModal = function(enrollmentId) {
+        if (!reminderModal || !reminderModalContent) return;
+        document.getElementById('reminder_enrollment_id').value = enrollmentId;
+        document.getElementById('reminder_custom_message').value = '';
+        document.getElementById('reminder_channel').value = 'both';
+        document.getElementById('reminder-error-msg').classList.add('hidden');
+        document.getElementById('reminder-success-msg').classList.add('hidden');
+        
+        reminderModal.classList.remove('hidden');
+        setTimeout(() => {
+            reminderModalContent.classList.remove('scale-95', 'opacity-0');
+            reminderModalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeReminderModal = function() {
+        if (!reminderModal || !reminderModalContent) return;
+        reminderModalContent.classList.remove('scale-100', 'opacity-100');
+        reminderModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            reminderModal.classList.add('hidden');
+        }, 300);
+    };
+
+    window.submitReminderForm = async function(e) {
+        e.preventDefault();
+        const enrollmentId = document.getElementById('reminder_enrollment_id').value;
+        const channel = document.getElementById('reminder_channel').value;
+        const customMessage = document.getElementById('reminder_custom_message').value;
+        const submitBtn = document.getElementById('reminder-submit-btn');
+        const errorMsg = document.getElementById('reminder-error-msg');
+        const successMsg = document.getElementById('reminder-success-msg');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengirim...';
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        try {
+            const response = await fetch(`/coach/athletes/${enrollmentId}/send-reminder`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    channel: channel,
+                    custom_message: customMessage
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                successMsg.textContent = data.message || 'Pengingat berhasil dikirim!';
+                successMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    closeReminderModal();
+                }, 1500);
+            } else {
+                errorMsg.textContent = data.message || 'Gagal mengirim pengingat.';
+                errorMsg.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error(err);
+            errorMsg.textContent = 'Terjadi kesalahan koneksi.';
+            errorMsg.classList.remove('hidden');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Kirim Pengingat';
+        }
+    };
     // ───────────────────────────────────────────────────────────────
 
     window.confirmDeleteAthlete = function(enrollmentId, runnerName, programTitle) {
