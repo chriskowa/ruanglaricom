@@ -340,6 +340,46 @@ class UserController extends Controller
     }
 
     /**
+     * Send a custom WhatsApp message to the user.
+     */
+    public function sendWhatsApp(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string',
+        ]);
+
+        if (!$user->phone) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak memiliki nomor telepon terdaftar.',
+                ], 200);
+            }
+            return back()->with('error', 'User tidak memiliki nomor telepon terdaftar.');
+        }
+
+        try {
+            \App\Helpers\WhatsApp::send($user->phone, $validated['message']);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesan WhatsApp berhasil dikirim.',
+                ]);
+            }
+            return back()->with('success', 'Pesan WhatsApp berhasil dikirim.');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengirim WhatsApp: ' . $e->getMessage(),
+                ], 200);
+            }
+            return back()->with('error', 'Gagal mengirim WhatsApp: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Login as the selected user.
      */
     public function impersonate(User $user)

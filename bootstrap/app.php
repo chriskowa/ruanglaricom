@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'membership/webhook',
             'webhook/moota',
             'api/moota/webhook',
+            'webhook/whatsapp',
             'api/tools/race-master/public/*',
         ]);
 

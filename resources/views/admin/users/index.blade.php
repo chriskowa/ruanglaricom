@@ -7,6 +7,14 @@
 <div x-data="{ 
     showModal: false, 
     createModal: false,
+    whatsappModal: false,
+    whatsappMessage: '',
+    whatsappUserId: null,
+    whatsappUserName: '',
+    whatsappUserPhone: '',
+    whatsappLoading: false,
+    whatsappError: '',
+    whatsappSuccess: '',
     isLoading: false,
     loadingTransactions: false,
     loadingUser: false,
@@ -357,7 +365,69 @@
             role: 'runner',
             program_id: ''
         };
+    },
+    openWhatsAppModal(userId, userName, userPhone) {
+        this.whatsappUserId = userId;
+        this.whatsappUserName = userName;
+        this.whatsappUserPhone = userPhone || '';
+        this.whatsappMessage = '';
+        this.whatsappError = '';
+        this.whatsappSuccess = '';
+        this.whatsappModal = true;
+    },
+    closeWhatsAppModal() {
+        this.whatsappModal = false;
+    },
+    async submitWhatsApp() {
+    if (!this.whatsappMessage.trim()) {
+        this.whatsappError = 'Pesan tidak boleh kosong.';
+        return;
     }
+
+    this.whatsappLoading = true;
+    this.whatsappError = '';
+    this.whatsappSuccess = '';
+
+    try {
+        const csrfMeta = document.querySelector('meta[name=csrf-token]');
+        const token = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+        const res = await fetch(
+            `/admin/users/${this.whatsappUserId}/send-whatsapp`,
+            {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: this.whatsappMessage
+                })
+            }
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            this.whatsappSuccess =
+                data.message || 'Pesan berhasil dikirim!';
+
+            setTimeout(() => {
+                this.closeWhatsAppModal();
+            }, 1500);
+        } else {
+            this.whatsappError =
+                data.message || 'Gagal mengirim pesan.';
+        }
+    } catch (err) {
+        console.error(err);
+        this.whatsappError = 'Terjadi kesalahan koneksi.';
+    } finally {
+        this.whatsappLoading = false;
+    }
+}
 }" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
@@ -953,6 +1023,96 @@
         </div>
     </div>
 
+    <!-- WhatsApp Modal -->
+    <div x-show="whatsappModal" 
+        style="display: none;"
+        class="fixed inset-0 z-50 overflow-y-auto" 
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Backdrop -->
+            <div x-show="whatsappModal"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" 
+                @click="closeWhatsAppModal" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal Panel -->
+            <div x-show="whatsappModal"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-700">
+                
+                <div class="bg-slate-800/50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-slate-700">
+                    <div class="sm:flex sm:items-center justify-between">
+                        <h3 class="text-xl font-bold leading-6 text-white" id="modal-title">
+                            Kirim WhatsApp
+                        </h3>
+                        <button @click="closeWhatsAppModal" class="text-slate-400 hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <form @submit.prevent="submitWhatsApp">
+                    <div class="px-4 py-5 sm:p-6">
+                        <div class="space-y-4">
+                            <div class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-3 text-sm text-slate-300">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-slate-500">Nama:</span>
+                                    <span class="font-bold text-white" x-text="whatsappUserName"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">No. WA:</span>
+                                    <span class="font-mono text-white" x-text="whatsappUserPhone || '-'"></span>
+                                </div>
+                            </div>
+
+                            <template x-if="!whatsappUserPhone">
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-xl p-3 text-xs">
+                                    Peringatan: User ini tidak memiliki nomor telepon terdaftar. Pesan mungkin tidak dapat dikirim.
+                                </div>
+                            </template>
+
+                            <template x-if="whatsappError">
+                                <div class="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl p-3 text-xs" x-text="whatsappError"></div>
+                            </template>
+
+                            <template x-if="whatsappSuccess">
+                                <div class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl p-3 text-xs" x-text="whatsappSuccess"></div>
+                            </template>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Pesan WhatsApp</label>
+                                <textarea x-model="whatsappMessage" required rows="4" placeholder="Tulis pesan kustom di sini..."
+                                    class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 outline-none resize-none p-3 text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-700">
+                        <button type="submit" :disabled="whatsappLoading || !whatsappUserPhone" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm">
+                            <span x-show="!whatsappLoading">Kirim Pesan</span>
+                            <span x-show="whatsappLoading">Mengirim...</span>
+                        </button>
+                        <button type="button" @click="closeWhatsAppModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -1041,5 +1201,4 @@
         }
     })();
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 @endpush

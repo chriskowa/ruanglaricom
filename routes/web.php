@@ -889,6 +889,7 @@ Route::middleware('auth')->group(function () {
         Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::post('users/{user}/toggle-wa', [App\Http\Controllers\Admin\UserController::class, 'toggleWaNotify'])->name('users.toggle-wa');
         Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+        Route::post('users/{user}/send-whatsapp', [App\Http\Controllers\Admin\UserController::class, 'sendWhatsApp'])->name('users.send-whatsapp');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
         Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
@@ -1246,6 +1247,7 @@ Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::cl
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
 Route::post('/membership/webhook', [App\Http\Controllers\MembershipWebhookController::class, 'handle'])->name('membership.webhook');
 Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');
+Route::post('/webhook/whatsapp', [App\Http\Controllers\WhatsAppWebhookController::class, 'handle'])->name('webhook.whatsapp');
 Route::post('/midtrans/webhook', function (\Illuminate\Http\Request $request) {
     $orderId = (string) $request->input('order_id', '');
 

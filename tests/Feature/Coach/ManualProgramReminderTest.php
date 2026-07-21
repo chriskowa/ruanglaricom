@@ -161,4 +161,53 @@ class ManualProgramReminderTest extends TestCase
 
         \Illuminate\Support\Carbon::setTestNow(); // Reset time
     }
+
+    public function test_coach_send_reminder_fails_gracefully_when_no_active_session()
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-08-10');
+
+        $coach = User::factory()->create(['role' => 'coach']);
+        $runner = User::factory()->create(['role' => 'runner', 'email' => 'runner@example.com', 'phone' => '08123456789']);
+        
+        $program = Program::create([
+            'title' => 'Half Marathon Prep',
+            'slug' => 'half-marathon-prep',
+            'description' => 'Preparation for half marathon',
+            'duration_weeks' => 12,
+            'coach_id' => $coach->id,
+            'is_active' => true,
+            'program_json' => [
+                'sessions' => [
+                    [
+                        'day' => 1,
+                        'type' => 'easy_run',
+                        'distance' => 5,
+                        'description' => 'Easy run 5km'
+                    ]
+                ]
+            ],
+        ]);
+
+        $enrollment = ProgramEnrollment::create([
+            'program_id' => $program->id,
+            'runner_id' => $runner->id,
+            'status' => 'active',
+            'start_date' => '2026-08-01', // Day 1 is Aug 1. Today is Aug 10, so no active/upcoming sessions.
+            'end_date' => '2026-10-24',
+        ]);
+
+        $response = $this->actingAs($coach)->post(route('coach.athletes.send-reminder', $enrollment->id), [
+            'channel' => 'email',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Tidak ada sesi latihan aktif atau mendatang yang ditemukan untuk atlet ini.'
+        ]);
+
+        Mail::assertNotSent(ProgramReminderMail::class);
+
+        \Illuminate\Support\Carbon::setTestNow(); // Reset time
+    }
 }
