@@ -18,6 +18,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/framework/views/
 /vendor
 /.github/workflows/deploy.yml
 Homestead.json

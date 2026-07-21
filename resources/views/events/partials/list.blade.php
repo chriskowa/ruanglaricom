@@ -18,69 +18,95 @@
     }
 @endphp
 <article class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 hover:border-neon/50 transition-all group event-card">
-    <div class="flex flex-col md:flex-row gap-4 md:items-center">
-        <!-- Date Badge -->
-        <div class="flex-shrink-0 flex md:flex-col items-center justify-center bg-slate-800 rounded-xl p-3 md:w-20 md:h-20 border border-slate-700">
-            <span class="text-xs font-bold text-slate-400 uppercase">{{ $event->event_date->format('M') }}</span>
-            <span class="text-2xl md:text-3xl font-black text-neon leading-none">{{ $event->event_date->format('d') }}</span>
-            <span class="text-xs text-slate-500">{{ $event->event_date->format('D') }}</span>
+    <div class="flex flex-col md:flex-row gap-5 md:items-center">
+        <!-- Event Thumbnail with Date Badge Overlay -->
+        <div class="relative flex-shrink-0 w-full md:w-44 h-44 md:h-28 rounded-xl overflow-hidden border border-slate-700/50 bg-slate-800 shadow-inner">
+            <img src="{{ $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp') }}" 
+                 alt="{{ $event->name }}" 
+                 class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out"
+                 loading="lazy">
+            
+            <!-- Date Badge Overlay -->
+            <div class="absolute top-2.5 left-2.5 bg-slate-950/85 backdrop-blur-md border border-slate-700/50 rounded-lg p-1.5 flex flex-col items-center justify-center min-w-[48px] shadow-lg">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{{ $event->event_date->format('M') }}</span>
+                <span class="text-lg font-black text-neon leading-none">{{ $event->event_date->format('d') }}</span>
+                <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider leading-none mt-0.5">{{ $event->event_date->format('D') }}</span>
+            </div>
         </div>
 
         <!-- Info -->
-        <div class="flex-grow">
-            <div class="flex flex-wrap gap-2 mb-2">
+        <div class="flex-grow space-y-2">
+            <!-- Badges -->
+            <div class="flex flex-wrap gap-1.5 items-center">
                 @if($event->is_featured)
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neon text-dark uppercase tracking-wide">Featured</span>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-neon/10 text-neon border border-neon/30 uppercase tracking-wider">Featured</span>
                 @endif
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300 uppercase tracking-wide border border-slate-600">
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800/60 text-slate-300 border border-slate-700/50 uppercase tracking-wider">
                     {{ $event->raceType->name ?? 'Running Event' }}
                 </span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300 uppercase tracking-wide border border-slate-600">
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800/60 text-slate-300 border border-slate-700/50 uppercase tracking-wider">
                     {{ $event->city ? $event->city->name : $event->location_name }}
                 </span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wide {{ $regClass }}">
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider {{ $regClass }}">
                     {{ $regStatus }}
                 </span>
             </div>
             
+            <!-- Title -->
             <a href="{{ $event->public_url }}" class="block group-hover:text-neon transition-colors">
-                <h3 class="text-xl font-bold text-neon mb-1">{{ $event->name }}</h3>
+                <h3 class="text-lg md:text-xl font-black text-white group-hover:text-neon transition-colors uppercase tracking-tight leading-snug">{{ $event->name }}</h3>
             </a>
             
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mb-2">
-                <div class="flex items-center gap-1">
-                    <span class="font-semibold text-slate-300">Tanggal:</span> {{ $event->event_date->format('d M Y') }}
+            <!-- Meta Details -->
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-slate-400">
+                <!-- Date -->
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{{ $event->event_date->translatedFormat('d M Y') }}</span>
                 </div>
+                
+                <!-- Time -->
                 @if($event->start_time)
-                    <div class="flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {{ $event->start_time->format('H:i') === '00:00' ? '05:00' : $event->start_time->format('H:i') }}
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ $event->start_time->format('H:i') === '00:00' ? '05:00' : $event->start_time->format('H:i') }} WIB</span>
                     </div>
                 @endif
-                <div class="flex items-center gap-1">
-                    <span class="font-semibold text-slate-300">Lokasi:</span> {{ $event->location_name ?? ($event->city ? $event->city->name : 'TBA') }}
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="font-semibold text-slate-300">Status:</span> <span class="{{ $regStatus === 'Dibuka' ? 'text-neon' : ($regStatus === 'Segera Dibuka' ? 'text-blue-400' : 'text-red-400') }} font-semibold">{{ $regStatus }}</span>
+                
+                <!-- Location -->
+                <div class="flex items-center gap-1.5 max-w-xs sm:max-w-sm md:max-w-md">
+                    <svg class="w-4 h-4 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="truncate">{{ $event->location_name ?? ($event->city ? $event->city->name : 'TBA') }}</span>
                 </div>
             </div>
 
             <!-- Distances -->
-            <div class="flex flex-wrap items-center gap-2 mt-3">
-                <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kategori:</span>
-                @foreach($event->raceDistances as $distance)
-                    <span class="px-2 py-1 rounded bg-slate-800 text-xs text-neon font-mono border border-slate-700">
-                        {{ $distance->name }}
-                    </span>
-                @endforeach
-            </div>
+            @if($event->raceDistances->isNotEmpty())
+                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-1">Kategori:</span>
+                    @foreach($event->raceDistances as $distance)
+                        <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-mono font-bold hover:border-neon/30 transition-colors">
+                            {{ $distance->name }}
+                        </span>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <!-- Action -->
-        <div class="flex-shrink-0 mt-2 md:mt-0 flex flex-col gap-2 w-full md:w-auto">
-            <a href="{{ $event->public_url }}" class="inline-flex items-center justify-center w-full md:w-auto px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all">
+        <div class="flex flex-row md:flex-col gap-2 w-full md:w-auto md:self-center md:items-end mt-3 md:mt-0">
+            <a href="{{ $event->public_url }}" class="flex-1 md:flex-none inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-neon text-dark font-extrabold text-sm hover:bg-lime-300 transition-all shadow-lg shadow-neon/10 hover:shadow-neon/20">
                 Detail Event
-                <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
             </a>
             
             @php
@@ -97,8 +123,10 @@
                 $gCalUrl .= "&sf=true&output=xml";
             @endphp
             
-            <a href="{{ $gCalUrl }}" target="_blank" class="inline-flex items-center justify-center w-full md:w-auto px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-bold hover:bg-gray-100 transition-all shadow-[0_0_10px_rgba(66,133,244,0.3)]">
-                <svg class="w-5 h-5 mr-2 text-[#4285F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <a href="{{ $gCalUrl }}" target="_blank" class="flex-1 md:flex-none inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all">
+                <svg class="w-4 h-4 mr-1.5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
                 Add to Calendar
             </a>
         </div>

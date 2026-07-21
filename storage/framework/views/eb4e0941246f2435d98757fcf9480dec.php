@@ -392,7 +392,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         var url = getNotificationUrl(n);
                         var title = n.title || 'Notification';
                         var message = n.message || '';
-                        var timeText = dayjs(n.created_at).fromNow();
+                        var timeText;
+                        try { timeText = dayjs(n.created_at).fromNow(); } catch (e) { timeText = n.created_at; }
                         html += '<a href="' + url + '" data-id="' + n.id + '" class="block p-4 border-b <?php echo e($lightMode ? "border-slate-100 hover:bg-slate-50" : "border-slate-800 hover:bg-slate-800/50"); ?> transition-colors group">';
                         html +=   '<div class="flex gap-3">';
                         html +=     '<div class="mt-1 w-2 h-2 rounded-full bg-primary shrink-0"></div>';
