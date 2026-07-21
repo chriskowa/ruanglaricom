@@ -314,13 +314,15 @@ class DashboardController extends Controller
             default => 'Selamat malam',
         };
 
-        $eventRegistrations = \App\Models\Transaction::where('user_id', $user->id)
-            ->orWhereHas('participants', function ($query) use ($user) {
-                $query->where('email', $user->email);
+        $eventRegistrations = \App\Models\Transaction::where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhereHas('participants', function ($query) use ($user) {
+                        $query->where('email', $user->email);
+                    });
             })
             ->with(['event', 'participants.category'])
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(5, ['*'], 'events_page');
 
         // Get active enrollments with program.coach for calendar
         $enrollments = ProgramEnrollment::where('runner_id', $user->id)

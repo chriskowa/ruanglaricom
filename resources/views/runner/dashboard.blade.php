@@ -406,6 +406,35 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        @if($eventRegistrations->hasPages())
+                            <div class="mt-6 pt-4 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div class="text-xs text-slate-500">
+                                    Menampilkan {{ $eventRegistrations->firstItem() }}-{{ $eventRegistrations->lastItem() }} dari {{ $eventRegistrations->total() }} event
+                                </div>
+                                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                    @if($eventRegistrations->onFirstPage())
+                                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-slate-600 text-xs font-bold cursor-not-allowed">
+                                            Sebelumnya
+                                        </span>
+                                    @else
+                                        <a href="{{ $eventRegistrations->appends(request()->except('events_page'))->previousPageUrl() }}" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-bold transition">
+                                            Sebelumnya
+                                        </a>
+                                    @endif
+
+                                    @if($eventRegistrations->hasMorePages())
+                                        <a href="{{ $eventRegistrations->appends(request()->except('events_page'))->nextPageUrl() }}" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-bold transition">
+                                            Berikutnya
+                                        </a>
+                                    @else
+                                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-slate-600 text-xs font-bold cursor-not-allowed">
+                                            Berikutnya
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     @endif
                     </div>
                 </div>

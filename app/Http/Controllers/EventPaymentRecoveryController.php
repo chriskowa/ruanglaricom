@@ -51,7 +51,7 @@ class EventPaymentRecoveryController extends Controller
 
         $validated = $request->validate([
             'phone' => 'required|string|min:6|max:32',
-            'transaction_id' => 'nullable|string|max:32',
+            'transaction_id' => 'nullable|max:32',
         ]);
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
@@ -234,16 +234,13 @@ class EventPaymentRecoveryController extends Controller
                 $tx->update([
                     'snap_token' => null, 
                     'midtrans_order_id' => null,
-                    // Optional: reset mode to default if we suspect mode mismatch, 
-                    // but keeping it null/current is usually safer unless we force a new logic.
-                    // 'midtrans_mode' => null 
                 ]);
 
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Sesi pembayaran tidak ditemukan atau kadaluarsa di sistem pembayaran. Silakan refresh dan coba bayar ulang.',
-                    'should_retry' => true
-                ], 404);
+                    'success' => true,
+                    'transaction' => $this->serializeTransaction($tx->fresh()),
+                    'message' => 'Sesi pembayaran kadaluarsa atau tidak ditemukan di Midtrans. Sesi telah di-reset, silakan klik Lanjutkan Pembayaran lagi.',
+                ]);
             }
 
             return response()->json([
@@ -452,6 +449,21 @@ class EventPaymentRecoveryController extends Controller
         $name = (string) ($pic['name'] ?? '');
         $phone = (string) ($pic['phone'] ?? '');
 
+        $participants = [];
+        if (\Schema::hasTable('participants')) {
+            // Ensure participants relation is loaded if not already
+            if (! $tx->relationLoaded('participants')) {
+                $tx->load(['participants.category']);
+            }
+
+            foreach ($tx->participants as $p) {
+                $participants[] = [
+                    'name' => $p->name,
+                    'category' => $p->category->name ?? null,
+                ];
+            }
+        }
+
         $data = [
             'id' => $tx->id,
             'public_ref' => $tx->public_ref ?? null,
@@ -461,6 +473,7 @@ class EventPaymentRecoveryController extends Controller
             'payment_status' => $tx->payment_status,
             'midtrans_transaction_status' => $tx->midtrans_transaction_status,
             'created_at' => optional($tx->created_at)->toISOString(),
+            'participants' => $participants,
         ];
 
         if ($includeRawPhone) {

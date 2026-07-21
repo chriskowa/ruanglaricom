@@ -97,6 +97,7 @@ class EventPaymentRecoveryTest extends TestCase
             'payment_gateway' => 'midtrans',
             'payment_status' => 'pending',
             'snap_token' => 'tok',
+            'final_amount' => 100000,
             'pic_data' => [
                 'phone' => '08123456789',
             ],

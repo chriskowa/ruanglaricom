@@ -14,40 +14,81 @@
 @section('title', 'Lanjutkan Pembayaran')
 
 @section('content')
-    <div class="max-w-3xl mx-auto px-4 py-10">
+    <div class="max-w-5xl mx-auto px-4 py-10">
         <div class="mb-6">
-            <a href="{{ route('events.show', $event->slug) }}" class="text-sm text-slate-400 hover:text-white">&larr; Kembali ke halaman event</a>
+            <a href="{{ route('events.show', $event->slug) }}" class="text-sm text-slate-400 hover:text-white flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Kembali ke halaman event
+            </a>
         </div>
 
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6">
-            <h1 class="text-2xl font-black text-white">Lanjutkan Pembayaran</h1>
-            <p class="text-sm text-slate-400 mt-2">
-                @if(auth()->check() && count($autoTransactions) > 0)
-                    Kami menemukan transaksi pending Anda secara otomatis berdasarkan session login Anda.
-                @else
-                    Masukkan nomor WhatsApp/HP PIC dan (opsional) ID registrasi untuk menemukan transaksi pending.
-                @endif
-            </p>
-
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">No. HP PIC</label>
-                    <input id="phone" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="contoh: 0812xxxxxxx">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">ID Registrasi (Opsional)</label>
-                    <input id="transaction_id" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="contoh: 12345">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Event Info Column -->
+            <div class="lg:col-span-1">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden sticky top-6">
+                    <div class="relative aspect-[16/9] bg-slate-950">
+                        <img src="{{ $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp') }}" 
+                             alt="{{ $event->name }}" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="text-xl font-black text-white leading-tight">{{ $event->name }}</h2>
+                        
+                        <div class="mt-4 space-y-3 text-sm text-slate-400">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>{{ \Carbon\Carbon::parse($event->start_at)->translatedFormat('l, d F Y') }}</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="line-clamp-2">{{ $event->location_name }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap gap-3">
-                <button id="btnFind" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl">Cari Transaksi</button>
-                <button id="btnClear" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Reset</button>
+            <!-- Payment Recovery Form Column -->
+            <div class="lg:col-span-2">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <h1 class="text-2xl font-black text-white">Lanjutkan Pembayaran</h1>
+                    <p class="text-sm text-slate-400 mt-2">
+                        @if(auth()->check() && count($autoTransactions) > 0)
+                            Kami menemukan transaksi pending Anda secara otomatis berdasarkan session login Anda.
+                        @else
+                            Masukkan nomor WhatsApp/HP PIC dan (opsional) ID registrasi untuk menemukan transaksi pending.
+                        @endif
+                    </p>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">No. HP PIC</label>
+                            <input id="phone" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 0812xxxxxxx">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">ID Registrasi (Opsional)</label>
+                            <input id="transaction_id" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 12345">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <button id="btnFind" class="bg-neon hover:bg-neon/90 text-black font-bold px-5 py-2.5 rounded-xl transition-colors">Cari Transaksi</button>
+                        <button id="btnClear" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors">Reset</button>
+                    </div>
+
+                    <div id="msg" class="mt-4 text-sm"></div>
+
+                    <div id="results" class="mt-6 space-y-4 hidden"></div>
+                </div>
             </div>
-
-            <div id="msg" class="mt-4 text-sm"></div>
-
-            <div id="results" class="mt-6 space-y-3 hidden"></div>
         </div>
     </div>
 
@@ -91,22 +132,53 @@
                 transactions.forEach(tx => {
                     const txPhone = tx.pic_phone_raw || phone;
                     const card = document.createElement('div');
-                    card.className = 'bg-slate-950 border border-slate-700 rounded-2xl p-4 flex flex-col gap-3';
+                    card.className = 'bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4';
+                    
+                    let statusBadge = '';
+                    if (tx.payment_status === 'pending') {
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-neon/10 text-neon border border-neon/20 uppercase">Pending</span>`;
+                    } else if (tx.payment_status === 'paid') {
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-green-500/10 text-green-400 border border-green-500/20 uppercase">Paid</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-500/10 text-slate-400 border border-slate-500/20 uppercase">${tx.payment_status}</span>`;
+                    }
+
+                    const participantsHtml = tx.participants && tx.participants.length > 0
+                        ? `<div class="pt-3 border-t border-slate-800/60">
+                             <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Peserta Terdaftar:</div>
+                             <div class="flex flex-wrap gap-2">
+                                 ${tx.participants.map(p => `
+                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+                                         <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                         </svg>
+                                         <span class="font-medium">${p.name}</span>
+                                         ${p.category ? `<span class="text-[10px] text-neon font-bold bg-neon/10 px-1.5 py-0.5 rounded border border-neon/20">${p.category}</span>` : ''}
+                                     </span>
+                                 `).join('')}
+                             </div>
+                           </div>`
+                        : '';
+
                     card.innerHTML = `
                         <div class="flex items-start justify-between gap-4">
                             <div>
-                                <div class="text-white font-bold">ID Registrasi: <span class="font-mono">${tx.public_ref || tx.id}</span></div>
-                                <div class="text-xs text-slate-400 mt-1">${tx.pic_name ? 'PIC: ' + tx.pic_name + ' • ' : ''}HP: ${tx.pic_phone_masked || '-'}</div>
-                                <div class="text-xs text-slate-500 mt-1">Status: <span class="text-slate-300">${tx.payment_status}</span>${tx.midtrans_transaction_status ? ' • Midtrans: ' + tx.midtrans_transaction_status : ''}</div>
+                                <div class="text-white font-bold flex items-center gap-2">
+                                    <span>ID Registrasi: <span class="font-mono text-neon">${tx.public_ref || tx.id}</span></span>
+                                    ${statusBadge}
+                                </div>
+                                <div class="text-xs text-slate-400 mt-1.5">${tx.pic_name ? 'PIC: ' + tx.pic_name + ' • ' : ''}HP: ${tx.pic_phone_masked || '-'}</div>
+                                ${tx.midtrans_transaction_status ? `<div class="text-xs text-slate-500 mt-1">Midtrans: <span class="text-slate-300">${tx.midtrans_transaction_status}</span></div>` : ''}
                             </div>
                             <div class="text-right">
-                                <div class="text-white font-bold">Rp ${Number(tx.final_amount || 0).toLocaleString('id-ID')}</div>
+                                <div class="text-white font-black text-lg">Rp ${Number(tx.final_amount || 0).toLocaleString('id-ID')}</div>
                                 <div class="text-[10px] text-slate-500 mt-1">${tx.created_at ? new Date(tx.created_at).toLocaleString('id-ID') : ''}</div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap gap-3">
-                            <button class="btnStatus bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Cek Status</button>
-                            <button class="btnResume bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl">Lanjutkan Pembayaran</button>
+                        ${participantsHtml}
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button class="btnStatus bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition-colors">Cek Status</button>
+                            <button class="btnResume bg-neon hover:bg-neon/90 text-black font-bold px-4 py-2 rounded-xl transition-colors">Lanjutkan Pembayaran</button>
                         </div>
                     `;
                     results.appendChild(card);
@@ -133,7 +205,7 @@
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                         'Accept': 'application/json'
                                     },
-                                    body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
+                                    body: JSON.stringify({ phone: txPhone, transaction_id: String(tx.id) })
                                 });
                                 const data2 = await r2.json();
                                 renderTransactions(data2.transactions || [], phone);
@@ -163,7 +235,7 @@
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                         'Accept': 'application/json'
                                     },
-                                    body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
+                                    body: JSON.stringify({ phone: txPhone, transaction_id: String(tx.id) })
                                 });
                                 const data2 = await r2.json();
                                 renderTransactions(data2.transactions || [], phone);
@@ -196,7 +268,7 @@
                                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                             'Accept': 'application/json'
                                         },
-                                        body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
+                                        body: JSON.stringify({ phone: txPhone, transaction_id: String(tx.id) })
                                     });
                                     const data2 = await r2.json();
                                     renderTransactions(data2.transactions || [], phone);
