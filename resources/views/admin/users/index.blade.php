@@ -369,7 +369,7 @@
     openWhatsAppModal(userId, userName, userPhone) {
         this.whatsappUserId = userId;
         this.whatsappUserName = userName;
-        this.whatsappUserPhone = userPhone || '';
+        this.whatsappUserPhone = (userPhone && userPhone !== 'null' && userPhone !== 'undefined') ? String(userPhone).trim() : '';
         this.whatsappMessage = '';
         this.whatsappError = '';
         this.whatsappSuccess = '';
