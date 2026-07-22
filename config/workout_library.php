@@ -65,6 +65,18 @@ return [
                 'best_for' => 'Holding fast pace under fatigue',
                 'note' => 'Better for intermediate and advanced runners.',
             ],
+            [
+                'id' => '5k_hill_10x30sec',
+                'goal' => '5K',
+                'type' => 'hill',
+                'name' => '10 x 30 Sec Hill Repeats',
+                'focus' => 'Muscle power & leg turnover',
+                'main_set' => '10 reps x 30 sec uphill',
+                'recovery' => 'Walk down slowly',
+                'intensity' => 'R pace / 90-95% effort',
+                'best_for' => 'Building leg power and running economy',
+                'note' => 'Drive knees high, maintain tall posture, and focus on smooth turnover.',
+            ],
         ],
 
         '10K' => [
@@ -127,6 +139,18 @@ return [
                 'intensity' => 'Controlled 10K effort',
                 'best_for' => 'Preparing for 10K race fatigue',
                 'note' => 'Use only when the runner has enough base fitness.',
+            ],
+            [
+                'id' => '10k_hill_8x45sec',
+                'goal' => '10K',
+                'type' => 'hill',
+                'name' => '8 x 45 Sec Hill Repeats',
+                'focus' => 'Speed endurance & hill power',
+                'main_set' => '8 reps x 45 sec uphill',
+                'recovery' => 'Jog down slowly',
+                'intensity' => '5K-10K effort',
+                'best_for' => 'Building aerobic strength and biomechanical efficiency',
+                'note' => 'Maintain consistent power on the incline without over-striding.',
             ],
         ],
 
@@ -191,6 +215,18 @@ return [
                 'best_for' => 'Building strong finish control',
                 'note' => 'Use when the runner needs better control late in the race.',
             ],
+            [
+                'id' => 'hm_hill_6x60sec',
+                'goal' => 'HALF_MARATHON',
+                'type' => 'hill',
+                'name' => '6 x 60 Sec Hill Repeats',
+                'focus' => 'Stamina & hill strength',
+                'main_set' => '6 reps x 60 sec uphill',
+                'recovery' => 'Jog down slowly',
+                'intensity' => '10K to HM effort',
+                'best_for' => 'Building stamina and fatigue resistance',
+                'note' => 'Drive steadily up the incline with controlled rhythm.',
+            ],
         ],
 
         'FULL_MARATHON' => [
@@ -254,6 +290,18 @@ return [
                 'best_for' => 'Mental strength and late-race control',
                 'note' => 'Use only after the runner has enough endurance base.',
             ],
+            [
+                'id' => 'fm_hill_6x90sec',
+                'goal' => 'FULL_MARATHON',
+                'type' => 'hill',
+                'name' => '6 x 90 Sec Hill Repeats',
+                'focus' => 'Aerobic power & fatigue resistance',
+                'main_set' => '6 reps x 90 sec uphill',
+                'recovery' => 'Walk or jog down',
+                'intensity' => 'Threshold to 10K effort',
+                'best_for' => 'Leg strength and aerobic power for marathon endurance',
+                'note' => 'Maintain steady rhythm throughout each repeat.',
+            ],
         ],
 
     ],
@@ -282,11 +330,11 @@ return [
 
     'training_phase_rules' => [
         'base' => [
-            'preferred_types' => ['threshold', 'repetition'],
-            'description' => 'Focus on easy running, light threshold, strides, and controlled speed.',
+            'preferred_types' => ['threshold', 'repetition', 'hill'],
+            'description' => 'Focus on easy running, light threshold, strides, hill repeats, and controlled speed.',
         ],
         'build' => [
-            'preferred_types' => ['interval', 'threshold', 'progression'],
+            'preferred_types' => ['interval', 'threshold', 'progression', 'hill'],
             'description' => 'Build race-specific fitness with structured quality sessions.',
         ],
         'peak' => [

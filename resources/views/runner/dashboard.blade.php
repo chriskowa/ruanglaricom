@@ -2011,6 +2011,7 @@
                     'threshold': 'bg-amber-950/20 border-amber-500/20 text-amber-400',
                     'interval': 'bg-orange-950/20 border-orange-500/20 text-orange-400',
                     'repetition': 'bg-rose-950/20 border-rose-500/20 text-rose-400',
+                    'hill': 'bg-sky-950/20 border-sky-500/20 text-sky-400',
                     'marathon': 'bg-cyan-950/20 border-cyan-500/20 text-cyan-400',
                     'tempo': 'bg-amber-950/20 border-amber-500/20 text-amber-400'
                 };
@@ -2025,6 +2026,7 @@
                     'threshold': '🔥',
                     'interval': '⚡',
                     'repetition': '🚀',
+                    'hill': '⛰️',
                     'marathon': '🏆',
                     'tempo': '🔥'
                 };

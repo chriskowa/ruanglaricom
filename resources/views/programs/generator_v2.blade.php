@@ -376,48 +376,70 @@
 
             <!-- Step 2: Results Display -->
             <div v-else-if="step === 2" key="result" class="space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
                     <!-- Left: Summary Sidebar -->
                     <div class="lg:col-span-1 space-y-5">
-                        <div class="card-dark p-6 rounded-2xl border-t-4 border-t-brand-500">
+                        <div class="card-dark p-6 rounded-2xl border-t-4 border-t-brand-500 shadow-xl relative">
                             <div class="text-center mb-5">
-                                <div class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Estimated VDOT Score</div>
-                                <div class="text-5xl font-black text-white tracking-tighter">@{{ result?.vdot }}</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-gauge-high text-brand-400"></i>
+                                    <span>ESTIMASI SKOR VDOT</span>
+                                </div>
+                                <div class="text-4xl font-extrabold text-white tracking-tight">@{{ result?.vdot }}</div>
                             </div>
                             
-                            <div class="space-y-2 py-3 border-y border-slate-700/50 mb-5">
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-slate-400">Target Jarak</span>
-                                    <span class="font-bold text-white uppercase">@{{ form.target_distance }}</span>
+                            <div class="space-y-2.5 py-3 border-y border-slate-700/60 mb-5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bullseye text-slate-500 text-[10px]"></i> Target Jarak
+                                    </span>
+                                    <span class="font-extrabold text-white uppercase">@{{ form.target_distance }}</span>
                                 </div>
-                                <div class="flex justify-between text-xs">
-                                    <span class="text-slate-400">Durasi Program</span>
-                                    <span class="font-bold text-white">@{{ result?.weeks }} Minggu</span>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-calendar-days text-slate-500 text-[10px]"></i> Durasi Program
+                                    </span>
+                                    <span class="font-extrabold text-white">@{{ result?.weeks }} Minggu</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-person-running text-slate-500 text-[10px]"></i> Frekuensi Latihan
+                                    </span>
+                                    <span class="font-extrabold text-white">@{{ form.frequency }}x / minggu</span>
                                 </div>
                             </div>
 
-                            <button @click="saveAndOpenCalendar" :disabled="saving" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-dark font-black text-xs uppercase tracking-wider rounded-lg transition-all shadow-md flex items-center justify-center gap-2 mb-2">
-                                <span v-if="!saving">SIMPAN KE KALENDER</span>
-                                <span v-else class="animate-spin text-sm">⌛</span>
+                            <!-- Highlighted Save to Calendar Button -->
+                            <button @click="saveAndOpenCalendar" :disabled="saving" class="w-full py-3.5 px-4 bg-gradient-to-r from-neon via-lime-400 to-emerald-400 hover:from-white hover:to-neon text-dark font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-neon/20 hover:shadow-neon/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5 border border-neon/40">
+                                <i v-if="!saving" class="fa-solid fa-calendar-check text-sm"></i>
+                                <i v-else class="fa-solid fa-circle-notch fa-spin text-sm"></i>
+                                <span>@{{ saving ? 'MENYIMPAN...' : 'SIMPAN KE KALENDER' }}</span>
                             </button>
-                            <button @click="step = 1" class="w-full py-2 bg-slate-800 border border-slate-700 text-slate-400 font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all text-xs">
-                                EDIT PARAMETER
+                            <button @click="step = 1" class="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-sliders text-slate-400 text-[11px]"></i>
+                                <span>EDIT PARAMETER</span>
                             </button>
                         </div>
 
                         <!-- Training Paces & Heart Rate Zones Card -->
-                        <div class="card-dark p-6 rounded-2xl">
-                            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-5">Training Paces & Heart Rate Zones</h3>
-                            <div class="space-y-3">
-                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 space-y-1">
+                        <div class="card-dark p-5 rounded-2xl border border-slate-800 shadow-lg">
+                            <div class="flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-800">
+                                <i class="fa-solid fa-heart-pulse text-brand-400 text-sm"></i>
+                                <h3 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Target Pace & Zona HR</h3>
+                            </div>
+                            <div class="space-y-2">
+                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1 hover:border-slate-700 transition">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">@{{ getPaceLabel(type) }}</span>
-                                        <span class="font-mono font-bold text-xs text-white">@{{ formatPace(pace) }}</span>
+                                        <span class="font-extrabold text-xs uppercase flex items-center gap-1.5" :class="getPaceColor(type)">
+                                            <span v-html="getSessionIcon(type)" class="text-xs"></span>
+                                            <span>@{{ getPaceLabel(type) }}</span>
+                                        </span>
+                                        <span class="font-mono font-extrabold text-xs text-white">@{{ formatPace(pace) }}</span>
                                     </div>
-                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[9px] text-slate-400">
-                                        <span>Target HR (Zone)</span>
-                                        <span class="font-bold text-slate-300">@{{ result.hr_zones[type].min }}-@{{ result.hr_zones[type].max }} BPM (@{{ result.hr_zones[type].label }})</span>
+                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800/50">
+                                        <span>Target HR</span>
+                                        <span class="font-bold text-slate-300">@{{ result.hr_zones[type].min }}-@{{ result.hr_zones[type].max }} BPM</span>
                                     </div>
                                 </div>
                             </div>
@@ -425,39 +447,40 @@
                     </div>
 
                     <!-- Program Preview (Free Weeks) -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <div v-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum" class="card-dark p-6 rounded-2xl">
-                            <div class="flex justify-between items-center mb-6">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
+                    <div class="lg:col-span-2 space-y-5">
+                        <div v-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum" class="card-dark p-5 rounded-2xl border border-slate-800 shadow-xl">
+                            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800/80">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-brand-400 text-xs font-bold">
+                                        <i class="fa-solid fa-calendar-week"></i>
+                                    </div>
+                                    <h3 class="text-sm font-extrabold text-white uppercase tracking-tight">
                                         Preview Minggu @{{ weekNum }}
                                     </h3>
                                     <span v-if="weekSessions && weekSessions.length > 0 && weekSessions[0].is_deload" 
-                                          class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[8px] font-black rounded-full border border-emerald-500/30 uppercase tracking-widest animate-pulse">
-                                        De-load / Recovery Week
+                                          class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded-md border border-emerald-500/20 uppercase tracking-wider flex items-center gap-1">
+                                        <i class="fa-solid fa-battery-half text-emerald-400 text-[10px]"></i> De-load / Pemulihan
                                     </span>
                                 </div>
-                                <span class="px-2 py-0.5 bg-brand-500/10 text-brand-500 text-[9px] font-black rounded-full border border-brand-500/20 uppercase tracking-wider">Akses Gratis</span>
+                                <span class="px-2.5 py-1 bg-brand-500/10 text-brand-400 text-[10px] font-extrabold rounded-lg border border-brand-500/20 uppercase tracking-wider">Akses Gratis</span>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2.5">
                                 <div v-for="day in weekSessions" :key="day.day" 
-                                     class="p-4 rounded-2xl border min-h-[140px] flex flex-col justify-between transition-all hover:border-brand-500/50 group"
+                                     class="p-3 rounded-xl border min-h-[120px] flex flex-col justify-between transition-all hover:border-brand-500/50 group"
                                      :class="getSessionClass(day.type)">
-                                    <div class="flex justify-between items-start">
-                                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Day @{{ day.day }}</span>
-                                        <span class="text-xl group-hover:scale-125 transition-transform duration-300" v-html="getSessionIcon(day.type)"></span>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Hari @{{ day.day }}</span>
+                                        <span class="text-sm text-slate-300 group-hover:scale-110 transition-transform duration-200" v-html="getSessionIcon(day.type)"></span>
                                     </div>
                                     <div>
-                                        <h4 class="text-[10px] font-black text-white leading-tight mb-1 uppercase">@{{ day.type.replace('_', ' ') }}</h4>
-                                        <p class="text-sm font-black text-white">@{{ day.distance }} <span class="text-[10px] font-normal text-slate-400">KM</span></p>
-                                        <p v-if="day.target_pace" class="text-[10px] font-mono font-bold text-brand-400 mt-1">@{{ day.target_pace }}</p>
+                                        <h4 class="text-[10px] font-extrabold text-white leading-tight mb-1 uppercase tracking-tight">@{{ day.type.replace('_', ' ') }}</h4>
+                                        <p class="text-xs font-extrabold text-white">@{{ day.distance }} <span class="text-[9px] font-normal text-slate-400">KM</span></p>
+                                        <p v-if="day.target_pace" class="text-[9px] font-mono font-bold text-brand-400 mt-0.5">@{{ day.target_pace }}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>
@@ -859,6 +882,7 @@
                     'threshold': 'bg-orange-900/20 border-orange-500/20 text-orange-400',
                     'interval': 'bg-red-900/20 border-red-500/20 text-red-400',
                     'repetition': 'bg-fuchsia-900/20 border-fuchsia-500/20 text-fuchsia-400',
+                    'hill': 'bg-sky-900/20 border-sky-500/20 text-sky-400',
                     'rest': 'bg-slate-900/40 border-slate-800 opacity-60 text-slate-400'
                 };
                 return classes[type] || 'bg-slate-900/40 border-slate-800';
@@ -873,7 +897,8 @@
                     'tempo': '<i class="fa-solid fa-fire"></i>',
                     'threshold': '<i class="fa-solid fa-fire"></i>',
                     'interval': '<i class="fa-solid fa-bolt"></i>',
-                    'repetition': '<i class="fa-solid fa-rocket"></i>'
+                    'repetition': '<i class="fa-solid fa-rocket"></i>',
+                    'hill': '<i class="fa-solid fa-mountain"></i>'
                 };
                 return icons[type] || '<i class="fa-solid fa-person-running"></i>';
             };

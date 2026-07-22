@@ -880,21 +880,24 @@
                     </div>
 
                         <!-- Description Section at the Top -->
-                        <div v-if="detail.description" class="mb-3 bg-slate-800/40 border border-slate-700/60 rounded-[6px] p-3 text-xs text-slate-300">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Deskripsi Aktivitas</div>
-                                <button v-if="ttsSupported" @click="speakDetailDescription" class="w-6 h-6 rounded-[4px] bg-slate-900/60 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-neon border border-slate-700 transition" type="button">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M5 9v6h4l5 5V4L9 9H5z" />
-                                        <path d="M16.5 8.11a5 5 0 010 7.78v-1.74a3.25 3.25 0 000-4.3V8.11z" />
-                                    </svg>
+                        <div v-if="detail.description" class="mb-3.5 bg-gradient-to-br from-slate-900/90 via-slate-850 to-slate-900 border-l-4 border-l-neon border-y border-r border-slate-700/80 rounded-xl p-3.5 shadow-lg shadow-black/20 text-xs">
+                            <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800/80">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-lg bg-neon/10 border border-neon/30 flex items-center justify-center text-neon">
+                                        <i class="fa-solid fa-clipboard-list text-xs"></i>
+                                    </div>
+                                    <span class="text-xs font-extrabold text-white uppercase tracking-wider">Deskripsi Aktivitas</span>
+                                </div>
+                                <button v-if="ttsSupported" @click="speakDetailDescription" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-neon border border-slate-700 text-[10px] font-bold flex items-center gap-1.5 transition shadow-sm" type="button" title="Dengarkan deskripsi">
+                                    <i class="fa-solid fa-volume-high text-[11px] text-neon"></i>
+                                    <span>Audio</span>
                                 </button>
                             </div>
-                            <div class="whitespace-pre-line leading-relaxed text-slate-200">@{{ detail.description }}</div>
+                            <div class="whitespace-pre-line leading-relaxed text-slate-100 font-medium bg-slate-950/50 rounded-lg p-3 border border-slate-800/80 text-xs">@{{ detail.description }}</div>
                         </div>
 
                         <!-- Goals & Effects Section -->
-                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
+                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
                              class="mb-3 bg-slate-800/40 rounded-[6px] p-3 border border-slate-700/60">
                             <div class="flex items-center gap-1.5 mb-2">
                                 <i class="fa-solid fa-bullseye text-neon text-xs"></i>
@@ -913,7 +916,7 @@
                         </div>
 
                         <!-- AI Coach Card -->
-                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'race'].includes(String(detail.type || '').toLowerCase())" class="mb-3 bg-slate-800/50 rounded-[6px] p-3 border border-slate-700">
+                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'race'].includes(String(detail.type || '').toLowerCase())" class="mb-3 bg-slate-800/50 rounded-[6px] p-3 border border-slate-700">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-2">
                                     <div class="w-5 h-5 rounded-[4px] bg-neon flex items-center justify-center text-dark font-bold text-[10px]">AI</div>
@@ -1275,7 +1278,7 @@
                     </div>
                 </div>
                    <!-- Action Buttons -->
-                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-3.5 border-t border-slate-700/60 pt-3.5">
+                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'hill' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-3.5 border-t border-slate-700/60 pt-3.5">
                     <div v-if="detail.status === 'pending' || !detail.status">
                         <button class="w-full py-2.5 rounded-[6px] bg-neon text-dark font-bold text-xs hover:bg-neon/90 transition uppercase tracking-wider" @click="updateSessionStatus(detail, 'started')">Start Activity</button>
                     </div>
@@ -2022,6 +2025,7 @@
                             <option value="long_run_quality">Long Run Quality</option>
                             <option value="interval">Interval</option>
                             <option value="repetition">Repetition</option>
+                            <option value="hill">Hill Repeat / Sprint</option>
                             <option value="threshold">Threshold</option>
                             <option value="tempo">Tempo</option>
                             <option value="progression">Progression</option>

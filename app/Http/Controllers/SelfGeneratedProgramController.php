@@ -783,6 +783,9 @@ class SelfGeneratedProgramController extends Controller
                     } elseif ($workout['type'] === 'repetition') {
                         $workoutPaceKey = 'R';
                         $rpe = '9-10';
+                    } elseif ($workout['type'] === 'hill') {
+                        $workoutPaceKey = 'R';
+                        $rpe = '8-9';
                     }
                     
                     $targetPaceStr = $this->formatPace($paces[$workoutPaceKey]);

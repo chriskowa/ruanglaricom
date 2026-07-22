@@ -321,10 +321,19 @@ const runnerCalendarApp = createApp({
             if (!ttsSupported.value) return;
             const voices = window.speechSynthesis.getVoices();
             if (!voices || !voices.length) return;
-            const preferred = voices.filter(v => /id-ID|en-US/i.test(v.lang));
-            const male = preferred.find(v => /male|laki/i.test((v.name || '') + ' ' + (v.voiceURI || '')));
-            ttsVoice = male || preferred[0] || voices[0];
+            // Prioritize Indonesian voices: Google Bahasa Indonesia, id-ID, or Indonesian locale
+            const idVoices = voices.filter(v => /^id/i.test(v.lang) || /indonesia/i.test(v.name || '') || /id_id/i.test(v.lang || ''));
+            const googleIdVoice = idVoices.find(v => /google/i.test(v.name || ''));
+            const maleIdVoice = idVoices.find(v => /male|laki/i.test((v.name || '') + ' ' + (v.voiceURI || '')));
+            
+            ttsVoice = googleIdVoice || maleIdVoice || idVoices[0] || voices.find(v => /^en/i.test(v.lang)) || voices[0];
         };
+
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                loadTtsVoices();
+            };
+        }
 
         const stopDetailSpeech = () => {
             if (!ttsSupported.value) return;
@@ -341,11 +350,14 @@ const runnerCalendarApp = createApp({
                 stopDetailSpeech();
                 return;
             }
-            if (!ttsVoice) loadTtsVoices();
+            loadTtsVoices();
             const utterance = new SpeechSynthesisUtterance(text);
-            if (ttsVoice) utterance.voice = ttsVoice;
-            utterance.rate = 1;
-            utterance.pitch = 1;
+            utterance.lang = 'id-ID'; // Force Indonesian language locale
+            if (ttsVoice) {
+                utterance.voice = ttsVoice;
+            }
+            utterance.rate = 0.95; // Natural speaking tempo
+            utterance.pitch = 1.0;
             isSpeaking.value = true;
             utterance.onend = () => {
                 isSpeaking.value = false;
@@ -2019,6 +2031,7 @@ const runnerCalendarApp = createApp({
                 run: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
                 interval: 'bg-orange-500/10 border-orange-500/30 text-orange-300',
                 repetition: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
+                hill: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
                 recovery: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300',
                 cool_down: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
             };
@@ -2033,9 +2046,10 @@ const runnerCalendarApp = createApp({
             if (t === 'warmup' || t === 'recovery' || t === 'cool_down') return 'easy_run';
             if (t === 'interval') return 'interval';
             if (t === 'repetition') return 'repetition';
+            if (t === 'hill') return 'hill';
             if (t === 'run') {
                 if (['tempo', 'threshold'].includes(String(detail.type || '').toLowerCase())) return 'tempo';
-                if (['interval', 'repetition'].includes(String(detail.type || '').toLowerCase())) return String(detail.type || 'run').toLowerCase();
+                if (['interval', 'repetition', 'hill'].includes(String(detail.type || '').toLowerCase())) return String(detail.type || 'run').toLowerCase();
                 if (String(detail.type || '').toLowerCase() === 'long_run') return 'long_run';
                 return 'run';
             }
@@ -2144,6 +2158,7 @@ const runnerCalendarApp = createApp({
                 tempo: 'Fokusnya threshold/tempo. Cari effort “comfortably hard”, bukan all-out.',
                 interval: 'Fokusnya speed/VO2. Kualitas penting, tapi tetap kontrol.',
                 repetition: 'Fokusnya speed + teknik. Cepat tapi rapi, recovery cukup.',
+                hill: 'Fokus kekuatan otot tungkai, postur tegak, dan knee drive saat menanjak.',
                 run: 'Fokusnya konsistensi. Ikuti panduan pace dan rasakan effort yang pas.',
                 program_session: 'Fokusnya eksekusi rapi sesuai program.',
                 rest: 'Ini hari rest. Recovery juga bagian dari progres.',
@@ -2192,6 +2207,11 @@ const runnerCalendarApp = createApp({
                     'Recovery cukup supaya rep berikutnya tetap berkualitas.',
                     'Fokus dorongan kaki dan ayunan tangan rapi.',
                 ],
+                hill: [
+                    'Fokus pada postur tegak, dorongan lutut (knee drive), dan ayunan tangan aktif.',
+                    'Jaga kemiringan bukit ideal (4-8%) dan jangan memaksa sprint hingga form berantakan.',
+                    'Manfaatkan jalan/jog santai turun bukit untuk recovery penuh.',
+                ],
                 strength: [
                     'Utamakan range of motion dan form.',
                     'Kalau ragu beban, turunkan beban tapi gerakan rapi.',
@@ -2222,6 +2242,7 @@ const runnerCalendarApp = createApp({
                 interval: 'Meningkatkan kapasitas VO2Max (penyerapan oksigen maksimum), toleransi asam laktat tinggi, dan daya dorong jantung.',
                 repetition: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
                 speed: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
+                hill: 'Meningkatkan kekuatan dorongan otot tungkai, koordinasi neuromuskular, efisiensi biomekanika lari, dan kekakuan tendon (tendon stiffness) dengan risiko benturan rendah.',
                 strength: 'Memperkuat otot-otot pendukung (core, glutes, hamstrings) untuk meningkatkan stabilitas lari dan mengurangi risiko cedera.',
                 rest: 'Memberikan waktu istirahat total bagi serat otot untuk memperbaiki diri dan memulihkan cadangan glikogen tubuh.',
                 yoga: 'Meningkatkan fleksibilitas otot, mobilitas sendi, serta melatih kesadaran napas dan ketenangan pikiran.',
@@ -2243,6 +2264,7 @@ const runnerCalendarApp = createApp({
                 interval: 'Memperbesar volume sekuncup jantung (stroke volume), mempercepat pemulihan denyut jantung (HR recovery), dan merangsang serat otot cepat.',
                 repetition: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
                 speed: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
+                hill: 'Otot tungkai (glutes, quads, calves) lebih kuat dan efisien mentransfer tenaga ke permukaan tanah tanpa stres asam laktat yang terlalu merusak.',
                 strength: 'Meningkatkan kekuatan rekrutmen serat otot, memperbaiki postur berlari agar tegak di kilometer akhir, dan memperkokoh persendian.',
                 rest: 'Terjadinya proses superkompensasi di mana otot pulih lebih kuat dibanding kondisi sebelum dirusak oleh latihan berat.',
                 yoga: 'Meregangkan otot yang kaku, meredakan ketegangan sistem saraf (simpatik), dan membantu detoksifikasi tubuh.',

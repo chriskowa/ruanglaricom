@@ -770,7 +770,7 @@ class GenerateProgramController extends Controller
                         $workoutPaceKey = 'T';
                     } elseif ($workout['type'] === 'marathon_pace') {
                         $workoutPaceKey = 'M';
-                    } elseif ($workout['type'] === 'repetition') {
+                    } elseif ($workout['type'] === 'repetition' || $workout['type'] === 'hill') {
                         $workoutPaceKey = 'R';
                     }
                     
