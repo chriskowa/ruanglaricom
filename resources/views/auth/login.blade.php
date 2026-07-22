@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    @php($recaptchaSiteKey = env('RECAPTCHA_SITE_KEY_v3'))
+    @php($recaptchaSiteKey = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')))
     @if($recaptchaSiteKey)
         <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}"></script>
     @endif
@@ -95,7 +95,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" class="space-y-6" x-show="loginMethod === 'email'">
+            <form id="email-login-form" method="POST" action="{{ route('login') }}" class="space-y-6" x-show="loginMethod === 'email'">
                 @csrf
                 
                 <div>
@@ -276,47 +276,49 @@
             };
         }
 
-        const loginForm = document.getElementById('email-login-form');
-        const loginBtn = document.getElementById('login-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoader = document.getElementById('btn-loader');
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('email-login-form');
+            const loginBtn = document.getElementById('login-btn');
+            const btnText = document.getElementById('btn-text');
+            const btnLoader = document.getElementById('btn-loader');
 
-        if (loginForm) {
-            loginForm.addEventListener('submit', function(e) {
-                @if($recaptchaSiteKey)
-                    e.preventDefault();
-                    
-                    if (loginBtn.disabled) return;
-                    loginBtn.disabled = true;
-                    btnText.textContent = 'SIGNING IN...';
-                    btnLoader.classList.remove('hidden');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    @if($recaptchaSiteKey)
+                        e.preventDefault();
+                        
+                        if (loginBtn.disabled) return;
+                        loginBtn.disabled = true;
+                        btnText.textContent = 'SIGNING IN...';
+                        btnLoader.classList.remove('hidden');
 
-                    if (typeof grecaptcha === 'undefined') {
-                        console.warn('reCAPTCHA not loaded.');
-                        loginForm.submit();
-                        return;
-                    }
-
-                    grecaptcha.ready(function() {
-                        grecaptcha.execute('{{ $recaptchaSiteKey }}', {action: 'login'})
-                        .then(function(token) {
-                            const el = document.getElementById('g-recaptcha-response');
-                            if (el) el.value = token;
+                        if (typeof grecaptcha === 'undefined') {
+                            console.warn('reCAPTCHA not loaded.');
                             loginForm.submit();
-                        })
-                        .catch(function(err) {
-                            console.error('reCAPTCHA error:', err);
-                            loginForm.submit();
+                            return;
+                        }
+
+                        grecaptcha.ready(function() {
+                            grecaptcha.execute('{{ $recaptchaSiteKey }}', {action: 'login'})
+                            .then(function(token) {
+                                const el = document.getElementById('g-recaptcha-response');
+                                if (el) el.value = token;
+                                loginForm.submit();
+                            })
+                            .catch(function(err) {
+                                console.error('reCAPTCHA error:', err);
+                                loginForm.submit();
+                            });
                         });
-                    });
-                @else
-                    if (loginBtn.disabled) return;
-                    loginBtn.disabled = true;
-                    btnText.textContent = 'SIGNING IN...';
-                    btnLoader.classList.remove('hidden');
-                @endif
-            });
-        }
+                    @else
+                        if (loginBtn.disabled) return;
+                        loginBtn.disabled = true;
+                        btnText.textContent = 'SIGNING IN...';
+                        btnLoader.classList.remove('hidden');
+                    @endif
+                });
+            }
+        });
     </script>
 </body>
 </html>

@@ -130,7 +130,7 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <?php endif; ?>
 
-    <?php ($recaptchaSiteKeyV3 = env('RECAPTCHA_SITE_KEY_v3')); ?>
+    <?php ($recaptchaSiteKeyV3 = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY'))); ?>
     <?php if($recaptchaSiteKeyV3): ?>
         <script src="https://www.google.com/recaptcha/api.js?render=<?php echo e($recaptchaSiteKeyV3); ?>"></script>
     <?php endif; ?>

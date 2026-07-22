@@ -33,8 +33,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
-        $requireRecaptcha = $recaptchaSecret && !$request->wantsJson();
+        $recaptchaSecret = config('services.recaptcha.secret_key') ?: (env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY'));
+        $requireRecaptcha = (bool) $recaptchaSecret;
 
         $request->validate([
             'email' => 'required|string',

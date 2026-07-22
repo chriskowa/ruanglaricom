@@ -60,4 +60,9 @@ return [
         'token' => env('MAPBOX_TOKEN'),
     ],
 
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY'),
+        'secret_key' => env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY'),
+    ],
+
 ];
