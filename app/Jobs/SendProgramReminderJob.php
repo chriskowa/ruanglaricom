@@ -68,11 +68,10 @@ class SendProgramReminderJob implements ShouldQueue
             $prompt = $this->buildPrompt($profileData);
 
             // Generate message using OpenAI
-            $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok serta link program.\n\n"
+            $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok.\n\n"
                 . "ATURAN:\n"
                 . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
                 . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
-                . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.\n"
                 . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
                 . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
             
@@ -83,11 +82,7 @@ class SendProgramReminderJob implements ShouldQueue
 
             if ($message) {
                 $message = $this->sanitizeMessage($message);
-                $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
-                // Fallback if AI forgot to include the calendar link
-                if (!str_contains($message, $calendarUrl)) {
-                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
-                }
+                $message = str_replace('[LINK_CALENDAR]', '', $message);
             } else {
                 // Fallback message if OpenAI fails
                 $message = $this->getFallbackMessage($calendarUrl);
@@ -149,7 +144,7 @@ class SendProgramReminderJob implements ShouldQueue
 
         if ($isRest) {
             $prompt .= "Jadwal Besok: REST DAY (Hari Istirahat/Pemulihan).\n";
-            $prompt .= "Instruksi: Tulis pesan singkat yang hangat agar atlet beristirahat dengan baik besok. Wajib sertakan '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi: Tulis pesan singkat yang hangat agar atlet beristirahat dengan baik besok.";
         } else {
             $prompt .= "Jadwal Besok: {$this->sessionData['type']}\n";
             if ($distance) $prompt .= "Jarak: {$distance} km\n";
@@ -157,7 +152,7 @@ class SendProgramReminderJob implements ShouldQueue
             if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
             if ($description) $prompt .= "Deskripsi Latihan (Instruksi Coach): {$description}\n";
             
-            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat.";
         }
 
         return $prompt;

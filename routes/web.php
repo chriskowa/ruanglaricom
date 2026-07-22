@@ -871,6 +871,7 @@ Route::middleware('auth')->group(function () {
 
         // WhatsApp Logs (Admin)
         Route::get('whatsapp-logs', [App\Http\Controllers\Admin\WhatsAppLogController::class, 'index'])->name('whatsapp-logs.index');
+        Route::post('whatsapp-logs/{log}/resend', [App\Http\Controllers\Admin\WhatsAppLogController::class, 'resend'])->name('whatsapp-logs.resend');
         Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
         Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
         Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');

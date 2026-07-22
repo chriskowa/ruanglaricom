@@ -33,4 +33,15 @@ class WhatsAppLogController extends Controller
 
         return view('admin.whatsapp-logs.index', compact('logs', 'statuses'));
     }
+
+    /**
+     * Resend a failed WhatsApp message.
+     */
+    public function resend(WhatsAppLog $log)
+    {
+        // Send the message using the helper
+        \App\Helpers\WhatsApp::send($log->to, $log->message);
+
+        return redirect()->back()->with('success', 'Pesan WhatsApp berhasil dikirim ulang.');
+    }
 }

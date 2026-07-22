@@ -12,6 +12,18 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="mb-4 bg-green-500/10 border border-green-500/50 text-green-500 p-4 rounded-xl">
+            <p class="font-bold">{{ session('success') }}</p>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl">
+            <p class="font-bold">{{ session('error') }}</p>
+        </div>
+    @endif
+
     <form method="GET" class="mb-4 flex flex-wrap items-end gap-3">
         <div>
             <label class="mb-1 block text-xs font-medium text-slate-400">Cari (nomor / pesan)</label>
@@ -44,6 +56,7 @@
                     <th class="px-4 py-3">HTTP</th>
                     <th class="px-4 py-3">Message</th>
                     <th class="px-4 py-3">Sent At</th>
+                    <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800">
@@ -63,11 +76,23 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-slate-400">{{ $log->created_at ? $log->created_at->format('d/m/Y H:i') : '-' }}</td>
+                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                            @if ($log->status === 'failed' || $log->http_code == 401)
+                                <form action="{{ route('admin.whatsapp-logs.resend', $log) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="rounded bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors">
+                                        Resend
+                                    </button>
+                                </form>
+                            @else
+                                -
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 @else
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada log WhatsApp.</td>
+                        <td colspan="7" class="px-4 py-8 text-center text-slate-500">Belum ada log WhatsApp.</td>
                     </tr>
                 @endif
             </tbody>
