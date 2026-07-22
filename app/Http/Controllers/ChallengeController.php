@@ -259,31 +259,19 @@ class ChallengeController extends Controller
             ],
         ]);
 
-        // Generate OTP
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        OtpToken::create([
-            'user_id' => $user->id,
-            'code' => $code,
-            'expires_at' => now()->addMinutes(10),
-            'used' => false,
-        ]);
-
-        // Send OTP
-        $otpChannel = env('OTP_CHANNEL', 'whatsapp');
-        $successMsg = 'Kami telah mengirim OTP ke WhatsApp Anda.';
-
-        if ($otpChannel === 'email') {
-            try {
-                Mail::raw('Kode OTP 40 Days Challenge Anda: '.$code.' (berlaku 10 menit)', function ($message) use ($user) {
-                    $message->to($user->email)->subject('Kode OTP 40 Days Challenge');
-                });
-                $successMsg = 'Kami telah mengirim OTP ke Email Anda.';
-            } catch (\Exception $e) {
-                Log::error('Email OTP failed: '.$e->getMessage());
-            }
-        } else {
-            \App\Helpers\WhatsApp::send($data['whatsapp'], 'Kode OTP 40 Days Challenge: '.$code.' (berlaku 10 menit) Gabung Grup Untuk Pengumuman `https://chat.whatsapp.com/Ht9mz3P3Tje9xGBpl73Htg` ');
+        // Generate and send OTP using OtpService
+        $otpService = app(\App\Services\OtpService::class);
+        try {
+            $otpService->generateAndSend($user);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
+
+        $otpChannel = env('OTP_CHANNEL', 'whatsapp');
+        $successMsg = $otpChannel === 'email' ? 'Kami telah mengirim OTP ke Email Anda.' : 'Kami telah mengirim OTP ke WhatsApp Anda.';
 
         return response()->json([
             'success' => true,
@@ -299,17 +287,13 @@ class ChallengeController extends Controller
             'otp' => 'required|string|size:6',
         ]);
 
-        $token = OtpToken::where('user_id', $request->user_id)
-            ->where('code', $request->otp)
-            ->where('used', false)
-            ->first();
+        $user = User::findOrFail($request->user_id);
+        $otpService = app(\App\Services\OtpService::class);
 
-        if (! $token || $token->expires_at->isPast()) {
+        if (!$otpService->verify($user, $request->otp)) {
             return response()->json(['success' => false, 'message' => 'Kode OTP tidak valid atau kedaluwarsa.'], 422);
         }
 
-        $token->update(['used' => true]);
-        $user = User::findOrFail($request->user_id);
         $user->update(['is_active' => true]);
 
         Auth::login($user);

@@ -25,32 +25,72 @@
         <div class="p-6 overflow-y-auto flex-grow">
             <!-- Error Alert -->
             <div x-show="errorMessage" x-text="errorMessage" class="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold" x-cloak></div>
+            <div x-show="successMessage" x-text="successMessage" class="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold" x-cloak></div>
 
             <!-- Login Form -->
-            <form x-show="tab === 'login'" @submit.prevent="submitLogin" class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email / Username</label>
-                    <input type="text" name="email" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="runner@example.com">
+            <div x-show="tab === 'login'" class="space-y-4">
+                <!-- Tab Selection for Login Method -->
+                <div class="flex mb-4 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                    <button @click="loginMethod = 'email'" :class="loginMethod === 'email' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all">Email / Username</button>
+                    <button @click="loginMethod = 'phone'" :class="loginMethod === 'phone' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all">WhatsApp OTP</button>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
-                    <input type="password" name="password" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
-                </div>
-                <div class="flex items-center justify-between text-xs">
-                    <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
-                        <input type="checkbox" name="remember" class="rounded border-slate-700 bg-slate-800 text-primary focus:ring-primary">
-                        Remember me
-                    </label>
-                    <a href="{{ route('password.request') }}" class="text-primary hover:underline">Forgot Password?</a>
-                </div>
-                
-                <input type="hidden" name="g-recaptcha-response" value="">
 
-                <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                    <span x-show="!loading">SIGN IN</span>
-                    <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
-                </button>
-            </form>
+                <!-- Email Login Form -->
+                <form x-show="loginMethod === 'email'" @submit.prevent="submitLogin" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email / Username</label>
+                        <input type="text" name="email" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="runner@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
+                        <input type="password" name="password" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+                            <input type="checkbox" name="remember" class="rounded border-slate-700 bg-slate-800 text-primary focus:ring-primary">
+                            Remember me
+                        </label>
+                        <a href="{{ route('password.request') }}" class="text-primary hover:underline">Forgot Password?</a>
+                    </div>
+                    
+                    <input type="hidden" name="g-recaptcha-response" value="">
+
+                    <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                        <span x-show="!loading">SIGN IN</span>
+                        <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                    </button>
+                </form>
+
+                <!-- Phone Login Form -->
+                <div x-show="loginMethod === 'phone'" class="space-y-4" x-cloak>
+                    <!-- Step 1: Request OTP -->
+                    <div x-show="!otpSent" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">WhatsApp Number</label>
+                            <input type="tel" x-model="phone" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="08123456789">
+                        </div>
+                        <button @click="requestOtp" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                            <span x-show="!loading">SEND OTP</span>
+                            <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                        </button>
+                    </div>
+
+                    <!-- Step 2: Verify OTP -->
+                    <div x-show="otpSent" class="space-y-4" x-cloak>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Enter OTP Code</label>
+                            <input type="text" x-model="otpCode" maxlength="6" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors text-center tracking-widest font-mono text-lg" placeholder="••••••">
+                        </div>
+                        <button @click="verifyOtp" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                            <span x-show="!loading">VERIFY & SIGN IN</span>
+                            <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                        </button>
+                        <div class="text-center">
+                            <button @click="otpSent = false" class="text-xs text-primary hover:underline">Change Phone Number</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Register Form -->
             <form x-show="tab === 'register'" @submit.prevent="submitRegister" class="space-y-4" x-cloak>
@@ -134,8 +174,14 @@
         return {
             open: false,
             tab: 'login',
+            loginMethod: 'email',
+            phone: '',
+            otpCode: '',
+            otpSent: false,
             loading: false,
             errorMessage: '',
+            successMessage: '',
+            userId: null,
             role: 'runner',
             
             init() {
@@ -143,12 +189,88 @@
                     this.tab = 'login'; 
                     this.open = true; 
                     this.errorMessage = ''; 
+                    this.successMessage = '';
                 };
                 window.openRegisterModal = () => { 
                     this.tab = 'register'; 
                     this.open = true; 
                     this.errorMessage = ''; 
+                    this.successMessage = '';
                 };
+            },
+
+            async requestOtp() {
+                if (!this.phone) {
+                    this.errorMessage = 'Nomor WhatsApp wajib diisi.';
+                    return;
+                }
+                this.loading = true;
+                this.errorMessage = '';
+                this.successMessage = '';
+
+                try {
+                    const response = await fetch('{{ route('login.phone.request') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ phone: this.phone })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        this.otpSent = true;
+                        this.userId = data.user_id;
+                        this.successMessage = data.message;
+                    } else {
+                        this.errorMessage = data.message || 'Gagal mengirim OTP.';
+                    }
+                } catch (err) {
+                    this.errorMessage = 'Terjadi kesalahan koneksi.';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async verifyOtp() {
+                if (!this.otpCode) {
+                    this.errorMessage = 'Kode OTP wajib diisi.';
+                    return;
+                }
+                this.loading = true;
+                this.errorMessage = '';
+                this.successMessage = '';
+
+                try {
+                    const response = await fetch('{{ route('login.phone.verify') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_id: this.userId,
+                            code: this.otpCode
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        this.successMessage = data.message;
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        this.errorMessage = data.message || 'Kode OTP salah.';
+                    }
+                } catch (err) {
+                    this.errorMessage = 'Terjadi kesalahan koneksi.';
+                } finally {
+                    this.loading = false;
+                }
             },
 
             async submitLogin(e) {

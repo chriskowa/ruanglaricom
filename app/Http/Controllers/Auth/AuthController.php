@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\OtpService;
 use App\Helpers\WhatsApp;
 use App\Http\Controllers\Controller;
 use App\Models\MembershipTransaction;
@@ -19,6 +20,12 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
     public function showLogin()
     {
         return view('auth.login');
@@ -153,6 +160,95 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'Email atau password salah.',
         ])->onlyInput('email');
+    }
+
+    public function requestPhoneOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
+
+        $rawPhone = preg_replace('/\D+/', '', $request->input('phone'));
+        
+        // Generate both 08... and 628... formats
+        $phone62 = $rawPhone;
+        $phone0 = $rawPhone;
+
+        if (str_starts_with($rawPhone, '0')) {
+            $phone62 = '62' . substr($rawPhone, 1);
+        } elseif (str_starts_with($rawPhone, '62')) {
+            $phone0 = '0' . substr($rawPhone, 2);
+        } else {
+            $phone62 = '62' . $rawPhone;
+            $phone0 = '0' . $rawPhone;
+        }
+
+        $user = User::where(function ($query) use ($phone62, $phone0) {
+            $query->where('phone', $phone62)
+                  ->orWhere('phone', $phone0);
+        })->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor WhatsApp tidak terdaftar.',
+            ], 404);
+        }
+
+        try {
+            // Generate and send OTP using OtpService
+            $this->otpService->generateAndSend($user);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP berhasil dikirim ke nomor WhatsApp Anda.',
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function verifyPhoneOtp(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'code' => 'required|string|size:6',
+        ]);
+
+        $user = User::findOrFail($request->input('user_id'));
+
+        if (!$this->otpService->verify($user, $request->input('code'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP tidak valid atau kedaluwarsa.',
+            ], 422);
+        }
+
+        // Activate user if not active
+        if (!$user->is_active) {
+            $user->update(['is_active' => true]);
+        }
+
+        Auth::login($user, $request->boolean('remember', true));
+        $request->session()->regenerate();
+
+        $dashboard = match ($user->role) {
+            'admin' => route('admin.dashboard'),
+            'coach' => route('coach.dashboard'),
+            'runner' => route('runner.dashboard'),
+            'eo' => route('eo.dashboard'),
+            default => route('runner.dashboard'),
+        };
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil.',
+            'redirect_url' => $dashboard,
+        ]);
     }
 
     public function logout(Request $request)
@@ -295,29 +391,9 @@ class AuthController extends Controller
             return redirect()->intended($dashboard);
         }
 
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        OtpToken::create([
-            'user_id' => $user->id,
-            'code' => $code,
-            'expires_at' => now()->addMinutes(10),
-            'used' => false,
-        ]);
-
+        $this->otpService->generateAndSend($user);
         $otpChannel = env('OTP_CHANNEL', 'whatsapp');
-        $successMsg = 'Kami telah mengirim OTP ke WhatsApp Anda.';
-
-        if ($otpChannel === 'email') {
-            try {
-                Mail::raw('Kode OTP RuangLari Anda: '.$code.' (berlaku 10 menit)', function ($message) use ($user) {
-                    $message->to($user->email)->subject('Kode OTP RuangLari');
-                });
-                $successMsg = 'Kami telah mengirim OTP ke Email Anda.';
-            } catch (\Exception $e) {
-                Log::error('Email OTP failed: '.$e->getMessage());
-            }
-        } else {
-            WhatsApp::send($phone, 'Kode OTP RuangLari Anda: '.$code.' (berlaku 10 menit)');
-        }
+        $successMsg = $otpChannel === 'email' ? 'Kami telah mengirim OTP ke Email Anda.' : 'Kami telah mengirim OTP ke WhatsApp Anda.';
 
         return redirect()->route('pacer.otp', ['user' => $user->id])->with('success', $successMsg);
     }

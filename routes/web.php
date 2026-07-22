@@ -336,12 +336,11 @@ Route::get('/pacer-otp', function (Illuminate\Http\Request $request) {
 })->name('pacer.otp');
 Route::post('/pacer-otp', function (Illuminate\Http\Request $request) {
     $data = $request->validate(['user_id' => 'required|integer', 'code' => 'required|string|size:6']);
-    $token = App\Models\OtpToken::where('user_id', $data['user_id'])->where('code', $data['code'])->where('used', false)->first();
-    if (! $token || $token->expires_at->isPast()) {
+    $user = App\Models\User::findOrFail($data['user_id']);
+    $otpService = app(App\Services\OtpService::class);
+    if (!$otpService->verify($user, $data['code'])) {
         return back()->with('success', 'Kode OTP tidak valid atau kedaluwarsa');
     }
-    $token->update(['used' => true]);
-    $user = App\Models\User::findOrFail($data['user_id']);
     Illuminate\Support\Facades\Auth::login($user);
     $user->update(['is_active' => true]);
 
@@ -722,6 +721,8 @@ Route::get('/leaderboard/40days', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [App\Http\Controllers\Auth\AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login']);
+    Route::post('/login/phone/request', [App\Http\Controllers\Auth\AuthController::class, 'requestPhoneOtp'])->name('login.phone.request');
+    Route::post('/login/phone/verify', [App\Http\Controllers\Auth\AuthController::class, 'verifyPhoneOtp'])->name('login.phone.verify');
     Route::get('/register', [App\Http\Controllers\Auth\AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [App\Http\Controllers\Auth\AuthController::class, 'register']);
 
@@ -1185,6 +1186,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/participants/print-bib', [App\Http\Controllers\EO\EventController::class, 'printBibPdf'])->name('events.participants.print-bib');
         Route::get('events/{event}/participants/doorprize-list', [App\Http\Controllers\EO\EventController::class, 'doorprizeList'])->name('events.participants.doorprize-list');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
+        Route::post('events/{event}/participants/{participant}/create-user', [App\Http\Controllers\EO\EventController::class, 'createUserFromParticipant'])->name('events.participants.create-user');
         Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/participants/resend-email-bulk', [App\Http\Controllers\EO\EventController::class, 'resendEmailBulk'])->name('events.participants.resend-email-bulk');
         Route::post('events/{event}/participants/bulk-status', [App\Http\Controllers\EO\EventController::class, 'bulkUpdateStatus'])->name('events.participants.bulk-status');

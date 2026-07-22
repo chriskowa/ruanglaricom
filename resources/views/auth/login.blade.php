@@ -13,6 +13,8 @@
     
     <!-- Tailwind CSS (via CDN for simplicity, or use asset('css/app.css') if built) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @php($recaptchaSiteKey = env('RECAPTCHA_SITE_KEY_v3'))
     @if($recaptchaSiteKey)
         <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}"></script>
@@ -73,9 +75,18 @@
             <p class="text-slate-400 text-sm">Welcome back, Runner.</p>
         </div>
 
-        <div class="glass p-8 rounded-3xl shadow-2xl">
+        <div class="glass p-8 rounded-3xl shadow-2xl" x-data="loginPage()">
+            <!-- Tab Selection -->
+            <div class="flex mb-6 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                <button @click="loginMethod = 'email'" :class="loginMethod === 'email' ? 'bg-neon text-dark shadow-lg' : 'text-slate-400'" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all">Email / Username</button>
+                <button @click="loginMethod = 'phone'" :class="loginMethod === 'phone' ? 'bg-neon text-dark shadow-lg' : 'text-slate-400'" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all">WhatsApp OTP</button>
+            </div>
+
+            <div x-show="errorMessage" x-text="errorMessage" class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm" x-cloak></div>
+            <div x-show="successMessage" x-text="successMessage" class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 text-sm" x-cloak></div>
+
             @if ($errors->any())
-                <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+                <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm" x-show="loginMethod === 'email'">
                     <ul class="list-disc pl-4 space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -84,7 +95,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" class="space-y-6">
+            <form method="POST" action="{{ route('login') }}" class="space-y-6" x-show="loginMethod === 'email'">
                 @csrf
                 
                 <div>
@@ -134,6 +145,36 @@
                 </a>
             </form>
 
+            <!-- Phone Login Form -->
+            <div class="space-y-6" x-show="loginMethod === 'phone'" x-cloak>
+                <!-- Step 1: Request OTP -->
+                <div x-show="!otpSent" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp Number</label>
+                        <input type="tel" x-model="phone" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="08123456789" required>
+                    </div>
+                    <button @click="requestOtp" :disabled="loading" class="w-full py-3.5 rounded-xl bg-neon text-dark font-black shadow-lg shadow-neon/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                        <span x-show="!loading">SEND OTP</span>
+                        <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                    </button>
+                </div>
+
+                <!-- Step 2: Verify OTP -->
+                <div x-show="otpSent" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Enter OTP Code</label>
+                        <input type="text" x-model="otpCode" maxlength="6" class="w-full px-4 py-3 rounded-xl input-glass transition-all text-center tracking-widest font-mono text-lg" placeholder="••••••" required>
+                    </div>
+                    <button @click="verifyOtp" :disabled="loading" class="w-full py-3.5 rounded-xl bg-neon text-dark font-black shadow-lg shadow-neon/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                        <span x-show="!loading">VERIFY & SIGN IN</span>
+                        <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                    </button>
+                    <div class="text-center">
+                        <button @click="otpSent = false" class="text-xs text-cyan-400 hover:underline">Change Phone Number</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-8 text-center">
                 <p class="text-slate-500 text-sm">
                     Don't have an account? 
@@ -148,7 +189,94 @@
     </div>
 
     <script>
-        const loginForm = document.querySelector('form');
+        function loginPage() {
+            return {
+                loginMethod: 'email',
+                phone: '',
+                otpCode: '',
+                otpSent: false,
+                loading: false,
+                errorMessage: '',
+                successMessage: '',
+                userId: null,
+
+                async requestOtp() {
+                    if (!this.phone) {
+                        this.errorMessage = 'Nomor WhatsApp wajib diisi.';
+                        return;
+                    }
+                    this.loading = true;
+                    this.errorMessage = '';
+                    this.successMessage = '';
+
+                    try {
+                        const response = await fetch('{{ route('login.phone.request') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ phone: this.phone })
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            this.otpSent = true;
+                            this.userId = data.user_id;
+                            this.successMessage = data.message;
+                        } else {
+                            this.errorMessage = data.message || 'Gagal mengirim OTP.';
+                        }
+                    } catch (err) {
+                        this.errorMessage = 'Terjadi kesalahan koneksi.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async verifyOtp() {
+                    if (!this.otpCode) {
+                        this.errorMessage = 'Kode OTP wajib diisi.';
+                        return;
+                    }
+                    this.loading = true;
+                    this.errorMessage = '';
+                    this.successMessage = '';
+
+                    try {
+                        const response = await fetch('{{ route('login.phone.verify') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                user_id: this.userId,
+                                code: this.otpCode
+                            })
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            this.successMessage = data.message;
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                window.location.reload();
+                            }
+                        } else {
+                            this.errorMessage = data.message || 'Kode OTP salah.';
+                        }
+                    } catch (err) {
+                        this.errorMessage = 'Terjadi kesalahan koneksi.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            };
+        }
+
+        const loginForm = document.getElementById('email-login-form');
         const loginBtn = document.getElementById('login-btn');
         const btnText = document.getElementById('btn-text');
         const btnLoader = document.getElementById('btn-loader');

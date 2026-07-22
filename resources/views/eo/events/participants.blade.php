@@ -1906,6 +1906,10 @@
                 <!-- Footer -->
                 <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-2">
                     <div class="view-mode flex gap-2">
+                        <button type="button" id="btn_create_user" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-colors">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                            Add as User
+                        </button>
                         <button type="button" id="btn_resend_email" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors">
                             <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                             Resend Email
@@ -3313,6 +3317,13 @@
             btnResend.innerHTML = '<svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Resend Email';
         }
 
+        // Set participant ID for create user button
+        var btnCreateUser = document.getElementById('btn_create_user');
+        if(btnCreateUser) {
+            btnCreateUser.dataset.participantId = data.id;
+            btnCreateUser.disabled = false;
+        }
+
         document.getElementById('detailModal').classList.remove('hidden');
     }
 
@@ -3680,6 +3691,53 @@
             if(!participantId) return;
             var participantName = document.getElementById('dm_name').textContent || '';
             openResendEmailModal('single', participantId, participantName);
+        });
+    }
+
+    var btnCreateUser = document.getElementById('btn_create_user');
+    if(btnCreateUser) {
+        btnCreateUser.addEventListener('click', function() {
+            var btn = this;
+            var participantId = btn.dataset.participantId;
+            if(!participantId) return;
+
+            if(!confirm('Apakah Anda yakin ingin mendaftarkan peserta ini sebagai user?')) return;
+
+            var originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Processing...';
+
+            var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+            var url = '{{ url('eo/events/' . $event->id . '/participants') }}/' + participantId + '/create-user';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                if (res.status === 200 && res.body.success) {
+                    alert(res.body.message);
+                    closeDetailModal();
+                    // Reload table or refresh page to reflect changes
+                    window.location.reload();
+                } else {
+                    alert(res.body.message || 'Gagal membuat user.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memproses permintaan.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            });
         });
     }
 

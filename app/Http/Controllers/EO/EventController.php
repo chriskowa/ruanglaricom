@@ -3020,6 +3020,82 @@ class EventController extends Controller
     }
 
     /**
+     * Create a user account from a participant
+     */
+    public function createUserFromParticipant(Request $request, Event $event, \App\Models\Participant $participant)
+    {
+        $this->authorizeEvent($event);
+
+        // Verify participant belongs to this event
+        $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
+        if ($participantEventId !== (int) $event->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $transaction = $participant->transaction;
+        if (!$transaction) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaksi tidak ditemukan.',
+            ], 404);
+        }
+
+        // Check if transaction already has a user_id
+        if ($transaction->user_id) {
+            $existingUser = \App\Models\User::find($transaction->user_id);
+            if ($existingUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaksi ini sudah terhubung dengan user: ' . $existingUser->email,
+                ], 422);
+            }
+        }
+
+        // Check if a user with the participant's email already exists
+        $email = trim($participant->email);
+        if (empty($email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email peserta kosong.',
+            ], 422);
+        }
+
+        $user = \App\Models\User::where('email', $email)->first();
+
+        if (!$user) {
+            // Create new user
+            // Default password based on first name/prefix
+            $firstName = explode(' ', trim($participant->name))[0];
+            $password = strtolower($firstName) . '123';
+
+            $user = \App\Models\User::create([
+                'name' => $participant->name,
+                'email' => $email,
+                'phone' => $participant->phone,
+                'password' => \Illuminate\Support\Facades\Hash::make($password),
+                'role' => 'runner',
+                'is_active' => true,
+            ]);
+        }
+
+        // Link transaction to user
+        $transaction->update([
+            'user_id' => $user->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil dibuat/dihubungkan dengan email: ' . $user->email,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        ]);
+    }
+
+    /**
      * Update participant picked up status in bulk
      */
     public function bulkUpdateStatus(Request $request, Event $event)
