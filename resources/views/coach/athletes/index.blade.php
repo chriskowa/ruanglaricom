@@ -32,55 +32,51 @@
             </div>
         @endif
 
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-                <p class="text-neon font-mono text-sm tracking-widest uppercase">Monitoring</p>
-                <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">My Athletes</h1>
+                <p class="text-neon font-mono text-xs font-bold tracking-widest uppercase flex items-center gap-1.5 mb-1">
+                    <i class="fa-solid fa-chart-line"></i> Monitoring & Graded Performance
+                </p>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">My Athletes</h1>
             </div>
-            <div class="flex gap-2 w-full sm:w-auto">
-                <button onclick="openEnrollModal()" class="px-4 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center gap-2 text-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    Daftarkan Runner
+            <div class="flex flex-wrap sm:flex-nowrap gap-2 items-center w-full sm:w-auto">
+                <button onclick="openEnrollModal()" class="px-3.5 py-2.5 rounded-xl bg-neon text-dark font-extrabold hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5 text-xs flex-1 sm:flex-none">
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>Daftarkan Runner</span>
                 </button>
-                <button onclick="openImportModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 font-bold hover:bg-slate-700 transition flex items-center gap-2 text-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    Import CSV/JSON
+                <button onclick="openImportModal()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700/80 font-bold hover:bg-slate-700 transition flex items-center justify-center gap-1.5 text-xs flex-1 sm:flex-none">
+                    <i class="fa-solid fa-file-import text-xs text-slate-400"></i>
+                    <span>Import CSV/JSON</span>
                 </button>
                 <!-- Mobile Filter Trigger -->
-                <button onclick="document.getElementById('mobileFilterSheet').classList.remove('translate-y-full')" class="md:hidden p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-neon flex items-center gap-2 font-black text-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                    FILTER
+                <button onclick="document.getElementById('mobileFilterSheet').classList.remove('translate-y-full')" class="md:hidden px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700/90 text-neon flex items-center justify-center gap-1.5 font-bold text-xs">
+                    <i class="fa-solid fa-sliders text-xs"></i>
+                    <span>FILTER</span>
                 </button>
             </div>
         </div>
 
         <!-- Filter Section (Desktop) -->
-        <div class="hidden md:block mb-8 bg-slate-900/50 backdrop-blur-md rounded-2xl p-6 border border-slate-800 shadow-lg">
+        <div class="hidden md:block mb-6 bg-slate-900/60 backdrop-blur-md rounded-2xl p-5 border border-slate-800/90 shadow-lg">
             <form action="{{ route('coach.athletes.index') }}" method="GET" class="space-y-4">
                 <input type="hidden" name="tab" value="{{ $tab }}">
                 
                 <div class="grid grid-cols-12 gap-4 items-end">
                     <div class="col-span-3">
-                        <label for="search" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Search Runner</label>
+                        <label for="search" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Search Runner</label>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors group-focus-within:text-neon">
-                                <svg class="w-4 h-4 text-slate-500 group-focus-within:text-neon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                                </svg>
+                                <i class="fa-solid fa-magnifying-glass text-slate-500 group-focus-within:text-neon text-xs"></i>
                             </div>
-                            <input type="text" name="search" value="{{ $search }}" placeholder="Search by name or email..." 
-                                class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 pl-10 placeholder-slate-500 transition-all focus:bg-slate-800/80 focus:shadow-neon-cyan">
+                            <input type="text" name="search" value="{{ $search }}" placeholder="Ketik nama atau email..." 
+                                class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 pl-9 placeholder-slate-500 transition-all">
                         </div>
                     </div>
                     <div class="col-span-3">
-                        <label for="program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Filter Program</label>
+                        <label for="program_id" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Filter Program</label>
                         <div class="relative">
-                            <select name="program_id" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
-                                <option value="">All Programs</option>
+                            <select name="program_id" class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
+                                <option value="">Semua Program</option>
                                 @foreach($programs as $program)
                                     <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
                                         {{ $program->title }}
@@ -88,14 +84,14 @@
                                 @endforeach
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </div>
                         </div>
                     </div>
                     <div class="col-span-3">
-                        <label for="status" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Status Program</label>
+                        <label for="status" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Status Program</label>
                         <div class="relative">
-                            <select name="status" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
+                            <select name="status" class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
                                 <option value="">Semua Status</option>
                                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
                                 <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Non-aktif (Expired)</option>
@@ -103,40 +99,40 @@
                                 <option value="purchased" {{ request('status') == 'purchased' ? 'selected' : '' }}>Kantong Program</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </div>
                         </div>
                     </div>
                     <div class="col-span-3">
-                        <label for="sort_by" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Urutkan</label>
+                        <label for="sort_by" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Urutkan</label>
                         <div class="relative">
-                            <select name="sort_by" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
+                            <select name="sort_by" class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
                                 <option value="latest" {{ $sortBy == 'latest' ? 'selected' : '' }}>Pendaftaran Terbaru</option>
                                 <option value="vdot_desc" {{ $sortBy == 'vdot_desc' ? 'selected' : '' }}>VDOT Tertinggi</option>
                                 <option value="vdot_asc" {{ $sortBy == 'vdot_asc' ? 'selected' : '' }}>VDOT Terendah</option>
                                 <option value="name" {{ $sortBy == 'name' ? 'selected' : '' }}>Nama Runner</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-4 items-end pt-4 border-t border-slate-800/60">
+                <div class="grid grid-cols-12 gap-4 items-end pt-3 border-t border-slate-800/80">
                     <div class="col-span-3">
-                        <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Range VDOT (Min - Max)</label>
+                        <label class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Range VDOT (Min - Max)</label>
                         <div class="flex gap-2">
-                            <input type="number" name="vdot_min" value="{{ $vdotMin }}" placeholder="Min VDOT" step="0.1"
-                                class="w-1/2 bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 placeholder-slate-500 transition-all">
-                            <input type="number" name="vdot_max" value="{{ $vdotMax }}" placeholder="Max VDOT" step="0.1"
-                                class="w-1/2 bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 placeholder-slate-500 transition-all">
+                            <input type="number" name="vdot_min" value="{{ $vdotMin }}" placeholder="Min" step="0.1"
+                                class="w-1/2 bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 placeholder-slate-500 transition-all">
+                            <input type="number" name="vdot_max" value="{{ $vdotMax }}" placeholder="Max" step="0.1"
+                                class="w-1/2 bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 placeholder-slate-500 transition-all">
                         </div>
                     </div>
                     <div class="col-span-4">
-                        <label for="proximity_runner_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">PB Berdekatan Dengan</label>
+                        <label for="proximity_runner_id" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">PB Berdekatan Dengan</label>
                         <div class="relative">
-                            <select name="proximity_runner_id" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
+                            <select name="proximity_runner_id" class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 appearance-none cursor-pointer hover:bg-slate-700/50 transition-colors">
                                 <option value="">-- Pilih Runner --</option>
                                 @foreach($allCoachAthletes as $athlete)
                                     <option value="{{ $athlete->id }}" {{ $proximityRunnerId == $athlete->id ? 'selected' : '' }}>
@@ -145,21 +141,22 @@
                                 @endforeach
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </div>
                         </div>
                     </div>
                     <div class="col-span-2">
-                        <label for="proximity_diff" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Toleransi (VDOT)</label>
+                        <label for="proximity_diff" class="block text-[11px] font-mono text-slate-400 mb-1.5 uppercase tracking-wider font-bold">Toleransi</label>
                         <input type="number" name="proximity_diff" value="{{ $proximityDiff ?? 3.0 }}" placeholder="±3.0" step="0.1"
-                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl focus:ring-neon focus:border-neon block p-3 placeholder-slate-500 transition-all">
+                            class="w-full bg-slate-800/80 border border-slate-700/80 text-white text-xs rounded-xl focus:ring-neon focus:border-neon block p-2.5 placeholder-slate-500 transition-all">
                     </div>
                     <div class="col-span-3 flex gap-2">
-                        <button type="submit" class="flex-1 px-5 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan transform hover:-translate-y-0.5">
-                            FILTER
+                        <button type="submit" class="flex-1 px-4 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-md flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-filter text-[10px]"></i>
+                            <span>FILTER</span>
                         </button>
-                        <a href="{{ route('coach.athletes.index') }}" id="desktop-reset-btn" class="{{ ($search || $programId || $vdotMin || $vdotMax || $proximityRunnerId) ? '' : 'hidden' }} px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 hover:text-white transition-all border border-slate-700 hover:border-slate-500 flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <a href="{{ route('coach.athletes.index') }}" id="desktop-reset-btn" class="{{ ($search || $programId || $vdotMin || $vdotMax || $proximityRunnerId) ? '' : 'hidden' }} px-3 py-2.5 text-xs font-bold text-slate-400 bg-slate-800/90 rounded-xl hover:bg-slate-700 hover:text-white transition-all border border-slate-700 flex items-center justify-center" title="Reset Filter">
+                            <i class="fa-solid fa-xmark text-xs"></i>
                         </a>
                     </div>
                 </div>
@@ -167,15 +164,17 @@
         </div>
 
         <!-- Tabs for View Mode -->
-        <div class="flex gap-6 mb-6 border-b border-slate-800/80 pb-px">
-            <button id="tab-all-btn" onclick="switchTab('all')" class="pb-3 text-sm font-bold transition-all relative {{ $tab === 'all' ? 'text-neon font-black' : 'text-slate-400 hover:text-white' }}">
-                All Athletes
+        <div class="flex gap-4 sm:gap-6 mb-6 border-b border-slate-800/80 pb-px">
+            <button id="tab-all-btn" onclick="switchTab('all')" class="pb-3 text-xs sm:text-sm font-extrabold transition-all relative flex items-center gap-2 {{ $tab === 'all' ? 'text-neon font-black' : 'text-slate-400 hover:text-white' }}">
+                <i class="fa-solid fa-users text-xs"></i>
+                <span>All Athletes</span>
                 @if($tab === 'all')
                     <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-neon shadow-[0_0_8px_#ccff00]"></div>
                 @endif
             </button>
-            <button id="tab-clusters-btn" onclick="switchTab('clusters')" class="pb-3 text-sm font-bold transition-all relative {{ $tab === 'clusters' ? 'text-neon font-black' : 'text-slate-400 hover:text-white' }}">
-                Smart VDOT Clusters / Groups
+            <button id="tab-clusters-btn" onclick="switchTab('clusters')" class="pb-3 text-xs sm:text-sm font-extrabold transition-all relative flex items-center gap-2 {{ $tab === 'clusters' ? 'text-neon font-black' : 'text-slate-400 hover:text-white' }}">
+                <i class="fa-solid fa-layer-group text-xs"></i>
+                <span>Smart VDOT Clusters</span>
                 @if($tab === 'clusters')
                     <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-neon shadow-[0_0_8px_#ccff00]"></div>
                 @endif
@@ -191,23 +190,32 @@
 <!-- Mobile Filter Bottom Sheet -->
 <div id="mobileFilterSheet" class="fixed inset-0 z-[100] transition-transform duration-300 transform translate-y-full md:hidden">
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="document.getElementById('mobileFilterSheet').classList.add('translate-y-full')"></div>
-    <div class="absolute bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 rounded-t-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[85vh]">
-        <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-8" onclick="document.getElementById('mobileFilterSheet').classList.add('translate-y-full')"></div>
+    <div class="absolute bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/90 rounded-t-3xl p-5 shadow-2xl overflow-y-auto max-h-[85vh]">
+        <div class="w-10 h-1 bg-slate-700/80 rounded-full mx-auto mb-5" onclick="document.getElementById('mobileFilterSheet').classList.add('translate-y-full')"></div>
         
-        <h3 class="text-xl font-black text-white italic tracking-tight mb-6">Filter Athletes</h3>
+        <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800/80">
+            <h3 class="text-sm font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-neon"></i>
+                <span>Filter Athletes</span>
+            </h3>
+            <button onclick="document.getElementById('mobileFilterSheet').classList.add('translate-y-full')" class="text-slate-400 hover:text-white text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
         
-        <form action="{{ route('coach.athletes.index') }}" method="GET" class="space-y-6">
+        <form action="{{ route('coach.athletes.index') }}" method="GET" class="space-y-4">
             <input type="hidden" name="tab" value="{{ $tab }}">
+
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Search Name/Email</label>
-                <input type="text" name="search" value="{{ $search }}" placeholder="Type runner name..." 
-                    class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all">
+                <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Cari Nama / Email</label>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Ketik nama runner..." 
+                    class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all">
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Select Program</label>
-                <select name="program_id" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all appearance-none">
-                    <option value="">All Programs</option>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program</label>
+                <select name="program_id" class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all appearance-none">
+                    <option value="">Semua Program</option>
                     @foreach($programs as $program)
                         <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
                             {{ $program->title }}
@@ -217,8 +225,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Sort By</label>
-                <select name="sort_by" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all appearance-none">
+                <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Urutkan Berdasarkan</label>
+                <select name="sort_by" class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all appearance-none">
                     <option value="latest" {{ $sortBy == 'latest' ? 'selected' : '' }}>Pendaftaran Terbaru</option>
                     <option value="vdot_desc" {{ $sortBy == 'vdot_desc' ? 'selected' : '' }}>VDOT Tertinggi</option>
                     <option value="vdot_asc" {{ $sortBy == 'vdot_asc' ? 'selected' : '' }}>VDOT Terendah</option>
@@ -226,22 +234,22 @@
                 </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Min VDOT</label>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Min VDOT</label>
                     <input type="number" name="vdot_min" value="{{ $vdotMin }}" placeholder="Min" step="0.1"
-                        class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all">
+                        class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all">
                 </div>
                 <div>
-                    <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Max VDOT</label>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Max VDOT</label>
                     <input type="number" name="vdot_max" value="{{ $vdotMax }}" placeholder="Max" step="0.1"
-                        class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all">
+                        class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">PB Berdekatan Dengan</label>
-                <select name="proximity_runner_id" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all appearance-none">
+                <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">PB Berdekatan Dengan</label>
+                <select name="proximity_runner_id" class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all appearance-none">
                     <option value="">-- Pilih Runner --</option>
                     @foreach($allCoachAthletes as $athlete)
                         <option value="{{ $athlete->id }}" {{ $proximityRunnerId == $athlete->id ? 'selected' : '' }}>
@@ -252,22 +260,23 @@
             </div>
 
             <div>
-                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest">Toleransi (VDOT)</label>
+                <label class="block text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Toleransi VDOT</label>
                 <input type="number" name="proximity_diff" value="{{ $proximityDiff ?? 3.0 }}" placeholder="±3.0" step="0.1"
-                    class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-4 focus:ring-neon focus:border-neon transition-all">
+                    class="w-full bg-slate-800/90 border border-slate-700/80 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon transition-all">
             </div>
 
-            <div class="flex gap-3 pt-2">
-                <a href="{{ route('coach.athletes.index') }}" id="mobile-reset-btn" class="{{ ($search || $programId || $vdotMin || $vdotMax || $proximityRunnerId) ? '' : 'hidden' }} flex-1 py-4 text-sm font-bold text-slate-400 bg-slate-800 rounded-2xl border border-slate-700 text-center">
+            <div class="flex gap-2.5 pt-3 border-t border-slate-800/80">
+                <a href="{{ route('coach.athletes.index') }}" id="mobile-reset-btn" class="{{ ($search || $programId || $vdotMin || $vdotMax || $proximityRunnerId) ? '' : 'hidden' }} flex-1 py-3 text-xs font-bold text-slate-400 bg-slate-800/90 rounded-xl border border-slate-700 text-center flex items-center justify-center">
                     RESET
                 </a>
-                <button type="submit" class="flex-[2] py-4 text-sm font-black text-dark bg-neon rounded-2xl shadow-lg shadow-neon/20">
-                    APPLY FILTER
+                <button type="submit" class="flex-[2] py-3 text-xs font-black text-dark bg-neon rounded-xl shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-filter text-[10px]"></i>
+                    <span>APPLY FILTER</span>
                 </button>
             </div>
         </form>
     </div>
-</div>
+</div>v>
 
 <!-- Manual Enrollment Modal -->
 <div id="enrollModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
