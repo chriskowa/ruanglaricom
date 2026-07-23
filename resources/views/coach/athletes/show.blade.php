@@ -75,31 +75,31 @@
 @section('content')
 <main id="coach-monitor-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" v-cloak>
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
             <div class="w-full md:w-auto">
-                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    Back to Athletes
+                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 flex items-center gap-1.5 font-bold transition">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                    <span>Kembali ke Daftar Atlet</span>
                 </a>
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-black text-2xl shadow-xl italic">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-white font-extrabold text-xl shadow-lg">
                         {{ substr($enrollment->runner->name, 0, 1) }}
                     </div>
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <h1 class="text-3xl font-black text-white italic tracking-tighter leading-none">@{{ trainingProfile.name }}</h1>
+                            <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none">@{{ trainingProfile.name }}</h1>
                             <!-- Strava Connected indicator and sync button -->
-                            <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2.5 py-1 rounded-full text-[10px] font-black text-[#FC4C02] transition-all">
-                                <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                                <span>STRAVA CONNECTED</span>
-                                <button type="button" @click="syncStrava" :disabled="loading" class="ml-1 px-2.5 py-0.5 rounded-lg bg-[#FC4C02] text-white hover:bg-[#e34402] transition font-bold disabled:opacity-50 text-[9px] flex items-center gap-1 shadow">
+                            <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-[#FC4C02] transition-all">
+                                <i class="fa-brands fa-strava text-xs"></i>
+                                <span>STRAVA TERHUBUNG</span>
+                                <button type="button" @click="syncStrava" :disabled="loading" class="ml-1 px-2 py-0.5 rounded-md bg-[#FC4C02] text-white hover:bg-[#e34402] transition font-bold disabled:opacity-50 text-[9px] flex items-center gap-1 shadow">
                                     <span v-if="loading">Syncing...</span>
                                     <span v-else>Sync Now</span>
                                 </button>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 mt-1">
-                            <span class="text-neon font-mono text-sm tracking-widest uppercase">{{ $enrollment->program->title }}</span>
+                        <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span class="text-neon font-mono text-xs font-bold tracking-widest uppercase">{{ $enrollment->program->title }}</span>
                             <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border
                                 @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
                                 @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
@@ -115,17 +115,17 @@
             <!-- Runner Stats Summary - Mobile Optimized -->
             <div class="w-full overflow-x-auto no-scrollbar">
                 <div class="flex gap-3 pb-2 min-w-max md:min-w-0">
-                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">VDOT</div>
-                        <div class="text-2xl font-black text-neon italic">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">VDOT</div>
+                        <div class="text-xl font-extrabold text-neon">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                     </div>
-                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Target</div>
-                        <div class="text-2xl font-black text-white italic">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}<span class="text-xs font-normal text-slate-400 ml-1">km</span></div>
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Target</div>
+                        <div class="text-xl font-extrabold text-white">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}<span class="text-xs font-normal text-slate-400 ml-1">km</span></div>
                     </div>
-                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Age</div>
-                        <div class="text-2xl font-black text-white italic">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Usia</div>
+                        <div class="text-xl font-extrabold text-white">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
                     </div>
                 </div>
             </div>
@@ -136,75 +136,75 @@
             <div class="lg:col-span-2">
                 <!-- Training Profile Panel -->
                 <div class="glass-panel rounded-2xl p-4 md:p-6 mb-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h3 class="text-white font-black text-xl italic tracking-tight">Athlete Profile</h3>
-                                <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Based on VDOT Analytics</p>
+                                <h3 class="text-white font-extrabold text-lg tracking-tight uppercase">Profil Kebugaran Atlet</h3>
+                                <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Berdasarkan Analitik VDOT Jack Daniels</p>
                             </div>
-                            <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-neon hover:text-white transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800/90 border border-slate-700/80 text-neon hover:text-white transition-all" title="Edit Target Mingguan">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
                             </button>
                         </div>
 
                         <!-- VDOT Score -->
-                        <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center mb-6">
-                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
-                            <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                            <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                        </div>
-                        
-                        <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center mb-6 relative group">
-                            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                                <button @click="showWeeklyTargetModal = true" class="text-xs text-neon hover:text-white bg-slate-700/50 p-1 rounded">Edit</button>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center">
+                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold">Skor VDOT</div>
+                                <div class="text-3xl font-extrabold text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                                <div class="text-[10px] text-slate-400 mt-1">VO2Max Estimasi: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                             </div>
-                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Weekly Target (km)</div>
-                            <div class="text-4xl font-black text-white cursor-pointer" @click="showWeeklyTargetModal = true">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}</div>
-                            <div class="text-[10px] text-slate-500 mt-1">Target mingguan atlet</div>
+                            
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer" @click="showWeeklyTargetModal = true">
+                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold">Target Mingguan (KM)</div>
+                                <div class="text-3xl font-extrabold text-neon">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}</div>
+                                <div class="text-[10px] text-slate-400 mt-1">Target jarak mingguan atlet</div>
+                            </div>
                         </div>
 
                         <!-- Tabs -->
-                        <div class="flex gap-4 border-b border-slate-700 mb-4">
+                        <div class="flex gap-2 sm:gap-4 border-b border-slate-700/80 mb-4 overflow-x-auto pb-px">
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'training' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'training'">
-                                Training
+                                <i class="fa-solid fa-stopwatch text-xs"></i>
+                                <span>Pace Latihan</span>
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'equivalent' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'equivalent'">
-                                Equivalent
+                                <i class="fa-solid fa-trophy text-xs"></i>
+                                <span>Est. Waktu Lomba</span>
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'track' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'track'">
-                                Track
+                                <i class="fa-solid fa-route text-xs"></i>
+                                <span>Waktu Track</span>
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'analytics' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'analytics'">
-                                Analytics
+                                <i class="fa-solid fa-chart-line text-xs"></i>
+                                <span>Analitik & Kesehatan</span>
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'predictions' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'predictions'">
-                                Race Predictor
+                                <i class="fa-solid fa-calculator text-xs"></i>
+                                <span>Prediksi Race</span>
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2 whitespace-nowrap"
+                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
                                 :class="profileTab === 'weekly_report' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
                                 @click="profileTab = 'weekly_report'">
-                                Weekly Report
+                                <i class="fa-solid fa-file-lines text-xs"></i>
+                                <span>Laporan Mingguan</span>
                             </button>
                         </div>
 
@@ -319,15 +319,15 @@
                             <!-- Fatigue & Health Status -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
-                                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 font-mono">Fatigue & Recovery</div>
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-2 font-mono font-bold">Kelelahan & Pemulihan</div>
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
-                                             :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30')">
-                                            @{{ healthSummary.fatigueEmoji }}
+                                             :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30')">
+                                            <i class="fa-solid text-lg" :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'fa-battery-quarter text-red-400' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'fa-battery-half text-amber-400' : 'fa-battery-full text-emerald-400')"></i>
                                         </div>
                                         <div>
-                                            <div class="text-lg font-black text-white italic leading-tight">@{{ healthSummary.fatigueLevel }}</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5">Avg RPE: <span class="text-white font-bold">@{{ healthSummary.avgRpe }}</span> (Last 5 runs)</div>
+                                            <div class="text-lg font-extrabold text-white leading-tight">@{{ healthSummary.fatigueLevel }}</div>
+                                            <div class="text-[11px] text-slate-400 mt-0.5">Rata-rata RPE: <span class="text-white font-bold">@{{ healthSummary.avgRpe }}</span> (5 Sesi Terakhir)</div>
                                         </div>
                                     </div>
                                     <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
@@ -336,15 +336,15 @@
                                 </div>
 
                                 <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
-                                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 font-mono">Injury & Burnout Risk</div>
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-2 font-mono font-bold">Resiko Cedera & Overtraining</div>
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
-                                             :class="healthSummary.riskLevel === 'HIGH RISK' ? 'bg-red-600/30 text-red-500 border border-red-500/50 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'">
-                                            ⚠
+                                             :class="healthSummary.riskLevel === 'HIGH RISK' ? 'bg-rose-600/30 text-rose-500 border border-rose-500/50 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'">
+                                            <i class="fa-solid text-lg" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'fa-triangle-exclamation text-rose-400' : 'fa-shield-halved text-emerald-400'"></i>
                                         </div>
                                         <div>
-                                            <div class="text-lg font-black text-white italic leading-tight" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'text-red-400' : 'text-emerald-400'">@{{ healthSummary.riskLevel }}</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5">Subjective Feeling: <span class="text-white font-bold capitalize">@{{ healthSummary.feelingStatus }}</span></div>
+                                            <div class="text-lg font-extrabold text-white leading-tight" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'text-rose-400' : 'text-emerald-400'">@{{ healthSummary.riskLevel }}</div>
+                                            <div class="text-[11px] text-slate-400 mt-0.5">Kondisi Subjektif: <span class="text-white font-bold capitalize">@{{ healthSummary.feelingStatus }}</span></div>
                                         </div>
                                     </div>
                                     <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
@@ -400,11 +400,12 @@
                         <!-- Predictions Tab -->
                         <div v-if="profileTab === 'predictions'" class="space-y-6">
                             <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50">
-                                <h4 class="text-sm font-black text-white italic tracking-tight mb-1 flex items-center gap-1.5">
-                                    <span>🏆</span> Race Finish Time Predictor
+                                <h4 class="text-sm font-extrabold text-white uppercase tracking-tight mb-1 flex items-center gap-2">
+                                    <i class="fa-solid fa-trophy text-neon text-xs"></i>
+                                    <span>Prediksi Waktu Finish Lomba</span>
                                 </h4>
                                 <p class="text-[10px] text-slate-400 leading-normal mb-4">
-                                    Predict finish times for custom distances using standard scaling formulas (Riegel's formula) based on current VDOT.
+                                    Prediksi estimasi waktu finish untuk berbagai jarak menggunakan Formula Riegel berbasis skor VDOT atlet saat ini.
                                 </p>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -515,25 +516,22 @@
                 <div class="glass-panel rounded-[2.5rem] p-4 md:p-8" id="coach-calendar-section">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                         <div>
-                            <h3 class="text-white font-black text-2xl italic tracking-tight">Training Calendar</h3>
-                            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Review & Plan workouts</p>
+                            <h3 class="text-white font-extrabold text-xl tracking-tight uppercase">Kalender Latihan Atlet</h3>
+                            <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold mt-1">Review, Atur & Reschedule Sesi Latihan</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                             <!-- Export Buttons -->
-                            <button @click="exportCalendar('image')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Export Image
+                            <button @click="exportCalendar('image')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-image text-neon text-xs"></i>
+                                <span>Export Gambar</span>
                             </button>
-                            <button @click="exportCalendar('pdf')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                                Export PDF
+                            <button @click="exportCalendar('pdf')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-file-pdf text-rose-400 text-xs"></i>
+                                <span>Export PDF</span>
                             </button>
-                            <button @click="openRaceForm" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
-                                Add Race Event
+                            <button @click="openRaceForm" class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-neon/90 text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-flag-checkered text-xs"></i>
+                                <span>Tambah Event Lomba</span>
                             </button>
                         </div>
                     </div>
@@ -3140,16 +3138,13 @@ createApp({
                 const avg = parseFloat(avgRpeVal);
                 if (avg >= 7.5) {
                     healthSummary.fatigueLevel = 'High Fatigue';
-                    healthSummary.fatigueEmoji = '🥵';
-                    healthSummary.advice = 'Athlete shows signs of high strain. Advise reduced training volume by 20% or add an extra rest day.';
+                    healthSummary.advice = 'Atlet menunjukkan beban latihan tinggi. Disarankan mengurangi volume 20% atau menambah hari istirahat.';
                 } else if (avg >= 5.0) {
                     healthSummary.fatigueLevel = 'Moderate Fatigue';
-                    healthSummary.fatigueEmoji = '🏃';
-                    healthSummary.advice = 'Normal training strain. Athlete is responding well. Maintain current calendar parameters.';
+                    healthSummary.advice = 'Beban latihan normal. Atlet merespons dengan baik. Pertahankan parameter kalender saat ini.';
                 } else {
                     healthSummary.fatigueLevel = 'Healthy / Low Fatigue';
-                    healthSummary.fatigueEmoji = '🟢';
-                    healthSummary.advice = 'Excellent recovery. Body is fully adapting. Athlete is ready for mileage or intensity progression.';
+                    healthSummary.advice = 'Pemulihan sangat baik. Tubuh beradaptasi secara optimal. Atlet siap untuk peningkatan volume atau intensitas.';
                 }
             }
 

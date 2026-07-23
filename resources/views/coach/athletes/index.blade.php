@@ -42,11 +42,11 @@
             <div class="flex flex-wrap sm:flex-nowrap gap-2 items-center w-full sm:w-auto">
                 <button onclick="openEnrollModal()" class="px-3.5 py-2.5 rounded-xl bg-neon text-dark font-extrabold hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5 text-xs flex-1 sm:flex-none">
                     <i class="fa-solid fa-user-plus text-xs"></i>
-                    <span>Daftarkan Runner</span>
+                    <span>Daftar</span>
                 </button>
                 <button onclick="openImportModal()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700/80 font-bold hover:bg-slate-700 transition flex items-center justify-center gap-1.5 text-xs flex-1 sm:flex-none">
                     <i class="fa-solid fa-file-import text-xs text-slate-400"></i>
-                    <span>Import CSV/JSON</span>
+                    <span>Import</span>
                 </button>
                 <!-- Mobile Filter Trigger -->
                 <button onclick="document.getElementById('mobileFilterSheet').classList.remove('translate-y-full')" class="md:hidden px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700/90 text-neon flex items-center justify-center gap-1.5 font-bold text-xs">
