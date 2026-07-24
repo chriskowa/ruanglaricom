@@ -679,7 +679,7 @@ Route::get('/api/blog/latest', function () {
 
             return \App\Models\Article::published()
                 ->orderByDesc('is_featured')
-                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->orderByRaw('COALESCE(updated_at, published_at, created_at) DESC')
                 ->limit(3)
                 ->get()
                 ->map(function ($a) {

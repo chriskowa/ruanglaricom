@@ -778,7 +778,7 @@ class GenerateProgramController extends Controller
                     
                     $mainSetText = str_replace(
                         ['{distance_km}', '{target_pace}'],
-                        [$scaledMainSet, $targetPaceStr],
+                        [$qualityDistances[$d], $targetPaceStr],
                         $scaledMainSet
                     );
 

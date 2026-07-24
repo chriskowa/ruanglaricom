@@ -199,7 +199,7 @@
             <div v-else-if="step === 1" key="form" class="max-w-xl mx-auto">
                 <div class="card-dark p-6 rounded-2xl">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-black text-white uppercase italic tracking-tight">Parameter Latihan</h2>
+                        <h2 class="text-lg font-black text-white uppercase tracking-tight">Parameter Latihan</h2>
                         <button @click="step = 0" class="text-slate-500 hover:text-slate-300 text-xs font-bold flex items-center gap-1">
                             <span>←</span> Kembali
                         </button>

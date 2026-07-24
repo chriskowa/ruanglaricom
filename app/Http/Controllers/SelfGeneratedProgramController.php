@@ -797,7 +797,7 @@ class SelfGeneratedProgramController extends Controller
                     
                     $mainSetText = str_replace(
                         ['{distance_km}', '{target_pace}'],
-                        [$scaledMainSet, $rangeStr . " (RPE $rpe)"],
+                        [$qualityDistances[$d], $rangeStr . " (RPE $rpe)"],
                         $scaledMainSet
                     );
 
