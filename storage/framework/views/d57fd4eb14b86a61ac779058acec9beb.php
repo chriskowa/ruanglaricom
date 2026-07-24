@@ -98,12 +98,13 @@
     <link rel="canonical" href="<?php echo $__env->yieldContent('canonical_url', url()->current()); ?>">   
 
     <!-- Favicon default -->
-    <link rel="icon" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>" type="image/x-icon">
-    <link rel="shortcut icon" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>" type="image/x-icon">
+    <link rel="icon" href="<?php echo e(asset('images/green/favicon.ico')); ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?php echo e(asset('images/green/favicon.ico')); ?>" type="image/x-icon">
 
     <!-- Versi PNG -->
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('images/green/favicon-32x32.png')); ?>">
     <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('images/green/favicon-16x16.png')); ?>">
+    <link rel="icon" type="image/png" sizes="96x96" href="<?php echo e(asset('images/favicon-96x96.png')); ?>">
 
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="<?php echo e(asset('images/green/apple-touch-icon.png')); ?>">

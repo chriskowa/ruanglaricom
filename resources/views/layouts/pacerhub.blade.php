@@ -98,12 +98,13 @@
     <link rel="canonical" href="@yield('canonical_url', url()->current())">   
 
     <!-- Favicon default -->
-    <link rel="icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('images/green/favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('images/green/favicon.ico') }}" type="image/x-icon">
 
     <!-- Versi PNG -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('images/favicon-96x96.png') }}">
 
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/green/apple-touch-icon.png') }}">

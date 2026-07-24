@@ -215,6 +215,15 @@
                                 </select>
                             </div>
 
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toleransi Jarak Target</label>
+                                <select id="rl-ai-tolerance" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
+                                    <option value="0.05">Sangat Presisi (±50m - ±100m)</option>
+                                    <option value="0.12" selected>Ketat & Akurat (±100m - ±150m)</option>
+                                    <option value="0.25">Standar (±250m)</option>
+                                </select>
+                            </div>
+
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Opsi Rute & Larangan</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -712,6 +721,7 @@
                 toggleChevron: document.getElementById('rl-toggle-menu-chevron'),
                 aiCustomDist: document.getElementById('rl-ai-custom-dist'),
                 aiDirection: document.getElementById('rl-ai-direction'),
+                aiTolerance: document.getElementById('rl-ai-tolerance'),
                 aiGenerateBtn: document.getElementById('rl-ai-generate-btn'),
                 aiRegenerateBtn: document.getElementById('rl-ai-regenerate-btn'),
                 aiLoop: document.getElementById('rl-ai-loop'),
@@ -1074,6 +1084,37 @@
                 return Promise.all(promises);
             }
 
+            function insertPointAtSegment(segmentIdx, latlng) {
+                if (segmentIdx < 1 || segmentIdx > points.length) return;
+
+                var prevMode = (points[segmentIdx] && points[segmentIdx].mode) ? points[segmentIdx].mode : 'osrm';
+                var newPoint = {
+                    lat: latlng.lat,
+                    lng: latlng.lng,
+                    mode: prevMode,
+                    segment: []
+                };
+
+                points.splice(segmentIdx, 0, newPoint);
+
+                setStatus('Menyisipkan titik pada rute...');
+
+                recalculateAdjacentSegments(segmentIdx).then(function() {
+                    rebuildLine();
+                    rebuildMarkers();
+                    updateStats();
+                    updateElevation();
+                    setStatus('Titik berhasil disisipkan di rute');
+                    pushState();
+                }).catch(function() {
+                    rebuildLine();
+                    rebuildMarkers();
+                    updateStats();
+                    updateElevation();
+                    pushState();
+                });
+            }
+
             function rebuildLine() {
                 routeLayer.clearLayers();
                 routePoints = [];
@@ -1090,7 +1131,6 @@
                     }
                     
                     // Add to flat routePoints (skip first point of segment as it duplicates prev point)
-                    // OSRM usually returns [start, ..., end]. Start is same as prev point.
                     for (var j = 1; j < seg.length; j++) {
                         routePoints.push(seg[j]);
                     }
@@ -1103,12 +1143,42 @@
                         dashArray = '10, 10'; 
                     }
 
-                    L.polyline(seg, {
-                        color: color,
-                        weight: 4,
-                        opacity: 0.9,
-                        dashArray: dashArray
-                    }).addTo(routeLayer);
+                    (function(segmentIdx, segCoords) {
+                        var poly = L.polyline(segCoords, {
+                            color: color,
+                            weight: 6,
+                            opacity: 0.9,
+                            dashArray: dashArray
+                        });
+
+                        var popupContent = document.createElement('div');
+                        popupContent.className = 'text-center p-1.5 space-y-2';
+                        
+                        var title = document.createElement('div');
+                        title.className = 'text-[11px] font-black text-white';
+                        title.textContent = 'Segmen Rute #' + segmentIdx;
+                        popupContent.appendChild(title);
+
+                        var insertBtn = document.createElement('button');
+                        insertBtn.type = 'button';
+                        insertBtn.className = 'w-full px-3 py-2 bg-gradient-to-r bg-red-500 text-white font-black text-xs rounded-xl hover:scale-105 transition-all flex items-center justify-center gap-1.5 cursor-pointer';
+                        insertBtn.innerHTML = '<i class="fa-solid fa-plus-circle text-xs"></i> <span>Tambahkan Titik Di Sini</span>';
+                        insertBtn.onclick = function() {
+                            var clickLatLng = poly.lastClickLatLng || map.getCenter();
+                            map.closePopup();
+                            insertPointAtSegment(segmentIdx, clickLatLng);
+                        };
+                        popupContent.appendChild(insertBtn);
+
+                        poly.bindPopup(popupContent, { minWidth: 160 });
+
+                        poly.on('click', function(e) {
+                            L.DomEvent.stopPropagation(e);
+                            poly.lastClickLatLng = e.latlng;
+                        });
+
+                        poly.addTo(routeLayer);
+                    })(i, seg);
                 }
                 
                 updateDirections();
@@ -3162,26 +3232,56 @@
 
                 var initialWpts = getAiWaypoints(savedStart, targetDist, angleRad, isLoop, avoidIntersections);
 
-                setStatus('Menganalisis jalan terdekat...');
+                var targetTolerance = parseFloat(els.aiTolerance ? els.aiTolerance.value : 0.12);
+                if (isNaN(targetTolerance) || targetTolerance <= 0) targetTolerance = 0.12;
 
-                fetchLoopRoute(initialWpts, profile, excludes)
-                    .then(function(res1) {
-                        var actualDist = res1.distance;
-                        if (actualDist <= 0) {
+                var bestRes = null;
+                var minDiff = Infinity;
+
+                // High-Precision Multi-Pass Distance Calibration with Best-Pass Tracking & Angle Adaptation
+                function calibrateRouteDistance(currentWpts, currentAngle, passCount) {
+                    return fetchLoopRoute(currentWpts, profile, excludes).then(function(res) {
+                        var currentDist = res.distance;
+                        if (!currentDist || currentDist <= 0) {
                             throw new Error('distance_zero');
                         }
 
-                        var factor = targetDist / actualDist;
-                        if (factor >= 0.5 && factor <= 2.0 && Math.abs(actualDist - targetDist) > 0.3) {
-                            setStatus('Menyesuaikan presisi rute...');
-                            var adjustedDist = targetDist * factor;
-                            var adjustedWpts = getAiWaypoints(savedStart, adjustedDist, angleRad, isLoop, avoidIntersections);
-                            return fetchLoopRoute(adjustedWpts, profile, excludes).catch(function() {
-                                return res1;
-                            });
+                        var diff = Math.abs(currentDist - targetDist);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            bestRes = res;
                         }
-                        return res1;
-                    })
+
+                        // Stop if within target tolerance or completed 5 passes
+                        if (diff <= targetTolerance || passCount >= 5) {
+                            return bestRes || res;
+                        }
+
+                        var factor = targetDist / currentDist;
+                        if (factor < 0.4 || factor > 2.5) {
+                            return bestRes || res;
+                        }
+
+                        // Clamp scaling factor to prevent wild divergence on tight urban blocks
+                        var clampedFactor = Math.max(0.55, Math.min(1.7, factor));
+                        setStatus('Kalibrasi presisi rute #' + passCount + ' (' + fmt2(currentDist) + ' km → target ' + targetDist + ' km)...');
+
+                        var nextAngle = currentAngle;
+                        // Jitter direction slightly if road layout causes persistent detour after pass 2
+                        if (passCount >= 2 && diff > targetTolerance * 1.5 && (!els.aiDirection || els.aiDirection.value === 'random')) {
+                            nextAngle += (Math.random() * 0.4 - 0.2);
+                        }
+
+                        var calibratedTarget = targetDist * Math.pow(clampedFactor, 0.92);
+                        var nextWpts = getAiWaypoints(savedStart, calibratedTarget, nextAngle, isLoop, avoidIntersections);
+
+                        return calibrateRouteDistance(nextWpts, nextAngle, passCount + 1).catch(function() {
+                            return bestRes || res;
+                        });
+                    });
+                }
+
+                calibrateRouteDistance(initialWpts, angleRad, 1)
                     .then(function(finalRes) {
                         points = finalRes.points;
                         
@@ -3192,7 +3292,12 @@
                         
                         setTimeout(fitRoute, 200);
                         
-                        setStatus('Rute AI berhasil dibuat (' + fmt2(finalRes.distance) + ' km)');
+                        var finalDiff = Math.abs(finalRes.distance - targetDist);
+                        var diffMeters = Math.round(finalDiff * 1000);
+                        var statusMsg = (finalDiff <= targetTolerance)
+                            ? 'Rute AI presisi tinggi dibuat (' + fmt2(finalRes.distance) + ' km, selisih ' + diffMeters + 'm)'
+                            : 'Rute AI berhasil dibuat (' + fmt2(finalRes.distance) + ' km, selisih ' + diffMeters + 'm)';
+                        setStatus(statusMsg);
                         pushState();
                     })
                     .catch(function(err) {
