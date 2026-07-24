@@ -273,8 +273,13 @@ const runnerCalendarApp = createApp({
         const ttsSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window);
         const isSpeaking = ref(false);
         let ttsVoice = null;
-        let currentUtterance = null;
-        const displayPace = computed(() => detail.actual_pace || detail.target_pace || detail.recommended_pace || null);
+        const displayPace = computed(() => {
+            const t = String(detail.type || '').toLowerCase();
+            if (['rest', 'rest_day', 'strength', 'yoga'].includes(t)) {
+                return null;
+            }
+            return detail.actual_pace || detail.target_pace || detail.recommended_pace || null;
+        });
         const primaryMetricValue = computed(() => {
             try {
                 if (detail.distance) {
@@ -958,7 +963,7 @@ const runnerCalendarApp = createApp({
         const applyForm = reactive({
             start_date: ''
         });
-        const submitApply = async () => {
+        const submitApply = async (overrideAction = null) => {
             if (!applyTarget.value || !applyTarget.value.id) {
                 alert('Invalid program');
                 return;
@@ -969,12 +974,29 @@ const runnerCalendarApp = createApp({
             }
             applyLoading.value = true;
             try {
+                const payload = {
+                    enrollment_id: applyTarget.value.id,
+                    start_date: applyForm.start_date
+                };
+                if (overrideAction) {
+                    payload.action = overrideAction;
+                }
+
                 const res = await fetch(`{{ route('runner.calendar.apply-program') }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
-                    body: JSON.stringify({ enrollment_id: applyTarget.value.id, start_date: applyForm.start_date })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
+                if (data.has_active_program && !overrideAction) {
+                    const choice = confirm(`Program Aktif Terdeteksi:\n"${data.active_program_title}" (${data.active_start_date} - ${data.active_end_date})\n\nKlik OK untuk Ganti Program (Replace)\nKlik CANCEL untuk Tambahkan Saja (Add).`);
+                    if (choice) {
+                        return submitApply('replace');
+                    } else {
+                        return submitApply('add');
+                    }
+                }
+
                 if (data.success) {
                     window.location.reload();
                 } else {
@@ -2168,7 +2190,7 @@ const runnerCalendarApp = createApp({
                 race: 'Fokusnya eksekusi hari H. Mulai terkontrol, finish kuat.',
             };
             const base = focusMap[t] || 'Fokusnya eksekusi rapi dan konsisten.';
-            const pace = detail.target_pace || detail.recommended_pace || null;
+            const pace = ['rest', 'rest_day', 'strength', 'yoga', 'cycling'].includes(t) ? null : (detail.target_pace || detail.recommended_pace || null);
             const extra = pace ? ` Pace panduan: ${pace}.` : '';
             const interactive = guidedSteps.value.length ? ' Centang step saat selesai biar progresnya terasa.' : '';
             return `${base}${extra}${interactive}`;
@@ -2302,10 +2324,12 @@ const runnerCalendarApp = createApp({
                 detail.strength = s.strength || null;
                 detail.source = 'program';
                 
-                if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+                if (['strength', 'rest', 'rest_day', 'yoga', 'cycling'].includes(String(detail.type || '').toLowerCase())) {
                     detail.target_pace = null;
+                    detail.recommended_pace = null;
+                } else {
+                    detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
                 }
-                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
             } else if (type === 'custom_workout') {
                 const w = props.workout || {};
                 detailTitle.value = w.type === 'race' ? (w.workout_structure?.race_name || 'Race Event') : 'Custom Workout';
@@ -2321,10 +2345,12 @@ const runnerCalendarApp = createApp({
                 detail.strength = w.strength || w.workout_structure?.strength || null;
                 detail.source = 'custom';
                 
-                if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+                if (['strength', 'rest', 'rest_day', 'yoga', 'cycling'].includes(String(detail.type || '').toLowerCase())) {
                     detail.target_pace = null;
+                    detail.recommended_pace = null;
+                } else {
+                    detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
                 }
-                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
             } else if (type === 'strava_activity') {
                 detailTitle.value = 'Strava Activity';
                 detail.date = info.event.startStr;
@@ -2378,12 +2404,13 @@ const runnerCalendarApp = createApp({
             detail.source = plan.source || (plan.enrollment_id ? 'program' : null);
             detail.target_pace = plan.target_pace || null;
             
-            // Hide target pace for non-running activities
-            if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+            // Hide target pace & recommended pace for non-running activities
+            if (['strength', 'rest', 'rest_day', 'yoga', 'cycling'].includes(String(detail.type || '').toLowerCase())) {
                 detail.target_pace = null;
+                detail.recommended_pace = null;
+            } else {
+                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
             }
-
-            detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
 
             detail.coach_feedback = plan.coach_feedback || null;
             detail.coach_rating = plan.coach_rating || null;

@@ -859,17 +859,34 @@
                         <div class="text-[9px] font-mono text-slate-400 mt-1">@{{ detail.date_formatted || formatDate(detail.date) }}</div>
                     </div>
 
+                    <!-- Description Section at the Top -->
+                    <div v-if="detail.description" class="mb-3.5 bg-gradient-to-br from-slate-900/90 via-slate-850 to-slate-900 border-l-4 border-l-neon border-y border-r border-slate-700/80 rounded-xl p-3.5 shadow-lg shadow-black/20 text-xs">
+                        <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800/80">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-neon/10 border border-neon/30 flex items-center justify-center text-neon">
+                                    <i class="fa-solid fa-clipboard-list text-xs"></i>
+                                </div>
+                                <span class="text-xs font-extrabold text-white uppercase tracking-wider">Deskripsi Aktivitas</span>
+                            </div>
+                            <button v-if="ttsSupported" @click="speakDetailDescription" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-neon border border-slate-700 text-[10px] font-bold flex items-center gap-1.5 transition shadow-sm" type="button" title="Dengarkan deskripsi">
+                                <i class="fa-solid fa-volume-high text-[11px] text-neon"></i>
+                                <span>Audio</span>
+                            </button>
+                        </div>
+                        <div class="whitespace-pre-line leading-relaxed text-slate-100 font-medium bg-slate-950/50 rounded-lg p-3 border border-slate-800/80 text-xs">@{{ detail.description }}</div>
+                    </div>
+
                     <!-- Vertically Aligned Metrics Table -->
                     <div class="space-y-1 mb-3.5 p-2.5 bg-slate-800/30 border border-slate-700/50 rounded-[6px]">
-                        <div v-if="detail.distance && detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="detail.distance && String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Distance</span>
                             <span class="text-xs font-bold text-white">@{{ detail.distance }} km</span>
                         </div>
-                        <div v-if="detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Target Pace</span>
                             <span class="text-xs font-bold text-neon">@{{ displayPace || '-' }}</span>
                         </div>
-                        <div v-if="detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Duration</span>
                             <span class="text-xs font-bold text-white">@{{ detail.duration || '-' }}</span>
                         </div>
@@ -878,23 +895,6 @@
                             <span class="text-xs font-bold text-white">@{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || '-' }}</span>
                         </div>
                     </div>
-
-                        <!-- Description Section at the Top -->
-                        <div v-if="detail.description" class="mb-3.5 bg-gradient-to-br from-slate-900/90 via-slate-850 to-slate-900 border-l-4 border-l-neon border-y border-r border-slate-700/80 rounded-xl p-3.5 shadow-lg shadow-black/20 text-xs">
-                            <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800/80">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-lg bg-neon/10 border border-neon/30 flex items-center justify-center text-neon">
-                                        <i class="fa-solid fa-clipboard-list text-xs"></i>
-                                    </div>
-                                    <span class="text-xs font-extrabold text-white uppercase tracking-wider">Deskripsi Aktivitas</span>
-                                </div>
-                                <button v-if="ttsSupported" @click="speakDetailDescription" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-neon border border-slate-700 text-[10px] font-bold flex items-center gap-1.5 transition shadow-sm" type="button" title="Dengarkan deskripsi">
-                                    <i class="fa-solid fa-volume-high text-[11px] text-neon"></i>
-                                    <span>Audio</span>
-                                </button>
-                            </div>
-                            <div class="whitespace-pre-line leading-relaxed text-slate-100 font-medium bg-slate-950/50 rounded-lg p-3 border border-slate-800/80 text-xs">@{{ detail.description }}</div>
-                        </div>
 
                         <!-- Goals & Effects Section -->
                         <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"

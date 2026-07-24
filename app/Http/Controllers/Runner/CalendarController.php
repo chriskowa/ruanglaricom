@@ -870,23 +870,40 @@ class CalendarController extends Controller
      */
     public function applyProgram(Request $request)
     {
+        if ($request->has('action') && !in_array($request->input('action'), ['replace', 'add'], true)) {
+            $request->merge(['action' => null]);
+        }
+
         $validated = $request->validate([
             'enrollment_id' => 'required|exists:program_enrollments,id',
             'start_date' => 'required|date',
+            'action' => 'nullable|in:replace,add',
         ]);
 
         $user = auth()->user();
+        $action = $validated['action'] ?? null;
 
         // Check if user already has an active program
-        $hasActive = ProgramEnrollment::where('runner_id', $user->id)
+        $activeEnrollment = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'active')
-            ->exists();
+            ->with('program')
+            ->first();
 
-        if ($hasActive) {
+        if ($activeEnrollment && !$action) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sedang menjalankan program aktif. Harap selesaikan atau reset program saat ini terlebih dahulu.',
-            ], 422);
+                'has_active_program' => true,
+                'active_program_title' => $activeEnrollment->program?->title ?? 'Program Aktif',
+                'active_start_date' => $activeEnrollment->start_date ? Carbon::parse($activeEnrollment->start_date)->format('d M Y') : '',
+                'active_end_date' => $activeEnrollment->end_date ? Carbon::parse($activeEnrollment->end_date)->format('d M Y') : '',
+                'message' => 'Anda sedang menjalankan program aktif.',
+            ], 200);
+        }
+
+        if ($activeEnrollment && $action === 'replace') {
+            ProgramEnrollment::where('runner_id', $user->id)
+                ->where('status', 'active')
+                ->update(['status' => 'cancelled']);
         }
 
         $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])

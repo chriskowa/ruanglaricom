@@ -258,7 +258,12 @@
                                     <i class="far fa-user text-brand-400"></i>
                                     {{ $article->user->name }}
                                 </span>
+                                <span class="text-slate-600 font-sans select-none">•</span>
                             @endif
+                            <span class="flex items-center gap-1.5 py-1 text-slate-300 font-semibold" title="Jumlah dibaca">
+                                <i class="far fa-eye text-brand-400"></i>
+                                {{ number_format((int) ($article->views_count ?? 0)) }} {{ app()->getLocale() === 'en' ? 'views' : 'dibaca' }}
+                            </span>
                         </div>
 
                         <!-- Mobile Share Bar -->

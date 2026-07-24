@@ -202,4 +202,156 @@ class SelfGeneratedProgramTest extends TestCase
         $dataBalke = $response->json('data');
         $this->assertNotNull($dataBalke['summary']['vdot']);
     }
+
+    public function test_generator_progressive_mileage_and_long_run(): void
+    {
+        $user = User::factory()->create();
+
+        $postData = [
+            'pb_distance' => '10k',
+            'pb_time' => '50:00',
+            'target_distance' => '21k',
+            'target_date' => now()->addWeeks(12)->toDateString(),
+            'goal_time' => '1:45:00',
+            'weekly_mileage' => 50,
+            'frequency' => 5,
+            'runner_level' => 'intermediate',
+            'long_run_day' => 'sunday',
+            'gender' => 'male',
+            'age' => 30,
+            'is_tropical' => false,
+            'use_ai' => false,
+        ];
+
+        $response = $this->actingAs($user)->postJson(route('generator.generate'), $postData);
+        $response->assertStatus(200);
+
+        $sessions = $response->json('data.sessions');
+
+        // Calculate total mileage per week
+        $weeklyMileage = [];
+        $weeklyLongRun = [];
+        foreach ($sessions as $s) {
+            $w = $s['week'];
+            $weeklyMileage[$w] = ($weeklyMileage[$w] ?? 0) + ($s['distance'] ?? 0);
+            if ($s['type'] === 'long_run') {
+                $weeklyLongRun[$w] = $s['distance'];
+            }
+        }
+
+        // 1. Check progressive build-up: Week 1 mileage should be less than peak (Week 10)
+        $this->assertLessThan($weeklyMileage[10], $weeklyMileage[1]);
+
+        // 2. Check long run progression: Week 1 long run should be less than peak long run
+        $this->assertLessThan($weeklyLongRun[10], $weeklyLongRun[1]);
+
+        // 3. Taper check: Week 12 mileage should be significantly lower than peak
+        $this->assertLessThan($weeklyMileage[10] * 0.7, $weeklyMileage[12]);
+    }
+
+    public function test_generator_week1_and_base_phase_safety(): void
+    {
+        $user = User::factory()->create();
+
+        // 1. Beginner Week 1 should have 0 quality sessions
+        $postDataBeginner = [
+            'pb_distance' => '5k',
+            'pb_time' => '30:00',
+            'target_distance' => '10k',
+            'target_date' => now()->addWeeks(12)->toDateString(),
+            'goal_time' => '58:00',
+            'weekly_mileage' => 25,
+            'frequency' => 4,
+            'runner_level' => 'beginner',
+            'long_run_day' => 'sunday',
+            'gender' => 'male',
+            'age' => 25,
+            'is_tropical' => false,
+            'use_ai' => false,
+        ];
+
+        $response = $this->actingAs($user)->postJson(route('generator.generate'), $postDataBeginner);
+        $response->assertStatus(200);
+
+        $sessionsBeginner = $response->json('data.sessions');
+        $week1Beginner = array_filter($sessionsBeginner, fn($s) => $s['week'] === 1);
+        $qualityTypes = ['interval', 'threshold', 'repetition', 'marathon_pace', 'progression', 'hill'];
+        $week1QualityCount = count(array_filter($week1Beginner, fn($s) => in_array($s['type'], $qualityTypes, true)));
+
+        $this->assertEquals(0, $week1QualityCount, 'Beginner in Week 1 should have 0 quality sessions.');
+
+        // 2. Intermediate Week 1 should have max 1 quality session, and NO VO2max interval in Base phase
+        $postDataInter = $postDataBeginner;
+        $postDataInter['runner_level'] = 'intermediate';
+        $postDataInter['weekly_mileage'] = 40;
+
+        $responseInter = $this->actingAs($user)->postJson(route('generator.generate'), $postDataInter);
+        $responseInter->assertStatus(200);
+
+        $sessionsInter = $responseInter->json('data.sessions');
+        $week1Inter = array_filter($sessionsInter, fn($s) => $s['week'] === 1);
+        $week1QualityInter = count(array_filter($week1Inter, fn($s) => in_array($s['type'], $qualityTypes, true)));
+
+        $this->assertLessThanOrEqual(1, $week1QualityInter, 'Intermediate in Week 1 should have at most 1 quality session.');
+
+        // Check that Base phase sessions do NOT contain hard 'interval' sessions
+        $baseSessions = array_filter($sessionsInter, fn($s) => $s['phase'] === 'Base');
+        $baseIntervals = array_filter($baseSessions, fn($s) => $s['type'] === 'interval');
+        $this->assertEmpty($baseIntervals, 'Base phase should not schedule heavy VO2max intervals.');
+    }
+
+    public function test_generator_start_date_and_conflict_modal_logic(): void
+    {
+        $user = User::factory()->create();
+
+        $form = [
+            'pb_distance' => '5k',
+            'pb_time' => '25:00',
+            'target_distance' => '10k',
+            'start_date' => now()->addDays(2)->toDateString(),
+            'target_date' => now()->addWeeks(12)->toDateString(),
+            'goal_time' => '48:00',
+            'weekly_mileage' => 35,
+            'frequency' => 4,
+            'runner_level' => 'intermediate',
+            'long_run_day' => 'sunday',
+            'gender' => 'male',
+            'age' => 28,
+            'is_tropical' => false,
+            'use_ai' => false,
+        ];
+
+        // 1. Generate program with start_date
+        $generateResponse = $this->actingAs($user)->postJson(route('generator.generate'), $form);
+        $generateResponse->assertStatus(200);
+        $result = $generateResponse->json('data');
+
+        // 2. Save program to calendar (first time - no conflict)
+        $saveResponse = $this->actingAs($user)->postJson(route('generator.save'), [
+            'form' => $form,
+            'result' => $result,
+        ]);
+        $saveResponse->assertStatus(200);
+        $saveResponse->assertJsonPath('success', true);
+
+        // 3. Try to save another program without action -> should return has_active_program
+        $secondSaveResponse = $this->actingAs($user)->postJson(route('generator.save'), [
+            'form' => $form,
+            'result' => $result,
+        ]);
+        $secondSaveResponse->assertStatus(200);
+        $secondSaveResponse->assertJsonPath('has_active_program', true);
+
+        // 4. Save with action = 'replace' -> should replace active program successfully
+        $replaceResponse = $this->actingAs($user)->postJson(route('generator.save'), [
+            'form' => $form,
+            'result' => $result,
+            'action' => 'replace',
+        ]);
+        $replaceResponse->assertStatus(200);
+        $replaceResponse->assertJsonPath('success', true);
+    }
 }
+
+
+

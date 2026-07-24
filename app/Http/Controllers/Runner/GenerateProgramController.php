@@ -8,6 +8,7 @@ use App\Models\ProgramEnrollment;
 use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
 use App\Services\OpenAiService;
+use App\Services\ProgramBuilderService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,11 +19,13 @@ class GenerateProgramController extends Controller
 {
     protected $danielsService;
     protected $openAiService;
+    protected $builderService;
 
-    public function __construct(DanielsRunningService $danielsService, OpenAiService $openAiService)
+    public function __construct(DanielsRunningService $danielsService, OpenAiService $openAiService, ProgramBuilderService $builderService)
     {
         $this->danielsService = $danielsService;
         $this->openAiService = $openAiService;
+        $this->builderService = $builderService;
     }
 
     /**
@@ -116,7 +119,7 @@ class GenerateProgramController extends Controller
             }
 
             // Generate periodized program sessions
-            $programData = $this->buildPeriodizedProgram([
+            $programData = $this->builderService->build([
                 'target_distance' => $validated['goal_distance'],
                 'weekly_mileage' => $effectiveWeeklyMileage,
                 'frequency' => $effectiveFrequency,
@@ -540,391 +543,9 @@ class GenerateProgramController extends Controller
         return $session;
     }
 
-    /**
-     * Logic to build periodized program sessions
-     */
     private function buildPeriodizedProgram(array $config)
     {
-        $weeks = $config['weeks'];
-        $frequency = $config['frequency'];
-        $mileage = $config['weekly_mileage'];
-        $initialVdot = $config['initial_vdot'];
-        $targetVdot = $config['target_vdot'];
-        $targetDistance = $config['target_distance'] ?? '10k';
-        $runnerLevel = $config['runner_level'] ?? 'intermediate';
-        $longRunDay = $config['long_run_day'] ?? 'sunday';
-        $isTropical = $config['is_tropical'] ?? false;
-
-        // Adjust training frequency by level to optimize recovery and prevent injuries
-        if ($runnerLevel === 'beginner') {
-            $frequency = min($frequency, 4);
-        } elseif ($runnerLevel === 'intermediate') {
-            $frequency = min($frequency, 5);
-        }
-
-        // Map target distance to goal categories in workout_library.php
-        $distanceMap = [
-            '5k' => '5K',
-            '10k' => '10K',
-            '21k' => 'HALF_MARATHON',
-            '42k' => 'FULL_MARATHON'
-        ];
-        $goal = $distanceMap[strtolower($targetDistance)] ?? '10K';
-
-        // Load workout library
-        $libraryPath = config_path('workout_library.php');
-        $library = file_exists($libraryPath) ? include($libraryPath) : [];
-
-        $levelRules = $library['level_rules'][$runnerLevel] ?? [
-            'max_quality_sessions_per_week' => 1,
-            'volume_adjustment' => 1.00
-        ];
-        $volumeFactor = $levelRules['volume_adjustment'] ?? 1.00;
-        $maxQualitySessions = $levelRules['max_quality_sessions_per_week'] ?? 1;
-
-        $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
-
-        $sessions = [];
-        $dayCount = 1;
-
-        // Phases: 25% Base, 25% Strength, 40% Speed, 10% Taper
-        $p1 = (int)($weeks * 0.25);
-        $p2 = (int)($weeks * 0.25);
-        $p3 = (int)($weeks * 0.40);
-
-        $deltaVdot = $targetVdot - $initialVdot;
-        $strengthStart = $p1 + 1;
-        $strengthEnd = $p1 + $p2;
-        $speedStart = $strengthEnd + 1;
-        $speedEnd = $strengthEnd + $p3;
-
-        // Keep track of recently used workout IDs to promote variety
-        $usedWorkoutIds = [];
-
-        for ($w = 1; $w <= $weeks; $w++) {
-            $phase = 'Base';
-            $currentVdot = $initialVdot;
-
-            if ($w >= $strengthStart && $w <= $strengthEnd) {
-                $phase = 'Strength';
-                $t = ($w - $strengthStart + 1) / max(1, $p2);
-                $currentVdot = $initialVdot + ($deltaVdot * 0.5 * $t);
-            } elseif ($w >= $speedStart && $w <= $speedEnd) {
-                $phase = 'Speed';
-                $t = ($w - $speedStart + 1) / max(1, $p3);
-                $currentVdot = ($initialVdot + ($deltaVdot * 0.5)) + ($deltaVdot * 0.5 * $t);
-            } elseif ($w > $speedEnd) {
-                $phase = 'Taper';
-                $currentVdot = $targetVdot;
-            }
-
-            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
-            if ($isTropical) {
-                $paces['E'] += 0.25;
-                $paces['M'] += 0.20;
-                $paces['T'] += 0.167;
-                $paces['I'] += 0.133;
-                $paces['R'] += 0.083;
-            }
-
-            $currentMileage = $mileage;
-            if ($phase === 'Taper') $currentMileage *= 0.6;
-            if ($w % 4 === 0) $currentMileage *= 0.8;
-
-            $isDeload = ($w % 4 === 0);
-
-            // Determine long run distance (standard ratio)
-            $longRunRatio = 0.24;
-            if ($targetDistance === '42k') {
-                $longRunRatio = 0.30;
-            } elseif ($targetDistance === '21k') {
-                $longRunRatio = 0.26;
-            }
-            $longRunDistance = round($currentMileage * $longRunRatio, 1);
-            $longRunDistance = min($longRunDistance, round($currentMileage * 0.35, 1));
-            
-            // Apply runner level adjustments to long run
-            if ($runnerLevel === 'beginner') {
-                $longRunDistance = round($longRunDistance * 0.9, 1);
-            } elseif ($runnerLevel === 'advanced') {
-                $longRunDistance = round($longRunDistance * 1.1, 1);
-            }
-
-            // Determine how many quality sessions to schedule this week
-            $weeklyQualityCount = $maxQualitySessions;
-            if ($isDeload && $weeklyQualityCount > 1) {
-                $weeklyQualityCount = 1;
-            }
-
-            // Select quality workouts from pool
-            $weekQualityWorkouts = [];
-            for ($q = 0; $q < $weeklyQualityCount; $q++) {
-                $workout = $this->getQualityWorkoutForPhase($goal, $phase, $library, $usedWorkoutIds);
-                if ($workout) {
-                    $weekQualityWorkouts[] = $workout;
-                    $usedWorkoutIds[] = $workout['id'];
-                    if (count($usedWorkoutIds) > 15) {
-                        array_shift($usedWorkoutIds);
-                    }
-                }
-            }
-
-            // Map which days get what sessions based on long run day
-            $dayAssignments = array_fill(1, 7, ['type' => 'rest', 'workout' => null]);
-            
-            // Step 1: Assign Long Run Day
-            $dayAssignments[$longRunDayIndex] = ['type' => 'long_run', 'workout' => null];
-
-            // Step 2: Assign Quality Days
-            if (count($weekQualityWorkouts) === 1) {
-                // Place it on Day 3 (Wednesday)
-                $dayAssignments[3] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[0]];
-            } elseif (count($weekQualityWorkouts) === 2) {
-                // Place on Day 2 (Tuesday) and Day 4 (Thursday)
-                $dayAssignments[2] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[0]];
-                $dayAssignments[4] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[1]];
-            }
-
-            // Step 3: Assign Easy and Recovery Days based on frequency
-            $runningDaysCount = 1 + count($weekQualityWorkouts);
-            $easyDaysNeeded = max(0, $frequency - $runningDaysCount);
-
-            $candidateDays = [1, 5, 6, 7, 2, 3, 4];
-            $assignedEasyCount = 0;
-            foreach ($candidateDays as $d) {
-                if ($assignedEasyCount >= $easyDaysNeeded) {
-                    break;
-                }
-                if ($dayAssignments[$d]['type'] === 'rest') {
-                    $isAfterQuality = false;
-                    $prevDay = ($d == 1) ? 7 : $d - 1;
-                    if ($dayAssignments[$prevDay]['type'] === 'quality') {
-                        $isAfterQuality = true;
-                    }
-                    
-                    $easyType = ($isDeload || $isAfterQuality) ? 'recovery_run' : 'easy_run';
-                    $dayAssignments[$d] = ['type' => $easyType, 'workout' => null];
-                    $assignedEasyCount++;
-                }
-            }
-
-            // Calculate actual distances for quality workouts
-            $qualityDistances = [];
-            foreach ($dayAssignments as $d => $assign) {
-                if ($assign['type'] === 'quality') {
-                    $workout = $assign['workout'];
-                    $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
-                    $mainSetDist = $this->calculateMainSetDistance($scaledMainSet);
-                    $totalQDist = round(2.0 + $mainSetDist + 1.5, 1);
-                    $qualityDistances[$d] = $totalQDist;
-                }
-            }
-
-            // Calculate easy run distances from remaining mileage pool
-            $totalAssignedHardDist = $longRunDistance + array_sum($qualityDistances);
-            $easyPool = max(0, $currentMileage - $totalAssignedHardDist);
-            
-            $easyDaysCount = 0;
-            foreach ($dayAssignments as $assign) {
-                if ($assign['type'] === 'easy_run' || $assign['type'] === 'recovery_run') {
-                    $easyDaysCount++;
-                }
-            }
-            
-            $easyDistance = $easyDaysCount > 0 ? round($easyPool / $easyDaysCount, 1) : 0;
-            if ($easyDistance < 3.0 && $easyDaysCount > 0 && $easyPool > 0) {
-                $easyDistance = 3.0;
-            } elseif ($easyDistance > 15.0) {
-                $easyDistance = 15.0;
-            }
-
-            // Now, construct the sessions for this week
-            for ($d = 1; $d <= 7; $d++) {
-                $assignment = $dayAssignments[$d];
-                $session = [
-                    'day' => $dayCount++,
-                    'week' => $w,
-                    'phase' => $phase,
-                    'is_deload' => $isDeload,
-                    'type' => 'rest',
-                    'description' => 'Rest Day',
-                    'distance' => 0,
-                    'target_pace' => null
-                ];
-
-                if ($assignment['type'] === 'long_run') {
-                    $session['type'] = 'long_run';
-                    $session['distance'] = $longRunDistance;
-                    $session['target_pace'] = $this->formatPacePeriodized($paces['E']);
-                    $session['description'] = $isDeload 
-                        ? 'Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.'
-                        : 'Long Easy Run - Fokus pada daya tahan kardio.';
-                } elseif ($assignment['type'] === 'quality') {
-                    $workout = $assignment['workout'];
-                    $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
-
-                    $workoutPaceKey = 'E';
-                    if ($workout['type'] === 'interval') {
-                        $workoutPaceKey = 'I';
-                    } elseif ($workout['type'] === 'threshold' || $workout['type'] === 'progression') {
-                        $workoutPaceKey = 'T';
-                    } elseif ($workout['type'] === 'marathon_pace') {
-                        $workoutPaceKey = 'M';
-                    } elseif ($workout['type'] === 'repetition' || $workout['type'] === 'hill') {
-                        $workoutPaceKey = 'R';
-                    }
-                    
-                    $targetPaceStr = $this->formatPacePeriodized($paces[$workoutPaceKey]);
-                    
-                    $mainSetText = str_replace(
-                        ['{distance_km}', '{target_pace}'],
-                        [$qualityDistances[$d], $targetPaceStr],
-                        $scaledMainSet
-                    );
-
-                    $warmUpText = $library['default_warm_up'] ?? '10 to 15 min easy run + dynamic drills';
-                    $coolDownText = $library['default_cool_down'] ?? '10 min easy jog';
-
-                    $descriptionLines = [
-                        "Warm Up: " . $warmUpText,
-                        "Main Set: " . $mainSetText,
-                        "Recovery: " . $workout['recovery'],
-                        "Cool Down: " . $coolDownText,
-                        "Intensity: " . ($workout['intensity'] ?? 'Target pace'),
-                        "Reason: " . ($workout['best_for'] ?? $workout['focus'] ?? 'Meningkatkan performa lari') . " (" . ($workout['focus'] ?? '') . ")"
-                    ];
-
-                    $session['type'] = $workout['type'];
-                    $session['distance'] = $qualityDistances[$d];
-                    $session['target_pace'] = $targetPaceStr;
-                    $session['description'] = implode("\n", $descriptionLines);
-                    $session['workout_id'] = $workout['id'];
-                    $session['workout_name'] = $workout['name'];
-                } elseif ($assignment['type'] === 'easy_run' || $assignment['type'] === 'recovery_run') {
-                    $session['type'] = $assignment['type'];
-                    $session['distance'] = $easyDistance;
-                    $session['target_pace'] = $this->formatPacePeriodized($paces['E']);
-                    $session['description'] = $assignment['type'] === 'recovery_run'
-                        ? ($isDeload ? 'Recovery Run (De-load) - Lari pemulihan sangat santai.' : 'Recovery Run - Membantu pemulihan otot pasca latihan keras.')
-                        : 'Easy Aerobic Run - Membangun daya tahan dasar.';
-                } else {
-                    if ($runnerLevel === 'beginner') {
-                        $session['description'] = 'Rest Day - Istirahat total atau peregangan otot ringan untuk pemulihan.';
-                    } elseif ($runnerLevel === 'intermediate') {
-                        $session['description'] = 'Active Recovery - Peregangan ringan, foam rolling, atau mobilitas sendi.';
-                    } else {
-                        $session['description'] = 'Active Recovery - Latihan kekuatan core ringan (plank, bird-dog) & foam rolling.';
-                    }
-                }
-
-                $sessions[] = $session;
-            }
-        }
-
-        return [
-            'sessions' => $sessions,
-            'summary' => [
-                'total_weeks' => $weeks,
-                'target' => strtoupper($targetDistance),
-                'vdot' => round($initialVdot, 1),
-                'target_vdot' => round($targetVdot, 1)
-            ]
-        ];
-    }
-
-    private function scaleWorkoutVolume(string $mainSet, float $factor)
-    {
-        if ($factor >= 1.0) {
-            return $mainSet;
-        }
-
-        if (preg_match('/^(\d+)\s*reps\s*x\s*(.+)$/i', $mainSet, $matches)) {
-            $reps = (int)$matches[1];
-            $scaledReps = max(1, (int)round($reps * $factor));
-            return $scaledReps . ' reps x ' . $matches[2];
-        }
-
-        if (preg_match('/^(.*?)(\d+)\s*x\s*(\d+(?:\.\d+)?\s*[Km])(.*?)$/i', $mainSet, $matches)) {
-            $reps = (int)$matches[2];
-            $scaledReps = max(1, (int)round($reps * $factor));
-            return $matches[1] . $scaledReps . ' x ' . $matches[3] . $matches[4];
-        }
-
-        $scaled = preg_replace_callback('/(\d+(?:\.\d+)?)\s*(K|m|meters|K\b)/i', function($m) use ($factor) {
-            $val = (float)$m[1];
-            $scaledVal = round($val * $factor, 1);
-            if ($scaledVal == (int)$scaledVal) {
-                $scaledVal = (int)$scaledVal;
-            }
-            return $scaledVal . $m[2];
-        }, $mainSet);
-
-        return $scaled;
-    }
-
-    private function calculateMainSetDistance(string $mainSet): float
-    {
-        if (preg_match('/(\d+)\s*reps\s*x\s*(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches)) {
-            $reps = (float)$matches[1];
-            $val = (float)$matches[2];
-            $unit = strtolower($matches[3]);
-            if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
-            }
-            return $reps * $val;
-        }
-        
-        if (preg_match('/(\d+)\s*x\s*(\d+(?:\.\d+)?\s*)(K|m|meters)/i', $mainSet, $matches)) {
-            $reps = (float)$matches[1];
-            $val = (float)$matches[2];
-            $unit = strtolower($matches[3]);
-            if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
-            }
-            return $reps * $val;
-        }
-
-        if (preg_match_all('/(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches, PREG_SET_ORDER)) {
-            $total = 0.0;
-            foreach ($matches as $match) {
-                $val = (float)$match[1];
-                $unit = strtolower($match[2]);
-                if ($unit === 'm' || $unit === 'meters') {
-                    $total += $val / 1000.0;
-                } else {
-                    $total += $val;
-                }
-            }
-            if ($total > 0) {
-                return $total;
-            }
-        }
-
-        return 5.0;
-    }
-
-    private function getQualityWorkoutForPhase(string $goal, string $phase, array $library, array $usedWorkoutIds = [])
-    {
-        $allWorkouts = $library['goals'][$goal] ?? [];
-        if (empty($allWorkouts)) {
-            return null;
-        }
-
-        $phaseRule = $library['training_phase_rules'][strtolower($phase)] ?? null;
-        $preferredTypes = $phaseRule['preferred_types'] ?? [];
-
-        $preferredWorkouts = array_filter($allWorkouts, function ($w) use ($preferredTypes) {
-            return in_array($w['type'], $preferredTypes, true);
-        });
-
-        $pool = !empty($preferredWorkouts) ? $preferredWorkouts : $allWorkouts;
-
-        $unusedPool = array_filter($pool, function ($w) use ($usedWorkoutIds) {
-            return !in_array($w['id'], $usedWorkoutIds, true);
-        });
-
-        $selectedPool = !empty($unusedPool) ? $unusedPool : $pool;
-        return $selectedPool[array_rand($selectedPool)];
+        return $this->builderService->build($config);
     }
 
     private function improveProgramSessionsWithAi(array $sessions, array $context): array
@@ -954,7 +575,7 @@ class GenerateProgramController extends Controller
         foreach (['E', 'M', 'T', 'I', 'R'] as $k) {
             $v = $paces[$k] ?? null;
             if (is_numeric($v)) {
-                $paceLines[] = $k.': '.$this->formatPacePeriodized((float) $v);
+                $paceLines[] = $k.': '.$this->builderService->formatPace((float) $v);
             }
         }
 

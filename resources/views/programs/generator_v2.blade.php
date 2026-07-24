@@ -163,6 +163,52 @@
         </div>
     </transition>
 
+    <!-- Active Program Conflict Modal -->
+    <transition name="fade">
+        <div v-if="conflictModal.show" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div class="card-dark max-w-md w-full p-6 rounded-2xl border border-amber-500/40 shadow-2xl space-y-5 relative">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">Program Aktif Terdeteksi</h3>
+                        <p class="text-xs text-slate-400">Kalender Anda sudah memiliki program aktif saat ini.</p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Program Aktif Saat Ini:</div>
+                    <div class="text-sm font-bold text-white">@{{ conflictModal.activeTitle }}</div>
+                    <div v-if="conflictModal.activeStartDate" class="text-[11px] text-slate-400">
+                        Periode: @{{ conflictModal.activeStartDate }} - @{{ conflictModal.activeEndDate }}
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Apakah Anda ingin mengganti program lama dengan program baru ini, atau tetap menambahkan program baru ini ke kalender?
+                </p>
+
+                <div class="flex flex-col gap-2.5">
+                    <button @click="confirmConflictAction('replace')" :disabled="saving" 
+                            class="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-dark font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Ganti Program Aktif (Replace)</span>
+                    </button>
+                    <button @click="confirmConflictAction('add')" :disabled="saving" 
+                            class="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Tambahkan Saja (Add)</span>
+                    </button>
+                    <button @click="conflictModal.show = false" :disabled="saving" 
+                            class="w-full py-2 text-slate-500 hover:text-slate-300 text-xs font-bold transition-all cursor-pointer">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <main class="relative z-10 max-w-7xl mx-auto">
         <transition name="fade" mode="out-in">
             
@@ -265,7 +311,7 @@
                         </div>
 
                         <!-- Target Section -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div class="space-y-1.5">
                                 <label class="label-text">Target Jarak</label>
                                 <select v-model="form.target_distance" @change="recommendMileage" class="input-field cursor-pointer">
@@ -277,7 +323,19 @@
                                 </select>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="label-text">Target Tanggal Lomba</label>
+                                <label class="label-text">Tanggal Mulai Latihan</label>
+                                <input v-model="form.start_date" type="date" class="input-field font-bold">
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center">
+                                    <label class="label-text mb-0">Target Tanggal Lomba</label>
+                                    <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
+                                            @click="applyRecommendedTargetDate" 
+                                            type="button" 
+                                            class="text-[9px] font-extrabold text-neon bg-neon/10 hover:bg-neon/20 px-1.5 py-0.5 rounded border border-neon/30 transition">
+                                        Pakai Rekomendasi (@{{ recommendedWeeks }} Wk)
+                                    </button>
+                                </div>
                                 <input v-model="form.target_date" type="date" class="input-field font-bold">
                             </div>
                         </div>
@@ -333,11 +391,14 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label class="label-text">Level Pelari</label>
-                                    <select v-model="form.runner_level" class="input-field cursor-pointer">
-                                        <option value="beginner">Pemula (Beginner)</option>
-                                        <option value="intermediate">Menengah (Medium)</option>
-                                        <option value="advanced">Mahir / Elite (Advanced)</option>
+                                    <div class="flex justify-between items-center">
+                                        <label class="label-text mb-0">Level Pelari</label>
+                                        <span class="text-[9px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">Auto (VDOT: @{{ current_vdot ? current_vdot.toFixed(1) : '-' }})</span>
+                                    </div>
+                                    <select v-model="form.runner_level" class="input-field cursor-pointer font-bold">
+                                        <option value="beginner">Pemula (Beginner - VDOT &lt; 35)</option>
+                                        <option value="intermediate">Menengah (Intermediate - VDOT 35-48)</option>
+                                        <option value="advanced">Mahir / Elite (Advanced - VDOT &gt; 48)</option>
                                     </select>
                                 </div>
                                 <div class="space-y-1.5">
@@ -354,6 +415,18 @@
                                     <input type="checkbox" v-model="form.is_tropical" id="is_tropical" class="w-4 h-4 accent-brand-500 cursor-pointer rounded border-slate-600 bg-slate-800">
                                     <label for="is_tropical" class="text-[11px] text-slate-300 font-bold cursor-pointer select-none">
                                         Aktifkan penyesuaian pace untuk cuaca panas (+10-15s/km untuk menjaga beban kardio/HR stabil)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="label-text flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-white-400 text-xs"></i>
+                                    <span>AI Narration Refinement (Opsional)</span>
+                                </label>
+                                <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                                    <input type="checkbox" v-model="form.use_ai" id="use_ai" class="w-4 h-4 accent-white-500 cursor-pointer rounded border-slate-600 bg-slate-800">
+                                    <label for="use_ai" class="text-[11px] text-slate-300 font-bold cursor-pointer select-none">
+                                        Sempurnakan narasi deskripsi tiap sesi menggunakan OpenAI <span class="text-white-400 font-normal">(Proses butuh +5–10 detik)</span>
                                     </label>
                                 </div>
                             </div>
@@ -411,7 +484,7 @@
                             </div>
 
                             <!-- Highlighted Save to Calendar Button -->
-                            <button @click="saveAndOpenCalendar" :disabled="saving" class="w-full py-3.5 px-4 bg-gradient-to-r from-neon via-lime-400 to-emerald-400 hover:from-white hover:to-neon text-dark font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-neon/20 hover:shadow-neon/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5 border border-neon/40">
+                            <button @click="saveAndOpenCalendar()" :disabled="saving" class="w-full py-3.5 px-4 bg-gradient-to-r from-neon via-lime-400 to-emerald-400 hover:from-white hover:to-neon text-dark font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-neon/20 hover:shadow-neon/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5 border border-neon/40">
                                 <i v-if="!saving" class="fa-solid fa-calendar-check text-sm"></i>
                                 <i v-else class="fa-solid fa-circle-notch fa-spin text-sm"></i>
                                 <span>@{{ saving ? 'MENYIMPAN...' : 'SIMPAN KE KALENDER' }}</span>
@@ -485,6 +558,53 @@
                 </div>
             </div>
         </transition>
+
+        <!-- Program Conflict Modal -->
+        <div v-if="conflictModal.show" class="fixed inset-0 z-[1050] overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="conflictModal.show = false"></div>
+            <div class="relative z-10 flex min-h-screen items-center justify-center p-4">
+                <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white uppercase tracking-tight">Program Aktif Terdeteksi</h3>
+                            <p class="text-[10px] text-slate-400 font-medium">Anda memiliki program aktif di kalender</p>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400 font-mono">Program Aktif:</span>
+                            <span class="font-extrabold text-amber-400">@{{ conflictModal.activeTitle }}</span>
+                        </div>
+                        <div v-if="conflictModal.activeStartDate" class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400 font-mono">Periode:</span>
+                            <span class="font-bold text-slate-200">@{{ conflictModal.activeStartDate }} - @{{ conflictModal.activeEndDate }}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Menyimpan program baru ini akan <strong>menonaktifkan (replace)</strong> program aktif lama Anda di kalender. Apakah Anda yakin ingin melanjutkan?
+                    </p>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-3 pt-2">
+                        <button type="button" @click="conflictModal.show = false" 
+                                class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition">
+                            Batal
+                        </button>
+                        <button type="button" @click="confirmConflictAction('replace')" 
+                                class="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20">
+                            Ganti Program
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Auth Modal Integration (handled by layout pacerhub) -->
@@ -504,28 +624,49 @@
             const errors = ref(null);
             const notification = ref(null);
 
+            // Default standard benchmark PB times (5K 30m, 10K 1h, 21K 2h15m, 42K 4h30m)
+            const defaultPbTimes = {
+                '5k':       { h: 0, m: 30, s: 0 },
+                '10k':      { h: 1, m: 0,  s: 0 },
+                '21k':      { h: 2, m: 15, s: 0 },
+                '42k':      { h: 4, m: 30, s: 0 },
+                'cooper12': { meters: 2400 },
+                'balke15':  { meters: 3000 }
+            };
+
             const pb_hours = ref(0);
-            const pb_minutes = ref(0);
+            const pb_minutes = ref(30);
             const pb_seconds = ref(0);
-            const pb_distance_meters = ref(2800);
+            const pb_distance_meters = ref(2400);
 
             const goal_hours = ref(0);
             const goal_minutes = ref(0);
             const goal_seconds = ref(0);
 
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const conflictModal = reactive({
+                show: false,
+                activeTitle: '',
+                activeStartDate: '',
+                activeEndDate: ''
+            });
+
             const form = reactive({
                 pb_distance: '5k',
                 pb_time: '',
                 target_distance: '10k',
+                start_date: todayStr,
                 target_date: '',
                 goal_time: '',
-                weekly_mileage: 30,
+                weekly_mileage: 50,
                 frequency: 4,
                 gender: 'male',
                 age: 25,
                 runner_level: 'intermediate',
                 long_run_day: 'sunday',
-                is_tropical: false
+                is_tropical: false,
+                use_ai: false
             });
 
             const showNotification = (message, type = 'success') => {
@@ -604,7 +745,16 @@
                 if (!form.target_date) return 12;
                 const target = new Date(form.target_date);
                 if (Number.isNaN(target.getTime())) return 12;
-                const diffDays = Math.ceil((target.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+                let start = Date.now();
+                if (form.start_date) {
+                    const parsedStart = new Date(form.start_date);
+                    if (!Number.isNaN(parsedStart.getTime())) {
+                        start = parsedStart.getTime();
+                    }
+                }
+
+                const diffDays = Math.ceil((target.getTime() - start) / (1000 * 60 * 60 * 24));
                 const weeks = Math.ceil(diffDays / 7);
                 return Math.min(24, Math.max(8, weeks || 12));
             });
@@ -645,6 +795,17 @@
                 return Math.min(target, cv + 3.0);
             });
 
+            const applyDefaultPbTime = (distKey) => {
+                const defaults = defaultPbTimes[distKey] || defaultPbTimes['5k'];
+                if (distKey === 'cooper12' || distKey === 'balke15') {
+                    pb_distance_meters.value = defaults.meters || 2400;
+                } else {
+                    pb_hours.value = defaults.h;
+                    pb_minutes.value = defaults.m;
+                    pb_seconds.value = defaults.s;
+                }
+            };
+
             const suggestGoalTime = () => {
                 const cv = current_vdot.value;
                 if (!cv || cv <= 0) return;
@@ -657,8 +818,74 @@
                 }
             };
 
-            // Auto-suggest when PB or Target Distance changes
-            watch([pb_hours, pb_minutes, pb_seconds, () => form.pb_distance, () => form.target_distance, () => form.target_date, () => form.runner_level], () => {
+            const recommendedDurationWeeksMap = {
+                '5k': 10,
+                '10k': 12,
+                '21k': 14,
+                '42k': 16,
+                'cooper12': 8,
+                'balke15': 8
+            };
+
+            const recommendedWeeks = computed(() => {
+                return recommendedDurationWeeksMap[form.target_distance] || 12;
+            });
+
+            const recommendedTargetDate = computed(() => {
+                if (!form.start_date) return '';
+                const startDateObj = new Date(form.start_date);
+                if (isNaN(startDateObj.getTime())) return '';
+                
+                const recWeeks = recommendedWeeks.value;
+                const targetDateObj = new Date(startDateObj.getTime() + (recWeeks * 7 - 1) * 24 * 60 * 60 * 1000);
+                
+                const year = targetDateObj.getFullYear();
+                const month = String(targetDateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(targetDateObj.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            });
+
+            const applyRecommendedTargetDate = () => {
+                if (recommendedTargetDate.value) {
+                    form.target_date = recommendedTargetDate.value;
+                }
+            };
+
+            const autoDetermineRunnerLevel = (vdot) => {
+                if (!vdot || vdot <= 0) return 'intermediate';
+                if (vdot < 40) return 'beginner';
+                if (vdot < 55) return 'intermediate';
+                return 'advanced';
+            };
+
+            watch(current_vdot, (newVdot) => {
+                if (newVdot && newVdot > 0) {
+                    form.runner_level = autoDetermineRunnerLevel(newVdot);
+                }
+            }, { immediate: true });
+
+            watch([() => form.start_date, () => form.target_distance], ([newStartDate, newDist], [oldStartDate, oldDist]) => {
+                if (recommendedTargetDate.value && (!form.target_date || newDist !== oldDist)) {
+                    applyRecommendedTargetDate();
+                }
+            });
+
+            // Watch PB distance change to auto fill default standard PB time
+            watch(() => form.pb_distance, (newDist) => {
+                applyDefaultPbTime(newDist);
+            });
+
+            // Auto-suggest when PB or Target Distance or Runner Level changes
+            watch([pb_hours, pb_minutes, pb_seconds, pb_distance_meters, () => form.pb_distance, () => form.target_distance, () => form.start_date, () => form.target_date, () => form.runner_level], () => {
+                suggestGoalTime();
+                recommendMileage();
+            });
+
+            onMounted(() => {
+                applyDefaultPbTime(form.pb_distance);
+                if (!form.target_date) {
+                    applyRecommendedTargetDate();
+                }
                 suggestGoalTime();
                 recommendMileage();
             });
@@ -686,16 +913,22 @@
             });
 
             const idealMileage = computed(() => {
-                const map = { '5k': 30, '10k': 45, '21k': 65, '42k': 85 };
-                const levelFactor = {
-                    'beginner': 0.9,
-                    'intermediate': 1,
-                    'advanced': 1.1
+                // Realistic Daniels / Pfitzinger Recreational Coach Weekly Mileage Standards
+                const baseMileageMap = {
+                    '5k':       { beginner: 25, intermediate: 35, advanced: 50 },
+                    '10k':      { beginner: 30, intermediate: 45, advanced: 60 },
+                    '21k':      { beginner: 35, intermediate: 50, advanced: 70 },
+                    '42k':      { beginner: 45, intermediate: 65, advanced: 85 },
+                    'cooper12': { beginner: 25, intermediate: 35, advanced: 50 },
+                    'balke15':  { beginner: 25, intermediate: 35, advanced: 50 }
                 };
-                const base = map[form.target_distance] || 30;
-                const adjusted = base * (levelFactor[form.runner_level] ?? 1);
-                const rounded = Math.round(adjusted / 5) * 5;
-                return Math.min(120, Math.max(15, rounded));
+
+                const level = form.runner_level || 'intermediate';
+                const dist = form.target_distance || '10k';
+                let base = baseMileageMap[dist]?.[level] || 45;
+
+                const rounded = Math.round(base / 5) * 5;
+                return Math.min(120, Math.max(20, rounded));
             });
 
             const recommendMileage = () => {
@@ -764,7 +997,7 @@
 
                 loading.value = true;
                 try {
-                    const response = await fetch('{{ route("generator.generate") }}', {
+                    const response = await fetch('{{ route("generator.generate", [], false) }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -792,11 +1025,13 @@
                 }
             };
 
-            const saveAndOpenCalendar = async () => {
+            const saveAndOpenCalendar = async (overrideAction = null) => {
+                const actionParam = (typeof overrideAction === 'string' && (overrideAction === 'replace' || overrideAction === 'add')) ? overrideAction : null;
+
                 @guest
                     // Store state in session before showing login modal
                     try {
-                        await fetch('{{ route("generator.store-pending") }}', {
+                        await fetch('{{ route("generator.store-pending", [], false) }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -822,22 +1057,35 @@
 
                 saving.value = true;
                 try {
-                    const response = await fetch('{{ route("generator.save") }}', {
+                    const payload = {
+                        form: form,
+                        result: result.value
+                    };
+                    if (actionParam) {
+                        payload.action = actionParam;
+                    }
+
+                    const response = await fetch('{{ route("generator.save", [], false) }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({
-                            form: form,
-                            result: result.value
-                        })
+                        body: JSON.stringify(payload)
                     });
 
                     const data = await response.json();
+                    if (data.has_active_program && !actionParam) {
+                        conflictModal.activeTitle = data.active_program_title || 'Program Aktif';
+                        conflictModal.activeStartDate = data.active_start_date || '';
+                        conflictModal.activeEndDate = data.active_end_date || '';
+                        conflictModal.show = true;
+                        return;
+                    }
+
                     if (data.success) {
-                        window.location.href = '{{ route("runner.calendar") }}';
+                        window.location.href = '{{ route("runner.calendar", [], false) }}';
                     } else {
                         showNotification(data.message || 'Gagal menyimpan program.', 'error');
                     }
@@ -847,6 +1095,11 @@
                 } finally {
                     saving.value = false;
                 }
+            };
+
+            const confirmConflictAction = (actionType) => {
+                conflictModal.show = false;
+                saveAndOpenCalendar(actionType);
             };
 
             const getPaceLabel = (type) => {
@@ -905,6 +1158,7 @@
 
             return {
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
+                conflictModal, confirmConflictAction,
                 generateProgram, saveAndOpenCalendar,
                 getPaceLabel, getPaceColor, formatPace, getSessionClass, getSessionIcon,
                 pb_hours, pb_minutes, pb_seconds, pb_distance_meters,

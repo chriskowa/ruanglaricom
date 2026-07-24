@@ -7,6 +7,7 @@ use App\Models\ProgramEnrollment;
 use App\Services\DanielsRunningService;
 use App\Services\MidtransService;
 use App\Services\OpenAiService;
+use App\Services\ProgramBuilderService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,12 +23,14 @@ class SelfGeneratedProgramController extends Controller
     protected $danielsService;
     protected $midtransService;
     protected $openAiService;
+    protected $builderService;
 
-    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService)
+    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService, ProgramBuilderService $builderService)
     {
         $this->danielsService = $danielsService;
         $this->midtransService = $midtransService;
         $this->openAiService = $openAiService;
+        $this->builderService = $builderService;
     }
 
     public function index()
@@ -62,49 +65,58 @@ class SelfGeneratedProgramController extends Controller
     {
         $data = session()->pull('pending_program_data');
         $user = auth()->user();
-        $form = $data['form'];
-        $result = $data['result'];
+        $form = $data['form'] ?? [];
+        $result = $data['result'] ?? [];
 
         DB::beginTransaction();
         try {
-            $targetDate = Carbon::parse($form['target_date']);
+            $targetDateStr = $form['target_date'] ?? null;
+            $targetDate = !empty($targetDateStr) ? Carbon::parse($targetDateStr) : now()->addWeeks(12);
             $sessions = $result['sessions'] ?? [];
             $totalDays = count($sessions);
-            $durationWeeks = (int) ceil($totalDays / 7);
+            $durationWeeks = (int) max(1, ceil($totalDays / 7));
             
-            // Default start date: subtract total days from target date
-            $startDate = $targetDate->copy()->subDays($totalDays - 1)->startOfWeek();
+            $startDateStr = $form['start_date'] ?? null;
+            if (!empty($startDateStr)) {
+                $startDate = Carbon::parse($startDateStr);
+            } else {
+                $startDate = $targetDate->copy()->subDays(max(0, $totalDays - 1))->startOfWeek();
+            }
+
+            $targetDistance = $form['target_distance'] ?? '10k';
+            $vdot = $result['vdot'] ?? 30;
 
             // 1. Create Program
-            $title = "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")";
+            $title = "AI " . strtoupper($targetDistance) . " Plan (" . $vdot . ")";
             $program = Program::create([
                 'coach_id' => $user->id,
                 'title' => $title,
                 'slug' => $this->generateUniqueSlug($title),
                 'description' => "Program latihan lari periodisasi yang di-generate menggunakan algoritma Daniels' VDOT v2.0.",
-                'distance_target' => $form['target_distance'],
+                'distance_target' => $targetDistance,
                 'duration_weeks' => $durationWeeks,
                 'program_json' => [
-                    'sessions' => $result['sessions'],
+                    'sessions' => $sessions,
                     'summary' => $result['summary'] ?? []
                 ],
                 'is_vdot_generated' => true,
-                'vdot_score' => $result['vdot'],
+                'vdot_score' => $vdot,
                 'is_active' => true,
                 'is_published' => false,
                 'price' => 0,
                 'is_self_generated' => true,
-                'generated_vdot' => $result['vdot'],
+                'generated_vdot' => $vdot,
                 'daniels_params' => [
-                    'pb_distance' => $form['pb_distance'],
-                    'pb_time' => $form['pb_time'],
-                    'target_distance' => $form['target_distance'],
-                    'target_date' => $form['target_date'],
-                    'weekly_mileage' => $form['weekly_mileage'],
-                    'frequency' => $form['frequency'],
+                    'pb_distance' => $form['pb_distance'] ?? null,
+                    'pb_time' => $form['pb_time'] ?? null,
+                    'target_distance' => $targetDistance,
+                    'start_date' => $startDateStr,
+                    'target_date' => $targetDateStr,
+                    'weekly_mileage' => $form['weekly_mileage'] ?? null,
+                    'frequency' => $form['frequency'] ?? null,
                     'runner_level' => $form['runner_level'] ?? null,
                     'long_run_day' => $form['long_run_day'] ?? null,
-                    'training_paces' => $result['paces'],
+                    'training_paces' => $result['paces'] ?? [],
                 ],
             ]);
 
@@ -133,6 +145,10 @@ class SelfGeneratedProgramController extends Controller
      */
     public function generate(Request $request)
     {
+        if ($request->has('start_date') && ($request->input('start_date') === '' || $request->input('start_date') === null)) {
+            $request->merge(['start_date' => null]);
+        }
+
         $validated = $request->validate([
             'pb_distance' => 'required|in:5k,10k,21k,42k,cooper12,balke15',
             'pb_time' => [
@@ -151,8 +167,9 @@ class SelfGeneratedProgramController extends Controller
                     }
                 }
             ],
+            'start_date' => 'nullable|date',
             'target_distance' => 'required|in:5k,10k,21k,42k,cooper12',
-            'target_date' => 'required|date|after_or_equal:today',
+            'target_date' => 'required|date|after_or_equal:yesterday',
             'goal_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
             'weekly_mileage' => 'required|numeric|min:5|max:200',
             'frequency' => 'required|integer|min:3|max:7',
@@ -161,6 +178,7 @@ class SelfGeneratedProgramController extends Controller
             'gender' => 'required|in:male,female',
             'age' => 'required|integer|min:10|max:100',
             'is_tropical' => 'nullable|boolean',
+            'use_ai' => 'nullable|boolean',
         ], [
             'goal_time.regex' => 'Format waktu Goal harus HH:MM:SS atau MM:SS.',
             'target_date.after_or_equal' => 'Tanggal race harus hari ini atau di masa depan.',
@@ -225,9 +243,15 @@ class SelfGeneratedProgramController extends Controller
             
             // Generate sessions based on distance and duration
             $targetDate = Carbon::parse($validated['target_date']);
-            $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+            if (!empty($validated['start_date'])) {
+                $startDate = Carbon::parse($validated['start_date']);
+                $diffDays = max(1, $startDate->diffInDays($targetDate, false));
+                $weeksUntilRace = max(8, min(24, (int) ceil($diffDays / 7)));
+            } else {
+                $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+            }
             
-            $programData = $this->buildPeriodizedProgram([
+            $programData = $this->builderService->build([
                 'target_distance' => $validated['target_distance'],
                 'weekly_mileage' => $validated['weekly_mileage'],
                 'frequency' => $validated['frequency'],
@@ -241,7 +265,7 @@ class SelfGeneratedProgramController extends Controller
 
             $sessions = $programData['sessions'] ?? [];
 
-            $useAi = $request->boolean('use_ai', auth()->check());
+            $useAi = $request->boolean('use_ai', false);
             if ($useAi && is_array($sessions) && $sessions) {
                 $sessions = $this->improveProgramSessionsWithAi($sessions, [
                     'target_distance' => $validated['target_distance'],
@@ -360,47 +384,86 @@ class SelfGeneratedProgramController extends Controller
      */
     public function saveToCalendar(Request $request)
     {
+        if ($request->has('action') && !in_array($request->input('action'), ['replace', 'add'], true)) {
+            $request->merge(['action' => null]);
+        }
+
         $user = auth()->user();
         $validated = $request->validate([
             'form' => 'required|array',
             'result' => 'required|array',
+            'action' => 'nullable|in:replace,add',
         ]);
 
         $form = $validated['form'];
         $result = $validated['result'];
+        $action = $validated['action'] ?? null;
+
+        // Check if user already has an active program enrollment
+        $activeEnrollment = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->with('program')
+            ->first();
+
+        if ($activeEnrollment && !$action) {
+            return response()->json([
+                'success' => false,
+                'has_active_program' => true,
+                'active_program_title' => $activeEnrollment->program?->title ?? 'Program Aktif',
+                'active_start_date' => $activeEnrollment->start_date ? Carbon::parse($activeEnrollment->start_date)->format('d M Y') : '',
+                'active_end_date' => $activeEnrollment->end_date ? Carbon::parse($activeEnrollment->end_date)->format('d M Y') : '',
+                'message' => 'Anda saat ini memiliki program aktif di kalender.'
+            ]);
+        }
 
         DB::beginTransaction();
         try {
-            $targetDate = Carbon::parse($form['target_date']);
+            if ($activeEnrollment && $action === 'replace') {
+                ProgramEnrollment::where('runner_id', $user->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'cancelled']);
+            }
+
+            $targetDateStr = $form['target_date'] ?? null;
+            $targetDate = !empty($targetDateStr) ? Carbon::parse($targetDateStr) : now()->addWeeks(12);
             $sessions = $result['sessions'] ?? [];
             $totalDays = count($sessions);
-            $durationWeeks = (int) ceil($totalDays / 7);
+            $durationWeeks = (int) max(1, ceil($totalDays / 7));
             
-            // Default start date: subtract total days from target date
-            $startDate = $targetDate->copy()->subDays($totalDays - 1)->startOfWeek();
+            $startDateStr = $form['start_date'] ?? null;
+            if (!empty($startDateStr)) {
+                $startDate = Carbon::parse($startDateStr);
+            } else {
+                $startDate = $targetDate->copy()->subDays(max(0, $totalDays - 1))->startOfWeek();
+            }
+
+            $targetDistance = $form['target_distance'] ?? '10k';
+            $vdot = $result['vdot'] ?? 30;
 
             // Create a virtual program record
-            $title = "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")";
+            $title = "AI " . strtoupper($targetDistance) . " Plan (" . $vdot . ")";
             $program = Program::create([
                 'coach_id' => $user->id,
                 'title' => $title,
                 'slug' => $this->generateUniqueSlug($title),
-                'description' => "AI Generated Program for " . strtoupper($form['target_distance']),
-                'distance_target' => $form['target_distance'],
+                'description' => "AI Generated Program for " . strtoupper($targetDistance),
+                'distance_target' => $targetDistance,
                 'duration_weeks' => $durationWeeks,
                 'program_json' => [
-                    'sessions' => $result['sessions'],
+                    'sessions' => $sessions,
                     'summary' => $result['summary'] ?? []
                 ],
                 'is_self_generated' => true,
                 'is_active' => true,
                 'is_published' => false,
                 'price' => 0, 
-                'generated_vdot' => $result['vdot'],
+                'generated_vdot' => $vdot,
                 'daniels_params' => [
-                    'training_paces' => $result['paces'],
+                    'training_paces' => $result['paces'] ?? [],
                     'runner_level' => $form['runner_level'] ?? null,
-                    'long_run_day' => $form['long_run_day'] ?? null
+                    'long_run_day' => $form['long_run_day'] ?? null,
+                    'start_date' => $startDateStr,
+                    'target_date' => $targetDateStr,
                 ]
             ]);
 
@@ -508,468 +571,10 @@ class SelfGeneratedProgramController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    /**
-     * Logic to build periodized program sessions
-     */
-    private function buildPeriodizedProgram(array $config)
-    {
-        $weeks = $config['weeks'];
-        $frequency = $config['frequency'];
-        $mileage = $config['weekly_mileage'];
-        $initialVdot = $config['initial_vdot'];
-        $targetVdot = $config['target_vdot'];
-        $targetDistance = $config['target_distance'] ?? '10k';
-        $runnerLevel = $config['runner_level'] ?? 'intermediate';
-        $longRunDay = $config['long_run_day'] ?? 'sunday';
-        $isTropical = $config['is_tropical'] ?? false;
 
-        if ($targetDistance === 'cooper12') {
-            $libraryPath = config_path('workout_library.php');
-            $library = file_exists($libraryPath) ? include($libraryPath) : [];
-            return $this->buildCooper12Program($config, $library);
-        }
-
-        // Adjust training frequency by level to optimize recovery and prevent injuries
-        if ($runnerLevel === 'beginner') {
-            $frequency = min($frequency, 4);
-        } elseif ($runnerLevel === 'intermediate') {
-            $frequency = min($frequency, 5);
-        }
-
-        // Map target distance to goal categories in workout_library.php
-        $distanceMap = [
-            '5k' => '5K',
-            '10k' => '10K',
-            '21k' => 'HALF_MARATHON',
-            '42k' => 'FULL_MARATHON'
-        ];
-        $goal = $distanceMap[strtolower($targetDistance)] ?? '10K';
-
-        // Load workout library
-        $libraryPath = config_path('workout_library.php');
-        $library = file_exists($libraryPath) ? include($libraryPath) : [];
-
-        $levelRules = $library['level_rules'][$runnerLevel] ?? [
-            'max_quality_sessions_per_week' => 1,
-            'volume_adjustment' => 1.00
-        ];
-        $volumeFactor = $levelRules['volume_adjustment'] ?? 1.00;
-        $maxQualitySessions = $levelRules['max_quality_sessions_per_week'] ?? 1;
-
-        $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
-
-        $sessions = [];
-        $dayCount = 1;
-
-        // Dynamic Phases based on Target Distance
-        if ($targetDistance === '42k') {
-            $baseRatio = 0.40; $strengthRatio = 0.30; $speedRatio = 0.20;
-        } elseif ($targetDistance === '21k') {
-            $baseRatio = 0.30; $strengthRatio = 0.30; $speedRatio = 0.30;
-        } else {
-            $baseRatio = 0.20; $strengthRatio = 0.30; $speedRatio = 0.40;
-        }
-
-        $p1 = (int)($weeks * $baseRatio);
-        $p2 = (int)($weeks * $strengthRatio);
-        $p3 = (int)($weeks * $speedRatio);
-
-        $deltaVdot = $targetVdot - $initialVdot;
-        $strengthStart = $p1 + 1;
-        $strengthEnd = $p1 + $p2;
-        $speedStart = $strengthEnd + 1;
-        $speedEnd = $strengthEnd + $p3;
-
-        // Keep track of recently used workout IDs to promote variety
-        $usedWorkoutIds = [];
-
-        for ($w = 1; $w <= $weeks; $w++) {
-            $phase = 'Base';
-            $currentVdot = $initialVdot;
-
-            if ($w >= $strengthStart && $w <= $strengthEnd) {
-                $phase = 'Strength';
-                $t = ($w - $strengthStart + 1) / max(1, $p2);
-                $currentVdot = $initialVdot + ($deltaVdot * 0.5 * $t);
-            } elseif ($w >= $speedStart && $w <= $speedEnd) {
-                $phase = 'Speed';
-                $t = ($w - $speedStart + 1) / max(1, $p3);
-                $currentVdot = ($initialVdot + ($deltaVdot * 0.5)) + ($deltaVdot * 0.5 * $t);
-            } elseif ($w > $speedEnd) {
-                $phase = 'Taper';
-                $currentVdot = $targetVdot;
-            }
-
-            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
-            if ($isTropical) {
-                $paces['E'] *= 1.05;
-                $paces['M'] *= 1.05;
-                $paces['T'] *= 1.04;
-                $paces['I'] *= 1.03;
-                $paces['R'] *= 1.02;
-            }
-
-            $currentMileage = $mileage;
-            if ($phase === 'Taper') $currentMileage *= 0.6;
-            if ($w % 4 === 0) $currentMileage *= 0.8;
-
-            $isDeload = ($w % 4 === 0);
-
-            // Determine long run distance (dynamic ratio and floor)
-            $longRunRatio = 0.20;
-            $minLongRunFloor = 5.0;
-            if ($targetDistance === '42k') {
-                $longRunRatio = 0.30;
-                $minLongRunFloor = 18.0;
-            } elseif ($targetDistance === '21k') {
-                $longRunRatio = 0.25;
-                $minLongRunFloor = 12.0;
-            }
-            $longRunDistance = round($currentMileage * $longRunRatio, 1);
-            $longRunDistance = min($longRunDistance, round($currentMileage * 0.35, 1));
-            
-            // Apply runner level adjustments to long run
-            if ($runnerLevel === 'beginner') {
-                $longRunDistance = round($longRunDistance * 0.9, 1);
-            } elseif ($runnerLevel === 'advanced') {
-                $longRunDistance = round($longRunDistance * 1.1, 1);
-            }
-
-            // Apply Long Run Floor
-            $mileageWarning = false;
-            if ($longRunDistance < $minLongRunFloor) {
-                $longRunDistance = $minLongRunFloor;
-                // If it forces long run to be > 40% of weekly mileage, flag warning
-                if ($longRunDistance > $currentMileage * 0.40) {
-                    $mileageWarning = true;
-                }
-            }
-
-            // Determine how many quality sessions to schedule this week
-            $weeklyQualityCount = $maxQualitySessions;
-            if ($isDeload && $weeklyQualityCount > 1) {
-                $weeklyQualityCount = 1;
-            }
-
-            // Select quality workouts from pool
-            $weekQualityWorkouts = [];
-            for ($q = 0; $q < $weeklyQualityCount; $q++) {
-                $workout = $this->getQualityWorkoutForPhase($goal, $phase, $library, $usedWorkoutIds);
-                if ($workout) {
-                    $weekQualityWorkouts[] = $workout;
-                    $usedWorkoutIds[] = $workout['id'];
-                    if (count($usedWorkoutIds) > 15) {
-                        array_shift($usedWorkoutIds);
-                    }
-                }
-            }
-
-            // Map which days get what sessions based on long run day
-            $dayAssignments = array_fill(1, 7, ['type' => 'rest', 'workout' => null]);
-            
-            // Step 1: Assign Long Run Day
-            $dayAssignments[$longRunDayIndex] = ['type' => 'long_run', 'workout' => null];
-
-            // Step 2: Assign Quality Days
-            if (count($weekQualityWorkouts) === 1) {
-                // Place it on Day 3 (Wednesday)
-                $dayAssignments[3] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[0]];
-            } elseif (count($weekQualityWorkouts) === 2) {
-                // Place on Day 2 (Tuesday) and Day 4 (Thursday)
-                $dayAssignments[2] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[0]];
-                $dayAssignments[4] = ['type' => 'quality', 'workout' => $weekQualityWorkouts[1]];
-            }
-
-            // Step 3: Assign Easy and Recovery Days based on frequency
-            $runningDaysCount = 1 + count($weekQualityWorkouts);
-            $easyDaysNeeded = max(0, $frequency - $runningDaysCount);
-
-            $candidateDays = [1, 5, 6, 7, 2, 3, 4];
-            $assignedEasyCount = 0;
-            foreach ($candidateDays as $d) {
-                if ($assignedEasyCount >= $easyDaysNeeded) {
-                    break;
-                }
-                if ($dayAssignments[$d]['type'] === 'rest') {
-                    $isAfterQuality = false;
-                    $prevDay = ($d == 1) ? 7 : $d - 1;
-                    if ($dayAssignments[$prevDay]['type'] === 'quality') {
-                        $isAfterQuality = true;
-                    }
-                    
-                    $easyType = ($isDeload || $isAfterQuality) ? 'recovery_run' : 'easy_run';
-                    $dayAssignments[$d] = ['type' => $easyType, 'workout' => null];
-                    $assignedEasyCount++;
-                }
-            }
-
-            // Calculate actual distances for quality workouts
-            $qualityDistances = [];
-            foreach ($dayAssignments as $d => $assign) {
-                if ($assign['type'] === 'quality') {
-                    $workout = $assign['workout'];
-                    $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
-                    $mainSetDist = $this->calculateMainSetDistance($scaledMainSet);
-                    $totalQDist = round(2.0 + $mainSetDist + 1.5, 1);
-                    $qualityDistances[$d] = $totalQDist;
-                }
-            }
-
-            // Calculate easy run distances from remaining mileage pool
-            $totalAssignedHardDist = $longRunDistance + array_sum($qualityDistances);
-            $easyPool = max(0, $currentMileage - $totalAssignedHardDist);
-            
-            $easyDaysCount = 0;
-            foreach ($dayAssignments as $assign) {
-                if ($assign['type'] === 'easy_run' || $assign['type'] === 'recovery_run') {
-                    $easyDaysCount++;
-                }
-            }
-            
-            $easyDistance = $easyDaysCount > 0 ? round($easyPool / $easyDaysCount, 1) : 0;
-            if ($easyDistance < 3.0 && $easyDaysCount > 0 && $easyPool > 0) {
-                $easyDistance = 3.0;
-            } elseif ($easyDistance > 15.0) {
-                $easyDistance = 15.0;
-            }
-
-            // Now, construct the sessions for this week
-            for ($d = 1; $d <= 7; $d++) {
-                $assignment = $dayAssignments[$d];
-                $session = [
-                    'day' => $dayCount++,
-                    'week' => $w,
-                    'phase' => $phase,
-                    'is_deload' => $isDeload,
-                    'type' => 'rest',
-                    'description' => 'Rest Day',
-                    'distance' => 0,
-                    'duration' => null,
-                    'target_pace' => null
-                ];
-
-                if ($assignment['type'] === 'long_run') {
-                    $session['type'] = 'long_run';
-                    $session['distance'] = $longRunDistance;
-                    $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['duration'] = $this->calculateDuration($longRunDistance, $paces['E']);
-                    
-                    $paceFast = max(0, $paces['E'] - (5/60));
-                    $paceSlow = $paces['E'] + (10/60);
-                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
-                    
-                    $session['description'] = $isDeload 
-                        ? "Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.\nTarget: $rangeStr (RPE 3-4)"
-                        : "Long Easy Run - Fokus pada daya tahan kardio.\nTarget: $rangeStr (RPE 3-4)";
-                        
-                    if (isset($mileageWarning) && $mileageWarning) {
-                        $session['description'] .= "\n\n[WARNING: Weekly mileage Anda terlalu rendah untuk mengadaptasi jarak lari ini dengan optimal. Kami telah memaksakan batas minimal untuk Long Run ini.]";
-                    }
-                } elseif ($assignment['type'] === 'quality') {
-                    $workout = $assignment['workout'];
-                    $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
-
-                    $workoutPaceKey = 'E';
-                    $rpe = '3-4';
-                    if ($workout['type'] === 'interval') {
-                        $workoutPaceKey = 'I';
-                        $rpe = '9-10';
-                    } elseif ($workout['type'] === 'threshold' || $workout['type'] === 'progression') {
-                        $workoutPaceKey = 'T';
-                        $rpe = '7-8';
-                    } elseif ($workout['type'] === 'marathon_pace') {
-                        $workoutPaceKey = 'M';
-                        $rpe = '5-6';
-                    } elseif ($workout['type'] === 'repetition') {
-                        $workoutPaceKey = 'R';
-                        $rpe = '9-10';
-                    } elseif ($workout['type'] === 'hill') {
-                        $workoutPaceKey = 'R';
-                        $rpe = '8-9';
-                    }
-                    
-                    $targetPaceStr = $this->formatPace($paces[$workoutPaceKey]);
-                    $session['duration'] = $this->calculateDuration($qualityDistances[$d], $paces[$workoutPaceKey]);
-                    
-                    $paceFast = max(0, $paces[$workoutPaceKey] - (5/60));
-                    $paceSlow = $paces[$workoutPaceKey] + (10/60);
-                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
-                    
-                    $mainSetText = str_replace(
-                        ['{distance_km}', '{target_pace}'],
-                        [$qualityDistances[$d], $rangeStr . " (RPE $rpe)"],
-                        $scaledMainSet
-                    );
-
-                    $warmUpText = $library['default_warm_up'] ?? '10 to 15 min easy run + dynamic drills';
-                    $coolDownText = $library['default_cool_down'] ?? '10 min easy jog';
-
-                    $descriptionLines = [
-                        "Warm Up: " . $warmUpText,
-                        "Main Set: " . $mainSetText,
-                        "Recovery: " . $workout['recovery'],
-                        "Cool Down: " . $coolDownText,
-                        "Intensity: " . ($workout['intensity'] ?? "Target pace: $rangeStr (RPE $rpe)"),
-                        "Reason: " . ($workout['best_for'] ?? $workout['focus'] ?? 'Meningkatkan performa lari') . " (" . ($workout['focus'] ?? '') . ")"
-                    ];
-
-                    $session['type'] = $workout['type'];
-                    $session['distance'] = $qualityDistances[$d];
-                    $session['target_pace'] = $targetPaceStr;
-                    $session['description'] = implode("\n", $descriptionLines);
-                    $session['workout_id'] = $workout['id'];
-                    $session['workout_name'] = $workout['name'];
-                } elseif ($assignment['type'] === 'easy_run' || $assignment['type'] === 'recovery_run') {
-                    $session['type'] = $assignment['type'];
-                    $session['distance'] = $easyDistance;
-                    $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['duration'] = $this->calculateDuration($easyDistance, $paces['E']);
-                    
-                    $paceFast = max(0, $paces['E'] - (5/60));
-                    $paceSlow = $paces['E'] + (10/60);
-                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
-                    
-                    $session['description'] = $assignment['type'] === 'recovery_run'
-                        ? ($isDeload ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget: $rangeStr (RPE < 3)" : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget: $rangeStr (RPE < 3)")
-                        : "Easy Aerobic Run - Membangun daya tahan dasar.\nTarget: $rangeStr (RPE 3-4)";
-                } else {
-                    $session['duration'] = '00:00:00';
-                    if ($runnerLevel === 'beginner') {
-                        $session['description'] = 'Rest Day - Istirahat total atau peregangan otot ringan untuk pemulihan.';
-                    } elseif ($runnerLevel === 'intermediate') {
-                        $session['description'] = 'Active Recovery - Peregangan ringan, foam rolling, atau mobilitas sendi.';
-                    } else {
-                        $session['description'] = 'Active Recovery - Latihan kekuatan core ringan (plank, bird-dog) & foam rolling.';
-                    }
-                }
-
-                $sessions[] = $session;
-            }
-        }
-
-        return [
-            'sessions' => $sessions,
-            'summary' => [
-                'total_weeks' => $weeks,
-                'target' => strtoupper($config['target_distance']),
-                'vdot' => round($initialVdot, 1),
-                'target_vdot' => round($targetVdot, 1)
-            ]
-        ];
-    }
-
-    private function scaleWorkoutVolume(string $mainSet, float $factor)
-    {
-        if ($factor >= 1.0) {
-            return $mainSet;
-        }
-
-        if (preg_match('/^(\d+)\s*reps\s*x\s*(.+)$/i', $mainSet, $matches)) {
-            $reps = (int)$matches[1];
-            $scaledReps = max(1, (int)round($reps * $factor));
-            return $scaledReps . ' reps x ' . $matches[2];
-        }
-
-        if (preg_match('/^(.*?)(\d+)\s*x\s*(\d+(?:\.\d+)?\s*[Km])(.*?)$/i', $mainSet, $matches)) {
-            $reps = (int)$matches[2];
-            $scaledReps = max(1, (int)round($reps * $factor));
-            return $matches[1] . $scaledReps . ' x ' . $matches[3] . $matches[4];
-        }
-
-        $scaled = preg_replace_callback('/(\d+(?:\.\d+)?)\s*(K|m|meters|K\b)/i', function($m) use ($factor) {
-            $val = (float)$m[1];
-            $scaledVal = round($val * $factor, 1);
-            if ($scaledVal == (int)$scaledVal) {
-                $scaledVal = (int)$scaledVal;
-            }
-            return $scaledVal . $m[2];
-        }, $mainSet);
-
-        return $scaled;
-    }
-
-    private function calculateMainSetDistance(string $mainSet): float
-    {
-        if (preg_match('/(\d+)\s*reps\s*x\s*(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches)) {
-            $reps = (float)$matches[1];
-            $val = (float)$matches[2];
-            $unit = strtolower($matches[3]);
-            if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
-            }
-            return $reps * $val;
-        }
-        
-        if (preg_match('/(\d+)\s*x\s*(\d+(?:\.\d+)?\s*)(K|m|meters)/i', $mainSet, $matches)) {
-            $reps = (float)$matches[1];
-            $val = (float)$matches[2];
-            $unit = strtolower($matches[3]);
-            if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
-            }
-            return $reps * $val;
-        }
-
-        if (preg_match_all('/(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches, PREG_SET_ORDER)) {
-            $total = 0.0;
-            foreach ($matches as $match) {
-                $val = (float)$match[1];
-                $unit = strtolower($match[2]);
-                if ($unit === 'm' || $unit === 'meters') {
-                    $total += $val / 1000.0;
-                } else {
-                    $total += $val;
-                }
-            }
-            if ($total > 0) {
-                return $total;
-            }
-        }
-
-        return 5.0;
-    }
-
-    private function getQualityWorkoutForPhase(string $goal, string $phase, array $library, array $usedWorkoutIds = [])
-    {
-        $allWorkouts = $library['goals'][$goal] ?? [];
-        if (empty($allWorkouts)) {
-            return null;
-        }
-
-        $phaseRule = $library['training_phase_rules'][strtolower($phase)] ?? null;
-        $preferredTypes = $phaseRule['preferred_types'] ?? [];
-
-        $preferredWorkouts = array_filter($allWorkouts, function ($w) use ($preferredTypes) {
-            return in_array($w['type'], $preferredTypes, true);
-        });
-
-        $pool = !empty($preferredWorkouts) ? $preferredWorkouts : $allWorkouts;
-
-        $unusedPool = array_filter($pool, function ($w) use ($usedWorkoutIds) {
-            return !in_array($w['id'], $usedWorkoutIds, true);
-        });
-
-        $selectedPool = !empty($unusedPool) ? $unusedPool : $pool;
-        return $selectedPool[array_rand($selectedPool)];
-    }
-
-
-    private function formatPace(float $minPerKm)
-    {
-        $m = floor($minPerKm);
-        $s = round(($minPerKm - $m) * 60);
-        return sprintf('@ %d:%02d/km', $m, $s);
-    }
-
-    private function calculateDuration(float $distanceKm, float $paceMinPerKm): string
-    {
-        $totalSeconds = round($distanceKm * $paceMinPerKm * 60);
-        $hours = floor($totalSeconds / 3600);
-        $minutes = floor(($totalSeconds % 3600) / 60);
-        $seconds = $totalSeconds % 60;
-
-        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-    }
+    // =========================================================================
+    // AI DESCRIPTION ENHANCEMENT
+    // =========================================================================
 
     private function improveProgramSessionsWithAi(array $sessions, array $context): array
     {
@@ -998,7 +603,7 @@ class SelfGeneratedProgramController extends Controller
         foreach (['E', 'M', 'T', 'I', 'R'] as $k) {
             $v = $paces[$k] ?? null;
             if (is_numeric($v)) {
-                $paceLines[] = $k.': '.$this->formatPace((float) $v);
+                $paceLines[] = $k.': '.$this->builderService->formatPace((float) $v);
             }
         }
 
@@ -1087,161 +692,7 @@ class SelfGeneratedProgramController extends Controller
         }
     }
 
-    private function buildCooper12Program(array $config, array $library)
-    {
-        $weeks = $config['weeks'];
-        $frequency = $config['frequency'];
-        $mileage = $config['weekly_mileage'];
-        $runnerLevel = $config['runner_level'] ?? 'intermediate';
-        $longRunDay = $config['long_run_day'] ?? 'sunday';
-        
-        $hardSessionsCount = 1;
-        if ($runnerLevel === 'intermediate') {
-            $hardSessionsCount = rand(1, 2);
-        } elseif ($runnerLevel === 'advanced') {
-            $hardSessionsCount = 2;
-        }
 
-        $cooperWorkouts = collect($library['COOPER_12_MIN_GENERAL'] ?? [])->keyBy('id');
-        
-        $sessions = [];
-        $dayCount = 1;
-        $totalDistance = 0;
-        $totalSessions = 0;
-        $maxLongRun = 0;
-        $peakMileage = 0;
-
-        $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
-        
-        // 1-based index mapping for 8-week cycle
-        $primaryWorkouts = [
-            1 => 'cooper12_3x6min_threshold',
-            2 => 'cooper12_8x400_target_pace',
-            3 => 'cooper12_5x600_overpace',
-            4 => 'cooper12_full_12min_time_trial',
-            5 => 'cooper12_6x800_target_effort',
-            6 => 'cooper12_4x1000_controlled',
-            7 => 'cooper12_3x1200_race_pressure',
-            0 => 'cooper12_12x200_sharpening', // week 8 maps to 0 for mod 8
-        ];
-
-        $secondaryWorkouts = [
-            'cooper12_hill_10x30sec',
-            'cooper12_10x300_fast_relaxed',
-            'cooper12_20min_threshold'
-        ];
-
-        for ($w = 1; $w <= $weeks; $w++) {
-            $mod = $w % 8;
-            $primaryId = $primaryWorkouts[$mod];
-            
-            $currentMileage = $mileage;
-            if ($w % 4 === 0) $currentMileage *= 0.8;
-            
-            $peakMileage = max($peakMileage, $currentMileage);
-            
-            $longRunDistance = min(round($currentMileage * 0.25, 1), 12);
-            $maxLongRun = max($maxLongRun, $longRunDistance);
-            
-            $activeDays = [];
-            if ($frequency >= 3) {
-                $activeDays = [2, 4, $longRunDayIndex];
-            }
-            if ($frequency >= 4) {
-                $activeDays = [2, 4, 5, $longRunDayIndex];
-            }
-            if ($frequency >= 5) {
-                $activeDays = [2, 3, 4, 5, $longRunDayIndex];
-            }
-            if ($frequency >= 6) {
-                $activeDays = [1, 2, 3, 4, 5, $longRunDayIndex];
-            }
-            if ($frequency === 7) {
-                $activeDays = [1, 2, 3, 4, 5, 6, 7];
-            }
-            
-            $qualityDaysAssigned = 0;
-
-            for ($d = 1; $d <= 7; $d++) {
-                if (!in_array($d, $activeDays)) {
-                    if ($d === 1 || $d === 3) {
-                        $sessions[] = [
-                            'day' => $dayCount,
-                            'date_offset' => $dayCount - 1,
-                            'type' => 'strength',
-                            'distance' => null,
-                            'duration' => '30 mins',
-                            'description' => "Strength training: squat, calf raise, lunge, plank, hip bridge, plyometric ringan.",
-                            'workout_id' => null,
-                            'target_pace' => null
-                        ];
-                        $totalSessions++;
-                    }
-                    $dayCount++;
-                    continue;
-                }
-
-                $type = 'easy_run';
-                $dist = round($currentMileage * 0.15, 1);
-                $desc = "Easy run. Jaga detak jantung tetap rendah.";
-                $wId = null;
-
-                if ($d === $longRunDayIndex) {
-                    $type = 'long_run';
-                    $dist = $longRunDistance;
-                    $desc = "Long run santai. Bangun aerobic base.";
-                    
-                    if ($w === $weeks) {
-                        $type = 'time_trial';
-                        $dist = 3.2;
-                        $desc = "Tes 12 Menit Cooper (Target 3200m - 3400m)";
-                        $wId = 'cooper12_full_12min_time_trial';
-                    }
-                } elseif ($qualityDaysAssigned === 0 && $d === 2) {
-                    $wData = $cooperWorkouts->get($primaryId);
-                    $type = $wData['type'] ?? 'interval';
-                    $dist = round($currentMileage * 0.2, 1);
-                    $desc = ($wData['name'] ?? '') . "\n" . ($wData['main_set'] ?? '') . "\n" . ($wData['intensity'] ?? '') . "\n" . ($wData['note'] ?? '');
-                    $wId = $primaryId;
-                    $qualityDaysAssigned++;
-                } elseif ($qualityDaysAssigned < $hardSessionsCount && $d === 4) {
-                    $secId = $secondaryWorkouts[array_rand($secondaryWorkouts)];
-                    $wData = $cooperWorkouts->get($secId);
-                    $type = $wData['type'] ?? 'interval';
-                    $dist = round($currentMileage * 0.2, 1);
-                    $desc = ($wData['name'] ?? '') . "\n" . ($wData['main_set'] ?? '') . "\n" . ($wData['intensity'] ?? '') . "\n" . ($wData['note'] ?? '');
-                    $wId = $secId;
-                    $qualityDaysAssigned++;
-                }
-
-                $sessions[] = [
-                    'day' => $dayCount,
-                    'date_offset' => $dayCount - 1,
-                    'type' => $type,
-                    'distance' => $dist,
-                    'duration' => null,
-                    'description' => $desc,
-                    'workout_id' => $wId,
-                    'target_pace' => null
-                ];
-
-                $totalDistance += (float) $dist;
-                $totalSessions++;
-                $dayCount++;
-            }
-        }
-
-        return [
-            'sessions' => $sessions,
-            'summary' => [
-                'total_weeks' => $weeks,
-                'total_distance' => round($totalDistance, 1),
-                'total_sessions' => $totalSessions,
-                'max_long_run' => round($maxLongRun, 1),
-                'peak_mileage' => round($peakMileage, 1)
-            ]
-        ];
-    }
 
     private function generateUniqueSlug(string $title, ?int $excludeId = null): string
     {
