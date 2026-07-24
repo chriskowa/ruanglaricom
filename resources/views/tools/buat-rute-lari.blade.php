@@ -162,13 +162,17 @@
                                         <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Finish</div>
                                         <input id="rl-color-finish" type="color" value="#ef4444" class="w-10 h-8 bg-transparent">
                                     </div>
+                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3 col-span-2">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Panah Arah</div>
+                                        <input id="rl-color-arrow" type="color" value="#ccff00" class="w-10 h-8 bg-transparent cursor-pointer">
+                                    </div>
                                 </div>
                                 <div class="mt-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
-                                        <div id="rl-arrow-interval-label" class="text-xs font-black text-slate-200">80m</div>
+                                        <div id="rl-arrow-interval-label" class="text-xs font-black text-slate-200">250m</div>
                                     </div>
-                                    <input id="rl-arrow-interval" type="range" min="30" max="300" step="10" value="80" class="mt-2 w-full">
+                                    <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-2 w-full">
                                 </div>
                             </div>
                         </div>
@@ -218,18 +222,22 @@
                                         <input id="rl-ai-loop" type="checkbox" class="accent-white" checked>
                                         Kembali ke Start
                                     </label>
-                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                        <input id="rl-ai-avoid-toll" type="checkbox" class="accent-white" checked disabled>
-                                        Hindari Jalan Tol ⚠️
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                        <input id="rl-ai-avoid-main" type="checkbox" class="accent-white" checked>
-                                        Hindari Jalan Besar
-                                    </label>
-                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                        <input id="rl-ai-avoid-rail" type="checkbox" class="accent-white" checked>
-                                        Hindari Rel Kereta
-                                    </label>
+                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                         <input id="rl-ai-avoid-gang" type="checkbox" class="accent-white" checked>
+                                         Hindari Gang & Jalan Sempit 
+                                     </label>
+                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                         <input id="rl-ai-avoid-toll" type="checkbox" class="accent-white" checked disabled>
+                                         Hindari Jalan Tol 
+                                     </label>
+                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                         <input id="rl-ai-avoid-main" type="checkbox" class="accent-white">
+                                         Hindari Jalan Besar / Protokol
+                                     </label>
+                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                         <input id="rl-ai-avoid-rail" type="checkbox" class="accent-white" checked>
+                                         Hindari Rel Kereta
+                                     </label>
                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer col-span-2 hover:border-slate-600 transition">
                                         <input id="rl-ai-avoid-intersection" type="checkbox" class="accent-white">
                                         Hindari Perempatan Utama (Simpang)
@@ -643,6 +651,7 @@
                 colorMarker: document.getElementById('rl-color-marker'),
                 colorStart: document.getElementById('rl-color-start'),
                 colorFinish: document.getElementById('rl-color-finish'),
+                colorArrow: document.getElementById('rl-color-arrow'),
                 arrowInterval: document.getElementById('rl-arrow-interval'),
                 arrowIntervalLabel: document.getElementById('rl-arrow-interval-label'),
                 distanceKm: document.getElementById('rl-distance-km'),
@@ -706,6 +715,7 @@
                 aiGenerateBtn: document.getElementById('rl-ai-generate-btn'),
                 aiRegenerateBtn: document.getElementById('rl-ai-regenerate-btn'),
                 aiLoop: document.getElementById('rl-ai-loop'),
+                aiAvoidGang: document.getElementById('rl-ai-avoid-gang'),
                 aiAvoidToll: document.getElementById('rl-ai-avoid-toll'),
                 aiAvoidMain: document.getElementById('rl-ai-avoid-main'),
                 aiAvoidRail: document.getElementById('rl-ai-avoid-rail'),
@@ -731,10 +741,11 @@
                         marker: (data.marker && /^#[0-9a-f]{6}$/i.test(data.marker)) ? data.marker : '#60a5fa',
                         start: (data.start && /^#[0-9a-f]{6}$/i.test(data.start)) ? data.start : '#22c55e',
                         finish: (data.finish && /^#[0-9a-f]{6}$/i.test(data.finish)) ? data.finish : '#ef4444',
-                        arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 300) ? data.arrowIntervalM : 80,
+                        arrow: (data.arrow && /^#[0-9a-f]{6}$/i.test(data.arrow)) ? data.arrow : '#ccff00',
+                        arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 500) ? data.arrowIntervalM : 250,
                     };
                 } catch (e) {
-                    return { route: '#FC4C02', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrowIntervalM: 80 };
+                    return { route: '#FC4C02', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrow: '#ccff00', arrowIntervalM: 250 };
                 }
             }
 
@@ -745,6 +756,7 @@
                     marker: next.marker ?? cur.marker,
                     start: next.start ?? cur.start,
                     finish: next.finish ?? cur.finish,
+                    arrow: next.arrow ?? cur.arrow,
                     arrowIntervalM: typeof next.arrowIntervalM === 'number' ? next.arrowIntervalM : cur.arrowIntervalM,
                 };
                 localStorage.setItem(STYLE_KEY, JSON.stringify(merged));
@@ -756,6 +768,7 @@
                 if (els.colorMarker) els.colorMarker.value = style.marker;
                 if (els.colorStart) els.colorStart.value = style.start;
                 if (els.colorFinish) els.colorFinish.value = style.finish;
+                if (els.colorArrow) els.colorArrow.value = style.arrow;
                 if (els.arrowInterval) els.arrowInterval.value = String(style.arrowIntervalM);
                 if (els.arrowIntervalLabel) els.arrowIntervalLabel.textContent = String(style.arrowIntervalM) + 'm';
                 if (typeof routeLayer !== 'undefined' && routeLayer) {
@@ -2064,7 +2077,8 @@
                 if (!on || routePoints.length < 2) return;
 
                 var style = getStyle();
-                var stepKm = (style.arrowIntervalM || 80) / 1000;
+                var stepKm = (style.arrowIntervalM || 250) / 1000;
+                var arrowColor = style.arrow || '#ccff00';
                 var acc = 0;
                 for (var i = 1; i < routePoints.length; i++) {
                     var a = routePoints[i - 1];
@@ -2075,7 +2089,7 @@
                     var angle = bearingDeg(a, b);
                     var icon = L.divIcon({
                         className: '',
-                        html: '<div style="transform:rotate(' + (angle - 90).toFixed(1) + 'deg);color:' + style.route + ';font-weight:900;font-size:16px;line-height:16px;text-shadow:0 0 10px rgba(0,0,0,.55)">➤</div>',
+                        html: '<div style="transform:rotate(' + (angle - 90).toFixed(1) + 'deg);color:' + arrowColor + ';font-weight:900;font-size:16px;line-height:16px;text-shadow:0 0 10px rgba(0,0,0,.55)">➤</div>',
                         iconSize: [16, 16],
                         iconAnchor: [8, 8],
                     });
@@ -2202,8 +2216,8 @@
                 var token = window.RL_MAPBOX_TOKEN;
 
                 if (token) {
-                    var mapboxProfile = profile === 'foot' ? 'mapbox/walking' : 'mapbox/' + profile;
-                    var mapboxUrl = 'https://api.mapbox.com/directions/v5/' + mapboxProfile + '/' + coords + '?geometries=geojson&overview=full&steps=false&access_token=' + token;
+                    var mapboxProfile = profile === 'foot' ? 'mapbox/walking' : (profile === 'cycling' ? 'mapbox/cycling' : 'mapbox/' + profile);
+                    var mapboxUrl = 'https://api.mapbox.com/directions/v5/' + mapboxProfile + '/' + coords + '?geometries=geojson&overview=full&steps=false&continue_straight=true&access_token=' + token;
                     return fetch(mapboxUrl, { headers: { 'Accept': 'application/json' } })
                         .then(function (r) {
                             if (!r.ok) throw new Error('mapbox_api_error');
@@ -2226,11 +2240,10 @@
             }
 
             function fetchOsrmFallback(waypoints, profile, excludes) {
-                profile = profile || 'driving';
+                var osrmProfile = profile === 'cycling' ? 'driving' : (profile || 'driving');
                 var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
                 // The public OSRM server (router.project-osrm.org) does not support the 'exclude' parameter.
-                // So we do not append it to prevent 400 Bad Request errors.
-                var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
+                var url = 'https://router.project-osrm.org/route/v1/' + osrmProfile + '/' + coords + '?overview=full&geometries=geojson&steps=false&continue_straight=true';
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
                     .then(function (r) {
                         if (!r.ok) throw new Error('osrm_api_error: ' + r.status);
@@ -2726,9 +2739,12 @@
             if (els.colorFinish) {
                 els.colorFinish.addEventListener('input', function () { setStyle({ finish: els.colorFinish.value }); });
             }
+            if (els.colorArrow) {
+                els.colorArrow.addEventListener('input', function () { setStyle({ arrow: els.colorArrow.value }); });
+            }
             if (els.arrowInterval) {
                 els.arrowInterval.addEventListener('input', function () {
-                    var v = clamp(parseInt(els.arrowInterval.value || '80', 10), 30, 300);
+                    var v = clamp(parseInt(els.arrowInterval.value || '250', 10), 30, 500);
                     setStyle({ arrowIntervalM: v });
                 });
             }
@@ -3014,10 +3030,10 @@
                     angleRad += (Math.random() * 0.15 - 0.075);
                 }
                 if (isLoop) {
-                    var side = targetDist / 5.6;
+                    var side = targetDist / 5.2;
                     var p0 = start;
                     var p1 = getOffsetLatLng(p0, side, angleRad - Math.PI / 4);
-                    var p2 = getOffsetLatLng(p0, side * Math.sqrt(2), angleRad);
+                    var p2 = getOffsetLatLng(p0, side * 1.3, angleRad);
                     var p3 = getOffsetLatLng(p0, side, angleRad + Math.PI / 4);
                     return [p0, p1, p2, p3, p0];
                 } else {
@@ -3030,6 +3046,28 @@
                 }
             }
 
+            function removeBacktrackSpikes(coords) {
+                if (!coords || coords.length < 3) return coords || [];
+                var out = [coords[0]];
+                for (var i = 1; i < coords.length - 1; i++) {
+                    var prev = out[out.length - 1];
+                    var curr = coords[i];
+                    var next = coords[i + 1];
+
+                    var d1 = haversineKm(prev, curr);
+                    var d2 = haversineKm(curr, next);
+                    var dDirect = haversineKm(prev, next);
+
+                    // Skip micro 180-degree backtrack spikes on the same street segment
+                    if (d1 < 0.1 && d2 < 0.1 && dDirect < 0.03 && (d1 + d2) > (dDirect * 2.5)) {
+                        continue;
+                    }
+                    out.push(curr);
+                }
+                out.push(coords[coords.length - 1]);
+                return out;
+            }
+
             function fetchLoopRoute(wpts, profile, excludes) {
                 var segmentPromises = [];
                 for (var i = 1; i < wpts.length; i++) {
@@ -3039,7 +3077,7 @@
                         segmentPromises.push(
                             osrmRoute([pPrev, pCurr], profile, excludes)
                                 .then(function(coords) {
-                                    return { mode: 'osrm', segment: coords };
+                                    return { mode: 'osrm', segment: removeBacktrackSpikes(coords) };
                                 })
                                 .catch(function() {
                                     return { mode: 'direct', segment: [pPrev, pCurr] };
@@ -3111,9 +3149,10 @@
 
                 var isLoop = els.aiLoop ? els.aiLoop.checked : true;
                 var avoidIntersections = els.aiAvoidIntersection ? els.aiAvoidIntersection.checked : false;
+                var avoidGang = els.aiAvoidGang ? els.aiAvoidGang.checked : true;
 
-                // Setup routing parameters
-                var profile = 'foot'; // Pedestrian profile for running to avoid highways/train tracks naturally
+                // Setup routing profile: use cycling profile to stay on paved vehicular roads and avoid narrow alleys/gangs
+                var profile = avoidGang ? 'cycling' : 'foot';
                 var excludes = [];
                 excludes.push('toll'); // Always avoid toll roads
                 
