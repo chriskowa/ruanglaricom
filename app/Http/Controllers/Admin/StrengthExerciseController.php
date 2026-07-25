@@ -117,7 +117,7 @@ class StrengthExerciseController extends Controller
 
         foreach ($defaults as $cat => $items) {
             foreach ($items as $item) {
-                StrengthExercise::firstOrCreate(
+                StrengthExercise::updateOrCreate(
                     ['name' => $item['name']],
                     [
                         'category' => $cat,
@@ -126,7 +126,8 @@ class StrengthExerciseController extends Controller
                         'default_reps' => $item['reps'] ?? '10-12 reps',
                         'instructions' => $item['instructions'] ?? null,
                         'target_muscles' => $item['target_muscles'] ?? null,
-                        'media_type' => 'gif',
+                        'media_type' => $item['media_type'] ?? 'gif',
+                        'media_url' => $item['media_url'] ?? null,
                         'is_active' => true,
                     ]
                 );
@@ -170,7 +171,8 @@ class StrengthExerciseController extends Controller
                         'default_reps' => $item['reps'] ?? '10-12 reps',
                         'instructions' => $item['instructions'] ?? null,
                         'target_muscles' => $item['target_muscles'] ?? null,
-                        'media_type' => 'gif',
+                        'media_type' => $item['media_type'] ?? 'url',
+                        'media_url' => $item['media_url'] ?? null,
                         'is_active' => true,
                     ]);
                 }
