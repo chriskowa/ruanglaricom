@@ -155,7 +155,10 @@ class StrengthExerciseController extends Controller
                 $table->integer('sort_order')->default(0);
                 $table->timestamps();
             });
+        }
 
+        // Auto-seed default 21 exercises if table is empty
+        if (StrengthExercise::count() === 0) {
             $defaults = StrengthExercise::getDefaultLibrary();
             foreach ($defaults as $cat => $items) {
                 foreach ($items as $item) {
