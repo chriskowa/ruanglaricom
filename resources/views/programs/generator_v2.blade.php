@@ -328,7 +328,7 @@
                             </div>
                             <div class="space-y-1.5">
                                 <div class="flex justify-between items-center">
-                                    <label class="label-text mb-0">Target Tanggal Lomba</label>
+                                    <label class="label-text">Target Tanggal Lomba</label>
                                     <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
                                             @click="applyRecommendedTargetDate" 
                                             type="button" 
@@ -420,7 +420,6 @@
                             </div>
                             <div class="space-y-1.5">
                                 <label class="label-text flex items-center gap-1.5">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-white-400 text-xs"></i>
                                     <span>AI Narration Refinement (Opsional)</span>
                                 </label>
                                 <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
