@@ -116,6 +116,11 @@ class SelfGeneratedProgramController extends Controller
                     'frequency' => $form['frequency'] ?? null,
                     'runner_level' => $form['runner_level'] ?? null,
                     'long_run_day' => $form['long_run_day'] ?? null,
+                    'height_cm' => $form['height_cm'] ?? null,
+                    'weight_kg' => $form['weight_kg'] ?? null,
+                    'injury_history' => $form['injury_history'] ?? 'none',
+                    'include_strength' => $form['include_strength'] ?? true,
+                    'strength_type' => $form['strength_type'] ?? 'bodyweight',
                     'training_paces' => $result['paces'] ?? [],
                 ],
             ]);
@@ -177,6 +182,11 @@ class SelfGeneratedProgramController extends Controller
             'long_run_day' => 'required|in:saturday,sunday',
             'gender' => 'required|in:male,female',
             'age' => 'required|integer|min:10|max:100',
+            'height_cm' => 'nullable|numeric|min:100|max:250',
+            'weight_kg' => 'nullable|numeric|min:30|max:200',
+            'injury_history' => 'nullable|string|in:none,knee,hamstring,ankle,shin,back',
+            'include_strength' => 'nullable|boolean',
+            'strength_type' => 'nullable|string|in:bodyweight,gym',
             'is_tropical' => 'nullable|boolean',
             'use_ai' => 'nullable|boolean',
         ], [
@@ -198,6 +208,29 @@ class SelfGeneratedProgramController extends Controller
             $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $maxVdotImprovementPercent));
 
             $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $strengthType = $validated['strength_type'] ?? 'bodyweight';
+            $injuryHistory = $validated['injury_history'] ?? 'none';
+
+            $heightCm = isset($validated['height_cm']) ? (float)$validated['height_cm'] : null;
+            $weightKg = isset($validated['weight_kg']) ? (float)$validated['weight_kg'] : null;
+            $heightM = ($heightCm && $heightCm > 0) ? ($heightCm / 100) : null;
+            $bmi = ($heightM && $weightKg && $weightKg > 0) ? round($weightKg / ($heightM * $heightM), 1) : null;
+
+            $proteinRecommendation = null;
+            if ($weightKg && $weightKg > 0) {
+                $level = $validated['runner_level'];
+                [$minF, $maxF] = match($level) {
+                    'beginner' => [1.4, 1.6],
+                    'advanced' => [1.8, 2.0],
+                    default => [1.6, 1.8],
+                };
+                $proteinRecommendation = [
+                    'min' => (int) round($weightKg * $minF),
+                    'max' => (int) round($weightKg * $maxF),
+                    'note' => "Berdasarkan berat {$weightKg}kg × {$minF}–{$maxF} g/kg (standar ACSM)",
+                ];
+            }
 
             // Calculate base and adjusted training paces
             $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
@@ -261,6 +294,9 @@ class SelfGeneratedProgramController extends Controller
                 'runner_level' => $validated['runner_level'],
                 'long_run_day' => $validated['long_run_day'],
                 'is_tropical' => $isTropical,
+                'include_strength' => $includeStrength,
+                'strength_type' => $strengthType,
+                'injury_history' => $injuryHistory,
             ]);
 
             $sessions = $programData['sessions'] ?? [];
@@ -287,6 +323,11 @@ class SelfGeneratedProgramController extends Controller
                     'vdot' => round($currentVdot, 1),
                     'paces' => $paces,
                     'hr_zones' => $hrZones,
+                    'bmi' => $bmi,
+                    'protein_recommendation' => $proteinRecommendation,
+                    'injury_history' => $injuryHistory,
+                    'include_strength' => $includeStrength,
+                    'strength_type' => $strengthType,
                     'weeks' => $weeksUntilRace,
                     'sessions' => $sessions,
                     'summary' => [
@@ -462,6 +503,11 @@ class SelfGeneratedProgramController extends Controller
                     'training_paces' => $result['paces'] ?? [],
                     'runner_level' => $form['runner_level'] ?? null,
                     'long_run_day' => $form['long_run_day'] ?? null,
+                    'height_cm' => $form['height_cm'] ?? null,
+                    'weight_kg' => $form['weight_kg'] ?? null,
+                    'injury_history' => $form['injury_history'] ?? 'none',
+                    'include_strength' => $form['include_strength'] ?? true,
+                    'strength_type' => $form['strength_type'] ?? 'bodyweight',
                     'start_date' => $startDateStr,
                     'target_date' => $targetDateStr,
                 ]

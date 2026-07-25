@@ -673,9 +673,13 @@
                                 <div v-for="(exercise, idx) in parseStrengthExercises(detail)" :key="idx" 
                                      class="group flex items-center gap-3 p-2.5 rounded-[6px] bg-slate-800/40 border border-slate-700 hover:bg-slate-800 transition cursor-pointer"
                                      @click="previewExercise(exercise)">
-                                    <!-- Thumbnail Placeholder -->
-                                    <div class="w-12 h-12 rounded-[4px] bg-slate-700 flex-shrink-0 overflow-hidden relative">
-                                        <div class="absolute inset-0 flex items-center justify-center text-xl group-hover:scale-110 transition" v-html="getExerciseIcon(exercise.name)">
+                                    <!-- Thumbnail Placeholder / Media Preview -->
+                                    <div class="w-12 h-12 rounded-[4px] bg-slate-900 border border-slate-700 flex-shrink-0 overflow-hidden relative">
+                                        <template v-if="exercise.media_url">
+                                            <video v-if="exercise.media_type === 'video'" :src="exercise.media_url" autoplay loop muted class="w-full h-full object-cover"></video>
+                                            <img v-else :src="exercise.media_url" class="w-full h-full object-cover" :alt="exercise.name">
+                                        </template>
+                                        <div v-else class="absolute inset-0 flex items-center justify-center text-xl group-hover:scale-110 transition" v-html="getExerciseIcon(exercise.name)">
                                         </div>
                                     </div>
                                     
@@ -685,8 +689,8 @@
                                         <div v-if="exercise.notes" class="text-[9px] text-slate-500 italic mt-0.5">"@{{ exercise.notes }}"</div>
                                     </div>
 
-                                    <div class="w-6 h-6 rounded-[4px] border border-slate-600 flex items-center justify-center text-slate-400 text-xs group-hover:border-purple-500 group-hover:text-purple-500 transition">
-                                        ▶
+                                    <div class="w-6 h-6 rounded-[4px] border border-slate-600 flex items-center justify-center text-slate-400 text-xs group-hover:border-brand-500 group-hover:text-brand-400 transition">
+                                        <i class="fa-solid fa-play text-[10px]"></i>
                                     </div>
                                 </div>
                             </div>
@@ -697,15 +701,26 @@
                             <span class="font-bold text-slate-300 font-mono">EQUIPMENT:</span> @{{ detail.strength?.equipment || 'Dumbbells, Mat' }}
                         </div>
 
-                        <div v-if="showGuidedPlayer" class="rounded-[6px] border border-purple-500/20 bg-purple-900/10 p-3">
+                        <div v-if="showGuidedPlayer" class="rounded-[6px] border border-brand-500/20 bg-slate-900/90 p-3">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
-                                    <div class="text-[9px] font-bold uppercase tracking-widest text-purple-300">Guided Workout</div>
+                                    <div class="text-[9px] font-bold uppercase tracking-widest text-brand-400">Guided Workout</div>
                                     <div class="text-xs font-bold text-white truncate">
                                         @{{ currentExercise ? currentExercise.name : 'Workout' }}
                                     </div>
                                 </div>
-                                <button type="button" class="px-2.5 py-1.5 rounded-[4px] bg-slate-900/60 border border-slate-700 text-slate-200 text-[10px] font-bold hover:border-purple-500/40 transition" @click="exitGuidedWorkout">Exit</button>
+                                <button type="button" class="px-2.5 py-1.5 rounded-[4px] bg-slate-900 border border-slate-700 text-slate-200 text-[10px] font-bold hover:border-brand-500/40 transition" @click="exitGuidedWorkout">Exit</button>
+                            </div>
+
+                            <!-- Media Display Box -->
+                            <div v-if="currentExercise && (currentExercise.media_url || currentExercise.instructions)" class="my-2.5 p-2 rounded-lg bg-slate-950/80 border border-slate-800 space-y-2">
+                                <div v-if="currentExercise.media_url" class="w-full h-40 rounded-md overflow-hidden bg-black flex items-center justify-center border border-slate-800">
+                                    <video v-if="currentExercise.media_type === 'video'" :src="currentExercise.media_url" autoplay loop muted class="w-full h-full object-contain"></video>
+                                    <img v-else :src="currentExercise.media_url" class="w-full h-full object-contain" :alt="currentExercise.name">
+                                </div>
+                                <div v-if="currentExercise.instructions" class="text-[10px] text-slate-300 leading-relaxed bg-slate-900/60 p-2 rounded border border-slate-800">
+                                    <span class="font-bold text-brand-400">Panduan Form:</span> @{{ currentExercise.instructions }}
+                                </div>
                             </div>
 
                             <div v-if="!currentExercise" class="mt-2 text-[11px] text-slate-400">Workout plan belum punya exercise.</div>

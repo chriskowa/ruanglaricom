@@ -747,20 +747,22 @@ class StravaController extends Controller
                 ]);
             }
 
-            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari. "
-                ."Analisis workout lari berdasarkan data Strava dan konteks latihan mingguan. "
-                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan actionable. "
-                ."Jangan mengarang metrik yang tidak ada. Jika data kurang, katakan secara eksplisit. "
-                ."Return HARUS JSON valid tanpa markdown dan tanpa teks lain.";
+            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari yang sangat cerdas & teliti.\n"
+                ."PRINSIP UTAMA KLASIFIKASI JENIS WORKOUT (WAJIB DIPATUHI):\n"
+                ."1. Lari dengan jarak >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
+                ."2. Lari 'interval' HANYA berlaku untuk sesi dengan repetisi cepat-lambat berulang (sawtooth) dengan total jarak biasanya <= 14 km.\n"
+                ."3. Adanya variasi pace akibat water stop, lampu merah, atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
+                ."4. Jika jarak lari >= 14 km dan terdapat segmen tempo/fast finish di dalamnya, gunakan tipe 'long_run_quality'.\n\n"
+                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan presisi. Return HARUS JSON valid.";
 
             $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
-                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream) dan konteks pace latihan runner.\n"
+                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream), jarak total, dan konteks pace latihan runner.\n"
                 ."Jika konteks menyebut 'junk_miles_risk.level' = medium/high, tambahkan 1 item ke risk_flags dengan format: \"Junk miles risk: <level> - <alasan singkat>\".\n"
                 ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
                 ."Format output JSON:\n"
                 ."{\n"
                 ."  \"workout_classification\": {\n"
-                ."    \"type\": \"easy|interval|tempo|threshold|mixed|unknown\",\n"
+                ."    \"type\": \"easy_run|long_run|long_run_quality|interval|tempo|threshold|recovery|mixed|unknown\",\n"
                 ."    \"evidence\": [\"...\"]\n"
                 ."  },\n"
                 ."  \"summary\": \"...\",\n"
@@ -802,6 +804,22 @@ class StravaController extends Controller
             }
 
             $decoded = $this->normalizeAiAnalysis($decoded);
+
+            // Post-AI Safety Guardrail: Force distance >= 14km to be long_run or long_run_quality
+            $distKm = (float) data_get($metrics, 'activity.distance_km', 0);
+            if ($distKm >= 14 && in_array(data_get($decoded, 'workout_classification.type'), ['interval', 'easy', 'mixed', 'unknown'], true)) {
+                $hasVariation = data_get($metrics, 'activity.split_pace_stats.cv', 0) >= 0.15;
+                $newType = $hasVariation ? 'long_run_quality' : 'long_run';
+                $decoded['workout_classification']['type'] = $newType;
+                $decoded['workout_classification']['evidence'] = array_merge(
+                    ["Jarak total {$distKm} km diklasifikasikan secara definitif sebagai Long Run."],
+                    $decoded['workout_classification']['evidence'] ?? []
+                );
+                if (isset($decoded['summary']) && str_contains($decoded['summary'], 'Jenis sesi:')) {
+                    $decoded['summary'] = preg_replace('/Jenis sesi:\s*[^.]+\./i', 'Jenis sesi: ' . ($hasVariation ? 'Long Run Quality' : 'Long Run') . '.', $decoded['summary']);
+                }
+            }
+
             $decoded['junk_miles_risk'] = data_get($metrics, 'recent_training_context.junk_miles_risk', [
                 'level' => 'unknown',
                 'evidence' => [],
@@ -1100,10 +1118,25 @@ class StravaController extends Controller
         $thresholdSec = $this->minutesPerKmToSeconds(data_get($paces, 'T'));
         $medianSec = $this->paceStringToSeconds(data_get($splitStats, 'median_pace'));
 
-        if ($splitStats && $count >= 6 && ($ratio >= 1.22 || $cv >= 0.12)) {
+        // RULE 1: Distance >= 14 km is ALWAYS a Long Run (long_run or long_run_quality). NEVER interval.
+        if ($distanceKm >= 14) {
+            if ($cv >= 0.15 || $ratio >= 1.25) {
+                return [
+                    'type' => 'long_run_quality',
+                    'evidence' => ["Jarak {$distanceKm} km merupakan Lari Jarak Jauh (Long Run) dengan segmen variasi pace / fast finish."],
+                ];
+            }
+            return [
+                'type' => 'long_run',
+                'evidence' => ["Jarak {$distanceKm} km diklasifikasikan secara definitif sebagai Long Run (Lari Jarak Jauh)."],
+            ];
+        }
+
+        // RULE 2: Interval detection strictly for runs < 14 km with true repeating high-intensity sawtooth splits
+        if ($distanceKm < 14 && $splitStats && $count >= 4 && ($ratio >= 1.30 || $cv >= 0.14)) {
             return [
                 'type' => 'interval',
-                'evidence' => ["Variasi pace split tinggi (ratio {$ratio}, cv {$cv})."],
+                'evidence' => ["Lari {$distanceKm} km menunjukkan variasi pace split berulang khas latihan interval (ratio {$ratio}, cv {$cv})."],
             ];
         }
 
@@ -1111,7 +1144,7 @@ class StravaController extends Controller
             $diff = abs($medianSec - $thresholdSec) / $thresholdSec;
             if ($diff <= 0.04) {
                 $type = 'threshold';
-                $evidence[] = 'Median pace mendekati T pace runner.';
+                $evidence[] = 'Median pace mendekati T (Threshold) pace runner.';
             } elseif ($medianSec > $thresholdSec && (($medianSec - $thresholdSec) / $thresholdSec) <= 0.12) {
                 $type = 'tempo';
                 $evidence[] = 'Median pace sedikit lebih lambat dari T pace (tempo).';
@@ -1121,14 +1154,14 @@ class StravaController extends Controller
         if ($type === 'unknown' && $easySec && $medianSec) {
             $diff = abs($medianSec - $easySec) / $easySec;
             if ($diff <= 0.12) {
-                $type = 'easy';
-                $evidence[] = 'Median pace berada di sekitar easy pace runner.';
+                $type = 'easy_run';
+                $evidence[] = 'Median pace berada di sekitar Easy pace runner.';
             }
         }
 
-        if ($type === 'unknown' && $distanceKm >= 14) {
-            $type = 'mixed';
-            $evidence[] = 'Jarak cukup panjang; kemungkinan sesi campuran.';
+        if ($type === 'unknown') {
+            $type = $distanceKm >= 10 ? 'long_run' : 'easy_run';
+            $evidence[] = "Jarak {$distanceKm} km dikategorikan sebagai " . ($distanceKm >= 10 ? 'Long Run' : 'Easy Run') . '.';
         }
 
         return ['type' => $type, 'evidence' => $evidence];

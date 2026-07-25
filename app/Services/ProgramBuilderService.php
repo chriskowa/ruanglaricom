@@ -56,6 +56,9 @@ class ProgramBuilderService
         $runnerLevel = $config['runner_level'] ?? 'intermediate';
         $longRunDay = $config['long_run_day'] ?? 'sunday';
         $isTropical = $config['is_tropical'] ?? false;
+        $includeStrength = filter_var($config['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $strengthType = $config['strength_type'] ?? 'bodyweight';
+        $injuryHistory = $config['injury_history'] ?? 'none';
 
         $library = $this->loadLibrary();
 
@@ -197,6 +200,20 @@ class ProgramBuilderService
                 }
             }
 
+            // Step 4: Strength Training Days (if enabled)
+            if ($includeStrength) {
+                $strengthDaysNeeded = ($phase === 'Taper') ? 1 : 2;
+                $assignedStrength = 0;
+                $strengthCandidates = [2, 5, 4, 6, 1, 3, 7];
+                foreach ($strengthCandidates as $d) {
+                    if ($assignedStrength >= $strengthDaysNeeded) break;
+                    if ($dayAssignments[$d]['type'] === 'rest') {
+                        $dayAssignments[$d] = ['type' => 'strength', 'workout' => null];
+                        $assignedStrength++;
+                    }
+                }
+            }
+
             // ===== CALCULATE DISTANCES =====
             $qualityDistances = [];
             foreach ($dayAssignments as $d => $assign) {
@@ -332,6 +349,11 @@ class ProgramBuilderService
                     $session['description'] = $assignment['type'] === 'recovery_run'
                         ? ($isDeload ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget: $rangeStr (RPE < 3)" : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget: $rangeStr (RPE < 3)")
                         : "Easy Aerobic Run - Membangun daya tahan dasar.\nTarget: $rangeStr (RPE 3-4)";
+                } elseif ($assignment['type'] === 'strength') {
+                    $session['type'] = 'strength';
+                    $session['distance'] = 0;
+                    $session['duration'] = ($phase === 'Taper') ? '00:25:00' : '00:40:00';
+                    $session['description'] = $this->getStrengthDescription($strengthType, $phase, $injuryHistory);
                 } else {
                     // Rest day
                     $session['duration'] = '00:00:00';
@@ -897,6 +919,50 @@ class ProgramBuilderService
     // =========================================================================
     // INTERNAL HELPERS
     // =========================================================================
+
+    private function getStrengthDescription(string $strengthType, string $phase, string $injuryHistory): string
+    {
+        $isTaper = ($phase === 'Taper');
+        $isBodyweight = ($strengthType === 'bodyweight');
+
+        $injuryAdvice = match($injuryHistory) {
+            'knee' => "\n[Catatan Cedera Lutut: Hindari jump squat/deep squat berlebihan. Fokus isometric glute & quad!]",
+            'hamstring' => "\n[Catatan Cedera Hamstring: Lakukan RDL dengan beban ringan, fokus eccentric control!]",
+            'ankle' => "\n[Catatan Cedera Ankle: Lakukan single-leg balance & calf raise secara terkontrol!]",
+            'shin' => "\n[Catatan Cedera Shin Splints: Penguatan tibialis anterior & soleus calf raise!]",
+            'back' => "\n[Catatan Cedera Punggung: Jaga postur netral, kencangkan core (no heavy spinal loading)!]",
+            default => "",
+        };
+
+        if ($isTaper) {
+            return "Strength & Mobility (Taper) - Sesi penguatan ringan untuk menjaga tonus otot tanpa kelelahan.\n" .
+                "Warm Up: 5 min dynamic stretching & mobility\n" .
+                "Main Set: 2 set x 10 reps (Bodyweight Squat, Glute Bridge, Plank 30s, Standing Calf Raise)\n" .
+                "Focus: Otot aktif, postur rileks, mobilitas sendi." . $injuryAdvice;
+        }
+
+        if ($isBodyweight) {
+            return "Strength Training (Bodyweight / Home) - Penguatan otot pendukung lari & core.\n" .
+                "Warm Up: 5-8 min mobilitas sendi & dynamic stretch\n" .
+                "Main Set: 3 set x 10-12 reps\n" .
+                "- Bodyweight Squat (Paha & Glutes)\n" .
+                "- Reverse Lunge (Keseimbangan & Stabilitas Kaki)\n" .
+                "- Glute Bridge (Ekstensi Panggul & Hamstring)\n" .
+                "- Single-Leg Calf Raise (Betis & Tendon Achilles)\n" .
+                "- Core: Plank (3x45 detik) & Bird-Dog (3x10/sisi)\n" .
+                "Cool Down: 5 min static stretching." . $injuryAdvice;
+        }
+
+        return "Strength Training (Gym / Weighted) - Latihan beban terstruktur untuk running economy & daya tahan.\n" .
+            "Warm Up: 8 min dynamic warmup & mobility\n" .
+            "Main Set: 3 set x 8-10 reps\n" .
+            "- Goblet / Barbell Squat (Daya tahan paha & glutes)\n" .
+            "- Dumbbell Romanian Deadlift (Hamstring & Rantai Posterior)\n" .
+            "- Step-Up / Walking Lunge (Stabilitas tunggal kaki)\n" .
+            "- Standing Weighted Calf Raise (Kekuatan tendon Achilles)\n" .
+            "- Core: Pallof Press (3x10/sisi) & Farmer's Walk (3x30 detik)\n" .
+            "Cool Down: 5 min static stretching." . $injuryAdvice;
+    }
 
     private function loadLibrary(): array
     {

@@ -883,6 +883,10 @@ Route::middleware('auth')->group(function () {
         Route::post('event-submissions/{submission}/approve', [App\Http\Controllers\Admin\EventSubmissionController::class, 'approve'])->name('event-submissions.approve');
         Route::post('event-submissions/{submission}/reject', [App\Http\Controllers\Admin\EventSubmissionController::class, 'reject'])->name('event-submissions.reject');
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
+        
+        // Strength Exercises Management
+        Route::post('strength-exercises/seed', [App\Http\Controllers\Admin\StrengthExerciseController::class, 'seedDefaults'])->name('strength-exercises.seed');
+        Route::resource('strength-exercises', App\Http\Controllers\Admin\StrengthExerciseController::class)->except(['create', 'show', 'edit']);
 
         // User Management
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
@@ -1291,6 +1295,55 @@ Route::get('/run-queue-worker', function () {
 // Photo Tagging Public Routes
 Route::get('/photo-tagging', [\App\Http\Controllers\PhotoTaggingController::class, 'index'])->name('photo-tagging.index');
 Route::get('/photo-tagging/{event_slug}', [\App\Http\Controllers\PhotoTaggingController::class, 'show'])->name('photo-tagging.show');
+
+// Public Strength Exercises API
+Route::get('/api/strength-exercises', function () {
+    $exercises = \App\Models\StrengthExercise::where('is_active', true)
+        ->orderBy('category')
+        ->orderBy('sort_order')
+        ->orderBy('name')
+        ->get(['id', 'name', 'category', 'equipment', 'default_sets', 'default_reps', 'media_type', 'media_url', 'instructions', 'target_muscles']);
+
+    if ($exercises->isEmpty()) {
+        return response()->json([
+            'success' => true,
+            'source' => 'default',
+            'data' => \App\Models\StrengthExercise::getDefaultLibrary()
+        ]);
+    }
+
+    $grouped = [
+        'full_body' => [],
+        'legs_lower_body' => [],
+        'core' => [],
+        'upper_body' => [],
+    ];
+
+    foreach ($exercises as $ex) {
+        $cat = $ex->category;
+        if (!isset($grouped[$cat])) {
+            $grouped[$cat] = [];
+        }
+        $grouped[$cat][] = [
+            'id' => $ex->id,
+            'name' => $ex->name,
+            'sets' => $ex->default_sets,
+            'reps' => $ex->default_reps,
+            'equipment' => $ex->equipment,
+            'media_type' => $ex->media_type,
+            'media_url' => $ex->media_url,
+            'instructions' => $ex->instructions,
+            'target_muscles' => $ex->target_muscles,
+        ];
+    }
+
+    return response()->json([
+        'success' => true,
+        'source' => 'database',
+        'data' => $grouped,
+        'all' => $exercises
+    ]);
+})->name('api.strength-exercises');
 
 // Dynamic pages with template support (must be at the end)
 Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');

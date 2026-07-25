@@ -310,6 +310,29 @@
                             </div>
                         </div>
 
+                        <!-- Athlete Body & Injury Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="space-y-1.5">
+                                <label class="label-text">Tinggi Badan (cm)</label>
+                                <input v-model.number="form.height_cm" type="number" min="100" max="230" class="input-field font-bold" placeholder="170">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="label-text">Berat Badan (kg)</label>
+                                <input v-model.number="form.weight_kg" type="number" min="30" max="200" class="input-field font-bold" placeholder="65">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="label-text">Riwayat Cedera</label>
+                                <select v-model="form.injury_history" class="input-field cursor-pointer">
+                                    <option value="none">Tidak Ada / Sehat</option>
+                                    <option value="knee">Lutut (Knee)</option>
+                                    <option value="hamstring">Hamstring / Otot Paha</option>
+                                    <option value="ankle">Pergelangan Kaki (Ankle)</option>
+                                    <option value="shin">Shin Splints / Betis</option>
+                                    <option value="back">Punggung Bawah (Back)</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <!-- Target Section -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div class="space-y-1.5">
@@ -393,7 +416,7 @@
                                 <div class="space-y-1.5">
                                     <div class="flex justify-between items-center">
                                         <label class="label-text mb-0">Level Pelari</label>
-                                        <span class="text-[9px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">Auto (VDOT: @{{ current_vdot ? current_vdot.toFixed(1) : '-' }})</span>
+                                        <span class="text-[9px] font-bold bg-green-900/20 text-green-400 px-1.5 py-0.5 rounded border border-cyan-500/20">Auto (VDOT: @{{ current_vdot ? current_vdot.toFixed(1) : '-' }})</span>
                                     </div>
                                     <select v-model="form.runner_level" class="input-field cursor-pointer font-bold">
                                         <option value="beginner">Pemula (Beginner - VDOT &lt; 35)</option>
@@ -407,6 +430,26 @@
                                         <option value="saturday">Sabtu</option>
                                         <option value="sunday">Minggu</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between items-center">
+                                    <label class="label-text mb-0">Program Strength Training (Latihan Beban)</label>
+                                    <span v-if="form.include_strength" class="text-[9px] font-bold bg-green-900/20 text-green-400 px-2 py-0.5 rounded border border-green-900/20 uppercase tracking-wider">2x / Minggu</span>
+                                </div>
+                                <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                                    <div class="flex items-center gap-2 min-w-[190px]">
+                                        <input type="checkbox" v-model="form.include_strength" id="include_strength" class="w-4 h-4 accent-indigo-500 cursor-pointer rounded border-slate-600 bg-slate-800">
+                                        <label for="include_strength" class="text-[11px] text-slate-300 font-bold cursor-pointer select-none">
+                                            Sertakan Sesi Strength
+                                        </label>
+                                    </div>
+                                    <div v-if="form.include_strength" class="flex-1">
+                                        <select v-model="form.strength_type" class="input-field cursor-pointer text-xs font-bold py-1.5">
+                                            <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat)</option>
+                                            <option value="gym">Gym / Weighted (Dengan Beban)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="space-y-1.5">
@@ -516,6 +559,48 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Athlete Profile & Nutrition Card -->
+                        <div v-if="result?.bmi || result?.protein_recommendation || bmi || proteinRecommendation" class="card-dark p-5 rounded-2xl border border-slate-800 shadow-lg space-y-4">
+                            <div class="flex items-center gap-2 pb-2.5 border-b border-slate-800">
+                                <i class="fa-solid fa-user-ninja text-indigo-400 text-sm"></i>
+                                <h3 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Profil Atlet & Nutrisi</h3>
+                            </div>
+
+                            <!-- BMI Display -->
+                            <div v-if="result?.bmi || bmi" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex justify-between items-center">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Indeks Massa Tubuh (BMI)</div>
+                                    <div class="text-lg font-black text-white font-mono">@{{ result?.bmi || bmi }} <span class="text-xs font-normal text-slate-400">kg/m²</span></div>
+                                </div>
+                                <div v-if="bmiCategory" :class="bmiCategory.badgeClass + ' ' + bmiCategory.color" class="px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider">
+                                    @{{ bmiCategory.label }}
+                                </div>
+                            </div>
+
+                            <!-- Daily Protein Recommendation -->
+                            <div v-if="result?.protein_recommendation || proteinRecommendation" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                        <span>🥩</span> Protein Harian
+                                    </span>
+                                    <span class="font-extrabold text-xs text-indigo-400 font-mono">
+                                        @{{ (result?.protein_recommendation || proteinRecommendation)?.min }} - @{{ (result?.protein_recommendation || proteinRecommendation)?.max }} g/hari
+                                    </span>
+                                </div>
+                                <p class="text-[9px] text-slate-500 italic">
+                                    @{{ (result?.protein_recommendation || proteinRecommendation)?.note }}
+                                </p>
+                            </div>
+
+                            <!-- Injury History Note -->
+                            <div v-if="form.injury_history && form.injury_history !== 'none'" class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/20 flex items-start gap-2">
+                                <i class="fa-solid fa-kit-medical text-amber-400 text-xs mt-0.5"></i>
+                                <div class="text-[10px] text-amber-200/90 leading-tight">
+                                    <strong>Perhatian Cedera (@{{ form.injury_history.toUpperCase() }}):</strong> Latihan strength & pace telah disesuaikan dengan instruksi protektif otot.
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Program Preview (Free Weeks) -->
@@ -556,54 +641,6 @@
                     </div>
                 </div>
             </div>
-        </transition>
-
-        <!-- Program Conflict Modal -->
-        <div v-if="conflictModal.show" class="fixed inset-0 z-[1050] overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="conflictModal.show = false"></div>
-            <div class="relative z-10 flex min-h-screen items-center justify-center p-4">
-                <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
-                    <!-- Header -->
-                    <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-extrabold text-white uppercase tracking-tight">Program Aktif Terdeteksi</h3>
-                            <p class="text-[10px] text-slate-400 font-medium">Anda memiliki program aktif di kalender</p>
-                        </div>
-                    </div>
-
-                    <!-- Info Box -->
-                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400 font-mono">Program Aktif:</span>
-                            <span class="font-extrabold text-amber-400">@{{ conflictModal.activeTitle }}</span>
-                        </div>
-                        <div v-if="conflictModal.activeStartDate" class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400 font-mono">Periode:</span>
-                            <span class="font-bold text-slate-200">@{{ conflictModal.activeStartDate }} - @{{ conflictModal.activeEndDate }}</span>
-                        </div>
-                    </div>
-
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Menyimpan program baru ini akan <strong>menonaktifkan (replace)</strong> program aktif lama Anda di kalender. Apakah Anda yakin ingin melanjutkan?
-                    </p>
-
-                    <!-- Actions -->
-                    <div class="flex items-center gap-3 pt-2">
-                        <button type="button" @click="conflictModal.show = false" 
-                                class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition">
-                            Batal
-                        </button>
-                        <button type="button" @click="confirmConflictAction('replace')" 
-                                class="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20">
-                            Ganti Program
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Auth Modal Integration (handled by layout pacerhub) -->
@@ -662,6 +699,11 @@
                 frequency: 4,
                 gender: 'male',
                 age: 25,
+                height_cm: 170,
+                weight_kg: 65,
+                injury_history: 'none',
+                include_strength: true,
+                strength_type: 'bodyweight',
                 runner_level: 'intermediate',
                 long_run_day: 'sunday',
                 is_tropical: false,
@@ -903,10 +945,10 @@
                     return { label: 'Mudah', color: 'bg-green-900/20 text-green-400 border-green-500/30', description: 'Target ini berada di bawah performa terbaik Anda saat ini.' };
                 }
                 if (diffPercent <= rec * 1.1) {
-                    return { label: 'Realistis', color: 'bg-blue-900/20 text-blue-400 border-blue-500/30', description: `Target ini setara peningkatan sekitar ${diffLabel.toFixed(1)}% dari VDOT Anda. Rentang realistis saat ini ~${recLabel.toFixed(1)}%.` };
+                    return { label: 'Realistis', color: 'bg-green-900/20 text-green-400 border-blue-500/30', description: `Target ini setara peningkatan sekitar ${diffLabel.toFixed(1)}% dari VDOT Anda. Rentang realistis saat ini ~${recLabel.toFixed(1)}%.` };
                 }
                 if (diffPercent <= rec * 1.6) {
-                    return { label: 'Ambisius', color: 'bg-orange-900/20 text-orange-400 border-orange-500/30', description: `Peningkatan sekitar ${diffLabel.toFixed(1)}% tergolong menantang untuk jarak ${form.target_distance.toUpperCase()}.` };
+                    return { label: 'Ambisius', color: 'bg-green-900/20 text-green-400 border-orange-500/30', description: `Peningkatan sekitar ${diffLabel.toFixed(1)}% tergolong menantang untuk jarak ${form.target_distance.toUpperCase()}.` };
                 }
                 return { label: 'Sangat Ambisius', color: 'bg-red-900/20 text-red-400 border-red-500/30', description: `Peningkatan sekitar ${diffLabel.toFixed(1)}% terlalu agresif untuk target ${form.target_distance.toUpperCase()}.` };
             });
@@ -933,6 +975,35 @@
             const recommendMileage = () => {
                 form.weekly_mileage = idealMileage.value;
             };
+
+            const bmi = computed(() => {
+                if (!form.height_cm || !form.weight_kg) return null;
+                const heightM = form.height_cm / 100;
+                return +(form.weight_kg / (heightM * heightM)).toFixed(1);
+            });
+
+            const bmiCategory = computed(() => {
+                const b = bmi.value;
+                if (!b) return null;
+                if (b < 18.5) return { label: 'Kurus', color: 'text-blue-400', badgeClass: 'bg-blue-500/10 border-blue-500/30' };
+                if (b < 25)   return { label: 'Normal', color: 'text-emerald-400', badgeClass: 'bg-emerald-500/10 border-emerald-500/30' };
+                if (b < 30)   return { label: 'Overweight', color: 'text-amber-400', badgeClass: 'bg-amber-500/10 border-amber-500/30' };
+                return { label: 'Obese', color: 'text-red-400', badgeClass: 'bg-red-500/10 border-red-500/30' };
+            });
+
+            const proteinRecommendation = computed(() => {
+                if (!form.weight_kg) return null;
+                const w = form.weight_kg;
+                const level = form.runner_level || 'intermediate';
+                let minFactor = 1.6, maxFactor = 1.8;
+                if (level === 'beginner') { minFactor = 1.4; maxFactor = 1.6; }
+                else if (level === 'advanced') { minFactor = 1.8; maxFactor = 2.0; }
+                return {
+                    min: Math.round(w * minFactor),
+                    max: Math.round(w * maxFactor),
+                    note: `Target ${minFactor}–${maxFactor} g/kg/hari (standar ACSM untuk atlet)`
+                };
+            });
 
             const freePreviewSessions = computed(() => {
                 if (!result.value) return [];
@@ -1135,6 +1206,7 @@
                     'interval': 'bg-red-900/20 border-red-500/20 text-red-400',
                     'repetition': 'bg-fuchsia-900/20 border-fuchsia-500/20 text-fuchsia-400',
                     'hill': 'bg-sky-900/20 border-sky-500/20 text-sky-400',
+                    'strength': 'bg-indigo-900/20 border-indigo-500/20 text-indigo-400',
                     'rest': 'bg-slate-900/40 border-slate-800 opacity-60 text-slate-400'
                 };
                 return classes[type] || 'bg-slate-900/40 border-slate-800';
@@ -1150,7 +1222,8 @@
                     'threshold': '<i class="fa-solid fa-fire"></i>',
                     'interval': '<i class="fa-solid fa-bolt"></i>',
                     'repetition': '<i class="fa-solid fa-rocket"></i>',
-                    'hill': '<i class="fa-solid fa-mountain"></i>'
+                    'hill': '<i class="fa-solid fa-mountain"></i>',
+                    'strength': '<i class="fa-solid fa-dumbbell"></i>'
                 };
                 return icons[type] || '<i class="fa-solid fa-person-running"></i>';
             };
@@ -1163,6 +1236,7 @@
                 pb_hours, pb_minutes, pb_seconds, pb_distance_meters,
                 goal_hours, goal_minutes, goal_seconds,
                 idealMileage, recommendMileage, realism,
+                bmi, bmiCategory, proteinRecommendation,
                 showNotification
             };
         }
