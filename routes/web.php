@@ -1298,6 +1298,14 @@ Route::get('/photo-tagging/{event_slug}', [\App\Http\Controllers\PhotoTaggingCon
 
 // Public Strength Exercises API
 Route::get('/api/strength-exercises', function () {
+    if (!\Illuminate\Support\Facades\Schema::hasTable('strength_exercises')) {
+        return response()->json([
+            'success' => true,
+            'source' => 'default',
+            'data' => \App\Models\StrengthExercise::getDefaultLibrary()
+        ]);
+    }
+
     $exercises = \App\Models\StrengthExercise::where('is_active', true)
         ->orderBy('category')
         ->orderBy('sort_order')

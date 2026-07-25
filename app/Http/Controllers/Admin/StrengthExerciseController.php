@@ -11,6 +11,8 @@ class StrengthExerciseController extends Controller
 {
     public function index(Request $request)
     {
+        $this->ensureTableExists();
+
         $query = StrengthExercise::query();
 
         if ($request->filled('category')) {
@@ -133,5 +135,43 @@ class StrengthExerciseController extends Controller
         }
 
         return redirect()->route('admin.strength-exercises.index')->with('success', "Master data awal ($inserted gerakan) berhasil dimuat.");
+    }
+
+    private function ensureTableExists(): void
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('strength_exercises')) {
+            \Illuminate\Support\Facades\Schema::create('strength_exercises', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('category');
+                $table->string('equipment')->nullable();
+                $table->string('default_sets')->default('3');
+                $table->string('default_reps')->default('10-12 reps');
+                $table->enum('media_type', ['image', 'gif', 'video', 'url'])->default('gif');
+                $table->string('media_url')->nullable();
+                $table->text('instructions')->nullable();
+                $table->string('target_muscles')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->integer('sort_order')->default(0);
+                $table->timestamps();
+            });
+
+            $defaults = StrengthExercise::getDefaultLibrary();
+            foreach ($defaults as $cat => $items) {
+                foreach ($items as $item) {
+                    StrengthExercise::create([
+                        'name' => $item['name'],
+                        'category' => $cat,
+                        'equipment' => $item['equipment'] ?? 'Bodyweight',
+                        'default_sets' => $item['sets'] ?? '3',
+                        'default_reps' => $item['reps'] ?? '10-12 reps',
+                        'instructions' => $item['instructions'] ?? null,
+                        'target_muscles' => $item['target_muscles'] ?? null,
+                        'media_type' => 'gif',
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
     }
 }

@@ -71,6 +71,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.strength-exercises.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.strength-exercises.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-dumbbell"></i></span>
+                                    <span>Strength Exercises</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.races.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.races.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-flag-checkered"></i></span>
                                     <span>Race Master</span>
