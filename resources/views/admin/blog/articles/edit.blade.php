@@ -130,8 +130,8 @@
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Publish</h3>
                     <div class="space-y-4">
-                        <button type="button" onclick="openArticleAgent()" class="w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                        <button type="button" onclick="openArticleAgent()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-semibold hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
+                            <i class="fas fa-brain text-neon text-xs"></i>
                             Article Agent
                         </button>
                         <div>
@@ -181,11 +181,10 @@
                             </div>
 
                             <div id="category-list" data-store-url="{{ route('admin.blog.categories.store') }}" data-update-template="{{ route('admin.blog.categories.update', ['category' => 0]) }}" class="max-h-56 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2">
-                                @php($selectedCategoryIds = old('categories', $articleCategoryIds ?? []))
                                 @foreach($categories as $category)
                                     <div data-row-cat-id="{{ $category->id }}" class="flex items-center justify-between gap-2">
                                         <label class="flex items-center gap-2 min-w-0">
-                                            <input type="checkbox" name="categories[]" value="{{ $category->id }}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ in_array($category->id, $selectedCategoryIds) ? 'checked' : '' }}>
+                                            <input type="checkbox" name="categories[]" value="{{ $category->id }}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ in_array($category->id, old('categories', $article->categories->pluck('id')->toArray())) ? 'checked' : '' }}>
                                             <span class="text-sm text-slate-300 truncate cat-name" data-cat-id="{{ $category->id }}">{{ $category->name }}</span>
                                         </label>
                                         <button type="button" class="btn-edit-category px-2 py-1 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors text-[11px] font-bold" data-cat-id="{{ $category->id }}" data-cat-name="{{ $category->name }}" data-cat-slug="{{ $category->slug }}">Edit</button>
@@ -198,7 +197,7 @@
                             <div class="max-h-40 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl p-3 mb-2 space-y-2">
                                 @foreach($tags as $tag)
                                     <label class="flex items-center gap-2">
-                                        <input type="checkbox" name="tags[]" value="{{ $tag->id }}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ in_array($tag->id, old('tags', $articleTags)) ? 'checked' : '' }}>
+                                        <input type="checkbox" name="tags[]" value="{{ $tag->id }}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ in_array($tag->id, old('tags', $article->tags->pluck('id')->toArray())) ? 'checked' : '' }}>
                                         <span class="text-sm text-slate-300">{{ $tag->name }}</span>
                                     </label>
                                 @endforeach
@@ -214,16 +213,11 @@
                     <div class="space-y-4">
                         <div class="relative w-full aspect-video bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl overflow-hidden flex items-center justify-center group hover:border-neon transition-colors">
                             <input type="file" id="featured_image_file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
-                            <input type="hidden" name="featured_image_url" id="featured_image_url">
-                            @if($article->featured_image)
-                                <img id="img-preview" src="{{ Str::startsWith($article->featured_image, ['http://', 'https://']) ? $article->featured_image : asset('storage/' . $article->featured_image) }}" class="absolute inset-0 w-full h-full object-cover">
-                                <div class="text-center p-4 pointer-events-none hidden" id="img-placeholder">
-                            @else
-                                <img id="img-preview" class="absolute inset-0 w-full h-full object-cover hidden">
-                                <div class="text-center p-4 pointer-events-none" id="img-placeholder">
-                            @endif
+                            <input type="hidden" name="featured_image_url" id="featured_image_url" value="{{ old('featured_image_url', $article->featured_image) }}">
+                            <img id="img-preview" src="{{ $article->featured_image ? (\Illuminate\Support\Str::startsWith($article->featured_image, ['http://', 'https://']) ? $article->featured_image : asset('storage/' . $article->featured_image)) : '' }}" class="absolute inset-0 w-full h-full object-cover {{ $article->featured_image ? '' : 'hidden' }}">
+                            <div class="text-center p-4 pointer-events-none {{ $article->featured_image ? 'hidden' : '' }}" id="img-placeholder">
                                 <svg class="w-8 h-8 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <span class="text-xs text-slate-400">Click to replace</span>
+                                <span class="text-xs text-slate-400">Click to upload</span>
                             </div>
                         </div>
                         <div class="flex justify-center">
@@ -239,59 +233,68 @@
 </div>
 
 {{-- Article Agent Modal --}}
-<div id="article-agent-modal" class="fixed inset-0 z-[9998] flex items-center justify-center bg-black/80 hidden">
-    <div class="bg-slate-900 w-11/12 max-w-3xl max-h-[90vh] rounded-2xl border border-fuchsia-500/40 shadow-2xl flex flex-col overflow-hidden">
-        <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800/80">
-            <h3 class="text-white font-bold text-lg">Article Agent</h3>
+<div id="article-agent-modal" class="fixed inset-0 z-[9998] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 w-11/12 max-w-3xl max-h-[90vh] rounded-2xl border border-slate-700/80 shadow-2xl flex flex-col overflow-hidden">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-800/60">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-neon/10 border border-neon/20 flex items-center justify-center text-neon">
+                    <i class="fas fa-brain text-sm"></i>
+                </div>
+                <h3 class="text-white font-bold text-base">Article Agent Assistant</h3>
+            </div>
             <button onclick="closeArticleAgent()" class="text-slate-400 hover:text-white transition-colors" aria-label="Tutup">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-5 space-y-5">
-            <div class="flex items-center gap-2 text-xs font-semibold">
-                <button type="button" onclick="aaGotoStep(1)" id="aa-step-1" class="px-3 py-1 rounded-full bg-fuchsia-500 text-white hover:opacity-80 transition-opacity">1. Topik</button>
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="flex items-center gap-2 text-xs font-semibold pb-2 border-b border-slate-800">
+                <button type="button" onclick="aaGotoStep(1)" id="aa-step-1" class="px-3.5 py-1.5 rounded-lg bg-neon text-dark font-bold shadow-sm transition-all">1. Topik & Strategi</button>
                 <span class="text-slate-600">&rarr;</span>
-                <button type="button" onclick="aaGotoStep(2)" id="aa-step-2" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 hover:opacity-80 transition-opacity">2. Pilih</button>
+                <button type="button" onclick="aaGotoStep(2)" id="aa-step-2" class="px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-all">2. Pilih Ide</button>
                 <span class="text-slate-600">&rarr;</span>
-                <button type="button" onclick="aaGotoStep(3)" id="aa-step-3" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 hover:opacity-80 transition-opacity">3. Tulis</button>
+                <button type="button" onclick="aaGotoStep(3)" id="aa-step-3" class="px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-all">3. Tulis Artikel</button>
             </div>
 
-            <div id="aa-panel-topic">
-                <label class="block text-sm font-semibold text-slate-300 mb-2">Topik / Niche</label>
-                <input type="text" id="aa-topic" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-fuchsia-500 transition-colors" placeholder="e.g., Training lari 10K pemula">
-                <label class="block text-sm font-semibold text-slate-300 mt-4 mb-2">Strategi</label>
-                <select id="aa-strategy" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-fuchsia-500 transition-colors">
-                    <option value="free">Bebas (langsung brainstorm)</option>
-                    <option value="gap">Cari Celah Baru (hindari topik serupa)</option>
-                    <option value="cluster">Pillar & Cluster (topik turunan)</option>
-                    <option value="formula">Tiru Formula Judul Teratas</option>
-                </select>
-                <button type="button" onclick="aaBrainstorm()" id="aa-btn-brainstorm" class="mt-4 w-full py-3 rounded-xl bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-500 transition-all flex items-center justify-center gap-2">
-                    Brainstorm 10 Ide
+            <div id="aa-panel-topic" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topik / Niche Artikel</label>
+                    <input type="text" id="aa-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
+                    <select id="aa-strategy" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
+                        <option value="free">Bebas (langsung brainstorm)</option>
+                        <option value="gap">Cari Celah Baru (hindari topik serupa)</option>
+                        <option value="cluster">Pillar & Cluster (topik turunan)</option>
+                        <option value="formula">Tiru Formula Judul Teratas</option>
+                    </select>
+                </div>
+                <button type="button" onclick="aaBrainstorm()" id="aa-btn-brainstorm" class="mt-2 w-full py-3 rounded-xl bg-neon text-dark font-bold hover:bg-neon/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-neon/10 text-sm">
+                    <i class="fas fa-lightbulb text-xs"></i> Brainstorm 10 Ide
                 </button>
             </div>
 
-            <div id="aa-panel-select" class="hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <h4 class="text-white font-semibold">Pilih 1 Ide (atau input manual)</h4>
-                    <button type="button" onclick="aaShowManual()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors">Input Manual</button>
+            <div id="aa-panel-select" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-white font-semibold text-sm">Pilih 1 Ide (atau input manual)</h4>
+                    <button type="button" onclick="aaShowManual()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 transition-colors">Input Manual</button>
                 </div>
-                <div id="aa-options" class="space-y-2"></div>
-                <div id="aa-manual" class="hidden space-y-3 mt-3">
-                    <input type="text" id="aa-manual-title" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2 text-white" placeholder="Judul artikel">
-                    <input type="text" id="aa-manual-keyword" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2 text-white" placeholder="Kata kunci utama">
+                <div id="aa-options" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
+                <div id="aa-manual" class="hidden space-y-3 p-4 bg-slate-950 border border-slate-800 rounded-xl">
+                    <input type="text" id="aa-manual-title" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon" placeholder="Judul artikel">
+                    <input type="text" id="aa-manual-keyword" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon" placeholder="Kata kunci utama">
                 </div>
-                <label class="flex items-center gap-2 mt-3 text-sm text-slate-300">
-                    <input type="checkbox" id="aa-research-manual" class="rounded bg-slate-800 border-slate-600 text-fuchsia-500">
+                <label class="flex items-center gap-2.5 text-xs text-slate-300">
+                    <input type="checkbox" id="aa-research-manual" class="rounded bg-slate-800 border-slate-700 text-neon focus:ring-0 accent-lime-400">
                     Skip riset web (langsung tulis dari topik)
                 </label>
-                <div class="flex gap-3 mt-4">
-                    <button type="button" onclick="aaGotoStep(1)" class="flex-1 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-semibold hover:bg-slate-700 transition-all">
-                        &larr; Topik
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="aaGotoStep(1)" class="flex-1 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-semibold hover:bg-slate-700 transition-all">
+                        &larr; Kembali
                     </button>
-                    <button type="button" onclick="aaResearch()" id="aa-btn-research" class="flex-[2] py-3 rounded-xl bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-500 transition-all flex items-center justify-center gap-2">
-                        Riset & Lanjut
+                    <button type="button" onclick="aaResearch()" id="aa-btn-research" class="flex-[2] py-2.5 rounded-xl bg-neon text-dark text-sm font-bold hover:bg-neon/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-neon/10">
+                        <i class="fas fa-search text-xs"></i> Riset & Lanjut
                     </button>
                 </div>
             </div>
@@ -786,12 +789,12 @@
             imgList.innerHTML = '';
             Object.keys(prompts).forEach((marker, i) => {
                 const wrap = document.createElement('div');
-                wrap.className = 'bg-slate-900 border border-slate-700 rounded-xl p-3';
+                wrap.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3.5';
                 wrap.innerHTML =
-                    '<div class="text-xs text-fuchsia-300 mb-1 font-semibold">Gambar ' + (i + 1) + '</div>' +
-                    '<div class="text-xs text-slate-300 mb-2">Prompt: <span class="aa-img-prompt">' + prompts[marker].replace(/</g, '&lt;') + '</span></div>' +
-                    '<div class="flex items-center gap-2">' +
-                        '<input type="file" accept="image/*" data-marker="' + marker.replace(/"/g, '&quot;') + '" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-fuchsia-600 file:text-white">' +
+                    '<div class="text-xs text-neon font-bold mb-1">Gambar ' + (i + 1) + '</div>' +
+                    '<div class="text-xs text-slate-300 mb-2">Prompt: <span class="aa-img-prompt font-mono text-[11px] text-slate-400">' + prompts[marker].replace(/</g, '&lt;') + '</span></div>' +
+                    '<div class="flex items-center gap-3">' +
+                        '<input type="file" accept="image/*" data-marker="' + marker.replace(/"/g, '&quot;') + '" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-700 transition-colors">' +
                         '<span class="aa-img-status text-xs text-slate-400"></span>' +
                     '</div>';
                 imgList.appendChild(wrap);
@@ -808,7 +811,7 @@
             const el = document.getElementById('aa-step-' + i);
             if (!el) continue;
             const active = i === n;
-            el.className = 'px-3 py-1 rounded-full ' + (active ? 'bg-fuchsia-500 text-white' : 'bg-slate-700 text-slate-300');
+            el.className = 'px-3.5 py-1.5 rounded-lg transition-all ' + (active ? 'bg-neon text-dark font-bold shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white');
         }
         document.getElementById('aa-panel-topic').classList.toggle('hidden', n !== 1);
         document.getElementById('aa-panel-select').classList.toggle('hidden', n !== 2);
@@ -864,7 +867,7 @@
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memikirkan...';
 
         const res = await aaPost('{{ route("admin.blog.articles.agent.brainstorm") }}', { topic, strategy });
-        btn.disabled = false; btn.innerHTML = '<i class="fas fa-lightbulb"></i> Brainstorm 10 Ide';
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-lightbulb text-xs"></i> Brainstorm 10 Ide';
 
         if (!res.success) { alert('Gagal: ' + (res.message || 'Unknown')); return; }
 
@@ -874,13 +877,13 @@
         box.innerHTML = '';
         aaOptions.forEach((opt, i) => {
             const div = document.createElement('label');
-            div.className = 'flex items-start gap-3 bg-slate-950 border border-slate-700 rounded-xl p-3 cursor-pointer hover:border-fuchsia-500 transition-colors';
+            div.className = 'flex items-start gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-neon/60 transition-all';
             div.innerHTML = `
-                <input type="radio" name="aa-option" value="${i}" class="mt-1 rounded bg-slate-800 border-slate-600 text-fuchsia-500">
+                <input type="radio" name="aa-option" value="${i}" class="mt-1 rounded bg-slate-800 border-slate-700 text-neon focus:ring-0 accent-lime-400">
                 <div class="min-w-0">
                     <div class="text-white font-bold text-sm">${opt.title || ''}</div>
-                    <div class="text-fuchsia-300 text-xs">${opt.keyword || ''}</div>
-                    <div class="text-slate-400 text-xs mt-1">${opt.summary || ''}</div>
+                    <div class="text-neon/80 text-xs font-semibold mt-0.5">${opt.keyword || ''}</div>
+                    <div class="text-slate-400 text-xs mt-1 leading-relaxed">${opt.summary || ''}</div>
                 </div>`;
             box.appendChild(div);
         });
@@ -919,7 +922,7 @@
         const res = await aaPost('{{ route("admin.blog.articles.agent.research") }}', {
             uuid: aaUuid, selection, research_manual: researchManual
         });
-        btn.disabled = false; btn.innerHTML = '<i class="fas fa-search"></i> Riset & Lanjut';
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-search text-xs"></i> Riset & Lanjut';
 
         if (!res.success) { alert('Gagal riset: ' + (res.message || 'Unknown')); return; }
         aaUuid = res.uuid;
@@ -951,9 +954,9 @@
         const previewText = aaContent
             ? aaContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
             : '(Konten kosong — pastikan model mengembalikan JSON dengan key "content")';
-        preview.innerHTML = '<div class="font-bold text-white mb-1">' + (result.title || '') + '</div>' +
-            '<div class="text-fuchsia-300 text-xs mb-2">' + (result.meta_description || '') + '</div>' +
-            '<div class="text-slate-300 text-xs">' + previewText + (aaContent ? '...' : '') + '</div>';
+        preview.innerHTML = '<div class="font-bold text-white text-sm mb-1">' + (result.title || '') + '</div>' +
+            '<div class="text-neon/80 text-xs font-semibold mb-2">' + (result.meta_description || '') + '</div>' +
+            '<div class="text-slate-300 text-xs leading-relaxed">' + previewText + (aaContent ? '...' : '') + '</div>';
         btnApply.classList.remove('hidden');
         const btnEn = document.getElementById('aa-btn-generate-en');
         if (btnEn) btnEn.classList.remove('hidden');
@@ -967,12 +970,12 @@
             imgList.innerHTML = '';
             markers.forEach((marker, i) => {
                 const wrap = document.createElement('div');
-                wrap.className = 'bg-slate-900 border border-slate-700 rounded-xl p-3';
+                wrap.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3.5';
                 wrap.innerHTML =
-                    '<div class="text-xs text-fuchsia-300 mb-1 font-semibold">Gambar ' + (i + 1) + '</div>' +
-                    '<div class="text-xs text-slate-300 mb-2">Prompt: <span class="aa-img-prompt">' + prompts[marker].replace(/</g, '&lt;') + '</span></div>' +
-                    '<div class="flex items-center gap-2">' +
-                        '<input type="file" accept="image/*" data-marker="' + marker.replace(/"/g, '&quot;') + '" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-fuchsia-600 file:text-white">' +
+                    '<div class="text-xs text-neon font-bold mb-1">Gambar ' + (i + 1) + '</div>' +
+                    '<div class="text-xs text-slate-300 mb-2">Prompt: <span class="aa-img-prompt font-mono text-[11px] text-slate-400">' + prompts[marker].replace(/</g, '&lt;') + '</span></div>' +
+                    '<div class="flex items-center gap-3">' +
+                        '<input type="file" accept="image/*" data-marker="' + marker.replace(/"/g, '&quot;') + '" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-700 transition-colors">' +
                         '<span class="aa-img-status text-xs text-slate-400"></span>' +
                     '</div>';
                 imgList.appendChild(wrap);
