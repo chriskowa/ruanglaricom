@@ -3,6 +3,8 @@
 namespace App\Services\Admin;
 
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Ramsey\Uuid\Uuid;
 use App\Models\ArticleAgent;
 use App\Models\Article;
@@ -17,7 +19,49 @@ class AdminArticleAgentService
     private string $modelBrainstorm = 'gpt-5.6';
     private string $modelSummary    = 'gpt-4o-mini';
     private string $modelTranslate  = 'gpt-4o-mini';
-    private string $modelWriting    = 'gpt-5.5';
+    private string $modelWriting    = 'gpt-5.6';
+
+    /**
+     * Aturan struktur HTML untuk artikel versi Indonesia.
+     * Dipisah dari system prompt agar tidak duplikat dengan versi EN
+     * dan lebih mudah diaudit/diubah di satu tempat.
+     */
+    private const HTML_STRUCTURE_RULES_ID = <<<'TEXT'
+INSTRUKSI STRUKTUR HTML (PENTING):
+- Gunakan tag <h2> untuk sub-judul utama. Jangan gunakan <h1>.
+- Gunakan tag <h3> jika butuh sub-sub-judul.
+- Gunakan tag <p> untuk setiap paragraf.
+- Gunakan tag <strong> untuk bold dan <em> untuk miring.
+- Gunakan 1 tag <a> dengan attribute target='_blank' untuk hyperlink eksternal ke salah satu sumber.
+- Jika ada poin-poin, WAJIB gunakan <ul>/<ol> dengan <li>.
+- Jika ada data perbandingan/statistik, buat dalam <table> dengan <thead>/<tbody>.
+- Jika ada kutipan, gunakan <blockquote>.
+- Jangan sertakan markdown code block. Berikan raw string HTML.
+TEXT;
+
+    /**
+     * Aturan struktur HTML untuk artikel versi English (terjemahan).
+     * Struktur harus tetap sinkron dengan HTML_STRUCTURE_RULES_ID di atas.
+     */
+    private const HTML_STRUCTURE_RULES_EN = <<<'TEXT'
+HTML STRUCTURE INSTRUCTIONS (IMPORTANT):
+- Use <h2> for main sub-headings. Do not use <h1>.
+- Use <h3> for sub-sub-headings if needed.
+- Use <p> for each paragraph.
+- Use <strong> for bold and <em> for italic.
+- Use 1 <a> tag with target='_blank' for an external hyperlink to one of the sources.
+- For bullet points, use <ul>/<ol> with <li>.
+- For comparison/statistics data, use <table> with <thead>/<tbody>.
+- For quotes, use <blockquote>.
+- Do not wrap output in markdown code blocks. Return raw HTML string.
+TEXT;
+
+    /**
+     * Berapa lama daftar artikel terpopuler di-cache (jam).
+     * Data ini jarang berubah dalam rentang menit/jam, jadi aman di-cache
+     * untuk menghindari query berulang saat admin brainstorm beberapa topik berturut-turut.
+     */
+    private const TOP_ARTICLES_CACHE_HOURS = 3;
 
     public function __construct()
     {
@@ -84,12 +128,11 @@ class AdminArticleAgentService
         //* 4. Hit LLM
         $rawResponse = $this->openai->getAiResponseOrThrow($prompt, "Kamu adalah ahli strategi konten SEO.", $this->modelBrainstorm);
 
-        //* 5. Bersihkan dan Decode JSON
-        $cleanJson    = trim(str_replace(['```json', '```'], '', $rawResponse));
-        $optionsArray = json_decode($cleanJson, true);
+        //* 5. Bersihkan dan Decode JSON (helper terpusat, konsisten dengan step lain)
+        $optionsArray = $this->parseAiJson($rawResponse);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($optionsArray)) {
-            throw new Exception("Output bukan JSON valid: " . json_last_error_msg() . " | Raw: " . substr($rawResponse, 0, 100));
+        if (!is_array($optionsArray)) {
+            throw new Exception("Output bukan JSON valid. Raw: " . substr($rawResponse, 0, 200));
         }
 
         //* 6. Generate UUID & Simpan DB
@@ -240,18 +283,7 @@ class AdminArticleAgentService
                         "Jangan menambahkan kesimpulan di akhir artikel.\n" .
                         "Semua hasil harus dalam bahasa Indonesia dan harus 100% gaya penulisan manusia.\n" .
                         "Perbaiki masalah tata bahasa dan ubah ke kalimat aktif.\n" .
-
-                        "INSTRUKSI STRUKTUR HTML (PENTING):\n" .
-                        "- Gunakan tag <h2> untuk sub-judul utama. Jangan gunakan <h1>.\n" .
-                        "- Gunakan tag <h3> jika butuh sub-sub-judul.\n" .
-                        "- Gunakan tag <p> untuk setiap paragraf.\n" .
-                        "- Gunakan tag <strong> untuk bold dan <em> untuk miring.\n" .
-                        "- Gunakan 1 tag <a> dengan attribute target='_blank' untuk hyperlink eksternal ke salah satu sumber.\n" .
-                        "- Jika ada poin-poin, WAJIB gunakan <ul>/<ol> dengan <li>.\n" .
-                        "- Jika ada data perbandingan/statistik, buat dalam <table> dengan <thead>/<tbody>.\n" .
-                        "- Jika ada kutipan, gunakan <blockquote>.\n" .
-                        "- Jangan sertakan markdown code block. Berikan raw string HTML.\n" .
-
+                        self::HTML_STRUCTURE_RULES_ID . "\n" .
                         "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat, dan slug pendek.\n" .
                         "Jangan buat focus keyword menjadi bold di dalam artikel.\n" .
 
@@ -271,23 +303,27 @@ class AdminArticleAgentService
 
         $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelWriting);
 
-        $decoded = json_decode($rawResponse, true);
-        if (is_array($decoded)) {
-            $decoded['title']   = $selectedData['title'] ?? '';
-            $decoded['keyword'] = $selectedData['keyword'] ?? '';
-            $contentToSave = json_encode($decoded);
-        } else {
-            $contentToSave = $rawResponse;
+        //* Decode dengan helper terpusat (strip code fence + fallback regex extraction)
+        $decoded = $this->parseAiJson($rawResponse);
+
+        if (!is_array($decoded) || empty($decoded['content'])) {
+            // Gagal parse jadi JSON valid dengan 'content' terisi.
+            // Jangan diam-diam simpan raw string ke kolom yang dibaca sebagai JSON di step lain
+            // (applyToArticle, step3_doWriteEn) — itu bikin artikel kesimpan kosong tanpa error jelas.
+            throw new Exception("Gagal parse hasil artikel dari AI menjadi JSON valid. Raw: " . substr($rawResponse, 0, 200));
         }
 
-        $query->update(['generated_article_content' => $contentToSave]);
+        $decoded['title']   = $selectedData['title'] ?? '';
+        $decoded['keyword'] = $selectedData['keyword'] ?? '';
+
+        $query->update(['generated_article_content' => json_encode($decoded)]);
 
         $content = $decoded['content'] ?? '';
         $imagePrompts = $this->parseImagePrompts($content);
 
         return [
-            'uuid'         => $uuid,
-            'result'       => $decoded ? $decoded : $rawResponse,
+            'uuid'          => $uuid,
+            'result'        => $decoded,
             'image_prompts' => $imagePrompts,
         ];
     }
@@ -329,50 +365,18 @@ class AdminArticleAgentService
 
         $generatedId = $session->generated_article_content;
         if (!is_array($generatedId)) {
-            $generatedId = json_decode($generatedId, true) ?: [];
+            $generatedId = $this->parseAiJson((string) $generatedId) ?? [];
         }
         if (empty($generatedId['content'])) {
             throw new Exception("Konten ID belum dibuat. Generate versi Indonesia terlebih dahulu.");
         }
 
         $selectedData = $session->selected_option_data ?? [];
-        $idContent     = $generatedId['content'];
 
-        $systemPrompt = "You are a highly skilled SEO specialist and high-quality content writer for a running blog (Ruang Lari).\n" .
-                        "Your task is to translate and adapt the following Indonesian running article into fluent, natural English.\n" .
-                        "Keep the same structure, headings, lists, tables, and the [Gambar: ...] image prompt markers exactly as they are.\n" .
-                        "Adapt the title, meta description, excerpt, and slug for an English-speaking audience with proper English SEO keywords.\n" .
-                        "The article must be 100% unique, plagiarism-free, and read like human-written English.\n" .
-                        "Do NOT add a conclusion at the end.\n" .
-
-                        "HTML STRUCTURE INSTRUCTIONS (IMPORTANT):\n" .
-                        "- Use <h2> for main sub-headings. Do not use <h1>.\n" .
-                        "- Use <h3> for sub-sub-headings if needed.\n" .
-                        "- Use <p> for each paragraph.\n" .
-                        "- Use <strong> for bold and <em> for italic.\n" .
-                        "- Use 1 <a> tag with target='_blank' for an external hyperlink to one of the sources.\n" .
-                        "- For bullet points, use <ul>/<ol> with <li>.\n" .
-                        "- For comparison/statistics data, use <table> with <thead>/<tbody>.\n" .
-                        "- For quotes, use <blockquote>.\n" .
-                        "- Do not wrap output in markdown code blocks. Return raw HTML string.\n" .
-
-                        "IMAGE PROMPT INSTRUCTIONS (REQUIRED):\n" .
-                        "- Keep every [Gambar: ...] marker exactly as in the source, translated to English inside the brackets.\n" .
-                        "- Format must be exactly: [Gambar: detailed visual description...]\n" .
-
-                        "Return format: JSON object with keys: 'content' (HTML body), 'title', 'meta_description', 'excerpt', 'slug'.\n" .
-                        "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
-
-        $userPrompt = "Original Indonesian Title: {$generatedId['title']}\n" .
-                      "Focus Keyword (ID): {$selectedData['keyword']}\n" .
-                      "Indonesian Article Content (translate & adapt to English):\n{$idContent}\n";
-
-        $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
-
-        $decoded = json_decode($rawResponse, true);
-        if (!is_array($decoded)) {
-            $decoded = ['content' => $rawResponse];
-        }
+        $decoded = $this->translateArticleFields([
+            'title'   => $generatedId['title'] ?? '',
+            'content' => $generatedId['content'],
+        ], $selectedData['keyword'] ?? '', context: 'full_article');
 
         $decoded['title']   = $decoded['title'] ?? ($generatedId['title'] ?? '');
         $decoded['keyword'] = $selectedData['keyword'] ?? '';
@@ -406,39 +410,14 @@ class AdminArticleAgentService
             throw new Exception("Konten ID (title/content) kosong. Tidak ada yang diterjemahkan.");
         }
 
-        $systemPrompt = "You are a professional translator and SEO editor for a running blog (Ruang Lari).\n" .
-                        "Translate and adapt the provided Indonesian article fields into fluent, natural English.\n" .
-                        "Keep the same HTML structure (headings, lists, tables, links) and the [Gambar: ...] image prompt markers exactly as they are.\n" .
-                        "Adapt the title, meta title, meta description, and keywords for an English-speaking audience with proper English SEO.\n" .
-                        "The result must read like human-written English, 100% unique and plagiarism-free.\n" .
-                        "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'.\n" .
-                        "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
-
-        $userPrompt = "Translate the following Indonesian article fields into English:\n\n" .
-                      "Title (ID): {$titleId}\n" .
-                      "Excerpt (ID): {$excerptId}\n" .
-                      "Meta Title (ID): {$metaTitleId}\n" .
-                      "Meta Description (ID): {$metaDescId}\n" .
-                      "Meta Keywords (ID): {$keywordsId}\n" .
-                      "Content (ID HTML):\n{$contentId}\n";
-
-        $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
-
-        // Bersihkan code fence (```json ... ```) dan teks pengantar sebelum decode.
-        $cleanJson = trim(str_replace(['```json', '```'], '', $rawResponse));
-        $decoded   = json_decode($cleanJson, true);
-
-        // Fallback: ekstrak substring JSON pertama jika masih gagal.
-        if (!is_array($decoded)) {
-            if (preg_match('/\{.*\}/s', $cleanJson, $m)) {
-                $decoded = json_decode($m[0], true);
-            }
-        }
-
-        if (!is_array($decoded)) {
-            // Gagal parse: kembalikan raw sebagai content agar tidak kosong.
-            $decoded = ['content' => $rawResponse];
-        }
+        $decoded = $this->translateArticleFields([
+            'title'             => $titleId,
+            'excerpt'           => $excerptId,
+            'content'           => $contentId,
+            'meta_title'        => $metaTitleId,
+            'meta_description'  => $metaDescId,
+            'meta_keywords'     => $keywordsId,
+        ], $keywordsId, context: 'form_fields');
 
         return [
             'title'            => $decoded['title'] ?? '',
@@ -462,17 +441,17 @@ class AdminArticleAgentService
 
         $generated = $session->generated_article_content;
         if (!is_array($generated)) {
-            $generated = json_decode($generated, true) ?: [];
+            $generated = $this->parseAiJson((string) $generated) ?? [];
         }
 
         $generatedEn = $session->generated_article_content_en;
         if (!is_array($generatedEn)) {
-            $generatedEn = json_decode($generatedEn, true) ?: [];
+            $generatedEn = $this->parseAiJson((string) $generatedEn) ?? [];
         }
 
         $selected = $session->selected_option_data ?? [];
         $title    = $generated['title'] ?? $selected['title'] ?? $session->user_input_topic ?? 'Untitled';
-        $slug     = !empty($generated['slug']) ? \Illuminate\Support\Str::slug($generated['slug']) : \Illuminate\Support\Str::slug($title);
+        $slug     = !empty($generated['slug']) ? Str::slug($generated['slug']) : Str::slug($title);
 
         // Gunakan konten yang sudah direplace dengan <img> jika dikirim dari modal.
         // Fallback berjenjang agar kolom 'content' (NOT NULL) tidak pernah null:
@@ -544,22 +523,29 @@ class AdminArticleAgentService
 
     /**
      * Ambil artikel terpopuler untuk referensi strategi.
+     * Di-cache karena data ini jarang berubah dalam rentang menit/jam,
+     * sementara step1_inputTopic bisa dipanggil berulang kali (admin coba beberapa topik)
+     * dengan kombinasi site+limit yang sama.
      */
     private function getTopArticles(string $site = 'all', int $limit = 50): array
     {
-        $q = Article::query()->where('status', 'published');
+        $cacheKey = "article_agent:top_articles:{$site}:{$limit}";
 
-        if ($site !== 'all') {
-            $q->whereHas('category', function ($q) use ($site) {
-                $q->where('slug', $site);
-            });
-        }
+        return Cache::remember($cacheKey, now()->addHours(self::TOP_ARTICLES_CACHE_HOURS), function () use ($site, $limit) {
+            $q = Article::query()->where('status', 'published');
 
-        $articles = $q->orderByDesc('views_count')
-            ->limit($limit)
-            ->get(['title', 'meta_keywords as keyword']);
+            if ($site !== 'all') {
+                $q->whereHas('category', function ($q) use ($site) {
+                    $q->where('slug', $site);
+                });
+            }
 
-        return $articles->toArray();
+            $articles = $q->orderByDesc('views_count')
+                ->limit($limit)
+                ->get(['title', 'meta_keywords as keyword']);
+
+            return $articles->toArray();
+        });
     }
 
     /**
@@ -588,5 +574,93 @@ class AdminArticleAgentService
         }
 
         return implode("\n---\n", $parts);
+    }
+
+    /**
+     * Terjemahkan field artikel ID ke EN. Dipakai bersama oleh step3_doWriteEn
+     * (translate dari sesi agent yang sudah punya artikel ID lengkap) dan
+     * translateToEn (translate dari form manual). Disatukan supaya perubahan
+     * pada instruksi/gaya translate cukup dilakukan di satu tempat.
+     *
+     * @param array  $fields  Field ID yang mau diterjemahkan (title, content, excerpt, meta_title, meta_description, meta_keywords — semua opsional kecuali title/content untuk konteks 'full_article')
+     * @param string $keyword Focus keyword ID, dipakai sebagai konteks SEO
+     * @param string $context 'full_article' untuk artikel HTML lengkap, 'form_fields' untuk field form terpisah — hanya mempengaruhi framing user prompt
+     */
+    private function translateArticleFields(array $fields, string $keyword, string $context): array
+    {
+        $systemPrompt = "You are a professional translator and SEO editor for a running blog (Ruang Lari).\n" .
+                        "Translate and adapt the provided Indonesian article fields into fluent, natural English.\n" .
+                        "Keep the same structure, headings, lists, tables, and the [Gambar: ...] image prompt markers exactly as they are.\n" .
+                        "Adapt the title, meta title, meta description, excerpt, and keywords for an English-speaking audience with proper English SEO.\n" .
+                        "The result must read like human-written English, 100% unique and plagiarism-free.\n" .
+                        "Do NOT add a conclusion at the end.\n" .
+                        self::HTML_STRUCTURE_RULES_EN . "\n" .
+
+                        "IMAGE PROMPT INSTRUCTIONS (REQUIRED):\n" .
+                        "- Keep every [Gambar: ...] marker exactly as in the source, translated to English inside the brackets.\n" .
+                        "- Format must be exactly: [Gambar: detailed visual description...]\n" .
+
+                        "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'.\n" .
+                        "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
+
+        if ($context === 'full_article') {
+            $userPrompt = "Original Indonesian Title: {$fields['title']}\n" .
+                          "Focus Keyword (ID): {$keyword}\n" .
+                          "Indonesian Article Content (translate & adapt to English):\n{$fields['content']}\n";
+        } else {
+            $userPrompt = "Translate the following Indonesian article fields into English:\n\n" .
+                          "Title (ID): {$fields['title']}\n" .
+                          "Excerpt (ID): " . ($fields['excerpt'] ?? '') . "\n" .
+                          "Meta Title (ID): " . ($fields['meta_title'] ?? '') . "\n" .
+                          "Meta Description (ID): " . ($fields['meta_description'] ?? '') . "\n" .
+                          "Meta Keywords (ID): " . ($fields['meta_keywords'] ?? '') . "\n" .
+                          "Content (ID HTML):\n{$fields['content']}\n";
+        }
+
+        $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelTranslate);
+
+        $decoded = $this->parseAiJson($rawResponse);
+        if (!is_array($decoded)) {
+            // Gagal parse: kembalikan raw sebagai content agar tidak kosong,
+            // sama seperti perilaku translateToEn() sebelumnya.
+            $decoded = ['content' => $rawResponse];
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Parse respons AI menjadi array, dengan toleransi terhadap:
+     * - Code fence markdown (```json ... ```) yang kadang disisipkan model
+     * - Teks pengantar/penutup di luar objek JSON (diekstrak via regex sebagai fallback)
+     *
+     * Dipakai di semua tempat yang mengharapkan JSON dari AI (brainstorming,
+     * writing, translate) agar penanganan "output tidak bersih" konsisten
+     * dan tidak perlu ditulis ulang di tiap fungsi.
+     *
+     * @return array|null null jika benar-benar tidak bisa di-decode sebagai JSON object/array
+     */
+    private function parseAiJson(string $raw): ?array
+    {
+        if (trim($raw) === '') {
+            return null;
+        }
+
+        $clean = trim(str_replace(['```json', '```'], '', $raw));
+        $decoded = json_decode($clean, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        // Fallback: model mungkin menambahkan teks pembuka sebelum/sesudah JSON.
+        // Ekstrak substring objek JSON pertama yang ditemukan.
+        if (preg_match('/\{.*\}/s', $clean, $m)) {
+            $decoded = json_decode($m[0], true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
     }
 }
