@@ -198,7 +198,7 @@ class DashboardController extends Controller
                     'enrollment_id' => $enrollment->id,
                     'session_day' => $day,
                     'week_number' => $session['week'] ?? floor(($day - 1) / 7) + 1,
-                    'target_pace' => $session['target_pace'] ?? $this->getPaceForSessionType($session['type'] ?? 'Run', $user->training_paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null),
+                    'target_pace' => (in_array(strtolower(str_replace([' ', '-'], '_', $session['type'] ?? 'Run')), ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains(strtolower($session['type'] ?? 'Run'), 'rest')) ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($session['type'] ?? 'Run', $user->training_paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null)),
                     'description' => $session['description'] ?? null,
                 ];
 
@@ -418,7 +418,11 @@ class DashboardController extends Controller
             return null;
         }
 
-        $typeLower = strtolower($type);
+        $typeLower = strtolower(str_replace([' ', '-'], '_', $type));
+        if (in_array($typeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($typeLower, 'rest')) {
+            return null;
+        }
+
         $key = null;
 
         if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {

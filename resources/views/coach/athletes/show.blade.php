@@ -2331,6 +2331,9 @@ createApp({
             if (!type || !trainingProfile) return null;
 
             const tLower = type.toLowerCase();
+            if (['rest', 'rest_day', 'rest day', 'strength', 'yoga', 'cycling', 'cross_training'].includes(tLower) || tLower.includes('rest')) {
+                return null;
+            }
             const map = { 
                 easy_run: 'E', recovery: 'E', run: 'E', 
                 long_run: 'M', 

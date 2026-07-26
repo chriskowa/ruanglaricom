@@ -112,7 +112,9 @@ class CalendarController extends Controller
                 $colors = $this->getEventColors($difficulty, $phase);
 
                 $sessionType = $session['type'] ?? 'Run';
-                $paceInfo = $session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
+                $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
+                $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
 
                 $freeWeeks = max(1, floor($totalWeeks / 2));
                 $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
@@ -268,7 +270,11 @@ class CalendarController extends Controller
             return null;
         }
 
-        $typeLower = strtolower($type);
+        $typeLower = strtolower(str_replace([' ', '-'], '_', $type));
+        if (in_array($typeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($typeLower, 'rest')) {
+            return null;
+        }
+
         $key = null;
 
         if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
@@ -455,7 +461,9 @@ class CalendarController extends Controller
                     }
 
                     $sessionType = $session['type'] ?? 'run';
-                    $paceInfo = $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
+                    $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                    $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
+                    $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
                     $description = $session['description'] ?? null;
                     if ($paceInfo) {
                         $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;

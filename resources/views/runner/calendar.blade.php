@@ -454,7 +454,8 @@
                 if (session.duration) {
                     content += '<p><strong>Durasi:</strong> ' + session.duration + '</p>';
                 }
-                if (session.target_pace) {
+                var sType = String(session.type || '').toLowerCase();
+                if (session.target_pace && sType !== 'rest' && sType !== 'rest_day' && !sType.includes('rest')) {
                     var cleanPace = session.target_pace.replace('@ ', '');
                     content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
                 }
@@ -486,7 +487,8 @@
                 if (workout.duration) {
                     content += '<p><strong>Durasi:</strong> ' + workout.duration + '</p>';
                 }
-                if (workout.target_pace) {
+                var wType = String(workout.type || '').toLowerCase();
+                if (workout.target_pace && wType !== 'rest' && wType !== 'rest_day' && !wType.includes('rest')) {
                     var cleanPace = workout.target_pace.replace('@ ', '');
                     content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
                 }
@@ -609,7 +611,8 @@
             if (plan.duration) {
                 content += '<p><strong>Durasi:</strong> ' + plan.duration + '</p>';
             }
-            if (plan.target_pace) {
+            var pType = String(plan.type || '').toLowerCase();
+            if (plan.target_pace && pType !== 'rest' && pType !== 'rest_day' && !pType.includes('rest')) {
                 var cleanPace = plan.target_pace.replace('@ ', '');
                 content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
             }
