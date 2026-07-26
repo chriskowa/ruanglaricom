@@ -126,7 +126,7 @@ class StrengthExerciseController extends Controller
                         'default_reps' => $item['reps'] ?? '10-12 reps',
                         'instructions' => $item['instructions'] ?? null,
                         'target_muscles' => $item['target_muscles'] ?? null,
-                        'media_type' => $item['media_type'] ?? 'gif',
+                        'media_type' => $item['media_type'] ?? 'url',
                         'media_url' => $item['media_url'] ?? null,
                         'is_active' => true,
                     ]

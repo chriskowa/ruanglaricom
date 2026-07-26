@@ -23,6 +23,10 @@ const props = defineProps({
         type: String,
         default: ''
     },
+    recaptchaSiteKey: {
+        type: String,
+        default: ''
+    },
     auth: {
         type: Object,
         default: () => ({ user: null })
@@ -1124,6 +1128,7 @@ onUnmounted(() => {
             <LoginModal 
                 :is-open="isLoginOpen"
                 :theme="theme"
+                :recaptcha-site-key="recaptchaSiteKey"
                 @close="isLoginOpen = false"
                 @success="handleLoginSuccess"
             />

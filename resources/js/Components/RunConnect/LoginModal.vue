@@ -10,6 +10,10 @@ const props = defineProps({
     theme: {
         type: String,
         default: 'dark'
+    },
+    recaptchaSiteKey: {
+        type: String,
+        default: ''
     }
 });
 
@@ -24,6 +28,62 @@ const form = reactive({
 const loading = ref(false);
 const error = ref('');
 
+const ensureRecaptchaLoaded = (siteKey) => {
+    return new Promise((resolve) => {
+        if (typeof grecaptcha !== 'undefined') {
+            return resolve(true);
+        }
+        if (!siteKey) return resolve(false);
+
+        const existingScript = document.querySelector(`script[src*="recaptcha/api.js"]`);
+        if (existingScript) {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (typeof grecaptcha !== 'undefined') {
+                    clearInterval(interval);
+                    resolve(true);
+                } else if (attempts > 30) {
+                    clearInterval(interval);
+                    resolve(false);
+                }
+            }, 100);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+    });
+};
+
+const getRecaptchaToken = async () => {
+    const siteKey = props.recaptchaSiteKey || window.recaptchaSiteKey;
+    if (!siteKey) return null;
+
+    const loaded = await ensureRecaptchaLoaded(siteKey);
+    if (!loaded || typeof grecaptcha === 'undefined') return null;
+
+    return new Promise((resolve) => {
+        try {
+            grecaptcha.ready(() => {
+                grecaptcha.execute(siteKey, { action: 'login' })
+                    .then(token => resolve(token))
+                    .catch(err => {
+                        console.error('reCAPTCHA v3 error:', err);
+                        resolve(null);
+                    });
+            });
+        } catch (e) {
+            console.error('reCAPTCHA ready error:', e);
+            resolve(null);
+        }
+    });
+};
+
 const submitLogin = async () => {
     if (!form.email || !form.password) {
         error.value = 'Email dan password wajib diisi.';
@@ -34,8 +94,14 @@ const submitLogin = async () => {
     error.value = '';
 
     try {
+        const recaptchaToken = await getRecaptchaToken();
+        const payload = {
+            ...form,
+            'g-recaptcha-response': recaptchaToken
+        };
+
         // Send AJAX post request to standard Laravel login route
-        await axios.post('/login', form, {
+        await axios.post('/login', payload, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
@@ -47,7 +113,17 @@ const submitLogin = async () => {
         form.email = '';
         form.password = '';
     } catch (err) {
-        error.value = err.response?.data?.message || 'Login gagal. Silakan periksa kembali email dan password Anda.';
+        if (err.response?.data?.errors) {
+            const errorsObj = err.response.data.errors;
+            const firstKey = Object.keys(errorsObj)[0];
+            if (firstKey && errorsObj[firstKey][0]) {
+                error.value = errorsObj[firstKey][0];
+            } else {
+                error.value = err.response?.data?.message || 'Login gagal. Silakan periksa kembali email dan password Anda.';
+            }
+        } else {
+            error.value = err.response?.data?.message || 'Login gagal. Silakan periksa kembali email dan password Anda.';
+        }
     } finally {
         loading.value = false;
     }

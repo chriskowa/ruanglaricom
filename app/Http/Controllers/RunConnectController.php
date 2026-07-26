@@ -41,6 +41,7 @@ class RunConnectController extends Controller
 
         return Inertia::render('RunConnect', [
             'mapboxToken' => config('services.mapbox.token'),
+            'recaptchaSiteKey' => config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')),
             'auth' => [
                 'user' => Auth::user(),
             ]
