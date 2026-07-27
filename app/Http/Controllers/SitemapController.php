@@ -37,11 +37,22 @@ class SitemapController extends Controller
         // 3. Blog Articles (Published)
         \App\Models\Article::published()->chunk(100, function ($articles) use (&$urls) {
             foreach ($articles as $article) {
+                $idUrl = route('blog.show', $article->slug);
+                $alternates = [
+                    ['hreflang' => 'id', 'href' => $idUrl],
+                ];
+
+                if (! empty($article->title_en) && ! empty($article->content_en)) {
+                    $alternates[] = ['hreflang' => 'en', 'href' => $idUrl.'?lang=en'];
+                }
+                $alternates[] = ['hreflang' => 'x-default', 'href' => $idUrl];
+
                 $urls[] = [
-                    'loc' => route('blog.show', $article->slug),
+                    'loc' => $idUrl,
                     'lastmod' => $article->updated_at->toIso8601String(),
                     'priority' => '0.8',
                     'changefreq' => 'weekly',
+                    'alternates' => $alternates,
                 ];
             }
         });

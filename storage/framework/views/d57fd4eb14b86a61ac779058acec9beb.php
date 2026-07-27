@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="<?php echo $__env->yieldContent('html_lang', app()->getLocale() ?: 'id'); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -95,7 +95,8 @@
     <?php endif; ?>
 
     <!-- Canonical -->
-    <link rel="canonical" href="<?php echo $__env->yieldContent('canonical_url', url()->current()); ?>">   
+    <link rel="canonical" href="<?php echo $__env->yieldContent('canonical_url', url()->current()); ?>">
+    <?php echo $__env->yieldContent('hreflang_tags'); ?>   
 
     <!-- Favicon default -->
     <link rel="icon" href="<?php echo e(asset('images/green/favicon.ico')); ?>" type="image/x-icon">

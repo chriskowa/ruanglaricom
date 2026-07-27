@@ -1,13 +1,24 @@
 @extends('layouts.pacerhub')
 
 @php
-    $canonicalUrl = $article->localized_canonical_url ?: route('blog.show', $article->slug);
+    $isEn = app()->getLocale() === 'en';
+    $baseUrl = route('blog.show', $article->slug);
+    $enUrl = $baseUrl . '?lang=en';
+    
+    if ($isEn) {
+        $canonicalUrl = $article->canonical_url_en ?: $enUrl;
+    } else {
+        $canonicalUrl = $article->canonical_url ?: $baseUrl;
+    }
+    
     $metaTitle = $article->localized_meta_title ?: $article->localized_title . ' | Ruang Lari';
     $metaDescription = $article->localized_meta_description ?: ($article->localized_excerpt ?: Str::limit(preg_replace('/\s+/', ' ', trim(strip_tags($article->localized_content))), 160));
     $publishedAtIso = optional($article->published_at ?: $article->created_at)?->toIso8601String();
     $modifiedAtIso = optional($article->updated_at ?: $article->created_at)?->toIso8601String();
+    $hasEnglish = !empty($article->title_en) && !empty($article->content_en);
 @endphp
 
+@section('html_lang', app()->getLocale())
 @section('title', $metaTitle)
 @section('meta_title', $metaTitle)
 @section('meta_description', $metaDescription)
@@ -20,6 +31,14 @@
 @section('article_author', $article->user?->name ?? 'Ruang Lari')
 @section('article_section', $article->category?->name ?? 'Blog')
 @section('article_tags', $article->tags->pluck('name')->implode(', '))
+
+@section('hreflang_tags')
+    <link rel="alternate" hreflang="id" href="{{ $baseUrl }}" />
+    @if($hasEnglish)
+        <link rel="alternate" hreflang="en" href="{{ $enUrl }}" />
+    @endif
+    <link rel="alternate" hreflang="x-default" href="{{ $baseUrl }}" />
+@endsection
 
 @php
     $bgImage = null;

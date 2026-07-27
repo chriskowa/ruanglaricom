@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="@yield('html_lang', app()->getLocale() ?: 'id')">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -95,7 +95,8 @@
     @endif
 
     <!-- Canonical -->
-    <link rel="canonical" href="@yield('canonical_url', url()->current())">   
+    <link rel="canonical" href="@yield('canonical_url', url()->current())">
+    @yield('hreflang_tags')   
 
     <!-- Favicon default -->
     <link rel="icon" href="{{ asset('images/green/favicon.ico') }}" type="image/x-icon">

@@ -126,8 +126,15 @@ class BlogController extends Controller
         return $this->index($request);
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
+        $requestedLang = strtolower((string) $request->query('lang', ''));
+        if ($requestedLang === 'en') {
+            app()->setLocale('en');
+        } else {
+            app()->setLocale('id');
+        }
+
         $article = Article::with(['user:id,name', 'category:id,name,slug', 'tags:id,name,slug'])
             ->where('slug', $slug)
             ->published()
