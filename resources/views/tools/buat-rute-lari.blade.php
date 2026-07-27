@@ -59,12 +59,13 @@
                         <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white">
                             BUAT <span class="text-neon">RUTE LARI</span>
                         </h1>
-                        <p class="text-slate-400 mt-1 max-w-2xl">
+                        <p class="text-slate-400 mt-1 max-w-2xl text-sm">
                             Tap peta untuk bikin rute. Simpan, share link, atau export GPX buat dipakai di jam/aplikasi favoritmu.
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('calculator') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-bold">
+                        <a href="{{ route('calculator') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-calculator text-xs text-slate-400"></i>
                             Tools Lain
                         </a>
                     </div>
@@ -83,194 +84,204 @@
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Left Column: Setup & AI Route Generator -->
                 <div class="lg:col-span-4 space-y-4">
-                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
+                    <!-- Setup Panel -->
+                    <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Setup</div>
-                            <div id="rl-route-status" class="text-[11px] text-slate-500 font-bold">Siap</div>
+                            <div class="text-xs font-black tracking-wider text-slate-200 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-slate-400 text-xs"></i>
+                                Setup Rute
+                            </div>
+                            <div id="rl-route-status" class="text-[11px] text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-full border border-slate-700/50">Siap</div>
                         </div>
 
                         <div class="mt-4 space-y-3">
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Rute</label>
-                                <input id="rl-route-name" type="text" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" placeholder="Contoh: Long Run Minggu Pagi">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nama Rute</label>
+                                <input id="rl-route-name" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Contoh: Long Run Minggu Pagi">
                             </div>
 
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Lokasi</label>
-                                <div class="mt-1 relative group">
-                                    <input id="rl-search-q" type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 transition" placeholder="Ketik kota / landmark...">
-                                    <button id="rl-search-btn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cari Lokasi</label>
+                                <div class="relative group">
+                                    <input id="rl-search-q" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Ketik kota / landmark...">
+                                    <button id="rl-search-btn" type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                     </button>
                                 </div>
                                 <div id="rl-search-results" class="mt-2 hidden"></div>
                             </div>
 
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
-                            <div class="mt-1 flex items-center gap-2">
-            <input id="rl-pace-min" inputmode="numeric" type="number" min="0" 
-                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" 
-                value="6" placeholder="00">
-            
-            <span class="text-slate-500 font-bold">:</span>
-            
-            <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" 
-                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" 
-                value="0" placeholder="00">
-            
-            <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
-        </div>
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Target Pace</label>
+                                <div class="flex items-center gap-2">
+                                    <input id="rl-pace-min" inputmode="numeric" type="number" min="0" 
+                                        class="w-16 bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white font-bold text-center focus:outline-none focus:ring-1 focus:ring-slate-500" 
+                                        value="6" placeholder="00">
+                                    
+                                    <span class="text-slate-500 font-bold">:</span>
+                                    
+                                    <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" 
+                                        class="w-16 bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white font-bold text-center focus:outline-none focus:ring-1 focus:ring-slate-500" 
+                                        value="0" placeholder="00">
+                                    
+                                    <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
+                                </div>
                             </div>
 
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
-                                <input id="rl-start-time" type="datetime-local" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
+                                <input id="rl-start-time" type="datetime-local" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-slate-500">
                                 <div id="rl-start-time-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
                             </div>
 
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
-                                    <input id="rl-follow-road" type="checkbox" class="accent-white" checked>
-                                    Ikuti jalan (OSRM)
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                    <input id="rl-follow-road" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                    <span>Ikuti jalan (OSRM)</span>
                                 </label>
-                                <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
-                                    <input id="rl-show-directions" type="checkbox" class="accent-white" checked>
-                                    Tampilkan arah rute
+                                <label class="flex items-center gap-2 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                    <input id="rl-show-directions" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                    <span>Tampilkan arah rute</span>
                                 </label>
                             </div>
 
-
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
-                                <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tampilan</div>
-                                <div class="mt-3 grid grid-cols-2 gap-3">
-                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Route</div>
-                                        <input id="rl-color-route" type="color" value="#FC4C02" class="w-10 h-8 bg-transparent">
+                            <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-3">
+                                <div class="text-[11px] font-black tracking-wider text-slate-400 uppercase mb-2.5">Warna & Indikator</div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Route</div>
+                                        <input id="rl-color-route" type="color" value="#FC4C02" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
-                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Marker</div>
-                                        <input id="rl-color-marker" type="color" value="#60a5fa" class="w-10 h-8 bg-transparent">
+                                    <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Marker</div>
+                                        <input id="rl-color-marker" type="color" value="#60a5fa" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
-                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Start</div>
-                                        <input id="rl-color-start" type="color" value="#22c55e" class="w-10 h-8 bg-transparent">
+                                    <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start</div>
+                                        <input id="rl-color-start" type="color" value="#22c55e" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
-                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Finish</div>
-                                        <input id="rl-color-finish" type="color" value="#ef4444" class="w-10 h-8 bg-transparent">
+                                    <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Finish</div>
+                                        <input id="rl-color-finish" type="color" value="#ef4444" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
-                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3 col-span-2">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Panah Arah</div>
-                                        <input id="rl-color-arrow" type="color" value="#ccff00" class="w-10 h-8 bg-transparent cursor-pointer">
+                                    <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5 col-span-2">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Panah Arah</div>
+                                        <input id="rl-color-arrow" type="color" value="#ccff00" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                 </div>
-                                <div class="mt-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
-                                        <div id="rl-arrow-interval-label" class="text-xs font-black text-slate-200">250m</div>
+                                <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-2">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
+                                        <div id="rl-arrow-interval-label" class="text-[11px] font-black text-slate-200">250m</div>
                                     </div>
-                                    <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-2 w-full">
+                                    <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-1.5 w-full accent-[#ccff00]">
                                 </div>
                             </div>
                         </div>
-                    </div>                    <!-- AI Route Generator -->
-                    <div class="bg-slate-900/50 border border-slate-700/60 rounded-2xl p-4 md:p-5 relative overflow-hidden group">
-                        
+                    </div>
+
+                    <!-- AI Route Generator Panel -->
+                    <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-4 md:p-5 relative overflow-hidden group">
                         <div class="flex items-center justify-between">
-                            <div class="text-sm font-semibold tracking-wider text-slate-200 uppercase flex items-center gap-2">
-                                <i class="fa-solid fa-route text-slate-400 text-xs"></i>
+                            <div class="text-xs font-black tracking-wider text-slate-200 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-xs"></i>
                                 AI Route Generator
                             </div>
-                            <span class="text-[10px] font-semibold text-slate-500 px-2 py-0.5 rounded border border-slate-700">BETA</span>
+                            <span class="text-[9px] font-bold text-amber-400/90 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 uppercase tracking-wider">BETA</span>
                         </div>
 
-                        <div class="mt-4 space-y-3">
-                            <div class="text-[11px] text-slate-500 bg-slate-900/30 border border-slate-800/40 rounded-xl p-3">
-                                <strong>Tips:</strong> Klik peta 1x terlebih dahulu jika ingin menentukan lokasi Start sendiri. Jika tidak, AI akan menggunakan titik tengah peta saat ini.
+                        <div class="mt-3.5 space-y-3">
+                            <div class="text-[11px] text-slate-400 bg-slate-950/40 border border-slate-800 rounded-xl p-2.5 leading-relaxed">
+                                <strong class="text-slate-300">Tips:</strong> Klik peta 1x untuk lokasi Start. Jika belum, AI pakai titik tengah peta.
                             </div>
                             
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jarak Target (km)</label>
-                                <div class="mt-1 grid grid-cols-4 gap-2">
-                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-slate-700 border border-slate-500 text-white font-bold transition text-sm active" data-dist="5">5K</button>
-                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-transparent border border-slate-700 text-slate-400 font-bold hover:border-slate-500 hover:text-white transition text-sm" data-dist="10">10K</button>
-                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-transparent border border-slate-700 text-slate-400 font-bold hover:border-slate-500 hover:text-white transition text-sm" data-dist="21">21K</button>
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Jarak Target (km)</label>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white font-bold transition text-xs active" data-dist="5">5K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="10">10K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="21">21K</button>
                                     <div class="relative">
-                                        <input id="rl-ai-custom-dist" type="number" step="0.5" min="1" max="100" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-2 py-2 text-white font-bold text-center text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" placeholder="Lainnya">
+                                        <input id="rl-ai-custom-dist" type="number" step="0.5" min="1" max="100" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-1.5 py-1.5 text-white font-bold text-center text-xs focus:outline-none focus:ring-1 focus:ring-slate-500" placeholder="Lainnya">
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Arah Rute</label>
-                                <select id="rl-ai-direction" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
-                                    <option value="random">Acak / Sembarang Arah</option>
-                                    <option value="north">Utara</option>
-                                    <option value="east">Timur</option>
-                                    <option value="south">Selatan</option>
-                                    <option value="west">Barat</option>
-                                </select>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Arah Rute</label>
+                                    <select id="rl-ai-direction" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-slate-500">
+                                        <option value="random">Acak / Sembarang</option>
+                                        <option value="north">Utara</option>
+                                        <option value="east">Timur</option>
+                                        <option value="south">Selatan</option>
+                                        <option value="west">Barat</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Toleransi Jarak</label>
+                                    <select id="rl-ai-tolerance" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-slate-500">
+                                        <option value="0.05">Sangat Presisi (±50m)</option>
+                                        <option value="0.12" selected>Ketat & Akurat (±100m)</option>
+                                        <option value="0.25">Standar (±250m)</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toleransi Jarak Target</label>
-                                <select id="rl-ai-tolerance" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
-                                    <option value="0.05">Sangat Presisi (±50m - ±100m)</option>
-                                    <option value="0.12" selected>Ketat & Akurat (±100m - ±150m)</option>
-                                    <option value="0.25">Standar (±250m)</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Opsi Rute & Larangan</label>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                        <input id="rl-ai-loop" type="checkbox" class="accent-white" checked>
-                                        Kembali ke Start
+                            <!-- Opsi Rute & Larangan Checklist -->
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Opsi Rute & Larangan</label>
+                                    <span class="text-[10px] text-slate-500">Kustom AI</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                        <input id="rl-ai-loop" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                        <span class="truncate">Kembali ke Start</span>
                                     </label>
-                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                         <input id="rl-ai-avoid-gang" type="checkbox" class="accent-white" checked>
-                                         Hindari Gang & Jalan Sempit 
-                                     </label>
-                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                         <input id="rl-ai-avoid-toll" type="checkbox" class="accent-white" checked disabled>
-                                         Hindari Jalan Tol 
-                                     </label>
-                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                         <input id="rl-ai-avoid-main" type="checkbox" class="accent-white">
-                                         Hindari Jalan Besar / Protokol
-                                     </label>
-                                     <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
-                                         <input id="rl-ai-avoid-rail" type="checkbox" class="accent-white" checked>
-                                         Hindari Rel Kereta
-                                     </label>
-                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer col-span-2 hover:border-slate-600 transition">
-                                        <input id="rl-ai-avoid-intersection" type="checkbox" class="accent-white">
-                                        Hindari Perempatan Utama (Simpang)
+                                    <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                        <input id="rl-ai-avoid-gang" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                        <span class="truncate">Hindari Gang</span>
+                                    </label>
+                                    <label class="relative flex items-center gap-2 bg-slate-950/30 border border-slate-800/60 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-500 cursor-not-allowed select-none opacity-60">
+                                        <input id="rl-ai-avoid-toll" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked disabled>
+                                        <span class="truncate">Hindari Jalan Tol</span>
+                                    </label>
+                                    <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                        <input id="rl-ai-avoid-main" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]">
+                                        <span class="truncate">Hindari Jalan Besar</span>
+                                    </label>
+                                    <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                        <input id="rl-ai-avoid-rail" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                        <span class="truncate">Hindari Rel Kereta</span>
+                                    </label>
+                                    <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
+                                        <input id="rl-ai-avoid-intersection" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]">
+                                        <span class="truncate">Hindari Perempatan</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button id="rl-ai-generate-btn" type="button" class="py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold text-xs hover:bg-white transition flex items-center justify-center gap-1.5 duration-200">
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button id="rl-ai-generate-btn" type="button" class="py-2 px-3 rounded-xl bg-slate-100 text-slate-950 font-bold text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm">
                                     <i class="fa-solid fa-route text-xs"></i>
                                     Gambar Rute
                                 </button>
-                                <button id="rl-ai-regenerate-btn" type="button" class="py-3 rounded-xl bg-transparent border border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 duration-200">
-                                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                                <button id="rl-ai-regenerate-btn" type="button" class="py-2 px-3 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white font-bold text-xs transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
                                     Reset & Ulang
                                 </button>
                             </div>
                         </div>
                     </div>
-
                 </div>
 
+                <!-- Right Column: Summary, Actions, Map & Profile -->
                 <div class="lg:col-span-8 space-y-4">
-                    <div id="rl-summary-panel" class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-700/50 lg:bg-card/90 lg:p-5 lg:shadow-none transition-all duration-300">
+                    <div id="rl-summary-panel" class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-800 lg:bg-slate-900/60 lg:p-5 lg:shadow-none transition-all duration-300">
                         <!-- Mobile Sheet Toggle / Compact Info Header -->
                         <div id="rl-mobile-sheet-toggle" class="py-1 cursor-pointer lg:hidden flex flex-col items-center justify-center border-b border-slate-800/40 pb-2">
                             <div class="w-12 h-1 bg-slate-700/60 rounded-full mb-2"></div>
@@ -293,73 +304,76 @@
                         </div>
 
                         <div id="rl-expanded-content" class="space-y-3 md:space-y-4">
-                            <div class="text-sm font-black tracking-wider text-slate-200 uppercase mb-3 hidden lg:block">Ringkasan</div>
-                        <div class="grid grid-cols-4 gap-1.5 md:gap-3">
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
-                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
-                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km</span></div>
+                            <div class="text-xs font-black tracking-wider text-slate-300 uppercase mb-3 hidden lg:flex items-center gap-2">
+                                <i class="fa-solid fa-chart-simple text-slate-400 text-xs"></i>
+                                Ringkasan Rute
                             </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
-                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Estimasi</div>
-                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
-                            </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
-                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Titik</div>
-                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
-                            </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
-                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rata-rata</div>
-                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km/seg</span></div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3 md:mt-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <!-- Toggle Button for Mobile Menu -->
-                            <button id="rl-toggle-menu" type="button" class="md:hidden px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs flex items-center justify-center gap-1.5">
-                                <span>Menu</span>
-                                <svg id="rl-toggle-menu-chevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-
-                            <!-- Collapsible buttons container -->
-                            <div id="rl-collapsible-buttons" class="hidden md:contents col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 md:mt-0">
-                                <button id="rl-save" type="button" class="col-span-1 px-3 py-2 rounded-xl bg-slate-100 text-slate-900 font-bold hover:bg-white transition text-xs">
-                                    Simpan
-                                </button>
-                                <button id="rl-load" type="button" class="col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
-                                    Muat
-                                </button>
-                                <button id="rl-share" type="button" class="col-span-2 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200 font-bold hover:bg-slate-700/80 hover:border-slate-500 transition text-xs">
-                                    Share Link
-                                </button>
-                                <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200 font-bold hover:bg-slate-700/80 hover:border-slate-500 transition text-xs">
-                                    Export IMG
-                                </button>
-                                <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
-                                    Export GPX
-                                </button>
-                                <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
-                                    Import GPX
-                                </button>
-                            </div>
-                            <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
-                        </div>
-
-                        <section class="mt-3 bg-slate-900/40 border border-slate-800 rounded-2xl p-4" id="strava-form-panel">
-                            @php($hasStrava = auth()->check() && auth()->user() && auth()->user()->strava_access_token && auth()->user()->strava_refresh_token)
-                            <div class="flex items-center justify-between gap-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-9 h-9 rounded-xl bg-[#FC4C02]/15 border border-[#FC4C02]/40 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="text-sm font-black text-white">Export ke Strava</div>
-                                        <div class="text-xs text-slate-500 font-semibold">Isi form lalu post activity otomatis setelah authorize.</div>
-                                    </div>
+                            <div class="grid grid-cols-4 gap-1.5 md:gap-3">
+                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
+                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jarak</div>
+                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km</span></div>
                                 </div>
-                                <button id="rl-strava-toggle" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs">
-                                    Buka
-                                </button>
+                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
+                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimasi</div>
+                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
+                                </div>
+                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
+                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Titik</div>
+                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
+                                </div>
+                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
+                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rata-rata</div>
+                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km/seg</span></div>
+                                </div>
                             </div>
+
+                            <div class="mt-3">
+                                <!-- Toggle Button for Mobile Menu -->
+                                <button id="rl-toggle-menu" type="button" class="md:hidden w-full px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:bg-slate-800 transition text-xs flex items-center justify-center gap-1.5">
+                                    <span>Menu</span>
+                                    <svg id="rl-toggle-menu-chevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+
+                                <!-- Collapsible buttons container -->
+                                <div id="rl-collapsible-buttons" class="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-2 md:mt-0">
+                                    <button id="rl-save" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-100 text-slate-950 font-bold hover:bg-white transition text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i class="fa-solid fa-floppy-disk text-xs"></i> Simpan
+                                    </button>
+                                    <button id="rl-load" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-folder-open text-xs"></i> Muat
+                                    </button>
+                                    <button id="rl-share" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-share-nodes text-xs"></i> Share
+                                    </button>
+                                    <button id="rl-export-image" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-image text-xs"></i> Export IMG
+                                    </button>
+                                    <button id="rl-export-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-file-export text-xs"></i> Export GPX
+                                    </button>
+                                    <button id="rl-import-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-file-import text-xs"></i> Import GPX
+                                    </button>
+                                </div>
+                                <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
+                            </div>
+
+                            <section class="mt-3 bg-slate-950/40 border border-slate-800 rounded-2xl p-4" id="strava-form-panel">
+                                @php($hasStrava = auth()->check() && auth()->user() && auth()->user()->strava_access_token && auth()->user()->strava_refresh_token)
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-xl bg-[#FC4C02]/15 border border-[#FC4C02]/40 flex items-center justify-center shrink-0">
+                                            <svg class="w-4 h-4 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-black text-white">Export ke Strava</div>
+                                            <div class="text-[11px] text-slate-400 font-medium">Isi form lalu post activity otomatis setelah authorize.</div>
+                                        </div>
+                                    </div>
+                                    <button id="rl-strava-toggle" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs">
+                                        Buka
+                                    </button>
+                                </div>
 
                             <div id="rl-strava-panel-body" class="hidden mt-4 space-y-3">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
