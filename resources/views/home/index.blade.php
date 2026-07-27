@@ -280,7 +280,7 @@
                             <div class="w-12 h-12 rounded-2xl bg-slate-800/80 flex items-center justify-center text-white mb-6 border border-slate-700 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pasar Perlengkapan Lari</h3>
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Marketplace Running Gear</h3>
                             <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Temukan perlengkapan lari berkualitas dari brand terpercaya, atau titipkan gear lari pre-loved Anda lewat sistem konsinyasi kami.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
@@ -443,10 +443,10 @@
             </div>
         </section>
 
-        <!-- WEEKLY LEADERBOARD SECTION -->
+        {{-- WEEKLY LEADERBOARD SECTION (Hidden temporarily)
         <section id="leaderboard" class="py-24 bg-[#08111F] relative overflow-hidden border-t border-[#1F2D44]">
             <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16" data-aos="fade-up">
@@ -616,6 +616,7 @@
                 .catch(() => {});
         })();
         </script>
+        --}}
 
         <!-- NEWS & ARTICLES SECTION -->
         <section id="blog" class="py-24 bg-[#08111F] border-t border-[#1F2D44]">
