@@ -175,16 +175,22 @@
         <!-- UPCOMING EVENTS SECTION -->
         <section id="events" class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
                     <div data-aos="fade-right">
                         <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Kalender Race</span>
                         <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Event Lari Mendatang</h2>
                         <p class="text-[#94A3B8] mt-2 max-w-xl text-base">Jelajahi kalender race lari terbaru di Indonesia dan daftar langsung secara online.</p>
                     </div>
-                    <a href="/jadwal-lari" class="group flex items-center gap-2 text-[#94A3B8] hover:text-white transition font-bold border-b border-[#1F2D44] hover:border-white pb-1" data-aos="fade-left">
-                        Lihat Semua Event 
-                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </a>
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-4" data-aos="fade-left">
+                        <a href="{{ route('events.index') }}?submit=1" class="px-5 py-2.5 rounded-full bg-[#B8FF00] text-[#08111F] font-black text-sm hover:bg-lime-300 transition-all inline-flex items-center gap-2 shadow-lg shadow-[#B8FF00]/20 hover:scale-105">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+                            Submit Event Lari
+                        </a>
+                        <a href="{{ route('events.index') }}" class="group flex items-center gap-2 text-[#94A3B8] hover:text-white transition font-bold border-b border-[#1F2D44] hover:border-white pb-1 text-sm py-1">
+                            Lihat Semua Event 
+                            <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                        </a>
+                    </div>
                 </div>
 
                 <div id="homeEvents" class="grid grid-cols-1 md:grid-cols-2 gap-8">

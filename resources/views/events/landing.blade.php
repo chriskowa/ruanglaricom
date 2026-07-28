@@ -493,140 +493,277 @@
     </div>
 </div>
 
-<div id="submit-event-modal" class="fixed inset-0 z-[9999] hidden overflow-auto">
-    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
-    <div class="relative h-full w-full flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-auto h-screen">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Submit Event</div>
-                    <div class="text-lg font-black text-white tracking-tighter">AJUKAN EVENT LARI</div>
+<div id="submit-event-modal" class="fixed inset-0 z-[9999] hidden overflow-y-auto">
+    <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md"></div>
+    <div class="relative min-h-screen w-full flex items-center justify-center p-3 sm:p-6">
+        <div class="w-full max-w-5xl bg-[#0B1526] border border-slate-700/70 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] text-slate-200">
+            <!-- Modal Header -->
+            <div class="px-6 sm:px-8 py-5 border-b border-slate-800 bg-[#08111F] flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/30 text-neon flex items-center justify-center font-bold text-lg shadow-sm">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-mono font-bold text-neon uppercase tracking-widest">Submit Event Ruang Lari</div>
+                        <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">AJUKAN EVENT LARI BARU</h3>
+                    </div>
                 </div>
-                <button type="button" id="btn-close-submit-event" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <button type="button" id="btn-close-submit-event" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fas fa-times text-base"></i>
                 </button>
             </div>
 
-            <div id="submit-event-alert" class="hidden px-6 pt-4"></div>
+            <div id="submit-event-alert" class="hidden px-6 sm:px-8 pt-4"></div>
 
-            <form id="submit-event-form" class="px-6 py-5 space-y-5">
+            <!-- Modal Form Body (Scrollable 2-Column Grid) -->
+            <form id="submit-event-form" class="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 custom-scrollbar">
                 <input type="text" name="website" id="submit_event_website" class="hidden" tabindex="-1" autocomplete="off">
                 <input type="hidden" name="started_at" id="submit_event_started_at" value="0">
                 <input type="hidden" name="otp_id" id="submit_event_otp_id" value="">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Event</label>
-                        <input type="text" name="event_name" id="submit_event_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Jakarta City Run 2026" required>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal Event</label>
-                        <input type="date" name="event_date" id="submit_event_date" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" required>
-                    </div>
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Banner Event (Opsional)</label>
-                        <input type="file" name="banner" id="submit_event_banner" accept="image/png, image/jpeg, image/jpg, image/webp" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-neon hover:file:bg-slate-700">
-                        <div class="text-[11px] text-slate-500">Maksimal 2MB. Disarankan landscape.</div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam Mulai (Opsional)</label>
-                        <input type="time" value="05:00" name="start_time" id="submit_event_time" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kota (Opsional)</label>
-                        <select name="city_id" id="submit_event_city_id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
-                            <option value="">Pilih Kota</option>
-                            @foreach($cities as $city)
-                                <option value="{{ $city->id }}">{{ $city->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lokasi</label>
-                        <input type="text" name="location_name" id="submit_event_location" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Gelora Bung Karno" required>
-                    </div>
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alamat (Opsional)</label>
-                        <input type="text" name="location_address" id="submit_event_address" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Alamat lengkap / titik kumpul">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jenis Lomba (Opsional)</label>
-                        <select name="race_type_id" id="submit_event_race_type_id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
-                            <option value="">Pilih Jenis</option>
-                            @foreach($raceTypes as $type)
-                                <option value="{{ $type->id }}">{{ $type->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Jarak (Pilihan)</label>
-                        <select name="race_distance_ids" id="submit_event_race_distance_ids" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" multiple>
-                            @foreach($raceDistances as $distance)
-                                <option value="{{ $distance->id }}">{{ $distance->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="text-[11px] text-slate-500 mb-1.5">Bisa pilih lebih dari satu.</div>
-                        
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mt-1.5">Atau Tambahkan Jarak Baru (jika belum ada)</label>
-                        <input type="text" name="custom_distances" id="submit_event_custom_distances" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon placeholder-slate-700" placeholder="Contoh: 7K, 100K, 50 mil (pisahkan dengan koma)">
-                    </div>
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran (Opsional)</label>
-                        <input type="url" name="registration_link" id="submit_event_registration_link" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="https://...">
-                    </div>
-                    <div class="space-y-1 md:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Media Sosial (Opsional)</label>
-                        <input type="url" name="social_media_link" id="submit_event_social_media_link" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="https://instagram.com/...">
-                    </div>
-                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    
+                    <!-- LEFT COLUMN: Event Info & Media -->
+                    <div class="space-y-6">
+                        <!-- Section: Detail Event -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                <i class="fas fa-info-circle text-neon text-sm"></i>
+                                <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Informasi Utama Event</h4>
+                            </div>
 
-                <div class="border-t border-slate-800 pt-5 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Penyelenggara (Opsional)</label>
-                            <input type="text" name="organizer_name" id="submit_event_organizer_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Nama EO / komunitas">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Event <span class="text-neon">*</span></label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
+                                        <i class="fas fa-flag"></i>
+                                    </div>
+                                    <input type="text" name="event_name" id="submit_event_name" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Contoh: Jakarta City Run 2026" required>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal Event <span class="text-neon">*</span></label>
+                                    <input type="date" name="event_date" id="submit_event_date" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" required>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam Mulai</label>
+                                    <input type="time" value="05:00" name="start_time" id="submit_event_time" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jenis Lomba</label>
+                                <select name="race_type_id" id="submit_event_race_type_id" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                    <option value="">Pilih Jenis Lomba</option>
+                                    @foreach($raceTypes as $type)
+                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kontak Penyelenggara (Opsional)</label>
-                            <input type="text" name="organizer_contact" id="submit_event_organizer_contact" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="WA / Email">
+
+                        <!-- Section: Dropzone Upload Banner -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-image text-neon text-sm"></i>
+                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Banner Event</h4>
+                                </div>
+                                <span class="text-[10px] font-mono text-slate-500">Maksimal 2MB (Landscape)</span>
+                            </div>
+
+                            <div id="banner-dropzone" class="border-2 border-dashed border-slate-700/80 hover:border-neon bg-slate-950/80 rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 group relative">
+                                <input type="file" name="banner" id="submit_event_banner" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden">
+                                
+                                <div id="banner-dropzone-default">
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 text-neon flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-md">
+                                        <i class="fas fa-cloud-upload-alt text-xl"></i>
+                                    </div>
+                                    <p class="text-sm font-bold text-white">Drag & drop banner event di sini</p>
+                                    <p class="text-xs text-slate-400 mt-1">atau <span class="text-neon font-semibold underline">klik untuk menelusuri file</span></p>
+                                </div>
+
+                                <div id="banner-dropzone-preview" class="hidden">
+                                    <img id="banner-preview-img" src="" alt="Banner Preview" class="max-h-40 rounded-xl mx-auto border border-slate-700 object-cover shadow-lg">
+                                    <span id="banner-filename" class="text-xs font-mono text-neon block mt-2 font-bold truncate"></span>
+                                    <button type="button" id="btn-remove-banner" class="mt-2 px-3 py-1 rounded-lg bg-red-950/60 border border-red-500/30 text-red-300 hover:bg-red-900/60 text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                                        <i class="fas fa-trash-alt"></i> Ganti Banner
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Kamu (Opsional)</label>
-                            <input type="text" name="contributor_name" id="submit_event_contributor_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Nama pengaju">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Kamu</label>
-                            <input type="email" name="contributor_email" id="submit_event_contributor_email" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="email@kamu.com" required>
-                        </div>
-                        <div class="space-y-1 md:col-span-2">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan (Opsional)</label>
-                            <textarea name="notes" id="submit_event_notes" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Info tambahan (mis: kuota, kategori, syarat, dll)"></textarea>
+
+                        <!-- Section: Kategori Jarak Checkboxes -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-ruler-horizontal text-neon text-sm"></i>
+                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Kategori Jarak Lomba</h4>
+                                </div>
+                                <span class="text-[10px] font-mono text-slate-500">Pilih satu / lebih</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                @foreach($raceDistances as $distance)
+                                    <label class="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-950/90 hover:border-slate-700 text-xs font-bold text-slate-300 transition-all select-none has-[:checked]:border-neon/60 has-[:checked]:bg-neon/10 has-[:checked]:text-neon">
+                                        <input type="checkbox" name="race_distance_ids[]" value="{{ $distance->id }}" class="hidden race-distance-cb">
+                                        <span class="w-4 h-4 rounded border border-slate-700 flex items-center justify-center text-[9px] font-black text-dark check-box transition-all">
+                                            <i class="fas fa-check opacity-0 check-mark"></i>
+                                        </span>
+                                        <span class="truncate">{{ $distance->name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <div class="pt-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tambah Jarak Custom (jika belum ada)</label>
+                                <input type="text" name="custom_distances" id="submit_event_custom_distances" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="Contoh: 7K, 100K, 50 mil (pisahkan koma)">
+                            </div>
                         </div>
                     </div>
 
+                    <!-- RIGHT COLUMN: Location Map, Links & Contact -->
+                    <div class="space-y-6">
+                        <!-- Section: Geolocation & Map -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-map-marked-alt text-neon text-sm"></i>
+                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Lokasi & Map Geocoding</h4>
+                                </div>
+                                <button type="button" id="btn-geolocation" class="px-3 py-1 rounded-xl bg-neon/15 hover:bg-neon/25 text-neon border border-neon/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-crosshairs"></i> Deteksi Lokasi Saya
+                                </button>
+                            </div>
 
+                            <!-- Leaflet Map Container -->
+                            <div class="relative">
+                                <div id="event-map" class="w-full h-44 rounded-xl border border-slate-700/80 bg-slate-950 z-0"></div>
+                                <div id="map-geocoding-status" class="absolute bottom-2 left-2 bg-slate-950/80 backdrop-blur text-[10px] font-mono text-neon px-2.5 py-1 rounded-lg border border-slate-800 z-10 empty:hidden"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Klik lokasi pada peta atau tombol diatas untuk deteksi kota & alamat otomatis.</p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                        <div class="md:col-span-2 space-y-1">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kode OTP</label>
-                            <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="6 digit">
+                            <div class="space-y-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kota / Kabupaten</label>
+                                    <select name="city_id" id="submit_event_city_id" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                        <option value="">Pilih Kota</option>
+                                        @foreach($cities as $city)
+                                            <option value="{{ $city->id }}">{{ $city->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Lokasi / Venue <span class="text-neon">*</span></label>
+                                    <input type="text" name="location_name" id="submit_event_location" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Contoh: Gelora Bung Karno" required>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alamat Lengkap</label>
+                                    <input type="text" name="location_address" id="submit_event_address" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Alamat / titik kumpul">
+                                </div>
+                            </div>
                         </div>
-                        <button type="button" id="btn-submit-event-send-otp" class="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold hover:bg-slate-700 transition">
-                            Kirim OTP
-                        </button>
+
+                        <!-- Section: Link Pendaftaran & Sosmed -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                <i class="fas fa-link text-neon text-sm"></i>
+                                <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Tautan & Media Sosial</h4>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran Resmi</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs font-mono">
+                                            http
+                                        </div>
+                                        <input type="url" name="registration_link" id="submit_event_registration_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-12 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="https://...">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Media Sosial / Instagram</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
+                                            <i class="fab fa-instagram"></i>
+                                        </div>
+                                        <input type="url" name="social_media_link" id="submit_event_social_media_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="https://instagram.com/...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Penyelenggara, Email & OTP Verification -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                <i class="fas fa-user-shield text-neon text-sm"></i>
+                                <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Kontak & Verifikasi Email</h4>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama EO / Penyelenggara</label>
+                                    <input type="text" name="organizer_name" id="submit_event_organizer_name" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Komunitas / EO">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kontak Penyelenggara</label>
+                                    <input type="text" name="organizer_contact" id="submit_event_organizer_contact" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="WA / Email Kontak">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Kamu</label>
+                                    <input type="text" name="contributor_name" id="submit_event_contributor_name" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Nama Pengaju">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Kamu <span class="text-neon">*</span></label>
+                                    <input type="email" name="contributor_email" id="submit_event_contributor_email" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="email@kamu.com" required>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan Tambahan</label>
+                                <textarea name="notes" id="submit_event_notes" rows="2" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Info kuota, syarat pendaftaran, dll"></textarea>
+                            </div>
+
+                            <!-- OTP Box -->
+                            <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                                <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block">Verifikasi OTP Email</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon font-mono tracking-widest text-center" placeholder="Kode OTP (6 digit)">
+                                    <button type="button" id="btn-submit-event-send-otp" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-all whitespace-nowrap">
+                                        Kirim OTP
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
 
-            <div class="px-6 py-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row justify-end gap-2">
-                <button type="button" id="btn-submit-event-cancel" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition">Batal</button>
-                <button type="button" id="btn-submit-event-submit" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-extrabold hover:bg-lime-300 transition">Submit Event</button>
+            <!-- Modal Footer -->
+            <div class="px-6 sm:px-8 py-4 border-t border-slate-800 bg-[#08111F] flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+                <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+                    <i class="fas fa-shield-alt text-neon"></i>
+                    <span>Verifikasi OTP wajib sebelum pengajuan event.</span>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button type="button" id="btn-submit-event-cancel" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 transition text-sm">Batal</button>
+                    <button type="button" id="btn-submit-event-submit" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-neon text-dark font-extrabold hover:bg-lime-300 transition text-sm shadow-lg shadow-neon/20">Submit Event</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <style>
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -635,10 +772,25 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.6);
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.8);
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #B8FF00;
+    }
 </style>
 @endpush
 
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 @php
     $siteKeyV3 = env('RECAPTCHA_SITE_KEY_v3');
 @endphp
@@ -788,13 +940,17 @@
         var csrfMeta = document.querySelector('meta[name="csrf-token"]');
         var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
+        var mapboxToken = @json(config('services.mapbox.token'));
+        var submitMap = null;
+        var submitMarker = null;
+
         function showAlert(type, msg) {
             if (!alertBox) return;
             var cls = type === 'success'
                 ? 'bg-green-900/30 border border-green-500/30 text-green-300'
                 : 'bg-red-900/30 border border-red-500/30 text-red-300';
-            alertBox.className = 'px-6 pt-4';
-            alertBox.innerHTML = '<div class="'+cls+' rounded-xl p-3 text-sm font-bold">'+String(msg || '')+'</div>';
+            alertBox.className = 'px-6 sm:px-8 pt-4';
+            alertBox.innerHTML = '<div class="'+cls+' rounded-xl p-3.5 text-sm font-bold flex items-center gap-2"><i class="fas '+(type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle')+' text-base"></i><span>'+String(msg || '')+'</span></div>';
             alertBox.classList.remove('hidden');
         }
 
@@ -802,6 +958,238 @@
             if (!alertBox) return;
             alertBox.classList.add('hidden');
             alertBox.innerHTML = '';
+        }
+
+        function initSubmitEventMap() {
+            var mapEl = document.getElementById('event-map');
+            if (!mapEl || submitMap || typeof L === 'undefined') return;
+
+            try {
+                submitMap = L.map('event-map').setView([-6.2088, 106.8456], 11);
+
+                var tileUrl = mapboxToken
+                    ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
+                    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+                var tileAttr = mapboxToken
+                    ? '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    : '&copy; OpenStreetMap';
+
+                L.tileLayer(tileUrl, {
+                    maxZoom: 19,
+                    tileSize: mapboxToken ? 512 : 256,
+                    zoomOffset: mapboxToken ? -1 : 0,
+                    attribution: tileAttr
+                }).addTo(submitMap);
+
+                submitMap.on('click', function (e) {
+                    setMapLocation(e.latlng.lat, e.latlng.lng, true);
+                });
+            } catch (e) {
+                console.error('Leaflet Map init error:', e);
+            }
+        }
+
+        function setMapLocation(lat, lng, fetchAddress) {
+            if (!submitMap) return;
+            if (submitMarker) {
+                submitMarker.setLatLng([lat, lng]);
+            } else {
+                submitMarker = L.marker([lat, lng]).addTo(submitMap);
+            }
+            submitMap.panTo([lat, lng]);
+
+            if (fetchAddress) {
+                var statusEl = document.getElementById('map-geocoding-status');
+                if (statusEl) statusEl.textContent = 'Mendeteksi alamat...';
+
+                if (mapboxToken) {
+                    var mapboxGeocodeUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + lng + ',' + lat + '.json?access_token=' + mapboxToken + '&types=place,locality,neighborhood,address,poi';
+                    fetch(mapboxGeocodeUrl)
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            if (statusEl) statusEl.textContent = '';
+                            if (data && data.features && data.features.length > 0) {
+                                var feature = data.features[0];
+                                var placeName = feature.place_name || '';
+                                var text = feature.text || '';
+
+                                var cityStr = '';
+                                if (feature.place_type && feature.place_type.indexOf('place') !== -1) {
+                                    cityStr = feature.text;
+                                } else if (feature.context) {
+                                    feature.context.forEach(function (ctx) {
+                                        if (ctx.id.indexOf('place.') === 0 || ctx.id.indexOf('district.') === 0) {
+                                            cityStr = ctx.text;
+                                        }
+                                    });
+                                }
+                                if (cityStr) autoMatchCity(cityStr);
+
+                                var addrInput = document.getElementById('submit_event_address');
+                                if (addrInput && !addrInput.value.trim()) {
+                                    addrInput.value = placeName;
+                                }
+                                var locInput = document.getElementById('submit_event_location');
+                                if (locInput && !locInput.value.trim()) {
+                                    locInput.value = text;
+                                }
+                            }
+                        })
+                        .catch(function () {
+                            fallbackNominatimGeocode(lat, lng, statusEl);
+                        });
+                } else {
+                    fallbackNominatimGeocode(lat, lng, statusEl);
+                }
+            }
+        }
+
+        function fallbackNominatimGeocode(lat, lng, statusEl) {
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (statusEl) statusEl.textContent = '';
+                    if (data && data.address) {
+                        var addr = data.address;
+                        var rawCity = addr.city || addr.town || addr.city_district || addr.county || addr.state_district || '';
+                        if (rawCity) autoMatchCity(rawCity);
+
+                        var road = addr.road || addr.pedestrian || addr.suburb || '';
+                        var display = data.display_name || '';
+                        var addrInput = document.getElementById('submit_event_address');
+                        if (addrInput && !addrInput.value.trim()) {
+                            addrInput.value = road ? (road + (rawCity ? ', ' + rawCity : '')) : display;
+                        }
+                        var locInput = document.getElementById('submit_event_location');
+                        if (locInput && !locInput.value.trim() && (addr.building || addr.amenity || addr.leisure || addr.shop)) {
+                            locInput.value = addr.building || addr.amenity || addr.leisure || addr.shop || '';
+                        }
+                    }
+                })
+                .catch(function () {
+                    if (statusEl) statusEl.textContent = '';
+                });
+        }
+
+        function autoMatchCity(cityStr) {
+            var select = document.getElementById('submit_event_city_id');
+            if (!select) return;
+            var cleanSearch = cityStr.toLowerCase().replace(/kota|kabupaten|kab\./gi, '').trim();
+
+            for (var i = 0; i < select.options.length; i++) {
+                var opt = select.options[i];
+                if (!opt.value) continue;
+                var optText = opt.text.toLowerCase().replace(/kota|kabupaten|kab\./gi, '').trim();
+                if (optText && (optText.includes(cleanSearch) || cleanSearch.includes(optText))) {
+                    select.value = opt.value;
+                    break;
+                }
+            }
+        }
+
+        // Geolocation Button Handler
+        var geoBtn = document.getElementById('btn-geolocation');
+        if (geoBtn) {
+            geoBtn.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    alert('Browser kamu tidak mendukung Geolocation.');
+                    return;
+                }
+                geoBtn.disabled = true;
+                geoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendeteksi...';
+
+                navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                        geoBtn.disabled = false;
+                        geoBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Deteksi Lokasi Saya';
+                        initSubmitEventMap();
+                        setMapLocation(pos.coords.latitude, pos.coords.longitude, true);
+                        if (submitMap) submitMap.setZoom(15);
+                    },
+                    function (err) {
+                        geoBtn.disabled = false;
+                        geoBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Deteksi Lokasi Saya';
+                        alert('Gagal mendeteksi lokasi: ' + (err.message || 'Izin ditolak.'));
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+        }
+
+        // Dropzone Handler
+        var dropzone = document.getElementById('banner-dropzone');
+        var fileInput = document.getElementById('submit_event_banner');
+        var previewImg = document.getElementById('banner-preview-img');
+        var dropzoneDefault = document.getElementById('banner-dropzone-default');
+        var dropzonePreview = document.getElementById('banner-dropzone-preview');
+        var fileNameEl = document.getElementById('banner-filename');
+        var removeBtn = document.getElementById('btn-remove-banner');
+
+        if (dropzone && fileInput) {
+            dropzone.addEventListener('click', function (e) {
+                if (e.target.closest('#btn-remove-banner')) return;
+                fileInput.click();
+            });
+
+            ['dragenter', 'dragover'].forEach(function (eventName) {
+                dropzone.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('border-neon', 'bg-neon/10');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(function (eventName) {
+                dropzone.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('border-neon', 'bg-neon/10');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', function (e) {
+                var dt = e.dataTransfer;
+                var files = dt ? dt.files : null;
+                if (files && files.length > 0) {
+                    fileInput.files = files;
+                    handleBannerPreview(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files && fileInput.files[0]) {
+                    handleBannerPreview(fileInput.files[0]);
+                }
+            });
+
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    fileInput.value = '';
+                    dropzoneDefault.classList.remove('hidden');
+                    dropzonePreview.classList.add('hidden');
+                    previewImg.src = '';
+                    if (fileNameEl) fileNameEl.textContent = '';
+                });
+            }
+        }
+
+        function handleBannerPreview(file) {
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                showAlert('error', 'Ukuran banner maksimal 2MB.');
+                fileInput.value = '';
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                dropzoneDefault.classList.add('hidden');
+                dropzonePreview.classList.remove('hidden');
+                if (fileNameEl) fileNameEl.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+            };
+            reader.readAsDataURL(file);
         }
 
         function openModal() {
@@ -812,6 +1200,11 @@
             startedAtEl.value = String(Date.now());
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+
+            setTimeout(function() {
+                initSubmitEventMap();
+                if (submitMap) submitMap.invalidateSize();
+            }, 250);
         }
 
         function closeModal() {
@@ -821,37 +1214,7 @@
         }
 
         function getPayload() {
-            var formData = new FormData();
-            var els = form.querySelectorAll('input, select, textarea');
-            
-            els.forEach(function (el) {
-                if (!el.name) return;
-
-                if (el.type === 'file') {
-                    if (el.files && el.files[0]) {
-                        formData.append(el.name, el.files[0]);
-                    }
-                    return;
-                }
-
-                if (el.multiple) {
-                    Array.prototype.forEach.call(el.selectedOptions || [], function (opt) {
-                        formData.append(el.name + '[]', opt.value);
-                    });
-                    return;
-                }
-
-                if (el.type === 'radio' || el.type === 'checkbox') {
-                    if (el.checked) {
-                        formData.append(el.name, el.value);
-                    }
-                    return;
-                }
-
-                formData.append(el.name, el.value);
-            });
-
-            return formData;
+            return new FormData(form);
         }
 
         function setBusy(btn, busy, text) {
@@ -868,6 +1231,13 @@
                 if (e.target === modal) closeModal();
             });
         }
+
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('submit') === '1' || window.location.hash === '#submit') {
+                openModal();
+            }
+        } catch (_) {}
 
         if (sendOtpBtn) {
             sendOtpBtn.addEventListener('click', function () {
@@ -967,7 +1337,8 @@
                         otpIdEl.value = '';
                         otpCodeEl.value = '';
                         startedAtEl.value = String(Date.now());
-                        setTimeout(closeModal, 800);
+                        if (removeBtn) removeBtn.click();
+                        setTimeout(closeModal, 1500);
                     })
                     .catch(function () {
                         showAlert('error', 'Terjadi kesalahan saat submit.');
