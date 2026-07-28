@@ -154,6 +154,16 @@ class BlogController extends Controller
             ->limit(3)
             ->get();
 
-        return view('blog.show', compact('article', 'relatedArticles'));
+        $trending = Article::query()
+            ->published()
+            ->where('id', '!=', $article->id)
+            ->select(['id', 'title', 'title_en', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
+            ->with(['category:id,name,slug'])
+            ->orderByDesc('views_count')
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->limit(5)
+            ->get();
+
+        return view('blog.show', compact('article', 'relatedArticles', 'trending'));
     }
 }

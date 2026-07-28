@@ -15,12 +15,28 @@
 <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes categoryMarquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    .animate-category-marquee {
+        display: flex;
+        width: max-content;
+        animation: categoryMarquee 50s linear infinite;
+        will-change: transform;
+    }
+
+    .category-marquee-wrapper:hover .animate-category-marquee {
+        animation-play-state: paused;
+    }
 </style>
 
 <div class="min-h-screen bg-dark pt-6 pb-10">
     <div class="container mx-auto px-4 md:px-8">
         <div class="flex flex-col lg:flex-row gap-10 items-start">
-            <div class="flex-1 w-full">
+            <div class="flex-1 w-full min-w-0">
                 <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                     <div>
                         <div class="inline-flex items-center gap-2 text-xs font-mono text-slate-400">
@@ -57,17 +73,26 @@
                     </div>
                 </div>
 
-                <div class="mt-8 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar md:mx-0 md:px-0 md:flex-wrap md:overflow-visible">
-                    <a href="{{ route('blog.index') }}" data-cat-kind="chip" data-category="" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
-                        Semua
-                        <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
-                    </a>
-                    @foreach($categories as $cat)
-                        <a href="{{ route('blog.category', $cat->slug) }}" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
-                            {{ $cat->name }}
-                            <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
-                        </a>
-                    @endforeach
+                <div class="mt-8 relative w-full min-w-0 max-w-full overflow-hidden category-marquee-wrapper rounded-2xl py-2">
+                    <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-r from-dark to-transparent z-10"></div>
+                    <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 md:w-16 bg-gradient-to-l from-dark to-transparent z-10"></div>
+
+                    <div class="flex items-center gap-3 animate-category-marquee">
+                        @for($i = 0; $i < 2; $i++)
+                            <div class="flex items-center gap-3 flex-none" @if($i > 0) aria-hidden="true" @endif>
+                                <a href="{{ route('blog.index') }}" data-cat-kind="chip" data-category="" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
+                                    Semua
+                                    <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
+                                </a>
+                                @foreach($categories as $cat)
+                                    <a href="{{ route('blog.category', $cat->slug) }}" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
+                                        {{ $cat->name }}
+                                        <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endfor
+                    </div>
                 </div>
 
                 @if($heroArticle)
@@ -317,7 +342,11 @@
         fetchAndRender({ push: true, page: null });
     };
 
-    catButtons().forEach((btn) => btn.addEventListener('click', () => onCategoryClick(btn)));
+    catButtons().forEach((btn) => btn.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+        e.preventDefault();
+        onCategoryClick(btn);
+    }));
 
     qInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);

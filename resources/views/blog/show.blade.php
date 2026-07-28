@@ -253,7 +253,7 @@
 
         <div class="container mx-auto px-4 md:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                <div class="lg:col-span-8 lg:col-start-3">
+                <div class="lg:col-span-8 min-w-0">
                     <!-- Article Header & Title (Editorial Style) -->
                     <div class="mb-8 mt-1">
                         @if($article->category)
@@ -355,6 +355,65 @@
                         </div>
                     </div>
                 </div>
+
+                @if(isset($trending) && $trending->count() > 0)
+                <aside class="lg:col-span-4 mt-12 lg:mt-0">
+                    <div class="sticky top-24 space-y-6">
+                        <div class="bg-card/50 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
+                            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-700/50">
+                                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                                    <i class="fas fa-fire text-neon"></i> Trending Article
+                                </h3>
+                                <span class="text-[10px] font-mono text-neon bg-neon/15 px-2.5 py-1 rounded-full border border-neon/30">Top Read</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                @foreach($trending as $t)
+                                    @php
+                                        $tDt = $t->published_at ?: $t->created_at;
+                                        $tImg = null;
+                                        if ($t->featured_image) {
+                                            $tImg = Str::startsWith($t->featured_image, ['http://', 'https://'])
+                                                ? $t->featured_image
+                                                : asset('storage/' . ltrim($t->featured_image, '/'));
+                                        }
+                                    @endphp
+                                    <a href="{{ route('blog.show', $t->slug) }}" class="group flex gap-3.5 p-2 rounded-2xl hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-all duration-300">
+                                        <div class="relative w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex-none overflow-hidden shadow-md">
+                                            @if($tImg)
+                                                <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            @else
+                                                <div class="w-full h-full bg-slate-800 flex items-center justify-center text-neon font-black text-xs">#{{ $loop->iteration }}</div>
+                                            @endif
+                                            <div class="absolute top-0 left-0 bg-neon text-dark font-black text-[10px] w-4 h-4 flex items-center justify-center rounded-br-md shadow">
+                                                {{ $loop->iteration }}
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-xs font-bold text-white leading-snug line-clamp-2 group-hover:text-neon transition-colors">
+                                                {{ $t->localized_title }}
+                                            </div>
+                                            <div class="mt-1.5 text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                                                @if($t->category)
+                                                    <span class="text-neon/90 font-sans font-semibold text-[10px] px-1.5 py-0.5 rounded bg-neon/10 border border-neon/20 truncate max-w-[90px]">{{ $t->category->name }}</span>
+                                                @endif
+                                                <span class="inline-flex items-center gap-1"><i class="far fa-eye text-neon"></i> {{ number_format((int) ($t->views_count ?? 0)) }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-5 pt-4 border-t border-slate-700/50 text-center">
+                                <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-neon transition-colors">
+                                    <span>Lihat Semua Artikel</span>
+                                    <i class="fas fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+                @endif
             </div>
         </div>
     </div>
