@@ -146,6 +146,9 @@ class AuthApiController extends BaseApiController
             if ($provider === 'strava' && ! $user->strava_id) {
                 $user->update(['strava_id' => $providerId]);
             }
+            if (! $user->avatar && $request->avatar) {
+                $user->update(['avatar' => $request->avatar]);
+            }
         }
 
         $tokenData = $user->createToken('mobile-app');

@@ -463,6 +463,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $googleUser->getEmail())->first();
+        $googleAvatar = $googleUser->getAvatar();
 
         if (! $user) {
             // Create new user
@@ -472,6 +473,7 @@ class AuthController extends Controller
                 'password' => Hash::make(\Illuminate\Support\Str::random(16)), // Random password
                 'role' => 'runner', // Default role
                 'is_active' => true,
+                'avatar' => $googleAvatar,
                 'referral_code' => $this->generateReferralCode(),
             ]);
 
@@ -483,6 +485,10 @@ class AuthController extends Controller
             ]);
 
             $user->update(['wallet_id' => $wallet->id]);
+        } else {
+            if (! $user->avatar && $googleAvatar) {
+                $user->update(['avatar' => $googleAvatar]);
+            }
         }
 
         Auth::login($user);
@@ -560,6 +566,11 @@ class AuthController extends Controller
             $user = User::where('email', data_get($athlete, 'email'))->first();
         }
 
+        $stravaAvatar = data_get($athlete, 'profile') ?: data_get($athlete, 'profile_medium');
+        if ($stravaAvatar === 'avatar/athlete/large.png' || $stravaAvatar === 'avatar/athlete/medium.png') {
+            $stravaAvatar = null;
+        }
+
         if (! $user) {
             $firstName = data_get($athlete, 'firstname', 'Runner');
             $lastName = data_get($athlete, 'lastname', '');
@@ -579,7 +590,7 @@ class AuthController extends Controller
                 'password' => Hash::make(\Illuminate\Support\Str::random(16)),
                 'role' => 'runner',
                 'is_active' => true,
-                'avatar' => data_get($athlete, 'profile'),
+                'avatar' => $stravaAvatar,
                 'strava_id' => $stravaId,
                 'referral_code' => $this->generateReferralCode(),
             ]);
@@ -591,6 +602,10 @@ class AuthController extends Controller
             ]);
 
             $user->update(['wallet_id' => $wallet->id]);
+        } else {
+            if (! $user->avatar && $stravaAvatar) {
+                $user->update(['avatar' => $stravaAvatar]);
+            }
         }
 
         $user->update([

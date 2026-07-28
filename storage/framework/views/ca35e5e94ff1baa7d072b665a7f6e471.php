@@ -2,169 +2,193 @@
 <div x-data="authModalComponent()" 
      x-show="open" 
      x-cloak
-     class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/90 backdrop-blur-sm"
+     class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
      @keydown.escape.window="open = false">
     
-    <div class="relative w-full max-w-md max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+    <div class="relative w-full max-w-md max-h-[90vh] bg-[#09090b] border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-zinc-100 font-sans"
          @click.outside="open = false"
-         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter="transition ease-out duration-250"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100">
         
         <!-- Header -->
-        <div class="p-6 text-center border-b border-slate-800 flex-shrink-0">
-            <h2 class="text-2xl font-black italic tracking-tighter text-white">
-                RUANG<span class="text-primary">LARI</span>
-            </h2>
-            <div class="flex mt-6 p-1 bg-slate-800 rounded-xl">
-                <button @click="tab = 'login'" :class="tab === 'login' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all">Login</button>
-                <button @click="tab = 'register'" :class="tab === 'register' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all">Register</button>
+        <div class="p-6 text-center border-b border-zinc-800/80 flex-shrink-0 relative">
+            <button @click="open = false" class="absolute top-5 right-5 text-zinc-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <a href="<?php echo e(route('home')); ?>" class="inline-block mb-1">
+                <span class="text-2xl font-black italic tracking-tight text-white">
+                    RUANG<span class="text-zinc-400">LARI</span>
+                </span>
+            </a>
+            
+            <p class="text-xs text-zinc-400 mt-1" x-text="tab === 'login' ? 'Masuk ke akun RuangLari Anda' : 'Daftar akun runner / coach baru'"></p>
+
+            <div class="grid grid-cols-2 mt-5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl">
+                <button type="button" @click="tab = 'login'" :class="tab === 'login' ? 'bg-zinc-800 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'" class="py-2 text-xs rounded-lg transition-all text-center">Masuk (Login)</button>
+                <button type="button" @click="tab = 'register'" :class="tab === 'register' ? 'bg-zinc-800 text-white font-semibold shadow-sm' : 'text-zinc-400 hover:text-zinc-200'" class="py-2 text-xs rounded-lg transition-all text-center">Daftar (Register)</button>
             </div>
         </div>
 
         <div class="p-6 overflow-y-auto flex-grow">
-            <!-- Error Alert -->
-            <div x-show="errorMessage" x-text="errorMessage" class="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold" x-cloak></div>
-            <div x-show="successMessage" x-text="successMessage" class="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold" x-cloak></div>
+            <!-- Error & Success Alert -->
+            <div x-show="errorMessage" x-text="errorMessage" class="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-xs" x-cloak></div>
+            <div x-show="successMessage" x-text="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-200 text-xs" x-cloak></div>
 
-            <!-- Login Form -->
+            <!-- Login Form Tab -->
             <div x-show="tab === 'login'" class="space-y-4">
-                <!-- Tab Selection for Login Method -->
-                <div class="flex mb-4 p-1 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                    <button @click="loginMethod = 'email'" :class="loginMethod === 'email' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all">Email / Username</button>
-                    <button @click="loginMethod = 'phone'" :class="loginMethod === 'phone' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400'" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all">WhatsApp OTP</button>
+                <!-- Sub Tab Selection for Login Method -->
+                <div class="grid grid-cols-2 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-lg">
+                    <button type="button" @click="loginMethod = 'email'" :class="loginMethod === 'email' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'" class="py-1.5 text-xs rounded-md transition-all text-center">Email / Username</button>
+                    <button type="button" @click="loginMethod = 'phone'" :class="loginMethod === 'phone' ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'" class="py-1.5 text-xs rounded-md transition-all text-center">WhatsApp OTP</button>
                 </div>
 
                 <!-- Email Login Form -->
-                <form x-show="loginMethod === 'email'" @submit.prevent="submitLogin" class="space-y-4">
+                <form x-show="loginMethod === 'email'" @submit.prevent="submitLogin" class="space-y-3.5">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email / Username</label>
-                        <input type="text" name="email" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="runner@example.com">
+                        <label class="block text-xs font-medium text-zinc-300 mb-1">Email atau Username</label>
+                        <input type="text" name="email" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="runner@example.com">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
-                        <input type="password" name="password" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-medium text-zinc-300">Password</label>
+                            <a href="<?php echo e(route('password.request')); ?>" class="text-xs text-zinc-400 hover:text-white transition-colors">Lupa Password?</a>
+                        </div>
+                        <input type="password" name="password" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="••••••••">
                     </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
-                            <input type="checkbox" name="remember" class="rounded border-slate-700 bg-slate-800 text-primary focus:ring-primary">
-                            Remember me
+                    
+                    <div class="flex items-center pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+                            <input type="checkbox" name="remember" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-zinc-100 focus:ring-zinc-700">
+                            <span>Ingat saya</span>
                         </label>
-                        <a href="<?php echo e(route('password.request')); ?>" class="text-primary hover:underline">Forgot Password?</a>
                     </div>
                     
                     <input type="hidden" name="g-recaptcha-response" value="">
 
-                    <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                        <span x-show="!loading">SIGN IN</span>
-                        <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                    <button type="submit" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <span x-show="!loading">Masuk</span>
+                        <span x-show="loading" class="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
                     </button>
                 </form>
 
                 <!-- Phone Login Form -->
-                <div x-show="loginMethod === 'phone'" class="space-y-4" x-cloak>
+                <div x-show="loginMethod === 'phone'" class="space-y-3.5" x-cloak>
                     <!-- Step 1: Request OTP -->
-                    <div x-show="!otpSent" class="space-y-4">
+                    <div x-show="!otpSent" class="space-y-3.5">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">WhatsApp Number</label>
-                            <input type="tel" x-model="phone" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="08123456789">
+                            <label class="block text-xs font-medium text-zinc-300 mb-1">Nomor WhatsApp</label>
+                            <input type="tel" x-model="phone" class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="08123456789">
                         </div>
-                        <button @click="requestOtp" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                            <span x-show="!loading">SEND OTP</span>
-                            <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                        <button type="button" @click="requestOtp" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
+                            <span x-show="!loading">Kirim OTP WhatsApp</span>
+                            <span x-show="loading" class="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
                         </button>
                     </div>
 
                     <!-- Step 2: Verify OTP -->
-                    <div x-show="otpSent" class="space-y-4" x-cloak>
+                    <div x-show="otpSent" class="space-y-3.5" x-cloak>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Enter OTP Code</label>
-                            <input type="text" x-model="otpCode" maxlength="6" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors text-center tracking-widest font-mono text-lg" placeholder="••••••">
+                            <label class="block text-xs font-medium text-zinc-300 mb-1 text-center">Masukkan Kode OTP</label>
+                            <input type="text" x-model="otpCode" maxlength="6" class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-center tracking-widest font-mono text-xl focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="••••••">
                         </div>
-                        <button @click="verifyOtp" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                            <span x-show="!loading">VERIFY & SIGN IN</span>
-                            <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                        <button type="button" @click="verifyOtp" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
+                            <span x-show="!loading">Verifikasi & Masuk</span>
+                            <span x-show="loading" class="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
                         </button>
                         <div class="text-center">
-                            <button @click="otpSent = false" class="text-xs text-primary hover:underline">Change Phone Number</button>
+                            <button type="button" @click="otpSent = false" class="text-xs text-zinc-400 hover:text-white underline transition-colors">Ubah Nomor WhatsApp</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Register Form -->
-            <form x-show="tab === 'register'" @submit.prevent="submitRegister" class="space-y-4" x-cloak>
+            <!-- Register Form Tab -->
+            <form x-show="tab === 'register'" @submit.prevent="submitRegister" class="space-y-3.5" x-cloak>
                 <!-- Role Selection -->
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">I am a...</label>
+                    <label class="block text-xs font-medium text-zinc-300 mb-2">Saya mendaftar sebagai...</label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="runner" x-model="role" class="hidden">
-                            <div :class="role === 'runner' ? 'border-primary bg-primary/10' : 'border-slate-700'" class="border rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
-                                <svg :class="role === 'runner' ? 'text-primary' : 'text-slate-400'" class="w-6 h-6 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div :class="role === 'runner' ? 'border-zinc-400 bg-zinc-800/80 text-white font-semibold' : 'border-zinc-800 text-zinc-400 hover:bg-zinc-900'" class="border rounded-lg p-2.5 text-center transition-all h-full flex flex-col items-center justify-center gap-1.5">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
-                                <span class="text-xs font-bold text-white">Runner</span>
+                                <span class="text-xs">Runner</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="coach" x-model="role" class="hidden">
-                            <div :class="role === 'coach' ? 'border-primary bg-primary/10' : 'border-slate-700'" class="border rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
-                                <svg :class="role === 'coach' ? 'text-primary' : 'text-slate-400'" class="w-6 h-6 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div :class="role === 'coach' ? 'border-zinc-400 bg-zinc-800/80 text-white font-semibold' : 'border-zinc-800 text-zinc-400 hover:bg-zinc-900'" class="border rounded-lg p-2.5 text-center transition-all h-full flex flex-col items-center justify-center gap-1.5">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
-                                <span class="text-xs font-bold text-white">Coach</span>
+                                <span class="text-xs">Coach</span>
                             </div>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Full Name</label>
-                    <input type="text" name="name" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="John Doe">
+                    <label class="block text-xs font-medium text-zinc-300 mb-1">Nama Lengkap</label>
+                    <input type="text" name="name" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="Nama Lengkap">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email</label>
-                    <input type="email" name="email" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="runner@example.com">
+                    <label class="block text-xs font-medium text-zinc-300 mb-1">Email</label>
+                    <input type="email" name="email" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="nama@example.com">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">WhatsApp Number</label>
-                    <input type="tel" name="phone" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="08123456789">
+                    <label class="block text-xs font-medium text-zinc-300 mb-1">Nomor WhatsApp</label>
+                    <input type="tel" name="phone" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="08123456789">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
-                        <input type="password" name="password" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
+                        <label class="block text-xs font-medium text-zinc-300 mb-1">Password</label>
+                        <input type="password" name="password" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="••••••••">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Confirm</label>
-                        <input type="password" name="password_confirmation" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
+                        <label class="block text-xs font-medium text-zinc-300 mb-1">Konfirmasi</label>
+                        <input type="password" name="password_confirmation" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="••••••••">
                     </div>
                 </div>
                 <input type="hidden" name="g-recaptcha-response" value="">
 
-                <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                    <span x-show="!loading">CREATE ACCOUNT</span>
-                    <span x-show="loading" class="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                <button type="submit" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
+                    <span x-show="!loading">Daftar Akun Baru</span>
+                    <span x-show="loading" class="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
                 </button>
             </form>
 
-            <!-- Social Login -->
+            <!-- Social Login Options (Google & Strava) -->
             <div class="mt-6">
-                <div class="relative flex items-center justify-center mb-6">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-800"></div></div>
-                    <span class="relative px-4 bg-slate-900 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Or continue with</span>
+                <div class="relative flex items-center justify-center mb-5">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-zinc-800"></div></div>
+                    <span class="relative px-3 bg-[#09090b] text-xs font-medium text-zinc-500">Atau lanjutkan dengan</span>
                 </div>
-                <a href="<?php echo e(route('auth.google')); ?>" class="flex items-center justify-center gap-3 w-full py-3 bg-white text-dark font-bold rounded-xl hover:bg-slate-100 transition-all">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c1.68-1.54 2.64-3.81 2.64-6.39z"/><path fill="#34A853" d="M12 23c3.11 0 5.71-1.02 7.62-2.77l-3.57-2.77c-.99.66-2.25 1.06-3.62 1.06-2.79 0-5.14-1.88-5.99-4.41H2.82v2.86C4.72 20.56 8.13 23 12 23z"/><path fill="#FBBC05" d="M6.01 14.11c-.22-.66-.35-1.36-.35-2.11s.13-1.45.35-2.11V7.03H2.82C2.1 8.52 1.69 10.21 1.69 12s.41 3.48 1.13 4.97l3.19-2.86z"/><path fill="#EA4335" d="M12 5.38c1.69 0 3.06.58 4.26 1.72l3.19-3.19C17.53 2.1 14.91 1 12 1 8.13 1 4.72 3.44 2.82 6.14l3.19 2.86c.85-2.53 3.2-4.41 12-4.41z"/></svg>
-                    Google
-                </a>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="<?php echo e(route('auth.google')); ?>" class="py-2.5 px-4 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-200 font-medium text-xs transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Google
+                    </a>
+
+                    <a href="<?php echo e(route('auth.strava')); ?>" class="py-2.5 px-4 rounded-lg border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-medium text-xs transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 fill-current text-[#FC4C02]" viewBox="0 0 24 24">
+                            <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.92 15.6h4.172"/>
+                        </svg>
+                        Strava
+                    </a>
+                </div>
             </div>
         </div>
-
-        <button @click="open = false" class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
     </div>
 </div>
 <?php endif; ?>
