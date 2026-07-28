@@ -24,10 +24,10 @@
 
                 <!-- Key SEO Badges -->
                 <div class="flex flex-wrap gap-2 pt-2">
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">⚡ Daniels VDOT</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">🏃 Cari Teman Lari</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">📅 Race Calendar</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">🤖 AI Biomechanics</span>
+                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-bolt text-neon text-[10px]"></i> Daniels VDOT</span>
+                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-running text-neon text-[10px]"></i> Cari Teman Lari</span>
+                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="far fa-calendar-alt text-neon text-[10px]"></i> Race Calendar</span>
+                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-robot text-neon text-[10px]"></i> AI Biomechanics</span>
                 </div>
 
                 <!-- Social Media -->
