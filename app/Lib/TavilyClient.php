@@ -21,9 +21,10 @@ class TavilyClient
      * @param string $query
      * @param int    $maxResults
      * @param array  $excludeDomains
+     * @param array  $includeDomains
      * @return array|null
      */
-    public function search(string $query, int $maxResults = 7, array $excludeDomains = []): ?array
+    public function search(string $query, int $maxResults = 7, array $excludeDomains = [], array $includeDomains = []): ?array
     {
         if (empty($this->apiKey)) {
             Log::error('Tavily API Key is not set.');
@@ -31,16 +32,22 @@ class TavilyClient
         }
 
         try {
+            $payload = [
+                'api_key'         => $this->apiKey,
+                'query'           => $query,
+                'max_results'     => $maxResults,
+                'search_depth'    => 'advanced',
+                'include_answer'  => false,
+                'exclude_domains' => $excludeDomains,
+            ];
+
+            if (! empty($includeDomains)) {
+                $payload['include_domains'] = $includeDomains;
+            }
+
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->timeout(60)->post($this->endpoint, [
-                'api_key'        => $this->apiKey,
-                'query'          => $query,
-                'max_results'    => $maxResults,
-                'search_depth'   => 'advanced',
-                'include_answer' => false,
-                'exclude_domains' => $excludeDomains,
-            ]);
+            ])->timeout(60)->post($this->endpoint, $payload);
 
             if ($response->successful()) {
                 return $response->json();

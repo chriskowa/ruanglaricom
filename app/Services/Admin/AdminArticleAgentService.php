@@ -224,15 +224,40 @@ TEXT;
             ];
         }
 
-        //* 1. Tavily Search
-        $query        = ($selectedData['title'] ?? "") . ". Keyword: " . $selectedData['keyword'];
-        $tavilyResult = $this->tavily->search($query, 7, ['youtube.com', 'tiktok.com']);
-        if (!$tavilyResult) {
+        //* 1. Tavily Search (General Web + Target Authority Outlets: Runner's World, CitiusMag, Marathon Handbook)
+        $query = ($selectedData['title'] ?? "") . ". Keyword: " . $selectedData['keyword'];
+        $authorityDomains = ['runnersworld.com', 'citiusmag.com', 'marathonhandbook.com'];
+
+        // General Web Search
+        $tavilyResult = $this->tavily->search($query, 5, ['youtube.com', 'tiktok.com']);
+        
+        // Targeted Search on Top Running Publications
+        $nicheResult = $this->tavily->search($query, 5, [], $authorityDomains);
+
+        $combinedResults = array_merge(
+            $tavilyResult['results'] ?? [],
+            $nicheResult['results'] ?? []
+        );
+
+        // Deduplicate results by URL
+        $uniqueResults = [];
+        $seenUrls = [];
+        foreach ($combinedResults as $item) {
+            $url = $item['url'] ?? '';
+            if ($url && ! isset($seenUrls[$url])) {
+                $seenUrls[$url] = true;
+                $uniqueResults[] = $item;
+            }
+        }
+
+        if (empty($uniqueResults)) {
             throw new Exception("Failed to retrieve research data.");
         }
 
+        $tavilyResult = ['results' => $uniqueResults];
+
         //* 2. Extract text for Research
-        $textForResearch = $this->cleanTavilyContext($tavilyResult['results'] ?? [], 12000);
+        $textForResearch = $this->cleanTavilyContext($uniqueResults, 14000);
 
         $prompt = "Kamu adalah seorang analis riset profesional untuk blog lari. Analisis data riset mentah berikut yang berisi cuplikan dan konten dari hasil pencarian.\n" .
                   "Tugas:\n" .
