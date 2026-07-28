@@ -35,15 +35,12 @@ class BiomechanicsAnalysisService
         $biomechanics = $this->buildBiomechFeedback($biomech, $symptoms);
         $formReport = $this->buildFormReport($biomech, $metrics);
         $formScore = $this->calculateFormScore($biomech);
-        $videoScore = $capture['video_score'];
-        $score = $formScore ?? $videoScore;
+        $score = $formScore ?? 100;
+        $videoScore = $formScore ?? 100;
 
-        $positives = $this->uniqueByCode(array_merge(
-            $capture['positives'],
-            $biomechanics['positives']
-        ));
+        $positives = $this->uniqueByCode($biomechanics['positives']);
 
-        $captureSuggestions = $capture['suggestions'];
+        $captureSuggestions = [];
         $techniqueSuggestions = $biomechanics['technique_suggestions'];
         $formIssues = $biomechanics['form_issues'];
         $strengthPlan = $biomechanics['strength_plan'];
@@ -51,10 +48,8 @@ class BiomechanicsAnalysisService
 
         $coachMessage = $this->buildCoachMessage(
             $meta,
-            $videoScore,
             $formScore,
             $formIssues,
-            $capture['issues'],
             $symptoms
         );
 
@@ -80,10 +75,7 @@ class BiomechanicsAnalysisService
                 if (is_array($aiFeedback)) {
                     $aiPositives = $this->normalizePositiveItems($aiFeedback['positives'] ?? []);
                     if ($aiPositives !== []) {
-                        $positives = $this->uniqueByCode(array_merge(
-                            $capture['positives'],
-                            $aiPositives
-                        ));
+                        $positives = $this->uniqueByCode($aiPositives);
                     }
 
                     $aiFormIssues = $this->normalizeAiFormIssues(
@@ -149,12 +141,7 @@ class BiomechanicsAnalysisService
         $strengthPlan = $this->sortByPriority($strengthPlan);
         $recoveryPlan = $this->sortByPriority($recoveryPlan);
 
-        // Backward compatibility: `suggestions` tetap tersedia, tetapi setiap item
-        // sekarang memiliki category `capture` atau `technique`.
-        $suggestions = $this->uniqueByCode(array_merge(
-            $captureSuggestions,
-            $techniqueSuggestions
-        ));
+        $suggestions = $this->uniqueByCode($techniqueSuggestions);
 
         return [
             'score' => $score,
@@ -162,11 +149,11 @@ class BiomechanicsAnalysisService
             'form_score' => $formScore,
             'positives' => array_slice($positives, 0, 5),
 
-            // Kualitas input/video.
-            'issues' => $capture['issues'],
-            'capture_suggestions' => $captureSuggestions,
+            // Kualitas input/video (dikosongkan sesuai permintaan pengguna).
+            'issues' => [],
+            'capture_suggestions' => [],
 
-            // Backward-compatible combined suggestions.
+            // Combined technique suggestions.
             'suggestions' => $suggestions,
 
             // Analisis biomekanika.
@@ -749,37 +736,47 @@ class BiomechanicsAnalysisService
                 $positives[] = $this->positive(
                     'overstride_low',
                     'Posisi landing relatif efisien',
-                    'Kaki umumnya mendarat dekat dengan proyeksi pusat tubuh.'
+                    'Kaki umumnya mendarat dekat dengan proyeksi pusat tubuh.',
+                    'landing'
                 );
             }
         }
 
-        if (is_numeric($shin) && $shin >= 18) {
-            $formIssues[] = $this->formIssue(
-                'shin_angle_high',
-                'lever',
-                'shin_angle_deg',
-                'Sudut tibia menunjukkan kecenderungan braking',
-                'Tibia cukup miring saat kontak sehingga posisi kaki berpotensi menahan gerak maju.',
-                'medium',
-                round($shin, 1),
-                '°',
-                'Perhatian ≥18°; nilai yang lebih dekat vertikal umumnya mengurangi braking.',
-                $confidence,
-                $samples,
-                68
-            );
-            $techniqueSuggestions[] = $this->techniqueSuggestion(
-                'shin_angle_push_backward',
-                ['shin_angle_high'],
-                'lever',
-                'medium',
-                'Arahkan dorongan ke belakang',
-                'Pertahankan kaki lebih dekat ke tubuh dan pikirkan dorongan permukaan ke belakang, bukan menjangkau ke depan.',
-                'Dorong tanah ke belakang.',
-                'Strides ringan setelah easy run.',
-                '4–6 repetisi pendek dengan pemulihan penuh.'
-            );
+        if (is_numeric($shin)) {
+            if ($shin >= 18) {
+                $formIssues[] = $this->formIssue(
+                    'shin_angle_high',
+                    'lever',
+                    'shin_angle_deg',
+                    'Sudut tibia menunjukkan kecenderungan braking',
+                    'Tibia cukup miring saat kontak sehingga posisi kaki berpotensi menahan gerak maju.',
+                    'medium',
+                    round($shin, 1),
+                    '°',
+                    'Perhatian ≥18°; nilai yang lebih dekat vertikal umumnya mengurangi braking.',
+                    $confidence,
+                    $samples,
+                    68
+                );
+                $techniqueSuggestions[] = $this->techniqueSuggestion(
+                    'shin_angle_push_backward',
+                    ['shin_angle_high'],
+                    'lever',
+                    'medium',
+                    'Arahkan dorongan ke belakang',
+                    'Pertahankan kaki lebih dekat ke tubuh dan pikirkan dorongan permukaan ke belakang, bukan menjangkau ke depan.',
+                    'Dorong tanah ke belakang.',
+                    'Strides ringan setelah easy run.',
+                    '4–6 repetisi pendek dengan pemulihan penuh.'
+                );
+            } else {
+                $positives[] = $this->positive(
+                    'shin_angle_good',
+                    'Sudut tibia relatif tegak saat mid-stance',
+                    'Sudut tibia saat kontak berada di bawah 18° sehingga gaya pengereman (braking force) relatif minim.',
+                    'lever'
+                );
+            }
         }
 
         if (is_numeric($knee)) {
@@ -836,11 +833,12 @@ class BiomechanicsAnalysisService
                         'Naikkan tinggi step setelah kontrol tetap baik pada seluruh repetisi.',
                     ]
                 );
-            } elseif ($knee >= 30 && $knee <= 55) {
+            } else {
                 $positives[] = $this->positive(
                     'knee_flexion_good',
                     'Fleksi lutut berada pada rentang referensi',
-                    'Tekukan lutut saat landing cukup mendukung penerimaan beban.'
+                    'Tekukan lutut saat landing/mid-stance cukup mendukung penerimaan beban.',
+                    'lever'
                 );
             }
         }
@@ -917,7 +915,8 @@ class BiomechanicsAnalysisService
                 $positives[] = $this->positive(
                     'trunk_lean_good',
                     'Kemiringan badan berada pada rentang referensi',
-                    'Postur mendukung perpindahan tubuh ke depan tanpa lean berlebihan.'
+                    'Postur mendukung perpindahan tubuh ke depan tanpa lean berlebihan.',
+                    'posture'
                 );
             }
         }
@@ -979,7 +978,8 @@ class BiomechanicsAnalysisService
                 $positives[] = $this->positive(
                     'arm_cross_good',
                     'Arah ayunan tangan relatif efisien',
-                    'Lengan umumnya bergerak searah dengan gerak maju tubuh.'
+                    'Lengan umumnya bergerak searah dengan gerak maju tubuh.',
+                    'arm_swing'
                 );
             }
         }
@@ -1015,7 +1015,8 @@ class BiomechanicsAnalysisService
                 $positives[] = $this->positive(
                     'cadence_reference_range',
                     'Cadence berada pada rentang referensi',
-                    'Ritme langkah berada dalam rentang yang lazim digunakan sebagai acuan efisiensi.'
+                    'Ritme langkah berada dalam rentang yang lazim digunakan sebagai acuan efisiensi.',
+                    'landing'
                 );
             }
         }
@@ -1077,7 +1078,8 @@ class BiomechanicsAnalysisService
                 $positives[] = $this->positive(
                     'vertical_oscillation_good',
                     'Gerak vertikal relatif terkendali',
-                    'Tubuh tidak menunjukkan pantulan vertikal yang berlebihan pada sistem pengukuran ini.'
+                    'Tubuh tidak menunjukkan pantulan vertikal yang berlebihan pada sistem pengukuran ini.',
+                    'push'
                 );
             }
         }
@@ -1278,6 +1280,29 @@ class BiomechanicsAnalysisService
             }
         }
 
+        foreach ($formFeedback['positives'] as $positive) {
+            $phase = $positive['phase'] ?? null;
+            if (isset($sections[$phase])) {
+                $sections[$phase]['findings'][] = $positive['title'] . ': ' . $positive['message'];
+                if ($sections[$phase]['summary'] === null) {
+                    $sections[$phase]['summary'] = $positive['title'];
+                }
+            }
+        }
+
+        // Pastikan fase Lever (mid-stance) memiliki bukti kuantitatif jika metrik tersedia
+        if (is_numeric($biomech['shin_angle_deg'] ?? null)) {
+            $shinVal = round((float) $biomech['shin_angle_deg'], 1);
+            $sections['lever']['findings'][] = "Sudut tibia (shin angle): {$shinVal}°";
+        }
+        if (is_numeric($biomech['knee_flex_deg'] ?? null)) {
+            $kneeVal = round((float) $biomech['knee_flex_deg'], 1);
+            $sections['lever']['findings'][] = "Fleksi lutut (knee flex): {$kneeVal}°";
+        }
+        if ($sections['lever']['actions'] === [] && (is_numeric($biomech['shin_angle_deg'] ?? null) || is_numeric($biomech['knee_flex_deg'] ?? null))) {
+            $sections['lever']['actions'][] = 'Pertahankan fleksibilitas dan kontrol lutut serta ankle saat mid-stance agar peredaman beban tetap efisien.';
+        }
+
         foreach ($formFeedback['technique_suggestions'] as $suggestion) {
             $phase = $suggestion['phase'] ?? null;
             if (isset($sections[$phase])) {
@@ -1317,21 +1342,6 @@ class BiomechanicsAnalysisService
         foreach ($coverage as $phase => $coverageData) {
             if (! isset($sections[$phase]) || ! is_array($coverageData)) {
                 continue;
-            }
-
-            $count = is_numeric($coverageData['count'] ?? null)
-                ? (int) $coverageData['count']
-                : null;
-            $minimum = is_numeric($coverageData['min'] ?? null)
-                ? (int) $coverageData['min']
-                : null;
-
-            if ($count !== null && $minimum !== null) {
-                $sections[$phase]['findings'][] = "Cakupan frame: {$count}/{$minimum}";
-                if ($count < $minimum) {
-                    $sections[$phase]['status'] = 'missing';
-                    $sections[$phase]['summary'] = 'Frame belum cukup untuk fase ini.';
-                }
             }
         }
 
@@ -1637,10 +1647,8 @@ class BiomechanicsAnalysisService
 
     private function buildCoachMessage(
         array $meta,
-        int $videoScore,
         ?int $formScore,
         array $formIssues,
-        array $captureIssues,
         array $symptoms
     ): string {
         $runnerName = trim((string) (
@@ -1663,12 +1671,10 @@ class BiomechanicsAnalysisService
         );
 
         $parts = [];
-        $parts[] = "{$runnerName}, analisis ini memisahkan kualitas rekaman dari kualitas teknik lari agar hasil lebih mudah ditindaklanjuti.";
+        $parts[] = "Halo {$runnerName}, berikut adalah ringkasan analisis teknik lari Anda.";
 
         if ($formScore !== null) {
-            $parts[] = "Skor form deterministik adalah {$formScore}/100, sedangkan kualitas data video {$videoScore}/100.";
-        } else {
-            $parts[] = "Kualitas data video adalah {$videoScore}/100, tetapi skor form belum dapat dihitung karena data biomekanika belum cukup.";
+            $parts[] = "Skor bentuk lari Anda adalah {$formScore}/100.";
         }
 
         if ($priorityIssues !== []) {
@@ -1678,17 +1684,13 @@ class BiomechanicsAnalysisService
             ));
             $parts[] = "Fokuskan evaluasi pada {$titles}. Terapkan satu atau dua perubahan terlebih dahulu agar respons tubuh dapat dinilai dengan jelas.";
         } else {
-            $parts[] = 'Tidak ada masalah biomekanika prioritas tinggi pada data yang tersedia. Pertahankan pola yang stabil dan evaluasi ulang pada kondisi rekaman yang sama.';
-        }
-
-        if ($captureIssues !== []) {
-            $parts[] = 'Perbaiki masalah kualitas rekaman sebelum membandingkan progres antar-trial.';
+            $parts[] = 'Tidak ada masalah biomekanika prioritas tinggi pada data yang tersedia. Pertahankan pola gerak yang stabil.';
         }
 
         if (! $symptoms['available']) {
-            $parts[] = 'Data nyeri belum tersedia, sehingga sistem tidak menetapkan pengurangan beban atau masa pemulihan tertentu.';
+            $parts[] = 'Data nyeri belum tersedia, sehingga sistem tidak menetapkan pengurangan beban atau masa pemulihan khusus.';
         } elseif ($symptoms['pain_present'] === true) {
-            $parts[] = 'Karena terdapat keluhan, gunakan recovery plan sebagai panduan konservatif dan bukan diagnosis medis.';
+            $parts[] = 'Karena terdapat keluhan, gunakan panduan pemulihan sebagai rekomendasi pemulihan konservatif.';
         }
 
         return implode(' ', $parts);
@@ -1724,13 +1726,14 @@ Tugas Anda hanya memperjelas bahasa, menyusun prioritas, dan membuat rekomendasi
 Aturan wajib:
 1. Jangan mengubah observed_value, unit, reference, confidence, sample_count, metric_code, phase, severity, priority_score, atau code dari form_issues deterministik.
 2. Jangan membuat metrik, diagnosis, gejala, risiko cedera, normal range, atau hubungan sebab-akibat yang tidak tersedia.
-3. Jangan menyatakan heel strike sebagai masalah tunggal. Baca bersama overstride dan shin angle.
-4. Jangan menyarankan pengurangan latihan, istirahat beberapa hari, atau evaluasi medis jika data gejala tidak mendukung.
-5. Jika data gejala tidak tersedia, recovery_plan harus bersifat monitoring dan konservatif.
-6. Maksimal 3 positives, 5 form_issues, 4 technique_suggestions, 4 strength_plan, dan 2 recovery_plan.
-7. Gunakan Bahasa Indonesia profesional, lugas, tidak berlebihan, dan tidak menggunakan pujian kosong.
-8. Sapa pelari dengan nama "{$runnerName}" di coach_message.
-9. Jawab JSON murni tanpa markdown atau teks tambahan.
+3. DILARANG KERAS menilai, menyebutkan, atau mengevaluasi kualitas video, frame rate, resolusi, durasi video, pencahayaan, atau cara pengambilan gambar. Fokuskan 100% narasi hanya pada bentuk & teknik lari (posisi tubuh, landing, lever, push, ayunan tangan, postur), bagian yang salah/perlu dibenahi, dan langkah perbaikan.
+4. Jangan menyatakan heel strike sebagai masalah tunggal. Baca bersama overstride dan shin angle.
+5. Jangan menyarankan pengurangan latihan, istirahat beberapa hari, atau evaluasi medis jika data gejala tidak mendukung.
+6. Jika data gejala tidak tersedia, recovery_plan harus bersifat monitoring dan konservatif.
+7. Maksimal 3 positives, 5 form_issues, 4 technique_suggestions, 4 strength_plan, dan 2 recovery_plan.
+8. Gunakan Bahasa Indonesia profesional, lugas, tidak berlebihan, dan tidak menggunakan pujian kosong.
+9. Sapa pelari dengan nama "{$runnerName}" di coach_message.
+10. Jawab JSON murni tanpa markdown atau teks tambahan.
 TEXT;
 
         $prompt = <<<'TEXT'
@@ -2238,10 +2241,11 @@ TEXT;
         ];
     }
 
-    private function positive(string $code, string $title, string $message): array
+    private function positive(string $code, string $title, string $message, ?string $phase = null): array
     {
         return [
             'code' => $code,
+            'phase' => $phase,
             'title' => $title,
             'message' => $message,
             'severity' => 'good',

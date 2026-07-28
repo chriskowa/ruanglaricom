@@ -499,6 +499,120 @@ class AuthController extends Controller
         return redirect()->intended($dashboard);
     }
 
+    public function redirectToStrava()
+    {
+        $config = \App\Models\Admin\StravaConfig::first();
+        $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
+
+        if (! $clientId) {
+            return redirect()->route('login')->with('error', 'Integrasi Strava belum dikonfigurasi.');
+        }
+
+        $redirectUri = route('auth.strava.callback');
+        $query = http_build_query([
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'response_type' => 'code',
+            'approval_prompt' => 'auto',
+            'scope' => 'read,activity:read_all',
+        ]);
+
+        return redirect('https://www.strava.com/oauth/authorize?'.$query);
+    }
+
+    public function handleStravaCallback(Request $request)
+    {
+        $code = $request->query('code');
+        if (! $code) {
+            return redirect()->route('login')->with('error', 'Login via Strava gagal atau dibatalkan.');
+        }
+
+        $config = \App\Models\Admin\StravaConfig::first();
+        $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
+        $clientSecret = $config->client_secret ?? env('STRAVA_CLIENT_SECRET');
+
+        if (! $clientId || ! $clientSecret) {
+            return redirect()->route('login')->with('error', 'Integrasi Strava belum dikonfigurasi.');
+        }
+
+        $response = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'code' => $code,
+            'grant_type' => 'authorization_code',
+        ]);
+
+        if ($response->failed()) {
+            return redirect()->route('login')->with('error', 'Gagal mendapatkan otentikasi dari Strava.');
+        }
+
+        $tokenData = $response->json();
+        $athlete = data_get($tokenData, 'athlete', []);
+        $stravaId = data_get($athlete, 'id');
+
+        if (! $stravaId) {
+            return redirect()->route('login')->with('error', 'Data profil Strava tidak ditemukan.');
+        }
+
+        $user = User::where('strava_id', $stravaId)->first();
+
+        if (! $user && ! empty(data_get($athlete, 'email'))) {
+            $user = User::where('email', data_get($athlete, 'email'))->first();
+        }
+
+        if (! $user) {
+            $firstName = data_get($athlete, 'firstname', 'Runner');
+            $lastName = data_get($athlete, 'lastname', '');
+            $name = trim($firstName . ' ' . $lastName);
+            $email = data_get($athlete, 'email') ?: "strava_{$stravaId}@ruanglari.com";
+
+            $username = \Illuminate\Support\Str::slug($name);
+            $count = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = \Illuminate\Support\Str::slug($name) . $count++;
+            }
+
+            $user = User::create([
+                'name' => $name ?: 'Runner ' . $stravaId,
+                'email' => $email,
+                'username' => $username,
+                'password' => Hash::make(\Illuminate\Support\Str::random(16)),
+                'role' => 'runner',
+                'is_active' => true,
+                'avatar' => data_get($athlete, 'profile'),
+                'strava_id' => $stravaId,
+                'referral_code' => $this->generateReferralCode(),
+            ]);
+
+            $wallet = Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0,
+                'locked_balance' => 0,
+            ]);
+
+            $user->update(['wallet_id' => $wallet->id]);
+        }
+
+        $user->update([
+            'strava_id' => $stravaId,
+            'strava_access_token' => data_get($tokenData, 'access_token'),
+            'strava_refresh_token' => data_get($tokenData, 'refresh_token'),
+            'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
+        ]);
+
+        Auth::login($user);
+
+        $dashboard = match ($user->role) {
+            'admin' => route('admin.dashboard'),
+            'coach' => route('coach.dashboard'),
+            'runner' => route('runner.dashboard'),
+            'eo' => route('eo.dashboard'),
+            default => route('runner.dashboard'),
+        };
+
+        return redirect()->intended($dashboard);
+    }
+
     private function generateReferralCode(): string
     {
         do {

@@ -737,6 +737,10 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/google', [App\Http\Controllers\Auth\AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('auth/google/callback', [App\Http\Controllers\Auth\AuthController::class, 'handleGoogleCallback']);
 
+    // Strava Auth (Login / Register using Strava)
+    Route::get('auth/strava', [App\Http\Controllers\Auth\AuthController::class, 'redirectToStrava'])->name('auth.strava');
+    Route::get('auth/strava/callback', [App\Http\Controllers\Auth\AuthController::class, 'handleStravaCallback'])->name('auth.strava.callback');
+
     // Public Pages
     Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 });

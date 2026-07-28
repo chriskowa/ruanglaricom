@@ -93,6 +93,16 @@ class User extends Authenticatable
         'is_receive_wa',
     ];
 
+    public function tokens(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\App\Models\PersonalAccessToken::class, 'tokenable');
+    }
+
+    public function createToken(string $name = 'mobile-app', array $abilities = ['*']): array
+    {
+        return \App\Models\PersonalAccessToken::createToken($this, $name, $abilities);
+    }
+
     /**
      * Get avatar URL
      */
