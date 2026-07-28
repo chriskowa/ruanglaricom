@@ -129,10 +129,14 @@ class BlogController extends Controller
     public function show(Request $request, $slug)
     {
         $requestedLang = strtolower((string) $request->query('lang', ''));
-        if ($requestedLang === 'en') {
-            app()->setLocale('en');
+        if (in_array($requestedLang, ['id', 'en'], true)) {
+            app()->setLocale($requestedLang);
+            $request->session()->put('locale', $requestedLang);
         } else {
-            app()->setLocale('id');
+            $sessionLang = strtolower((string) $request->session()->get('locale', 'id'));
+            if (in_array($sessionLang, ['id', 'en'], true)) {
+                app()->setLocale($sessionLang);
+            }
         }
 
         $article = Article::with(['user:id,name', 'category:id,name,slug', 'tags:id,name,slug'])

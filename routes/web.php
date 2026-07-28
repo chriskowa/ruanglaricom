@@ -605,6 +605,16 @@ Route::get('/lang/{locale}', function (Illuminate\Http\Request $request, string 
     $request->session()->put('locale', $locale);
     app()->setLocale($locale);
 
+    $referer = $request->headers->get('referer');
+    if ($referer) {
+        $parsed = parse_url($referer);
+        $path = $parsed['path'] ?? '/';
+        parse_str($parsed['query'] ?? '', $queryParams);
+        $queryParams['lang'] = $locale;
+        $newUrl = $path . '?' . http_build_query($queryParams);
+        return redirect($newUrl);
+    }
+
     return redirect()->back();
 })->name('lang.switch');
 

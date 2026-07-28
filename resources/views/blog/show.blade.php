@@ -181,8 +181,8 @@
                         <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
             </a>
             <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
-                <a href="{{ route('lang.switch', 'id') }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
-                <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
             </div>
         </div>
         <div class="hidden md:flex items-center justify-between gap-4">
@@ -217,8 +217,8 @@
                 </ol>
             </nav>
             <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
-                <a href="{{ route('lang.switch', 'id') }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
-                <a href="{{ route('lang.switch', 'en') }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
             </div>
         </div>
     </div>
