@@ -199,13 +199,27 @@ TEXT;
             throw new Exception("No keyword selected for research.");
         }
 
-        //* JIKA MANUAL, SKIP TAVILY & SUMMARY
+        //* JIKA MANUAL (SKIP RISET WEB), BUAT SYNTHETIC RESEARCH SUMMARY
         $researchManual = $input['research_manual'] ?? false;
         if ($researchManual || !$this->tavily) {
+            $title = $selectedData['title'] ?? 'Topik Lari';
+            $keyword = $selectedData['keyword'] ?? '';
+            $summaryText = $selectedData['summary'] ?? $title;
+
+            $fallbackSummary = "# {$title}\n\n" .
+                               "**Kata Kunci Utama**: {$keyword}\n\n" .
+                               "**Ringkasan Topik**: {$summaryText}\n\n" .
+                               "Tuliskan artikel mendalam mengenai {$title} yang berorientasi pada panduan praktis, tips latihan yang aman, dan solusi terbaik untuk pelari di Indonesia.";
+
+            $session->update([
+                'research_raw_tavily' => null,
+                'research_summary'    => $fallbackSummary
+            ]);
+
             return [
                 'uuid'                => $input['uuid'],
                 'research_raw_tavily' => null,
-                'research_summary'    => null,
+                'research_summary'    => $fallbackSummary,
                 'cleaned'             => null
             ];
         }
@@ -265,8 +279,21 @@ TEXT;
             $query->update(['research_summary' => $summary]);
             $query->refresh();
         }
+
+        $selectedData = $query->selected_option_data ?: [];
+
         if (!$query->research_summary) {
-            throw new Exception("Research summary missing. Cannot generate article.");
+            $title = $selectedData['title'] ?? 'Topik Lari';
+            $keyword = $selectedData['keyword'] ?? '';
+            $summaryText = $selectedData['summary'] ?? $title;
+
+            $fallbackSummary = "# {$title}\n\n" .
+                               "**Kata Kunci Utama**: {$keyword}\n\n" .
+                               "**Ringkasan Topik**: {$summaryText}\n\n" .
+                               "Tuliskan artikel mendalam mengenai {$title} yang berorientasi pada panduan praktis, tips latihan yang aman, dan solusi terbaik untuk pelari di Indonesia.";
+
+            $query->update(['research_summary' => $fallbackSummary]);
+            $query->refresh();
         }
 
         $selectedData = $query->selected_option_data;
