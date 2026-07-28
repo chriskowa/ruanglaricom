@@ -671,15 +671,14 @@ Route::get('/api/events/upcoming', function () {
 
 // Public API: Latest blog articles for home page
 Route::get('/api/blog/latest', function () {
-    $result = Illuminate\Support\Facades\Cache::remember('api.blog.latest', 600, function () {
+    $result = Illuminate\Support\Facades\Cache::remember('api.blog.latest_v2', 600, function () {
         try {
             if (! Illuminate\Support\Facades\Schema::hasTable('articles')) {
                 return [];
             }
 
             return \App\Models\Article::published()
-                ->orderByDesc('is_featured')
-                ->orderByRaw('COALESCE(updated_at, published_at, created_at) DESC')
+                ->orderByRaw('COALESCE(published_at, created_at, updated_at) DESC')
                 ->limit(3)
                 ->get()
                 ->map(function ($a) {
