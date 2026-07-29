@@ -846,16 +846,32 @@ class PublicEventReportController extends Controller
         }
 
         $validated = $request->validate([
-            'is_picked_up' => 'required|boolean',
+            'is_picked_up' => 'nullable|boolean',
             'picked_up_by' => 'nullable|string|max:255',
+            'payment_status' => 'nullable|string|in:paid,pending,failed,expired,cancelled,cod',
         ]);
 
+        if ($request->filled('payment_status')) {
+            $newPaymentStatus = (string) $validated['payment_status'];
+            $transaction = $participant->transaction;
+            if ($transaction) {
+                $transaction->update(['payment_status' => $newPaymentStatus]);
+
+                if (in_array($newPaymentStatus, ['paid', 'cod'], true) && empty($participant->bib_number)) {
+                    if (method_exists($participant, 'assignBibNumber')) {
+                        $participant->assignBibNumber();
+                    }
+                }
+            }
+        }
+
         $wasPickedUp = (bool) $participant->is_picked_up;
-        $isPickedUp = (bool) $validated['is_picked_up'];
-        if ($isPickedUp) {
-            $paymentStatus = (string) ($participant->transaction->payment_status ?? '');
+        $isPickedUp = isset($validated['is_picked_up']) ? (bool) $validated['is_picked_up'] : $wasPickedUp;
+
+        if ($isPickedUp && ! $wasPickedUp) {
+            $paymentStatus = (string) ($participant->transaction->fresh()->payment_status ?? '');
             if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
-                $message = 'Tidak bisa pickup: status pembayaran belum paid.';
+                $message = 'Tidak bisa pickup: status pembayaran belum paid/cod.';
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success' => false,
@@ -866,17 +882,22 @@ class PublicEventReportController extends Controller
             }
         }
 
-        $participant->update([
-            'is_picked_up' => $isPickedUp,
-            'picked_up_at' => $isPickedUp ? now() : null,
-            'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: 'Public Report') : null,
-        ]);
+        if (isset($validated['is_picked_up'])) {
+            $participant->update([
+                'is_picked_up' => $isPickedUp,
+                'picked_up_at' => $isPickedUp ? now() : null,
+                'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: 'Public Report') : null,
+            ]);
+        }
+
+        $participant->refresh();
+        $participant->load(['transaction']);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status pengambilan berhasil diperbarui',
-                'pickup_changed' => $wasPickedUp !== $isPickedUp,
+                'message' => 'Status berhasil diperbarui',
+                'pickup_changed' => $wasPickedUp !== (bool) $participant->is_picked_up,
                 'participant' => [
                     'id' => $participant->id,
                     'name' => $participant->name,

@@ -231,10 +231,16 @@
 
     <div class="mt-6 space-y-6">
         <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <div class="text-lg font-bold">Data Peserta</div>
-                    <div class="text-xs text-slate-400">Filter AJAX • Pagination server-side</div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <div class="text-lg font-bold">Data Peserta</div>
+                        <div class="text-xs text-slate-400">Filter AJAX • Pagination server-side</div>
+                    </div>
+                    <button type="button" id="toggle-filters-btn" onclick="toggleReportFilters()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700">
+                        <i id="toggle-filters-icon" class="fa-solid fa-chevron-up text-xs text-white"></i>
+                        <span id="toggle-filters-text">Sembunyikan Filter</span>
+                    </button>
                 </div>
                 <div id="report-loading" class="hidden items-center gap-2 text-xs text-slate-300">
                     <span class="loader"></span>
@@ -401,6 +407,20 @@
                 </div>
             </form>
 
+            <!-- Sticky Quick-Search Bar for Mobile & Instant Search -->
+            <div class="mt-4 sticky top-2 z-20 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-700/80 shadow-xl flex items-center gap-2">
+                <div class="relative flex-1">
+                    <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="quick-search-input" value="{{ $filters['search'] ?? '' }}" placeholder="Cari cepat (Nama, BIB, Email, Telp, ID)..." 
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs font-semibold text-white placeholder-slate-500 outline-none focus:border-neon focus:ring-1 focus:ring-neon/40 transition-colors">
+                    <button type="button" id="quick-search-clear" onclick="clearQuickSearch()" class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-[10px] font-bold bg-slate-800 hover:bg-slate-700 rounded-full w-4 h-4 flex items-center justify-center transition">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
             <div class="mt-4 overflow-x-auto border border-slate-700 rounded-2xl">
                 <table class="min-w-full text-sm">
                     <thead class="bg-slate-900/60 text-slate-300 hidden md:table-header-group">
@@ -468,12 +488,17 @@
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
                                     <span class="text-right md:text-left">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d M Y H:i') }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
+                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
-                                    <span class="text-right md:text-left">
-                                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-200">
-                                            {{ $p->payment_status }}
-                                        </span>
+                                    <div class="text-right md:text-left">
+                                        <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-900 border border-slate-700 text-xs font-bold rounded-lg px-2 py-1 text-white focus:outline-none focus:border-neon cursor-pointer">
+                                            <option value="paid" @selected($p->payment_status === 'paid')>PAID</option>
+                                            <option value="pending" @selected($p->payment_status === 'pending')>PENDING</option>
+                                            <option value="cod" @selected($p->payment_status === 'cod')>COD</option>
+                                            <option value="failed" @selected($p->payment_status === 'failed')>FAILED</option>
+                                            <option value="expired" @selected($p->payment_status === 'expired')>EXPIRED</option>
+                                            <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
+                                        </select>
                                         @if($p->coupon_code)
                                             <div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">
                                                 🏷️ {{ $p->coupon_code }}
@@ -482,7 +507,7 @@
                                                 Net: Rp {{ number_format((float) $p->final_amount, 0, ',', '.') }}
                                             </div>
                                         @endif
-                                    </span>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
@@ -1782,9 +1807,12 @@
             setSalesInsights(sales);
         }
 
-        function paymentPill(status, couponCode, finalAmount) {
-            const text = (status || '').toString();
-            let html = `<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-200">${text}</span>`;
+        function paymentPill(status, couponCode, finalAmount, participantId) {
+            const text = (status || '').toString().toLowerCase();
+            const statuses = ['paid', 'pending', 'cod', 'failed', 'expired', 'cancelled'];
+            let options = statuses.map(s => `<option value="${s}" ${s === text ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('');
+            
+            let html = `<select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-900 border border-slate-700 text-xs font-bold rounded-lg px-2 py-1 text-white focus:outline-none focus:border-neon cursor-pointer">${options}</select>`;
             if (couponCode) {
                 html += `<div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">🏷️ ${couponCode}</div>`;
                 html += `<div class="text-[10px] text-slate-400 mt-0.5">Net: Rp ${formatCurrency(finalAmount)}</div>`;
@@ -1850,9 +1878,9 @@
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
                                 <span class="text-right md:text-left">${formatDateTime(p.created_at)}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
+                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
-                                <span class="text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount)}</span>
+                                <div class="text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id)}</div>
                             </td>
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
@@ -2573,6 +2601,110 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        };
+
+        window.toggleReportFilters = function() {
+            const form = document.getElementById('report-filters');
+            const icon = document.getElementById('toggle-filters-icon');
+            const text = document.getElementById('toggle-filters-text');
+            if (!form) return;
+            const isHidden = form.classList.contains('hidden');
+            if (isHidden) {
+                form.classList.remove('hidden');
+                if (icon) icon.className = 'fa-solid fa-chevron-up text-xs text-white';
+                if (text) text.textContent = 'Sembunyikan Filter';
+                localStorage.setItem('reportFiltersCollapsed', '0');
+            } else {
+                form.classList.add('hidden');
+                if (icon) icon.className = 'fa-solid fa-chevron-down text-xs text-white';
+                if (text) text.textContent = 'Tampilkan Filter';
+                localStorage.setItem('reportFiltersCollapsed', '1');
+            }
+        };
+
+        window.updatePaymentStatus = function(selectEl, participantId, newStatus) {
+            if (selectEl) selectEl.disabled = true;
+            const eventId = "{{ $event->id }}";
+            const url = `/reports/${eventId}/participants/${participantId}/status`;
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    payment_status: newStatus
+                })
+            })
+            .then(r => {
+                if (!r.ok) {
+                    return r.json().then(err => { throw err; });
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (selectEl) selectEl.disabled = false;
+                if (data.success) {
+                    const filterForm = document.getElementById('report-filters');
+                    if (filterForm) {
+                        filterForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                } else {
+                    alert(data.message || 'Gagal mengubah status pembayaran.');
+                }
+            })
+            .catch(err => {
+                if (selectEl) selectEl.disabled = false;
+                alert(err.message || 'Terjadi kesalahan sistem');
+            });
+        };
+
+        if (localStorage.getItem('reportFiltersCollapsed') === '1') {
+            window.toggleReportFilters();
+        }
+
+        // Two-way sync for Sticky Quick Search Input
+        const quickSearchInp = document.getElementById('quick-search-input');
+        const mainSearchInp = form ? form.querySelector('input[name="search"]') : null;
+        const quickClearBtn = document.getElementById('quick-search-clear');
+
+        if (quickSearchInp && mainSearchInp) {
+            quickSearchInp.addEventListener('input', debounce(() => {
+                mainSearchInp.value = quickSearchInp.value;
+                if (quickClearBtn) {
+                    if (quickSearchInp.value.trim().length > 0) {
+                        quickClearBtn.classList.remove('hidden');
+                    } else {
+                        quickClearBtn.classList.add('hidden');
+                    }
+                }
+                const payload = serializeAll();
+                payload.page = 1;
+                fetchReport(payload);
+            }, 350));
+
+            mainSearchInp.addEventListener('input', () => {
+                quickSearchInp.value = mainSearchInp.value;
+                if (quickClearBtn) {
+                    if (mainSearchInp.value.trim().length > 0) {
+                        quickClearBtn.classList.remove('hidden');
+                    } else {
+                        quickClearBtn.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        window.clearQuickSearch = function() {
+            if (quickSearchInp) quickSearchInp.value = '';
+            if (mainSearchInp) mainSearchInp.value = '';
+            if (quickClearBtn) quickClearBtn.classList.add('hidden');
+            const payload = serializeAll();
+            payload.page = 1;
+            fetchReport(payload);
         };
 
         const initialParticipants = @json($participants);
