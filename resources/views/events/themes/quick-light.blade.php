@@ -108,10 +108,10 @@
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="scroll-smooth overflow-x-hidden max-w-full">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{{ $metaTitle }} - Ruang Lari</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="{{ $metaDescription }}">
@@ -156,7 +156,13 @@
             --line: #e2e8f0; 
             --bg: #f8fafc; 
         }
-        html { scroll-behavior: smooth; }
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden !important;
+            margin: 0;
+            padding: 0;
+        }
         body { 
             background: #f8fafc;
             color: #0f172a; 
@@ -164,6 +170,9 @@
         }
         .hero-section {
             background: #0f172a;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
         .hero-overlay { 
             background: rgba(15, 23, 42, 0.65);
@@ -179,6 +188,8 @@
             border: 1px solid #e2e8f0;
             border-radius: 20px;
             box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
+            max-width: 100%;
+            overflow: hidden;
         }
         .no-scrollbar { scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -209,6 +220,7 @@
             font-weight: 700; 
             letter-spacing: 0.05em; 
             text-transform: uppercase; 
+            max-width: 100%;
         }
         .choice input { position: absolute; opacity: 0; pointer-events: none; }
         .choice-box { 
@@ -227,6 +239,8 @@
         .content-html p { margin-top: 0; margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 0.925rem; }
         .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color: #0f172a; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
         .content-html ul, .content-html ol { padding-left: 1.25rem; color: #334155; margin-bottom: 1rem; }
+        .content-html table { display: block; width: 100%; overflow-x: auto; }
+        .content-html img, .content-html iframe { max-width: 100%; height: auto; }
         .ql-gallery-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(15,23,42,0.2); transition: transform 0.2s ease, background 0.2s ease; }
         .ql-gallery-dot[data-active="1"] { background: #f1631e; transform: scale(1.25); }
         #qlSponsorDots .ql-gallery-dot { background: rgba(15,23,42,0.2); }
@@ -237,9 +251,9 @@
         @endif
     </style>
 </head>
-<body class="overflow-x-hidden max-w-full bg-slate-50 text-slate-900 antialiased">
+<body class="overflow-x-hidden w-full max-w-full bg-slate-50 text-slate-900 antialiased">
     <!-- Top Hero Header Section with 65% Dark Overlay -->
-    <header class="relative hero-section overflow-hidden w-full max-w-full min-h-[500px] lg:min-h-[540px] flex flex-col justify-between">
+    <header class="relative hero-section w-full max-w-full min-h-[480px] lg:min-h-[540px] flex flex-col justify-between overflow-hidden">
         <!-- Background Image with 65% Dark Overlay -->
         <div class="absolute inset-0 z-0">
             <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
@@ -247,21 +261,21 @@
         </div>
 
         <!-- Top Navigation Bar -->
-        <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-6">
-            <div class="flex items-center justify-between gap-4 p-3.5 px-5 rounded-2xl glass-header shadow-sm">
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors">
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 pt-4 sm:pt-6">
+            <div class="flex items-center justify-between gap-2 sm:gap-4 p-2.5 sm:p-3.5 px-3.5 sm:px-5 rounded-2xl glass-header shadow-sm min-w-0">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <a href="{{ route('events.index') }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors shrink-0">
                         <i class="fa-solid fa-arrow-left text-xs text-white"></i>
                     </a>
-                    <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
-                        <i class="fa-solid fa-bolt text-white"></i>
-                        Form Registrasi {{ $event->name }}
+                    <span class="pill-badge bg-slate-900/80 text-white border border-slate-700 text-[10px] sm:text-xs min-w-0 truncate">
+                        <i class="fa-solid fa-bolt text-white shrink-0"></i>
+                        <span class="truncate">Form Registrasi {{ $event->name }}</span>
                     </span>
                 </div>
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-8 sm:h-11 max-w-[85px] sm:max-w-none object-contain rounded-xl bg-white p-1 shadow-sm shrink-0" loading="lazy" decoding="async">
                 @else
-                    <a href="{{ url('/') }}" class="text-white font-black italic tracking-tighter text-base">
+                    <a href="{{ url('/') }}" class="text-white font-black italic tracking-tighter text-xs sm:text-base shrink-0">
                         RUANG<span class="text-[#ccff00]">LARI</span>
                     </a>
                 @endif
@@ -269,38 +283,38 @@
         </div>
 
         <!-- Main Hero Title & Quick Info Grid -->
-        <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-8 pb-16 lg:pb-20 my-auto">
-            <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 lg:gap-12 items-end">
-                <div class="text-white space-y-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
-                            <i class="fa-regular fa-calendar text-white"></i>
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-12 sm:pb-16 lg:pb-20 my-auto">
+            <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-6 lg:gap-12 items-end">
+                <div class="text-white space-y-3.5 sm:space-y-4 min-w-0">
+                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700 text-[10px] sm:text-xs">
+                            <i class="fa-regular fa-calendar text-white shrink-0"></i>
                             {{ optional($event->start_at)->format('d F Y') ?: 'Tanggal menyusul' }}
                         </span>
-                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
-                            <i class="fa-solid fa-location-dot text-white"></i>
-                            {{ $event->location_name ?: 'Lokasi menyusul' }}
+                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700 text-[10px] sm:text-xs max-w-full truncate">
+                            <i class="fa-solid fa-location-dot text-white shrink-0"></i>
+                            <span class="truncate">{{ $event->location_name ?: 'Lokasi menyusul' }}</span>
                         </span>
-                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-950/90 text-emerald-300 border-emerald-800' : 'bg-rose-950/90 text-rose-300 border-rose-800' }}">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
+                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-950/90 text-emerald-300 border-emerald-800' : 'bg-rose-950/90 text-rose-300 border-rose-800' }} text-[10px] sm:text-xs">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-400' : 'bg-rose-400' }} shrink-0"></span>
                             {{ $isRegOpen ? 'Pendaftaran Dibuka' : 'Ditutup' }}
                         </span>
                     </div>
 
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white">
+                    <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white break-words">
                         {{ $event->name }}
                     </h1>
 
-                    <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-normal">
+                    <p class="text-xs sm:text-base text-slate-200 leading-relaxed max-w-2xl font-normal break-words">
                         {{ $shortDescription !== '' ? $shortDescription : 'Sistem pendaftaran cepat resmi Ruang Lari. Isi data diri dengan cepat, pilih kategori, dan dapatkan konfirmasi e-Tiket otomatis.' }}
                     </p>
 
-                    <div class="pt-2 flex flex-wrap gap-3">
-                        <a href="#register" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-extrabold shadow-md transition-colors text-sm">
+                    <div class="pt-1 sm:pt-2 flex flex-wrap gap-2.5 sm:gap-3">
+                        <a href="#register" class="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-extrabold shadow-md transition-colors text-xs sm:text-sm">
                             <i class="fa-solid fa-bolt text-white"></i>
                             Daftar Sekarang
                         </a>
-                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-sm shadow-sm">
+                        <a href="#detail-event" class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-xs sm:text-sm shadow-sm">
                             <i class="fa-solid fa-circle-info text-white"></i>
                             Informasi Detail
                         </a>
@@ -308,33 +322,33 @@
                 </div>
 
                 <!-- Hero Stat Badges Card -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl max-w-full overflow-hidden">
+                    <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                        <div class="rounded-xl bg-slate-950 p-3 sm:p-3.5 border border-slate-800 min-w-0">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-person-running text-white"></i> Event Type
+                                <i class="fa-solid fa-person-running text-white shrink-0"></i> Event Type
                             </div>
                             <div class="mt-1.5 text-xs font-bold text-white truncate">
                                 Running Event
                             </div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                        <div class="rounded-xl bg-slate-950 p-3 sm:p-3.5 border border-slate-800 min-w-0">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-ticket text-white"></i> e-Tiket
+                                <i class="fa-solid fa-ticket text-white shrink-0"></i> e-Tiket
                             </div>
                             <div class="mt-1.5 text-xs font-bold text-white truncate">Langsung di Email</div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                        <div class="rounded-xl bg-slate-950 p-3 sm:p-3.5 border border-slate-800 min-w-0">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-layer-group text-white"></i> Kategori
+                                <i class="fa-solid fa-layer-group text-white shrink-0"></i> Kategori
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-white">{{ $categories->count() }} Pilihan Jarak</div>
+                            <div class="mt-1.5 text-xs font-bold text-white truncate">{{ $categories->count() }} Pilihan Jarak</div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                        <div class="rounded-xl bg-slate-950 p-3 sm:p-3.5 border border-slate-800 min-w-0">
                             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-shield-check text-white"></i> Status
+                                <i class="fa-solid fa-shield-check text-white shrink-0"></i> Status
                             </div>
-                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-400' : 'text-rose-400' }}">
+                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-400' : 'text-rose-400' }} truncate">
                                 {{ $isRegOpen ? 'Sedang Dibuka' : 'Pendaftaran Ditutup' }}
                             </div>
                         </div>
@@ -345,12 +359,12 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="w-full bg-slate-50 text-slate-900 min-h-screen py-10 relative z-10">
-        <div class="max-w-7xl mx-auto px-5 sm:px-6 md:px-8">
+    <main class="w-full max-w-full overflow-hidden bg-slate-50 text-slate-900 min-h-screen py-8 sm:py-10 relative z-10">
+        <div class="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8">
 
             <!-- Sponsor Carousel Banner -->
             @if(count($sponsorUrls) > 0)
-                <section class="pro-card p-5 mb-8">
+                <section class="pro-card p-4 sm:p-5 mb-6 sm:mb-8">
                     <div class="flex items-center justify-between gap-4 pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-slate-900"></div>
@@ -366,7 +380,7 @@
                         </div>
                     </div>
 
-                    <div id="qlSponsorTrack" class="mt-3.5 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 no-scrollbar">
+                    <div id="qlSponsorTrack" class="mt-3.5 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 no-scrollbar max-w-full">
                         @foreach($sponsorUrls as $logo)
                             <div class="snap-center flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
                                 <div class="h-16 rounded-xl border border-slate-200 bg-white flex items-center justify-center p-3">
@@ -382,7 +396,7 @@
 
             <!-- Payment Notification Badges -->
             @if(request('payment') === 'pending')
-                <div class="pro-card p-5 mb-8 border-amber-300 bg-amber-50">
+                <div class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-amber-300 bg-amber-50">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-clock text-white"></i></div>
                         <div>
@@ -395,7 +409,7 @@
                     </div>
                 </div>
             @elseif(request('payment') === 'success')
-                <div class="pro-card p-5 mb-8 border-emerald-300 bg-emerald-50">
+                <div class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-emerald-300 bg-emerald-50">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-circle-check text-white"></i></div>
                         <div>
@@ -407,22 +421,22 @@
             @endif
 
             <!-- 2 Column Layout: Event Details & Sticky Form -->
-            <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-8 items-start">
+            <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-6 lg:gap-8 items-start max-w-full">
                 
                 <!-- LEFT COLUMN: Overview, Description, Route & Details -->
-                <section id="detail-event" class="space-y-6 w-full max-w-full">
+                <section id="detail-event" class="space-y-6 w-full max-w-full overflow-hidden">
                     
                     <!-- Overview Card -->
                     <div class="pro-card overflow-hidden">
                         <div class="grid md:grid-cols-[1.1fr_.9fr]">
-                            <div class="p-6">
+                            <div class="p-5 sm:p-6">
                                 <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                         <i class="fa-solid fa-circle-info text-white"></i>
                                     </span>
                                     Event Overview
                                 </div>
-                                <h2 class="mt-2 text-xl font-bold text-slate-900">Informasi Pelaksanaan</h2>
+                                <h2 class="mt-2 text-lg sm:text-xl font-bold text-slate-900">Informasi Pelaksanaan</h2>
                                 <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                     <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
                                         <div class="text-[10px] font-bold uppercase text-slate-400">Tanggal</div>
@@ -451,7 +465,7 @@
                             </div>
                             
                             <!-- Gallery Carousel -->
-                            <div class="min-h-[240px] relative bg-slate-900" id="qlGallery" data-images='@json($galleryUrls)'>
+                            <div class="min-h-[220px] sm:min-h-[240px] relative bg-slate-900 max-w-full overflow-hidden" id="qlGallery" data-images='@json($galleryUrls)'>
                                 <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
                                 <button type="button" id="qlGalleryPrev" class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 shadow flex items-center justify-center text-white transition-colors">
                                     <i class="fa-solid fa-chevron-left text-xs text-white"></i>
@@ -466,19 +480,19 @@
 
                     <!-- Full Description -->
                     @if($event->full_description)
-                        <div class="pro-card p-6">
+                        <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden">
                             <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
                                 <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                     <i class="fa-solid fa-align-left text-white"></i>
                                 </span>
                                 Description
                             </div>
-                            <div class="content-html text-slate-700">
+                            <div class="content-html text-slate-700 overflow-x-auto max-w-full">
                                 {!! $event->full_description !!}
                             </div>
                         </div>
                     @elseif($event->short_description)
-                        <div class="pro-card p-6">
+                        <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden">
                             <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-2">
                                 <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                     <i class="fa-solid fa-align-left text-white"></i>
@@ -490,7 +504,7 @@
                     @endif
 
                     <!-- Route Map Section -->
-                    <div class="pro-card p-6">
+                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden">
                         <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                             <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                 <i class="fa-solid fa-map-location-dot text-white"></i>
@@ -502,7 +516,7 @@
                                 <h3 class="text-sm font-bold text-slate-900">Peta Rute & Elevasi</h3>
                                 <p class="text-xs text-slate-500 mt-0.5">Lihat jalur rute lari, check point, dan detail elevasi event ini.</p>
                             </div>
-                            <button type="button" onclick="openRouteModal()" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
+                            <button type="button" onclick="openRouteModal()" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
                                 <i class="fa-solid fa-map-marked-alt text-white"></i> Lihat Peta Rute
                             </button>
                         </div>
@@ -510,7 +524,7 @@
 
                     <!-- Terms & Conditions -->
                     @if($event->terms_and_conditions)
-                        <div class="pro-card p-6">
+                        <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden">
                             <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                                 <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                     <i class="fa-solid fa-file-shield text-white"></i>
@@ -522,7 +536,7 @@
                                     <h3 class="text-sm font-bold text-slate-900">Peraturan & Ketentuan</h3>
                                     <p class="text-xs text-slate-500 mt-0.5">Baca syarat, ketentuan, serta syarat keselamatan peserta.</p>
                                 </div>
-                                <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
+                                <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
                                     <i class="fa-solid fa-shield-halved text-white"></i> Baca Ketentuan
                                 </button>
                             </div>
@@ -531,14 +545,14 @@
                     
                     <!-- Participants List Table (Vue Component) -->
                     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-                        <div class="pro-card p-6" id="participants-list">
+                        <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden" id="participants-list">
                             <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
                                 <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
                                     <i class="fa-solid fa-users text-white"></i>
                                 </span>
                                 Daftar Peserta Terdaftar
                             </div>
-                            <div id="vue-participants-app">
+                            <div id="vue-participants-app" class="w-full max-w-full overflow-hidden">
                                 @include('events.partials.participants-table-light')
                             </div>
                         </div>
@@ -546,14 +560,14 @@
                 </section>
 
                 <!-- RIGHT COLUMN: Sticky Registration Card -->
-                <aside id="register" class="lg:sticky lg:top-24 self-start">
+                <aside id="register" class="lg:sticky lg:top-24 self-start w-full max-w-full">
                     <div class="pro-card overflow-hidden">
                         <!-- Card Header -->
-                        <div class="px-6 py-4 bg-slate-900 text-white">
+                        <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white">
                             <div class="flex items-center justify-between gap-4">
                                 <div>
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quick Registration</div>
-                                    <h3 class="mt-0.5 text-lg font-bold">Formulir Pendaftaran</h3>
+                                    <h3 class="mt-0.5 text-base sm:text-lg font-bold">Formulir Pendaftaran</h3>
                                 </div>
                                 <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sm shrink-0 text-white">
                                     <i class="fa-solid fa-bolt text-white"></i>
@@ -562,7 +576,7 @@
                         </div>
 
                         <!-- Card Body / Form -->
-                        <div class="p-5 sm:p-6">
+                        <div class="p-4 sm:p-6">
                             @if(!$isRegOpen)
                                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
                                     <div class="w-12 h-12 mx-auto rounded-full bg-slate-900 text-white flex items-center justify-center text-lg">
@@ -572,22 +586,22 @@
                                     <div class="mt-1 text-xs text-slate-600">Saat ini pendaftaran belum dibuka untuk event ini.</div>
                                 </div>
                             @else
-                                <form id="quickForm" action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" class="space-y-4">
+                                <form id="quickForm" action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" class="space-y-4 max-w-full">
                                     @csrf
                                     
                                     <!-- Participant Header Actions -->
-                                    <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center justify-between gap-3">
                                         <div>
                                             <div class="text-xs font-bold text-slate-900">Data Peserta</div>
                                             <div class="text-[11px] text-slate-500">Bisa daftar beberapa peserta sekaligus.</div>
                                         </div>
-                                        <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors">
+                                        <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors shrink-0">
                                             <i class="fa-solid fa-plus text-white"></i> Tambah Peserta
                                         </button>
                                     </div>
 
-                                    <div id="participantsWrapper" class="space-y-4">
-                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-4" data-participant-item>
+                                    <div id="participantsWrapper" class="space-y-4 max-w-full">
+                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4 max-w-full" data-participant-item>
                                             <div class="flex items-center justify-between gap-4 pb-2.5 border-b border-slate-200">
                                                 <div>
                                                     <div class="participant-title text-xs font-bold text-slate-900">Peserta 1</div>
@@ -642,13 +656,13 @@
                                                                 <label class="choice relative block cursor-pointer">
                                                                     <input type="radio" data-field="category_id" name="participants[0][category_id]" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
                                                                     <div class="choice-box flex items-center justify-between gap-3">
-                                                                        <div>
-                                                                            <div class="text-xs font-bold text-slate-900">{{ $cat->name }}</div>
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-xs font-bold text-slate-900 truncate">{{ $cat->name }}</div>
                                                                             @if($cat->distance_km)
                                                                                 <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
                                                                             @endif
                                                                         </div>
-                                                                        <div class="text-right">
+                                                                        <div class="text-right shrink-0">
                                                                             @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                                 <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                             @endif
@@ -670,11 +684,11 @@
                                                                 <label class="choice relative block cursor-pointer">
                                                                     <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
                                                                     <div class="choice-box flex items-center justify-between gap-3">
-                                                                        <div>
-                                                                            <div class="text-xs font-bold text-slate-900">{{ $addon['name'] }}</div>
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-xs font-bold text-slate-900 truncate">{{ $addon['name'] }}</div>
                                                                             <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
                                                                         </div>
-                                                                        <div class="text-xs font-bold text-slate-900">
+                                                                        <div class="text-xs font-bold text-slate-900 shrink-0">
                                                                             @if((int) ($addon['price'] ?? 0) > 0)
                                                                                 +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
                                                                             @else
@@ -799,7 +813,7 @@
 
                                     <!-- Multi Participant Template -->
                                     <template id="participantTemplate">
-                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-4" data-participant-item>
+                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4 max-w-full" data-participant-item>
                                             <div class="flex items-center justify-between gap-4 pb-2.5 border-b border-slate-200">
                                                 <div>
                                                     <div class="participant-title text-xs font-bold text-slate-900">Peserta</div>
@@ -853,13 +867,13 @@
                                                                 <label class="choice relative block cursor-pointer">
                                                                     <input type="radio" data-field="category_id" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
                                                                     <div class="choice-box flex items-center justify-between gap-3">
-                                                                        <div>
-                                                                            <div class="text-xs font-bold text-slate-900">{{ $cat->name }}</div>
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-xs font-bold text-slate-900 truncate">{{ $cat->name }}</div>
                                                                             @if($cat->distance_km)
                                                                                 <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
                                                                             @endif
                                                                         </div>
-                                                                        <div class="text-right">
+                                                                        <div class="text-right shrink-0">
                                                                             @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                                 <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                             @endif
@@ -880,11 +894,11 @@
                                                                 <label class="choice relative block cursor-pointer">
                                                                     <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
                                                                     <div class="choice-box flex items-center justify-between gap-3">
-                                                                        <div>
-                                                                            <div class="text-xs font-bold text-slate-900">{{ $addon['name'] }}</div>
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-xs font-bold text-slate-900 truncate">{{ $addon['name'] }}</div>
                                                                             <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
                                                                         </div>
-                                                                        <div class="text-xs font-bold text-slate-900">
+                                                                        <div class="text-xs font-bold text-slate-900 shrink-0">
                                                                             @if((int) ($addon['price'] ?? 0) > 0)
                                                                                 +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
                                                                             @else
@@ -1014,12 +1028,12 @@
                                             @if($showMidtrans)
                                                 <label class="choice relative block cursor-pointer">
                                                     <input type="radio" name="payment_method" value="midtrans" {{ $showMidtrans ? 'checked' : '' }} required>
-                                                    <div class="choice-box flex items-center justify-between">
-                                                        <div>
-                                                            <div class="text-xs font-bold text-slate-900">Midtrans Payment Gateway</div>
-                                                            <div class="mt-0.5 text-[10px] text-slate-500">QRIS, GoPay, ShopeePay, Virtual Account, Credit Card</div>
+                                                    <div class="choice-box flex items-center justify-between gap-2">
+                                                        <div class="min-w-0">
+                                                            <div class="text-xs font-bold text-slate-900 truncate">Midtrans Payment Gateway</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500 truncate">QRIS, GoPay, Virtual Account, Credit Card</div>
                                                         </div>
-                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">
                                                             <i class="fa-solid fa-credit-card text-white"></i>
                                                         </span>
                                                     </div>
@@ -1028,12 +1042,12 @@
                                             @if($showMoota)
                                                 <label class="choice relative block cursor-pointer">
                                                     <input type="radio" name="payment_method" value="moota" {{ !$showMidtrans && $showMoota ? 'checked' : '' }} required>
-                                                    <div class="choice-box flex items-center justify-between">
-                                                        <div>
-                                                            <div class="text-xs font-bold text-slate-900">Transfer Bank Otomatis</div>
-                                                            <div class="mt-0.5 text-[10px] text-slate-500">Verifikasi otomatis via Moota</div>
+                                                    <div class="choice-box flex items-center justify-between gap-2">
+                                                        <div class="min-w-0">
+                                                            <div class="text-xs font-bold text-slate-900 truncate">Transfer Bank Otomatis</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500 truncate">Verifikasi otomatis via Moota</div>
                                                         </div>
-                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">
                                                             <i class="fa-solid fa-building-columns text-white"></i>
                                                         </span>
                                                     </div>
@@ -1042,12 +1056,12 @@
                                             @if($showCOD)
                                                 <label class="choice relative block cursor-pointer">
                                                     <input type="radio" name="payment_method" value="cod" {{ !$showMidtrans && !$showMoota && $showCOD ? 'checked' : '' }} required>
-                                                    <div class="choice-box flex items-center justify-between">
-                                                        <div>
-                                                            <div class="text-xs font-bold text-slate-900">Bayar di Tempat (COD)</div>
-                                                            <div class="mt-0.5 text-[10px] text-slate-500">Bayar tunai sesuai petunjuk panitia EO</div>
+                                                    <div class="choice-box flex items-center justify-between gap-2">
+                                                        <div class="min-w-0">
+                                                            <div class="text-xs font-bold text-slate-900 truncate">Bayar di Tempat (COD)</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500 truncate">Bayar tunai sesuai petunjuk panitia EO</div>
                                                         </div>
-                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">
                                                             <i class="fa-solid fa-money-bill-wave text-white"></i>
                                                         </span>
                                                     </div>
@@ -1066,9 +1080,9 @@
                                             <span class="text-[10px] font-bold text-slate-400 uppercase">Opsional</span>
                                         </div>
                                         <div class="mt-2.5 flex gap-2">
-                                            <input id="qlCouponInput" type="text" class="field text-xs uppercase" placeholder="Contoh: PROMO2026" autocomplete="off" />
-                                            <button id="qlCouponApplyBtn" type="button" class="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors">Apply</button>
-                                            <button id="qlCouponClearBtn" type="button" class="hidden px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">Reset</button>
+                                            <input id="qlCouponInput" type="text" class="field text-xs uppercase min-w-0" placeholder="Contoh: PROMO2026" autocomplete="off" />
+                                            <button id="qlCouponApplyBtn" type="button" class="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors shrink-0">Apply</button>
+                                            <button id="qlCouponClearBtn" type="button" class="hidden px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors shrink-0">Reset</button>
                                         </div>
                                         <input type="hidden" name="coupon_code" id="qlCouponCodeHidden" />
                                         <div id="qlCouponMessage" class="hidden mt-2 text-xs font-bold"></div>
