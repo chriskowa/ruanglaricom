@@ -161,6 +161,16 @@
                             </div>
                             <p class="text-xs text-slate-500">Persentase potongan admin untuk setiap transaksi marketplace/event.</p>
                         </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Default Platform Fee Event (Rp)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-3 text-slate-500 font-bold">Rp</span>
+                                <input type="number" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                    name="default_platform_fee" value="{{ $settings['default_platform_fee'] ?? 5000 }}">
+                            </div>
+                            <p class="text-xs text-slate-500">Biaya platform fee per tiket peserta yang otomatis berlaku pada event buatan EO.</p>
+                        </div>
                     </div>
 
                     <!-- Moota Integration -->

@@ -284,7 +284,7 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
-            'package_tier' => 'nullable|required_if:role,eo|exists:packages,slug',
+            'package_tier' => 'nullable|string',
             'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($recaptchaSecret) {
                 if (! $recaptchaSecret) {
                     return;
@@ -335,7 +335,7 @@ class AuthController extends Controller
         }
 
         $package = null;
-        $membershipStatus = 'inactive';
+        $membershipStatus = 'active';
         $membershipExpiresAt = null;
 
         if ($validated['role'] === 'eo' && ! empty($validated['package_tier'])) {
@@ -354,7 +354,7 @@ class AuthController extends Controller
             'role' => $validated['role'],
             'is_active' => ! env('LOGIN_OTP_ENABLED', true),
             'referral_code' => $this->generateReferralCode(),
-            'package_tier' => $validated['role'] === 'eo' ? $validated['package_tier'] : 'basic',
+            'package_tier' => 'basic',
             'current_package_id' => $package?->id,
             'membership_status' => $membershipStatus,
             'membership_expires_at' => $membershipExpiresAt,

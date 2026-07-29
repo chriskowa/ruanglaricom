@@ -33,8 +33,8 @@
                     <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
                         {{ strtoupper(auth()->user()->name) }}
                     </h1>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black tracking-widest text-black {{ $tierBadgeClass ?? 'bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.35)]' }}">
-                        {{ $tierBadgeText ?? 'BASIC' }}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black tracking-widest text-black bg-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.35)]">
+                        OFFICIAL EO
                     </span>
                 </div>
             </div>

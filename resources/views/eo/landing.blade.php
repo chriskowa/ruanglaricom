@@ -269,59 +269,75 @@
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section id="paket" class="py-24 border-t border-slate-900 bg-slate-950">
+    <!-- Skema Platform Fee Section (Zero Subscription) -->
+    <section id="skema" class="py-24 border-t border-slate-900 bg-slate-950">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl font-extrabold text-white tracking-tight">Pilihan Paket Kerjasama</h2>
-                <p class="mt-4 text-slate-400 leading-relaxed">Sistem pendaftaran dan biaya jasa transaksi yang fleksibel sesuai skala event Anda.</p>
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                    Tanpa Biaya Langganan (Zero Subscription Fee)
+                </span>
+                <h2 class="mt-4 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Skema Kerjasama Berbasis Platform Fee</h2>
+                <p class="mt-4 text-slate-400 leading-relaxed">
+                    Tidak ada biaya langganan bulanan atau bayar paket di awal. RuangLari bekerja dengan skema <strong class="text-white">Platform Fee per tiket</strong> yang transparan dan efisien untuk Event Organizer.
+                </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                @foreach($packages as $pkg)
-                <div class="relative rounded-2xl border {{ $pkg['is_recommended'] ? 'border-brand-500/40 bg-slate-900/60 shadow-brand-500/5' : 'border-slate-900 bg-slate-900/30' }} p-8 flex flex-col h-full transition duration-300 hover:border-slate-800 shadow-lg">
-                    
-                    @if($pkg['is_recommended'])
-                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full border border-brand-500/20 bg-brand-500/10 text-brand-400 text-[10px] font-bold uppercase tracking-wider">
-                            Paling Populer
-                        </span>
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/30 p-8 flex flex-col justify-between shadow-lg">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6">
+                            <i class="fa-solid fa-gift text-xl"></i>
+                        </div>
+                        <h3 class="text-white font-extrabold text-xl mb-2">100% Bebas Langganan</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Buat dan umumkan event lari Anda tanpa biaya pendaftaran, biaya setup sistem, atau biaya paket bulanan.
+                        </p>
                     </div>
-                    @endif
-
-                    <div class="mb-6">
-                        <h3 class="text-white font-extrabold text-2xl">{{ $pkg['name'] }}</h3>
-                        <p class="mt-2 text-xs text-brand-400 font-semibold uppercase tracking-wider">{{ $pkg['tagline'] }}</p>
-                        <p class="mt-4 text-slate-400 text-sm leading-relaxed">{{ $pkg['description'] }}</p>
-                    </div>
-
-                    <div class="border-t border-slate-900 my-6"></div>
-
-                    <!-- Features -->
-                    <div class="flex-grow">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-4">Fitur Utama</span>
-                        <ul class="space-y-3.5">
-                            @foreach($pkg['features'] as $feature)
-                            <li class="flex items-start gap-3">
-                                <svg class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-slate-200 text-xs font-medium leading-relaxed">{{ $feature }}</span>
-                            </li>
-                            @endforeach
-                        </ul>
-                    </div>
-
-                    <div class="border-t border-slate-900 my-6"></div>
-
-                    <!-- Action -->
-                    <div class="mt-auto">
-                        <a href="{{ route('register', ['role' => 'eo', 'package_tier' => $pkg['slug']]) }}" class="w-full inline-flex items-center justify-center px-5 py-3.5 rounded-xl {{ $pkg['is_recommended'] ? 'bg-white hover:bg-brand-400 text-slate-950' : 'bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white' }} font-bold transition duration-200 text-sm">
-                            {{ $pkg['cta_label'] }}
-                        </a>
+                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-emerald-400 font-bold">
+                        Rp 0 / Bulan
                     </div>
                 </div>
-                @endforeach
+
+                <div class="rounded-2xl border border-brand-500/40 bg-slate-900/60 p-8 flex flex-col justify-between relative shadow-lg shadow-brand-500/5">
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/20 text-brand-300 text-[10px] font-bold uppercase tracking-wider">
+                            Model Transaksi
+                        </span>
+                    </div>
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center mb-6">
+                            <i class="fa-solid fa-receipt text-xl"></i>
+                        </div>
+                        <h3 class="text-white font-extrabold text-xl mb-2">Platform Fee per Tiket</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Biaya layanan hanya dikenakan per pendaftaran tiket yang berhasil diproses oleh sistem pendaftaran.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-brand-400 font-bold">
+                        Pay per Successful Ticket
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/30 p-8 flex flex-col justify-between shadow-lg">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-6">
+                            <i class="fa-solid fa-layer-group text-xl"></i>
+                        </div>
+                        <h3 class="text-white font-extrabold text-xl mb-2">Akses Semua Fitur Utama</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Akses langsung fitur Quick Reg, Payment Gateway, E-Ticket QR, Multi-Kategori, WA Blaster, dan Live Analytics.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-cyan-400 font-bold">
+                        All Features Included
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition duration-200 text-sm">
+                    Daftar EO & Mulai Buat Event
+                </a>
             </div>
         </div>
     </section>

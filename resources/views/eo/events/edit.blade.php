@@ -505,13 +505,30 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Platform Fee (Per Participant)</label>
+                        <label class="block text-sm font-medium text-slate-300 mb-2 flex items-center justify-between">
+                            <span>Platform Fee (Per Participant)</span>
+                            @if($canCustomPlatformFee ?? false)
+                                <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Akses Khusus Admin EO</span>
+                            @endif
+                        </label>
                         <div class="relative">
-                            <span class="absolute left-3 top-3 text-slate-500 text-sm">Rp</span>
-                            <input type="number" name="platform_fee" value="{{ old('platform_fee', $event->platform_fee) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="0">
+                            <span class="absolute left-3 top-3 text-slate-500 text-sm font-bold">Rp</span>
+                            @if($canCustomPlatformFee ?? false)
+                                <input type="number" name="platform_fee" value="{{ old('platform_fee', $event->platform_fee ?? ($defaultPlatformFee ?? 5000)) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="0">
+                            @else
+                                <input type="number" value="{{ $event->platform_fee ?? ($defaultPlatformFee ?? 5000) }}" readonly disabled class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-slate-400 font-bold cursor-not-allowed" placeholder="0">
+                            @endif
                         </div>
-                        <p class="text-slate-500 text-xs mt-1">Biaya tambahan yang dikenakan per peserta (masuk ke Platform).</p>
-                        @error('platform_fee') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        <p class="text-slate-500 text-xs mt-1">
+                            @if($canCustomPlatformFee ?? false)
+                                Anda memiliki akses khusus untuk menentukan nominal Platform Fee per peserta untuk event ini.
+                            @else
+                                Biaya platform fee per peserta ditentukan otomatis oleh sistem sesuai kebijakan Admin.
+                            @endif
+                        </p>
+                        @if($canCustomPlatformFee ?? false)
+                            @error('platform_fee') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        @endif
                     </div>
 
                     <!-- WhatsApp Configuration (Hidden) -->

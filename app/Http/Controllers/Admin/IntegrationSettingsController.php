@@ -31,6 +31,7 @@ class IntegrationSettingsController extends Controller
 
             // Financial
             'platform_fee_percent' => AppSettings::get('platform_fee_percent', 5),
+            'default_platform_fee' => AppSettings::get('default_platform_fee', 5000),
 
             // Moota Payment
             'moota_api_token' => AppSettings::get('moota_api_token'),
@@ -72,6 +73,7 @@ class IntegrationSettingsController extends Controller
 
             // Financial
             'platform_fee_percent' => 'nullable|numeric|min:0|max:100',
+            'default_platform_fee' => 'nullable|numeric|min:0',
 
             // Moota Payment
             'moota_api_token' => 'nullable|string',

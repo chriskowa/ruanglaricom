@@ -51,11 +51,23 @@ class EventController extends Controller
         return view('eo.events.index', compact('events'));
     }
 
+    protected function isPlatformFeeCustomizable($user = null): bool
+    {
+        $u = $user ?? auth()->user();
+        if (!$u) return false;
+
+        return $u->email === 'eo@ruanglari.com' 
+            || $u->username === 'eo-jakarta-marathon' 
+            || $u->role === 'admin';
+    }
+
     public function create()
     {
         $gpxList = \App\Models\MasterGpx::where('is_published', true)->orderBy('title')->get();
+        $defaultPlatformFee = (float) \App\Models\AppSettings::get('default_platform_fee', 5000);
+        $canCustomPlatformFee = $this->isPlatformFeeCustomizable();
 
-        return view('eo.events.create', compact('gpxList'));
+        return view('eo.events.create', compact('gpxList', 'defaultPlatformFee', 'canCustomPlatformFee'));
     }
 
     /**
@@ -172,6 +184,11 @@ class EventController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
+        if ($this->isPlatformFeeCustomizable() && $request->has('platform_fee')) {
+            $validated['platform_fee'] = (float) ($request->input('platform_fee') ?? \App\Models\AppSettings::get('default_platform_fee', 5000));
+        } else {
+            $validated['platform_fee'] = (float) \App\Models\AppSettings::get('default_platform_fee', 5000);
+        }
 
         if (Schema::hasColumn('events', 'ticket_email_use_qr')) {
             $validated['ticket_email_use_qr'] = array_key_exists('ticket_email_use_qr', $validated)
@@ -365,8 +382,10 @@ class EventController extends Controller
 
         $event->load(['categories']);
         $gpxList = \App\Models\MasterGpx::where('is_published', true)->orderBy('title')->get();
+        $defaultPlatformFee = $event->platform_fee ?? (float) \App\Models\AppSettings::get('default_platform_fee', 5000);
+        $canCustomPlatformFee = $this->isPlatformFeeCustomizable();
 
-        return view('eo.events.edit', compact('event', 'gpxList'));
+        return view('eo.events.edit', compact('event', 'gpxList', 'defaultPlatformFee', 'canCustomPlatformFee'));
     }
 
     public function update(Request $request, Event $event)
@@ -468,6 +487,12 @@ class EventController extends Controller
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
         ]);
+
+        if ($this->isPlatformFeeCustomizable() && $request->has('platform_fee')) {
+            $validated['platform_fee'] = (float) ($request->input('platform_fee') ?? $event->platform_fee ?? \App\Models\AppSettings::get('default_platform_fee', 5000));
+        } else {
+            $validated['platform_fee'] = (float) \App\Models\AppSettings::get('default_platform_fee', 5000);
+        }
 
         if (Schema::hasColumn('events', 'is_instant_notification')) {
             $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;

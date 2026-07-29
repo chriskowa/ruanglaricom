@@ -142,8 +142,8 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Map Style</label>
                                 <div class="flex p-1 bg-slate-800 rounded-lg">
-                                    <button type="button" id="pp-map-style-dark" class="flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all">Dark</button>
-                                    <button type="button" id="pp-map-style-light" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all">Light</button>
+                                    <button type="button" id="pp-map-style-dark" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all">Dark</button>
+                                    <button type="button" id="pp-map-style-light" class="flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all">Light</button>
                                 </div>
                             </div>
 
@@ -760,8 +760,8 @@
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                // Init Map Style from LocalStorage
-                var storedStyle = localStorage.getItem('paceProMapStyle') || 'dark';
+                // Init Map Style from LocalStorage (default to light)
+                var storedStyle = localStorage.getItem('paceProMapStyle') || 'light';
                 var isLight = storedStyle === 'light';
                 setMapStyle(isLight);
 
@@ -771,7 +771,7 @@
                 var getTileUrl = function(light) {
                     if (mapboxToken) {
                         return light 
-                            ? 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
+                            ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
                             : 'https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
                     }
                     return light 
