@@ -162,17 +162,16 @@
             color: #0f172a; 
             font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; 
         }
-        .hero-light {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+        .hero-section {
+            background: #0f172a;
         }
         .hero-overlay { 
-            background: linear-gradient(to right, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0.45) 100%);
+            background: rgba(15, 23, 42, 0.65);
         }
         .glass-header { 
-            background: rgba(255, 255, 255, 0.92); 
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+            background: rgba(15, 23, 42, 0.85); 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(8px);
         }
         .pro-card {
@@ -239,11 +238,11 @@
     </style>
 </head>
 <body class="overflow-x-hidden max-w-full bg-slate-50 text-slate-900 antialiased">
-    <!-- Top Light Hero Header Section -->
-    <header class="relative hero-light overflow-hidden w-full max-w-full min-h-[500px] lg:min-h-[540px] flex flex-col justify-between">
-        <!-- Background Image with Soft Backdrop Overlay -->
+    <!-- Top Hero Header Section with 65% Dark Overlay -->
+    <header class="relative hero-section overflow-hidden w-full max-w-full min-h-[500px] lg:min-h-[540px] flex flex-col justify-between">
+        <!-- Background Image with 65% Dark Overlay -->
         <div class="absolute inset-0 z-0">
-            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-85" fetchpriority="high" decoding="async">
+            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
 
@@ -251,21 +250,19 @@
         <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-6">
             <div class="flex items-center justify-between gap-4 p-3.5 px-5 rounded-2xl glass-header shadow-sm">
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition-colors">
+                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors">
                         <i class="fa-solid fa-arrow-left text-xs text-white"></i>
                     </a>
-                    <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
-                        <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                            <i class="fa-solid fa-bolt text-white"></i>
-                        </span>
+                    <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
+                        <i class="fa-solid fa-bolt text-white"></i>
                         Form Registrasi {{ $event->name }}
                     </span>
                 </div>
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 border border-slate-200 shadow-sm" loading="lazy" decoding="async">
+                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
                 @else
-                    <a href="{{ url('/') }}" class="text-slate-900 font-black italic tracking-tighter text-base">
-                        RUANG<span class="text-[#f1631e]">LARI</span>
+                    <a href="{{ url('/') }}" class="text-white font-black italic tracking-tighter text-base">
+                        RUANG<span class="text-[#ccff00]">LARI</span>
                     </a>
                 @endif
             </div>
@@ -274,31 +271,27 @@
         <!-- Main Hero Title & Quick Info Grid -->
         <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-8 pb-16 lg:pb-20 my-auto">
             <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 lg:gap-12 items-end">
-                <div class="text-slate-900 space-y-4">
+                <div class="text-white space-y-4">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
-                            <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                <i class="fa-regular fa-calendar text-white"></i>
-                            </span>
+                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
+                            <i class="fa-regular fa-calendar text-white"></i>
                             {{ optional($event->start_at)->format('d F Y') ?: 'Tanggal menyusul' }}
                         </span>
-                        <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
-                            <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                <i class="fa-solid fa-location-dot text-white"></i>
-                            </span>
+                        <span class="pill-badge bg-slate-900/80 text-white border border-slate-700">
+                            <i class="fa-solid fa-location-dot text-white"></i>
                             {{ $event->location_name ?: 'Lokasi menyusul' }}
                         </span>
-                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200' }}">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-600' : 'bg-rose-600' }}"></span>
+                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-950/90 text-emerald-300 border-emerald-800' : 'bg-rose-950/90 text-rose-300 border-rose-800' }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
                             {{ $isRegOpen ? 'Pendaftaran Dibuka' : 'Ditutup' }}
                         </span>
                     </div>
 
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-slate-900">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white">
                         {{ $event->name }}
                     </h1>
 
-                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl font-normal">
+                    <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-normal">
                         {{ $shortDescription !== '' ? $shortDescription : 'Sistem pendaftaran cepat resmi Ruang Lari. Isi data diri dengan cepat, pilih kategori, dan dapatkan konfirmasi e-Tiket otomatis.' }}
                     </p>
 
@@ -307,7 +300,7 @@
                             <i class="fa-solid fa-bolt text-white"></i>
                             Daftar Sekarang
                         </a>
-                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold transition-colors text-sm shadow-sm">
+                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-sm shadow-sm">
                             <i class="fa-solid fa-circle-info text-white"></i>
                             Informasi Detail
                         </a>
@@ -315,45 +308,33 @@
                 </div>
 
                 <!-- Hero Stat Badges Card -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                    <i class="fa-solid fa-person-running text-white"></i>
-                                </span>
-                                Event Type
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-person-running text-white"></i> Event Type
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-slate-900 truncate">
+                            <div class="mt-1.5 text-xs font-bold text-white truncate">
                                 Running Event
                             </div>
                         </div>
-                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                    <i class="fa-solid fa-ticket text-white"></i>
-                                </span>
-                                e-Tiket
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-ticket text-white"></i> e-Tiket
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-slate-900 truncate">Langsung di Email</div>
+                            <div class="mt-1.5 text-xs font-bold text-white truncate">Langsung di Email</div>
                         </div>
-                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                    <i class="fa-solid fa-layer-group text-white"></i>
-                                </span>
-                                Kategori
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-layer-group text-white"></i> Kategori
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-slate-900">{{ $categories->count() }} Pilihan Jarak</div>
+                            <div class="mt-1.5 text-xs font-bold text-white">{{ $categories->count() }} Pilihan Jarak</div>
                         </div>
-                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                    <i class="fa-solid fa-shield-check text-white"></i>
-                                </span>
-                                Status
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-check text-white"></i> Status
                             </div>
-                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-700' : 'text-rose-700' }}">
+                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-400' : 'text-rose-400' }}">
                                 {{ $isRegOpen ? 'Sedang Dibuka' : 'Pendaftaran Ditutup' }}
                             </div>
                         </div>
