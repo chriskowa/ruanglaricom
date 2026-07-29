@@ -163,16 +163,17 @@
             font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; 
         }
         .hero-light {
-            background: #ffffff;
+            background: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
         }
         .hero-overlay { 
-            background: rgba(255, 255, 255, 0.90);
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0.45) 100%);
         }
         .glass-header { 
-            background: #ffffff; 
+            background: rgba(255, 255, 255, 0.92); 
             border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(8px);
         }
         .pro-card {
             background: #ffffff;
@@ -242,7 +243,7 @@
     <header class="relative hero-light overflow-hidden w-full max-w-full min-h-[500px] lg:min-h-[540px] flex flex-col justify-between">
         <!-- Background Image with Soft Backdrop Overlay -->
         <div class="absolute inset-0 z-0">
-            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-20" fetchpriority="high" decoding="async">
+            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-85" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
 
