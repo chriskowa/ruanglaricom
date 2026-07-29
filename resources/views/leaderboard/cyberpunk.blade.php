@@ -2,7 +2,6 @@
 @php($withSidebar = true)
 @section('title', 'Cyberpunk Leaderboard')
 @push('styles')
-<script src="https://cdn.tailwindcss.com"></script>
 <script>
     tailwind.config = {
         theme: {

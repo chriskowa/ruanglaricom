@@ -12,8 +12,8 @@
     <!-- Dexie (IndexedDB) -->
     <script src="https://unpkg.com/dexie@4.0.7/dist/dexie.min.js"></script>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind (Vite Build) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         tailwind.config = {
             theme: {

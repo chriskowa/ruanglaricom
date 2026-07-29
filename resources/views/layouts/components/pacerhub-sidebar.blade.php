@@ -432,7 +432,7 @@
 
     <!-- User Profile Footer Section -->
     @auth
-        <div class="p-4 border-t {{ $lightMode ? 'border-slate-100' : 'border-slate-900' }} bg-slate-50/50 dark:bg-slate-950/20 shrink-0">
+        <div class="p-4 border-t {{ $lightMode ? 'border-slate-100 bg-slate-50/80' : 'border-slate-900 bg-slate-900/50' }} shrink-0">
             <div class="flex items-center gap-3">
                 <a href="{{ route('profile.show') }}" class="shrink-0">
                     <img class="w-9 h-9 rounded-full object-cover border {{ $lightMode ? 'border-slate-200' : 'border-slate-800' }} hover:opacity-80 transition" 
@@ -449,7 +449,7 @@
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="shrink-0">
                     @csrf
-                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors" title="Logout">
+                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-red-400 {{ $lightMode ? 'hover:bg-slate-200/60' : 'hover:bg-slate-800' }} transition-colors" title="Logout">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>

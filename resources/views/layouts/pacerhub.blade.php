@@ -120,14 +120,9 @@
     <!-- Preconnect & Preload for Speed -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://unpkg.com">
-    <link rel="preload" href="https://cdn.tailwindcss.com?plugins=typography" as="script">
+    <!-- Vite Built Assets (Tailwind CSS v4 + App JS) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    
     @if(empty($skipHeavyAssets))
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     @endif
@@ -156,35 +151,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    screens: {
-                        'xs': '360px',
-                    },
-                    colors: {
-                        dark: '#0f172a',
-                        card: '#1e293b',
-                        neon: {
-                            DEFAULT: '#ccff00',
-                        },
-                        primary: '#ccff00',
-                        strava: '#fc4c02',
-                        accent: '#3b82f6',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        }
-    </script>
     
     <style>
         .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }

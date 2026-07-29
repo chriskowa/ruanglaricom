@@ -108,11 +108,11 @@
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $metaTitle }} • Ruang Lari</title>
+    <title>{{ $metaTitle }} - Ruang Lari</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="{{ $metaDescription }}">
     <meta name="robots" content="index,follow,max-image-preview:large">
@@ -140,7 +140,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @if($showMidtrans && $midtransClientKey)
         <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     @endif
@@ -148,843 +148,999 @@
         <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
     @endif
     <style>
-        :root { --primary:#f1631e; --primary-dark:#d94f0b; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --bg:#f6f9fc; }
-        html { scroll-behavior:smooth; }
-        body { background:linear-gradient(180deg,#f8fbff 0%,#f5f7fb 100%); color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
-        .glass { background:rgba(255,255,255,.85); backdrop-filter:blur(18px); }
-        .soft-card { border:1px solid rgba(148,163,184,.18); box-shadow:0 10px 40px rgba(15,23,42,.08); border-radius:28px; background:#fff; }
-        .no-scrollbar { scrollbar-width:none; }
-        .no-scrollbar::-webkit-scrollbar { display:none; }
-        .field { width:100%; border:1px solid #dbe4f0; border-radius:18px; padding:15px 16px; font-weight:600; color:#0f172a; background:#fff; outline:none; transition:.18s ease; }
-        .field:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(241,99,30,.12); }
-        .pill { display:inline-flex; align-items:center; gap:.5rem; border-radius:999px; padding:.55rem .9rem; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-        .choice input { position:absolute; opacity:0; pointer-events:none; }
-        .choice-box { border:1px solid #dbe4f0; border-radius:20px; padding:14px 16px; background:#fff; transition:.18s ease; }
-        .choice input:checked + .choice-box { border-color:var(--primary); background:linear-gradient(180deg,#fff7ed 0%,#ffffff 100%); box-shadow:0 0 0 4px rgba(241,99,30,.08); }
-        .submit-btn[disabled] { opacity:.7; cursor:not-allowed; }
-        .content-html p { margin-top:0; margin-bottom:1rem; line-height:1.75; color:#334155; }
-        .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color:#0f172a; font-weight:800; margin-top:1.4rem; margin-bottom:.8rem; }
-        .content-html ul, .content-html ol { padding-left:1.25rem; color:#334155; margin-bottom:1rem; }
-        .hero-overlay { background:linear-gradient(110deg, rgba(15,23,42,.72) 0%, rgba(15,23,42,.48) 35%, rgba(255,255,255,.05) 100%); }
-        .ql-gallery-dot { width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.45); transition:transform .15s ease, background .15s ease; }
-        .ql-gallery-dot[data-active="1"] { background:#fff; transform:scale(1.25); }
-        #qlSponsorDots .ql-gallery-dot { background:rgba(15,23,42,.18); }
-        #qlSponsorDots .ql-gallery-dot[data-active="1"] { background:var(--primary); }
+        :root { 
+            --primary: #f1631e; 
+            --primary-dark: #d94f0b; 
+            --ink: #0f172a; 
+            --muted: #64748b; 
+            --line: #e2e8f0; 
+            --bg: #f8fafc; 
+        }
+        html { scroll-behavior: smooth; }
+        body { 
+            background: #f8fafc;
+            color: #0f172a; 
+            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; 
+        }
+        .hero-solid {
+            background: #0f172a;
+        }
+        .hero-overlay { 
+            background: rgba(15, 23, 42, 0.85);
+        }
+        .glass-header { 
+            background: rgba(15, 23, 42, 0.95); 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .pro-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
+        }
+        .no-scrollbar { scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .field { 
+            width: 100%; 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 14px; 
+            padding: 12px 16px; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            color: #0f172a; 
+            background: #ffffff; 
+            outline: none; 
+            transition: border-color 0.2s ease, box-shadow 0.2s ease; 
+        }
+        .field:focus { 
+            border-color: #f1631e; 
+            box-shadow: 0 0 0 3px rgba(241, 99, 30, 0.12); 
+        }
+        .field::placeholder { color: #94a3b8; font-weight: 400; }
+        .pill-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.4rem; 
+            border-radius: 9999px; 
+            padding: 0.4rem 0.85rem; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            letter-spacing: 0.05em; 
+            text-transform: uppercase; 
+        }
+        .choice input { position: absolute; opacity: 0; pointer-events: none; }
+        .choice-box { 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 14px; 
+            padding: 14px 16px; 
+            background: #ffffff; 
+            transition: all 0.2s ease; 
+        }
+        .choice input:checked + .choice-box { 
+            border-color: #f1631e; 
+            background: #fff8f5; 
+            box-shadow: 0 0 0 3px rgba(241, 99, 30, 0.1); 
+        }
+        .submit-btn[disabled] { opacity: 0.65; cursor: not-allowed; }
+        .content-html p { margin-top: 0; margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 0.925rem; }
+        .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color: #0f172a; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .content-html ul, .content-html ol { padding-left: 1.25rem; color: #334155; margin-bottom: 1rem; }
+        .ql-gallery-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.4); transition: transform 0.2s ease, background 0.2s ease; }
+        .ql-gallery-dot[data-active="1"] { background: #ffffff; transform: scale(1.25); }
+        #qlSponsorDots .ql-gallery-dot { background: rgba(15,23,42,0.2); }
+        #qlSponsorDots .ql-gallery-dot[data-active="1"] { background: #f1631e; }
+        i { color: #ffffff !important; }
         @if(env('RECAPTCHA_SITE_KEY_v3'))
-        .grecaptcha-badge { visibility:hidden !important; }
+        .grecaptcha-badge { visibility: hidden !important; }
         @endif
     </style>
 </head>
-<body class="overflow-x-hidden max-w-full">
-    <section class="relative overflow-hidden w-full max-w-full">
-        <div class="absolute inset-0">
-            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
+<body class="overflow-x-hidden max-w-full bg-slate-50 text-slate-900 antialiased">
+    <!-- Top Solid Hero Header Section -->
+    <header class="relative hero-solid overflow-hidden w-full max-w-full min-h-[520px] lg:min-h-[580px] flex flex-col justify-between">
+        <!-- Background Image with Backdrop Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-30" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
-        <div class="relative w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-10 pb-24 lg:pt-16 lg:pb-28">
-            <div class="flex items-start justify-between gap-6 mb-12">
-                <div class="pill bg-white/12 text-white border border-white/20">
-                    <i class="fa-solid fa-bolt"></i>
-                    Ruang Lari Portal Registration
+
+        <!-- Top Navigation Bar -->
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-6">
+            <div class="flex items-center justify-between gap-4 p-3.5 px-5 rounded-2xl glass-header border border-white/10 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-arrow-left text-xs text-white"></i>
+                    </a>
+                    <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
+                        <i class="fa-solid fa-bolt text-white"></i>
+                        Form Registrasi {{ $event->name }}
+                    </span>
                 </div>
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-12 md:h-16 w-auto object-contain rounded-2xl bg-white/80 p-2" loading="lazy" decoding="async">
+                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                @else
+                    <a href="{{ url('/') }}" class="text-white font-black italic tracking-tighter text-base">
+                        RUANG<span class="text-[#ccff00]">LARI</span>
+                    </a>
                 @endif
             </div>
+        </div>
 
-            <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 items-end">
-                <div class="text-white max-w-3xl">
-                    <div class="flex flex-wrap gap-3 mb-5">
-                        <span class="pill bg-white/12 text-white border border-white/20">
-                            <i class="fa-regular fa-calendar"></i>
+        <!-- Main Hero Title & Quick Info Grid -->
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-8 pb-16 lg:pb-20 my-auto">
+            <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 lg:gap-12 items-end">
+                <div class="text-white space-y-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
+                            <i class="fa-regular fa-calendar text-white"></i>
                             {{ optional($event->start_at)->format('d F Y') ?: 'Tanggal menyusul' }}
                         </span>
-                        <span class="pill bg-white/12 text-white border border-white/20">
-                            <i class="fa-solid fa-location-dot"></i>
+                        <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
+                            <i class="fa-solid fa-location-dot text-white"></i>
                             {{ $event->location_name ?: 'Lokasi menyusul' }}
                         </span>
+                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-950 text-emerald-300 border-emerald-800' : 'bg-rose-950 text-rose-300 border-rose-800' }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
+                            {{ $isRegOpen ? 'Pendaftaran Dibuka' : 'Ditutup' }}
+                        </span>
                     </div>
-                    <h1 class="text-4xl md:text-6xl font-black leading-[1.02] tracking-tight">{{ $event->name }}</h1>
-                    <p class="mt-5 text-base md:text-lg text-white/85 leading-8 max-w-2xl">
-                        {{ $shortDescription !== '' ? $shortDescription : 'Template pendaftaran cepat dengan tampilan modern, ringan, dan fokus konversi untuk peserta.' }}
+
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white">
+                        {{ $event->name }}
+                    </h1>
+
+                    <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
+                        {{ $shortDescription !== '' ? $shortDescription : 'Sistem pendaftaran cepat resmi Ruang Lari. Isi data diri dengan cepat, pilih kategori, dan dapatkan konfirmasi e-Tiket otomatis.' }}
                     </p>
-                    <div class="mt-8 flex flex-wrap gap-3">
-                        <a href="#register" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-slate-900 font-extrabold shadow-xl hover:-translate-y-0.5 transition">
-                            <i class="fa-solid fa-rocket"></i>
+
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <a href="#register" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-extrabold shadow-md transition-colors text-sm">
+                            <i class="fa-solid fa-bolt text-white"></i>
                             Daftar Sekarang
                         </a>
-                        <a href="#detail-event" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/12 border border-white/20 text-white font-bold hover:bg-white/20 transition">
-                            <i class="fa-solid fa-circle-info"></i>
-                            Lihat Detail
+                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-sm">
+                            <i class="fa-solid fa-circle-info text-white"></i>
+                            Informasi Detail
                         </a>
                     </div>
                 </div>
 
-                <div class="glass rounded-[28px] border border-white/40 shadow-2xl p-5 md:p-6">
+                <!-- Hero Stat Badges -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-2xl bg-white p-4 border border-slate-200">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Running</div>
-                            <div class="mt-2 text-sm font-extrabold text-slate-900">
-                                Habbit 
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-person-running text-white"></i> Event Type
+                            </div>
+                            <div class="mt-1.5 text-xs font-bold text-white truncate">
+                                Running Event
                             </div>
                         </div>
-                        <div class="rounded-2xl bg-white p-4 border border-slate-200">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">What to Bring</div>
-                            <div class="mt-2 text-sm font-extrabold text-slate-900">Running Gear • e-Tiket</div>
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-ticket text-white"></i> e-Tiket
+                            </div>
+                            <div class="mt-1.5 text-xs font-bold text-white truncate">Langsung di Email</div>
                         </div>
-                        <div class="rounded-2xl bg-white p-4 border border-slate-200">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Kategori</div>
-                            <div class="mt-2 text-sm font-extrabold text-slate-900">{{ $categories->count() }} pilihan</div>
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-layer-group text-white"></i> Kategori
+                            </div>
+                            <div class="mt-1.5 text-xs font-bold text-white">{{ $categories->count() }} Pilihan Jarak</div>
                         </div>
-                        <div class="rounded-2xl bg-white p-4 border border-slate-200">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Registrasi</div>
-                            <div class="mt-2 text-sm font-extrabold {{ $isRegOpen ? 'text-emerald-600' : 'text-rose-600' }}">
-                                {{ $isRegOpen ? 'Sedang Dibuka' : 'Ditutup' }}
+                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-check text-white"></i> Status
+                            </div>
+                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-400' : 'text-rose-400' }}">
+                                {{ $isRegOpen ? 'Sedang Dibuka' : 'Pendaftaran Ditutup' }}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-5 sm:px-6 md:px-8 -mt-12 pb-16 relative z-10 w-full">
-        @if(count($sponsorUrls) > 0)
-            <section class="soft-card p-5 md:p-6 mb-6">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Sponsors</div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" id="qlSponsorPrev" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50 transition" aria-label="Sebelumnya">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <button type="button" id="qlSponsorNext" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50 transition" aria-label="Berikutnya">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
+    <!-- Main Content Area -->
+    <main class="w-full bg-slate-50 text-slate-900 min-h-screen py-10 relative z-10">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 md:px-8">
 
-                <div id="qlSponsorTrack" class="mt-4 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 no-scrollbar md:justify-center">
-                    @foreach($sponsorUrls as $logo)
-                        <div class="snap-center flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-                            <div class="h-20 md:h-24 rounded-2xl border border-slate-200 bg-white flex items-center justify-center p-4">
-                                <img src="{{ $logo }}" alt="Sponsor {{ $event->name }}" class="max-h-full max-w-full object-contain" loading="lazy" decoding="async">
-                            </div>
+            <!-- Sponsor Carousel Banner -->
+            @if(count($sponsorUrls) > 0)
+                <section class="pro-card p-5 mb-8">
+                    <div class="flex items-center justify-between gap-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-slate-900"></div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Official Sponsors</div>
                         </div>
-                    @endforeach
-                </div>
-
-                <div id="qlSponsorDots" class="mt-3 flex items-center justify-center gap-2"></div>
-            </section>
-        @endif
-
-        @if(request('payment') === 'pending')
-            <div class="soft-card p-5 md:p-6 mb-6 border-yellow-200 bg-yellow-50">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-yellow-100 text-yellow-700 flex items-center justify-center text-xl"><i class="fa-solid fa-clock"></i></div>
-                    <div>
-                        <div class="text-lg font-black text-slate-900">Menunggu pembayaran</div>
-                        <div class="mt-1 text-slate-600">Transaksi kamu belum selesai. Jika popup sebelumnya tertutup, lanjutkan dari tombol di bawah.</div>
-                        <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-flex mt-4 items-center gap-2 px-4 py-3 rounded-2xl bg-yellow-400 text-black font-extrabold hover:bg-yellow-300 transition">
-                            Lanjutkan Pembayaran
-                        </a>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="qlSponsorPrev" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 shadow-sm flex items-center justify-center text-white hover:bg-slate-800 transition-colors" aria-label="Sebelumnya">
+                                <i class="fa-solid fa-chevron-left text-xs text-white"></i>
+                            </button>
+                            <button type="button" id="qlSponsorNext" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 shadow-sm flex items-center justify-center text-white hover:bg-slate-800 transition-colors" aria-label="Berikutnya">
+                                <i class="fa-solid fa-chevron-right text-xs text-white"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
-        @elseif(request('payment') === 'success')
-            <div class="soft-card p-5 md:p-6 mb-6 border-emerald-200 bg-emerald-50">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl"><i class="fa-solid fa-circle-check"></i></div>
-                    <div>
-                        <div class="text-lg font-black text-slate-900">Pendaftaran berhasil</div>
-                        <div class="mt-1 text-slate-600">Cek email kamu untuk detail transaksi dan voucher event.</div>
-                    </div>
-                </div>
-            </div>
-        @endif
 
-        <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-6">
-            <section id="detail-event" class="space-y-6 w-full max-w-full overflow-hidden">
-                <div class="soft-card overflow-hidden">
-                    <div class="grid md:grid-cols-[1.1fr_.9fr]">
-                        <div class="p-6 md:p-8 lg:p-10">
-                            <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Event Overview</div>
-                            <h2 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pendaftaran cepat</h2>
-                            <div class="mt-5 grid sm:grid-cols-3 gap-3">
-                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                    <div class="text-xs font-bold uppercase text-slate-500">Tanggal</div>
-                                    <div class="mt-2 text-sm font-extrabold text-slate-900">{{ optional($event->start_at)->format('d M Y') ?: '-' }}</div>
-                                </div>
-                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                    <div class="text-xs font-bold uppercase text-slate-500">Jam</div>
-                                    <div class="mt-2 text-sm font-extrabold text-slate-900">{{ optional($event->start_at)->format('H:i') ?: '-' }}</div>
-                                </div>
-                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                    <div class="text-xs font-bold uppercase text-slate-500">Lokasi</div>
-                                    <div class="mt-2 text-sm font-extrabold text-slate-900">{{ $event->location_name ?: '-' }}</div>
+                    <div id="qlSponsorTrack" class="mt-3.5 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 no-scrollbar">
+                        @foreach($sponsorUrls as $logo)
+                            <div class="snap-center flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+                                <div class="h-16 rounded-xl border border-slate-200 bg-white flex items-center justify-center p-3">
+                                    <img src="{{ $logo }}" alt="Sponsor {{ $event->name }}" class="max-h-full max-w-full object-contain" loading="lazy" decoding="async">
                                 </div>
                             </div>
-                            @if($event->location_address)
-                                <div class="mt-5 rounded-2xl bg-orange-50 border border-orange-100 p-4 text-sm text-slate-700 leading-7">
-                                    <div class="font-extrabold text-slate-900 mb-1">Alamat</div>
-                                    {{ $event->location_address }}
-                                </div>
-                            @endif
-                        </div>
-                        <div class="min-h-[280px] relative" id="qlGallery" data-images='@json($galleryUrls)'>
-                            <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
-                            <button type="button" id="qlGalleryPrev" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/85 hover:bg-white border border-white/40 shadow-lg flex items-center justify-center text-slate-900 transition">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <button type="button" id="qlGalleryNext" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/85 hover:bg-white border border-white/40 shadow-lg flex items-center justify-center text-slate-900 transition">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                            <div id="qlGalleryDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/40 border border-white/15 backdrop-blur-md"></div>
-                        </div>
+                        @endforeach
                     </div>
-                </div>
 
-                @if($event->full_description)
-                    <div class="soft-card p-6 md:p-8">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Description</div>
-                        <div class="content-html mt-4 text-slate-700">
-                            {!! $event->full_description !!}
-                        </div>
-                    </div>
-                @elseif($event->short_description)
-                    <div class="soft-card p-6 md:p-8">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Description</div>
-                        <p class="mt-4 text-slate-700 leading-8">{{ $event->short_description }}</p>
-                    </div>
-                @endif
+                    <div id="qlSponsorDots" class="mt-2.5 flex items-center justify-center gap-1.5"></div>
+                </section>
+            @endif
 
-                {{-- Rute Section --}}
-                <div class="soft-card p-6 md:p-8">
-                    <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Rute</div>
-                    <div class="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Payment Notification Badges -->
+            @if(request('payment') === 'pending')
+                <div class="pro-card p-5 mb-8 border-amber-300 bg-amber-50">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-clock text-white"></i></div>
                         <div>
-                            <h3 class="text-lg font-black text-slate-900">Peta Rute Lari</h3>
-                            <p class="text-sm text-slate-500 mt-1">Jelajahi jalur rute lari, check point, pos medis, dan detail elevasi event ini.</p>
-                        </div>
-                        <div>
-                            <button type="button" onclick="openRouteModal()" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
-                                <i class="fa-solid fa-map-location-dot"></i>
-                                Lihat Peta Rute
-                            </button>
+                            <div class="text-base font-bold text-slate-900">Menunggu Pembayaran</div>
+                            <div class="mt-0.5 text-xs text-slate-600">Transaksi kamu belum selesai. Silakan klik tombol di bawah untuk melanjutkan pembayaran.</div>
+                            <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-flex mt-3 items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-700 transition-colors text-xs">
+                                Lanjutkan Pembayaran <i class="fa-solid fa-arrow-right text-white"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
-
-                {{-- Terms & Conditions Section --}}
-                @if($event->terms_and_conditions)
-                    <div class="soft-card p-6 md:p-8">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Syarat & Ketentuan</div>
-                        <div class="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-lg font-black text-slate-900">Peraturan & Ketentuan Event</h3>
-                                <p class="text-sm text-slate-500 mt-1">Baca syarat, ketentuan, serta peraturan keselamatan sebelum mendaftar.</p>
-                            </div>
-                            <div>
-                                <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
-                                    <i class="fa-solid fa-file-shield"></i>
-                                    Lihat Syarat & Ketentuan
-                                </button>
-                            </div>
+            @elseif(request('payment') === 'success')
+                <div class="pro-card p-5 mb-8 border-emerald-300 bg-emerald-50">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-circle-check text-white"></i></div>
+                        <div>
+                            <div class="text-base font-bold text-slate-900">Pendaftaran Berhasil</div>
+                            <div class="mt-0.5 text-xs text-slate-600">Terima kasih. Cek email kamu untuk informasi konfirmasi e-Tiket dan rincian transaksi.</div>
                         </div>
                     </div>
-                @endif
+                </div>
+            @endif
+
+            <!-- 2 Column Layout: Event Details & Sticky Form -->
+            <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-8 items-start">
                 
-                @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-                    <div class="soft-card p-6 md:p-8" id="participants-list">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Daftar Peserta</div>
-                        <div class="mt-4" id="vue-participants-app">
-                            @include('events.partials.participants-table-light')
-                        </div>
-                    </div>
-                @endif
-            </section>
-
-            <aside id="register" class="lg:sticky lg:top-24 self-start">
-                <div class="soft-card overflow-hidden">
-                    <div class="px-6 md:px-7 py-6 border-b border-slate-200 bg-gradient-to-r from-[#f1631e] to-[#ff8a3d] text-white">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <div class="text-sm font-black uppercase tracking-[0.2em] text-white/80">Quick Registration</div>
-                                <h3 class="mt-1 text-2xl font-black">Daftar dalam 1 menit</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-feather-pointed"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="p-6 md:p-7">
-                        @if(!$isRegOpen)
-                            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
-                                <div class="w-16 h-16 mx-auto rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-2xl">
-                                    <i class="fa-solid fa-lock"></i>
+                <!-- LEFT COLUMN: Overview, Description, Route & Details -->
+                <section id="detail-event" class="space-y-6 w-full max-w-full">
+                    
+                    <!-- Overview Card -->
+                    <div class="pro-card overflow-hidden">
+                        <div class="grid md:grid-cols-[1.1fr_.9fr]">
+                            <div class="p-6">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                        <i class="fa-solid fa-circle-info text-white"></i>
+                                    </span>
+                                    Event Overview
                                 </div>
-                                <div class="mt-4 text-xl font-black text-slate-900">Pendaftaran ditutup</div>
-                                <div class="mt-2 text-slate-600">Saat ini pendaftaran belum tersedia untuk event ini.</div>
-                            </div>
-                        @else
-                            <form id="quickForm" action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" class="space-y-5">
-                                @csrf
-                                <div class="flex items-center justify-between gap-4">
-                                    <div>
-                                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Peserta</div>
-                                        <div class="mt-1 text-sm text-slate-600">Bisa daftar beberapa peserta sekaligus dalam satu transaksi.</div>
+                                <h2 class="mt-2 text-xl font-bold text-slate-900">Informasi Pelaksanaan</h2>
+                                <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                    <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                                        <div class="text-[10px] font-bold uppercase text-slate-400">Tanggal</div>
+                                        <div class="mt-1 text-xs font-bold text-slate-900">{{ optional($event->start_at)->format('d M Y') ?: '-' }}</div>
                                     </div>
-                                    <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition">
-                                        <i class="fa-solid fa-plus"></i>
-                                        Tambah Peserta
-                                    </button>
+                                    <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                                        <div class="text-[10px] font-bold uppercase text-slate-400">Jam Mulai</div>
+                                        <div class="mt-1 text-xs font-bold text-slate-900">{{ optional($event->start_at)->format('H:i') ?: '-' }} WIB</div>
+                                    </div>
+                                    <div class="rounded-xl bg-slate-50 border border-slate-200 p-3 col-span-2 sm:col-span-1">
+                                        <div class="text-[10px] font-bold uppercase text-slate-400">Lokasi</div>
+                                        <div class="mt-1 text-xs font-bold text-slate-900 truncate">{{ $event->location_name ?: '-' }}</div>
+                                    </div>
                                 </div>
-
-                                <div id="participantsWrapper" class="space-y-5">
-                                    <div class="participant-card rounded-[24px] border border-slate-200 bg-slate-50/80 p-5" data-participant-item>
-                                        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200">
-                                            <div>
-                                                <div class="participant-title text-base font-black text-slate-900">Peserta 1</div>
-                                                <div class="text-xs text-slate-500 mt-1">Isi data ringkas, sistem melengkapi data wajib otomatis.</div>
-                                            </div>
-                                            <button type="button" class="remove-participant hidden rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-100 transition">
-                                                Hapus
-                                            </button>
+                                @if($event->location_address)
+                                    <div class="mt-3.5 rounded-xl bg-slate-100 border border-slate-200 p-3.5 text-xs text-slate-700 leading-relaxed">
+                                        <div class="font-bold text-slate-900 mb-0.5 flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                                <i class="fa-solid fa-map-pin text-white"></i>
+                                            </span>
+                                            Alamat Lengkap
                                         </div>
-
-                                        <div class="mt-5 space-y-5">
-                                            <div>
-                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
-                                                <input class="field mt-2" data-field="name" name="participants[0][name]" placeholder="Nama  peserta" required>
-                                            </div>
-                                            <div class="grid sm:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Gender</label>
-                                                    <select class="field mt-2" data-field="gender" name="participants[0][gender]" required>
-                                                        <option value="">Pilih gender</option>
-                                                        <option value="male">Laki-laki</option>
-                                                        <option value="female">Perempuan</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP</label>
-                                                    <input class="field mt-2" data-field="phone" name="participants[0][phone]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Email</label>
-                                                <input class="field mt-2" type="email" data-field="email" name="participants[0][email]" placeholder="email@contoh.com" required>
-                                            </div>
-
-                                            @if($categories && $categories->count() > 0)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori</label>
-                                                    <div class="mt-3 grid gap-3">
-                                                        @foreach($categories as $cat)
-                                                            @php
-                                                                $priceRegular = (int) ($cat->price_regular ?? 0);
-                                                                $priceEarly = (int) ($cat->price_early ?? 0);
-                                                                $priceLate = (int) ($cat->price_late ?? 0);
-                                                                $displayPrice = $priceRegular;
-                                                                if ($priceEarly > 0) {
-                                                                    $displayPrice = $priceEarly;
-                                                                } elseif ($priceLate > 0) {
-                                                                    $displayPrice = $priceLate;
-                                                                }
-                                                            @endphp
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="radio" data-field="category_id" name="participants[0][category_id]" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
-                                                                <div class="choice-box flex items-center justify-between gap-4">
-                                                                    <div>
-                                                                        <div class="text-sm font-black text-slate-900">{{ $cat->name }}</div>
-                                                                        @if($cat->distance_km)
-                                                                            <div class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="text-right">
-                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                            <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
-                                                                        @endif
-                                                                        <div class="text-sm font-black text-[#f1631e]">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            @endif
-
-                                            @if(!empty($addons))
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Add-on</label>
-                                                    <div class="mt-3 grid gap-3">
-                                                        @foreach($addons as $idx => $addon)
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
-                                                                <div class="choice-box flex items-center justify-between gap-4">
-                                                                    <div>
-                                                                        <div class="text-sm font-black text-slate-900">{{ $addon['name'] }}</div>
-                                                                        <div class="mt-1 text-xs text-slate-500">Opsional</div>
-                                                                    </div>
-                                                                    <div class="text-sm font-black text-slate-900">
-                                                                        @if((int) ($addon['price'] ?? 0) > 0)
-                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
-                                                                        @else
-                                                                            Gratis
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                                <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
-                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}">
-                                                            </label>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            @endif
-
-                                                                          @if($showIdCard)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. Identitas (KTP/SIM)</label>
-                                                    <input class="field mt-2" data-field="id_card" name="participants[0][id_card]" placeholder="Nomor KTP/SIM" required>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
-                                            @endif
-
-                                            @if($showAddress)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Alamat Lengkap</label>
-                                                    <textarea class="field mt-2" data-field="address" name="participants[0][address]" placeholder="Alamat lengkap" rows="2" required></textarea>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="address" name="participants[0][address]">
-                                            @endif
-
-                                            @if($showEmergency)
-                                                <div class="grid sm:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama Kontak Darurat</label>
-                                                        <input class="field mt-2" data-field="emergency_contact_name" name="participants[0][emergency_contact_name]" placeholder="Nama kontak darurat" required>
-                                                    </div>
-                                                    <div>
-                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP Kontak Darurat</label>
-                                                        <input class="field mt-2" data-field="emergency_contact_number" name="participants[0][emergency_contact_number]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="emergency_contact_name" name="participants[0][emergency_contact_name]">
-                                                <input type="hidden" data-hidden-auto="emergency_contact_number" name="participants[0][emergency_contact_number]">
-                                            @endif
-
-                                            @if($showDob)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Tanggal Lahir</label>
-                                                    <input type="date" class="field mt-2" data-field="date_of_birth" name="participants[0][date_of_birth]" required>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
-                                            @endif
-
-                                            @if($showJersey)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ukuran Jersey</label>
-                                                    <select class="field mt-2" data-field="jersey_size" name="participants[0][jersey_size]" required>
-                                                        <option value="">Pilih ukuran jersey</option>
-                                                        @foreach($event->jersey_sizes ?? [] as $sz)
-                                                            <option value="{{ $sz }}">{{ $sz }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
-                                            @endif
-
-                                            @if($showTargetTime)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Personal Best</label>
-                                                    <div class="grid grid-cols-3 gap-2 mt-2">
-                                                        <div>
-                                                            <select class="field" data-target-hour required>
-                                                                @for ($i = 0; $i <= 23; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <select class="field" data-target-minute required>
-                                                                @for ($i = 0; $i <= 59; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <select class="field" data-target-second required>
-                                                                @for ($i = 0; $i <= 59; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <input type="hidden" data-field="target_time" name="participants[0][target_time]" value="00:30:00">
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="target_time" name="participants[0][target_time]" value="">
-                                            @endif
-
-                                            @if($showBloodType)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Golongan Darah</label>
-                                                    <select class="field mt-2" data-field="blood_type" name="participants[0][blood_type]" required>
-                                                        <option value="">Pilih golongan darah</option>
-                                                        <option value="A">A</option>
-                                                        <option value="B">B</option>
-                                                        <option value="AB">AB</option>
-                                                        <option value="O">O</option>
-                                                    </select>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="blood_type" name="participants[0][blood_type]" value="">
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <template id="participantTemplate">
-                                    <div class="participant-card rounded-[24px] border border-slate-200 bg-slate-50/80 p-5" data-participant-item>
-                                        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200">
-                                            <div>
-                                                <div class="participant-title text-base font-black text-slate-900">Peserta</div>
-                                                <div class="text-xs text-slate-500 mt-1">Isi data ringkas, sistem melengkapi data wajib otomatis.</div>
-                                            </div>
-                                            <button type="button" class="remove-participant rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-100 transition">
-                                                Hapus
-                                            </button>
-                                        </div>
-
-                                        <div class="mt-5 space-y-5">
-                                            <div>
-                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
-                                                <input class="field mt-2" data-field="name" placeholder="Nama lengkap peserta" required>
-                                            </div>
-                                            <div class="grid sm:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Gender</label>
-                                                    <select class="field mt-2" data-field="gender" required>
-                                                        <option value="">Pilih gender</option>
-                                                        <option value="male">Laki-laki</option>
-                                                        <option value="female">Perempuan</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP</label>
-                                                    <input class="field mt-2" data-field="phone" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Email</label>
-                                                <input class="field mt-2" type="email" data-field="email" placeholder="email@contoh.com" required>
-                                            </div>
-
-                                            @if($categories && $categories->count() > 0)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori</label>
-                                                    <div class="mt-3 grid gap-3">
-                                                        @foreach($categories as $cat)
-                                                            @php
-                                                                $priceRegular = (int) ($cat->price_regular ?? 0);
-                                                                $priceEarly = (int) ($cat->price_early ?? 0);
-                                                                $priceLate = (int) ($cat->price_late ?? 0);
-                                                                $displayPrice = $priceRegular;
-                                                                if ($priceEarly > 0) {
-                                                                    $displayPrice = $priceEarly;
-                                                                } elseif ($priceLate > 0) {
-                                                                    $displayPrice = $priceLate;
-                                                                }
-                                                            @endphp
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="radio" data-field="category_id" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
-                                                                <div class="choice-box flex items-center justify-between gap-4">
-                                                                    <div>
-                                                                        <div class="text-sm font-black text-slate-900">{{ $cat->name }}</div>
-                                                                        @if($cat->distance_km)
-                                                                            <div class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="text-right">
-                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                            <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
-                                                                        @endif
-                                                                        <div class="text-sm font-black text-[#f1631e]">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
-                                                                    </div>
-                                                                </div>
-                                                            </label>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            @endif
-
-                                            @if(!empty($addons))
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Add-on</label>
-                                                    <div class="mt-3 grid gap-3">
-                                                        @foreach($addons as $idx => $addon)
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
-                                                                <div class="choice-box flex items-center justify-between gap-4">
-                                                                    <div>
-                                                                        <div class="text-sm font-black text-slate-900">{{ $addon['name'] }}</div>
-                                                                        <div class="mt-1 text-xs text-slate-500">Opsional</div>
-                                                                    </div>
-                                                                    <div class="text-sm font-black text-slate-900">
-                                                                        @if((int) ($addon['price'] ?? 0) > 0)
-                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
-                                                                        @else
-                                                                            Gratis
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                                <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}">
-                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" value="{{ (int) ($addon['price'] ?? 0) }}">
-                                                            </label>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            @endif
-
-                                            @if($showIdCard)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. Identitas (KTP/SIM)</label>
-                                                    <input class="field mt-2" data-field="id_card" placeholder="Nomor KTP/SIM" required>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="id_card">
-                                            @endif
-
-                                            @if($showAddress)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Alamat Lengkap</label>
-                                                    <textarea class="field mt-2" data-field="address" placeholder="Alamat lengkap" rows="2" required></textarea>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="address">
-                                            @endif
-
-                                            @if($showEmergency)
-                                                <div class="grid sm:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama Kontak Darurat</label>
-                                                        <input class="field mt-2" data-field="emergency_contact_name" placeholder="Nama kontak darurat" required>
-                                                    </div>
-                                                    <div>
-                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP Kontak Darurat</label>
-                                                        <input class="field mt-2" data-field="emergency_contact_number" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="emergency_contact_name">
-                                                <input type="hidden" data-hidden-auto="emergency_contact_number">
-                                            @endif
-
-                                            @if($showDob)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Tanggal Lahir</label>
-                                                    <input type="date" class="field mt-2" data-field="date_of_birth" required>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="date_of_birth">
-                                            @endif
-
-                                            @if($showJersey)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ukuran Jersey</label>
-                                                    <select class="field mt-2" data-field="jersey_size" required>
-                                                        <option value="">Pilih ukuran jersey</option>
-                                                        @foreach($event->jersey_sizes ?? [] as $sz)
-                                                            <option value="{{ $sz }}">{{ $sz }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
-                                            @endif
-
-                                            @if($showTargetTime)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Target Time</label>
-                                                    <div class="grid grid-cols-3 gap-2 mt-2">
-                                                        <div>
-                                                            <select class="field" data-target-hour required>
-                                                                @for ($i = 0; $i <= 23; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <select class="field" data-target-minute required>
-                                                                @for ($i = 0; $i <= 59; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <select class="field" data-target-second required>
-                                                                @for ($i = 0; $i <= 59; $i++)
-                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
-                                                                @endfor
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <input type="hidden" data-field="target_time" value="00:30:00">
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="target_time" value="">
-                                            @endif
-
-                                            @if($showBloodType)
-                                                <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Golongan Darah</label>
-                                                    <select class="field mt-2" data-field="blood_type" required>
-                                                        <option value="">Pilih golongan darah</option>
-                                                        <option value="A">A</option>
-                                                        <option value="B">B</option>
-                                                        <option value="AB">AB</option>
-                                                        <option value="O">O</option>
-                                                    </select>
-                                                </div>
-                                            @else
-                                                <input type="hidden" data-hidden-auto="blood_type" value="">
-                                            @endif
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <div id="payment-methods-container">
-                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Metode Pembayaran</label>
-                                    <div class="mt-3 grid gap-3">
-                                        @if($showMidtrans)
-                                            <label class="choice relative block cursor-pointer">
-                                                <input type="radio" name="payment_method" value="midtrans" {{ $showMidtrans ? 'checked' : '' }} required>
-                                                <div class="choice-box flex items-center justify-between">
-                                                    <div>
-                                                        <div class="text-sm font-black text-slate-900">Midtrans</div>
-                                                        <div class="mt-1 text-xs text-slate-500">E-wallet, VA, kartu, QRIS</div>
-                                                    </div>
-                                                    <i class="fa-solid fa-credit-card text-slate-400"></i>
-                                                </div>
-                                            </label>
-                                        @endif
-                                        @if($showMoota)
-                                            <label class="choice relative block cursor-pointer">
-                                                <input type="radio" name="payment_method" value="moota" {{ !$showMidtrans && $showMoota ? 'checked' : '' }} required>
-                                                <div class="choice-box flex items-center justify-between">
-                                                    <div>
-                                                        <div class="text-sm font-black text-slate-900">Transfer Bank</div>
-                                                        <div class="mt-1 text-xs text-slate-500">Verifikasi otomatis via Moota</div>
-                                                    </div>
-                                                    <i class="fa-solid fa-building-columns text-slate-400"></i>
-                                                </div>
-                                            </label>
-                                        @endif
-                                        @if($showCOD)
-                                            <label class="choice relative block cursor-pointer">
-                                                <input type="radio" name="payment_method" value="cod" {{ !$showMidtrans && !$showMoota && $showCOD ? 'checked' : '' }} required>
-                                                <div class="choice-box flex items-center justify-between">
-                                                    <div>
-                                                        <div class="text-sm font-black text-slate-900">Bayar COD</div>
-                                                        <div class="mt-1 text-xs text-slate-500">Bayar langsung sesuai arahan EO</div>
-                                                    </div>
-                                                    <i class="fa-solid fa-money-bill-wave text-slate-400"></i>
-                                                </div>
-                                            </label>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="rounded-3xl border border-slate-200 bg-white p-5">
-                                    <div class="flex items-center justify-between gap-4">
-                                        <div>
-                                            <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kupon</div>
-                                            <div class="text-sm text-slate-600 mt-1">Masukkan kode kupon jika ada.</div>
-                                        </div>
-                                        <div class="text-xs font-bold text-slate-400">Opsional</div>
-                                    </div>
-                                    <div class="mt-4 flex gap-2">
-                                        <input id="qlCouponInput" type="text" class="field" placeholder="Contoh: PROMO2026" autocomplete="off" />
-                                        <button id="qlCouponApplyBtn" type="button" class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition">Apply</button>
-                                        <button id="qlCouponClearBtn" type="button" class="hidden px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-black hover:bg-slate-50 transition">Clear</button>
-                                    </div>
-                                    <input type="hidden" name="coupon_code" id="qlCouponCodeHidden" />
-                                    <div id="qlCouponMessage" class="hidden mt-2 text-xs font-bold"></div>
-                                </div>
-
-                                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                                    <div class="flex items-center justify-between text-sm text-slate-600">
-                                        <span>Tiket</span>
-                                        <span id="ql-ticket-price" class="font-bold text-slate-900">Rp 0</span>
-                                    </div>
-                                    <div class="mt-2 flex items-center justify-between text-sm text-slate-600">
-                                        <span>Add-on</span>
-                                        <span id="ql-addon-price" class="font-bold text-slate-900">Rp 0</span>
-                                    </div>
-                                    <div id="qlCouponRow" class="hidden mt-2 flex items-center justify-between text-sm text-slate-600">
-                                        <span>Diskon <span id="qlCouponLabel" class="font-bold text-slate-700"></span></span>
-                                        <span id="qlDiscountAmount" class="font-bold text-emerald-700">-Rp 0</span>
-                                    </div>
-                                    <div class="mt-2 flex items-center justify-between text-sm text-slate-600">
-                                        <span>Platform fee</span>
-                                        <span id="ql-platform-fee" class="font-bold text-slate-900">Rp {{ number_format($platformFee, 0, ',', '.') }}</span>
-                                    </div>
-                                    <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
-                                        <span class="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Total</span>
-                                        <span id="ql-total-price" class="text-2xl font-black text-[#f1631e]">Rp 0</span>
-                                    </div>
-                                </div>
-
-                                <input type="hidden" name="pic_name">
-                                <input type="hidden" name="pic_email">
-                                <input type="hidden" name="pic_phone">
-
-                                <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] bg-[#f1631e] hover:bg-[#d94f0b] text-white font-black text-base shadow-lg shadow-[#f1631e]/20 transition">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                    <span>Daftar Sekarang</span>
-                                </button>
-                                <div class="text-xs text-slate-500 text-center leading-6">Form ini dirancang singkat agar proses daftar terasa cepat tanpa mengorbankan kelengkapan data sistem.</div>
-                                @if(env('RECAPTCHA_SITE_KEY_v3'))
-                                    <div class="text-[11px] text-slate-400 text-center leading-5">
-                                        Halaman ini dilindungi reCAPTCHA, serta Google
-                                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline">Kebijakan Privasi</a>
-                                        dan
-                                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline">Persyaratan Layanan</a>
-                                        berlaku.
+                                        {{ $event->location_address }}
                                     </div>
                                 @endif
-                            </form>
-                        @endif
+                            </div>
+                            
+                            <!-- Gallery Carousel -->
+                            <div class="min-h-[240px] relative bg-slate-900" id="qlGallery" data-images='@json($galleryUrls)'>
+                                <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
+                                <button type="button" id="qlGalleryPrev" class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 shadow flex items-center justify-center text-white transition-colors">
+                                    <i class="fa-solid fa-chevron-left text-xs text-white"></i>
+                                </button>
+                                <button type="button" id="qlGalleryNext" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 shadow flex items-center justify-center text-white transition-colors">
+                                    <i class="fa-solid fa-chevron-right text-xs text-white"></i>
+                                </button>
+                                <div id="qlGalleryDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 border border-white/20"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </aside>
+
+                    <!-- Full Description -->
+                    @if($event->full_description)
+                        <div class="pro-card p-6">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-align-left text-white"></i>
+                                </span>
+                                Description
+                            </div>
+                            <div class="content-html text-slate-700">
+                                {!! $event->full_description !!}
+                            </div>
+                        </div>
+                    @elseif($event->short_description)
+                        <div class="pro-card p-6">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-2">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-align-left text-white"></i>
+                                </span>
+                                Description
+                            </div>
+                            <p class="text-slate-700 leading-relaxed text-sm">{{ $event->short_description }}</p>
+                        </div>
+                    @endif
+
+                    <!-- Route Map Section -->
+                    <div class="pro-card p-6">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-map-location-dot text-white"></i>
+                            </span>
+                            Rute Lari
+                        </div>
+                        <div class="mt-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900">Peta Rute & Elevasi</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Lihat jalur rute lari, check point, dan detail elevasi event ini.</p>
+                            </div>
+                            <button type="button" onclick="openRouteModal()" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
+                                <i class="fa-solid fa-map-marked-alt text-white"></i> Lihat Peta Rute
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    @if($event->terms_and_conditions)
+                        <div class="pro-card p-6">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-file-shield text-white"></i>
+                                </span>
+                                Syarat & Ketentuan
+                            </div>
+                            <div class="mt-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Peraturan & Ketentuan</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Baca syarat, ketentuan, serta syarat keselamatan peserta.</p>
+                                </div>
+                                <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
+                                    <i class="fa-solid fa-shield-halved text-white"></i> Baca Ketentuan
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+                    
+                    <!-- Participants List Table (Vue Component) -->
+                    @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+                        <div class="pro-card p-6" id="participants-list">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-users text-white"></i>
+                                </span>
+                                Daftar Peserta Terdaftar
+                            </div>
+                            <div id="vue-participants-app">
+                                @include('events.partials.participants-table-light')
+                            </div>
+                        </div>
+                    @endif
+                </section>
+
+                <!-- RIGHT COLUMN: Sticky Registration Card -->
+                <aside id="register" class="lg:sticky lg:top-24 self-start">
+                    <div class="pro-card overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="px-6 py-4 bg-slate-900 text-white">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quick Registration</div>
+                                    <h3 class="mt-0.5 text-lg font-bold">Formulir Pendaftaran</h3>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sm shrink-0 text-white">
+                                    <i class="fa-solid fa-bolt text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Body / Form -->
+                        <div class="p-5 sm:p-6">
+                            @if(!$isRegOpen)
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-slate-900 text-white flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-lock text-white"></i>
+                                    </div>
+                                    <div class="mt-3 text-base font-bold text-slate-900">Pendaftaran Ditutup</div>
+                                    <div class="mt-1 text-xs text-slate-600">Saat ini pendaftaran belum dibuka untuk event ini.</div>
+                                </div>
+                            @else
+                                <form id="quickForm" action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" class="space-y-4">
+                                    @csrf
+                                    
+                                    <!-- Participant Header Actions -->
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-900">Data Peserta</div>
+                                            <div class="text-[11px] text-slate-500">Bisa daftar beberapa peserta sekaligus.</div>
+                                        </div>
+                                        <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors">
+                                            <i class="fa-solid fa-plus text-white"></i> Tambah Peserta
+                                        </button>
+                                    </div>
+
+                                    <div id="participantsWrapper" class="space-y-4">
+                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-4" data-participant-item>
+                                            <div class="flex items-center justify-between gap-4 pb-2.5 border-b border-slate-200">
+                                                <div>
+                                                    <div class="participant-title text-xs font-bold text-slate-900">Peserta 1</div>
+                                                    <div class="text-[11px] text-slate-500">Isi data ringkas peserta.</div>
+                                                </div>
+                                                <button type="button" class="remove-participant hidden rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors">
+                                                    Hapus
+                                                </button>
+                                            </div>
+
+                                            <div class="mt-3.5 space-y-3.5">
+                                                <div>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nama Lengkap <span class="text-orange-600">*</span></label>
+                                                    <input class="field mt-1" data-field="name" name="participants[0][name]" placeholder="Nama peserta" required>
+                                                </div>
+                                                <div class="grid sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Gender <span class="text-orange-600">*</span></label>
+                                                        <select class="field mt-1" data-field="gender" name="participants[0][gender]" required>
+                                                            <option value="">Pilih gender</option>
+                                                            <option value="male">Laki-laki</option>
+                                                            <option value="female">Perempuan</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. WhatsApp <span class="text-orange-600">*</span></label>
+                                                        <input class="field mt-1" data-field="phone" name="participants[0][phone]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Email Active <span class="text-orange-600">*</span></label>
+                                                    <input class="field mt-1" type="email" data-field="email" name="participants[0][email]" placeholder="email@contoh.com" required>
+                                                </div>
+
+                                                <!-- Categories -->
+                                                @if($categories && $categories->count() > 0)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Kategori Lomba <span class="text-orange-600">*</span></label>
+                                                        <div class="mt-2 grid gap-2">
+                                                            @foreach($categories as $cat)
+                                                                @php
+                                                                    $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                                    $priceEarly = (int) ($cat->price_early ?? 0);
+                                                                    $priceLate = (int) ($cat->price_late ?? 0);
+                                                                    $displayPrice = $priceRegular;
+                                                                    if ($priceEarly > 0) {
+                                                                        $displayPrice = $priceEarly;
+                                                                    } elseif ($priceLate > 0) {
+                                                                        $displayPrice = $priceLate;
+                                                                    }
+                                                                @endphp
+                                                                <label class="choice relative block cursor-pointer">
+                                                                    <input type="radio" data-field="category_id" name="participants[0][category_id]" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
+                                                                    <div class="choice-box flex items-center justify-between gap-3">
+                                                                        <div>
+                                                                            <div class="text-xs font-bold text-slate-900">{{ $cat->name }}</div>
+                                                                            @if($cat->distance_km)
+                                                                                <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                            @endif
+                                                                        </div>
+                                                                        <div class="text-right">
+                                                                            @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                                <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                            @endif
+                                                                            <div class="text-xs font-bold text-orange-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Addons -->
+                                                @if(!empty($addons))
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Add-on Opsional</label>
+                                                        <div class="mt-2 grid gap-2">
+                                                            @foreach($addons as $idx => $addon)
+                                                                <label class="choice relative block cursor-pointer">
+                                                                    <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                    <div class="choice-box flex items-center justify-between gap-3">
+                                                                        <div>
+                                                                            <div class="text-xs font-bold text-slate-900">{{ $addon['name'] }}</div>
+                                                                            <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
+                                                                        </div>
+                                                                        <div class="text-xs font-bold text-slate-900">
+                                                                            @if((int) ($addon['price'] ?? 0) > 0)
+                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                            @else
+                                                                                Gratis
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                    <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
+                                                                    <input type="hidden" data-addon-price-hidden="{{ $idx }}" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                @if($showIdCard)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM)</label>
+                                                        <input class="field mt-1" data-field="id_card" name="participants[0][id_card]" placeholder="Nomor KTP/SIM" required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
+                                                @endif
+
+                                                @if($showAddress)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Alamat Lengkap</label>
+                                                        <textarea class="field mt-1" data-field="address" name="participants[0][address]" placeholder="Alamat lengkap" rows="2" required></textarea>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="address" name="participants[0][address]">
+                                                @endif
+
+                                                @if($showEmergency)
+                                                    <div class="grid sm:grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Kontak Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_contact_name" name="participants[0][emergency_contact_name]" placeholder="Nama kontak" required>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. HP Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_contact_number" name="participants[0][emergency_contact_number]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="emergency_contact_name" name="participants[0][emergency_contact_name]">
+                                                    <input type="hidden" data-hidden-auto="emergency_contact_number" name="participants[0][emergency_contact_number]">
+                                                @endif
+
+                                                @if($showDob)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Tanggal Lahir</label>
+                                                        <input type="date" class="field mt-1" data-field="date_of_birth" name="participants[0][date_of_birth]" required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
+                                                @endif
+
+                                                @if($showJersey)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Ukuran Jersey</label>
+                                                        <select class="field mt-1" data-field="jersey_size" name="participants[0][jersey_size]" required>
+                                                            <option value="">Pilih ukuran jersey</option>
+                                                            @foreach($event->jersey_sizes ?? [] as $sz)
+                                                                <option value="{{ $sz }}">{{ $sz }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
+                                                @endif
+
+                                                @if($showTargetTime)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Personal Best</label>
+                                                        <div class="grid grid-cols-3 gap-2 mt-1">
+                                                            <div>
+                                                                <select class="field" data-target-hour required>
+                                                                    @for ($i = 0; $i <= 23; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <select class="field" data-target-minute required>
+                                                                    @for ($i = 0; $i <= 59; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <select class="field" data-target-second required>
+                                                                    @for ($i = 0; $i <= 59; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <input type="hidden" data-field="target_time" name="participants[0][target_time]" value="00:30:00">
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="target_time" name="participants[0][target_time]" value="">
+                                                @endif
+
+                                                @if($showBloodType)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Golongan Darah</label>
+                                                        <select class="field mt-1" data-field="blood_type" name="participants[0][blood_type]" required>
+                                                            <option value="">Pilih golongan darah</option>
+                                                            <option value="A">A</option>
+                                                            <option value="B">B</option>
+                                                            <option value="AB">AB</option>
+                                                            <option value="O">O</option>
+                                                        </select>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="blood_type" name="participants[0][blood_type]" value="">
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Multi Participant Template -->
+                                    <template id="participantTemplate">
+                                        <div class="participant-card rounded-xl border border-slate-200 bg-slate-50 p-4" data-participant-item>
+                                            <div class="flex items-center justify-between gap-4 pb-2.5 border-b border-slate-200">
+                                                <div>
+                                                    <div class="participant-title text-xs font-bold text-slate-900">Peserta</div>
+                                                    <div class="text-[11px] text-slate-500">Isi data ringkas peserta.</div>
+                                                </div>
+                                                <button type="button" class="remove-participant rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-700 transition-colors">
+                                                    Hapus
+                                                </button>
+                                            </div>
+
+                                            <div class="mt-3.5 space-y-3.5">
+                                                <div>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nama Lengkap</label>
+                                                    <input class="field mt-1" data-field="name" placeholder="Nama peserta" required>
+                                                </div>
+                                                <div class="grid sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Gender</label>
+                                                        <select class="field mt-1" data-field="gender" required>
+                                                            <option value="">Pilih gender</option>
+                                                            <option value="male">Laki-laki</option>
+                                                            <option value="female">Perempuan</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. WhatsApp</label>
+                                                        <input class="field mt-1" data-field="phone" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Email Active</label>
+                                                    <input class="field mt-1" type="email" data-field="email" placeholder="email@contoh.com" required>
+                                                </div>
+
+                                                @if($categories && $categories->count() > 0)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Kategori Lomba</label>
+                                                        <div class="mt-2 grid gap-2">
+                                                            @foreach($categories as $cat)
+                                                                @php
+                                                                    $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                                    $priceEarly = (int) ($cat->price_early ?? 0);
+                                                                    $priceLate = (int) ($cat->price_late ?? 0);
+                                                                    $displayPrice = $priceRegular;
+                                                                    if ($priceEarly > 0) {
+                                                                        $displayPrice = $priceEarly;
+                                                                    } elseif ($priceLate > 0) {
+                                                                        $displayPrice = $priceLate;
+                                                                    }
+                                                                @endphp
+                                                                <label class="choice relative block cursor-pointer">
+                                                                    <input type="radio" data-field="category_id" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
+                                                                    <div class="choice-box flex items-center justify-between gap-3">
+                                                                        <div>
+                                                                            <div class="text-xs font-bold text-slate-900">{{ $cat->name }}</div>
+                                                                            @if($cat->distance_km)
+                                                                                <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                            @endif
+                                                                        </div>
+                                                                        <div class="text-right">
+                                                                            @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                                <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                            @endif
+                                                                            <div class="text-xs font-bold text-orange-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                @if(!empty($addons))
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Add-on</label>
+                                                        <div class="mt-2 grid gap-2">
+                                                            @foreach($addons as $idx => $addon)
+                                                                <label class="choice relative block cursor-pointer">
+                                                                    <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                    <div class="choice-box flex items-center justify-between gap-3">
+                                                                        <div>
+                                                                            <div class="text-xs font-bold text-slate-900">{{ $addon['name'] }}</div>
+                                                                            <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
+                                                                        </div>
+                                                                        <div class="text-xs font-bold text-slate-900">
+                                                                            @if((int) ($addon['price'] ?? 0) > 0)
+                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                            @else
+                                                                                Gratis
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                    <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}">
+                                                                    <input type="hidden" data-addon-price-hidden="{{ $idx }}" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                @if($showIdCard)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM)</label>
+                                                        <input class="field mt-1" data-field="id_card" placeholder="Nomor KTP/SIM" required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="id_card">
+                                                @endif
+
+                                                @if($showAddress)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Alamat Lengkap</label>
+                                                        <textarea class="field mt-1" data-field="address" placeholder="Alamat lengkap" rows="2" required></textarea>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="address">
+                                                @endif
+
+                                                @if($showEmergency)
+                                                    <div class="grid sm:grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nama Kontak Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_contact_name" placeholder="Nama kontak" required>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. HP Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_contact_number" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="emergency_contact_name">
+                                                    <input type="hidden" data-hidden-auto="emergency_contact_number">
+                                                @endif
+
+                                                @if($showDob)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Tanggal Lahir</label>
+                                                        <input type="date" class="field mt-1" data-field="date_of_birth" required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="date_of_birth">
+                                                @endif
+
+                                                @if($showJersey)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Ukuran Jersey</label>
+                                                        <select class="field mt-1" data-field="jersey_size" required>
+                                                            <option value="">Pilih ukuran jersey</option>
+                                                            @foreach($event->jersey_sizes ?? [] as $sz)
+                                                                <option value="{{ $sz }}">{{ $sz }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
+                                                @endif
+
+                                                @if($showTargetTime)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Target Time</label>
+                                                        <div class="grid grid-cols-3 gap-2 mt-1">
+                                                            <div>
+                                                                <select class="field" data-target-hour required>
+                                                                    @for ($i = 0; $i <= 23; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <select class="field" data-target-minute required>
+                                                                    @for ($i = 0; $i <= 59; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <select class="field" data-target-second required>
+                                                                    @for ($i = 0; $i <= 59; $i++)
+                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
+                                                                    @endfor
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <input type="hidden" data-field="target_time" value="00:30:00">
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="target_time" value="">
+                                                @endif
+
+                                                @if($showBloodType)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Golongan Darah</label>
+                                                        <select class="field mt-1" data-field="blood_type" required>
+                                                            <option value="">Pilih golongan darah</option>
+                                                            <option value="A">A</option>
+                                                            <option value="B">B</option>
+                                                            <option value="AB">AB</option>
+                                                            <option value="O">O</option>
+                                                        </select>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="blood_type" value="">
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Payment Methods Selector -->
+                                    <div id="payment-methods-container">
+                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Metode Pembayaran</label>
+                                        <div class="mt-2 grid gap-2">
+                                            @if($showMidtrans)
+                                                <label class="choice relative block cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="midtrans" {{ $showMidtrans ? 'checked' : '' }} required>
+                                                    <div class="choice-box flex items-center justify-between">
+                                                        <div>
+                                                            <div class="text-xs font-bold text-slate-900">Midtrans Payment Gateway</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500">QRIS, GoPay, ShopeePay, Virtual Account, Credit Card</div>
+                                                        </div>
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                            <i class="fa-solid fa-credit-card text-white"></i>
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            @endif
+                                            @if($showMoota)
+                                                <label class="choice relative block cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="moota" {{ !$showMidtrans && $showMoota ? 'checked' : '' }} required>
+                                                    <div class="choice-box flex items-center justify-between">
+                                                        <div>
+                                                            <div class="text-xs font-bold text-slate-900">Transfer Bank Otomatis</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500">Verifikasi otomatis via Moota</div>
+                                                        </div>
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                            <i class="fa-solid fa-building-columns text-white"></i>
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            @endif
+                                            @if($showCOD)
+                                                <label class="choice relative block cursor-pointer">
+                                                    <input type="radio" name="payment_method" value="cod" {{ !$showMidtrans && !$showMoota && $showCOD ? 'checked' : '' }} required>
+                                                    <div class="choice-box flex items-center justify-between">
+                                                        <div>
+                                                            <div class="text-xs font-bold text-slate-900">Bayar di Tempat (COD)</div>
+                                                            <div class="mt-0.5 text-[10px] text-slate-500">Bayar tunai sesuai petunjuk panitia EO</div>
+                                                        </div>
+                                                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs">
+                                                            <i class="fa-solid fa-money-bill-wave text-white"></i>
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- Coupon Input Box -->
+                                    <div class="rounded-xl border border-slate-200 bg-white p-3.5">
+                                        <div class="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div class="text-xs font-bold uppercase tracking-wider text-slate-700">Kode Kupon / Promo</div>
+                                                <div class="text-[11px] text-slate-500 mt-0.5">Punya kode voucher diskon?</div>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase">Opsional</span>
+                                        </div>
+                                        <div class="mt-2.5 flex gap-2">
+                                            <input id="qlCouponInput" type="text" class="field text-xs uppercase" placeholder="Contoh: PROMO2026" autocomplete="off" />
+                                            <button id="qlCouponApplyBtn" type="button" class="px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors">Apply</button>
+                                            <button id="qlCouponClearBtn" type="button" class="hidden px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">Reset</button>
+                                        </div>
+                                        <input type="hidden" name="coupon_code" id="qlCouponCodeHidden" />
+                                        <div id="qlCouponMessage" class="hidden mt-2 text-xs font-bold"></div>
+                                    </div>
+
+                                    <!-- Price Breakdown Summary -->
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                                        <div class="flex items-center justify-between text-slate-600">
+                                            <span>Subtotal Tiket</span>
+                                            <span id="ql-ticket-price" class="font-bold text-slate-900">Rp 0</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-slate-600">
+                                            <span>Add-on</span>
+                                            <span id="ql-addon-price" class="font-bold text-slate-900">Rp 0</span>
+                                        </div>
+                                        <div id="qlCouponRow" class="hidden flex items-center justify-between text-slate-600">
+                                            <span>Diskon Kupon <span id="qlCouponLabel" class="font-bold text-slate-700"></span></span>
+                                            <span id="qlDiscountAmount" class="font-bold text-emerald-600">-Rp 0</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-slate-600">
+                                            <span>Biaya Layanan (Platform Fee)</span>
+                                            <span id="ql-platform-fee" class="font-bold text-slate-900">Rp {{ number_format($platformFee, 0, ',', '.') }}</span>
+                                        </div>
+                                        <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                                            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Total Pembayaran</span>
+                                            <span id="ql-total-price" class="text-lg font-bold text-orange-600">Rp 0</span>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" name="pic_name">
+                                    <input type="hidden" name="pic_email">
+                                    <input type="hidden" name="pic_phone">
+
+                                    <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-bold text-sm shadow transition-colors">
+                                        <i class="fa-solid fa-paper-plane text-white"></i>
+                                        <span>Proses Pendaftaran</span>
+                                    </button>
+                                    
+                                    @if(env('RECAPTCHA_SITE_KEY_v3'))
+                                        <div class="text-[10px] text-slate-400 text-center leading-relaxed">
+                                            Protected by Google reCAPTCHA. 
+                                            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-600">Privacy Policy</a>
+                                            &
+                                            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-600">Terms of Service</a>
+                                        </div>
+                                    @endif
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </aside>
+            </div>
         </div>
     </main>
 
     @include('events.partials.moota-payment-modal')
 
-    {{-- Route Map Modal --}}
+    <!-- Route Map Modal -->
     <div id="routeModal" class="fixed inset-0 z-[999] hidden">
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeRouteModal()"></div>
+        <div class="absolute inset-0 bg-slate-900/60" onclick="closeRouteModal()"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-[28px] border border-slate-200/50 w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-orange-50 text-[#f1631e] flex items-center justify-center">
-                            <i class="fa-solid fa-map-location-dot"></i>
+                        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-map-location-dot text-white"></i>
                         </div>
                         <div>
-                            <h3 class="font-black text-lg text-slate-900">Peta Rute Lari</h3>
+                            <h3 class="font-bold text-sm text-slate-900">Peta Rute Lari</h3>
                             <p class="text-xs text-slate-500 mt-0.5">{{ $event->name }}</p>
                         </div>
                     </div>
-                    <button onclick="closeRouteModal()" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
-                        <i class="fa-solid fa-xmark"></i>
+                    <button onclick="closeRouteModal()" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-white"></i>
                     </button>
                 </div>
                 
@@ -1005,7 +1161,6 @@
                         }
                     }
                     
-                    // Also include direct event-level GPX if any
                     $eventGpxes = $event->masterGpxes()->where('is_published', true)->get();
                     foreach($eventGpxes as $gpx) {
                         if ($gpx->gpx_path) {
@@ -1023,11 +1178,10 @@
                 @endphp
                 
                 @if($gpxList->isNotEmpty())
-                    {{-- GPX Tabs / Selector --}}
-                    <div class="flex flex-wrap gap-2 p-4 bg-slate-50 border-b border-slate-100">
+                    <div class="flex flex-wrap gap-2 p-3 bg-slate-50 border-b border-slate-100">
                         @foreach($gpxList as $idx => $gpx)
                             <button type="button" 
-                                    class="gpx-tab-btn px-4 py-2 text-xs font-black rounded-2xl border transition-all"
+                                    class="gpx-tab-btn px-3 py-1.5 text-xs font-bold rounded-lg border transition-all"
                                     data-gpx-url="{{ asset('storage/' . $gpx->gpx_path) }}" 
                                     data-idx="{{ $idx }}"
                                     onclick="selectGpxTrack(this)">
@@ -1040,7 +1194,6 @@
                 <div class="flex-1 min-h-[350px] md:min-h-[450px] relative">
                     <div id="route-mapbox-map" class="w-full h-full min-h-[350px] md:min-h-[450px] z-10"></div>
                     
-                    {{-- Fallback Iframe container if Leaflet has issues or fallback is needed --}}
                     <div id="route-iframe-container" class="hidden w-full h-full min-h-[350px] md:min-h-[450px]">
                         @if($event->map_embed_url)
                             <iframe src="{{ $event->map_embed_url }}" class="w-full h-full border-0" allowfullscreen="" loading="lazy"></iframe>
@@ -1049,10 +1202,10 @@
                 </div>
                 
                 @if($gpxList->isNotEmpty())
-                    <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
-                        <span>Pilih kategori di atas untuk melihat rute lari pada peta.</span>
-                        <a id="gpx-download-link" href="#" download class="inline-flex items-center gap-1.5 text-[#f1631e] hover:underline font-bold">
-                            <i class="fa-solid fa-download"></i> Download GPX
+                    <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                        <span>Pilih kategori di atas untuk memuat rute lari pada peta.</span>
+                        <a id="gpx-download-link" href="#" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs">
+                            <i class="fa-solid fa-download text-white"></i> Download File GPX
                         </a>
                     </div>
                 @endif
@@ -1060,24 +1213,24 @@
         </div>
     </div>
 
-    {{-- Terms & Conditions Modal --}}
+    <!-- Terms & Conditions Modal -->
     @if($event->terms_and_conditions)
         <div id="termsModal" class="fixed inset-0 z-[999] hidden">
-            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+            <div class="absolute inset-0 bg-slate-900/60" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
             <div class="absolute inset-0 flex items-center justify-center p-4">
-                <div class="bg-white rounded-[28px] border border-slate-200/50 w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-orange-50 text-[#f1631e] flex items-center justify-center">
-                                <i class="fa-solid fa-file-shield"></i>
+                            <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                                <i class="fa-solid fa-shield-halved text-white"></i>
                             </div>
                             <div>
-                                <h3 class="font-black text-lg text-slate-900">Syarat & Ketentuan</h3>
+                                <h3 class="font-bold text-sm text-slate-900">Syarat & Ketentuan</h3>
                                 <p class="text-xs text-slate-500 mt-0.5">{{ $event->name }}</p>
                             </div>
                         </div>
-                        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
-                            <i class="fa-solid fa-xmark"></i>
+                        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-white"></i>
                         </button>
                     </div>
                     <div class="flex-1 p-6 md:p-8 overflow-y-auto content-html">
@@ -1101,8 +1254,6 @@
         function openRouteModal() {
             const modal = document.getElementById('routeModal');
             modal.classList.remove('hidden');
-            
-            // Allow DOM to update and render layout, then init Mapbox
             setTimeout(initRouteMap, 100);
         }
 
@@ -1114,7 +1265,6 @@
         function initRouteMap() {
             const mapboxToken = '{{ config('services.mapbox.token') }}';
             if (!mapboxToken || !window.mapboxgl) {
-                // If Mapbox is not loaded or token missing, show fallback iframe
                 showIframeFallback();
                 return;
             }
@@ -1141,13 +1291,11 @@
 
         function triggerGpxOrEventLocation() {
             if (hasGpx && gpxTracks.length > 0) {
-                // Trigger first GPX file
                 const firstBtn = document.querySelector('.gpx-tab-btn');
                 if (firstBtn) {
                     selectGpxTrack(firstBtn);
                 }
             } else if (eventLat && eventLng) {
-                // Center map at event location and put a marker
                 routeMap.setCenter([eventLng, eventLat]);
                 routeMap.setZoom(14);
                 
@@ -1156,7 +1304,7 @@
                 }
                 
                 const el = document.createElement('div');
-                el.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#f1631e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="fa-solid fa-location-dot"></i></div>';
+                el.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#f1631e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="fa-solid fa-location-dot text-white"></i></div>';
 
                 startMarker = new mapboxgl.Marker(el)
                     .setLngLat([eventLng, eventLat])
@@ -1165,7 +1313,6 @@
 
                 startMarker.togglePopup();
             } else {
-                // Fallback to Iframe
                 showIframeFallback();
             }
         }
@@ -1176,23 +1323,20 @@
         }
 
         function selectGpxTrack(btn) {
-            // Update Tab styles
             document.querySelectorAll('.gpx-tab-btn').forEach(b => {
-                b.classList.remove('bg-[#f1631e]', 'text-white', 'border-[#f1631e]');
+                b.classList.remove('bg-orange-600', 'text-white', 'border-orange-600');
                 b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
             });
             btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
-            btn.classList.add('bg-[#f1631e]', 'text-white', 'border-[#f1631e]');
+            btn.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
 
             const gpxUrl = btn.getAttribute('data-gpx-url');
             
-            // Update download link
             const downloadLink = document.getElementById('gpx-download-link');
             if (downloadLink) {
                 downloadLink.href = gpxUrl;
             }
 
-            // Fetch and parse GPX
             fetch(gpxUrl)
                 .then(response => response.text())
                 .then(gpxText => {
@@ -1205,7 +1349,6 @@
                         const lat = parseFloat(pt.getAttribute('lat'));
                         const lon = parseFloat(pt.getAttribute('lon'));
                         if (!isNaN(lat) && !isNaN(lon)) {
-                            // Mapbox expects [longitude, latitude]
                             points.push([lon, lat]);
                         }
                     });
@@ -1221,21 +1364,18 @@
 
         function drawRouteOnMap(points) {
             if (!routeMap || !routeMap.isStyleLoaded()) {
-                // Retry if style is not loaded yet (prevents Mapbox asynchronous race conditions)
                 setTimeout(function() {
                     drawRouteOnMap(points);
                 }, 100);
                 return;
             }
 
-            // Clear previous layers/markers
             if (startMarker) startMarker.remove();
             if (finishMarker) finishMarker.remove();
 
             if (routeMap.getLayer('route-line')) routeMap.removeLayer('route-line');
             if (routeMap.getSource('route-source')) routeMap.removeSource('route-source');
 
-            // Draw route polyline via GeoJSON
             routeMap.addSource('route-source', {
                 type: 'geojson',
                 data: {
@@ -1262,29 +1402,25 @@
                 }
             });
 
-            // Create start/finish markers
             const startPt = points[0];
             const finishPt = points[points.length - 1];
 
-            // Start marker (Green Play / Dot)
             const elStart = document.createElement('div');
-            elStart.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#22c55e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-play ml-0.5"></i></div>';
+            elStart.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#22c55e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-play ml-0.5 text-white"></i></div>';
 
             startMarker = new mapboxgl.Marker(elStart)
                 .setLngLat(startPt)
                 .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<b>Start</b>'))
                 .addTo(routeMap);
 
-            // Finish marker (Red Checkered / Flag)
             const elFinish = document.createElement('div');
-            elFinish.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#ef4444;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-flag-checkered"></i></div>';
+            elFinish.innerHTML = '<div style="width:24px;height:24px;border-radius:999px;background:#ef4444;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-flag-checkered text-white"></i></div>';
 
             finishMarker = new mapboxgl.Marker(elFinish)
                 .setLngLat(finishPt)
                 .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<b>Finish</b>'))
                 .addTo(routeMap);
 
-            // Fit map bounds
             const bounds = new mapboxgl.LngLatBounds();
             points.forEach(p => bounds.extend(p));
             routeMap.fitBounds(bounds, { padding: 40, duration: 1000 });
@@ -1332,7 +1468,7 @@
             function go(i) {
                 index = (i + items.length) % items.length;
                 imgEl.src = items[index];
-                imgEl.alt = '{{ $event->name }}' + ' • ' + (index + 1);
+                imgEl.alt = '{{ $event->name }} - ' + (index + 1);
                 Array.from(dotsEl.querySelectorAll('[data-dot]')).forEach(function (btn) {
                     const b = parseInt(btn.getAttribute('data-dot') || '0', 10);
                     btn.setAttribute('data-active', b === index ? '1' : '0');
@@ -1638,7 +1774,6 @@
                 if (couponLabelEl && couponHiddenEl && couponHiddenEl.value) couponLabelEl.textContent = '(' + couponHiddenEl.value + ')';
                 if (discountAmountEl) discountAmountEl.textContent = discount > 0 ? '-' + formatCurrency(discount) : '-Rp 0';
 
-                // Handle payment method visibility and requirement dynamically
                 const paymentContainer = document.getElementById('payment-methods-container');
                 if (paymentContainer) {
                     const radios = paymentContainer.querySelectorAll('input[name="payment_method"]');
@@ -1773,7 +1908,7 @@
             function setSubmittingState(isSubmitting) {
                 if (!submitBtn) return;
                 submitBtn.disabled = isSubmitting;
-                submitBtn.innerHTML = isSubmitting ? '<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses...</span>' : originalSubmitText;
+                submitBtn.innerHTML = isSubmitting ? '<i class="fa-solid fa-spinner fa-spin text-white"></i><span>Memproses...</span>' : originalSubmitText;
             }
 
             function handleSuccess(data) {

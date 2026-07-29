@@ -500,9 +500,7 @@
             <!-- Modal Header -->
             <div class="px-6 sm:px-8 py-5 border-b border-slate-800 bg-[#08111F] flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3.5">
-                    <div class="w-10 h-10 rounded-2xl bg-neon/10 border border-neon/30 text-neon flex items-center justify-center font-bold text-lg shadow-sm">
-                        <i class="fas fa-calendar-plus"></i>
-                    </div>
+                    
                     <div>
                         <div class="text-xs font-mono font-bold text-neon uppercase tracking-widest">Submit Event Ruang Lari</div>
                         <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">AJUKAN EVENT LARI BARU</h3>
@@ -631,10 +629,10 @@
                             <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-map-marked-alt text-neon text-sm"></i>
-                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Lokasi & Map Geocoding</h4>
+                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Lokasi</h4>
                                 </div>
                                 <button type="button" id="btn-geolocation" class="px-3 py-1 rounded-xl bg-neon/15 hover:bg-neon/25 text-neon border border-neon/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-sm">
-                                    <i class="fas fa-crosshairs"></i> Deteksi Lokasi Saya
+                                    <i class="fas fa-crosshairs"></i> My Location
                                 </button>
                             </div>
 
@@ -965,7 +963,7 @@
             if (!mapEl || submitMap || typeof L === 'undefined') return;
 
             try {
-                submitMap = L.map('event-map').setView([-6.2088, 106.8456], 11);
+                submitMap = L.map('event-map', { attributionControl: false }).setView([-6.2088, 106.8456], 11);
 
                 var tileUrl = mapboxToken
                     ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
