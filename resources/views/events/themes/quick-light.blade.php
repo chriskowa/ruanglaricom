@@ -162,15 +162,17 @@
             color: #0f172a; 
             font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; 
         }
-        .hero-solid {
-            background: #0f172a;
+        .hero-light {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
         }
         .hero-overlay { 
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(255, 255, 255, 0.90);
         }
         .glass-header { 
-            background: rgba(15, 23, 42, 0.95); 
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #ffffff; 
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
         }
         .pro-card {
             background: #ffffff;
@@ -225,8 +227,8 @@
         .content-html p { margin-top: 0; margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 0.925rem; }
         .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color: #0f172a; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
         .content-html ul, .content-html ol { padding-left: 1.25rem; color: #334155; margin-bottom: 1rem; }
-        .ql-gallery-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.4); transition: transform 0.2s ease, background 0.2s ease; }
-        .ql-gallery-dot[data-active="1"] { background: #ffffff; transform: scale(1.25); }
+        .ql-gallery-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(15,23,42,0.2); transition: transform 0.2s ease, background 0.2s ease; }
+        .ql-gallery-dot[data-active="1"] { background: #f1631e; transform: scale(1.25); }
         #qlSponsorDots .ql-gallery-dot { background: rgba(15,23,42,0.2); }
         #qlSponsorDots .ql-gallery-dot[data-active="1"] { background: #f1631e; }
         i { color: #ffffff !important; }
@@ -236,31 +238,33 @@
     </style>
 </head>
 <body class="overflow-x-hidden max-w-full bg-slate-50 text-slate-900 antialiased">
-    <!-- Top Solid Hero Header Section -->
-    <header class="relative hero-solid overflow-hidden w-full max-w-full min-h-[520px] lg:min-h-[580px] flex flex-col justify-between">
-        <!-- Background Image with Backdrop Overlay -->
+    <!-- Top Light Hero Header Section -->
+    <header class="relative hero-light overflow-hidden w-full max-w-full min-h-[500px] lg:min-h-[540px] flex flex-col justify-between">
+        <!-- Background Image with Soft Backdrop Overlay -->
         <div class="absolute inset-0 z-0">
-            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-30" fetchpriority="high" decoding="async">
+            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover opacity-20" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
 
         <!-- Top Navigation Bar -->
         <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-6">
-            <div class="flex items-center justify-between gap-4 p-3.5 px-5 rounded-2xl glass-header border border-white/10 shadow-lg">
+            <div class="flex items-center justify-between gap-4 p-3.5 px-5 rounded-2xl glass-header shadow-sm">
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors">
+                    <a href="{{ route('events.index') }}" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition-colors">
                         <i class="fa-solid fa-arrow-left text-xs text-white"></i>
                     </a>
-                    <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
-                        <i class="fa-solid fa-bolt text-white"></i>
+                    <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
+                        <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                            <i class="fa-solid fa-bolt text-white"></i>
+                        </span>
                         Form Registrasi {{ $event->name }}
                     </span>
                 </div>
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-9 md:h-11 w-auto object-contain rounded-xl bg-white p-1.5 border border-slate-200 shadow-sm" loading="lazy" decoding="async">
                 @else
-                    <a href="{{ url('/') }}" class="text-white font-black italic tracking-tighter text-base">
-                        RUANG<span class="text-[#ccff00]">LARI</span>
+                    <a href="{{ url('/') }}" class="text-slate-900 font-black italic tracking-tighter text-base">
+                        RUANG<span class="text-[#f1631e]">LARI</span>
                     </a>
                 @endif
             </div>
@@ -269,27 +273,31 @@
         <!-- Main Hero Title & Quick Info Grid -->
         <div class="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-8 pb-16 lg:pb-20 my-auto">
             <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-8 lg:gap-12 items-end">
-                <div class="text-white space-y-4">
+                <div class="text-slate-900 space-y-4">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
-                            <i class="fa-regular fa-calendar text-white"></i>
+                        <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
+                            <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                <i class="fa-regular fa-calendar text-white"></i>
+                            </span>
                             {{ optional($event->start_at)->format('d F Y') ?: 'Tanggal menyusul' }}
                         </span>
-                        <span class="pill-badge bg-slate-800 text-slate-200 border border-slate-700">
-                            <i class="fa-solid fa-location-dot text-white"></i>
+                        <span class="pill-badge bg-slate-100 text-slate-800 border border-slate-200">
+                            <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-location-dot text-white"></i>
+                            </span>
                             {{ $event->location_name ?: 'Lokasi menyusul' }}
                         </span>
-                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-950 text-emerald-300 border-emerald-800' : 'bg-rose-950 text-rose-300 border-rose-800' }}">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
+                        <span class="pill-badge {{ $isRegOpen ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200' }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $isRegOpen ? 'bg-emerald-600' : 'bg-rose-600' }}"></span>
                             {{ $isRegOpen ? 'Pendaftaran Dibuka' : 'Ditutup' }}
                         </span>
                     </div>
 
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-slate-900">
                         {{ $event->name }}
                     </h1>
 
-                    <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
+                    <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl font-normal">
                         {{ $shortDescription !== '' ? $shortDescription : 'Sistem pendaftaran cepat resmi Ruang Lari. Isi data diri dengan cepat, pilih kategori, dan dapatkan konfirmasi e-Tiket otomatis.' }}
                     </p>
 
@@ -298,41 +306,53 @@
                             <i class="fa-solid fa-bolt text-white"></i>
                             Daftar Sekarang
                         </a>
-                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-sm">
+                        <a href="#detail-event" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold transition-colors text-sm shadow-sm">
                             <i class="fa-solid fa-circle-info text-white"></i>
                             Informasi Detail
                         </a>
                     </div>
                 </div>
 
-                <!-- Hero Stat Badges -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <!-- Hero Stat Badges Card -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-person-running text-white"></i> Event Type
+                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-person-running text-white"></i>
+                                </span>
+                                Event Type
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-white truncate">
+                            <div class="mt-1.5 text-xs font-bold text-slate-900 truncate">
                                 Running Event
                             </div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-ticket text-white"></i> e-Tiket
+                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-ticket text-white"></i>
+                                </span>
+                                e-Tiket
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-white truncate">Langsung di Email</div>
+                            <div class="mt-1.5 text-xs font-bold text-slate-900 truncate">Langsung di Email</div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-layer-group text-white"></i> Kategori
+                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-layer-group text-white"></i>
+                                </span>
+                                Kategori
                             </div>
-                            <div class="mt-1.5 text-xs font-bold text-white">{{ $categories->count() }} Pilihan Jarak</div>
+                            <div class="mt-1.5 text-xs font-bold text-slate-900">{{ $categories->count() }} Pilihan Jarak</div>
                         </div>
-                        <div class="rounded-xl bg-slate-950 p-3.5 border border-slate-800">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-shield-check text-white"></i> Status
+                        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-shield-check text-white"></i>
+                                </span>
+                                Status
                             </div>
-                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-400' : 'text-rose-400' }}">
+                            <div class="mt-1.5 text-xs font-bold {{ $isRegOpen ? 'text-emerald-700' : 'text-rose-700' }}">
                                 {{ $isRegOpen ? 'Sedang Dibuka' : 'Pendaftaran Ditutup' }}
                             </div>
                         </div>
