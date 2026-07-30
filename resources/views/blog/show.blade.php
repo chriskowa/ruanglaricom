@@ -134,35 +134,295 @@
         writing-mode: vertical-lr;
         text-orientation: mixed;
     }
-    /* Reader friendly blog styling improvements */
+    /* Reader friendly blog & rich text prose styling */
     .prose p {
-        font-size: 1.125rem;
-        line-height: 1.85;
-        color: #cbd5e1; /* slate-300 */
-        margin-bottom: 1.75rem;
+        font-size: 1.125rem !important;
+        line-height: 1.85 !important;
+        color: #cbd5e1 !important; /* slate-300 */
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
     }
-    .prose blockquote p {
-        font-size: 1.25rem;
-        line-height: 1.6;
-        color: #f8fafc; /* slate-50 */
-    }
-    .prose h2, .prose h3, .prose h4 {
+    .prose strong, .prose b {
         color: #ffffff !important;
-        font-weight: 800;
-        margin-top: 2.5rem;
-        margin-bottom: 1.25rem;
+        font-weight: 700 !important;
+    }
+    .prose em, .prose i {
+        font-style: italic !important;
+        color: #e2e8f0 !important;
+    }
+    .prose a {
+        color: #a3e635 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 4px !important;
+        font-weight: 600 !important;
+        transition: color 0.2s ease !important;
+    }
+    .prose a:hover {
+        color: #ccff00 !important;
+    }
+    .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        letter-spacing: -0.02em !important;
+    }
+    .prose h1 {
+        font-size: 2.25rem !important;
+        margin-top: 2.5rem !important;
+        margin-bottom: 1.25rem !important;
     }
     .prose h2 {
-        font-size: 1.875rem;
+        font-size: 1.875rem !important;
+        margin-top: 2.5rem !important;
+        margin-bottom: 1.25rem !important;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+        padding-bottom: 0.5rem !important;
     }
     .prose h3 {
-        font-size: 1.5rem;
+        font-size: 1.5rem !important;
+        margin-top: 2rem !important;
+        margin-bottom: 1rem !important;
     }
+    .prose h4 {
+        font-size: 1.25rem !important;
+        margin-top: 1.75rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .prose h5 {
+        font-size: 1.125rem !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 700 !important;
+    }
+    .prose h6 {
+        font-size: 1rem !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+        font-weight: 700 !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    /* INLINE FORMATTING & TINYMCE FORMATS */
+    .prose u {
+        text-decoration: underline !important;
+        text-underline-offset: 4px !important;
+    }
+    .prose s, .prose del, .prose strike {
+        text-decoration: line-through !important;
+        color: #94a3b8 !important;
+    }
+    .prose sub {
+        vertical-align: sub !important;
+        font-size: 0.75em !important;
+    }
+    .prose sup {
+        vertical-align: super !important;
+        font-size: 0.75em !important;
+    }
+    .prose mark {
+        background-color: rgba(234, 179, 8, 0.25) !important;
+        color: #fef08a !important;
+        padding: 0.15rem 0.4rem !important;
+        border-radius: 0.25rem !important;
+        border: 1px solid rgba(234, 179, 8, 0.4) !important;
+    }
+    .prose kbd {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+        padding: 0.15rem 0.4rem !important;
+        border-radius: 0.25rem !important;
+        font-family: monospace !important;
+        border: 1px solid #475569 !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+    }
+
+    /* LISTS (Unordered, Ordered & Definition Lists) */
+    .prose ul {
+        list-style-type: disc !important;
+        padding-left: 1.75rem !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose ol {
+        list-style-type: decimal !important;
+        padding-left: 1.75rem !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose li {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        padding-left: 0.25rem !important;
+        line-height: 1.8 !important;
+        color: #cbd5e1 !important;
+    }
+    .prose li::marker {
+        color: #a3e635 !important;
+        font-weight: bold !important;
+    }
+    .prose ul ul, .prose ol ul {
+        list-style-type: circle !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .prose ul ol, .prose ol ol {
+        list-style-type: lower-alpha !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .prose dl {
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose dt {
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        margin-top: 0.75rem !important;
+    }
+    .prose dd {
+        padding-left: 1.5rem !important;
+        color: #cbd5e1 !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* TABLES (TinyMCE & Standard HTML Tables) */
+    .prose table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
+        border: 1px solid #334155 !important; /* slate-700 */
+        border-radius: 1rem !important;
+        overflow: hidden !important;
+        background-color: rgba(15, 23, 42, 0.7) !important; /* slate-900/70 */
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    }
+    .prose caption {
+        caption-side: bottom !important;
+        margin-top: 0.75rem !important;
+        font-size: 0.875rem !important;
+        color: #94a3b8 !important;
+        text-align: center !important;
+        font-style: italic !important;
+    }
+    .prose thead {
+        background-color: #1e293b !important; /* slate-800 */
+    }
+    .prose th {
+        padding: 0.875rem 1.25rem !important;
+        font-weight: 700 !important;
+        font-size: 0.875rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        color: #ffffff !important;
+        border-bottom: 2px solid #334155 !important;
+    }
+    .prose td {
+        padding: 0.875rem 1.25rem !important;
+        font-size: 0.9375rem !important;
+        color: #cbd5e1 !important;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+    }
+    .prose tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+    .prose tbody tr:nth-child(even) {
+        background-color: rgba(30, 41, 59, 0.35) !important;
+    }
+    .prose tbody tr:hover {
+        background-color: rgba(51, 65, 85, 0.45) !important;
+    }
+
+    /* ALIGNMENTS */
+    .prose .text-left, .prose [align="left"] { text-align: left !important; }
+    .prose .text-center, .prose [align="center"] { text-align: center !important; }
+    .prose .text-right, .prose [align="right"] { text-align: right !important; }
+    .prose .text-justify, .prose [align="justify"] { text-align: justify !important; }
+
+    /* BLOCKQUOTES */
+    .prose blockquote {
+        border-left: 4px solid #a3e635 !important;
+        background-color: rgba(30, 41, 59, 0.5) !important;
+        padding: 1.25rem 1.5rem !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
+        border-top-right-radius: 1rem !important;
+        border-bottom-right-radius: 1rem !important;
+        font-style: italic !important;
+        color: #f8fafc !important;
+    }
+    .prose blockquote p {
+        margin-bottom: 0 !important;
+        font-size: 1.15rem !important;
+        color: #f8fafc !important;
+    }
+
+    /* CODE & PRE */
+    .prose code {
+        background-color: #1e293b !important;
+        color: #a3e635 !important;
+        padding: 0.2rem 0.45rem !important;
+        border-radius: 0.375rem !important;
+        font-family: monospace !important;
+        font-size: 0.875em !important;
+        border: 1px solid rgba(51, 65, 85, 0.8) !important;
+    }
+    .prose pre {
+        background-color: #0f172a !important;
+        color: #f1f5f9 !important;
+        padding: 1.25rem !important;
+        border-radius: 1rem !important;
+        overflow-x: auto !important;
+        margin-top: 1.75rem !important;
+        margin-bottom: 1.75rem !important;
+        border: 1px solid #334155 !important;
+    }
+    .prose pre code {
+        background-color: transparent !important;
+        padding: 0 !important;
+        border: none !important;
+        color: inherit !important;
+    }
+
+    /* IMAGES, FIGURES & EMBEDS */
     .prose img {
-        margin-top: 2.5rem;
-        margin-bottom: 2.5rem;
-        border-radius: 1.5rem;
-        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+        margin-top: 2.25rem !important;
+        margin-bottom: 2.25rem !important;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid rgba(51, 65, 85, 0.5) !important;
+        max-width: 100% !important;
+        height: auto !important;
+        display: block !important;
+    }
+    .prose figure {
+        margin-top: 2.25rem !important;
+        margin-bottom: 2.25rem !important;
+        text-align: center !important;
+    }
+    .prose figcaption {
+        font-size: 0.875rem !important;
+        color: #94a3b8 !important;
+        margin-top: 0.75rem !important;
+        font-style: italic !important;
+    }
+    .prose iframe, .prose video {
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        border-radius: 1.25rem !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    }
+    .prose hr {
+        border: none !important;
+        border-top: 1px solid #334155 !important;
+        margin-top: 2.5rem !important;
+        margin-bottom: 2.5rem !important;
     }
 </style>
 @endpush
@@ -491,11 +751,19 @@
             if (tooltip) {
                 const originalText = tooltip.innerText;
                 tooltip.innerText = 'Tersalin!';
-                setTimeout(() => {
-                    tooltip.innerText = originalText;
-                }, 2000);
             }
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.prose table').forEach(function(table) {
+            if (!table.parentElement.classList.contains('table-responsive')) {
+                var wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive overflow-x-auto my-6 rounded-2xl border border-slate-700/60 shadow-xl';
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            }
+        });
+    });
 </script>
 @endpush

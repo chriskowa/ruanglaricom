@@ -8,6 +8,78 @@
     @section('og_image', asset('storage/' . $page->featured_image))
 @endif
 
+@push('styles')
+<style>
+    .prose p {
+        font-size: 1.125rem !important;
+        line-height: 1.85 !important;
+        color: #cbd5e1 !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose strong, .prose b {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    .prose a {
+        color: #a3e635 !important;
+        text-decoration: underline !important;
+        font-weight: 600 !important;
+    }
+    .prose h1, .prose h2, .prose h3, .prose h4 {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+    .prose ul {
+        list-style-type: disc !important;
+        padding-left: 1.75rem !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose ol {
+        list-style-type: decimal !important;
+        padding-left: 1.75rem !important;
+        margin-top: 1.25rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+    .prose li {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        line-height: 1.8 !important;
+        color: #cbd5e1 !important;
+    }
+    .prose li::marker {
+        color: #a3e635 !important;
+        font-weight: bold !important;
+    }
+    .prose table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
+        border: 1px solid #334155 !important;
+        border-radius: 1rem !important;
+        overflow: hidden !important;
+        background-color: rgba(15, 23, 42, 0.7) !important;
+    }
+    .prose thead {
+        background-color: #1e293b !important;
+    }
+    .prose th {
+        padding: 0.875rem 1.25rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        border-bottom: 2px solid #334155 !important;
+    }
+    .prose td {
+        padding: 0.875rem 1.25rem !important;
+        color: #cbd5e1 !important;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-dark">
     <!-- Hero Section / Featured Image -->
