@@ -426,16 +426,6 @@
         eventKindSelect.addEventListener('change', toggleTemplateCard);
         toggleTemplateCard();
     }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        ClassicEditor
-            .create(document.querySelector('#description'), {
-                toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ]
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    });
 </script>
 @endpush
 @endsection
