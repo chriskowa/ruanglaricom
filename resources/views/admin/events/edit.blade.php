@@ -246,7 +246,8 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+@php($tinymceKey = config('services.tinymce.api_key') ?: 'jmsd06m7clya0xqmr43culaqsx8b77z5djnmhavamejsiypc')
+<script src="https://cdn.tiny.cloud/1/{{ $tinymceKey }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     function openMediaLibrary() {
         const frame = document.getElementById('media-frame');
@@ -426,6 +427,64 @@
         eventKindSelect.addEventListener('change', toggleTemplateCard);
         toggleTemplateCard();
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        tinymce.init({
+            selector: '#description',
+            height: 450,
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons template help',
+            toolbar: 'undo redo | formatselect blocks | bold italic backcolor forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | table image link | fullscreen code',
+            skin: 'oxide-dark',
+            content_css: 'dark',
+            document_base_url: '{{ url('/') }}/',
+            relative_urls: false,
+            remove_script_host: false,
+            convert_urls: true,
+            images_upload_url: '{{ route("admin.blog.images.upload") }}',
+            automatic_uploads: true,
+            file_picker_types: 'image',
+            images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.withCredentials = false;
+                xhr.open('POST', '{{ route("admin.blog.images.upload") }}');
+                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+
+                xhr.upload.onprogress = (e) => {
+                    progress(e.loaded / e.total * 100);
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 403) {
+                        reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+                        return;
+                    }
+
+                    if (xhr.status < 200 || xhr.status >= 300) {
+                        reject('HTTP Error: ' + xhr.status);
+                        return;
+                    }
+
+                    const json = JSON.parse(xhr.responseText);
+
+                    if (!json || typeof json.location != 'string') {
+                        reject('Invalid JSON: ' + xhr.responseText);
+                        return;
+                    }
+
+                    resolve(json.location);
+                };
+
+                xhr.onerror = () => {
+                    reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
+                };
+
+                const formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+                xhr.send(formData);
+            })
+        });
+    });
 </script>
 @endpush
 @endsection
