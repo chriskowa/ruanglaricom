@@ -164,6 +164,23 @@ class BlogController extends Controller
             ->limit(5)
             ->get();
 
-        return view('blog.show', compact('article', 'relatedArticles', 'trending'));
+        $upcomingEvents = \App\Models\Event::query()
+            ->where('is_active', true)
+            ->where('start_at', '>=', now()->startOfDay())
+            ->orderBy('start_at', 'asc')
+            ->with(['city'])
+            ->limit(4)
+            ->get();
+
+        if ($upcomingEvents->isEmpty()) {
+            $upcomingEvents = \App\Models\Event::query()
+                ->where('is_active', true)
+                ->orderBy('start_at', 'desc')
+                ->with(['city'])
+                ->limit(4)
+                ->get();
+        }
+
+        return view('blog.show', compact('article', 'relatedArticles', 'trending', 'upcomingEvents'));
     }
 }

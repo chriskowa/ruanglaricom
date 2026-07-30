@@ -616,21 +616,19 @@
                     </div>
                 </div>
 
-                @if(isset($trending) && $trending->count() > 0)
                 <aside class="lg:col-span-4 mt-12 lg:mt-0">
                     <div class="sticky top-24 space-y-6">
-                        <div class="bg-card/50 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
-                            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-700/50">
-                                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                                    <i class="fas fa-fire text-neon"></i> Trending Article
-                                </h3>
-                                <span class="text-[10px] font-mono text-neon bg-neon/15 px-2.5 py-1 rounded-full border border-neon/30">Top Read</span>
+                        <!-- Professional Trending Articles Widget -->
+                        @if(isset($trending) && $trending->count() > 0)
+                        <div class="bg-card/40 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest">Trending Artikel</h3>
+                                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Top Read</span>
                             </div>
 
-                            <div class="space-y-4">
+                            <div class="space-y-4 mt-4">
                                 @foreach($trending as $t)
                                     @php
-                                        $tDt = $t->published_at ?: $t->created_at;
                                         $tImg = null;
                                         if ($t->featured_image) {
                                             $tImg = Str::startsWith($t->featured_image, ['http://', 'https://'])
@@ -638,42 +636,85 @@
                                                 : asset('storage/' . ltrim($t->featured_image, '/'));
                                         }
                                     @endphp
-                                    <a href="{{ route('blog.show', $t->slug) }}" class="group flex gap-3.5 p-2 rounded-2xl hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-all duration-300">
-                                        <div class="relative w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex-none overflow-hidden shadow-md">
-                                            @if($tImg)
-                                                <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                                            @else
-                                                <div class="w-full h-full bg-slate-800 flex items-center justify-center text-neon font-black text-xs">#{{ $loop->iteration }}</div>
-                                            @endif
-                                            <div class="absolute top-0 left-0 bg-neon text-dark font-black text-[10px] w-4 h-4 flex items-center justify-center rounded-br-md shadow">
-                                                {{ $loop->iteration }}
-                                            </div>
-                                        </div>
+                                    <a href="{{ route('blog.show', $t->slug) }}" class="group flex items-start gap-3.5 pb-3.5 border-b border-slate-800/60 last:border-0 last:pb-0">
+                                        <span class="text-xs font-mono font-bold text-slate-500 group-hover:text-white transition-colors pt-0.5 select-none w-5 text-right flex-none">
+                                            0{{ $loop->iteration }}
+                                        </span>
                                         <div class="flex-1 min-w-0">
-                                            <div class="text-xs font-bold text-white leading-snug line-clamp-2 group-hover:text-neon transition-colors">
+                                            <div class="text-xs font-semibold text-slate-200 group-hover:text-white group-hover:underline leading-snug line-clamp-2 transition-colors">
                                                 {{ $t->localized_title }}
                                             </div>
-                                            <div class="mt-1.5 text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                                            <div class="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
                                                 @if($t->category)
-                                                    <span class="text-neon/90 font-sans font-semibold text-[10px] px-1.5 py-0.5 rounded bg-neon/10 border border-neon/20 truncate max-w-[90px]">{{ $t->category->name }}</span>
+                                                    <span class="text-slate-400 font-sans font-medium">{{ $t->category->name }}</span>
+                                                    <span>•</span>
                                                 @endif
-                                                <span class="inline-flex items-center gap-1"><i class="far fa-eye text-neon"></i> {{ number_format((int) ($t->views_count ?? 0)) }}</span>
+                                                <span>{{ number_format((int) ($t->views_count ?? 0)) }} dibaca</span>
                                             </div>
                                         </div>
+                                        @if($tImg)
+                                            <div class="w-12 h-12 rounded-lg bg-slate-800 border border-slate-800 flex-none overflow-hidden shadow-sm">
+                                                <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                            </div>
+                                        @endif
                                     </a>
                                 @endforeach
                             </div>
 
-                            <div class="mt-5 pt-4 border-t border-slate-700/50 text-center">
-                                <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-neon transition-colors">
+                            <div class="mt-5 pt-4 border-t border-slate-800 text-center">
+                                <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-white transition-colors">
                                     <span>Lihat Semua Artikel</span>
+                                    <i class="fas fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Jadwal Lari Terdekat Widget -->
+                        <div class="bg-card/40 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest">Jadwal Lari Terdekat</h3>
+                                <a href="{{ url('/events') }}" class="text-[11px] font-medium text-slate-400 hover:text-white transition-colors">Lihat Semua</a>
+                            </div>
+
+                            @if(isset($upcomingEvents) && $upcomingEvents->count() > 0)
+                                <div class="space-y-3 mt-4">
+                                    @foreach($upcomingEvents as $ev)
+                                        @php
+                                            $evDate = $ev->start_at ? \Carbon\Carbon::parse($ev->start_at) : null;
+                                            $cityName = $ev->city ? $ev->city->name : ($ev->location_name ?: 'Indonesia');
+                                        @endphp
+                                        <a href="{{ url('/events/' . $ev->slug) }}" class="group flex items-center gap-3 p-2.5 rounded-2xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-800/80 hover:border-slate-700 transition-all duration-200">
+                                            <div class="flex-none w-11 h-11 rounded-xl bg-slate-800 border border-slate-700/60 flex flex-col items-center justify-center text-center p-1">
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase font-mono leading-none">{{ $evDate ? $evDate->translatedFormat('M') : 'EVT' }}</span>
+                                                <span class="text-xs font-black text-white font-mono leading-tight mt-0.5">{{ $evDate ? $evDate->format('d') : '•' }}</span>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-xs font-bold text-slate-200 group-hover:text-white truncate transition-colors">
+                                                    {{ $ev->name }}
+                                                </div>
+                                                <div class="mt-1 flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                                                    <i class="fas fa-map-marker-alt text-[9px] text-slate-500"></i>
+                                                    <span class="truncate">{{ $cityName }}</span>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-chevron-right text-[10px] text-slate-600 group-hover:text-slate-300 transition-colors mr-1"></i>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="mt-4 text-xs text-slate-500 italic text-center py-3">Belum ada jadwal event mendatang.</div>
+                            @endif
+
+                            <div class="mt-5 pt-4 border-t border-slate-800 text-center">
+                                <a href="{{ url('/events') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                                    <span>Jelajahi Kalender Event</span>
                                     <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </aside>
-                @endif
             </div>
         </div>
     </div>
