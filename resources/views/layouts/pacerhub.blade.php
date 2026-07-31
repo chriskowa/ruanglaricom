@@ -128,11 +128,10 @@
     @endif
 
     @php($recaptchaSiteKeyV3 = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')))
-    @if($recaptchaSiteKeyV3)
+    @if($recaptchaSiteKeyV3 && !Str::contains($recaptchaSiteKeyV3, ['your_', 'placeholder', 'dummy']))
         <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKeyV3 }}"></script>
-    @endif
-    @if(empty($skipHeavyAssets))
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @elseif(empty($skipHeavyAssets) && empty($recaptchaSiteKeyV3))
+        {{-- Only load default recaptcha if no specific v3 key configured --}}
     @endif
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>

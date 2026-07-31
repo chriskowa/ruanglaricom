@@ -161,6 +161,10 @@ class DanielsRunningService
             $paces[$type] = round($paceMinPerKm, 2);
         }
 
+        // Easy Range (Jack Daniels 4th Edition: 66% - 72% vVO2max)
+        $paces['E_high'] = round(1000 / ($vVO2max * 0.72), 2);
+        $paces['E_low'] = round(1000 / ($vVO2max * 0.66), 2);
+
         return $paces;
     }
 

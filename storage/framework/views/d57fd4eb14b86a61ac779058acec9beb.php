@@ -128,11 +128,10 @@
     <?php endif; ?>
 
     <?php ($recaptchaSiteKeyV3 = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY'))); ?>
-    <?php if($recaptchaSiteKeyV3): ?>
+    <?php if($recaptchaSiteKeyV3 && !Str::contains($recaptchaSiteKeyV3, ['your_', 'placeholder', 'dummy'])): ?>
         <script src="https://www.google.com/recaptcha/api.js?render=<?php echo e($recaptchaSiteKeyV3); ?>"></script>
-    <?php endif; ?>
-    <?php if(empty($skipHeavyAssets)): ?>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php elseif(empty($skipHeavyAssets) && empty($recaptchaSiteKeyV3)): ?>
+        
     <?php endif; ?>
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>

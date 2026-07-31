@@ -172,7 +172,222 @@
             </div>
         </header>
 
-        <!-- UPCOMING EVENTS SECTION -->
+        <!-- PROGRAM LATIHAN VDOT SECTION (NO EMOJIS, CLEAN & PROFESSIONAL) -->
+        <section class="py-20 relative overflow-hidden bg-[#0B1526] border-t border-[#1F2D44]">
+            <!-- Subtle Glow Effect -->
+            <div class="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#B8FF00]/5 rounded-full blur-[140px] pointer-events-none"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                    
+                    <!-- LEFT COLUMN: Value Proposition & Features -->
+                    <div class="lg:col-span-7 space-y-6" data-aos="fade-right">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#B8FF00]/30 bg-[#B8FF00]/10 text-[#B8FF00] text-xs font-mono font-bold uppercase tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-[#B8FF00] animate-pulse"></span>
+                            <span>PROGRAM LATIHAN TERUKUR</span>
+                        </div>
+                        
+                        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight uppercase">
+                            Buat Program Lari Mu Sesuai Kemampuan & <span class="text-[#B8FF00]">Target Terbaikmu</span>
+                        </h2>
+                        
+                        <p class="text-[#94A3B8] text-base sm:text-lg leading-relaxed">
+                            Sistem latihan ilmiah berbasis Algoritma VDOT Jack Daniels untuk peningkatan performa terukur, beban kardio proporsional, serta pemulihan optimal tanpa risiko cedera.
+                        </p>
+                        
+                        <!-- Feature List (Vector Icons Only) -->
+                        <div class="space-y-4 pt-2">
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] hover:border-[#B8FF00]/30 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-[#B8FF00]/10 border border-[#B8FF00]/20 flex items-center justify-center text-[#B8FF00] shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm mb-1">Target Pace Ilmiah & Akurat</h4>
+                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Kecepatan setiap sesi latihan (Easy, Tempo, Interval) dihitung dari hasil PB atau Time Trial terbaru.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] hover:border-[#B8FF00]/30 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-[#B8FF00]/10 border border-[#B8FF00]/20 flex items-center justify-center text-[#B8FF00] shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm mb-1">Beban Kardio Bertahap & Mencegah Overtraining</h4>
+                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Peningkatan volume mingguan secara terkontrol menjaga kestabilan adaptasi jantung dan otot.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] hover:border-[#B8FF00]/30 transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-[#B8FF00]/10 border border-[#B8FF00]/20 flex items-center justify-center text-[#B8FF00] shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm mb-1">Fleksibel & Otomatis ke Kalender Lari</h4>
+                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Pilih jumlah hari latihan per minggu dan langsung simpan ke kalender pribadi kamu.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <a href="{{ route('programs.realistic') }}" class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm">
+                                <span>Buat Program Latihan Sekarang</span>
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- RIGHT COLUMN: Interactive VDOT Calculator Widget -->
+                    <div class="lg:col-span-5" data-aos="fade-left">
+                        <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
+                            <!-- Card Header -->
+                            <div class="border-b border-[#1F2D44] pb-4 flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold text-[#B8FF00] uppercase tracking-widest">Kalkulator Performa</span>
+                                    <h3 class="text-xl font-black text-white tracking-tight">VDOT & Target Pace</h3>
+                                </div>                                
+                            </div>
+                            
+                            <!-- Form Inputs -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Jarak Parameter / PB Terakhir</label>
+                                    <select id="vdot_widget_distance" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#B8FF00] font-medium transition-all">
+                                        <option value="5K">5K (5 Kilometer)</option>
+                                        <option value="10K">10K (10 Kilometer)</option>
+                                        <option value="21K">Half Marathon (21.1K)</option>
+                                        <option value="42K">Full Marathon (42.2K)</option>
+                                        <option value="cooper12">Cooper Test (12 Menit)</option>
+                                        <option value="balke15">Balke Test (15 Menit)</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Time Input (for Standard Distances) -->
+                                <div id="vdot_time_input_group">
+                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Waktu PB / Catatan Waktu</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <input type="number" id="vdot_widget_h" min="0" max="23" placeholder="Jam" value="0" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
+                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Jam</span>
+                                        </div>
+                                        <div>
+                                            <input type="number" id="vdot_widget_m" min="0" max="59" placeholder="Menit" value="25" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
+                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Menit</span>
+                                        </div>
+                                        <div>
+                                            <input type="number" id="vdot_widget_s" min="0" max="59" placeholder="Detik" value="00" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
+                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Detik</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Distance Input (for Cooper 12 / Balke 15 Tests) -->
+                                <div id="vdot_meters_input_group" class="hidden">
+                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Jarak Tempuh (Meter)</label>
+                                    <input type="number" id="vdot_widget_meters" min="500" max="10000" placeholder="Contoh: 2800" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
+                                    <span class="text-[10px] text-[#94A3B8] block mt-1">Masukkan total jarak lari yang dicapai dalam waktu tes.</span>
+                                </div>
+                                
+                                <button type="button" id="btn-vdot-calculate" class="w-full py-3 rounded-xl bg-[#1F2D44] hover:bg-[#2A3C5A] border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <svg class="w-4 h-4 text-[#B8FF00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span>Hitung VDOT & Target Pace</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Live Output Results Box -->
+                            <div id="vdot_widget_result" class="hidden p-4 rounded-2xl bg-[#08111F] border border-[#1F2D44] space-y-4">
+                                <div class="flex items-center justify-between border-b border-[#1F2D44] pb-3">
+                                    <div>
+                                        <span class="text-[10px] text-[#94A3B8] font-mono uppercase block">Skor VDOT:</span>
+                                        <span id="vdot_score_display" class="text-2xl font-black text-[#B8FF00] font-mono">42.5</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-[10px] text-[#94A3B8] font-mono uppercase block">Level Pelari:</span>
+                                        <span id="vdot_fitness_level" class="text-xs font-bold text-white uppercase bg-[#0E1A2D] px-2.5 py-1 rounded-lg border border-[#1F2D44] block mt-0.5">Intermediate</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tab Switches -->
+                                <div class="flex rounded-xl bg-[#0E1A2D] p-1 border border-[#1F2D44]">
+                                    <button type="button" id="vdot_tab_paces_btn" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer">
+                                        Pace Latihan
+                                    </button>
+                                    <button type="button" id="vdot_tab_races_btn" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer">
+                                        Target Race
+                                    </button>
+                                </div>
+
+                                <!-- Tab 1 Content: Training Paces -->
+                                <div id="vdot_tab_paces_content" class="space-y-2">
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-emerald-400 block uppercase">Easy Pace (Recovery / Long)</span>
+                                            <span class="text-[10px] text-slate-400">Pace nyaman & siap mengobrol</span>
+                                        </div>
+                                        <span id="vdot_easy_pace" class="font-mono font-bold text-white text-xs">05:00 - 05:25/km</span>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-amber-400 block uppercase">Tempo / Threshold (T)</span>
+                                            <span class="text-[10px] text-slate-400">Pace laktat (~88% vVO2max)</span>
+                                        </div>
+                                        <span id="vdot_tempo_pace" class="font-mono font-bold text-white text-xs">04:10/km</span>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-rose-400 block uppercase">Interval (I) Pace</span>
+                                            <span class="text-[10px] text-slate-400">VO2max (Sesi 400m - 1000m)</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span id="vdot_interval_pace" class="font-mono font-bold text-white text-xs block">03:45/km</span>
+                                            <span id="vdot_interval_400m" class="font-mono text-[10px] text-rose-400 font-bold block">(90s / 400m)</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-[#FC4C02] block uppercase">Repetition (R) Pace</span>
+                                            <span class="text-[10px] text-slate-400">Speed & Form (Sesi 200m - 400m)</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span id="vdot_repetition_pace" class="font-mono font-bold text-white text-xs block">03:30/km</span>
+                                            <span id="vdot_repetition_400m" class="font-mono text-[10px] text-[#FC4C02] font-bold block">(84s / 400m)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab 2 Content: Equivalent Race Times -->
+                                <div id="vdot_tab_races_content" class="hidden space-y-2">
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <span class="text-xs text-white font-bold">5K Event</span>
+                                        <span id="vdot_race_5k" class="font-mono font-bold text-[#B8FF00] text-xs">18:00 (3:36/km)</span>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <span class="text-xs text-white font-bold">10K Event</span>
+                                        <span id="vdot_race_10k" class="font-mono font-bold text-[#B8FF00] text-xs">37:25 (3:44/km)</span>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <span class="text-xs text-white font-bold">Half Marathon (21.1K)</span>
+                                        <span id="vdot_race_21k" class="font-mono font-bold text-[#B8FF00] text-xs">1:22:45 (3:55/km)</span>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <span class="text-xs text-white font-bold">Full Marathon (42.2K)</span>
+                                        <span id="vdot_race_42k" class="font-mono font-bold text-[#B8FF00] text-xs">2:53:10 (4:06/km)</span>
+                                    </div>
+                                </div>
+                                
+                                <a id="vdot_widget_action_btn" href="{{ route('programs.realistic') }}" class="w-full mt-2 py-3 px-4 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-lime-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#B8FF00]/10">
+                                    <span>Gunakan PB Ini & Buat Program</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
         <section id="events" class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
@@ -1026,14 +1241,199 @@
         }
     }
 
+    function initVdotWidget() {
+        const distanceEl = document.getElementById('vdot_widget_distance');
+        const timeGroup = document.getElementById('vdot_time_input_group');
+        const metersGroup = document.getElementById('vdot_meters_input_group');
+        const metersEl = document.getElementById('vdot_widget_meters');
+        const hEl = document.getElementById('vdot_widget_h');
+        const mEl = document.getElementById('vdot_widget_m');
+        const sEl = document.getElementById('vdot_widget_s');
+        const btnCalc = document.getElementById('btn-vdot-calculate');
+        const resultBox = document.getElementById('vdot_widget_result');
+
+        const tabPacesBtn = document.getElementById('vdot_tab_paces_btn');
+        const tabRacesBtn = document.getElementById('vdot_tab_races_btn');
+        const tabPacesContent = document.getElementById('vdot_tab_paces_content');
+        const tabRacesContent = document.getElementById('vdot_tab_races_content');
+
+        const scoreDisplay = document.getElementById('vdot_score_display');
+        const fitnessLevelDisplay = document.getElementById('vdot_fitness_level');
+
+        const easyPaceDisplay = document.getElementById('vdot_easy_pace');
+        const tempoPaceDisplay = document.getElementById('vdot_tempo_pace');
+        const intervalPaceDisplay = document.getElementById('vdot_interval_pace');
+        const interval400mDisplay = document.getElementById('vdot_interval_400m');
+        const repetitionPaceDisplay = document.getElementById('vdot_repetition_pace');
+        const repetition400mDisplay = document.getElementById('vdot_repetition_400m');
+
+        const race5kDisplay = document.getElementById('vdot_race_5k');
+        const race10kDisplay = document.getElementById('vdot_race_10k');
+        const race21kDisplay = document.getElementById('vdot_race_21k');
+        const race42kDisplay = document.getElementById('vdot_race_42k');
+
+        const actionBtn = document.getElementById('vdot_widget_action_btn');
+
+        if (!distanceEl || !btnCalc || !resultBox) return;
+
+        // Toggle distance vs time input
+        distanceEl.addEventListener('change', function() {
+            const val = distanceEl.value;
+            if (val === 'cooper12' || val === 'balke15') {
+                timeGroup.classList.add('hidden');
+                metersGroup.classList.remove('hidden');
+            } else {
+                timeGroup.classList.remove('hidden');
+                metersGroup.classList.add('hidden');
+            }
+        });
+
+        // Tab switching
+        if (tabPacesBtn && tabRacesBtn) {
+            tabPacesBtn.addEventListener('click', function() {
+                tabPacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer";
+                tabRacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer";
+                tabPacesContent.classList.remove('hidden');
+                tabRacesContent.classList.add('hidden');
+            });
+            tabRacesBtn.addEventListener('click', function() {
+                tabRacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer";
+                tabPacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer";
+                tabRacesContent.classList.remove('hidden');
+                tabPacesContent.classList.add('hidden');
+            });
+        }
+
+        btnCalc.addEventListener('click', function() {
+            const dist = distanceEl.value;
+            let timeMinutes = 0;
+            let distMeters = 5000;
+            let totalSeconds = 0;
+
+            if (dist === 'cooper12') {
+                timeMinutes = 12;
+                distMeters = parseFloat(metersEl.value || '0');
+                if (distMeters <= 500) { alert('Harap masukkan jarak Cooper Test yang valid (meter).'); return; }
+                totalSeconds = 720;
+            } else if (dist === 'balke15') {
+                timeMinutes = 15;
+                distMeters = parseFloat(metersEl.value || '0');
+                if (distMeters <= 500) { alert('Harap masukkan jarak Balke Test yang valid (meter).'); return; }
+                totalSeconds = 900;
+            } else {
+                const h = parseInt(hEl.value || '0', 10);
+                const m = parseInt(mEl.value || '0', 10);
+                const s = parseInt(sEl.value || '0', 10);
+                totalSeconds = (h * 3600) + (m * 60) + s;
+                if (totalSeconds <= 60) { alert('Silakan masukkan waktu PB yang valid.'); return; }
+                timeMinutes = totalSeconds / 60;
+
+                if (dist === '5K') distMeters = 5000;
+                else if (dist === '10K') distMeters = 10000;
+                else if (dist === '21K') distMeters = 21097.5;
+                else if (dist === '42K') distMeters = 42195;
+            }
+
+            const velocity = distMeters / timeMinutes; // m/min
+            const vo2 = -4.60 + 0.182258 * velocity + 0.000104 * Math.pow(velocity, 2);
+            const percentMax = 0.8 + 0.1894393 * Math.exp(-0.012778 * timeMinutes) + 0.2989558 * Math.exp(-0.1932605 * timeMinutes);
+            const vdotVal = Math.max(15, Math.min(85, vo2 / percentMax));
+
+            // Quadratic formula for vVO2max at VDOT: 0.000104 * v^2 + 0.182258 * v + (-4.6 - VDOT) = 0
+            const a = 0.000104, b = 0.182258, c = -4.6 - vdotVal;
+            const vVO2max = (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a); // m/min
+
+            // Calculate Training Paces (Jack Daniels Ratios)
+            // Easy range: 0.66 - 0.72 of vVO2max
+            const eHighVelocity = vVO2max * 0.72;
+            const eLowVelocity = vVO2max * 0.66;
+            const eHighSecPerKm = Math.round((1000 / eHighVelocity) * 60);
+            const eLowSecPerKm = Math.round((1000 / eLowVelocity) * 60);
+
+            // Tempo (T): 0.88 vVO2max
+            const tVelocity = vVO2max * 0.88;
+            const tSecPerKm = Math.round((1000 / tVelocity) * 60);
+
+            // Interval (I): 0.97 vVO2max
+            const iVelocity = vVO2max * 0.97;
+            const iSecPerKm = Math.round((1000 / iVelocity) * 60);
+            const iSec400m = Math.round(iSecPerKm * 0.4);
+
+            // Repetition (R): 1.05 vVO2max
+            const rVelocity = vVO2max * 1.05;
+            const rSecPerKm = Math.round((1000 / rVelocity) * 60);
+            const rSec400m = Math.round(rSecPerKm * 0.4);
+
+            const formatSecToMinKm = (sec) => {
+                const pm = Math.floor(sec / 60);
+                const ps = Math.round(sec % 60);
+                return `${String(pm).padStart(2, '0')}:${String(ps).padStart(2, '0')}/km`;
+            };
+
+            const formatTimeFromSec = (sec) => {
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = Math.round(sec % 60);
+                if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            };
+
+            // Fitness Level
+            let level = "Beginner";
+            if (vdotVal >= 60) level = "Elite / Advanced";
+            else if (vdotVal >= 48) level = "Advanced";
+            else if (vdotVal >= 38) level = "Intermediate";
+
+            scoreDisplay.innerText = vdotVal.toFixed(1);
+            fitnessLevelDisplay.innerText = level;
+
+            easyPaceDisplay.innerText = `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowSecPerKm)}`;
+            tempoPaceDisplay.innerText = formatSecToMinKm(tSecPerKm);
+            intervalPaceDisplay.innerText = formatSecToMinKm(iSecPerKm);
+            interval400mDisplay.innerText = `(${iSec400m}s / 400m)`;
+            repetitionPaceDisplay.innerText = formatSecToMinKm(rSecPerKm);
+            repetition400mDisplay.innerText = `(${rSec400m}s / 400m)`;
+
+            // Calculate Equivalent Race Times
+            const raceDists = [
+                { id: race5kDisplay, distM: 5000, ratio: 0.957 },
+                { id: race10kDisplay, distM: 10000, ratio: 0.915 },
+                { id: race21kDisplay, distM: 21097.5, ratio: 0.865 },
+                { id: race42kDisplay, distM: 42195, ratio: 0.815 }
+            ];
+
+            raceDists.forEach(item => {
+                const rVel = vVO2max * item.ratio;
+                const rSec = (item.distM / rVel) * 60;
+                const rPace = (1000 / rVel) * 60;
+                item.id.innerText = `${formatTimeFromSec(rSec)} (${formatSecToMinKm(rPace)})`;
+            });
+
+            const distParam = dist.toLowerCase();
+            if (distParam === 'cooper12' || distParam === 'balke15') {
+                actionBtn.href = `{{ route('programs.realistic') }}?distance=${encodeURIComponent(distParam)}&meters=${encodeURIComponent(distMeters)}`;
+            } else {
+                const h = parseInt(hEl.value || '0', 10);
+                const m = parseInt(mEl.value || '0', 10);
+                const s = parseInt(sEl.value || '0', 10);
+                const formattedTimeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                actionBtn.href = `{{ route('programs.realistic') }}?distance=${encodeURIComponent(distParam)}&time=${encodeURIComponent(formattedTimeStr)}`;
+            }
+
+            resultBox.classList.remove('hidden');
+        });
+    }
+
     document.addEventListener('DOMContentLoaded',()=>{
         loadLatestBlogs();
         loadUpcomingEvents();
+        initVdotWidget();
     });
     // In case DOMContentLoaded already fired (script loaded late)
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         loadLatestBlogs();
         loadUpcomingEvents();
+        initVdotWidget();
     }
 </script>
 @endpush

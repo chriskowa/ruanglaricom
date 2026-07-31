@@ -60,6 +60,15 @@
     </script>
     
     <style>
+        /* Brand Colors & Button Fallbacks */
+        .bg-brand-500 { background-color: #ccff00 !important; color: #08111f !important; }
+        .bg-brand-600 { background-color: #b8e600 !important; color: #08111f !important; }
+        .hover\:bg-brand-600:hover { background-color: #b8e600 !important; color: #08111f !important; }
+        .hover\:bg-brand-500:hover { background-color: #ccff00 !important; color: #08111f !important; }
+        .text-brand-500 { color: #ccff00 !important; }
+        .border-brand-500 { border-color: #ccff00 !important; }
+        .accent-brand-500 { accent-color: #ccff00 !important; }
+
         .generator-v2-wrapper { 
             font-family: 'Inter', sans-serif; 
             background-color: #0f172a;
@@ -105,6 +114,11 @@
         /* Date input styling */
         input[type="date"].input-field {
             position: relative;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f8fafc' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
+            background-position: right 0.75rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1.25em 1.25em !important;
+            padding-right: 2.5rem !important;
         }
         input[type="date"].input-field::-webkit-calendar-picker-indicator {
             background: transparent;
@@ -117,15 +131,10 @@
             right: 0;
             top: 0;
             width: auto;
+            z-index: 10;
         }
         input[type="date"].input-field::after {
-            content: "📅";
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-            font-size: 0.875rem;
+            content: "";
         }
 
         .input-field:focus {
@@ -157,7 +166,7 @@
         <div v-if="notification" class="fixed top-24 right-4 z-[100] max-w-sm w-full">
             <div :class="notification.type === 'error' ? 'bg-red-900/90 border-red-500/50 text-red-100' : 'bg-green-900/90 border-green-500/50 text-green-100'" 
                  class="p-4 rounded-xl border backdrop-blur-md shadow-2xl flex items-start gap-3">
-                <span class="text-lg">@{{ notification.type === 'error' ? '⚠️' : '✅' }}</span>
+                <i :class="notification.type === 'error' ? 'fa-solid fa-triangle-exclamation text-red-400' : 'fa-solid fa-circle-check text-emerald-400'" class="text-base mt-0.5"></i>
                 <div class="flex-1 text-sm font-medium">@{{ notification.message }}</div>
                 <button @click="notification = null" class="text-slate-400 hover:text-slate-200">✕</button>
             </div>
@@ -351,8 +360,8 @@
                                 <input v-model="form.start_date" type="date" class="input-field font-bold">
                             </div>
                             <div class="space-y-1.5">
-                                <div class="flex justify-between items-center">
-                                    <label class="label-text">Target Tanggal Lomba</label>
+                                <div class="flex items-center justify-between">
+                                    <label class="label-text !mb-0">Target Tanggal Lomba</label>
                                     <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
                                             @click="applyRecommendedTargetDate" 
                                             type="button" 
@@ -526,11 +535,11 @@
                                 </div>
                             </div>
 
-                            <!-- Highlighted Save to Calendar Button -->
-                            <button @click="saveAndOpenCalendar()" :disabled="saving" class="w-full py-3.5 px-4 bg-gradient-to-r from-neon via-lime-400 to-emerald-400 hover:from-white hover:to-neon text-dark font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-neon/20 hover:shadow-neon/40 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5 border border-neon/40">
+                            <!-- Highlighted Save to Calendar Button (Solid Neon, No Gradient) -->
+                            <button @click="saveAndOpenCalendar()" :disabled="saving" class="w-full py-3.5 px-4 bg-[#ccff00] hover:bg-[#b8e600] text-[#08111f] font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-[#ccff00]/20 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5">
                                 <i v-if="!saving" class="fa-solid fa-calendar-check text-sm"></i>
                                 <i v-else class="fa-solid fa-circle-notch fa-spin text-sm"></i>
-                                <span>@{{ saving ? 'MENYIMPAN...' : 'SIMPAN KE KALENDER' }}</span>
+                                <span>@{{ saving ? 'MENYIMPAN...' : 'BUAT PROGRAM' }}</span>
                             </button>
                             <button @click="step = 1" class="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-sliders text-slate-400 text-[11px]"></i>
@@ -545,13 +554,13 @@
                                 <h3 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Target Pace & Zona HR</h3>
                             </div>
                             <div class="space-y-2">
-                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1 hover:border-slate-700 transition">
+                                <div v-for="(pace, type) in displayPaces" :key="type" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1 hover:border-slate-700 transition">
                                     <div class="flex justify-between items-center">
                                         <span class="font-extrabold text-xs uppercase flex items-center gap-1.5" :class="getPaceColor(type)">
                                             <span v-html="getSessionIcon(type)" class="text-xs"></span>
                                             <span>@{{ getPaceLabel(type) }}</span>
                                         </span>
-                                        <span class="font-mono font-extrabold text-xs text-white">@{{ formatPace(pace) }}</span>
+                                        <span class="font-mono font-extrabold text-xs text-white">@{{ formatPace(pace, type) }}</span>
                                     </div>
                                     <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800/50">
                                         <span>Target HR</span>
@@ -582,8 +591,8 @@
                             <!-- Daily Protein Recommendation -->
                             <div v-if="result?.protein_recommendation || proteinRecommendation" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                        <span>🥩</span> Protein Harian
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-utensils text-indigo-400 text-xs"></i> Protein Harian
                                     </span>
                                     <span class="font-extrabold text-xs text-indigo-400 font-mono">
                                         @{{ (result?.protein_recommendation || proteinRecommendation)?.min }} - @{{ (result?.protein_recommendation || proteinRecommendation)?.max }} g/hari
@@ -1173,6 +1182,18 @@
                 saveAndOpenCalendar(actionType);
             };
 
+            const displayPaces = computed(() => {
+                if (!result.value || !result.value.paces) return {};
+                const raw = result.value.paces;
+                const filtered = {};
+                ['E', 'M', 'T', 'I', 'R'].forEach(k => {
+                    if (raw[k] !== undefined) {
+                        filtered[k] = raw[k];
+                    }
+                });
+                return filtered;
+            });
+
             const getPaceLabel = (type) => {
                 const labels = { 'E': 'Easy', 'M': 'Marathon', 'T': 'Threshold', 'I': 'Interval', 'R': 'Repetition' };
                 return labels[type] || type;
@@ -1180,21 +1201,29 @@
 
             const getPaceColor = (type) => {
                 const colors = { 
-                    'E': 'text-green-400', 
+                    'E': 'text-emerald-400', 
                     'M': 'text-blue-400', 
-                    'T': 'text-orange-400', 
-                    'I': 'text-red-400', 
-                    'R': 'text-purple-400' 
+                    'T': 'text-amber-400', 
+                    'I': 'text-rose-400', 
+                    'R': 'text-[#FC4C02]' 
                 };
                 return colors[type] || 'text-slate-400';
             };
 
-            const formatPace = (pace) => {
-                if (!pace || pace <= 0) return '-';
-                const totalSeconds = Math.round(pace * 60);
+            const formatPaceVal = (val) => {
+                if (!val || val <= 0) return '-';
+                const totalSeconds = Math.round(val * 60);
                 const m = Math.floor(totalSeconds / 60);
                 const s = totalSeconds % 60;
-                return `${m}:${String(s).padStart(2, '0')} /km`;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            };
+
+            const formatPace = (pace, type) => {
+                if (type === 'E' && result.value?.paces?.E_high && result.value?.paces?.E_low) {
+                    return `${formatPaceVal(result.value.paces.E_high)} - ${formatPaceVal(result.value.paces.E_low)} /km`;
+                }
+                if (!pace || pace <= 0) return '-';
+                return `${formatPaceVal(pace)} /km`;
             };
 
             const getSessionClass = (type) => {
@@ -1229,11 +1258,43 @@
                 return icons[type] || '<i class="fa-solid fa-person-running"></i>';
             };
 
+            Vue.onMounted(() => {
+                const params = new URLSearchParams(window.location.search);
+                let dist = params.get('distance');
+                const time = params.get('time');
+                const meters = params.get('meters');
+
+                if (dist || time || meters) {
+                    step.value = 1; // Automatically open form step when params are provided
+                }
+
+                if (dist) {
+                    dist = dist.toLowerCase();
+                    if (['5k', '10k', '21k', '42k', 'cooper12', 'balke15'].includes(dist)) {
+                        form.pb_distance = dist;
+                        if (['5k', '10k', '21k', '42k'].includes(dist)) {
+                            form.target_distance = dist;
+                        }
+                    }
+                }
+
+                if (meters && (dist === 'cooper12' || dist === 'balke15')) {
+                    pb_distance_meters.value = parseInt(meters, 10) || 0;
+                } else if (time) {
+                    const parts = time.split(':');
+                    if (parts.length === 3) {
+                        pb_hours.value = parseInt(parts[0], 10) || 0;
+                        pb_minutes.value = parseInt(parts[1], 10) || 0;
+                        pb_seconds.value = parseInt(parts[2], 10) || 0;
+                    }
+                }
+            });
+
             return {
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
                 conflictModal, confirmConflictAction,
                 generateProgram, saveAndOpenCalendar,
-                getPaceLabel, getPaceColor, formatPace, getSessionClass, getSessionIcon,
+                displayPaces, getPaceLabel, getPaceColor, formatPace, getSessionClass, getSessionIcon,
                 pb_hours, pb_minutes, pb_seconds, pb_distance_meters,
                 goal_hours, goal_minutes, goal_seconds,
                 idealMileage, recommendMileage, realism,
