@@ -37,10 +37,11 @@
 @endpush
 @push('styles')       
     <script>
-        // Extending existing Tailwind config from pacerhub layout
-        tailwind.config.theme.extend = {
-            ...tailwind.config.theme.extend,
-            colors: {
+        // Extending existing Tailwind config if available
+        if (typeof tailwind !== 'undefined' && tailwind && tailwind.config) {
+            tailwind.config.theme = tailwind.config.theme || {};
+            tailwind.config.theme.extend = tailwind.config.theme.extend || {};
+            tailwind.config.theme.extend.colors = {
                 ...(tailwind.config.theme.extend.colors || {}),
                 brand: {
                     50: '#fcfef0',
@@ -54,7 +55,7 @@
                     800: '#719900',
                     900: '#4e7300',
                 }
-            }
+            };
         }
     </script>
     
@@ -461,7 +462,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="space-y-1.5">
+                            <div class="hidden space-y-1.5">
                                 <label class="label-text flex items-center gap-1.5">
                                     <span>AI Narration Refinement (Opsional)</span>
                                 </label>

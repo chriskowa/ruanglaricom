@@ -10,6 +10,48 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     <style>
+        /* CKEditor Custom Height & Dark Styling */
+        .ck-editor__editable_inline {
+            min-height: 250px !important;
+            max-height: 850px !important;
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-radius: 0 0 0.75rem 0.75rem !important;
+            padding: 1.25rem !important;
+        }
+        #full_description_editor .ck-editor__editable_inline {
+            min-height: 480px !important;
+        }
+        .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+            border-color: #334155 !important;
+        }
+        .ck.ck-editor__main>.ck-editor__editable.ck-focused {
+            border-color: #eab308 !important;
+            box-shadow: 0 0 0 1px #eab308 !important;
+        }
+        .ck.ck-toolbar {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+        }
+        .ck.ck-toolbar .ck-button {
+            color: #cbd5e1 !important;
+        }
+        .ck.ck-toolbar .ck-button:hover,
+        .ck.ck-toolbar .ck-button.ck-on {
+            background-color: #334155 !important;
+            color: #facc15 !important;
+        }
+        .ck.ck-dropdown__panel {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        .ck.ck-list__item button {
+            color: #f8fafc !important;
+        }
+        .ck.ck-list__item button:hover {
+            background-color: #334155 !important;
+        }
         .dropzone {
             background: rgba(15, 23, 42, 0.5);
             border: 2px dashed #334155;
@@ -105,14 +147,18 @@
                 </li>
             </ol>
         </nav>
-        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
                     EDIT <span class="text-yellow-400">EVENT</span>
                 </h1>
-                <p class="text-slate-400 mt-2">Update event information, categories, and settings.</p>
+                <p class="text-slate-400 mt-1">Update event information, categories, and settings.</p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="openLivePreview()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 transition-all cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span>Preview Landing Event</span>
+            </button>
+        </div>    <div class="flex flex-wrap gap-2">
                 <a href="{{ route('eo.events.show', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 text-sm font-bold">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                     Preview
@@ -1115,6 +1161,7 @@
     });
 
     // Initialize Editor
+    window.editors = {};
     const commonConfig = {
         toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
     };
@@ -1123,6 +1170,7 @@
     ClassicEditor
         .create(document.querySelector('#short_description_editor'), commonConfig)
         .then(editor => {
+            window.editors['short_description'] = editor;
             editor.setData(`{!! old('short_description', $event->short_description) !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#short_description').value = editor.getData();
@@ -1134,6 +1182,7 @@
     ClassicEditor
         .create(document.querySelector('#full_description_editor'), commonConfig)
         .then(editor => {
+            window.editors['full_description'] = editor;
             editor.setData(`{!! old('full_description', $event->full_description) !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#full_description').value = editor.getData();
@@ -1145,6 +1194,7 @@
     ClassicEditor
         .create(document.querySelector('#terms_and_conditions_editor'), commonConfig)
         .then(editor => {
+            window.editors['terms_and_conditions'] = editor;
             editor.setData(`{!! old('terms_and_conditions', $event->terms_and_conditions) !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#terms_and_conditions').value = editor.getData();
@@ -1156,12 +1206,53 @@
     ClassicEditor
         .create(document.querySelector('#custom_email_message_editor'), commonConfig)
         .then(editor => {
+            window.editors['custom_email_message'] = editor;
             editor.setData(`{!! old('custom_email_message', $event->custom_email_message) !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#custom_email_message').value = editor.getData();
             });
         })
         .catch(error => console.error(error));
+
+    function openLivePreview() {
+        if (window.editors) {
+            Object.keys(window.editors).forEach(key => {
+                const textarea = document.querySelector('#' + key);
+                if (textarea && window.editors[key]) {
+                    textarea.value = window.editors[key].getData();
+                }
+            });
+        }
+
+        const mainForm = document.getElementById('eventForm');
+        if (!mainForm) return;
+
+        const formData = new FormData(mainForm);
+        const tempForm = document.createElement('form');
+        tempForm.method = 'POST';
+        tempForm.action = "{{ route('eo.events.live-preview') }}";
+        tempForm.target = '_blank';
+        tempForm.style.display = 'none';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        tempForm.appendChild(csrfInput);
+
+        for (let [key, value] of formData.entries()) {
+            if (value instanceof File) continue;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            tempForm.appendChild(input);
+        }
+
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+    }
 
     // Categories Logic
     let categoryIndex = 0;

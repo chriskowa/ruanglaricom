@@ -71,6 +71,69 @@ class EventController extends Controller
     }
 
     /**
+     * Preview event landing page live without saving data
+     */
+    public function livePreview(Request $request)
+    {
+        $data = $request->all();
+        
+        $event = new Event();
+        $event->id = 999999;
+        $event->name = !empty($data['name']) ? $data['name'] : 'Preview Event Name';
+        $event->short_description = $data['short_description'] ?? '';
+        $event->full_description = $data['full_description'] ?? '';
+        $event->terms_and_conditions = $data['terms_and_conditions'] ?? '';
+        $event->start_at = !empty($data['start_at']) ? \Carbon\Carbon::parse($data['start_at']) : now();
+        $event->end_at = !empty($data['end_at']) ? \Carbon\Carbon::parse($data['end_at']) : null;
+        $event->registration_open_at = !empty($data['registration_open_at']) ? \Carbon\Carbon::parse($data['registration_open_at']) : null;
+        $event->registration_close_at = !empty($data['registration_close_at']) ? \Carbon\Carbon::parse($data['registration_close_at']) : null;
+        $event->location_name = !empty($data['location_name']) ? $data['location_name'] : 'Lokasi Event';
+        $event->location_address = $data['location_address'] ?? '';
+        
+        // Handle images
+        $event->hero_image = $data['hero_image_url'] ?? ($data['hero_image'] ?? null);
+        $event->logo_image = $data['logo_image'] ?? null;
+        $event->floating_image = $data['floating_image'] ?? null;
+        
+        $event->template = $data['template'] ?? 'modern-dark';
+        $event->event_kind = $data['event_kind'] ?? 'directory';
+        $event->is_registration_open = isset($data['is_registration_open']) ? (bool) $data['is_registration_open'] : true;
+        $event->status = 'published';
+        $event->is_active = true;
+        $event->slug = Str::slug($event->name);
+
+        if (!empty($data['city_id'])) {
+            $event->city = \App\Models\City::find($data['city_id']);
+        }
+        if (!empty($data['race_type_id'])) {
+            $event->raceType = \App\Models\RaceType::find($data['race_type_id']);
+        }
+
+        $event->setRelation('raceDistances', collect());
+        if (isset($data['race_distances']) && is_array($data['race_distances'])) {
+            $distances = collect();
+            foreach ($data['race_distances'] as $distData) {
+                if (is_array($distData) && !empty($distData['name'])) {
+                    $d = new \App\Models\RaceDistance();
+                    $d->name = $distData['name'];
+                    $d->distance_km = $distData['distance_km'] ?? 0;
+                    $d->price = $distData['price'] ?? 0;
+                    $distances->push($d);
+                }
+            }
+            $event->setRelation('raceDistances', $distances);
+        }
+
+        $relatedEvents = collect();
+        $sameDateEvents = collect();
+        $ratingAverage = 5.0;
+        $ratingCount = 1;
+        $isPreviewMode = true;
+
+        return response()->view('events.running-event-detail', compact('event', 'relatedEvents', 'sameDateEvents', 'ratingAverage', 'ratingCount', 'isPreviewMode'));
+    }
+
+    /**
      * Upload media via Dropzone
      */
     public function uploadMedia(Request $request)

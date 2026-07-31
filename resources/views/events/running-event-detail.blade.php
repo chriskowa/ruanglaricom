@@ -4,6 +4,12 @@
 @section('description', Str::limit(strip_tags($event->short_description ?? $event->full_description), 150))
 
 @section('content')
+@if(!empty($isPreviewMode))
+<div class="fixed top-0 inset-x-0 z-[99999] bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-black px-4 py-2.5 text-center text-xs sm:text-sm shadow-2xl flex items-center justify-center gap-3">
+    <span>LIVE PREVIEW MODE &mdash; Ini adalah tampilan draf sementara event kamu (Data Belum Disimpan)</span>
+    <button onclick="window.close()" class="px-3 py-1 bg-slate-950 text-white font-bold text-xs rounded-lg hover:bg-slate-800 transition-colors shadow">Tutup Preview</button>
+</div>
+@endif
 <div class="relative min-h-screen bg-[#0B1120] font-sans selection:bg-neon selection:text-dark">
     <!-- Hero Background -->
     <div class="absolute inset-0 h-[60vh] overflow-hidden z-0">
