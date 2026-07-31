@@ -1409,4 +1409,7 @@
     }
   ]
 }
-<
+</script>
+@endpush
+
+@endsection
