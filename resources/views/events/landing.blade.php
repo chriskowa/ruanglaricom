@@ -498,12 +498,12 @@
     <div class="relative min-h-screen w-full flex items-center justify-center p-3 sm:p-6">
         <div class="w-full max-w-5xl bg-[#0B1526] border border-slate-700/70 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh] text-slate-200">
             <!-- Modal Header -->
-            <div class="px-6 sm:px-8 py-5 border-b border-slate-800 bg-[#08111F] flex items-center justify-between shrink-0">
+            <div class="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-800 bg-[#08111F] flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3.5">
                     
                     <div>
-                        <div class="text-xs font-mono font-bold text-neon uppercase tracking-widest">Submit Event Ruang Lari</div>
-                        <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">AJUKAN EVENT LARI BARU</h3>
+                        <div class="text-[10px] sm:text-xs font-mono font-bold text-neon uppercase tracking-widest">Submit Event Ruang Lari</div>
+                        <h3 class="text-lg sm:text-2xl font-black text-white tracking-tight">AJUKAN EVENT LARI BARU</h3>
                     </div>
                 </div>
                 <button type="button" id="btn-close-submit-event" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
@@ -511,10 +511,10 @@
                 </button>
             </div>
 
-            <div id="submit-event-alert" class="hidden px-6 sm:px-8 pt-4"></div>
+            <div id="submit-event-alert" class="hidden px-4 sm:px-8 pt-4"></div>
 
             <!-- Modal Form Body (Scrollable 2-Column Grid) -->
-            <form id="submit-event-form" class="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 custom-scrollbar">
+            <form id="submit-event-form" class="flex-1 overflow-y-auto px-4 sm:px-8 py-5 sm:py-6 space-y-6 custom-scrollbar">
                 <input type="text" name="website" id="submit_event_website" class="hidden" tabindex="-1" autocomplete="off">
                 <input type="hidden" name="started_at" id="submit_event_started_at" value="0">
                 <input type="hidden" name="otp_id" id="submit_event_otp_id" value="">
@@ -731,11 +731,16 @@
                             </div>
 
                             <!-- OTP Box -->
-                            <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-                                <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block">Verifikasi OTP Email</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon font-mono tracking-widest text-center" placeholder="Kode OTP (6 digit)">
-                                    <button type="button" id="btn-submit-event-send-otp" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-all whitespace-nowrap">
+                            <div class="p-3.5 sm:p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                                <div class="flex items-center justify-between gap-2">
+                                    <label class="text-xs font-bold text-slate-300 uppercase tracking-wider block">Verifikasi OTP Email <span class="text-neon">*</span></label>
+                                    <span class="text-[10px] text-slate-500 font-mono whitespace-nowrap">Kode 6 digit</span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                                    <div class="relative flex-1 min-w-0">
+                                        <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-neon font-mono tracking-widest text-center placeholder:text-xs placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-500 transition-all" placeholder="Kode OTP (6 digit)">
+                                    </div>
+                                    <button type="button" id="btn-submit-event-send-otp" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 text-white font-bold text-xs transition-all whitespace-nowrap text-center flex items-center justify-center shrink-0 min-h-[42px] shadow-sm cursor-pointer">
                                         Kirim OTP
                                     </button>
                                 </div>
@@ -1404,7 +1409,4 @@
     }
   ]
 }
-</script>
-@endpush
-
-@endsection
+<
