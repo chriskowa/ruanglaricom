@@ -751,7 +751,7 @@
             </form>
 
             <!-- Modal Footer -->
-            <div class="px-6 sm:px-8 py-4 border-t border-slate-800 bg-[#08111F] flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+            <div class="px-4 sm:px-8 py-3.5 sm:py-4 border-t border-slate-800 bg-[#08111F] flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
                 <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
                     <i class="fas fa-shield-alt text-neon"></i>
                     <span>Verifikasi OTP wajib sebelum pengajuan event.</span>
