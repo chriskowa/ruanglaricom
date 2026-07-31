@@ -31,6 +31,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/articles', [ArticleApiController::class, 'index'])->name('api.v1.articles.index');
     Route::get('/articles/latest', [ArticleApiController::class, 'latest'])->name('api.v1.articles.latest');
     Route::get('/articles/featured', [ArticleApiController::class, 'featured'])->name('api.v1.articles.featured');
+    Route::get('/articles/trending', [ArticleApiController::class, 'trending'])->name('api.v1.articles.trending');
+    Route::get('/articles/popular', [ArticleApiController::class, 'trending'])->name('api.v1.articles.popular');
     Route::get('/articles/categories', [ArticleApiController::class, 'categories'])->name('api.v1.articles.categories');
     Route::get('/articles/{slug}', [ArticleApiController::class, 'show'])->name('api.v1.articles.show');
 

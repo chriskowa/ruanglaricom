@@ -96,6 +96,24 @@ class ArticleApiController extends BaseApiController
     }
 
     /**
+     * Get trending / most popular articles (ordered by views count)
+     */
+    public function trending(Request $request): JsonResponse
+    {
+        $limit = max(1, min(20, (int) $request->get('limit', 5)));
+
+        $articles = Article::query()
+            ->published()
+            ->with(['category'])
+            ->orderByDesc('views_count')
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->take($limit)
+            ->get();
+
+        return $this->successResponse(ArticleResource::collection($articles), 'Artikel terpopuler berhasil dimuat');
+    }
+
+    /**
      * Get all blog categories
      */
     public function categories(Request $request): JsonResponse

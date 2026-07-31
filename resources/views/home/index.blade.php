@@ -9,7 +9,7 @@
     <div id="home-app" class="overflow-x-hidden bg-[#08111F]">
         
         <!-- HERO SECTION -->
-        <header class="relative min-h-screen flex items-center justify-center pt-24 md:pt-0">
+        <header class="relative min-h-screen flex items-center justify-center pt-10 md:pt-0">
             <!-- Dynamic Background -->
             <div class="absolute inset-0 z-0 overflow-hidden">
                 <div class="absolute inset-0 bg-[#08111F]"></div>
