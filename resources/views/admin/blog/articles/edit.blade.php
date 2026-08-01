@@ -1025,7 +1025,7 @@
             if (p) prompts.push(p);
         });
         if (prompts.length === 0) { alert('Belum ada prompt gambar.'); return; }
-        const text = 'generate multiple gambar ratio 16:9:\n' + prompts.map(p => '- ' + p).join('\n');
+        const text = 'generate multiple gambar ratio 3:2 (natural realistic photography, Indonesian people, natural lighting Grok Imagine style, soft skin texture, no oversharpening, candid photorealistic):\n' + prompts.map(p => '- ' + p).join('\n');
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.getElementById('aa-btn-copy-prompts');
             const old = btn.innerHTML;

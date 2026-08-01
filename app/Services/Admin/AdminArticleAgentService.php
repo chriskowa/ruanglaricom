@@ -67,7 +67,11 @@ TEXT;
     {
         $this->openai = new OpenAiService();
 
-        $tavilyKey = config('services.tavily.api_key') ?: env('TAVILY_API_KEY');
+        // Catatan: env() sengaja TIDAK dipanggil langsung di sini. Setelah
+        // `php artisan config:cache` di production, env() di luar file config
+        // akan selalu return null meski .env masih ada nilainya — pastikan
+        // config/services.php punya: 'tavily' => ['api_key' => env('TAVILY_API_KEY')].
+        $tavilyKey = config('services.tavily.api_key');
         $this->tavily = $tavilyKey ? new TavilyClient($tavilyKey) : null;
     }
 
@@ -202,14 +206,7 @@ TEXT;
         //* JIKA MANUAL (SKIP RISET WEB), BUAT SYNTHETIC RESEARCH SUMMARY
         $researchManual = $input['research_manual'] ?? false;
         if ($researchManual || !$this->tavily) {
-            $title = $selectedData['title'] ?? 'Topik Lari';
-            $keyword = $selectedData['keyword'] ?? '';
-            $summaryText = $selectedData['summary'] ?? $title;
-
-            $fallbackSummary = "# {$title}\n\n" .
-                               "**Kata Kunci Utama**: {$keyword}\n\n" .
-                               "**Ringkasan Topik**: {$summaryText}\n\n" .
-                               "Tuliskan artikel mendalam mengenai {$title} yang berorientasi pada panduan praktis, tips latihan yang aman, dan solusi terbaik untuk pelari di Indonesia.";
+            $fallbackSummary = $this->buildFallbackSummary($selectedData);
 
             $session->update([
                 'research_raw_tavily' => null,
@@ -308,16 +305,7 @@ TEXT;
         $selectedData = $query->selected_option_data ?: [];
 
         if (!$query->research_summary) {
-            $title = $selectedData['title'] ?? 'Topik Lari';
-            $keyword = $selectedData['keyword'] ?? '';
-            $summaryText = $selectedData['summary'] ?? $title;
-
-            $fallbackSummary = "# {$title}\n\n" .
-                               "**Kata Kunci Utama**: {$keyword}\n\n" .
-                               "**Ringkasan Topik**: {$summaryText}\n\n" .
-                               "Tuliskan artikel mendalam mengenai {$title} yang berorientasi pada panduan praktis, tips latihan yang aman, dan solusi terbaik untuk pelari di Indonesia.";
-
-            $query->update(['research_summary' => $fallbackSummary]);
+            $query->update(['research_summary' => $this->buildFallbackSummary($selectedData)]);
             $query->refresh();
         }
 
@@ -345,13 +333,22 @@ TEXT;
                         "- WAJIB gunakan format teks persis seperti ini: [Gambar: Deskripsi detail visual disini...]\n" .
                         "- Letakkan teks prompt tersebut di dalam tag <p> tersendiri atau tepat di bawah <h2>.\n" .
                         "- Jangan gunakan tanda kurung biasa, HARUS diawali dan diakhiri dengan tanda kurung siku [ dan ].\n" .
+                        "- KETENTUAN GAYA VISUAL PROMPT GAMBAR:\n" .
+                        "  * Subjek/Objek: Orang Indonesia natural, realistis, dan autentik (candid photo, ekspresi wajar khas Indonesia, gestur santai, bukan pose kaku atau model AI sintetis/plastik).\n" .
+                        "  * Aspect Ratio: Wajib rasio 3:2 (landscape 3:2).\n" .
+                        "  * Lighting/Pencahayaan: Alami & organik (soft natural daylight, warm ambient light, bayangan realistis seperti gaya visual Grok Imagine).\n" .
+                        "  * Detail & Finishing: Real photorealistic, tekstur kulit alami (smooth natural skin pores), tanpa oversharpening, tidak kaku, tanpa efek 3D CGI/render AI kaku.\n" .
+                        "  * Tulis deskripsi visual di dalam [Gambar: ...] secara detail dalam bahasa Inggris (atau campuran ID/EN) yang spesifik menyebutkan subjek orang Indonesia, ekspresi candid, lokasi, pencahayaan alami, dan gaya fotografi realistis ratio 3:2.\n\n" .
 
                         "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug'.\n" .
                         "IMPORTANT: Pastikan semua double quote di dalam 'content' ter-escape agar JSON valid.";
 
+        $sourcesBlock = $this->extractSourceLinks($query->research_raw_tavily);
+
         $userPrompt = "Title: {$selectedData['title']}\n" .
                       "Focus Keyword: {$selectedData['keyword']}\n" .
-                      "Text to Rewrite:\n{$query->research_summary}\n";
+                      "Text to Rewrite:\n{$query->research_summary}\n" .
+                      ($sourcesBlock !== '' ? "\n{$sourcesBlock}\n" : '');
 
         $rawResponse = $this->openai->getAiResponseOrThrow($userPrompt, $systemPrompt, $this->modelWriting);
 
@@ -391,7 +388,10 @@ TEXT;
             return $prompts;
         }
 
-        preg_match_all('/\[Gambar:\s*(.*?)\s*\]/u', $content, $matches, PREG_SET_ORDER);
+        // Modifier 's' (dotall) ditambahkan supaya '.' juga match newline —
+        // tanpa ini, prompt [Gambar: ...] yang kebetulan dipecah AI jadi
+        // beberapa baris akan gagal ter-capture penuh oleh regex.
+        preg_match_all('/\[Gambar:\s*(.*?)\s*\]/us', $content, $matches, PREG_SET_ORDER);
         foreach ($matches as $m) {
             $marker = $m[0];
             $prompt = trim($m[1]);
@@ -601,6 +601,62 @@ TEXT;
     }
 
     /**
+     * Ambil daftar singkat (judul + URL) dari hasil riset Tavily mentah, untuk
+     * dikirim eksplisit ke prompt penulisan sebagai referensi hyperlink yang VALID.
+     *
+     * Tanpa ini, step3_doWrite hanya mengandalkan URL yang (mungkin) ikut
+     * terbawa di dalam teks research_summary — padahal instruksi di doResearch
+     * untuk mencantumkan URL sifatnya "jika memungkinkan" (tidak dijamin).
+     * Jika tidak ada URL nyata yang sampai ke model penulisan, ia tetap
+     * diminta menyisipkan 1 <a> tag ke "salah satu sumber" dan berisiko
+     * mengarang URL yang sebenarnya tidak ada (broken link di artikel published).
+     */
+    private function extractSourceLinks($rawTavily, int $limit = 5): string
+    {
+        $data = $rawTavily;
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+        if (!is_array($data) || empty($data['results'])) {
+            return '';
+        }
+
+        $lines = [];
+        foreach (array_slice($data['results'], 0, $limit) as $item) {
+            $title = $item['title'] ?? '';
+            $url   = $item['url'] ?? '';
+            if ($url) {
+                $lines[] = "- {$title}: {$url}";
+            }
+        }
+
+        if (empty($lines)) {
+            return '';
+        }
+
+        return "DAFTAR SUMBER VALID (gunakan salah satu URL PERSIS berikut untuk tag <a>, JANGAN mengarang atau mengubah URL lain):\n" . implode("\n", $lines);
+    }
+
+    /**
+     * Bangun ringkasan riset sintetis (fallback) dari data opsi yang dipilih.
+     * Dipakai saat research_manual=true / Tavily client tidak tersedia (doResearch),
+     * dan sebagai jaring pengaman terakhir jika research_summary masih kosong
+     * saat proses penulisan dimulai (step3_doWrite). Disatukan di sini supaya
+     * perubahan format fallback cukup dilakukan di satu tempat.
+     */
+    private function buildFallbackSummary(array $selectedData): string
+    {
+        $title       = $selectedData['title'] ?? 'Topik Lari';
+        $keyword     = $selectedData['keyword'] ?? '';
+        $summaryText = $selectedData['summary'] ?? $title;
+
+        return "# {$title}\n\n" .
+               "**Kata Kunci Utama**: {$keyword}\n\n" .
+               "**Ringkasan Topik**: {$summaryText}\n\n" .
+               "Tuliskan artikel mendalam mengenai {$title} yang berorientasi pada panduan praktis, tips latihan yang aman, dan solusi terbaik untuk pelari di Indonesia.";
+    }
+
+    /**
      * Bersihkan & potong konteks Tavily untuk dipakai di prompt.
      */
     private function cleanTavilyContext(array $results, int $maxChars = 12000): string
@@ -649,8 +705,13 @@ TEXT;
                         self::HTML_STRUCTURE_RULES_EN . "\n" .
 
                         "IMAGE PROMPT INSTRUCTIONS (REQUIRED):\n" .
-                        "- Keep every [Gambar: ...] marker exactly as in the source, translated to English inside the brackets.\n" .
+                        "- Keep every [Gambar: ...] marker exactly as in the source, translated to detailed English inside the brackets.\n" .
                         "- Format must be exactly: [Gambar: detailed visual description...]\n" .
+                        "- VISUAL STYLE REQUIREMENTS:\n" .
+                        "  * Subject: Authentic, natural, realistic Indonesian people (natural skin tones, relaxed candid expressions, realistic Indonesian features, avoiding stiff AI model poses).\n" .
+                        "  * Aspect Ratio: 3:2 aspect ratio.\n" .
+                        "  * Lighting: Soft natural sunlight, organic shadows, warm photorealistic daylight (Grok Imagine style lighting).\n" .
+                        "  * Texture & Details: Real candid photography look, natural skin texture, no oversharpening, no plastic 3D AI render look.\n\n" .
 
                         "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'.\n" .
                         "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";

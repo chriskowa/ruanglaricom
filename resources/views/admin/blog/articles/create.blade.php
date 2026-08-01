@@ -451,6 +451,10 @@ Aturan:
 - HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).
 - Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut.
 
+Instruksi Prompt Gambar:
+- Buatkan marker prompt gambar [Gambar: Deskripsi visual...] di atas paragraf 1 (cover) dan di bawah <h2>.
+- Style Prompt Gambar: Objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.
+
 Input:
 - Topik: {topic}
 {url_section}
@@ -1117,7 +1121,7 @@ function openMediaModal(onSelectCallback) {
             if (p) prompts.push(p);
         });
         if (prompts.length === 0) { alert('Belum ada prompt gambar.'); return; }
-        const text = 'generate multiple gambar ratio 16:9:\n' + prompts.map(p => '- ' + p).join('\n');
+        const text = 'generate multiple gambar ratio 3:2 (natural realistic photography, Indonesian people, natural lighting Grok Imagine style, soft skin texture, no oversharpening, candid photorealistic):\n' + prompts.map(p => '- ' + p).join('\n');
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.getElementById('aa-btn-copy-prompts');
             const old = btn.innerHTML;

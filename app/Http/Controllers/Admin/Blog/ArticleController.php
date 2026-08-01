@@ -48,6 +48,9 @@ class ArticleController extends Controller
             . "- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Mulai dari <h2>/<h3>. Paragraf 2–4 kalimat.\n"
             . "- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).\n"
             . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
+            . "INSTRUKSI PROMPT GAMBAR (WAJIB):\n"
+            . "- Pada setiap sub-heading (<h2>) dan bagian atas artikel (cover), buatkan marker prompt gambar [Gambar: Deskripsi visual...].\n"
+            . "- GAYA PROMPT GAMBAR: Subjek/objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.\n\n"
             . "Input:\n"
             . "- Topik: {$topic}\n"
             . ($url ? "- URL referensi: {$url}\n" : "")
