@@ -119,7 +119,7 @@
                             Lihat Kantong Program
                         </a>
                     @else
-                        <a href="{{ route('marketplace.index') }}" class="px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
+                        <a href="{{ route('programs.index') }}" class="px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
                             Jelajahi Program Coach
                         </a>
                     @endif
