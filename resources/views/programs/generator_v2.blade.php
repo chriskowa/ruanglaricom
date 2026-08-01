@@ -846,7 +846,10 @@
                 return Math.min(target, cv + 3.0);
             });
 
+            let isInitializingFromParams = false;
+
             const applyDefaultPbTime = (distKey) => {
+                if (isInitializingFromParams) return;
                 const defaults = defaultPbTimes[distKey] || defaultPbTimes['5k'];
                 if (distKey === 'cooper12' || distKey === 'balke15') {
                     pb_distance_meters.value = defaults.meters || 2400;
@@ -933,12 +936,49 @@
             });
 
             onMounted(() => {
-                applyDefaultPbTime(form.pb_distance);
+                const params = new URLSearchParams(window.location.search);
+                let dist = params.get('distance');
+                const time = params.get('time');
+                const meters = params.get('meters');
+
+                if (dist || time || meters) {
+                    isInitializingFromParams = true;
+                    step.value = 1; // Automatically open form step when params are provided
+                }
+
+                if (dist) {
+                    dist = dist.toLowerCase();
+                    if (['5k', '10k', '21k', '42k', 'cooper12', 'balke15'].includes(dist)) {
+                        form.pb_distance = dist;
+                        if (['5k', '10k', '21k', '42k'].includes(dist)) {
+                            form.target_distance = dist;
+                        }
+                    }
+                }
+
+                if (meters && (dist === 'cooper12' || dist === 'balke15')) {
+                    pb_distance_meters.value = parseInt(meters, 10) || 0;
+                } else if (time) {
+                    const parts = time.split(':');
+                    if (parts.length === 3) {
+                        pb_hours.value = parseInt(parts[0], 10) || 0;
+                        pb_minutes.value = parseInt(parts[1], 10) || 0;
+                        pb_seconds.value = parseInt(parts[2], 10) || 0;
+                    }
+                } else {
+                    applyDefaultPbTime(form.pb_distance);
+                }
+
                 if (!form.target_date) {
                     applyRecommendedTargetDate();
                 }
+
                 suggestGoalTime();
                 recommendMileage();
+
+                setTimeout(() => {
+                    isInitializingFromParams = false;
+                }, 500);
             });
 
             const realism = computed(() => {
@@ -1258,37 +1298,7 @@
                 return icons[type] || '<i class="fa-solid fa-person-running"></i>';
             };
 
-            Vue.onMounted(() => {
-                const params = new URLSearchParams(window.location.search);
-                let dist = params.get('distance');
-                const time = params.get('time');
-                const meters = params.get('meters');
 
-                if (dist || time || meters) {
-                    step.value = 1; // Automatically open form step when params are provided
-                }
-
-                if (dist) {
-                    dist = dist.toLowerCase();
-                    if (['5k', '10k', '21k', '42k', 'cooper12', 'balke15'].includes(dist)) {
-                        form.pb_distance = dist;
-                        if (['5k', '10k', '21k', '42k'].includes(dist)) {
-                            form.target_distance = dist;
-                        }
-                    }
-                }
-
-                if (meters && (dist === 'cooper12' || dist === 'balke15')) {
-                    pb_distance_meters.value = parseInt(meters, 10) || 0;
-                } else if (time) {
-                    const parts = time.split(':');
-                    if (parts.length === 3) {
-                        pb_hours.value = parseInt(parts[0], 10) || 0;
-                        pb_minutes.value = parseInt(parts[1], 10) || 0;
-                        pb_seconds.value = parseInt(parts[2], 10) || 0;
-                    }
-                }
-            });
 
             return {
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
