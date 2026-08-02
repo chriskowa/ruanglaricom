@@ -82,10 +82,17 @@ TEXT;
     public function step1_inputTopic(array $input): array
     {
         $topic    = trim($input['topic'] ?? '');
+        $rawNews  = trim($input['raw_news'] ?? '');
         $strategy = $input['strategy'] ?? 'free';
 
-        if ($topic === '') {
-            throw new Exception("Topic is required.");
+        if ($topic === '' && $rawNews === '') {
+            throw new Exception("Silakan masukkan topik atau cuplikan berita.");
+        }
+
+        // Combine inputs for DB saving and AI prompt
+        $fullTopicInput = $topic;
+        if ($rawNews !== '') {
+            $fullTopicInput .= ($fullTopicInput !== '' ? "\n\n" : "") . "[Cuplikan Berita Realtime / Threads / IG]:\n" . $rawNews;
         }
 
         //? Get Top Articles as Reference (untuk strategi non-free)
@@ -99,7 +106,7 @@ TEXT;
         $prompt = "Kamu adalah seorang Redaktur Utama & Ahli Strategi Konten SEO senior untuk Ruang Lari.\n" .
                   "Input berikut berasal dari user yang memberikan topik lari atau cuplikan berita realtime / isu viral dari Threads, Instagram, atau media berita terkini:\n" .
                   "=== INPUT BERITA / TOPIK ===\n" .
-                  "{$topic}\n" .
+                  "{$fullTopicInput}\n" .
                   "===========================\n\n" .
                   "Tugasmu: Analisis topik/berita realtime tersebut dan hasilkan 10 ide artikel berita SEO yang tajam, faktual (gaya Kompas), informatif, dan memiliki nilai jurnalistik tinggi bagi komunitas lari.\n\n";
 
@@ -148,7 +155,7 @@ TEXT;
         $uuid = Uuid::uuid4()->toString();
         ArticleAgent::create([
             'id'                    => $uuid,
-            'user_input_topic'      => $topic,
+            'user_input_topic'      => $fullTopicInput,
             'strategy'              => $strategy,
             'brainstorming_options' => $optionsArray,
         ]);

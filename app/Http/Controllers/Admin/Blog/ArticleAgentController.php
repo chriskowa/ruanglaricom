@@ -27,12 +27,17 @@ class ArticleAgentController extends Controller
     public function brainstorm(Request $request)
     {
         $request->validate([
-            'topic'    => 'required|string|max:255',
+            'topic'    => 'nullable|string|max:255',
+            'raw_news' => 'nullable|string|max:20000',
             'strategy' => 'nullable|in:free,gap,cluster,formula',
         ]);
 
+        if (empty($request->topic) && empty($request->raw_news)) {
+            return response()->json(['success' => false, 'message' => 'Topic or raw news content is required.'], 422);
+        }
+
         try {
-            $result = $this->service->step1_inputTopic($request->only('topic', 'strategy', 'site'));
+            $result = $this->service->step1_inputTopic($request->only('topic', 'raw_news', 'strategy', 'site'));
             return response()->json(['success' => true, ...$result]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

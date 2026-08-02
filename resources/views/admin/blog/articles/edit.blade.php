@@ -258,11 +258,15 @@
 
             <div id="aa-panel-topic" class="space-y-4">
                 <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topik / Keyword Utama (Maks. 255 Karakter)</label>
+                    <input type="text" id="aa-topic" maxlength="255" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula atau Borobudur Marathon 2026">
+                </div>
+                <div>
                     <div class="flex justify-between items-center mb-1.5">
-                        <label class="block text-xs font-semibold text-slate-300">Topik / Berita Realtime (Threads, Instagram, atau Isu Terkini)</label>
-                        <span class="text-[10px] text-neon font-mono">Bisa berupa cuplikan / paste berita</span>
+                        <label class="block text-xs font-semibold text-slate-300">Cuplikan Berita Realtime / Isu Viral (Threads, Instagram, News Paste)</label>
+                        <span class="text-[10px] text-neon font-mono">Opsional / Berita Panjang</span>
                     </div>
-                    <textarea id="aa-topic" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed" placeholder="Ketik topik atau tempelkan (paste) cuplikan berita realtime / isu viral dari Threads, Instagram, atau portal berita terkini di sini..."></textarea>
+                    <textarea id="aa-raw-news" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed custom-scrollbar" placeholder="Tempelkan (paste) cuplikan berita realtime, postingan Threads, Instagram, atau rincian berita panjang di sini..."></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
@@ -854,9 +858,10 @@
 
     async function aaBrainstorm() {
         const topic = document.getElementById('aa-topic').value.trim();
+        const rawNews = document.getElementById('aa-raw-news') ? document.getElementById('aa-raw-news').value.trim() : '';
         const strategy = document.getElementById('aa-strategy').value;
-        if (!topic) { alert('Masukkan topik terlebih dahulu.'); return; }
-        aaSavedTopic = topic;
+        if (!topic && !rawNews) { alert('Masukkan topik atau tempelkan cuplikan berita terlebih dahulu.'); return; }
+        aaSavedTopic = topic || (rawNews.length > 100 ? rawNews.substring(0, 100) + '...' : rawNews);
         aaSavedStrategy = strategy;
 
         // Jangan hancurkan artikel yang sudah ditulis jika user hanya ingin
@@ -869,7 +874,11 @@
         const btn = document.getElementById('aa-btn-brainstorm');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memikirkan...';
 
-        const res = await aaPost('{{ route("admin.blog.articles.agent.brainstorm") }}', { topic, strategy });
+        const res = await aaPost('{{ route("admin.blog.articles.agent.brainstorm") }}', { 
+            topic: topic ? topic.substring(0, 250) : (rawNews.length > 150 ? rawNews.substring(0, 150) : rawNews), 
+            raw_news: rawNews,
+            strategy 
+        });
         btn.disabled = false; btn.innerHTML = '<i class="fas fa-lightbulb text-xs"></i> Brainstorm 10 Ide';
 
         if (!res.success) { alert('Gagal: ' + (res.message || 'Unknown')); return; }
