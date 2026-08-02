@@ -276,279 +276,299 @@
             </div>
         </form>
     </div>
-</div>v>
+</div>
 
 <!-- Manual Enrollment Modal -->
-<div id="enrollModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeEnrollModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="enrollModalContent">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Daftarkan Runner Manual</h3>
-                <p class="text-xs text-slate-400 mt-1">Daftarkan atlet baru atau hubungkan atlet yang sudah terdaftar.</p>
-            </div>
-            <button onclick="closeEnrollModal()" class="text-slate-500 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
-
-        <form action="{{ route('coach.athletes.enroll') }}" method="POST" class="space-y-4">
-            @csrf
-            <input type="hidden" name="existing_user_id" id="enroll_existing_user_id">
-
-            <div>
-                <label for="enroll_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
-                <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="onEnrollProgramChange()">
-                    @foreach($programs as $program)
-                        <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
-                            {{ $program->title }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            {{-- ── AJAX Runner Search ─────────────────────────────────── --}}
-            <div class="relative" id="enroll-search-wrap">
-                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Cari Runner yang Sudah Terdaftar (Opsional)</label>
-                <div class="relative">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
-                    </svg>
-                    <input type="text" id="enroll_user_search" autocomplete="off"
-                        placeholder="Ketik nama, email, atau no HP..."
-                        class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-9 pr-4 py-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none"
-                        oninput="searchEnrollUsers(this.value)">
-                    <span id="enroll-search-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
-                        <svg class="w-4 h-4 text-slate-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                    </span>
-                </div>
-
-                {{-- Dropdown results --}}
-                <div id="enroll-user-dropdown" class="hidden absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto"></div>
-
-                {{-- Selected badge --}}
-                <div id="enroll-selected-user" class="hidden mt-2 flex items-center gap-2 bg-neon/10 border border-neon/30 rounded-xl px-3 py-2">
-                    <div id="enroll-selected-avatar" class="w-7 h-7 rounded-lg bg-neon/20 text-neon font-black text-xs flex items-center justify-center flex-shrink-0"></div>
-                    <div class="flex-1 min-w-0">
-                        <div id="enroll-selected-name" class="text-white font-bold text-xs truncate"></div>
-                        <div id="enroll-selected-email" class="text-slate-400 text-[10px] truncate"></div>
-                    </div>
-                    <button type="button" onclick="clearEnrollSelection()" class="text-slate-400 hover:text-white transition flex-shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-            </div>
-            {{-- ──────────────────────────────────────────────────────── --}}
-
-            <div id="enroll-manual-fields" class="space-y-4">
-                <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    <div class="flex-1 h-px bg-slate-800"></div>
-                    <span>atau isi data baru</span>
-                    <div class="flex-1 h-px bg-slate-800"></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
+<div id="enrollModal" class="fixed inset-0 z-[110] hidden overflow-y-auto p-3 sm:p-4">
+    <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" onclick="closeEnrollModal()"></div>
+    <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl transition-all duration-300 scale-95 opacity-0 transform my-auto max-h-[calc(100vh-2.5rem)] flex flex-col" id="enrollModalContent">
+            
+            <!-- Header (Fixed Top) -->
+            <div class="flex justify-between items-start p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex-shrink-0 bg-slate-900 rounded-t-2xl">
                 <div>
-                    <label for="enroll_name" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nama Runner</label>
-                    <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                    <h3 class="text-base sm:text-lg font-bold text-white tracking-tight uppercase">Daftarkan Runner Manual</h3>
+                    <p class="text-xs text-slate-400 mt-1">Daftarkan atlet baru atau hubungkan atlet yang sudah terdaftar.</p>
                 </div>
-                <div>
-                    <label for="enroll_phone" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">No HP / WhatsApp (Opsional)</label>
-                    <input type="text" name="phone" id="enroll_phone" placeholder="Contoh: 081234567890" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-                </div>
+                <button onclick="closeEnrollModal()" class="text-slate-500 hover:text-white transition-colors p-1 -mr-1 -mt-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="enroll_email" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email Runner</label>
-                    <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-                </div>
-                <div>
-                    <label for="enroll_start_date" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Tanggal Mulai</label>
-                    <input type="date" name="start_date" id="enroll_start_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-                </div>
-            </div>
+            <!-- Scrollable Form Container -->
+            <form action="{{ route('coach.athletes.enroll') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                @csrf
+                <input type="hidden" name="existing_user_id" id="enroll_existing_user_id">
 
-            <div>
-                <label for="enroll_password" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Password (Opsional)</label>
-                <input type="text" name="password" id="enroll_password" placeholder="Kosongkan untuk auto-generate" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
-                <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button type="button" onclick="setVdotMode('direct')" id="btn-vdot-direct" class="py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark">
-                        Direct VDOT
-                    </button>
-                    <button type="button" onclick="setVdotMode('pb')" id="btn-vdot-pb" class="py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
-                        Personal Best
-                    </button>
-                    <button type="button" onclick="setVdotMode('balke')" id="btn-vdot-balke" class="py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
-                        Balke Test
-                    </button>
-                </div>
-                <input type="hidden" name="vdot_mode" id="enroll_vdot_mode" value="direct">
-            </div>
-
-            <!-- VDOT Input Sections -->
-            <div id="sec-vdot-direct" class="space-y-2">
-                <label for="enroll_vdot" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">VDOT Score (Opsional)</label>
-                <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
-            </div>
-
-            <div id="sec-vdot-pb" class="space-y-3 hidden">
-                <div class="grid grid-cols-2 gap-3">
+                <!-- Form Fields (Scrollable) -->
+                <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
                     <div>
-                        <label for="enroll_pb_distance" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Jarak PB</label>
-                        <select name="pb_distance" id="enroll_pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="calculatePreviewVDOT()">
-                            <option value="5k">5K (5.000m)</option>
-                            <option value="10k">10K (10.000m)</option>
-                            <option value="21k">Half Marathon (21.097m)</option>
-                            <option value="42k">Full Marathon (42.195m)</option>
+                        <label for="enroll_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
+                        <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="onEnrollProgramChange()">
+                            @foreach($programs as $program)
+                                <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
+                                    {{ $program->title }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label for="enroll_pb_time" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Waktu (MM:SS / HH:MM:SS)</label>
-                        <input type="text" name="pb_time" id="enroll_pb_time" placeholder="Waktu (e.g. 22:30)" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+
+                    {{-- ── AJAX Runner Search ─────────────────────────────────── --}}
+                    <div class="relative" id="enroll-search-wrap">
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Cari Runner yang Sudah Terdaftar (Opsional)</label>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                            </svg>
+                            <input type="text" id="enroll_user_search" autocomplete="off"
+                                placeholder="Ketik nama, email, atau no HP..."
+                                class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-9 pr-4 py-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none"
+                                oninput="searchEnrollUsers(this.value)">
+                            <span id="enroll-search-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                                <svg class="w-4 h-4 text-slate-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </span>
+                        </div>
+
+                        {{-- Dropdown results --}}
+                        <div id="enroll-user-dropdown" class="hidden absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto"></div>
+
+                        {{-- Selected badge --}}
+                        <div id="enroll-selected-user" class="hidden mt-2 flex items-center gap-2 bg-neon/10 border border-neon/30 rounded-xl px-3 py-2">
+                            <div id="enroll-selected-avatar" class="w-7 h-7 rounded-lg bg-neon/20 text-neon font-black text-xs flex items-center justify-center flex-shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <div id="enroll-selected-name" class="text-white font-bold text-xs truncate"></div>
+                                <div id="enroll-selected-email" class="text-slate-400 text-[10px] truncate"></div>
+                            </div>
+                            <button type="button" onclick="clearEnrollSelection()" class="text-slate-400 hover:text-white transition flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
+                    {{-- ──────────────────────────────────────────────────────── --}}
+
+                    <div id="enroll-manual-fields" class="space-y-4">
+                        <div class="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                            <div class="flex-1 h-px bg-slate-800"></div>
+                            <span>atau isi data baru</span>
+                            <div class="flex-1 h-px bg-slate-800"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                                <label for="enroll_name" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Nama Runner</label>
+                                <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            </div>
+                            <div>
+                                <label for="enroll_phone" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">No HP / WA (Opsional)</label>
+                                <input type="text" name="phone" id="enroll_phone" placeholder="Contoh: 081234567890" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                                <label for="enroll_email" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email Runner</label>
+                                <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            </div>
+                            <div>
+                                <label for="enroll_start_date" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Tanggal Mulai</label>
+                                <input type="date" name="start_date" id="enroll_start_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="enroll_password" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Password (Opsional)</label>
+                            <input type="text" name="password" id="enroll_password" placeholder="Kosongkan untuk auto-generate" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
+                            <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                                <button type="button" onclick="setVdotMode('direct')" id="btn-vdot-direct" class="py-2 px-1 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark truncate">
+                                    Direct VDOT
+                                </button>
+                                <button type="button" onclick="setVdotMode('pb')" id="btn-vdot-pb" class="py-2 px-1 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white truncate">
+                                    Personal Best
+                                </button>
+                                <button type="button" onclick="setVdotMode('balke')" id="btn-vdot-balke" class="py-2 px-1 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white truncate">
+                                    Balke Test
+                                </button>
+                            </div>
+                            <input type="hidden" name="vdot_mode" id="enroll_vdot_mode" value="direct">
+                        </div>
+
+                        <!-- VDOT Input Sections -->
+                        <div id="sec-vdot-direct" class="space-y-2">
+                            <label for="enroll_vdot" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">VDOT Score (Opsional)</label>
+                            <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+                        </div>
+
+                        <div id="sec-vdot-pb" class="space-y-3 hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="enroll_pb_distance" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Jarak PB</label>
+                                    <select name="pb_distance" id="enroll_pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="calculatePreviewVDOT()">
+                                        <option value="5k">5K (5.000m)</option>
+                                        <option value="10k">10K (10.000m)</option>
+                                        <option value="21k">Half Marathon (21.097m)</option>
+                                        <option value="42k">Full Marathon (42.195m)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="enroll_pb_time" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Waktu (MM:SS / HH:MM:SS)</label>
+                                    <input type="text" name="pb_time" id="enroll_pb_time" placeholder="Waktu (e.g. 22:30)" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sec-vdot-balke" class="space-y-2 hidden">
+                            <label for="enroll_pb_balke" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Jarak Tempuh Balke (Meter - 15 Menit)</label>
+                            <input type="number" name="pb_balke" id="enroll_pb_balke" placeholder="Contoh: 3100" min="100" max="10000" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+                        </div>
+
+                        <!-- Preview Box -->
+                        <div id="vdot-preview-box" class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center text-xs hidden">
+                            <span class="text-slate-400 font-medium">Estimasi VDOT Score:</span>
+                            <span class="text-neon font-black font-mono text-sm" id="vdot-preview-val">-</span>
+                        </div>
+                    </div>{{-- end enroll-manual-fields --}}
                 </div>
-            </div>
 
-            <div id="sec-vdot-balke" class="space-y-2 hidden">
-                <label for="enroll_pb_balke" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Jarak Tempuh Balke (Meter - 15 Menit)</label>
-                <input type="number" name="pb_balke" id="enroll_pb_balke" placeholder="Contoh: 3100" min="100" max="10000" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
-            </div>
-
-            <!-- Preview Box -->
-            <div id="vdot-preview-box" class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center text-xs hidden">
-                <span class="text-slate-400 font-medium">Estimasi VDOT Score:</span>
-                <span class="text-neon font-black font-mono text-sm" id="vdot-preview-val">-</span>
-            </div>
-
-            </div>{{-- end enroll-manual-fields --}}
-
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
-                <button type="button" onclick="closeEnrollModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
-                    Daftarkan
-                </button>
-            </div>
-        </form>
+                <!-- Footer (Fixed Bottom) -->
+                <div class="flex justify-end gap-2.5 sm:gap-3 p-4 sm:p-5 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-sm flex-shrink-0 rounded-b-2xl">
+                    <button type="button" onclick="closeEnrollModal()" class="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                        Daftarkan
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- Import CSV/JSON Modal -->
-<div id="importModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeImportModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="importModalContent">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Import Runner</h3>
-                <p class="text-xs text-slate-400 mt-1">Import beberapa runner sekaligus menggunakan file CSV atau JSON.</p>
+<div id="importModal" class="fixed inset-0 z-[110] hidden overflow-y-auto p-3 sm:p-4">
+    <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" onclick="closeImportModal()"></div>
+    <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl transition-all duration-300 scale-95 opacity-0 transform my-auto max-h-[calc(100vh-2.5rem)] flex flex-col" id="importModalContent">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-start p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white tracking-tight uppercase">Import Runner</h3>
+                    <p class="text-xs text-slate-400 mt-1">Import beberapa runner sekaligus menggunakan file CSV atau JSON.</p>
+                </div>
+                <button onclick="closeImportModal()" class="text-slate-500 hover:text-white transition-colors p-1 -mr-1 -mt-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <button onclick="closeImportModal()" class="text-slate-500 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+
+            <!-- Form -->
+            <form action="{{ route('coach.athletes.import-enroll') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                @csrf
+                <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+                    <div>
+                        <label for="import_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
+                        <select name="program_id" id="import_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            @foreach($programs as $program)
+                                <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
+                                    {{ $program->title }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Upload File (CSV / JSON)</label>
+                        <div class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center hover:border-neon/60 transition-colors relative cursor-pointer group bg-slate-800/20">
+                            <input type="file" name="file" id="import_file" required accept=".csv,.json" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <p class="text-sm text-slate-300 font-bold" id="file_label">Pilih file CSV atau JSON</p>
+                            <p class="text-xs text-slate-500 mt-1">Maksimum ukuran file: 2MB</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
+                        <p class="font-bold text-white uppercase tracking-wider">Panduan Format File:</p>
+                        <p class="text-slate-400">File harus berisi kolom header berikut: <code class="text-neon font-mono">name</code>, <code class="text-neon font-mono">email</code>, <code class="text-neon font-mono">phone</code> (opsional), <code class="text-neon font-mono">vdot</code> (opsional), <code class="text-neon font-mono">pb_distance</code>, <code class="text-neon font-mono">pb_time</code>, <code class="text-neon font-mono">pb_balke</code>, <code class="text-neon font-mono">start_date</code>.</p>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-slate-500">Unduh contoh template:</span>
+                            <a href="{{ route('coach.athletes.import-template') }}" class="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download Template CSV
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 sm:gap-3 p-4 sm:p-5 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-sm flex-shrink-0 rounded-b-2xl">
+                    <button type="button" onclick="closeImportModal()" class="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                        Mulai Import
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form action="{{ route('coach.athletes.import-enroll') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-            @csrf
-            <div>
-                <label for="import_program_id" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pilih Program Latihan</label>
-                <select name="program_id" id="import_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-                    @foreach($programs as $program)
-                        <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
-                            {{ $program->title }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Upload File (CSV / JSON)</label>
-                <div class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center hover:border-neon/60 transition-colors relative cursor-pointer group bg-slate-800/20">
-                    <input type="file" name="file" id="import_file" required accept=".csv,.json" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)">
-                    <svg class="w-10 h-10 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <p class="text-sm text-slate-300 font-bold" id="file_label">Pilih file CSV atau JSON</p>
-                    <p class="text-xs text-slate-500 mt-1">Maksimum ukuran file: 2MB</p>
-                </div>
-            </div>
-
-            <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
-                <p class="font-bold text-white uppercase tracking-wider">Panduan Format File:</p>
-                <p class="text-slate-400">File harus berisi kolom header berikut: <code class="text-neon font-mono">name</code>, <code class="text-neon font-mono">email</code>, <code class="text-neon font-mono">phone</code> (opsional), <code class="text-neon font-mono">vdot</code> (opsional), <code class="text-neon font-mono">pb_distance</code>, <code class="text-neon font-mono">pb_time</code>, <code class="text-neon font-mono">pb_balke</code>, <code class="text-neon font-mono">start_date</code>.</p>
-                <div class="flex justify-between items-center pt-2">
-                    <span class="text-slate-500">Unduh contoh template:</span>
-                    <a href="{{ route('coach.athletes.import-template') }}" class="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Download Template CSV
-                    </a>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
-                <button type="button" onclick="closeImportModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
-                    Mulai Import
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
 <!-- Send Program Reminder Modal -->
-<div id="reminderModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeReminderModal()"></div>
-    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="reminderModalContent">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h3 class="text-lg font-bold text-white tracking-tight uppercase">Kirim Pengingat Program</h3>
-                <p class="text-xs text-slate-400 mt-1">Kirim pengingat sesi latihan besok ke atlet</p>
+<div id="reminderModal" class="fixed inset-0 z-[110] hidden overflow-y-auto p-3 sm:p-4">
+    <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" onclick="closeReminderModal()"></div>
+    <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl transition-all duration-300 scale-95 opacity-0 transform my-auto max-h-[calc(100vh-2.5rem)] flex flex-col" id="reminderModalContent">
+            
+            <div class="flex justify-between items-start p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white tracking-tight uppercase">Kirim Pengingat Program</h3>
+                    <p class="text-xs text-slate-400 mt-1">Kirim pengingat sesi latihan besok ke atlet</p>
+                </div>
+                <button onclick="closeReminderModal()" class="text-slate-500 hover:text-white transition-colors p-1 -mr-1 -mt-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <button onclick="closeReminderModal()" class="text-slate-500 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
+
+            <form id="reminderForm" onsubmit="submitReminderForm(event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                @csrf
+                <input type="hidden" name="enrollment_id" id="reminder_enrollment_id">
+
+                <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+                    <div>
+                        <label for="reminder_channel" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Saluran Pengiriman (Channel)</label>
+                        <select name="channel" id="reminder_channel" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            <option value="both">WhatsApp & Email</option>
+                            <option value="wa">WhatsApp Saja</option>
+                            <option value="email">Email Saja</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="reminder_custom_message" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pesan Kustom (Opsional)</label>
+                        <textarea name="custom_message" id="reminder_custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
+                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
+                        <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
+                    </div>
+
+                    <div id="reminder-error-msg" class="hidden text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3"></div>
+                    <div id="reminder-success-msg" class="hidden text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3"></div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 sm:gap-3 p-4 sm:p-5 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-sm flex-shrink-0 rounded-b-2xl">
+                    <button type="button" onclick="closeReminderModal()" class="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="reminder-submit-btn" class="px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                        Kirim Pengingat
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form id="reminderForm" onsubmit="submitReminderForm(event)" class="space-y-4">
-            @csrf
-            <input type="hidden" name="enrollment_id" id="reminder_enrollment_id">
-
-            <div>
-                <label for="reminder_channel" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Saluran Pengiriman (Channel)</label>
-                <select name="channel" id="reminder_channel" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-                    <option value="both">WhatsApp & Email</option>
-                    <option value="wa">WhatsApp Saja</option>
-                    <option value="email">Email Saja</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="reminder_custom_message" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Pesan Kustom (Opsional)</label>
-                <textarea name="custom_message" id="reminder_custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
-                    class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
-                <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
-            </div>
-
-            <div id="reminder-error-msg" class="hidden text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3"></div>
-            <div id="reminder-success-msg" class="hidden text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3"></div>
-
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
-                <button type="button" onclick="closeReminderModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
-                    Batal
-                </button>
-                <button type="submit" id="reminder-submit-btn" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
-                    Kirim Pengingat
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 @endsection
@@ -812,13 +832,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnBalke = document.getElementById('btn-vdot-balke');
 
         [btnDirect, btnPb, btnBalke].forEach(btn => {
-            btn.className = "py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+            btn.className = "py-2 px-1 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white truncate";
         });
 
         // Set active button styling
         const activeBtn = document.getElementById('btn-vdot-' + mode);
         if (activeBtn) {
-            activeBtn.className = "py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark";
+            activeBtn.className = "py-2 px-1 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark truncate";
         }
 
         // Hide/Show sections

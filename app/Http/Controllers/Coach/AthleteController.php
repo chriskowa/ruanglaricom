@@ -1899,6 +1899,102 @@ class AthleteController extends Controller
     }
 
     /**
+     * Update athlete's VDOT & PBs (Coach Action)
+     * Supports Cooper Test 12-min, Balke Test 15-min, Race PB (5k-FM), and Direct VDOT.
+     */
+    public function updateVdot(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'mode'            => 'required|string|in:cooper,balke,pb,direct',
+            'cooper_distance' => 'nullable|numeric|min:100|max:10000',
+            'balke_distance'  => 'nullable|numeric|min:100|max:10000',
+            'pb_distance'     => 'nullable|string|in:5k,10k,21k,42k',
+            'pb_time'         => 'nullable|string',
+            'vdot_score'      => 'nullable|numeric|min:10|max:85',
+        ]);
+
+        $mode = $validated['mode'];
+        $daniels = app(\App\Services\DanielsRunningService::class);
+        $computedVdot = null;
+        $runnerUpdates = [];
+
+        if ($mode === 'cooper') {
+            if (empty($validated['cooper_distance'])) {
+                return response()->json(['success' => false, 'message' => 'Jarak tes Cooper 12 menit wajib diisi (meter).'], 422);
+            }
+            $meters = (float) $validated['cooper_distance'];
+            $computedVdot = $daniels->calculateVDOT((string) $meters, 'cooper12');
+            $runnerUpdates['pb_balke'] = (int) $meters;
+        } elseif ($mode === 'balke') {
+            if (empty($validated['balke_distance'])) {
+                return response()->json(['success' => false, 'message' => 'Jarak tes Balke 15 menit wajib diisi (meter).'], 422);
+            }
+            $meters = (float) $validated['balke_distance'];
+            $computedVdot = $daniels->calculateVDOT((string) $meters, 'balke15');
+            $runnerUpdates['pb_balke'] = (int) $meters;
+        } elseif ($mode === 'pb') {
+            if (empty($validated['pb_distance']) || empty($validated['pb_time'])) {
+                return response()->json(['success' => false, 'message' => 'Jarak dan waktu PB wajib diisi.'], 422);
+            }
+            try {
+                $computedVdot = $daniels->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
+                $dist = $validated['pb_distance'];
+                if ($dist === '5k') $runnerUpdates['pb_5k'] = $validated['pb_time'];
+                elseif ($dist === '10k') $runnerUpdates['pb_10k'] = $validated['pb_time'];
+                elseif ($dist === '21k') $runnerUpdates['pb_hm'] = $validated['pb_time'];
+                elseif ($dist === '42k') $runnerUpdates['pb_fm'] = $validated['pb_time'];
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'Format waktu PB tidak valid (gunakan MM:SS atau HH:MM:SS).'], 422);
+            }
+        } elseif ($mode === 'direct') {
+            if (empty($validated['vdot_score'])) {
+                return response()->json(['success' => false, 'message' => 'Skor VDOT wajib diisi.'], 422);
+            }
+            $computedVdot = (float) $validated['vdot_score'];
+        }
+
+        if (!$computedVdot) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghitung VDOT.'], 422);
+        }
+
+        $computedVdot = max(10, min(85, round($computedVdot, 4)));
+
+        // Generate equivalent race times to keep runner's PBs in sync
+        $times = $daniels->calculateEquivalentRaceTimes($computedVdot);
+        if (isset($times['5k']['time'])) {
+            $runnerUpdates['pb_5k'] = $runnerUpdates['pb_5k'] ?? $times['5k']['time'];
+        }
+
+        $runner = $enrollment->runner;
+
+        // Update runner profile & enrollment
+        if (!empty($runnerUpdates)) {
+            $runner->update($runnerUpdates);
+        }
+        $enrollment->update(['current_vdot' => $computedVdot]);
+
+        // Fetch updated training profile
+        $profileService = app(\App\Services\RunningProfileService::class);
+        $updatedProfile = $profileService->getProfile($runner->fresh());
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'PB & Skor VDOT atlet berhasil diperbarui!',
+            'computed_vdot'   => $computedVdot,
+            'trainingProfile' => $updatedProfile,
+        ]);
+    }
+
+    /**
      * Athlete Strava Activity AI Analysis
      */
     public function stravaActivityAiAnalysis(Request $request, $enrollmentId, $stravaActivityId)

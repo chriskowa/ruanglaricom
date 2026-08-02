@@ -142,21 +142,33 @@
                                 <h3 class="text-white font-extrabold text-lg tracking-tight uppercase">Profil Kebugaran Atlet</h3>
                                 <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Berdasarkan Analitik VDOT Jack Daniels</p>
                             </div>
-                            <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800/90 border border-slate-700/80 text-neon hover:text-white transition-all" title="Edit Target Mingguan">
-                                <i class="fa-solid fa-pen-to-square text-xs"></i>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button @click="showVdotModal = true" class="px-3 py-2 rounded-xl bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark transition-all text-xs font-bold flex items-center gap-1.5" title="Update VDOT / PB Atlet">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                    <span class="hidden sm:inline">Update PB / VDOT</span>
+                                </button>
+                                <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800/90 border border-slate-700/80 text-neon hover:text-white transition-all" title="Edit Target Mingguan">
+                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- VDOT Score -->
+                        <!-- VDOT Score & Target Mingguan -->
                         <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center">
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold">Skor VDOT</div>
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="showVdotModal = true" title="Klik untuk update VDOT / PB">
+                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold flex items-center justify-center gap-1">
+                                    <span>Skor VDOT</span>
+                                    <i class="fa-solid fa-pen text-[10px] text-neon opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
                                 <div class="text-3xl font-extrabold text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                                 <div class="text-[10px] text-slate-400 mt-1">VO2Max Estimasi: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                             </div>
                             
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer" @click="showWeeklyTargetModal = true">
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold">Target Mingguan (KM)</div>
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="showWeeklyTargetModal = true" title="Klik untuk edit target mingguan">
+                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold flex items-center justify-center gap-1">
+                                    <span>Target Mingguan (KM)</span>
+                                    <i class="fa-solid fa-pen text-[10px] text-neon opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </div>
                                 <div class="text-3xl font-extrabold text-neon">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}</div>
                                 <div class="text-[10px] text-slate-400 mt-1">Target jarak mingguan atlet</div>
                             </div>
@@ -876,9 +888,9 @@
                                     <div class="flex gap-2">
                                         <button type="button" v-for="i in 5" :key="i" 
                                             @click="feedbackForm.coach_rating = i"
-                                            class="text-lg transition hover:scale-110"
-                                            :class="i <= feedbackForm.coach_rating ? 'text-yellow-400' : 'text-slate-600'">
-                                            ★
+                                            class="text-base transition hover:scale-110"
+                                            :class="i <= feedbackForm.coach_rating ? 'text-amber-400' : 'text-slate-700'">
+                                            <i class="fa-solid fa-star"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -901,456 +913,659 @@
         </div>
 
         <!-- Workout Modal -->
-        <div v-if="showFormModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showFormModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showFormModal = false"></div>
-            <div class="relative z-10 max-w-lg mx-auto my-10 bg-slate-900 border border-slate-700 rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-white font-bold text-xl">Add Workout</h3>
-                    <button class="text-slate-400 hover:text-white" @click="showFormModal = false">×</button>
-                </div>
-                <form @submit.prevent="saveCustomWorkout" class="space-y-3">
-                    <input type="hidden" v-model="form.workout_id">
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Date</label>
-                        <input type="date" v-model="form.workout_date" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-person-running text-neon"></i>
+                            <span>@{{ form.workout_id ? 'Edit Workout' : 'Tambah Workout' }}</span>
+                        </h3>
+                        <button class="text-slate-400 hover:text-white transition" @click="showFormModal = false">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
-                        <select v-model="form.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
-                            <option value="run">Run</option>
-                            <option value="easy_run">Easy Run</option>
-                            <option value="interval">Interval</option>
-                            <option value="tempo">Tempo</option>
-                            <option value="yoga">Yoga</option>
-                            <option value="cycling">Cycling</option>
-                            <option value="rest">Rest</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Difficulty</label>
-                        <select v-model="form.difficulty" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
-                            <option value="easy">Easy</option>
-                            <option value="moderate">Moderate</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase">Distance (km)</label>
-                            <input type="number" step="0.01" v-model="form.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase">Duration</label>
-                            <input type="text" v-model="form.duration" placeholder="00:30:00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
-                        </div>
-                    </div>
-                    
-                    <!-- Advanced Workout Builder -->
-                    <div class="border-t border-slate-700 pt-4 mt-4">
-                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Workout Configuration</label>
-                        
-                        <div v-if="form.workout_structure && form.workout_structure.advanced" class="bg-slate-800 p-3 rounded-xl border border-slate-700 mb-3">
-                            <div class="flex justify-between items-start">
+                    <!-- Body -->
+                    <form @submit.prevent="saveCustomWorkout" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 min-h-0">
+                            <input type="hidden" v-model="form.workout_id">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <div class="text-xs text-neon font-bold uppercase mb-1">Advanced Config</div>
-                                    <div class="text-sm text-white">@{{ form.description }}</div>
-                                    <div class="text-xs text-slate-400 mt-1">Total: @{{ form.distance }} km</div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tanggal</label>
+                                    <input type="date" v-model="form.workout_date" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
                                 </div>
-                                <button type="button" @click="openBuilder(true)" class="text-xs text-slate-400 hover:text-white">Edit</button>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tipe Sesi</label>
+                                    <select v-model="form.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
+                                        <option value="run">Run</option>
+                                        <option value="easy_run">Easy Run</option>
+                                        <option value="interval">Interval</option>
+                                        <option value="tempo">Tempo</option>
+                                        <option value="yoga">Yoga</option>
+                                        <option value="cycling">Cycling</option>
+                                        <option value="rest">Rest</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Intensitas</label>
+                                    <select v-model="form.difficulty" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
+                                        <option value="easy">Easy</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Jarak (KM)</label>
+                                    <input type="number" step="0.01" v-model="form.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Durasi</label>
+                                    <input type="text" v-model="form.duration" placeholder="00:30:00" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none font-mono">
+                                </div>
+                            </div>
+                            
+                            <!-- Advanced Workout Builder -->
+                            <div class="border-t border-slate-800 pt-3">
+                                <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Struktur Latihan Lanjutan</label>
+                                
+                                <div v-if="form.workout_structure && form.workout_structure.advanced" class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 mb-3">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="text-[10px] text-neon font-bold uppercase mb-1">Advanced Config</div>
+                                            <div class="text-xs text-white">@{{ form.description }}</div>
+                                            <div class="text-[10px] text-slate-400 mt-1 font-mono">Total: @{{ form.distance }} km</div>
+                                        </div>
+                                        <button type="button" @click="openBuilder(true)" class="text-xs text-neon hover:underline font-bold">Edit</button>
+                                    </div>
+                                </div>
+
+                                <button type="button" @click="openBuilder(!!(form.workout_structure && form.workout_structure.advanced))" class="w-full py-2.5 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-neon hover:border-neon hover:bg-slate-800/50 transition text-xs font-bold flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-layer-group"></i> @{{ form.workout_structure && form.workout_structure.advanced ? 'Buka Builder untuk Edit' : 'Buka Advanced Builder' }}
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deskripsi / Instruksi</label>
+                                <textarea v-model="form.description" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none resize-none" placeholder="Instruksi latihan untuk atlet..."></textarea>
                             </div>
                         </div>
 
-                        <button type="button" @click="openBuilder(!!(form.workout_structure && form.workout_structure.advanced))" class="w-full py-3 rounded-xl border border-dashed border-slate-600 text-slate-400 hover:text-neon hover:border-neon hover:bg-slate-800 transition text-sm font-bold flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-layer-group"></i> @{{ form.workout_structure && form.workout_structure.advanced ? 'Open Builder to Edit' : 'Open Advanced Builder' }}
-                        </button>
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase">Description</label>
-                        <textarea v-model="form.description" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none" placeholder="Workout details..."></textarea>
-                    </div>
-                    <div class="pt-4 flex justify-end gap-3">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:bg-slate-700" @click="showFormModal = false">Cancel</button>
-                        <button type="submit" :disabled="loading" class="px-6 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm disabled:opacity-50">
-                            @{{ loading ? 'Saving...' : 'Save Workout' }}
-                        </button>
-                    </div>
-                </form>
+                        <!-- Footer -->
+                        <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
+                            <button type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition" @click="showFormModal = false">Batal</button>
+                            <button type="submit" :disabled="loading" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-white transition text-xs disabled:opacity-50 shadow-md">
+                                @{{ loading ? 'Menyimpan...' : 'Simpan Workout' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
         <!-- Reschedule Program Modal -->
-        <div v-if="showRescheduleModal" class="fixed inset-0 z-[200] overflow-y-auto">
+        <div v-if="showRescheduleModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRescheduleModal = false"></div>
-            <div class="relative z-10 max-w-md mx-auto my-10 mx-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
 
-                <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h3 class="text-base font-bold text-white uppercase tracking-tight">Reschedule Program</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Jadwalkan ulang seluruh program latihan</p>
-                    </div>
-                    <button @click="showRescheduleModal = false" class="text-slate-500 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-
-                <!-- Program Info Card -->
-                <div class="bg-blue-900/20 border border-blue-700/40 rounded-xl p-4 mb-5 space-y-1.5">
-                    <div class="text-xs text-blue-300">Program: <span class="font-bold text-white">{{ $enrollment->program->title }}</span></div>
-                    <div class="text-xs text-blue-300">
-                        Tanggal Aktif:
-                        <span class="font-bold text-white">
-                            {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : '-' }}
-                            →
-                            {{ $enrollment->end_date ? \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') : '-' }}
-                        </span>
-                    </div>
-                    <div class="text-xs text-blue-300">Durasi: <span class="font-bold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
-                </div>
-
-                <p class="text-slate-400 text-xs mb-4">
-                    Semua sesi latihan akan digeser sesuai tanggal mulai baru. Reschedule per-sesi yang ada sebelumnya akan dihapus otomatis.
-                </p>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Mulai Baru</label>
-                        <input type="date" v-model="rescheduleForm.new_start_date"
-                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                        <div>
+                            <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-days text-neon"></i>
+                                <span>Reschedule Program</span>
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Jadwalkan ulang seluruh program latihan</p>
+                        </div>
+                        <button @click="showRescheduleModal = false" class="text-slate-400 hover:text-white transition">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
 
-                    <!-- Preview end date -->
-                    <div v-if="rescheduleForm.new_start_date" class="bg-slate-800/60 border border-slate-700 rounded-xl p-3 text-xs flex justify-between items-center">
-                        <span class="text-slate-400">Estimasi Selesai:</span>
-                        <span class="text-white font-bold">@{{ previewRescheduleEndDate }}</span>
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <!-- Program Info Card -->
+                        <div class="bg-blue-950/30 border border-blue-800/40 rounded-xl p-3.5 space-y-1.5 text-xs">
+                            <div class="text-blue-300">Program: <span class="font-bold text-white">{{ $enrollment->program->title }}</span></div>
+                            <div class="text-blue-300">
+                                Tanggal Aktif:
+                                <span class="font-bold text-white font-mono">
+                                    {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : '-' }}
+                                    →
+                                    {{ $enrollment->end_date ? \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') : '-' }}
+                                </span>
+                            </div>
+                            <div class="text-blue-300">Durasi: <span class="font-bold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
+                        </div>
+
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Semua sesi latihan akan digeser sesuai tanggal mulai baru. Reschedule per-sesi yang ada sebelumnya akan dihapus otomatis.
+                        </p>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Mulai Baru</label>
+                                <input type="date" v-model="rescheduleForm.new_start_date"
+                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
+                            </div>
+
+                            <!-- Preview end date -->
+                            <div v-if="rescheduleForm.new_start_date" class="bg-slate-800/60 border border-slate-700 rounded-xl p-3 text-xs flex justify-between items-center">
+                                <span class="text-slate-400">Estimasi Selesai:</span>
+                                <span class="text-white font-bold font-mono">@{{ previewRescheduleEndDate }}</span>
+                            </div>
+
+                            <div v-if="rescheduleError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+                                @{{ rescheduleError }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div v-if="rescheduleError" class="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                        @{{ rescheduleError }}
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
+                        <button type="button" @click="showRescheduleModal = false"
+                            class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
+                            Batal
+                        </button>
+                        <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
+                            class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
+                            @{{ rescheduleLoading ? 'Menyimpan...' : 'Shift Calendar' }}
+                        </button>
                     </div>
-                </div>
-
-                <div class="flex gap-3 mt-6">
-                    <button type="button" @click="showRescheduleModal = false"
-                        class="flex-1 py-2.5 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
-                        Batal
-                    </button>
-                    <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
-                        class="flex-1 py-2.5 text-sm font-black text-white bg-blue-600 rounded-xl hover:bg-blue-500 transition disabled:opacity-50">
-                        @{{ rescheduleLoading ? 'Menyimpan...' : 'Shift Calendar' }}
-                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Send Program Reminder Modal -->
-        <div v-if="showReminderModal" class="fixed inset-0 z-[200] overflow-y-auto">
+        <div v-if="showReminderModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showReminderModal = false"></div>
-            <div class="relative z-10 max-w-md mx-auto my-10 mx-4 bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
 
-                <div class="flex justify-between items-center mb-5">
-                    <div>
-                        <h3 class="text-base font-bold text-white uppercase tracking-tight">Kirim Pengingat Program</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Kirim pengingat sesi latihan ke atlet</p>
-                    </div>
-                    <button @click="showReminderModal = false" class="text-slate-500 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-
-                <!-- Session Info Card -->
-                <div class="bg-neon/10 border border-neon/20 rounded-xl p-4 mb-5 space-y-1.5" v-if="selectedSession">
-                    <div class="text-xs text-neon">Sesi: <span class="font-bold text-white">@{{ selectedSession.title }}</span></div>
-                    <div class="text-xs text-neon" v-if="selectedSession.extendedProps.distance">Jarak: <span class="font-bold text-white">@{{ selectedSession.extendedProps.distance }} km</span></div>
-                    <div class="text-xs text-neon" v-if="selectedSession.extendedProps.description">Deskripsi: <span class="font-bold text-white">@{{ selectedSession.extendedProps.description }}</span></div>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Saluran Pengiriman (Channel)</label>
-                        <select v-model="reminderForm.channel" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none">
-                            <option value="both">WhatsApp & Email</option>
-                            <option value="wa">WhatsApp Saja</option>
-                            <option value="email">Email Saja</option>
-                        </select>
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                        <div>
+                            <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-neon"></i>
+                                <span>Kirim Pengingat Program</span>
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Kirim pengingat sesi latihan ke atlet</p>
+                        </div>
+                        <button @click="showReminderModal = false" class="text-slate-400 hover:text-white transition">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Pesan Kustom (Opsional)</label>
-                        <textarea v-model="reminderForm.custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
-                            class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-1 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
-                        <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <!-- Session Info Card -->
+                        <div class="bg-neon/10 border border-neon/20 rounded-xl p-3.5 space-y-1 text-xs" v-if="selectedSession">
+                            <div class="text-neon">Sesi: <span class="font-bold text-white">@{{ selectedSession.title }}</span></div>
+                            <div class="text-neon" v-if="selectedSession.extendedProps.distance">Jarak: <span class="font-bold text-white font-mono">@{{ selectedSession.extendedProps.distance }} km</span></div>
+                            <div class="text-neon" v-if="selectedSession.extendedProps.description">Deskripsi: <span class="font-bold text-white">@{{ selectedSession.extendedProps.description }}</span></div>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Saluran Pengiriman (Channel)</label>
+                                <select v-model="reminderForm.channel" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
+                                    <option value="both">WhatsApp & Email</option>
+                                    <option value="wa">WhatsApp Saja</option>
+                                    <option value="email">Email Saja</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Pesan Kustom (Opsional)</label>
+                                <textarea v-model="reminderForm.custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
+                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
+                                <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
+                            </div>
+
+                            <div v-if="reminderError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+                                @{{ reminderError }}
+                            </div>
+
+                            <div v-if="reminderSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
+                                @{{ reminderSuccess }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div v-if="reminderError" class="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                        @{{ reminderError }}
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
+                        <button type="button" @click="showReminderModal = false"
+                            class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
+                            Batal
+                        </button>
+                        <button type="button" @click="submitReminder" :disabled="reminderLoading"
+                            class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
+                            @{{ reminderLoading ? 'Mengirim...' : 'Kirim Pengingat' }}
+                        </button>
                     </div>
-
-                    <div v-if="reminderSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
-                        @{{ reminderSuccess }}
-                    </div>
-                </div>
-
-                <div class="flex gap-3 mt-6">
-                    <button type="button" @click="showReminderModal = false"
-                        class="flex-1 py-2.5 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
-                        Batal
-                    </button>
-                    <button type="button" @click="submitReminder" :disabled="reminderLoading"
-                        class="flex-1 py-2.5 text-sm font-black text-black bg-neon rounded-xl hover:bg-neon/90 transition disabled:opacity-50">
-                        @{{ reminderLoading ? 'Mengirim...' : 'Kirim Pengingat' }}
-                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Advanced Workout Builder Modal -->
-    <div v-if="builderVisible" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="fixed inset-0 bg-black/80" @click="builderVisible = false"></div>
-        <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
-                <button class="text-slate-400 hover:text-white" @click="builderVisible = false">×</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
-                    <select v-model="builderForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <option value="easy_run">Easy Run</option>
-                        <option value="long_run">Long Run</option>
-                        <option value="tempo">Tempo</option>
-                        <option value="interval">Intervals</option>
-                        <option value="strength">Strength</option>
-                        <option value="rest">Rest</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Title</label>
-                    <input v-model="builderForm.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" placeholder="Optional">
-                </div>
-            </div>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass-panel rounded-xl p-3">
-                    <div class="flex items-center justify-between">
-                        <div class="text-xs font-bold text-slate-400 uppercase">Warm Up</div>
-                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
-                            <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
-                            Enable
-                        </label>
+        <div v-if="builderVisible" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="builderVisible = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-neon"></i>
+                            <span>Advanced Workout Builder</span>
+                        </h3>
+                        <button class="text-slate-400 hover:text-white transition" @click="builderVisible = false">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
-                    <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
-                        <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.warmup.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
-                    </div>
-                </div>
-                <div class="glass-panel rounded-xl p-3">
-                    <div class="flex items-center justify-between">
-                        <div class="text-xs font-bold text-slate-400 uppercase">Cool Down</div>
-                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
-                            <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
-                            Enable
-                        </label>
-                    </div>
-                    <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
-                        <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.cooldown.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 glass-panel rounded-xl p-4">
-                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Main</div>
-                <div v-if="builderForm.type==='easy_run'">
-                    <div class="grid grid-cols-3 gap-2">
-                        <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
-                        <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
-                    </div>
-                </div>
-                <div v-else-if="builderForm.type==='long_run'">
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
-                        <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
-                            <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
-                            Fast Finish
-                        </label>
-                        <div class="grid grid-cols-3 gap-1" v-if="builderForm.longRun.fastFinish.enabled">
-                            <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                            <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
-                        </div>
-                    </div>
-                </div>
-                <div v-else-if="builderForm.type==='tempo'">
-                    <div class="grid grid-cols-4 gap-2">
-                        <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.tempo.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
-                            <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
-                        <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
-                        <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="moderate">Moderate</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                </div>
-                <div v-else-if="builderForm.type==='interval'">
-                    <div class="grid grid-cols-5 gap-2">
-                        <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps">
-                        <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                            <option value="distance">Distance</option>
-                            <option value="time">Time</option>
-                        </select>
-                        <div v-if="builderForm.interval.by==='distance'" class="flex gap-1">
-                            <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep dist">
-                            <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
-                                <option value="km">km</option>
-                                <option value="m">m</option>
-                            </select>
-                        </div>
-                        <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
-                        <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
-                        <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
-                    </div>
-                </div>
-                <div v-else-if="builderForm.type==='strength'">
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-2">
-                            <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                                <option value="">Select Category</option>
-                                <option value="full_body">Full Body</option>
-                                <option value="legs_lower_body">Legs/Lower Body</option>
-                                <option value="core">Core</option>
-                                <option value="upper_body">Upper Body</option>
-                            </select>
-                            <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
-                                <option value="">Select Exercise</option>
-                                <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Sets">
-                            <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps/Dur">
-                            <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Equipment">
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="button" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs" @click="addStrengthExercise">Add Exercise</button>
-                        </div>
-                        <div class="space-y-2" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
-                            <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white">
-                                <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
-                                <button type="button" class="text-slate-300 hover:text-white" @click="removeStrengthExercise(idx)">×</button>
+
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Tipe Latihan</label>
+                                <select v-model="builderForm.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none">
+                                    <option value="easy_run">Easy Run</option>
+                                    <option value="long_run">Long Run</option>
+                                    <option value="tempo">Tempo</option>
+                                    <option value="interval">Intervals</option>
+                                    <option value="strength">Strength</option>
+                                    <option value="rest">Rest</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Judul Sesi (Opsional)</label>
+                                <input v-model="builderForm.title" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none" placeholder="misal: Easy 5K + Strides">
                             </div>
                         </div>
+
+                        <!-- Warm Up & Cool Down -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/60">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-300 uppercase">Warm Up</div>
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                                        <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-neon">
+                                        Enable
+                                    </label>
+                                </div>
+                                <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                                    <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.warmup.by==='distance'" class="flex gap-1">
+                                        <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-1.5 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/60">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-300 uppercase">Cool Down</div>
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                                        <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-neon">
+                                        Enable
+                                    </label>
+                                </div>
+                                <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                                    <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.cooldown.by==='distance'" class="flex gap-1">
+                                        <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-1.5 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Workout Section -->
+                        <div class="bg-slate-800/40 rounded-xl p-3.5 border border-slate-700/60">
+                            <div class="text-xs font-bold text-neon uppercase mb-2.5">Menu Utama (Main Set)</div>
+                            
+                            <!-- Easy Run -->
+                            <div v-if="builderForm.type==='easy_run'">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
+                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
+                                </div>
+                            </div>
+
+                            <!-- Long Run -->
+                            <div v-else-if="builderForm.type==='long_run'">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
+                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
+                                </div>
+                                <div class="space-y-2 border-t border-slate-700/60 pt-2">
+                                    <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                        <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                        Fast Finish (Selesai Lebih Cepat)
+                                    </label>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
+                                        <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak FF">
+                                        <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                        <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Pace FF (04:45)">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tempo -->
+                            <div v-else-if="builderForm.type==='tempo'">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                    <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.tempo.by==='distance'" class="flex gap-1">
+                                        <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:20:00">
+                                    <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Pace Tempo">
+                                    <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <option value="moderate">Moderate Effort</option>
+                                        <option value="hard">Hard Effort</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Interval -->
+                            <div v-else-if="builderForm.type==='interval'">
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                    <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs" placeholder="Total Reps">
+                                    <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div v-if="builderForm.interval.by==='distance'" class="flex gap-1 col-span-2 sm:col-span-1">
+                                        <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Rep Dist">
+                                        <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                        </select>
+                                    </div>
+                                    <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono col-span-2 sm:col-span-1" placeholder="Rep 00:03:00">
+                                    <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs font-mono" placeholder="Rep Pace">
+                                    <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs" placeholder="Recovery (90s / 200m)">
+                                </div>
+                            </div>
+
+                            <!-- Strength -->
+                            <div v-else-if="builderForm.type==='strength'">
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                            <option value="">Pilih Kategori</option>
+                                            <option value="full_body">Full Body</option>
+                                            <option value="legs_lower_body">Legs/Lower Body</option>
+                                            <option value="core">Core</option>
+                                            <option value="upper_body">Upper Body</option>
+                                        </select>
+                                        <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                            <option value="">Pilih Gerakan</option>
+                                            <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Set (misal 3)">
+                                        <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Rep/Durasi">
+                                        <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Peralatan">
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 transition" @click="addStrengthExercise">Tambah Gerakan</button>
+                                    </div>
+                                    <div class="space-y-1.5" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
+                                        <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                            <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
+                                            <button type="button" class="text-slate-400 hover:text-rose-400 transition" @click="removeStrengthExercise(idx)"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="builderForm.type==='rest'">
+                                <div class="text-slate-400 text-xs italic">Rest Day — Istirahat total dan pemulihan tubuh.</div>
+                            </div>
+                        </div>
+
+                        <!-- Intensity & Notes -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Intensitas Target</label>
+                                <select v-model="builderForm.intensity" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none">
+                                    <option value="low">Low Intensity</option>
+                                    <option value="medium">Medium Intensity</option>
+                                    <option value="high">High Intensity</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Catatan Sesi Workout</label>
+                                <input type="text" v-model="builderForm.notes" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none" placeholder="Pesan/instruksi khusus untuk atlet...">
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ringkasan Struktur Workout</div>
+                            <div class="text-white text-xs font-medium">@{{ builderSummary }}</div>
+                            <div class="text-neon text-xs font-bold font-mono mt-1">Total Estimasi Jarak: @{{ builderTotalDistance }} km</div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end items-center gap-2.5 flex-shrink-0 rounded-b-2xl">
+                        <button v-if="form.workout_id" type="button" class="px-3.5 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold hover:bg-rose-500/20 mr-auto transition" @click="deleteCustomWorkout">Hapus</button>
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition" @click="builderVisible = false">Batal</button>
+                        <button type="button" class="px-5 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition shadow-md" @click="submitBuilder">
+                            @{{ loading ? 'Menyimpan...' : 'Simpan Workout' }}
+                        </button>
                     </div>
                 </div>
-                <div v-else-if="builderForm.type==='rest'">
-                    <div class="text-slate-400 text-sm">Rest Day</div>
+            </div>
+        </div>
+
+         <!-- Update Target Mingguan Modal -->
+    <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showWeeklyTargetModal = false"></div>
+        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                <!-- Header -->
+                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                    <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-bullseye text-neon"></i>
+                        <span>Update Target Mingguan</span>
+                    </h3>
+                    <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
-            </div>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Intensity</label>
-                    <select v-model="builderForm.intensity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
+                <!-- Body -->
+                <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5">Target Mingguan (KM)</label>
+                        <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm focus:ring-neon focus:border-neon outline-none font-mono">
+                        <p class="text-[11px] text-slate-500 mt-1">Set target jarak lari mingguan atlet untuk pemantauan volume.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-4">
-                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Notes Workout</label>
-                <textarea v-model="builderForm.notes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="Add notes for the athlete..."></textarea>
-            </div>
-            <div class="mt-4 glass-panel rounded-xl p-4">
-                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
-                <div class="text-white text-sm">@{{ builderSummary }}</div>
-                <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
-            </div>
-            <div class="flex justify-end items-center mt-4 gap-2">
-                <button v-if="form.workout_id" type="button" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm hover:bg-red-500/20 mr-auto" @click="deleteCustomWorkout">Delete</button>
-                <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="builderVisible = false">Cancel</button>
-                <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="submitBuilder">
-                    @{{ loading ? 'Saving...' : 'Save Workout' }}
-                </button>
+                <!-- Footer -->
+                <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
+                    <button type="button" class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700" @click="showWeeklyTargetModal = false">Batal</button>
+                    <button type="button" @click="updateWeeklyTarget" class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md flex items-center justify-center gap-2" :disabled="weeklyTargetLoading">
+                        <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
+                        Simpan Target
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="fixed inset-0 bg-black/80"></div>
-        <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-neon/30 shadow-2xl shadow-neon/10">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-white font-black text-xl flex items-center gap-2">
-                    <span>🎯</span> Update Weekly Target
-                </h3>
-                <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Weekly Target (km)</label>
-                    <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-                    <p class="text-[10px] text-slate-500 mt-1">Set target jarak lari mingguan.</p>
+    <!-- Update VDOT / PB Modal -->
+    <div v-if="showVdotModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showVdotModal = false"></div>
+        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+
+                <!-- Header -->
+                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                    <div>
+                        <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-heart-pulse text-neon"></i>
+                            <span>Update PB & VDOT Atlet</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan hasil tes/PB untuk memperbarui pace latihan atlet</p>
+                    </div>
+                    <button @click="showVdotModal = false" class="text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
                 </div>
-                <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                    <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showWeeklyTargetModal = false">Cancel</button>
-                    <button type="button" @click="updateWeeklyTarget" class="px-6 py-2 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 shadow-lg shadow-neon/20 flex items-center gap-2" :disabled="weeklyTargetLoading">
-                        <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
-                        Save Target
+
+                <!-- Body -->
+                <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                    <!-- Mode Selector Tabs -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Pilih Metode Pengukuran</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+                            <button type="button" @click="vdotForm.mode = 'cooper'"
+                                :class="vdotForm.mode === 'cooper' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
+                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
+                                Cooper 12M
+                            </button>
+                            <button type="button" @click="vdotForm.mode = 'balke'"
+                                :class="vdotForm.mode === 'balke' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
+                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
+                                Balke 15M
+                            </button>
+                            <button type="button" @click="vdotForm.mode = 'pb'"
+                                :class="vdotForm.mode === 'pb' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
+                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
+                                Race PB
+                            </button>
+                            <button type="button" @click="vdotForm.mode = 'direct'"
+                                :class="vdotForm.mode === 'direct' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
+                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
+                                Direct VDOT
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode Specific Form Fields -->
+                    <div class="space-y-4">
+                        <!-- Cooper 12 Min -->
+                        <div v-if="vdotForm.mode === 'cooper'" class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase">Jarak Tes Cooper 12 Menit (Meter)</label>
+                            <input type="number" v-model="vdotForm.cooper_distance" placeholder="Contoh: 2800" min="500" max="10000"
+                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                            <p class="text-[11px] text-slate-500">Masukkan jarak total yang ditempuh atlet dalam lari maksimal 12 menit (dalam meter).</p>
+                        </div>
+
+                        <!-- Balke 15 Min -->
+                        <div v-if="vdotForm.mode === 'balke'" class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase">Jarak Tes Balke 15 Menit (Meter)</label>
+                            <input type="number" v-model="vdotForm.balke_distance" placeholder="Contoh: 3400" min="500" max="10000"
+                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                            <p class="text-[11px] text-slate-500">Masukkan jarak total yang ditempuh atlet dalam lari maksimal 15 menit (dalam meter).</p>
+                        </div>
+
+                        <!-- Race PB -->
+                        <div v-if="vdotForm.mode === 'pb'" class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Jarak Lomba / PB</label>
+                                    <select v-model="vdotForm.pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
+                                        <option value="5k">5K (5.000m)</option>
+                                        <option value="10k">10K (10.000m)</option>
+                                        <option value="21k">Half Marathon (21.097m)</option>
+                                        <option value="42k">Full Marathon (42.195m)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Waktu PB (MM:SS / HH:MM:SS)</label>
+                                    <input type="text" v-model="vdotForm.pb_time" placeholder="Contoh: 22:30 / 01:45:00"
+                                        class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Masukkan hasil waktu PB resmi atau time trial terbaik atlet.</p>
+                        </div>
+
+                        <!-- Direct VDOT -->
+                        <div v-if="vdotForm.mode === 'direct'" class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase">Skor VDOT Langsung</label>
+                            <input type="number" step="0.1" v-model="vdotForm.vdot_score" placeholder="Contoh: 45.0" min="10" max="85"
+                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                            <p class="text-[11px] text-slate-500">Masukkan nilai VDOT secara manual (range 10.0 - 85.0).</p>
+                        </div>
+
+                        <!-- Live VDOT Preview -->
+                        <div v-if="previewVdot" class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">
+                            <span class="text-slate-400 font-medium">Estimasi Skor VDOT Baru:</span>
+                            <span class="text-neon font-black font-mono text-sm">@{{ previewVdot }}</span>
+                        </div>
+
+                        <div v-if="vdotError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+                            @{{ vdotError }}
+                        </div>
+                        <div v-if="vdotSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
+                            @{{ vdotSuccess }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
+                    <button type="button" @click="showVdotModal = false"
+                        class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitUpdateVdot" :disabled="vdotLoading"
+                        class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
+                        @{{ vdotLoading ? 'Menyimpan...' : 'Simpan PB & VDOT' }}
                     </button>
                 </div>
             </div>
@@ -1358,88 +1573,103 @@
     </div>
 
     <!-- Race Modal -->
-        <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-5 relative">
-                <button @click="showRaceModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-                <h3 class="text-lg font-black text-white mb-4">Add Race Event</h3>
-                
-                <form @submit.prevent="saveRace" class="space-y-3">
-                    <!-- RuangLari Import -->
-                    <div class="mb-3 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 relative">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Import from RuangLari</label>
-                        
-                        <!-- Search Input -->
-                        <div class="relative">
-                            <input 
-                                type="text" 
-                                v-model="eventSearchQuery"
-                                @focus="showEventDropdown = true"
-                                @blur="hideEventDropdown"
-                                placeholder="Type to search event..."
-                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon focus:outline-none pl-8"
-                            >
-                            <span class="absolute left-3 top-2.5 text-slate-500"><i class="fa-solid fa-search text-[10px]"></i></span>
-                            <button v-if="eventSearchQuery" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white text-xs">✕</button>
-                        </div>
+    <div v-if="showRaceModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRaceModal = false"></div>
+        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                <!-- Header -->
+                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                    <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-flag-checkered text-neon"></i>
+                        <span>Tambah Event Lomba</span>
+                    </h3>
+                    <button @click="showRaceModal = false" class="text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
 
-                        <!-- Dropdown List -->
-                        <div v-if="showEventDropdown && filteredEvents.length > 0" 
-                            class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                            <ul>
-                                <li v-for="event in filteredEvents" :key="event.id"
-                                    @click="selectRuangLariEvent(event)"
-                                    class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0 text-slate-200"
+                <!-- Form -->
+                <form @submit.prevent="saveRace" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                    <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 min-h-0">
+                        <!-- RuangLari Import -->
+                        <div class="bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Cari Event RuangLari</label>
+                            
+                            <!-- Search Input -->
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    v-model="eventSearchQuery"
+                                    @focus="showEventDropdown = true"
+                                    @blur="hideEventDropdown"
+                                    placeholder="Cari nama event lari..."
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon focus:border-neon focus:outline-none pl-8"
                                 >
-                                    <div class="text-xs font-bold text-white">@{{ event.name || event.title }}</div>
-                                    <div class="text-[10px] text-slate-300 flex justify-between mt-1">
-                                        <span><i class="fa-solid fa-calendar text-[10px] text-slate-400 mr-1"></i>@{{ event.date || event.start_at }}</span>
-                                        <span><i class="fa-solid fa-location-dot text-[10px] text-slate-400 mr-1"></i>@{{ event.location || event.location_name }}</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                        <div v-else-if="showEventDropdown && filteredEvents.length === 0 && !loadingEvents" class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-slate-500 text-sm z-50">
-                            No events found.
+                                <span class="absolute left-3 top-2.5 text-slate-500"><i class="fa-solid fa-search text-[10px]"></i></span>
+                                <button v-if="eventSearchQuery" type="button" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+
+                            <!-- Dropdown List -->
+                            <div v-if="showEventDropdown && filteredEvents.length > 0" 
+                                class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                <ul>
+                                    <li v-for="event in filteredEvents" :key="event.id"
+                                        @click="selectRuangLariEvent(event)"
+                                        class="px-3.5 py-2.5 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0 text-slate-200"
+                                    >
+                                        <div class="text-xs font-bold text-white">@{{ event.name || event.title }}</div>
+                                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 font-mono">
+                                            <span><i class="fa-solid fa-calendar text-[10px] text-slate-500 mr-1"></i>@{{ event.date || event.start_at }}</span>
+                                            <span><i class="fa-solid fa-location-dot text-[10px] text-slate-500 mr-1"></i>@{{ event.location || event.location_name }}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-else-if="showEventDropdown && filteredEvents.length === 0 && !loadingEvents" class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-slate-500 text-xs z-50">
+                                Tidak ada event ditemukan.
+                            </div>
+
+                            <div v-if="loadingEvents" class="text-[10px] text-neon mt-1 italic">Memuat data event...</div>
                         </div>
 
-                        <div v-if="loadingEvents" class="text-[10px] text-cyan-400 mt-1 italic">Loading events...</div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Event Name</label>
-                        <input v-model="raceForm.name" type="text" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="e.g. Jakarta Marathon" required>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Date</label>
-                            <input v-model="raceForm.date" type="date" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" required>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Event</label>
+                            <input v-model="raceForm.name" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none" placeholder="misal: Jakarta Marathon 2026" required>
                         </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal</label>
+                                <input v-model="raceForm.date" type="date" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jarak</label>
+                                <select v-model="raceForm.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none">
+                                    <option value="5k">5K</option>
+                                    <option value="10k">10K</option>
+                                    <option value="21k">Half Marathon (21K)</option>
+                                    <option value="42k">Full Marathon (42K)</option>
+                                    <option value="other">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Distance</label>
-                            <select v-model="raceForm.distance" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none">
-                                <option value="5k">5K</option>
-                                <option value="10k">10K</option>
-                                <option value="21k">Half Marathon</option>
-                                <option value="42k">Full Marathon</option>
-                                <option value="other">Other</option>
-                            </select>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Target Waktu (HH:MM:SS / MM:SS)</label>
+                            <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none font-mono" placeholder="misal: 01:45:00">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan</label>
+                            <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none resize-none" placeholder="Catatan lomba..."></textarea>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Goal Time (Optional)</label>
-                        <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="hh:mm:ss">
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Notes</label>
-                        <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon focus:border-neon outline-none" placeholder="Target pace strategy, etc."></textarea>
-                    </div>
-
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition shadow-lg shadow-neon/15 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
-                            @{{ loading ? 'Saving...' : 'Add to Calendar' }}
+                    <!-- Footer -->
+                    <div class="p-4 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 flex-shrink-0 rounded-b-2xl">
+                        <button type="button" @click="showRaceModal = false" class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">Batal</button>
+                        <button type="submit" :disabled="loading" class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
+                            @{{ loading ? 'Menyimpan...' : 'Simpan Event' }}
                         </button>
                     </div>
                 </form>
@@ -1448,17 +1678,20 @@
     </div>
 
     <!-- Strava Graph Modal -->
-    <div v-if="showStravaGraphModal" class="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-        <div class="w-full max-w-5xl h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl p-6 relative flex flex-col shadow-2xl shadow-neon/10">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-black text-[#FC4C02] italic uppercase flex items-center gap-2">
-                    <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                    Strava Analysis
+    <div v-if="showStravaGraphModal" class="fixed inset-0 z-[1200] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md">
+        <div class="w-full max-w-5xl h-[85vh] bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 relative flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-3.5 flex-shrink-0">
+                <h3 class="text-base sm:text-xl font-extrabold text-[#FC4C02] uppercase tracking-tight flex items-center gap-2">
+                    <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 sm:w-6 sm:h-6"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                    <span>Analisis Vektor Strava</span>
                 </h3>
-                <button @click="showStravaGraphModal = false" class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg transition">✕</button>
+                <button @click="showStravaGraphModal = false" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
-            <div class="flex-grow relative bg-slate-900/50 rounded-xl border border-slate-800 p-4">
+            <div class="flex-grow relative bg-slate-950/60 rounded-xl border border-slate-800 p-2 sm:p-4 min-h-0">
                 <canvas id="coachStravaMetricsChartFullscreen" class="w-full h-full"></canvas>
+            </div>
         </div>
     </div>
 
@@ -1778,6 +2011,77 @@ createApp({
             }
         };
         // ─────────────────────────────────────────────────────────────
+
+        // ── Update VDOT & PB Modal State ──
+        const showVdotModal = ref(false);
+        const vdotForm = ref({
+            mode: 'cooper',
+            cooper_distance: '',
+            balke_distance: '',
+            pb_distance: '5k',
+            pb_time: '',
+            vdot_score: ''
+        });
+        const vdotLoading = ref(false);
+        const vdotError = ref('');
+        const vdotSuccess = ref('');
+
+        const previewVdot = computed(() => {
+            if (vdotForm.value.mode === 'cooper') {
+                const d = parseFloat(vdotForm.value.cooper_distance);
+                if (!isNaN(d) && d > 0) {
+                    const vVO2max = (d / 12) / 0.99;
+                    const v = -4.6 + 0.182258 * vVO2max + 0.000104 * vVO2max * vVO2max;
+                    return Math.max(10, Math.min(85, v)).toFixed(1);
+                }
+            } else if (vdotForm.value.mode === 'balke') {
+                const d = parseFloat(vdotForm.value.balke_distance);
+                if (!isNaN(d) && d > 0) {
+                    const v = ((d / 15) - 133) * 0.172 + 33.3;
+                    return Math.max(10, Math.min(85, v)).toFixed(1);
+                }
+            } else if (vdotForm.value.mode === 'direct') {
+                const v = parseFloat(vdotForm.value.vdot_score);
+                if (!isNaN(v) && v >= 10 && v <= 85) return v.toFixed(1);
+            }
+            return null;
+        });
+
+        const submitUpdateVdot = async () => {
+            vdotLoading.value = true;
+            vdotError.value = '';
+            vdotSuccess.value = '';
+
+            try {
+                const response = await fetch('{{ route("coach.athletes.update-vdot", $enrollment->id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify(vdotForm.value)
+                });
+
+                const res = await response.json();
+                if (res.success) {
+                    vdotSuccess.value = res.message;
+                    if (res.trainingProfile) {
+                        trainingProfile.value = res.trainingProfile;
+                    }
+                    setTimeout(() => {
+                        showVdotModal.value = false;
+                        vdotSuccess.value = '';
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    vdotError.value = res.message || 'Gagal memperbarui VDOT.';
+                }
+            } catch (e) {
+                vdotError.value = 'Terjadi kesalahan sistem saat menghubungi server.';
+            } finally {
+                vdotLoading.value = false;
+            }
+        };
 
         // Workout Form State
         const showFormModal = ref(false);
@@ -3688,6 +3992,7 @@ createApp({
         return { 
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
+            showVdotModal, vdotForm, vdotLoading, vdotError, vdotSuccess, previewVdot, submitUpdateVdot,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             exportCalendar,
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
