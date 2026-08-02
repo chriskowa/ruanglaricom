@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('article_agents', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->unsignedBigInteger('id_parent')->nullable();
-            $table->string('user_input_topic')->nullable();
+            $table->text('user_input_topic')->nullable();
             $table->string('strategy')->default('free');
             $table->json('brainstorming_options')->nullable();
             $table->json('selected_option_data')->nullable();

@@ -155,7 +155,7 @@ TEXT;
         $uuid = Uuid::uuid4()->toString();
         ArticleAgent::create([
             'id'                    => $uuid,
-            'user_input_topic'      => $fullTopicInput,
+            'user_input_topic'      => Str::limit($fullTopicInput, 60000),
             'strategy'              => $strategy,
             'brainstorming_options' => $optionsArray,
         ]);
