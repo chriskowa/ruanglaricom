@@ -7,6 +7,7 @@
 
 @push('styles')
 <style>
+[v-cloak]{display:none !important;}
 .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
 .fc .fc-toolbar-title{font-size: 1rem;font-weight:800;color:#e2e8f0}
 .fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
@@ -951,7 +952,7 @@
         </div>
 
         <!-- Workout Modal -->
-        <div v-if="showFormModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div v-if="showFormModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showFormModal = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
                 <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
@@ -1045,7 +1046,7 @@
         </div>
 
         <!-- Reschedule / Activate Program Modal -->
-        <div v-if="showRescheduleModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div v-if="showRescheduleModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRescheduleModal = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
                 <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
@@ -1132,7 +1133,7 @@
         </div>
 
         <!-- Send Program Reminder Modal -->
-        <div v-if="showReminderModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div v-if="showReminderModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showReminderModal = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
                 <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
@@ -1203,7 +1204,7 @@
         </div>
 
         <!-- Advanced Workout Builder Modal -->
-        <div v-if="builderVisible" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+        <div v-if="builderVisible" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="builderVisible = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
                 <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
@@ -1463,7 +1464,7 @@
         </div>
 
          <!-- Update Target Mingguan Modal -->
-    <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+    <div v-if="showWeeklyTargetModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showWeeklyTargetModal = false"></div>
         <div class="flex min-h-full items-center justify-center relative pointer-events-none">
             <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
@@ -1498,7 +1499,7 @@
     </div>
 
     <!-- Update VDOT / PB Modal -->
-    <div v-if="showVdotModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+    <div v-if="showVdotModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showVdotModal = false"></div>
         <div class="flex min-h-full items-center justify-center relative pointer-events-none">
             <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
@@ -1624,7 +1625,7 @@
     </div>
 
     <!-- Race Modal -->
-    <div v-if="showRaceModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+    <div v-if="showRaceModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRaceModal = false"></div>
         <div class="flex min-h-full items-center justify-center relative pointer-events-none">
             <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
@@ -1728,23 +1729,6 @@
         </div>
     </div>
 
-    <!-- Strava Graph Modal -->
-    <div v-if="showStravaGraphModal" class="fixed inset-0 z-[1200] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md">
-        <div class="w-full max-w-5xl h-[85vh] bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 relative flex flex-col shadow-2xl">
-            <div class="flex justify-between items-center mb-3.5 flex-shrink-0">
-                <h3 class="text-base sm:text-xl font-extrabold text-[#FC4C02] uppercase tracking-tight flex items-center gap-2">
-                    <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 sm:w-6 sm:h-6"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                    <span>Analisis Vektor Strava</span>
-                </h3>
-                <button @click="showStravaGraphModal = false" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div class="flex-grow relative bg-slate-950/60 rounded-xl border border-slate-800 p-2 sm:p-4 min-h-0">
-                <canvas id="coachStravaMetricsChartFullscreen" class="w-full h-full"></canvas>
-            </div>
-        </div>
-    </div>
 
 </main>
 @endsection
@@ -1756,17 +1740,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
+// Ensure Vue is available before initializing the application.
+if (typeof Vue === 'undefined') {
+    console.error('Vue 3 not loaded!');
 
+    const appElement = document.getElementById('coach-monitor-app');
+    if (appElement) {
+        appElement.removeAttribute('v-cloak');
+        appElement.insertAdjacentHTML(
+            'afterbegin',
+            '<div style="background:#7f1d1d;color:#fca5a5;padding:12px 16px;border-radius:8px;margin:16px;font-family:monospace;font-size:12px"><strong>Vue Error:</strong> Vue 3 tidak termuat.</div>'
+        );
+    }
+} else {
+    console.log('Vue 3 ready:', Vue.version);
+
+    const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
+
+    try {
 createApp({
     setup() {
-        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
         let calendar = null;
         const selectedSession = ref(null);
         const loading = ref(false);
         const trainingProfile = reactive(@json($trainingProfile) || {});
         if (!trainingProfile.name) {
-            trainingProfile.name = @json($enrollment->runner->name);
+            trainingProfile.name = @json($enrollment->runner->name ?? '');
         }
         const profileTab = ref('training');
         const feedbackForm = reactive({
@@ -1898,7 +1898,7 @@ createApp({
         const rescheduleError     = ref('');
         const programDurationWeeks = {{ $enrollment->program->duration_weeks ?? 12 }};
 
-        const previewRescheduleEndDate = Vue.computed(() => {
+        const previewRescheduleEndDate = computed(() => {
             if (!rescheduleForm.new_start_date) return '-';
             const d = new Date(rescheduleForm.new_start_date);
             d.setDate(d.getDate() + programDurationWeeks * 7);
@@ -1911,6 +1911,25 @@ createApp({
             rescheduleForm.new_start_date = existing || new Date().toISOString().slice(0, 10);
             rescheduleError.value = '';
             showRescheduleModal.value = true;
+        };
+
+        const setStartDateToday = () => {
+            rescheduleForm.new_start_date = new Date().toISOString().slice(0, 10);
+        };
+
+        const setStartDateNextMonday = () => {
+            const today = new Date();
+            const day = today.getDay();
+            const daysUntilNextMonday = day === 0 ? 1 : (8 - day);
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+            rescheduleForm.new_start_date = nextMonday.toISOString().slice(0, 10);
+        };
+
+        const setStartDateNextMonth = () => {
+            const today = new Date();
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            rescheduleForm.new_start_date = nextMonth.toISOString().slice(0, 10);
         };
 
         const submitReschedule = async () => {
@@ -1962,7 +1981,6 @@ createApp({
         };
 
         const submitReminder = async () => {
-            if (!selectedSession.value) return;
             reminderLoading.value = true;
             reminderError.value = '';
             reminderSuccess.value = '';
@@ -1972,10 +1990,12 @@ createApp({
                     channel: reminderForm.channel,
                     custom_message: reminderForm.custom_message,
                 };
-                if (selectedSession.value.extendedProps.is_custom) {
-                    payload.custom_workout_id = selectedSession.value.extendedProps.id;
-                } else {
-                    payload.session_day = selectedSession.value.extendedProps.session_day;
+                if (selectedSession.value) {
+                    if (selectedSession.value.extendedProps.is_custom) {
+                        payload.custom_workout_id = selectedSession.value.extendedProps.id;
+                    } else {
+                        payload.session_day = selectedSession.value.extendedProps.session_day;
+                    }
                 }
 
                 const res = await fetch(url, {
@@ -2058,7 +2078,7 @@ createApp({
                 if (res.success) {
                     vdotSuccess.value = res.message;
                     if (res.trainingProfile) {
-                        trainingProfile.value = res.trainingProfile;
+                        Object.assign(trainingProfile, res.trainingProfile);
                     }
                     setTimeout(() => {
                         showVdotModal.value = false;
@@ -3256,118 +3276,6 @@ createApp({
             return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         };
 
-        // Reschedule & Program Activation State & Logic
-        const showRescheduleModal = ref(false);
-        const rescheduleLoading = ref(false);
-        const rescheduleError = ref('');
-        const rescheduleForm = reactive({
-            new_start_date: ''
-        });
-
-        const openRescheduleModal = (defaultDate = null) => {
-            rescheduleError.value = '';
-            const existingStart = @json($enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('Y-m-d') : null);
-            rescheduleForm.new_start_date = defaultDate || existingStart || new Date().toISOString().slice(0, 10);
-            showRescheduleModal.value = true;
-        };
-
-        const setStartDateToday = () => {
-            rescheduleForm.new_start_date = new Date().toISOString().slice(0, 10);
-        };
-
-        const setStartDateNextMonday = () => {
-            const today = new Date();
-            const day = today.getDay();
-            const daysUntilNextMonday = day === 0 ? 1 : (8 - day);
-            const nextMonday = new Date(today);
-            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
-            rescheduleForm.new_start_date = nextMonday.toISOString().slice(0, 10);
-        };
-
-        const setStartDateNextMonth = () => {
-            const today = new Date();
-            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            rescheduleForm.new_start_date = nextMonth.toISOString().slice(0, 10);
-        };
-
-        const previewRescheduleEndDate = computed(() => {
-            if (!rescheduleForm.new_start_date) return '-';
-            const durationWeeks = @json($enrollment->program->duration_weeks ?? 12);
-            const d = new Date(rescheduleForm.new_start_date);
-            if (isNaN(d.getTime())) return '-';
-            d.setDate(d.getDate() + (durationWeeks * 7));
-            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-        });
-
-        const submitReschedule = async () => {
-            if (!rescheduleForm.new_start_date) {
-                rescheduleError.value = 'Silakan pilih tanggal mulai.';
-                return;
-            }
-            rescheduleLoading.value = true;
-            rescheduleError.value = '';
-            try {
-                const res = await fetch(`{{ route('coach.athletes.reschedule', $enrollment->id) }}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ new_start_date: rescheduleForm.new_start_date })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showRescheduleModal.value = false;
-                    alert(data.message || 'Program berhasil diaktifkan / dijadwalkan ulang!');
-                    window.location.reload();
-                } else {
-                    rescheduleError.value = data.message || 'Gagal mengaktifkan/mengubah jadwal program.';
-                }
-            } catch (e) {
-                rescheduleError.value = 'Terjadi kesalahan pada server.';
-            } finally {
-                rescheduleLoading.value = false;
-            }
-        };
-
-        // Send Program Reminder State & Logic
-        const showReminderModal = ref(false);
-        const reminderLoading = ref(false);
-        const reminderError = ref('');
-        const reminderSuccess = ref('');
-        const reminderForm = reactive({
-            channel: 'both',
-            custom_message: ''
-        });
-
-        const openReminderModal = () => {
-            reminderError.value = '';
-            reminderSuccess.value = '';
-            reminderForm.custom_message = '';
-            showReminderModal.value = true;
-        };
-
-        const submitReminder = async () => {
-            reminderLoading.value = true;
-            reminderError.value = '';
-            reminderSuccess.value = '';
-            try {
-                const res = await fetch(`{{ route('coach.athletes.send-reminder', $enrollment->id) }}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: reminderForm.custom_message })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    reminderSuccess.value = data.message || 'Pengingat berhasil dikirim ke atlet!';
-                    setTimeout(() => { showReminderModal.value = false; }, 1500);
-                } else {
-                    reminderError.value = data.message || 'Gagal mengirim pengingat.';
-                }
-            } catch (e) {
-                reminderError.value = 'Terjadi kesalahan pada server.';
-            } finally {
-                reminderLoading.value = false;
-            }
-        };
-
         // Analytics State & Logic
         const paceComplianceList = ref([]);
         const healthSummary = reactive({
@@ -4091,7 +3999,7 @@ createApp({
                 console.error(e);
                 alert('Gagal mengambil data dari server untuk ekspor.');
             }
-        };
+        }; // end exportCalendar
 
         return { 
             trainingProfile, profileTab, formatPace,
@@ -4123,5 +4031,18 @@ createApp({
         };
     }
 }).mount('#coach-monitor-app');
+    } catch (e) {
+        console.error('Vue mount error:', e);
+
+        const el = document.getElementById('coach-monitor-app');
+        if (el) {
+            el.removeAttribute('v-cloak');
+            el.insertAdjacentHTML(
+                'afterbegin',
+                '<div style="background:#7f1d1d;color:#fca5a5;padding:12px 16px;border-radius:8px;margin:16px;font-family:monospace;font-size:12px;z-index:9999;position:relative"><strong>Vue Error:</strong> ' + e.message + '</div>'
+            );
+        }
+    }
+}
 </script>
 @endpush
