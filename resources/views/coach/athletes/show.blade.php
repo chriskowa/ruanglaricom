@@ -75,19 +75,19 @@
 @section('content')
 <main id="coach-monitor-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" v-cloak>
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-            <div class="w-full md:w-auto">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6 mb-6">
+            <div class="w-full lg:w-auto">
                 <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 flex items-center gap-1.5 font-bold transition">
                     <i class="fa-solid fa-arrow-left text-xs"></i>
                     <span>Kembali ke Daftar Atlet</span>
                 </a>
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-white font-extrabold text-xl shadow-lg">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-white font-extrabold text-xl sm:text-2xl shadow-lg flex-shrink-0">
                         {{ substr($enrollment->runner->name, 0, 1) }}
                     </div>
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none">@{{ trainingProfile.name }}</h1>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none">@{{ trainingProfile.name }}</h1>
                             <!-- Strava Connected indicator and sync button -->
                             <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-[#FC4C02] transition-all">
                                 <i class="fa-brands fa-strava text-xs"></i>
@@ -98,9 +98,9 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
                             <span class="text-neon font-mono text-xs font-bold tracking-widest uppercase">{{ $enrollment->program->title }}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold border
                                 @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
                                 @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
                                 @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
@@ -112,20 +112,23 @@
                 </div>
             </div>
             
-            <!-- Runner Stats Summary - Mobile Optimized -->
-            <div class="w-full overflow-x-auto no-scrollbar">
-                <div class="flex gap-3 pb-2 min-w-max md:min-w-0">
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">VDOT</div>
-                        <div class="text-xl font-extrabold text-neon">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+            <!-- Runner Stats Summary - Full Width & Device Responsive -->
+            <div class="w-full lg:w-auto lg:min-w-[380px]">
+                <div class="grid grid-cols-3 gap-2.5 sm:gap-4 w-full">
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
+                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">VDOT</div>
+                        <div class="text-2xl sm:text-3xl font-black text-neon font-mono">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                     </div>
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Target</div>
-                        <div class="text-xl font-extrabold text-white">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}<span class="text-xs font-normal text-slate-400 ml-1">km</span></div>
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
+                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Target</div>
+                        <div class="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline justify-center">
+                            <span>@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}</span>
+                            <span class="text-xs sm:text-sm font-semibold text-slate-400 ml-1">km</span>
+                        </div>
                     </div>
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/60 text-center min-w-[100px]">
-                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Usia</div>
-                        <div class="text-xl font-extrabold text-white">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
+                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
+                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Usia</div>
+                        <div class="text-2xl sm:text-3xl font-black text-white font-mono">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
                     </div>
                 </div>
             </div>
@@ -1692,65 +1695,6 @@
             <div class="flex-grow relative bg-slate-950/60 rounded-xl border border-slate-800 p-2 sm:p-4 min-h-0">
                 <canvas id="coachStravaMetricsChartFullscreen" class="w-full h-full"></canvas>
             </div>
-        </div>
-    </div>
-
-    <!-- Floating Chat Widget -->
-    <div class="fixed bottom-6 right-6 z-[1000] font-sans">
-        <!-- Chat Bubble Button -->
-        <button @click="toggleChatDrawer" class="w-14 h-14 rounded-full bg-neon text-dark font-black flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-transform duration-200 relative border-2 border-slate-900">
-            <span class="text-xl">💬</span>
-            <!-- Unread Badge if any -->
-            <span v-if="chatState.unreadCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce">
-                @{{ chatState.unreadCount }}
-            </span>
-        </button>
-
-        <!-- Chat Drawer/Panel -->
-        <div v-if="chatState.isOpen" class="fixed bottom-24 right-6 w-[330px] sm:w-[380px] h-[480px] bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-3xl flex flex-col shadow-2xl shadow-neon/10 overflow-hidden transition-all duration-300">
-            <!-- Header -->
-            <div class="bg-slate-800/80 border-b border-slate-700/50 px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-white text-xs">
-                        {{ substr($enrollment->runner->name, 0, 1) }}
-                    </div>
-                    <div>
-                        <div class="text-xs font-black text-white truncate max-w-[180px]">{{ $enrollment->runner->name }}</div>
-                        <div class="text-[9px] text-neon flex items-center gap-1 font-mono uppercase tracking-wider">
-                            <span class="w-1.5 h-1.5 bg-neon rounded-full animate-ping"></span> Active Chat
-                        </div>
-                    </div>
-                </div>
-                <button @click="chatState.isOpen = false" class="text-slate-400 hover:text-white font-bold text-sm bg-slate-800/50 p-1.5 rounded-lg">✕</button>
-            </div>
-
-            <!-- Messages Area -->
-            <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-950/20">
-                <div v-if="chatState.loading" class="text-center text-xs text-slate-500 py-16">
-                    <i class="fa-solid fa-circle-notch animate-spin text-neon mr-2"></i> Loading conversation…
-                </div>
-                <div v-else-if="chatState.messages.length === 0" class="text-center text-xs text-slate-500 py-16">
-                    No messages yet. Send a message below to start coaching!
-                </div>
-                <div v-else v-for="msg in chatState.messages" :key="msg.id" class="flex flex-col"
-                     :class="msg.sender_id === {{ auth()->id() }} ? 'items-end' : 'items-start'">
-                    <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed shadow"
-                         :class="msg.sender_id === {{ auth()->id() }} ? 'bg-neon text-slate-950 rounded-tr-none font-bold' : 'bg-slate-800 text-white rounded-tl-none'">
-                        @{{ msg.message }}
-                    </div>
-                    <span class="text-[8px] text-slate-500 mt-1 font-mono">@{{ formatChatTime(msg.created_at) }}</span>
-                </div>
-            </div>
-
-            <!-- Footer / Input Form -->
-            <form @submit.prevent="sendChatMessage" class="bg-slate-800/80 border-t border-slate-700/50 p-2.5 flex items-center gap-2">
-                <input v-model="chatState.inputMessage" type="text" class="flex-grow bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:ring-1 focus:ring-neon outline-none" placeholder="Type a message…">
-                <button type="submit" :disabled="!chatState.inputMessage.trim() || chatState.sending" class="p-2.5 rounded-xl bg-neon text-dark hover:bg-neon/90 transition disabled:opacity-50 flex items-center justify-center">
-                    <svg class="w-3.5 h-3.5 fill-current transform rotate-45" viewBox="0 0 24 24">
-                        <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
-                    </svg>
-                </button>
-            </form>
         </div>
     </div>
 
