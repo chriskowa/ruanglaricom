@@ -2358,13 +2358,16 @@ class AthleteController extends Controller
                         $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat. Wajib sertakan '[LINK_CALENDAR]'.";
                     }
 
-                    $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok serta link program.\n\n"
+                    $coachName = auth()->user()->name ?? 'Coach';
+                    $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari bernama {$coachName}.\n\n"
+                        . "Wajib ikuti struktur format persis berikut tanpa diubah:\n"
+                        . "Halo [Nama Atlet], Kamu terdaftar di program [Nama Program] oleh coach [Nama Coach], besok kamu ada sesi: [Nama Workout]\n\n"
+                        . "Deskripsi: [Penjelasan deskripsi dan panduan pace spesifik sesuai tipe latihan (Easy/Tempo/Interval/Long Run)]\n\n"
+                        . "Detail kalender: [LINK_CALENDAR]\n\n"
                         . "ATURAN:\n"
-                        . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
-                        . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
-                        . "- Wajib sertakan placeholder '[LINK_CALENDAR]' di akhir pesan untuk akses detail program.\n"
-                        . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
-                        . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
+                        . "- Jangan gunakan emoji sama sekali.\n"
+                        . "- Jangan gunakan format markdown (seperti *bold* atau _miring_).\n"
+                        . "- Tulis teks santai, jelas, profesional, dan alami.";
                     
                     $message = $openAiService->getAiResponse($prompt, $systemMessage);
                     
@@ -2377,7 +2380,7 @@ class AthleteController extends Controller
                         
                         $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
                         if (!str_contains($message, $calendarUrl)) {
-                            $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
+                            $message .= "\n\nDetail kalender: " . $calendarUrl;
                         }
                     } else {
                         $message = $this->getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl);
@@ -2433,31 +2436,60 @@ class AthleteController extends Controller
 
     private function getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl)
     {
+        $runnerName = $runner->name ?? 'Atlet';
+        $programTitle = $program->title ?? 'Program Lari';
+        $coachName = auth()->user()->name ?? 'Coach';
+        
         $type = strtolower($sessionData['type'] ?? 'rest');
+        $workoutTitle = $sessionData['title'] ?? $sessionData['name'] ?? ucfirst(str_replace('_', ' ', $type));
+        if (!empty($sessionData['distance'])) {
+            $workoutTitle .= ' ' . $sessionData['distance'] . ' KM';
+        }
+
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
 
         if ($isRest) {
-            return "Halo {$runner->name}, besok jadwal program {$program->title} kamu adalah Rest Day ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
+            return "Halo {$runnerName}, Kamu terdaftar di program {$programTitle} oleh coach {$coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Selamat beristirahat dan jaga kondisi tubuh untuk sesi berikutnya.\n\nDetail kalender: {$calendarUrl}";
+        }
+
+        // Retrieve runner paces profile for tailored pace guidance
+        $profileService = app(\App\Services\RunningProfileService::class);
+        $profileData = $profileService->getProfile($runner);
+        $paces = $profileData['paces'] ?? [];
+
+        $paceGuidance = '';
+        if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
+            $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;
+            $paceGuidance = $ePace ? "Jaga pace di Easy Pace (~{$ePace}/km). Fokus santai, pernapasan stabil, dan detak jantung di zona aerobik." : "Jaga ritme santai di zona aerobik ringan.";
+        } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
+            $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : null;
+            $paceGuidance = $tPace ? "Target pace di Tempo Pace (~{$tPace}/km). Pertahankan ritme konsisten di zona menantang tetapi terkontrol." : "Pertahankan pace stabil di zona threshold.";
+        } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
+            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null;
+            $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : null;
+            $p = $iPace ? "~{$iPace}/km" : ($rPace ? "~{$rPace}/km" : 'maksimal');
+            $paceGuidance = "Target pace di Interval Pace ({$p}). Lakukan dorongan kuat di setiap rep dan maksimalkan pemulihan saat recovery.";
+        } elseif (in_array($type, ['long_run', 'long'])) {
+            $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : null;
+            $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;
+            $p = $mPace ? "~{$mPace}/km" : ($ePace ? "~{$ePace}/km" : 'aerobik terkontrol');
+            $paceGuidance = "Jaga pace di zona endurance ({$p}). Hemat tenaga untuk jarak jauh dan penuhi kecukupan cairan.";
+        } else {
+            $paceGuidance = "Sesuaikan pace dengan target instruksi coach.";
         }
 
         $description = $sessionData['description'] ?? $sessionData['notes'] ?? $sessionData['instruction'] ?? '';
-        $detail = "";
-        if (!empty($description)) {
-            $detail .= "\n- Deskripsi: {$description}";
-        }
-        if (!empty($sessionData['distance'])) {
-            $detail .= "\n- Jarak: {$sessionData['distance']} km";
-        }
-        if (!empty($sessionData['duration'])) {
-            $detail .= "\n- Durasi: {$sessionData['duration']}";
-        }
-        if (!empty($sessionData['target_pace'])) {
-            $detail .= "\n- Target Pace: {$sessionData['target_pace']}";
-        }
-        
-        return "Halo {$runner->name}, besok jadwal kamu adalah {$sessionData['type']} untuk program {$program->title}."
-            . (!empty($detail) ? "\n\nDetail latihan:{$detail}" : "")
-            . "\n\nSemangat! Detail latihan: {$calendarUrl}";
+        $descCombined = !empty($description) ? "{$description}. {$paceGuidance}" : $paceGuidance;
+
+        return "Halo {$runnerName}, Kamu terdaftar di program {$programTitle} oleh coach {$coachName}, besok kamu ada sesi: {$workoutTitle}\n\nDeskripsi: {$descCombined}\n\nDetail kalender: {$calendarUrl}";
+    }
+
+    private function formatMinPerKm($minutes)
+    {
+        if (is_string($minutes) && str_contains($minutes, ':')) return $minutes;
+        $m = floor((float)$minutes);
+        $s = round(((float)$minutes - $m) * 60);
+        return sprintf('%d:%02d', $m, $s);
     }
 
     /**

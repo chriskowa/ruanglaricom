@@ -70,13 +70,19 @@ class StravaController extends Controller
             }
 
             $tokenData = $response->json();
-            $user = auth()->user();
-            $user->update([
+            $athleteProfile = data_get($tokenData, 'athlete.profile') ?: data_get($tokenData, 'athlete.profile_medium');
+            $updateData = [
                 'strava_id' => data_get($tokenData, 'athlete.id'),
                 'strava_access_token' => data_get($tokenData, 'access_token'),
                 'strava_refresh_token' => data_get($tokenData, 'refresh_token'),
                 'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
-            ]);
+            ];
+
+            if ($athleteProfile && (! $user->avatar || str_contains($user->avatar, 'strava') || str_contains($user->avatar, 'cloudfront') || str_contains($user->avatar, 'default'))) {
+                $updateData['avatar'] = $athleteProfile;
+            }
+
+            $user->update($updateData);
 
             return redirect()->route('runner.dashboard')->with('success', 'Strava berhasil tersambung.');
         } catch (\Throwable $e) {

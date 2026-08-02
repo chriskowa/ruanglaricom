@@ -1974,9 +1974,60 @@ createApp({
 
         const openReminderModal = () => {
             reminderForm.channel = 'both';
-            reminderForm.custom_message = '';
             reminderError.value = '';
             reminderSuccess.value = '';
+
+            const runnerName = @json($enrollment->runner->name ?? 'Atlet');
+            const programTitle = @json($enrollment->program->title ?? 'Program Lari');
+            const coachName = @json(auth()->user()->name ?? 'Coach');
+
+            let workoutTitle = 'Sesi Latihan';
+            let type = 'easy_run';
+            let notes = '';
+
+            if (selectedSession.value) {
+                const props = selectedSession.value.extendedProps || {};
+                workoutTitle = selectedSession.value.title || props.title || props.name || 'Sesi Latihan';
+                type = (props.workout_type || props.type || 'easy_run').toLowerCase();
+                notes = props.description || props.notes || props.instruction || '';
+            }
+
+            const isRest = ['rest', 'rest_day', 'rest day', 'libur'].includes(type);
+
+            if (isRest) {
+                reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Istirahat total dan jaga pemulihan fisik dengan baik agar siap menyambut sesi berikutnya.`;
+            } else {
+                let paceGuidance = '';
+                const paces = trainingProfile.paces || {};
+
+                if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k))) {
+                    const ePace = paces.E ? formatPace(paces.E) : null;
+                    paceGuidance = ePace 
+                        ? `Jaga pace di Easy Pace (~${ePace}/km). Utamakan ritme santai, pernapasan stabil, dan detak jantung di zona 1-2.`
+                        : `Jaga ritme santai dan terkontrol di zona aerobik ringan.`;
+                } else if (['tempo', 'threshold', 'tempo_run'].some(k => type.includes(k))) {
+                    const tPace = paces.T ? formatPace(paces.T) : null;
+                    paceGuidance = tPace
+                        ? `Target pace di Tempo/Threshold Pace (~${tPace}/km). Pertahankan ritme konsisten di zona menantang tetapi terkontrol.`
+                        : `Jaga pace konsisten di zona threshold menantang.`;
+                } else if (['interval', 'speed', 'repetition', 'vo2max'].some(k => type.includes(k))) {
+                    const iPace = paces.I ? formatPace(paces.I) : null;
+                    const rPace = paces.R ? formatPace(paces.R) : null;
+                    const pStr = iPace ? `~${iPace}/km` : (rPace ? `~${rPace}/km` : 'maksimal');
+                    paceGuidance = `Target pace di Interval Pace (${pStr}). Lakukan dorongan kuat di setiap rep dan maksimalkan pemulihan saat recovery.`;
+                } else if (['long_run', 'long'].some(k => type.includes(k))) {
+                    const mPace = paces.M ? formatPace(paces.M) : null;
+                    const ePace = paces.E ? formatPace(paces.E) : null;
+                    const pStr = mPace ? `~${mPace}/km` : (ePace ? `~${ePace}/km` : 'aerobik terkontrol');
+                    paceGuidance = `Jaga pace di zona endurance (${pStr}). Hemat tenaga untuk jarak jauh, jaga kecukupan cairan dan nutrisi.`;
+                } else {
+                    paceGuidance = `Sesuaikan pace dengan target instruksi coach.`;
+                }
+
+                const descText = notes ? `${notes}. ${paceGuidance}` : paceGuidance;
+                reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: ${workoutTitle}\n\nDeskripsi: ${descText}`;
+            }
+
             showReminderModal.value = true;
         };
 

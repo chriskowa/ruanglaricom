@@ -212,6 +212,23 @@
         return normalized;
     },
 
+    getUserAvatarUrl(user) {
+        if (!user) return '{{ asset("images/default-male.svg") }}';
+        if (user.avatar_url) return user.avatar_url;
+        if (!user.avatar) {
+            return user.gender === 'female' ? '{{ asset("images/default-female.svg") }}' : '{{ asset("images/default-male.svg") }}';
+        }
+        const avatar = String(user.avatar).trim();
+        if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+            return avatar;
+        }
+        if (avatar.startsWith('images/')) {
+            return '/' + avatar;
+        }
+        const clean = avatar.replace(/^\/?storage\//, '').replace(/^\//, '');
+        return '/storage/' + clean;
+    },
+
     async openModal(userId) {
         this.showModal = true;
         this.loadingUser = true;
@@ -598,7 +615,7 @@
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-700">
+                class="relative z-10 inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-slate-700">
                 
                 <div class="bg-slate-800/50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-slate-700">
                     <div class="sm:flex sm:items-center justify-between">
@@ -722,13 +739,8 @@
                                             <div>
                                                 <label class="block text-sm font-medium text-slate-300 mb-3">Avatar</label>
                                                 <div class="flex items-center gap-4">
-                                                    <div class="w-16 h-16 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
-                                                        <template x-if="selectedUser.avatar">
-                                                            <img :src="'/storage/' + selectedUser.avatar" class="w-full h-full object-cover">
-                                                        </template>
-                                                        <template x-if="!selectedUser.avatar">
-                                                            <div class="w-full h-full flex items-center justify-center text-slate-500">No Img</div>
-                                                        </template>
+                                                    <div class="w-16 h-16 rounded-full bg-slate-700 overflow-hidden flex-shrink-0 relative">
+                                                        <img :src="getUserAvatarUrl(selectedUser)" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='/images/default-male.svg';">
                                                     </div>
                                                     <input type="file" name="avatar" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
                                                 </div>
@@ -937,7 +949,7 @@
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-slate-700">
+                class="relative z-10 inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-slate-700">
                 
                 <div class="bg-slate-800/50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-slate-700">
                     <div class="sm:flex sm:items-center justify-between">
@@ -1051,7 +1063,7 @@
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-700">
+                class="relative z-10 inline-block align-bottom bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-700">
                 
                 <div class="bg-slate-800/50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-slate-700">
                     <div class="sm:flex sm:items-center justify-between">

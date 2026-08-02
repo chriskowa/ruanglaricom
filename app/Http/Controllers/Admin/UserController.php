@@ -50,7 +50,7 @@ class UserController extends Controller
         }
 
         $users = $query
-            ->select(['id', 'name', 'email', 'role', 'is_active', 'is_receive_wa', 'avatar', 'created_at'])
+            ->select(['id', 'name', 'email', 'role', 'is_active', 'is_receive_wa', 'avatar', 'gender', 'created_at'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
