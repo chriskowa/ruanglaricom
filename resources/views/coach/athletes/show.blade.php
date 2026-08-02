@@ -105,8 +105,25 @@
                                 @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
                                 @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
                                 @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
-                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Program Bag' : $enrollment->status) }}
+                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : $enrollment->status) }}
                             </span>
+                            
+                            <!-- Program Action Buttons -->
+                            @if($enrollment->status !== 'active')
+                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-neon text-dark font-black text-[11px] rounded-full shadow hover:bg-white transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-play text-[10px]"></i>
+                                    <span>Aktifkan Program</span>
+                                </button>
+                            @else
+                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:border-neon hover:text-neon text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-calendar-days text-[10px]"></i>
+                                    <span>Reschedule</span>
+                                </button>
+                            @endif
+                            <button @click="openReminderModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:border-neon hover:text-neon text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                <span>Kirim Pengingat</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -133,6 +150,24 @@
                 </div>
             </div>
         </div>
+
+        @if($enrollment->status !== 'active')
+        <div class="mb-6 p-4 rounded-2xl bg-amber-950/25 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xl">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+                    <i class="fa-solid fa-circle-play text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-extrabold text-white uppercase tracking-wide">Status: Program Belum Aktif</div>
+                    <div class="text-xs text-amber-200/80 mt-0.5">Atlet ini terdaftar pada {{ $enrollment->program->title }}. Tentukan tanggal mulai untuk mengaktifkan sesi latihan atlet.</div>
+                </div>
+            </div>
+            <button @click="openRescheduleModal()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg flex-shrink-0">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>Aktifkan Program Sekarang</span>
+            </button>
+        </div>
+        @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Calendar Column -->
@@ -1009,7 +1044,7 @@
             </div>
         </div>
 
-        <!-- Reschedule Program Modal -->
+        <!-- Reschedule / Activate Program Modal -->
         <div v-if="showRescheduleModal" class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRescheduleModal = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
@@ -1020,9 +1055,11 @@
                         <div>
                             <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
                                 <i class="fa-solid fa-calendar-days text-neon"></i>
-                                <span>Reschedule Program</span>
+                                <span>{{ $enrollment->status === 'active' ? 'Reschedule Program' : 'Aktifkan Program Atlet' }}</span>
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Jadwalkan ulang seluruh program latihan</p>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                {{ $enrollment->status === 'active' ? 'Jadwalkan ulang seluruh tanggal program latihan' : 'Tentukan tanggal mulai untuk mengaktifkan program atlet' }}
+                            </p>
                         </div>
                         <button @click="showRescheduleModal = false" class="text-slate-400 hover:text-white transition">
                             <i class="fa-solid fa-xmark text-lg"></i>
@@ -1032,34 +1069,44 @@
                     <!-- Body -->
                     <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
                         <!-- Program Info Card -->
-                        <div class="bg-blue-950/30 border border-blue-800/40 rounded-xl p-3.5 space-y-1.5 text-xs">
-                            <div class="text-blue-300">Program: <span class="font-bold text-white">{{ $enrollment->program->title }}</span></div>
-                            <div class="text-blue-300">
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5 text-xs">
+                            <div class="text-slate-400">Program: <span class="font-bold text-white">{{ $enrollment->program->title }}</span></div>
+                            <div class="text-slate-400">Status: <span class="font-bold text-neon uppercase">{{ $enrollment->status === 'purchased' ? 'Belum Aktif (Program Bag)' : ($enrollment->status === 'inactive' ? 'Expired' : $enrollment->status) }}</span></div>
+                            <div class="text-slate-400">
                                 Tanggal Aktif:
                                 <span class="font-bold text-white font-mono">
-                                    {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : '-' }}
-                                    →
-                                    {{ $enrollment->end_date ? \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') : '-' }}
+                                    {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : 'Belum Ditentukan' }}
+                                    @if($enrollment->end_date) → {{ \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') }} @endif
                                 </span>
                             </div>
-                            <div class="text-blue-300">Durasi: <span class="font-bold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
+                            <div class="text-slate-400">Durasi: <span class="font-bold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
                         </div>
 
                         <p class="text-slate-400 text-xs leading-relaxed">
-                            Semua sesi latihan akan digeser sesuai tanggal mulai baru. Reschedule per-sesi yang ada sebelumnya akan dihapus otomatis.
+                            Pilih tanggal mulai pertama untuk program ini. Seluruh sesi kalender latihan akan disesuaikan secara otomatis dari tanggal yang dipilih.
                         </p>
 
                         <div class="space-y-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Mulai Baru</label>
+                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Mulai Program</label>
                                 <input type="date" v-model="rescheduleForm.new_start_date"
-                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
+                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                            </div>
+
+                            <!-- Quick Date Shortcuts -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pintasan Tanggal Cepat</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button type="button" @click="setStartDateToday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Hari Ini</button>
+                                    <button type="button" @click="setStartDateNextMonday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Senin Depan</button>
+                                    <button type="button" @click="setStartDateNextMonth" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Bulan Depan</button>
+                                </div>
                             </div>
 
                             <!-- Preview end date -->
-                            <div v-if="rescheduleForm.new_start_date" class="bg-slate-800/60 border border-slate-700 rounded-xl p-3 text-xs flex justify-between items-center">
-                                <span class="text-slate-400">Estimasi Selesai:</span>
-                                <span class="text-white font-bold font-mono">@{{ previewRescheduleEndDate }}</span>
+                            <div v-if="rescheduleForm.new_start_date" class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs flex justify-between items-center">
+                                <span class="text-slate-400 font-medium">Estimasi Tanggal Selesai:</span>
+                                <span class="text-neon font-black font-mono">@{{ previewRescheduleEndDate }}</span>
                             </div>
 
                             <div v-if="rescheduleError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
@@ -1076,7 +1123,7 @@
                         </button>
                         <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
                             class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                            @{{ rescheduleLoading ? 'Menyimpan...' : 'Shift Calendar' }}
+                            @{{ rescheduleLoading ? 'Menyimpan...' : ('{{ $enrollment->status === "active" ? "Simpan Reschedule" : "Aktifkan Program" }}') }}
                         </button>
                     </div>
                 </div>
@@ -3208,6 +3255,118 @@ createApp({
             return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         };
 
+        // Reschedule & Program Activation State & Logic
+        const showRescheduleModal = ref(false);
+        const rescheduleLoading = ref(false);
+        const rescheduleError = ref('');
+        const rescheduleForm = reactive({
+            new_start_date: ''
+        });
+
+        const openRescheduleModal = (defaultDate = null) => {
+            rescheduleError.value = '';
+            const existingStart = @json($enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('Y-m-d') : null);
+            rescheduleForm.new_start_date = defaultDate || existingStart || new Date().toISOString().slice(0, 10);
+            showRescheduleModal.value = true;
+        };
+
+        const setStartDateToday = () => {
+            rescheduleForm.new_start_date = new Date().toISOString().slice(0, 10);
+        };
+
+        const setStartDateNextMonday = () => {
+            const today = new Date();
+            const day = today.getDay();
+            const daysUntilNextMonday = day === 0 ? 1 : (8 - day);
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+            rescheduleForm.new_start_date = nextMonday.toISOString().slice(0, 10);
+        };
+
+        const setStartDateNextMonth = () => {
+            const today = new Date();
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            rescheduleForm.new_start_date = nextMonth.toISOString().slice(0, 10);
+        };
+
+        const previewRescheduleEndDate = computed(() => {
+            if (!rescheduleForm.new_start_date) return '-';
+            const durationWeeks = @json($enrollment->program->duration_weeks ?? 12);
+            const d = new Date(rescheduleForm.new_start_date);
+            if (isNaN(d.getTime())) return '-';
+            d.setDate(d.getDate() + (durationWeeks * 7));
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        });
+
+        const submitReschedule = async () => {
+            if (!rescheduleForm.new_start_date) {
+                rescheduleError.value = 'Silakan pilih tanggal mulai.';
+                return;
+            }
+            rescheduleLoading.value = true;
+            rescheduleError.value = '';
+            try {
+                const res = await fetch(`{{ route('coach.athletes.reschedule', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_start_date: rescheduleForm.new_start_date })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showRescheduleModal.value = false;
+                    alert(data.message || 'Program berhasil diaktifkan / dijadwalkan ulang!');
+                    window.location.reload();
+                } else {
+                    rescheduleError.value = data.message || 'Gagal mengaktifkan/mengubah jadwal program.';
+                }
+            } catch (e) {
+                rescheduleError.value = 'Terjadi kesalahan pada server.';
+            } finally {
+                rescheduleLoading.value = false;
+            }
+        };
+
+        // Send Program Reminder State & Logic
+        const showReminderModal = ref(false);
+        const reminderLoading = ref(false);
+        const reminderError = ref('');
+        const reminderSuccess = ref('');
+        const reminderForm = reactive({
+            channel: 'both',
+            custom_message: ''
+        });
+
+        const openReminderModal = () => {
+            reminderError.value = '';
+            reminderSuccess.value = '';
+            reminderForm.custom_message = '';
+            showReminderModal.value = true;
+        };
+
+        const submitReminder = async () => {
+            reminderLoading.value = true;
+            reminderError.value = '';
+            reminderSuccess.value = '';
+            try {
+                const res = await fetch(`{{ route('coach.athletes.send-reminder', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: reminderForm.custom_message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    reminderSuccess.value = data.message || 'Pengingat berhasil dikirim ke atlet!';
+                    setTimeout(() => { showReminderModal.value = false; }, 1500);
+                } else {
+                    reminderError.value = data.message || 'Gagal mengirim pengingat.';
+                }
+            } catch (e) {
+                reminderError.value = 'Terjadi kesalahan pada server.';
+            } finally {
+                reminderLoading.value = false;
+            }
+        };
+
         // Analytics State & Logic
         const paceComplianceList = ref([]);
         const healthSummary = reactive({
@@ -3955,6 +4114,7 @@ createApp({
             // Reschedule Program
             showRescheduleModal, rescheduleForm, rescheduleLoading, rescheduleError,
             openRescheduleModal, submitReschedule, previewRescheduleEndDate,
+            setStartDateToday, setStartDateNextMonday, setStartDateNextMonth,
             // Send Program Reminder
             showReminderModal, reminderForm, reminderLoading, reminderError, reminderSuccess,
             openReminderModal, submitReminder,

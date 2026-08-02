@@ -1892,9 +1892,49 @@ class AthleteController extends Controller
 
         return response()->json([
             'success'    => true,
-            'message'    => 'Program berhasil dijadwalkan ulang mulai ' . $startDate->format('d M Y') . '.',
+            'message'    => 'Program berhasil diaktifkan / dijadwalkan ulang mulai ' . $startDate->format('d M Y') . '.',
             'start_date' => $startDate->format('Y-m-d'),
             'end_date'   => $endDate->format('Y-m-d'),
+            'status'     => 'active',
+        ]);
+    }
+
+    /**
+     * Send program reminder notification to athlete
+     */
+    public function sendReminder(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $customMsg = trim($validated['message'] ?? '');
+        $msg = $customMsg !== '' 
+            ? $customMsg 
+            : 'Coach ' . auth()->user()->name . ' mengingatkan Anda untuk mengecek dan menjalankan program latihan "' . $enrollment->program->title . '".';
+
+        \App\Models\Notification::create([
+            'user_id'        => $enrollment->runner_id,
+            'type'           => 'program_reminder',
+            'title'          => 'Pengingat Program Latihan',
+            'message'        => $msg,
+            'reference_type' => 'program_enrollment',
+            'reference_id'   => $enrollment->id,
+            'is_read'        => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notifikasi pengingat program berhasil dikirim ke ' . $enrollment->runner->name . '.',
         ]);
     }
 
