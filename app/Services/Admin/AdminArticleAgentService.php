@@ -96,7 +96,12 @@ TEXT;
         }
 
         //* 1. Susun Base Prompt
-        $prompt = "Kamu adalah seorang ahli strategi konten SEO untuk blog lari (Ruang Lari). Dengan topik utama '{$topic}', buatlah 10 ide artikel unik dan berpotensi trafik tinggi.\n\n";
+        $prompt = "Kamu adalah seorang Redaktur Utama & Ahli Strategi Konten SEO senior untuk Ruang Lari.\n" .
+                  "Input berikut berasal dari user yang memberikan topik lari atau cuplikan berita realtime / isu viral dari Threads, Instagram, atau media berita terkini:\n" .
+                  "=== INPUT BERITA / TOPIK ===\n" .
+                  "{$topic}\n" .
+                  "===========================\n\n" .
+                  "Tugasmu: Analisis topik/berita realtime tersebut dan hasilkan 10 ide artikel berita SEO yang tajam, faktual (gaya Kompas), informatif, dan memiliki nilai jurnalistik tinggi bagi komunitas lari.\n\n";
 
         //* 2. Inject Referensi & Strategi
         if ($strategy !== 'free' && !empty($topArticles)) {
@@ -311,22 +316,17 @@ TEXT;
 
         $selectedData = $query->selected_option_data;
         $systemPrompt = "Aku ingin Kamu menjawab hanya dalam bahasa Indonesia.\n" .
-                        "Aku ingin Kamu bertindak sebagai SEO yang sangat mahir dan penulis konten berkualitas tinggi untuk blog lari (Ruang Lari).\n" .
-                        "Tugas Kamu adalah menulis artikel yang dimulai dengan Judul SEO {$selectedData['title']}.\n" .
-                        "Tulis ulang konten dan sertakan daftar, tabel, atau subjudul menggunakan kata kunci terkait.\n" .
-                        "Artikel harus 100% unik dan bebas plagiarisme.\n" .
-                        "Artikel harus terdiri dari 300 hingga 1000 kata.\n" .
-                        "1 subjudul minimal 2 paragraf.\n" .
-                        "1 paragraf maksimal 4 kalimat.\n" .
-                        "1 kalimat maksimal 20 kata.\n" .
-                        "Sebarkan kata kunci fokus di awal, tengah, dan akhir artikel.\n" .
-                        "Jangan menambahkan kesimpulan di akhir artikel.\n" .
-                        "Semua hasil harus dalam bahasa Indonesia dan harus 100% gaya penulisan manusia.\n" .
-                        "Perbaiki masalah tata bahasa dan ubah ke kalimat aktif.\n" .
+                        "Aku ingin Kamu bertindak sebagai Jurnalis Utama & Penulis SEO Senior untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n" .
+                        "Tugas Kamu adalah menyusun artikel berita SEO yang dimulai dengan Judul SEO {$selectedData['title']}.\n\n" .
+                        "ATURAN GAYA PENULISAN BERITA (KOMPAS STYLE):\n" .
+                        "- Paragraf pertama (Lead Berita): Mulai langsung dengan fakta utama berprinsip 5W+1H (Apa, Siapa, Kapan, Di mana, Mengapa, Bagaimana) yang jelas dan memikat.\n" .
+                        "- Nada Jurnalistik & Bersumber: Gunakan kalimat aktif, lugas, obyektif, faktual, dan bersumber (sebutkan rujukan secara eksplisit jika ada rincian kutipan, data, atau cuplikan dari Threads/Instagram/berita terkini, misal: 'Berdasarkan laporan...', 'Sebagaimana diungkapkan dalam...'). JANGAN mengarang data atau hoaks.\n" .
+                        "- Kedalaman & Edukasi: Hubungkan isu/berita realtime tersebut dengan panduan praktis, riset ilmiah, atau dampaknya bagi dunia lari.\n" .
+                        "- Panjang & Struktur: 400 hingga 1200 kata. Setiap subjudul minimal 2 paragraf. 1 paragraf 2-4 kalimat. 1 kalimat maksimal 20-25 kata.\n" .
+                        "- Keterbacaan & SEO 2026: Sebarkan kata kunci fokus secara alami di paragraf pembuka, tengah, dan penutup. Jangan membuat kata kunci menjadi bold.\n" .
+                        "- Jangan menambahkan kata 'Kesimpulan' atau 'Penutup' sebagai subjudul kaku di akhir artikel.\n\n" .
                         self::HTML_STRUCTURE_RULES_ID . "\n" .
-                        "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat, dan slug pendek.\n" .
-                        "Jangan buat focus keyword menjadi bold di dalam artikel.\n" .
-
+                        "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy khas media berita nasional), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat ringkas, dan slug pendek.\n\n" .
                         "INSTRUKSI PROMPT GAMBAR (WAJIB):\n" .
                         "- Pada setiap sub-heading (<h2>), buatkan Prompt Gambar terkait topik tersebut.\n" .
                         "- Buatkan juga 1 Prompt Gambar Cover di bagian paling atas artikel (tepat di atas paragraf pertama).\n" .
@@ -339,7 +339,6 @@ TEXT;
                         "  * Lighting/Pencahayaan: Alami & organik (soft natural daylight, warm ambient light, bayangan realistis seperti gaya visual Grok Imagine).\n" .
                         "  * Detail & Finishing: Real photorealistic, tekstur kulit alami (smooth natural skin pores), tanpa oversharpening, tidak kaku, tanpa efek 3D CGI/render AI kaku.\n" .
                         "  * Tulis deskripsi visual di dalam [Gambar: ...] secara detail dalam bahasa Inggris (atau campuran ID/EN) yang spesifik menyebutkan subjek orang Indonesia, ekspresi candid, lokasi, pencahayaan alami, dan gaya fotografi realistis ratio 3:2.\n\n" .
-
                         "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug'.\n" .
                         "IMPORTANT: Pastikan semua double quote di dalam 'content' ter-escape agar JSON valid.";
 

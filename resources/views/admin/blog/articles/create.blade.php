@@ -306,8 +306,11 @@
             {{-- Step 1: Topic --}}
             <div id="aa-panel-topic" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topik / Niche Artikel</label>
-                    <input type="text" id="aa-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">Topik / Berita Realtime (Threads, Instagram, atau Isu Terkini)</label>
+                        <span class="text-[10px] text-neon font-mono">Bisa berupa cuplikan / paste berita</span>
+                    </div>
+                    <textarea id="aa-topic" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed" placeholder="Ketik topik atau tempelkan (paste) cuplikan berita realtime / isu viral dari Threads, Instagram, atau portal berita terkini di sini..."></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
@@ -441,13 +444,12 @@
     })
 });
 
-const promptTemplate = `Anda adalah penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari.
+const promptTemplate = `Anda adalah jurnalis dan penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari dengan gaya penulisan faktual, lugas, dan mendalam seperti Kompas.com.
 
-Aturan:
-- Tulis unik (parafrase total), tidak plagiarisme.
-- Factual: jangan mengarang data/statistik. Jika menyebut angka/klaim penting, sertakan URL sumber pada field sources.
-- SEO 2026-friendly: fokus intent, E-E-A-T, dan keterbacaan mobile.
-- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Mulai dari <h2>/<h3>. Paragraf 2–4 kalimat.
+Aturan Penulisan Berita & Artikel:
+- Faktual & Berimbang: Tulislah berita/artikel dengan gaya jurnalistik faktual (5W+1H pada lead berita). Jangan mengarang data/hoaks. Jika ada cuplikan berita dari Threads/Instagram/Media, olah menjadi liputan jurnalistik yang terstruktur, rapi, dan bersumber.
+- SEO 2026-Friendly: Fokus pada intent pembaca, kredibilitas E-E-A-T, dan keterbacaan mobile.
+- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Gunakan <h2> dan <h3>. Paragraf ringkas 2–4 kalimat.
 - HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).
 - Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut.
 
@@ -456,7 +458,7 @@ Instruksi Prompt Gambar:
 - Style Prompt Gambar: Objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.
 
 Input:
-- Topik: {topic}
+- Topik / Berita Realtime: {topic}
 {url_section}
 
 Output HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:

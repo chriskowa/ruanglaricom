@@ -258,8 +258,11 @@
 
             <div id="aa-panel-topic" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topik / Niche Artikel</label>
-                    <input type="text" id="aa-topic" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">Topik / Berita Realtime (Threads, Instagram, atau Isu Terkini)</label>
+                        <span class="text-[10px] text-neon font-mono">Bisa berupa cuplikan / paste berita</span>
+                    </div>
+                    <textarea id="aa-topic" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed" placeholder="Ketik topik atau tempelkan (paste) cuplikan berita realtime / isu viral dari Threads, Instagram, atau portal berita terkini di sini..."></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
