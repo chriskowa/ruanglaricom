@@ -1123,7 +1123,8 @@
                         </button>
                         <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
                             class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                            @{{ rescheduleLoading ? 'Menyimpan...' : ('{{ $enrollment->status === "active" ? "Simpan Reschedule" : "Aktifkan Program" }}') }}
+                            <span v-if="rescheduleLoading">Menyimpan...</span>
+                            <span v-else>{{ $enrollment->status === 'active' ? 'Simpan Reschedule' : 'Aktifkan Program' }}</span>
                         </button>
                     </div>
                 </div>
