@@ -1856,15 +1856,75 @@ class AthleteController extends Controller
             abort(403);
         }
 
+        // 1. Single Workout / Program Session Drag & Drop Reschedule
+        if ($request->has('new_date') || $request->has('type')) {
+            $validated = $request->validate([
+                'type'        => 'required|in:program_session,custom_workout',
+                'new_date'    => 'required|date',
+                'workout_id'  => 'nullable|required_if:type,custom_workout|exists:custom_workouts,id',
+                'session_day' => 'nullable|required_if:type,program_session|integer',
+            ]);
+
+            $newDate = Carbon::parse($validated['new_date']);
+
+            if ($validated['type'] === 'custom_workout') {
+                $workout = CustomWorkout::where('id', $validated['workout_id'])
+                    ->where('runner_id', $enrollment->runner_id)
+                    ->firstOrFail();
+
+                try {
+                    $workout->update(['workout_date' => $newDate]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // Handle Duplicate Entry (1062) by Swapping
+                    if (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1062) {
+                        $existingWorkout = CustomWorkout::where('runner_id', $enrollment->runner_id)
+                            ->where('workout_date', $newDate->format('Y-m-d'))
+                            ->first();
+
+                        if ($existingWorkout) {
+                            \DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
+                                $originalDate = $workout->workout_date;
+                                $tempDate = Carbon::parse('1970-01-01');
+                                while (CustomWorkout::where('runner_id', $workout->runner_id)->where('workout_date', $tempDate->format('Y-m-d'))->exists()) {
+                                    $tempDate->subDay();
+                                }
+                                $existingWorkout->update(['workout_date' => $tempDate]);
+                                $workout->update(['workout_date' => $newDate]);
+                                $existingWorkout->update(['workout_date' => $originalDate]);
+                            });
+
+                            return response()->json(['success' => true, 'message' => 'Jadwal latihan ditukar karena tanggal tujuan sudah terisi.']);
+                        }
+                    }
+                    throw $e;
+                }
+
+                return response()->json(['success' => true, 'message' => 'Latihan kustom berhasil dipindahkan.']);
+            } else {
+                ProgramSessionTracking::updateOrCreate(
+                    [
+                        'enrollment_id' => $enrollment->id,
+                        'session_day'   => $validated['session_day'],
+                    ],
+                    [
+                        'rescheduled_date' => $newDate,
+                    ]
+                );
+
+                return response()->json(['success' => true, 'message' => 'Sesi program berhasil dipindahkan.']);
+            }
+        }
+
+        // 2. Entire Program Reschedule (New Start Date)
         $validated = $request->validate([
             'new_start_date' => 'required|date',
         ]);
 
-        $startDate    = Carbon::parse($validated['new_start_date']);
-        $program      = $enrollment->program;
+        $startDate     = Carbon::parse($validated['new_start_date']);
+        $program       = $enrollment->program;
         $durationWeeks = $program->duration_weeks ?? 12;
-        $endDate      = $startDate->copy()->addWeeks($durationWeeks);
-        $runnerId     = $enrollment->runner_id;
+        $endDate       = $startDate->copy()->addWeeks($durationWeeks);
+        $runnerId      = $enrollment->runner_id;
 
         \DB::transaction(function () use ($enrollment, $startDate, $endDate) {
             // Update enrollment dates
