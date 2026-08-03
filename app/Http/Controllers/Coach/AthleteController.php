@@ -2056,6 +2056,66 @@ class AthleteController extends Controller
     }
 
     /**
+     * Update custom training paces for an athlete (Coach Action)
+     */
+    public function updatePaces(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        if ($request->boolean('reset')) {
+            $enrollment->runner->update(['custom_training_paces' => null]);
+
+            $profile = app(\App\Services\RunningProfileService::class)->getProfile($enrollment->runner->fresh());
+
+            return response()->json([
+                'success'         => true,
+                'message'         => 'Pace latihan berhasil dikembalikan ke perhitungan otomatis VDOT.',
+                'is_custom'       => false,
+                'trainingProfile' => $profile,
+            ]);
+        }
+
+        $validated = $request->validate([
+            'paces'   => 'required|array',
+            'paces.E' => 'nullable|string',
+            'paces.M' => 'nullable|string',
+            'paces.T' => 'nullable|string',
+            'paces.I' => 'nullable|string',
+            'paces.R' => 'nullable|string',
+        ]);
+
+        $customPaces = [];
+        foreach (['E', 'M', 'T', 'I', 'R'] as $type) {
+            $val = trim($validated['paces'][$type] ?? '');
+            if ($val !== '') {
+                $customPaces[$type] = $val;
+            }
+        }
+
+        if (empty($customPaces)) {
+            $enrollment->runner->update(['custom_training_paces' => null]);
+        } else {
+            $enrollment->runner->update(['custom_training_paces' => $customPaces]);
+        }
+
+        $profile = app(\App\Services\RunningProfileService::class)->getProfile($enrollment->runner->fresh());
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Pace latihan khusus berhasil diperbarui!',
+            'is_custom'       => !empty($customPaces),
+            'trainingProfile' => $profile,
+        ]);
+    }
+
+    /**
      * Athlete Strava Activity AI Analysis
      */
     public function stravaActivityAiAnalysis(Request $request, $enrollmentId, $stravaActivityId)

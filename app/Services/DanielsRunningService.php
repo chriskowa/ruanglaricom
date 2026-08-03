@@ -223,7 +223,14 @@ class DanielsRunningService
     public function calculateTrackTimes(float $vdot): array
     {
         $paces = $this->calculateTrainingPaces($vdot); // min/km
+        return $this->calculateTrackTimesFromPaces($paces);
+    }
 
+    /**
+     * Calculate track split times from given training paces array
+     */
+    public function calculateTrackTimesFromPaces(array $paces): array
+    {
         $distances = [
             '100m' => 0.1,
             '200m' => 0.2,
@@ -240,13 +247,17 @@ class DanielsRunningService
         $trackTimes = [];
 
         foreach ($distances as $label => $distKm) {
+            $rPace = $paces['R'] ?? $paces['I'] ?? $paces['E'] ?? 5.0;
+            $iPace = $paces['I'] ?? $paces['T'] ?? $paces['E'] ?? 5.0;
+            $tPace = $paces['T'] ?? $paces['M'] ?? $paces['E'] ?? 5.0;
+
             $trackTimes[$label] = [
-                'R' => $this->formatSplitTime($distKm * $paces['R']),
-                'I' => $this->formatSplitTime($distKm * $paces['I']),
-                'T' => $this->formatSplitTime($distKm * $paces['T']),
-                'pace_R' => $this->formatPace($paces['R']),
-                'pace_I' => $this->formatPace($paces['I']),
-                'pace_T' => $this->formatPace($paces['T']),
+                'R' => $this->formatSplitTime($distKm * $rPace),
+                'I' => $this->formatSplitTime($distKm * $iPace),
+                'T' => $this->formatSplitTime($distKm * $tPace),
+                'pace_R' => $this->formatPace($rPace),
+                'pace_I' => $this->formatPace($iPace),
+                'pace_T' => $this->formatPace($tPace),
             ];
         }
 

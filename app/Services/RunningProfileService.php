@@ -32,11 +32,34 @@ class RunningProfileService
             }
         }
 
-        $paces = $bestVdot ? $daniels->calculateTrainingPaces($bestVdot) : null;
+        $vdotPaces = $bestVdot ? $daniels->calculateTrainingPaces($bestVdot) : null;
+        $customPacesRaw = $user->custom_training_paces;
+
+        $paces = $vdotPaces;
+        $isCustomPaces = false;
+
+        if (is_array($customPacesRaw) && !empty($customPacesRaw)) {
+            if (!$paces) {
+                $paces = [];
+            }
+            foreach (['E', 'M', 'T', 'I', 'R'] as $type) {
+                if (!empty($customPacesRaw[$type])) {
+                    $val = $customPacesRaw[$type];
+                    if (is_string($val) && str_contains($val, ':')) {
+                        $parts = explode(':', $val);
+                        $val = ((float)$parts[0]) + (((float)($parts[1] ?? 0)) / 60);
+                    }
+                    $paces[$type] = round((float)$val, 4);
+                    $isCustomPaces = true;
+                }
+            }
+        }
+
         $equivalent = $bestVdot ? $daniels->calculateEquivalentRaceTimes($bestVdot) : null;
-        $trackTimes = $bestVdot ? $daniels->calculateTrackTimes($bestVdot) : null;
+        $trackTimes = $paces ? $daniels->calculateTrackTimesFromPaces($paces) : ($bestVdot ? $daniels->calculateTrackTimes($bestVdot) : null);
 
         return [
+            'name' => $user->name,
             'pb' => [
                 '5k' => $pbs['5k'],
                 '10k' => $pbs['10k'],
@@ -48,6 +71,8 @@ class RunningProfileService
             'vo2max' => $bestVdot, // Approximation aligned with VDOT scale
             'weekly_km_target' => $user->weekly_km_target,
             'paces' => $paces,
+            'is_custom_paces' => $isCustomPaces,
+            'custom_paces_raw' => $customPacesRaw,
             'equivalent_race_times' => $equivalent,
             'track_times' => $trackTimes,
         ];

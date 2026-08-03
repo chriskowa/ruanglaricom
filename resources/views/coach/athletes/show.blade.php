@@ -261,6 +261,21 @@
 
                         <!-- Training Tab -->
                         <div v-if="profileTab === 'training'">
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-400 font-bold uppercase">Pace Latihan Utama</span>
+                                    <span v-if="trainingProfile.is_custom_paces" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                        <i class="fa-solid fa-user-gear mr-1"></i>KUSTOM COACH
+                                    </span>
+                                    <span v-else class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                        <i class="fa-solid fa-calculator mr-1"></i>OTOMATIS VDOT
+                                    </span>
+                                </div>
+                                <button @click="openPaceModal()" class="px-2.5 py-1 rounded-lg bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark transition-all text-xs font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                    <span>Edit Pace</span>
+                                </button>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
                                     <thead>
@@ -272,23 +287,23 @@
                                     <tbody class="text-slate-300">
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-green-400 font-bold">Easy (E)</td>
-                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.E) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.E) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-blue-400 font-bold">Marathon (M)</td>
-                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.M) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.M) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-yellow-400 font-bold">Threshold (T)</td>
-                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.T) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.T) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-orange-400 font-bold">Interval (I)</td>
-                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.I) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.I) }}</td>
                                         </tr>
                                         <tr>
                                             <td class="py-2 text-red-400 font-bold">Repetition (R)</td>
-                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.R) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.R) }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1730,6 +1745,72 @@
     </div>
 
 
+    <!-- Modal Edit Pace Latihan (Custom Pace) -->
+    <div v-if="showPaceModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-white font-extrabold text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-neon"></i>
+                        Edit Pace Latihan Atlet
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Tentukan pace khusus untuk Easy, Marathon, Threshold, Interval, & Repetition.</p>
+                </div>
+                <button @click="showPaceModal = false" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-300">
+                    <p class="leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-neon mr-1"></i>
+                        Masukkan pace dalam format <strong>MM:SS</strong> (contoh: <code>05:30</code> untuk 5 min 30 sec per km). Kosongkan field jika ingin mengikuti kalkulasi VDOT otomatis.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-green-400 mb-1">Easy Pace (E)</label>
+                        <input type="text" v-model="paceForm.E" placeholder="e.g. 05:30" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-blue-400 mb-1">Marathon Pace (M)</label>
+                        <input type="text" v-model="paceForm.M" placeholder="e.g. 04:50" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-yellow-400 mb-1">Threshold Pace (T)</label>
+                        <input type="text" v-model="paceForm.T" placeholder="e.g. 04:30" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-orange-400 mb-1">Interval Pace (I)</label>
+                        <input type="text" v-model="paceForm.I" placeholder="e.g. 04:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-red-400 mb-1">Repetition Pace (R)</label>
+                        <input type="text" v-model="paceForm.R" placeholder="e.g. 03:45" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-3 border-t border-slate-800">
+                <button type="button" @click="updatePaces(true)" :disabled="paceLoading" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left text-amber-400"></i>
+                    <span>Reset ke Otomatis VDOT</span>
+                </button>
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <button type="button" @click="showPaceModal = false" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
+                        Batal
+                    </button>
+                    <button type="button" @click="updatePaces(false)" :disabled="paceLoading" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-lg shadow-neon/10">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Simpan Pace Khusus</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 @endsection
 
@@ -1856,6 +1937,57 @@ createApp({
         const weeklyTargetForm = reactive({
             weekly_km_target: trainingProfile.weekly_km_target || ''
         });
+
+        // Custom Pace Latihan State
+        const showPaceModal = ref(false);
+        const paceLoading = ref(false);
+        const paceForm = reactive({
+            E: '',
+            M: '',
+            T: '',
+            I: '',
+            R: ''
+        });
+
+        const openPaceModal = () => {
+            const raw = trainingProfile.custom_paces_raw || {};
+            const curPaces = trainingProfile.paces || {};
+
+            paceForm.E = raw.E || (curPaces.E ? formatPace(curPaces.E) : '');
+            paceForm.M = raw.M || (curPaces.M ? formatPace(curPaces.M) : '');
+            paceForm.T = raw.T || (curPaces.T ? formatPace(curPaces.T) : '');
+            paceForm.I = raw.I || (curPaces.I ? formatPace(curPaces.I) : '');
+            paceForm.R = raw.R || (curPaces.R ? formatPace(curPaces.R) : '');
+
+            showPaceModal.value = true;
+        };
+
+        const updatePaces = async (reset = false) => {
+            paceLoading.value = true;
+            try {
+                const payload = reset ? { reset: true } : { paces: { ...paceForm } };
+                const res = await fetch(`{{ route('coach.athletes.update-paces', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.trainingProfile) {
+                        Object.assign(trainingProfile, data.trainingProfile);
+                    }
+                    showPaceModal.value = false;
+                    alert(data.message || 'Pace latihan berhasil diperbarui!');
+                } else {
+                    alert(data.message || 'Gagal memperbarui pace latihan');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Terjadi kesalahan koneksi.');
+            } finally {
+                paceLoading.value = false;
+            }
+        };
 
         // Weekly Report State
         const weeklyReportLoading = ref(false);
@@ -4055,6 +4187,7 @@ createApp({
         return { 
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
+            showPaceModal, paceLoading, paceForm, openPaceModal, updatePaces,
             showVdotModal, vdotForm, vdotLoading, vdotError, vdotSuccess, previewVdot, submitUpdateVdot,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             exportCalendar,
