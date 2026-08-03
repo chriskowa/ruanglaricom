@@ -320,16 +320,24 @@
                                 <div id="vdot_tab_paces_content" class="space-y-2">
                                     <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
                                         <div>
-                                            <span class="text-[10px] font-bold text-emerald-400 block uppercase">Easy Pace (Recovery / Long)</span>
-                                            <span class="text-[10px] text-slate-400">Pace nyaman & siap mengobrol</span>
+                                            <span class="text-[10px] font-bold text-emerald-400 block uppercase">Easy (E) Pace</span>
+                                            <span class="text-[10px] text-slate-400">Recovery & Long Run (~70% vVO2max)</span>
                                         </div>
-                                        <span id="vdot_easy_pace" class="font-mono font-bold text-white text-xs">05:00 - 05:25/km</span>
+                                        <span id="vdot_easy_pace" class="font-mono font-bold text-white text-xs">05:00/km</span>
                                     </div>
 
                                     <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
                                         <div>
-                                            <span class="text-[10px] font-bold text-amber-400 block uppercase">Tempo / Threshold (T)</span>
-                                            <span class="text-[10px] text-slate-400">Pace laktat (~88% vVO2max)</span>
+                                            <span class="text-[10px] font-bold text-blue-400 block uppercase">Marathon (M) Pace</span>
+                                            <span class="text-[10px] text-slate-400">Target Pace Lomba FM (~82% vVO2max)</span>
+                                        </div>
+                                        <span id="vdot_marathon_pace" class="font-mono font-bold text-white text-xs">04:30/km</span>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-amber-400 block uppercase">Threshold / Tempo (T) Pace</span>
+                                            <span class="text-[10px] text-slate-400">Pace Ambang Laktat (~88% vVO2max)</span>
                                         </div>
                                         <span id="vdot_tempo_pace" class="font-mono font-bold text-white text-xs">04:10/km</span>
                                     </div>
@@ -337,7 +345,7 @@
                                     <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
                                         <div>
                                             <span class="text-[10px] font-bold text-rose-400 block uppercase">Interval (I) Pace</span>
-                                            <span class="text-[10px] text-slate-400">VO2max (Sesi 400m - 1000m)</span>
+                                            <span class="text-[10px] text-slate-400">VO2max (~97% vVO2max)</span>
                                         </div>
                                         <div class="text-right">
                                             <span id="vdot_interval_pace" class="font-mono font-bold text-white text-xs block">03:45/km</span>
@@ -348,7 +356,7 @@
                                     <div class="p-2.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44] flex items-center justify-between">
                                         <div>
                                             <span class="text-[10px] font-bold text-[#FC4C02] block uppercase">Repetition (R) Pace</span>
-                                            <span class="text-[10px] text-slate-400">Speed & Form (Sesi 200m - 400m)</span>
+                                            <span class="text-[10px] text-slate-400">Speed & Form (~105% vVO2max)</span>
                                         </div>
                                         <div class="text-right">
                                             <span id="vdot_repetition_pace" class="font-mono font-bold text-white text-xs block">03:30/km</span>
@@ -1261,6 +1269,7 @@
         const fitnessLevelDisplay = document.getElementById('vdot_fitness_level');
 
         const easyPaceDisplay = document.getElementById('vdot_easy_pace');
+        const marathonPaceDisplay = document.getElementById('vdot_marathon_pace');
         const tempoPaceDisplay = document.getElementById('vdot_tempo_pace');
         const intervalPaceDisplay = document.getElementById('vdot_interval_pace');
         const interval400mDisplay = document.getElementById('vdot_interval_400m');
@@ -1343,23 +1352,27 @@
             const a = 0.000104, b = 0.182258, c = -4.6 - vdotVal;
             const vVO2max = (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a); // m/min
 
-            // Calculate Training Paces (Jack Daniels Ratios)
-            // Easy range: 0.66 - 0.72 of vVO2max
-            const eHighVelocity = vVO2max * 0.72;
-            const eLowVelocity = vVO2max * 0.66;
+            // Calculate Training Paces (Jack Daniels Standard Ratios)
+            // 1. Easy (E) Range: 66% - 72% vVO2max (Jack Daniels Standard Range)
+            const eHighVelocity = vVO2max * 0.72; // Faster end (e.g. 5:15/km)
+            const eLowVelocity = vVO2max * 0.66;  // Slower end (e.g. 5:45/km)
             const eHighSecPerKm = Math.round((1000 / eHighVelocity) * 60);
             const eLowSecPerKm = Math.round((1000 / eLowVelocity) * 60);
 
-            // Tempo (T): 0.88 vVO2max
+            // 2. Marathon (M): ~82% vVO2max
+            const mVelocity = vVO2max * 0.82;
+            const mSecPerKm = Math.round((1000 / mVelocity) * 60);
+
+            // 3. Tempo / Threshold (T): ~88% vVO2max
             const tVelocity = vVO2max * 0.88;
             const tSecPerKm = Math.round((1000 / tVelocity) * 60);
 
-            // Interval (I): 0.97 vVO2max
+            // 4. Interval (I): ~97% vVO2max
             const iVelocity = vVO2max * 0.97;
             const iSecPerKm = Math.round((1000 / iVelocity) * 60);
             const iSec400m = Math.round(iSecPerKm * 0.4);
 
-            // Repetition (R): 1.05 vVO2max
+            // 5. Repetition (R): ~1.05 vVO2max
             const rVelocity = vVO2max * 1.05;
             const rSecPerKm = Math.round((1000 / rVelocity) * 60);
             const rSec400m = Math.round(rSecPerKm * 0.4);
@@ -1388,6 +1401,7 @@
             fitnessLevelDisplay.innerText = level;
 
             easyPaceDisplay.innerText = `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowSecPerKm)}`;
+            if (marathonPaceDisplay) marathonPaceDisplay.innerText = formatSecToMinKm(mSecPerKm);
             tempoPaceDisplay.innerText = formatSecToMinKm(tSecPerKm);
             intervalPaceDisplay.innerText = formatSecToMinKm(iSecPerKm);
             interval400mDisplay.innerText = `(${iSec400m}s / 400m)`;

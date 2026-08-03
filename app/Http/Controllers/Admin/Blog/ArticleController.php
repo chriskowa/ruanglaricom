@@ -30,43 +30,55 @@ class ArticleController extends Controller
     /**
      * Generate article using AI.
      */
+    /**
+     * Generate article using AI.
+     */
     public function generate(Request $request)
     {
-        $request->validate([
-            'topic' => 'required|string',
-            'url' => 'nullable|url',
-        ]);
-
-        $topic = $request->topic;
-        $url = $request->url;
-        
-        $systemPrompt = "Anda adalah penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari.\n\n"
-            . "Aturan:\n"
-            . "- Tulis unik (parafrase total), tidak plagiarisme.\n"
-            . "- Factual: jangan mengarang data/statistik. Jika menyebut angka/klaim penting, sertakan URL sumber pada field sources.\n"
-            . "- SEO 2026-friendly: fokus intent, E-E-A-T, dan keterbacaan mobile.\n"
-            . "- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Mulai dari <h2>/<h3>. Paragraf 2–4 kalimat.\n"
-            . "- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).\n"
-            . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
-            . "INSTRUKSI PROMPT GAMBAR (WAJIB):\n"
-            . "- Pada setiap sub-heading (<h2>) dan bagian atas artikel (cover), buatkan marker prompt gambar [Gambar: Deskripsi visual...].\n"
-            . "- GAYA PROMPT GAMBAR: Subjek/objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.\n\n"
-            . "Input:\n"
-            . "- Topik: {$topic}\n"
-            . ($url ? "- URL referensi: {$url}\n" : "")
-            . "\nOutput HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
-            . "{\n"
-            . "  \"seo_title\": \"... (<= 60 karakter)\",\n"
-            . "  \"keywords\": \"... (utama + 3-5 LSI)\",\n"
-            . "  \"meta_description\": \"... (140-160 karakter)\",\n"
-            . "  \"excerpt\": \"... (ringkas 1-2 kalimat)\",\n"
-            . "  \"content\": \"... (HTML body, tanpa <h1>)\",\n"
-            . "  \"slug\": \"... (slug pendek)\",\n"
-            . "  \"sources\": [\"https://...\"]\n"
-            . "}";
+        set_time_limit(180);
+        ini_set('max_execution_time', 180);
 
         try {
-            $userPrompt = "Topik: {$topic}" . ($url ? "\nURL referensi: {$url}" : "");
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'topic' => 'required|string',
+                'url'   => 'nullable|url',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
+            $topic = $request->topic;
+            $url   = $request->url;
+            
+            $systemPrompt = "Anda adalah jurnalis dan penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n\n"
+                . "Aturan Penulisan Berita & Artikel:\n"
+                . "- Faktual & Berimbang: Tulislah berita/artikel dengan gaya jurnalistik faktual (5W+1H pada lead berita). Jangan mengarang data/hoaks. Jika ada cuplikan berita dari Threads/Instagram/Media, olah menjadi liputan jurnalistik yang terstruktur, rapi, dan bersumber.\n"
+                . "- SEO 2026-Friendly: Fokus intent, E-E-A-T, dan keterbacaan mobile.\n"
+                . "- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Gunakan <h2> dan <h3>. Paragraf 2–4 kalimat.\n"
+                . "- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).\n"
+                . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
+                . "INSTRUKSI PROMPT GAMBAR (WAJIB):\n"
+                . "- Pada setiap sub-heading (<h2>) dan bagian atas artikel (cover), buatkan marker prompt gambar [Gambar: Deskripsi visual...].\n"
+                . "- GAYA PROMPT GAMBAR: Subjek/objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.\n\n"
+                . "Input:\n"
+                . "- Topik / Berita Realtime: {$topic}\n"
+                . ($url ? "- URL referensi: {$url}\n" : "")
+                . "\nOutput HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
+                . "{\n"
+                . "  \"seo_title\": \"... (<= 60 karakter)\",\n"
+                . "  \"keywords\": \"... (utama + 3-5 LSI)\",\n"
+                . "  \"meta_description\": \"... (140-160 karakter)\",\n"
+                . "  \"excerpt\": \"... (ringkas 1-2 kalimat)\",\n"
+                . "  \"content\": \"... (HTML body, tanpa <h1>)\",\n"
+                . "  \"slug\": \"... (slug pendek)\",\n"
+                . "  \"sources\": [\"https://...\"]\n"
+                . "}";
+
+            $userPrompt = "Topik / Berita Realtime: {$topic}" . ($url ? "\nURL referensi: {$url}" : "");
             $model = config('services.openai.blog_model') ?: config('services.openai.model') ?: 'gpt-4o';
             $response = $this->aiService->getAiResponseOrThrow($userPrompt, $systemPrompt, $model);
 
@@ -103,7 +115,7 @@ class ArticleController extends Controller
                 'data' => $data
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()

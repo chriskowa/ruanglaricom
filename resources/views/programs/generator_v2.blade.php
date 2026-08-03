@@ -732,7 +732,8 @@
                 '10k': 10,
                 '21k': 21.0975,
                 '42k': 42.195,
-                'cooper12': 3.2
+                'cooper12': 2.4,
+                'balke15': 3.0
             };
 
             const distanceMeters = {
@@ -740,7 +741,8 @@
                 '10k': 10000,
                 '21k': 21097.5,
                 '42k': 42195,
-                'cooper12': 3200
+                'cooper12': 2400,
+                'balke15': 3000
             };
 
             const getRatioForDistance = (distanceKey, vdot) => {
@@ -749,7 +751,8 @@
                     '10k': 0.915,
                     '21k': 0.865,
                     '42k': 0.815,
-                    'cooper12': 0.99
+                    'cooper12': 0.99,
+                    'balke15': 0.95
                 };
                 const base = ratios[distanceKey] ?? 0.957;
                 return base + (vdot - 50) * 0.0005;
@@ -763,9 +766,16 @@
             };
 
             const calculateVDOTFromPerformance = (distanceKey, totalSeconds) => {
-                if (!totalSeconds || totalSeconds < 600) return 0;
-                const distMeters = distanceMeters[distanceKey];
-                if (!distMeters) return 0;
+                let distMeters = distanceMeters[distanceKey];
+                
+                if (distanceKey === 'cooper12' || distanceKey === 'balke15') {
+                    distMeters = Number(pb_distance_meters.value) || (distanceKey === 'balke15' ? 3000 : 2400);
+                    totalSeconds = (distanceKey === 'balke15') ? 900 : 720;
+                }
+
+                if (!totalSeconds || totalSeconds < 300) return 0;
+                if (!distMeters || distMeters <= 0) return 0;
+
                 const velocityMin = (distMeters / totalSeconds) * 60;
                 let vdot = 50;
                 for (let i = 0; i < 5; i++) {
@@ -811,6 +821,10 @@
             });
 
             const current_vdot = computed(() => {
+                if (form.pb_distance === 'cooper12' || form.pb_distance === 'balke15') {
+                    const sec = form.pb_distance === 'balke15' ? 900 : 720;
+                    return calculateVDOTFromPerformance(form.pb_distance, sec);
+                }
                 const t = (pb_hours.value * 3600) + (pb_minutes.value * 60) + pb_seconds.value;
                 return calculateVDOTFromPerformance(form.pb_distance, t);
             });
@@ -826,7 +840,8 @@
                     '10k': 0.05,
                     '21k': 0.04,
                     '42k': 0.03,
-                    'cooper12': 0.07
+                    'cooper12': 0.07,
+                    'balke15': 0.06
                 };
                 const levelFactor = {
                     'beginner': 0.85,
@@ -1017,6 +1032,18 @@
                 const level = form.runner_level || 'intermediate';
                 const dist = form.target_distance || '10k';
                 let base = baseMileageMap[dist]?.[level] || 45;
+
+                // Dynamically adjust mileage recommendation based on current VDOT
+                const cv = current_vdot.value;
+                if (cv && cv > 0) {
+                    if (cv < 35) {
+                        base = Math.max(20, base - 5);
+                    } else if (cv >= 55) {
+                        base = base + 10;
+                    } else if (cv >= 48) {
+                        base = base + 5;
+                    }
+                }
 
                 const rounded = Math.round(base / 5) * 5;
                 return Math.min(120, Math.max(20, rounded));

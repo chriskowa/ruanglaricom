@@ -513,12 +513,22 @@ async function generateArticle() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({ topic: topic, url: url })
         });
 
-        const result = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        let result;
+
+        if (contentType.includes('application/json')) {
+            result = await response.json();
+        } else {
+            const rawText = await response.text();
+            console.error('Non-JSON response:', rawText);
+            throw new Error(`Respon server tidak valid (${response.status}). Silakan coba lagi.`);
+        }
 
         if (result.success) {
             const data = result.data;
@@ -542,7 +552,7 @@ async function generateArticle() {
             alert('Gagal generate artikel: ' + (result.message || 'Unknown error'));
         }
     } catch (error) {
-        alert('Terjadi kesalahan sistem.');
+        alert('Gagal: ' + (error.message || 'Terjadi kesalahan sistem.'));
         console.error(error);
     } finally {
         btn.disabled = false;

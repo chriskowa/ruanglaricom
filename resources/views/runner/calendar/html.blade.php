@@ -4,7 +4,7 @@
         <div v-if="notification" class="fixed top-24 right-4 z-[5000] max-w-sm w-full">
             <div :class="notification.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : 'bg-green-500/90 border-green-400 text-white'" 
                  class="p-4 rounded-2xl border backdrop-blur-md shadow-2xl flex items-start gap-3">
-                <span class="text-lg">@{{ notification.type === 'error' ? '⚠️' : '✅' }}</span>
+                <i :class="notification.type === 'error' ? 'fa-solid fa-triangle-exclamation text-amber-400' : 'fa-solid fa-circle-check text-green-400'" class="text-sm"></i>
                 <div class="flex-1 text-sm font-bold">@{{ notification.message }}</div>
                 <button @click="notification = null" class="text-white/70 hover:text-white">✕</button>
             </div>
@@ -38,7 +38,7 @@
 
                 <div class="hidden md:flex gap-2 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
                     <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm">Generate VDOT</button>
-                    <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm flex items-center gap-1.5">⚡ Analisis My Training</button>
+                    <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Analisis My Training</button>
                     <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-orange-600 text-white hover:bg-orange-500 transition text-[11px] font-semibold shadow flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
                         <span v-if="isSyncingStrava" class="animate-spin text-[10px]">⟳</span>
                         Sync Strava
@@ -66,7 +66,7 @@
                         <span class="text-dark/70">›</span>
                     </button>
                     <button type="button" class="w-full px-3 py-2.5 rounded-[4px] bg-orange-600 text-white font-bold text-xs flex items-center justify-between" @click="showMobileAddSheet = false; openRaceForm();">
-                        <span>Add Race</span>
+                        <span><i class="fa-solid fa-trophy text-amber-400 mr-1"></i> Add Race Event</span>
                         <span class="text-white/70">›</span>
                     </button>
                 </div>
@@ -282,7 +282,7 @@
                                     Sync Training
                                 </button>
                                 <button type="button" @click.stop="openStravaAnalysisModal" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1">
-                                    <span>⚡</span> Analisis AI MCP
+                                    <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Analisis AI MCP
                                 </button>
                                 <button type="button" @click.stop="openPbModal" class="text-[11px] text-neon hover:underline font-bold px-1.5 py-1">Update PB</button>
                             </div>
@@ -305,12 +305,12 @@
                                               'bg-blue-500/20 text-blue-300 border-blue-500/40': trainingProfile.vdot >= 40 && trainingProfile.vdot < 50,
                                               'bg-green-500/20 text-green-300 border-green-500/40': trainingProfile.vdot < 40
                                           }">
-                                        <span v-if="trainingProfile.vdot >= 75">🏆 Elite</span>
-                                        <span v-else-if="trainingProfile.vdot >= 60">⭐ Sub-Elite</span>
-                                        <span v-else-if="trainingProfile.vdot >= 50">🔥 Advanced</span>
-                                        <span v-else-if="trainingProfile.vdot >= 40">💪 Intermediate</span>
-                                        <span v-else-if="trainingProfile.vdot >= 30">🌱 Beginner+</span>
-                                        <span v-else>🚶 Beginner</span>
+                                        <span v-if="trainingProfile.vdot >= 75">Elite</span>
+                                        <span v-else-if="trainingProfile.vdot >= 60">Sub-Elite</span>
+                                        <span v-else-if="trainingProfile.vdot >= 50">Advanced</span>
+                                        <span v-else-if="trainingProfile.vdot >= 40">Intermediate</span>
+                                        <span v-else-if="trainingProfile.vdot >= 30">Beginner+</span>
+                                        <span v-else>Beginner</span>
                                     </span>
                                 </div>
                                 <!-- Hint -->
@@ -361,7 +361,14 @@
                                     <tbody class="text-slate-300">
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-green-400 font-bold" id="pace-easy-label">Easy (E) Pace</td>
-                                            <td class="py-2 text-right" id="pace-easy-value">@{{ formatPace(trainingProfile.paces?.E) }}</td>
+                                            <td class="py-2 text-right" id="pace-easy-value">
+                                                <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
+                                                    @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
+                                                </template>
+                                                <template v-else>
+                                                    @{{ formatPace(trainingProfile.paces?.E) }}
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-blue-400 font-bold" id="pace-marathon-label">Marathon (M) Pace</td>
@@ -465,7 +472,7 @@
                         <!-- Icon & Info -->
                         <div class="flex items-center gap-5 w-full lg:w-auto">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-3xl shadow-inner border border-cyan-500/20 flex-shrink-0">
-                                🔓
+                                <i class="fa-solid fa-lock-open"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-lg md:text-xl font-black text-white italic tracking-tight uppercase leading-tight">Buka Program Lengkap!</h4>
@@ -600,7 +607,7 @@
 
                             <!-- Card Footer Button -->
                             <button v-if="plan.is_locked" class="w-full mt-1 py-1.5 rounded-[4px] bg-slate-800/50 text-slate-600 text-[10px] font-bold border border-slate-700 flex items-center justify-center gap-1.5 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
-                                🔒 UNLOCK
+                                UNLOCK
                             </button>
                             <button v-else-if="plan.status==='pending'" class="w-full mt-1 py-1.5 rounded-[4px] bg-neon text-dark text-[10px] font-bold hover:bg-neon/90 transition shadow shadow-neon/10 flex items-center justify-center gap-1.5" @click.stop="updateSessionStatus(plan,'started')">
                                 ▶ START
@@ -667,7 +674,7 @@
                         <!-- Exercise List (Playlist) -->
                         <div>
                             <h3 class="text-xs font-bold text-white mb-2.5 flex items-center gap-1.5">
-                                <span>📋</span> Workout Plan
+                                <i class="fa-solid fa-clipboard-list text-neon mr-1"></i> Workout Plan
                             </h3>
                             <div class="space-y-2">
                                 <div v-for="(exercise, idx) in parseStrengthExercises(detail)" :key="idx" 
@@ -774,7 +781,7 @@
                 <!-- Locked Session UI -->
                 <div v-if="detail.session?.is_locked" class="text-center py-6 px-4">
                     <div class="relative inline-block mb-4">
-                        <div class="text-5xl animate-bounce">🔒</div>
+                        <div class="text-4xl text-neon"><i class="fa-solid fa-lock"></i></div>
                         <div class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-[9px] font-bold text-white">!</div>
                     </div>
                     
@@ -834,7 +841,7 @@
                         <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
                                 class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-bold rounded-[6px] shadow-xl shadow-cyan-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-0.5">
                             <span v-if="!donationLoading" class="text-sm font-bold uppercase tracking-wider">
-                                @{{ promoApplied ? '🔓 Unlock Gratis' : '🔓 Unlock Full Program' }}
+                                @{{ promoApplied ? 'Unlock Gratis' : 'Unlock Full Program' }}
                             </span>
                             <span v-if="!donationLoading" class="text-[8px] opacity-80 uppercase tracking-widest font-mono">
                                 @{{ promoApplied ? 'Free Access via Event Participant' : 'Support RuangLari Development' }}
@@ -920,11 +927,11 @@
                             </div>
                             <div class="space-y-2 text-xs">
                                 <div>
-                                    <span class="text-slate-400 block font-semibold mb-0.5">🎯 Goal Utama:</span>
-                                    <span class="text-slate-200 leading-relaxed">@{{ workoutGoalText }}</span>
+                                    <span class="text-slate-400 block font-semibold mb-0.5">Goal Utama:</span>
+                                    <span class="text-slate-300 font-bold text-xs" id="detail-target-dist">@{{ detail.session?.session_name || '-' }}</span>
                                 </div>
                                 <div class="pt-2 border-t border-slate-700/50">
-                                    <span class="text-slate-400 block font-semibold mb-0.5">🧬 Efek bagi Tubuh:</span>
+                                    <span class="text-slate-400 block font-semibold mb-0.5">Efek bagi Tubuh:</span>
                                     <span class="text-slate-200 leading-relaxed">@{{ workoutEffectText }}</span>
                                 </div>
                             </div>
@@ -961,7 +968,14 @@
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5">
                                     <div v-if="trainingProfile?.paces?.E" class="rounded-[6px] bg-slate-900/60 border border-slate-700 px-2.5 py-1.5">
                                         <div class="text-[9px] text-slate-500 uppercase font-mono">Easy (E)</div>
-                                        <div class="text-white font-bold text-xs">@{{ formatPace(trainingProfile.paces.E) }}/km</div>
+                                        <div class="text-white font-bold text-xs">
+                                            <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
+                                                @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}/km
+                                            </template>
+                                            <template v-else>
+                                                @{{ formatPace(trainingProfile.paces.E) }}/km
+                                            </template>
+                                        </div>
                                     </div>
                                     <div v-if="trainingProfile?.paces?.M" class="rounded-[6px] bg-slate-900/60 border border-slate-700 px-2.5 py-1.5">
                                         <div class="text-[9px] text-slate-500 uppercase font-mono">Marathon (M)</div>
@@ -1322,11 +1336,11 @@
                                     <label class="text-[10px] text-slate-400 block mb-1">Feeling</label>
                                     <select v-model="feelingInput" class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
                                         <option value="">Select Feeling</option>
-                                        <option value="strong">💪 Strong</option>
-                                        <option value="good">😊 Good</option>
-                                        <option value="average">😐 Average</option>
-                                        <option value="weak">😫 Weak</option>
-                                        <option value="terrible">💀 Terrible</option>
+                                        <option value="strong">Strong</option>
+                                        <option value="good">Good</option>
+                                        <option value="average">Average</option>
+                                        <option value="weak">Weak</option>
+                                        <option value="terrible">Terrible</option>
                                     </select>
                                 </div>
                             </div>
@@ -1746,7 +1760,7 @@
             <div class="relative z-10 max-w-md mx-auto my-20 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-white font-bold text-base flex items-center gap-2">
-                        <span>🎯</span> Update Weekly Target
+                        <i class="fa-solid fa-bullseye text-neon mr-1"></i> Update Weekly Target
                     </h3>
                     <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white">✕</button>
                 </div>
@@ -1857,8 +1871,8 @@
                         <div>
                             <div class="flex items-center gap-2 mb-3">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <span v-if="insightType === 'generate'">📊 Proyeksi Waktu Lomba (Setelah Program)</span>
-                                    <span v-else>📊 Perubahan Equivalent Race Times</span>
+                                    <span v-if="insightType === 'generate'">Proyeksi Waktu Lomba (Setelah Program)</span>
+                                    <span v-else>Perubahan Equivalent Race Times</span>
                                 </span>
                                 <div class="h-px bg-slate-700 flex-1"></div>
                             </div>
@@ -1945,7 +1959,7 @@
                         <!-- ── Pace Rationale (Why these paces lead to improvement) ── -->
                         <div>
                             <div class="flex items-center gap-2 mb-3">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">⚡ Kenapa Pace Ini Meningkatkan Performamu?</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kenapa Pace Ini Meningkatkan Performamu?</span>
                                 <div class="h-px bg-slate-700 flex-1"></div>
                             </div>
                             <div class="space-y-2">
@@ -1983,7 +1997,7 @@
                         <!-- ── Key Insight Box ── -->
                         <div class="bg-neon/5 border border-neon/20 rounded-[6px] p-3.5">
                             <div class="flex gap-3">
-                                <span class="text-neon text-base flex-shrink-0">💡</span>
+                                <span class="text-neon text-sm flex-shrink-0"><i class="fa-solid fa-lightbulb"></i></span>
                                 <div class="text-xs text-slate-300 leading-relaxed">
                                     <span v-if="insightType === 'generate'">
                                         Program ini dirancang agar pace latihanmu secara bertahap <strong class="text-white">meningkatkan VDOT +@{{ insightData.vdot_diff }}</strong> dalam @{{ insightData.duration_weeks }} minggu.
@@ -2005,7 +2019,7 @@
                         <button v-if="insightType === 'generate'"
                                 @click="showInsightModal = false; window.location.reload()"
                                 class="px-5 py-2 rounded-[6px] bg-neon text-slate-900 font-bold text-xs hover:bg-[#b3e600] transition shadow-lg shadow-neon/20 uppercase tracking-wider">
-                            🏃 Mulai Latihan!
+                            Mulai Latihan!
                         </button>
                         <button v-else
                                 @click="showInsightModal = false"
@@ -2134,7 +2148,7 @@
             <div class="relative z-10 max-w-lg mx-auto my-10 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-white font-bold text-base flex items-center gap-2">
-                        <span class="text-xl">🏆</span> Add Race Event
+                        Add Race Event
                     </h3>
                     <button class="text-slate-400 hover:text-white" @click="showRaceModal = false">✕</button>
                 </div>
@@ -2151,7 +2165,7 @@
                                 placeholder="Search events..."
                                 class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs focus:border-yellow-500 focus:outline-none pl-8"
                             >
-                            <span class="absolute left-3 top-2 text-slate-500 text-xs">🔍</span>
+                            <span class="absolute left-3 top-2 text-slate-500 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
                             <button v-if="eventSearchQuery" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2 text-slate-500 hover:text-white">✕</button>
                         </div>
 
@@ -2165,8 +2179,8 @@
                                 >
                                     <div class="text-xs font-bold text-white">@{{ event.name }}</div>
                                     <div class="text-[10px] text-slate-400 flex justify-between mt-1">
-                                        <span>📅 @{{ formatDate(event.start_at) }}</span>
-                                        <span>📍 @{{ event.location_name }}</span>
+                                        <span>@{{ formatDate(event.start_at) }}</span>
+                                        <span>@{{ event.location_name }}</span>
                                     </div>
                                 </li>
                             </ul>
@@ -2329,7 +2343,7 @@
 
                     <!-- PREVIEW SECTION -->
                     <div v-if="adaptivePreview" class="mt-4 p-4 bg-slate-800/80 border border-purple-500/30 rounded-[6px] space-y-3">
-                        <h4 class="text-white font-bold text-xs border-b border-slate-700 pb-2">📋 Hasil Analisis & Jadwal Baru</h4>
+                        <h4 class="text-white font-bold text-xs border-b border-slate-700 pb-2">Hasil Analisis & Jadwal Baru</h4>
                         
                         <div class="grid grid-cols-2 gap-2 text-xs text-slate-300">
                             <div>VDOT Baru: <span class="text-neon font-bold">@{{ Number(adaptivePreview.adjusted_vdot).toFixed(1) }}</span></div>
