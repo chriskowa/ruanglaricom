@@ -287,7 +287,14 @@
                                     <tbody class="text-slate-300">
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-green-400 font-bold">Easy (E)</td>
-                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.E) }}</td>
+                                            <td class="py-2 text-right font-mono font-bold">
+                                                <template v-if="trainingProfile.paces?.E_high && trainingProfile.paces?.E_low">
+                                                    @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
+                                                </template>
+                                                <template v-else>
+                                                    @{{ formatPace(trainingProfile.paces?.E) }}
+                                                </template>
+                                            </td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
                                             <td class="py-2 text-blue-400 font-bold">Marathon (M)</td>
@@ -1170,10 +1177,23 @@
                     <!-- Body -->
                     <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
                         <!-- Session Info Card -->
-                        <div class="bg-neon/10 border border-neon/20 rounded-xl p-3.5 space-y-1 text-xs" v-if="selectedSession">
-                            <div class="text-neon">Sesi: <span class="font-bold text-white">@{{ selectedSession.title }}</span></div>
-                            <div class="text-neon" v-if="selectedSession.extendedProps.distance">Jarak: <span class="font-bold text-white font-mono">@{{ selectedSession.extendedProps.distance }} km</span></div>
-                            <div class="text-neon" v-if="selectedSession.extendedProps.description">Deskripsi: <span class="font-bold text-white">@{{ selectedSession.extendedProps.description }}</span></div>
+                        <div class="bg-neon/10 border border-neon/20 rounded-xl p-3.5 space-y-1.5 text-xs" v-if="reminderSessionInfo.title">
+                            <div class="text-neon flex items-start gap-1.5">
+                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Sesi:</span>
+                                <span class="font-bold text-white">@{{ reminderSessionInfo.title }}</span>
+                            </div>
+                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.distance && reminderSessionInfo.distance !== '-'">
+                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Jarak:</span>
+                                <span class="font-bold text-white font-mono">@{{ reminderSessionInfo.distance }}</span>
+                            </div>
+                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.pace">
+                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Pace:</span>
+                                <span class="font-bold text-white font-mono">@{{ reminderSessionInfo.pace }}</span>
+                            </div>
+                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.description">
+                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Deskripsi:</span>
+                                <span class="font-bold text-white">@{{ reminderSessionInfo.description }}</span>
+                            </div>
                         </div>
 
                         <div class="space-y-3.5">
@@ -2100,6 +2120,7 @@ createApp({
         // ─── Send Program Reminder State & Methods ───────────────────
         const showReminderModal = ref(false);
         const reminderForm      = reactive({ channel: 'both', custom_message: '' });
+        const reminderSessionInfo = reactive({ title: '', distance: '', pace: '', description: '' });
         const reminderLoading   = ref(false);
         const reminderError     = ref('');
         const reminderSuccess   = ref('');
@@ -2136,13 +2157,12 @@ createApp({
             }
 
             const isRest = ['rest', 'rest_day', 'rest day', 'libur'].includes(type);
+            const paces = trainingProfile.value?.paces || {};
+            let paceGuidance = targetPaceVal;
 
             if (isRest) {
                 reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Istirahat total dan jaga pemulihan fisik dengan baik agar siap menyambut sesi berikutnya.`;
             } else {
-                const paces = trainingProfile.value?.paces || {};
-                let paceGuidance = targetPaceVal;
-
                 if (!paceGuidance) {
                     if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k))) {
                         if (paces.E_high && paces.E_low) {
@@ -2173,6 +2193,15 @@ createApp({
 
                 reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: ${workoutTitle}\n\n- Jarak: ${distText}\n- Target Pace: ${paceGuidance}\n- Deskripsi: ${descText}`;
             }
+
+            const distText = distanceVal ? `${distanceVal} km` : '-';
+            const descText = isRest ? 'Istirahat total dan jaga pemulihan fisik dengan baik.' : (notes || 'Lakukan latihan sesuai arahan coach.');
+            const paceText = isRest ? 'Rest Day' : (paceGuidance || '-');
+
+            reminderSessionInfo.title = workoutTitle;
+            reminderSessionInfo.distance = distText;
+            reminderSessionInfo.pace = paceText;
+            reminderSessionInfo.description = descText;
 
             showReminderModal.value = true;
         };
@@ -4223,7 +4252,7 @@ createApp({
             openRescheduleModal, submitReschedule, previewRescheduleEndDate,
             setStartDateToday, setStartDateNextMonday, setStartDateNextMonth,
             // Send Program Reminder
-            showReminderModal, reminderForm, reminderLoading, reminderError, reminderSuccess,
+            showReminderModal, reminderForm, reminderSessionInfo, reminderLoading, reminderError, reminderSuccess,
             openReminderModal, submitReminder,
             weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
         };
