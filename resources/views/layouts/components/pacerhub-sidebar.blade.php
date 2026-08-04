@@ -143,6 +143,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.integration.settings') }}?tab=whatsapp" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.integration.*') && request('tab') === 'whatsapp' ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-server text-emerald-400"></i></span>
+                                    <span>WhatsApp Gateway</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.reports.event-finance.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.reports.event-finance.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-coins"></i></span>
                                     <span>Event Finance</span>

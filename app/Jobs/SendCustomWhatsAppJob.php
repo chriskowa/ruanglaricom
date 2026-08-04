@@ -73,7 +73,7 @@ class SendCustomWhatsAppJob implements ShouldQueue
         $message = str_replace($search, $replace, $this->messageTemplate);
 
         try {
-            WhatsApp::send($phone, $message);
+            WhatsApp::send($phone, $message, 'broadcast');
 
             EventEmailDeliveryLog::create([
                 'event_id' => $event->id,

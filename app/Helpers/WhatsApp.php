@@ -2,9 +2,21 @@
 
 namespace App\Helpers;
 
+use App\Models\AppSettings;
+use App\Models\WhatsAppLog;
+use Illuminate\Support\Facades\Log;
+
 class WhatsApp
 {
-    public static function send(?string $to, string $message): void
+    /**
+     * Send WhatsApp message using Multi-Gateway Support & Failover.
+     *
+     * @param string|null $to Phone number
+     * @param string $message Message body
+     * @param string $category Category tag ('general', 'otp', 'reminder', 'transactional', 'broadcast')
+     * @return void
+     */
+    public static function send(?string $to, string $message, string $category = 'general'): void
     {
         if ($to === null) {
             return;
@@ -17,7 +29,6 @@ class WhatsApp
 
         // Remove all non-digits (e.g. "-", "+", " ", "(", ")", etc.)
         $normalized = preg_replace('/\D+/', '', $to);
-
         if ($normalized === '') {
             return;
         }
@@ -31,83 +42,110 @@ class WhatsApp
 
         $to = $normalized;
 
-        $isActive = (bool) \App\Models\AppSettings::get('whatsapp_is_active', false);
-        if (! $isActive) {
+        $isActive = (bool) AppSettings::get('whatsapp_is_active', false);
+        if (!$isActive) {
             return;
         }
 
-        $appkey = \App\Models\AppSettings::get('whatsapp_app_key') ?: env('WHATSAPP_APPKEY');
-        $authkey = \App\Models\AppSettings::get('whatsapp_auth_key') ?: env('WHATSAPP_AUTHKEY');
-        if (! $appkey || ! $authkey || ! $to) {
+        // Get candidates list
+        $candidates = self::resolveGateways($category);
+        if (empty($candidates)) {
+            Log::warning("WhatsApp send skipped: No active WhatsApp gateway available for category '{$category}'");
             return;
         }
 
-        $payload = [
-            'appkey' => $appkey,
-            'authkey' => $authkey,
-            'to' => $to,
-            'message' => $message,
-            'sandbox' => 'false',
-        ];
+        // Try sending with candidates (Failover mechanism)
+        $lastError = null;
+        $sentSuccess = false;
 
-        $log = null;
-        try {
-            $log = \App\Models\WhatsAppLog::create([
+        foreach ($candidates as $gateway) {
+            $appkey = $gateway['app_key'] ?? '';
+            $authkey = $gateway['auth_key'] ?? '';
+            $gatewayName = $gateway['name'] ?? 'Default Gateway';
+
+            if (!$appkey || !$authkey) {
+                continue;
+            }
+
+            $payload = [
+                'appkey' => $appkey,
+                'authkey' => $authkey,
                 'to' => $to,
                 'message' => $message,
-                'status' => 'pending',
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Failed to create WhatsApp DB log: ' . $e->getMessage());
-        }
+                'sandbox' => 'false',
+            ];
 
-        if (app()->environment('testing')) {
-            if ($log) {
-                try {
-                    $log->update([
-                        'status' => 'sent',
-                        'http_code' => 200,
-                        'response' => json_encode(['success' => true, 'message' => 'Testing mode: curl skipped']),
-                    ]);
-                } catch (\Exception $e) {}
+            $log = null;
+            try {
+                $log = WhatsAppLog::create([
+                    'to' => $to,
+                    'gateway_name' => $gatewayName,
+                    'category' => $category,
+                    'message' => $message,
+                    'status' => 'pending',
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create WhatsApp DB log: ' . $e->getMessage());
             }
-            return;
-        }
 
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => 'https://wa.jituproperty.com/api/create-message',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_TIMEOUT => 30, // Increased timeout
-            CURLOPT_SSL_VERIFYPEER => false, // Optional: if SSL issues occur on local/hosting
-        ]);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        // Logging for debugging
-        if ($error) {
-            \Illuminate\Support\Facades\Log::error('WhatsApp API Connection Error', [
-                'to' => $to,
-                'error' => $error,
-            ]);
-            if ($log) {
-                try {
-                    $log->update([
-                        'status' => 'failed',
-                        'error_message' => $error,
-                    ]);
-                } catch (\Exception $e) {}
+            if (app()->environment('testing')) {
+                if ($log) {
+                    try {
+                        $log->update([
+                            'status' => 'sent',
+                            'http_code' => 200,
+                            'response' => json_encode(['success' => true, 'message' => 'Testing mode: curl skipped']),
+                        ]);
+                    } catch (\Exception $e) {}
+                }
+                return;
             }
-        } else {
-            \Illuminate\Support\Facades\Log::info('WhatsApp API Response', [
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://wa.jituproperty.com/api/create-message',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => false,
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error || ($httpCode >= 400)) {
+                $errMsg = $error ?: "HTTP Error {$httpCode}: {$response}";
+                Log::error("WhatsApp Gateway [{$gatewayName}] failed to send to {$to}", [
+                    'category' => $category,
+                    'error' => $errMsg,
+                ]);
+
+                if ($log) {
+                    try {
+                        $log->update([
+                            'status' => 'failed',
+                            'http_code' => $httpCode,
+                            'response' => $response,
+                            'error_message' => $errMsg,
+                        ]);
+                    } catch (\Exception $e) {}
+                }
+
+                $lastError = $errMsg;
+                // Continue loop to attempt failover with next candidate gateway
+                continue;
+            }
+
+            // Success
+            Log::info("WhatsApp message sent successfully via [{$gatewayName}]", [
                 'to' => $to,
+                'category' => $category,
                 'http_code' => $httpCode,
-                'response' => $response,
             ]);
+
             if ($log) {
                 try {
                     $log->update([
@@ -117,6 +155,75 @@ class WhatsApp
                     ]);
                 } catch (\Exception $e) {}
             }
+
+            $sentSuccess = true;
+            break; // Stop loop on success
         }
+
+        if (!$sentSuccess && $lastError) {
+            Log::error("All WhatsApp gateways failed for recipient {$to}. Last Error: {$lastError}");
+        }
+    }
+
+    /**
+     * Resolve candidate gateways based on Category & Active Status.
+     *
+     * @param string $category
+     * @return array
+     */
+    public static function resolveGateways(string $category = 'general'): array
+    {
+        $rawGateways = AppSettings::get('whatsapp_gateways');
+        $gateways = [];
+
+        if ($rawGateways) {
+            $decoded = is_array($rawGateways) ? $rawGateways : json_decode($rawGateways, true);
+            if (is_array($decoded)) {
+                $gateways = $decoded;
+            }
+        }
+
+        // Filter active gateways
+        $activeGateways = array_filter($gateways, function ($item) {
+            return !empty($item['is_active']) && !empty($item['app_key']) && !empty($item['auth_key']);
+        });
+
+        if (!empty($activeGateways)) {
+            // Filter by requested category
+            $categoryMatches = array_filter($activeGateways, function ($item) use ($category) {
+                $itemCat = $item['category'] ?? 'all';
+                return $itemCat === 'all' || $itemCat === $category;
+            });
+
+            if (!empty($categoryMatches)) {
+                // Shuffle matching gateways for Load Balancing (Round-Robin)
+                $matchedList = array_values($categoryMatches);
+                shuffle($matchedList);
+                return $matchedList;
+            }
+
+            // If no specific category match, fallback to all active gateways
+            $allActive = array_values($activeGateways);
+            shuffle($allActive);
+            return $allActive;
+        }
+
+        // Fallback to legacy single AppKey & AuthKey setting
+        $legacyAppKey = AppSettings::get('whatsapp_app_key') ?: env('WHATSAPP_APPKEY');
+        $legacyAuthKey = AppSettings::get('whatsapp_auth_key') ?: env('WHATSAPP_AUTHKEY');
+
+        if ($legacyAppKey && $legacyAuthKey) {
+            return [
+                [
+                    'name' => 'Default Gateway',
+                    'category' => 'all',
+                    'app_key' => $legacyAppKey,
+                    'auth_key' => $legacyAuthKey,
+                    'is_active' => true,
+                ],
+            ];
+        }
+
+        return [];
     }
 }

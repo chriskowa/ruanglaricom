@@ -98,7 +98,7 @@ class RunnerRegistrationController extends Controller
                 Log::error('Email OTP failed: '.$e->getMessage());
             }
         } else {
-            WhatsApp::send($phone, 'Kode OTP Runner RuangLari Anda: '.$code.' (berlaku 10 menit)');
+            WhatsApp::send($phone, 'Kode OTP Runner RuangLari Anda: '.$code.' (berlaku 10 menit)', 'otp');
         }
 
         return redirect()->route('pacer.otp', ['user' => $user->id])->with('success', $successMsg);

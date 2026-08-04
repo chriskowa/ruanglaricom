@@ -68,9 +68,12 @@ class SendProgramReminderJob implements ShouldQueue
             $prompt = $this->buildPrompt($profileData);
 
             // Generate message using OpenAI
-            $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp singkat, padat, dan langsung fokus pada menu latihan program besok.\n\n"
+            $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp pengingat jadwal program lari besok.\n\n"
+                . "Wajib sertakan rincian latihan berikut secara jelas:\n"
+                . "- Jarak (km)\n"
+                . "- Target Pace\n"
+                . "- Deskripsi/Instruksi Latihan\n\n"
                 . "ATURAN:\n"
-                . "- Tulis pesan yang sangat singkat (maksimal 1-2 kalimat) dan langsung ke intinya.\n"
                 . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
                 . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
                 . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
@@ -92,7 +95,7 @@ class SendProgramReminderJob implements ShouldQueue
             $message .= "\n\nBalas STOP untuk berhenti menerima pengingat.";
 
             // Send via WhatsApp
-            WhatsApp::send($this->user->phone, $message);
+            WhatsApp::send($this->user->phone, $message, 'reminder');
             
             Log::info("Program reminder sent to User #{$this->user->id} via WA.");
 
@@ -170,24 +173,15 @@ class SendProgramReminderJob implements ShouldQueue
             return "Halo {$this->user->name}, besok jadwal program {$this->program->title} kamu adalah Rest Day ya. Selamat beristirahat! Selengkapnya: {$calendarUrl}";
         }
 
-        $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? '';
+        $sessionName = $this->sessionData['session_name'] ?? $this->sessionData['title'] ?? $this->sessionData['name'] ?? ucfirst(str_replace('_', ' ', $type));
+        $distance = !empty($this->sessionData['distance']) ? "{$this->sessionData['distance']} km" : (!empty($this->sessionData['target_distance']) ? "{$this->sessionData['target_distance']} km" : '-');
+        $targetPace = !empty($this->sessionData['target_pace']) ? $this->sessionData['target_pace'] : (!empty($this->sessionData['pace']) ? $this->sessionData['pace'] : '-');
+        $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? 'Lakukan latihan sesuai instruksi program.';
 
-        $detail = "";
-        if (!empty($description)) {
-            $detail .= "\n- Deskripsi: {$description}";
-        }
-        if (!empty($this->sessionData['distance'])) {
-            $detail .= "\n- Jarak: {$this->sessionData['distance']} km";
-        }
-        if (!empty($this->sessionData['duration'])) {
-            $detail .= "\n- Durasi: {$this->sessionData['duration']}";
-        }
-        if (!empty($this->sessionData['target_pace'])) {
-            $detail .= "\n- Target Pace: {$this->sessionData['target_pace']}";
-        }
-        
-        return "Halo {$this->user->name}, besok jadwal kamu adalah {$this->sessionData['type']} untuk program {$this->program->title}."
-            . (!empty($detail) ? "\n\nDetail latihan:{$detail}" : "")
-            . "\n\nSemangat! Detail latihan: {$calendarUrl}";
+        return "Halo {$this->user->name}, besok kamu ada sesi: {$sessionName} untuk program {$this->program->title}.\n\n"
+            . "- Jarak: {$distance}\n"
+            . "- Target Pace: {$targetPace}\n"
+            . "- Deskripsi: {$description}\n\n"
+            . "Detail kalender: {$calendarUrl}";
     }
 }

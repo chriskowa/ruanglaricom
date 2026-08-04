@@ -2561,11 +2561,7 @@ class AthleteController extends Controller
         $coachName = auth()->user()->name ?? 'Coach';
         
         $type = strtolower($sessionData['type'] ?? 'rest');
-        $workoutTitle = $sessionData['title'] ?? $sessionData['name'] ?? ucfirst(str_replace('_', ' ', $type));
-        if (!empty($sessionData['distance'])) {
-            $workoutTitle .= ' ' . $sessionData['distance'] . ' KM';
-        }
-
+        $workoutTitle = $sessionData['session_name'] ?? $sessionData['title'] ?? $sessionData['name'] ?? ucfirst(str_replace('_', ' ', $type));
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
 
         if ($isRest) {
@@ -2577,31 +2573,38 @@ class AthleteController extends Controller
         $profileData = $profileService->getProfile($runner);
         $paces = $profileData['paces'] ?? [];
 
-        $paceGuidance = '';
-        if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
-            $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;
-            $paceGuidance = $ePace ? "Jaga pace di Easy Pace (~{$ePace}/km). Fokus santai, pernapasan stabil, dan detak jantung di zona aerobik." : "Jaga ritme santai di zona aerobik ringan.";
-        } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
-            $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : null;
-            $paceGuidance = $tPace ? "Target pace di Tempo Pace (~{$tPace}/km). Pertahankan ritme konsisten di zona menantang tetapi terkontrol." : "Pertahankan pace stabil di zona threshold.";
-        } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
-            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null;
-            $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : null;
-            $p = $iPace ? "~{$iPace}/km" : ($rPace ? "~{$rPace}/km" : 'maksimal');
-            $paceGuidance = "Target pace di Interval Pace ({$p}). Lakukan dorongan kuat di setiap rep dan maksimalkan pemulihan saat recovery.";
-        } elseif (in_array($type, ['long_run', 'long'])) {
-            $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : null;
-            $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;
-            $p = $mPace ? "~{$mPace}/km" : ($ePace ? "~{$ePace}/km" : 'aerobik terkontrol');
-            $paceGuidance = "Jaga pace di zona endurance ({$p}). Hemat tenaga untuk jarak jauh dan penuhi kecukupan cairan.";
-        } else {
-            $paceGuidance = "Sesuaikan pace dengan target instruksi coach.";
+        $distanceVal = $sessionData['distance'] ?? $sessionData['target_distance'] ?? $sessionData['distance_km'] ?? '';
+        $distanceStr = !empty($distanceVal) ? "{$distanceVal} km" : '-';
+
+        $targetPaceVal = $sessionData['target_pace'] ?? $sessionData['pace'] ?? '';
+        if (empty($targetPaceVal)) {
+            if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
+                if (!empty($paces['E_high']) && !empty($paces['E_low'])) {
+                    $targetPaceVal = $this->formatMinPerKm($paces['E_high']) . ' - ' . $this->formatMinPerKm($paces['E_low']) . ' /km (Easy Pace)';
+                } elseif (isset($paces['E'])) {
+                    $targetPaceVal = '~' . $this->formatMinPerKm($paces['E']) . ' /km (Easy Pace)';
+                } else {
+                    $targetPaceVal = 'Zona aerobik ringan (Easy Pace)';
+                }
+            } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
+                $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : null;
+                $targetPaceVal = $tPace ? "~{$tPace} /km (Tempo/Threshold)" : 'Zona threshold terkontrol';
+            } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
+                $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null;
+                $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : null;
+                $targetPaceVal = $iPace ? "~{$iPace} /km (Interval)" : ($rPace ? "~{$rPace} /km (Repetition)" : 'Interval Pace maksimal');
+            } elseif (in_array($type, ['long_run', 'long'])) {
+                $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : null;
+                $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;
+                $targetPaceVal = $mPace ? "~{$mPace} /km (Marathon Pace)" : ($ePace ? "~{$ePace} /km (Endurance)" : 'Zona endurance terkontrol');
+            } else {
+                $targetPaceVal = 'Sesuaikan pace dengan target instruksi coach';
+            }
         }
 
-        $description = $sessionData['description'] ?? $sessionData['notes'] ?? $sessionData['instruction'] ?? '';
-        $descCombined = !empty($description) ? "{$description}. {$paceGuidance}" : $paceGuidance;
+        $description = $sessionData['description'] ?? $sessionData['notes'] ?? $sessionData['instruction'] ?? 'Lakukan latihan sesuai arahan coach.';
 
-        return "Halo {$runnerName}, Kamu terdaftar di program {$programTitle} oleh coach {$coachName}, besok kamu ada sesi: {$workoutTitle}\n\nDeskripsi: {$descCombined}\n\nDetail kalender: {$calendarUrl}";
+        return "Halo {$runnerName}, Kamu terdaftar di program {$programTitle} oleh coach {$coachName}, besok kamu ada sesi: {$workoutTitle}\n\n- Jarak: {$distanceStr}\n- Target Pace: {$targetPaceVal}\n- Deskripsi: {$description}\n\nDetail kalender: {$calendarUrl}";
     }
 
     private function formatMinPerKm($minutes)

@@ -136,7 +136,7 @@ class CoachRegistrationController extends Controller
                 Log::error('Email OTP failed: '.$e->getMessage());
             }
         } else {
-            WhatsApp::send($phone, 'Kode OTP Coach RuangLari Anda: '.$code.' (berlaku 10 menit)');
+            WhatsApp::send($phone, 'Kode OTP Coach RuangLari Anda: '.$code.' (berlaku 10 menit)', 'otp');
         }
 
         // Reuse pacer OTP view/route for simplicity, or create a specific coach one if needed

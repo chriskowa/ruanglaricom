@@ -168,7 +168,7 @@ class PacerRegistrationController extends Controller
                 \Illuminate\Support\Facades\Log::error('Email OTP failed: '.$e->getMessage());
             }
         } else {
-            \App\Helpers\WhatsApp::send($data['phone'], 'Kode OTP PacerHub Anda: '.$code.' (berlaku 10 menit)');
+            \App\Helpers\WhatsApp::send($data['phone'], 'Kode OTP PacerHub Anda: '.$code.' (berlaku 10 menit)', 'otp');
         }
 
         return redirect()->route('pacer.otp', ['user' => $user->id])->with('success', $successMsg);

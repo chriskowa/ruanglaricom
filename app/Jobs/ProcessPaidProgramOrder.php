@@ -72,7 +72,7 @@ class ProcessPaidProgramOrder implements ShouldQueue
 
                 $message = implode("\n", $messageLines);
 
-                WhatsApp::send($phone, $message);
+                WhatsApp::send($phone, $message, 'transactional');
                 Log::info("ProcessPaidProgramOrder: WhatsApp message sent to {$phone} for Order #{$order->order_number}");
             } else {
                 Log::warning("ProcessPaidProgramOrder: User {$order->user->email} has no phone number, WhatsApp skipped.");

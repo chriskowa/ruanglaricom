@@ -359,7 +359,7 @@ class UserController extends Controller
         }
 
         try {
-            \App\Helpers\WhatsApp::send($user->phone, $validated['message']);
+            \App\Helpers\WhatsApp::send($user->phone, $validated['message'], 'broadcast');
 
             if ($request->ajax()) {
                 return response()->json([

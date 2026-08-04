@@ -10,6 +10,10 @@
             <h1 class="text-2xl font-bold text-white">WhatsApp Logs</h1>
             <p class="text-sm text-slate-400">Riwayat pesan WhatsApp yang dikirim melalui sistem.</p>
         </div>
+        <a href="{{ route('admin.integration.settings') }}?tab=whatsapp" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2">
+            <i class="fab fa-whatsapp text-white"></i>
+            Configure WhatsApp Gateways
+        </a>
     </div>
 
     @if (session('success'))
@@ -52,6 +56,8 @@
                 <tr>
                     <th class="px-4 py-3">#</th>
                     <th class="px-4 py-3">To</th>
+                    <th class="px-4 py-3">Device / Gateway</th>
+                    <th class="px-4 py-3">Category</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">HTTP</th>
                     <th class="px-4 py-3">Message</th>
@@ -65,6 +71,10 @@
                     <tr class="text-slate-300 hover:bg-slate-800/50">
                         <td class="px-4 py-3 text-slate-500">{{ $log->id }}</td>
                         <td class="px-4 py-3 font-mono text-slate-200">{{ $log->to }}</td>
+                        <td class="px-4 py-3 text-xs font-semibold text-slate-300">{{ $log->gateway_name ?? 'Default' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-emerald-400 border border-slate-700">{{ $log->category ?? 'general' }}</span>
+                        </td>
                         <td class="px-4 py-3">
                             <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $log->status === 'sent' ? 'bg-green-500/20 text-green-400' : ($log->status === 'failed' ? 'bg-red-500/20 text-red-400' : ($log->status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-600/30 text-slate-300')) }}">{{ ucfirst($log->status) }}</span>
                         </td>

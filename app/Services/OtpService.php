@@ -57,7 +57,7 @@ class OtpService
                 Log::error('Email OTP failed: ' . $e->getMessage());
             }
         } else {
-            WhatsApp::send($user->phone, $message);
+            WhatsApp::send($user->phone, $message, 'otp');
         }
 
         return $otpToken;

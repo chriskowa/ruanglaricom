@@ -45,6 +45,7 @@ class IntegrationSettingsController extends Controller
             'whatsapp_is_active' => AppSettings::get('whatsapp_is_active', false),
             'whatsapp_app_key' => AppSettings::get('whatsapp_app_key'),
             'whatsapp_auth_key' => AppSettings::get('whatsapp_auth_key'),
+            'whatsapp_gateways' => json_decode(AppSettings::get('whatsapp_gateways', '[]'), true) ?: [],
         ];
 
         return view('admin.settings.integrations', compact('settings'));
@@ -87,6 +88,7 @@ class IntegrationSettingsController extends Controller
             'whatsapp_is_active' => 'nullable|boolean',
             'whatsapp_app_key' => 'nullable|string',
             'whatsapp_auth_key' => 'nullable|string',
+            'whatsapp_gateways' => 'nullable|string',
         ]);
 
         foreach ($data as $key => $value) {

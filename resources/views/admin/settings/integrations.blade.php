@@ -5,13 +5,26 @@
 
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans text-slate-200" x-data="{ 
-    activeTab: 'general',
+    activeTab: (new URLSearchParams(window.location.search)).get('tab') || 'general',
     bankAccounts: {{ json_encode($settings['moota_bank_accounts'] ?? []) }},
+    whatsappGateways: {{ json_encode($settings['whatsapp_gateways'] ?? []) }},
     addAccount() {
         this.bankAccounts.push({ bank_type: 'bca', name: '', account_number: '', bank_id: '' });
     },
     removeAccount(index) {
         this.bankAccounts.splice(index, 1);
+    },
+    addGateway() {
+        this.whatsappGateways.push({
+            name: 'Device ' + (this.whatsappGateways.length + 1),
+            category: 'all',
+            app_key: '',
+            auth_key: '',
+            is_active: true
+        });
+    },
+    removeGateway(index) {
+        this.whatsappGateways.splice(index, 1);
     }
 }">
     <!-- Header -->
@@ -358,21 +371,91 @@
 
                         <div class="grid md:grid-cols-2 gap-6">
                             <div class="space-y-2">
-                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">App Key</label>
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Default App Key (Fallback)</label>
                                 <input type="password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
                                     name="whatsapp_app_key" value="{{ $settings['whatsapp_app_key'] }}" placeholder="Enter WhatsApp App Key">
                             </div>
                             <div class="space-y-2">
-                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Auth Key</label>
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Default Auth Key (Fallback)</label>
                                 <input type="password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
                                     name="whatsapp_auth_key" value="{{ $settings['whatsapp_auth_key'] }}" placeholder="Enter WhatsApp Auth Key">
                             </div>
                         </div>
 
+                        <!-- Multi-Device WhatsApp Gateways Editor -->
+                        <div class="space-y-4 pt-6 border-t border-slate-800">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div>
+                                    <label class="text-sm font-bold text-slate-300 uppercase tracking-wider block">Multi-Device Gateways (Multi App Key & Auth Key)</label>
+                                    <span class="text-xs text-slate-500">Daftarkan beberapa nomor WA dengan peran spesifik agar pengiriman terpisah & aman dari keblokir.</span>
+                                </div>
+                                <button type="button" @click="addGateway()" class="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 hover:border-primary/40 font-bold py-2 px-4 rounded-xl text-xs transition flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    Add WhatsApp Gateway
+                                </button>
+                            </div>
+
+                            <input type="hidden" name="whatsapp_gateways" :value="JSON.stringify(whatsappGateways)">
+
+                            <div class="space-y-3">
+                                <template x-for="(gw, index) in whatsappGateways" :key="index">
+                                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 relative group space-y-3">
+                                        <button type="button" @click="removeGateway(index)" class="absolute top-4 right-4 text-slate-500 hover:text-red-400 transition" title="Remove Gateway">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+
+                                        <div class="grid md:grid-cols-4 gap-4">
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Device / Nomor</label>
+                                                <input type="text" placeholder="e.g. Nomor WA OTP" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                    x-model="gw.name" required>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Peran / Kategori</label>
+                                                <select class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                    x-model="gw.category">
+                                                    <option value="all">Semua / Rotasi (All)</option>
+                                                    <option value="otp">Khusus OTP & Auth</option>
+                                                    <option value="reminder">Khusus Pengingat Latihan</option>
+                                                    <option value="transactional">Khusus Transaksi Order</option>
+                                                    <option value="broadcast">Khusus Broadcast Admin</option>
+                                                </select>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">App Key</label>
+                                                <input type="password" placeholder="Enter App Key" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                    x-model="gw.app_key" required>
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Auth Key</label>
+                                                <input type="password" placeholder="Enter Auth Key" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                    x-model="gw.auth_key" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between pt-2 border-t border-slate-800/40">
+                                            <label class="inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" x-model="gw.is_active" class="sr-only peer">
+                                                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600 relative"></div>
+                                                <span class="ml-2.5 text-xs font-bold" :class="gw.is_active ? 'text-green-400' : 'text-slate-500'" x-text="gw.is_active ? 'Status: Aktif' : 'Status: Non-Aktif'"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="whatsappGateways.length === 0">
+                                    <div class="p-6 bg-slate-950/20 rounded-xl border border-dashed border-slate-800 text-center text-slate-500 text-sm">
+                                        Belum ada nomor/device WA Gateway terdaftar. Klik "Add WhatsApp Gateway" untuk menambah multi-device.
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
                         <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 text-slate-400 text-xs leading-relaxed space-y-1">
-                            <span class="font-bold text-white block mb-1">Catatan Integrasi:</span>
+                            <span class="font-bold text-white block mb-1">Catatan Multi-Gateway:</span>
                             <p>• Menggunakan provider gateway <a href="https://wa.jituproperty.com/" target="_blank" class="text-primary hover:underline font-semibold">Jitu Property</a>.</p>
-                            <p>• Kredensial di atas akan digunakan sebagai preferensi utama. Jika kosong, sistem akan menggunakan nilai fallback dari file konfigurasi env.</p>
+                            <p>• <strong>Kategori Khas</strong>: Sistem akan memprioritaskan gateway sesuai kategori (misal: OTP memakai gateway OTP). Jika ada beberapa gateway untuk kategori yang sama, sistem melakukan <em>Load Balancing (Rotasi Bergantian)</em> secara otomatis.</p>
+                            <p>• <strong>Failover Otomatis</strong>: Jika satu gateway gagal/koneksi terputus, sistem akan otomatis menguji pengiriman dengan gateway aktif lainnya.</p>
                         </div>
                     </div>
                 </div>

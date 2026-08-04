@@ -13,6 +13,8 @@ class WhatsAppLog extends Model
 
     protected $fillable = [
         'to',
+        'gateway_name',
+        'category',
         'message',
         'status',
         'http_code',
