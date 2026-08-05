@@ -245,7 +245,7 @@
                         <p class="text-xs text-slate-400 mb-4 leading-relaxed">
                             Belum menemukan program latihan lari yang pas? Buat training plan personal gratis berbasis VDOT yang disesuaikan secara ilmiah.
                         </p>
-                        <a href="{{ url('/tools/realistic-running-program') }}" class="block w-full py-3 bg-neon hover:bg-white text-dark font-black text-center text-xs rounded-xl transition-all uppercase tracking-wider">
+                        <a href="{{ route('programs.realistic') }}" class="block w-full py-3 bg-neon hover:bg-white text-dark font-black text-center text-xs rounded-xl transition-all uppercase tracking-wider">
                             Buat Program VDOT (Gratis)
                         </a>
                     </div>

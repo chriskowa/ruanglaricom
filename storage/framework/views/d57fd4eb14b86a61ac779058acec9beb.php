@@ -136,7 +136,7 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
-    <?php if(empty($skipHeavyAssets)): ?>
+    <?php if(empty($skipHeavyAssets) && (!empty($needCalendar) || (isset($isDashboard) && $isDashboard))): ?>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
@@ -318,7 +318,7 @@
     <?php endif; ?>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script defer src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         try {
             if (window.AOS && typeof window.AOS.init === 'function') {

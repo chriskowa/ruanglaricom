@@ -1,10 +1,10 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Generator Program Lari & Running Program Generator | Ruang Lari')
+@section('title', 'Buat Program Lari Gratis & Personal | 5K, 10K, Half & Full Marathon - RuangLari')
 
-@section('meta_title', 'Generator Program Lari & Running Program Generator | Ruang Lari')
-@section('meta_description', 'Hasilkan program latihan lari 5K, 10K, Half Marathon, dan Full Marathon yang dipersonalisasi secara gratis. Gunakan algoritma Jack Daniels\' VDOT untuk target waktu lari yang realistis dan ilmiah.')
-@section('meta_keywords', 'generator program lari, running program generator, training plan lari, program latihan marathon, kalkulator vdot, rencana latihan lari gratis, jack daniels running formula, pacerhub, ruang lari')
+@section('meta_title', 'Buat Program Lari Gratis & Personal | 5K, 10K, Half & Full Marathon - RuangLari')
+@section('meta_description', 'Buat program lari gratis dan teruji ilmiah secara instan untuk 5K, 10K, Half Marathon, & Full Marathon dengan kalkulator VDOT Jack Daniels. Disesuaikan dengan target waktu & kebugaranmu.')
+@section('meta_keywords', 'buat program lari, program lari gratis, buat program latihan lari, generator program lari, program latihan marathon, kalkulator vdot, running program generator, pacerhub, ruang lari')
 
 @section('og_image', 'https://ruanglari.com/storage/blog/media/kP2oNYsx0wEzCGJMQYKN1xxUBW3oaUMTCfydDSig.webp')
 
@@ -14,10 +14,10 @@
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Generator Program Lari Ruang Lari",
-  "alternateName": "Running Program Generator",
-  "url": "https://ruanglari.com/realistic-running-program",
-  "description": "Platform pembuat program latihan lari otomatis berdasarkan tingkat kebugaran Anda menggunakan metode VDOT Jack Daniels.",
+  "name": "Buat Program Lari Gratis - RuangLari",
+  "alternateName": "Generator Program Latihan Lari VDOT",
+  "url": "https://ruanglari.com/buat-program-lari",
+  "description": "Platform pembuat program latihan lari gratis otomatis (5K, 10K, 21K, 42K) berdasarkan kebugaran Anda menggunakan rumus VDOT Jack Daniels.",
   "applicationCategory": "HealthApplication",
   "operatingSystem": "All",
   "offers": {
@@ -26,10 +26,10 @@
     "priceCurrency": "IDR"
   },
   "featureList": [
-    "Personalisasi Program Lari 5K - Full Marathon",
+    "Buat Program Lari Gratis 5K - Full Marathon",
     "Kalkulator VDOT Jack Daniels",
-    "Prediksi Target Waktu Lari Realistis",
-    "Sinkronisasi Kalender Latihan"
+    "Target Pace & Waktu Lari Presisi",
+    "Sinkronisasi Kalender Latihan Lari"
   ]
 }
 </script>
@@ -236,11 +236,10 @@
                         Scientific Training Framework
                     </div>
                     <h1 class="text-4xl md:text-7xl font-black tracking-tight mb-6 text-white leading-tight">
-                        Generator <span class="text-brand-500 italic">Program Lari</span> <br> Secara Realistis
+                        Buat <span class="text-brand-500 italic">Program Lari</span> <br> Gratis &amp; Presisi
                     </h1>
                     <p class="text-base md:text-xl text-slate-200 max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-lg">
-                        Running Program Generator otomatis untuk 5K hingga Full Marathon yang dipersonalisasi menggunakan algoritma 
-                        <span class="text-white font-bold">Jack Daniels' VDOT</span> yang teruji secara ilmiah.
+                        Buat program lari gratis yang disesuaikan secara ilmiah untuk target 5K, 10K, Half Marathon, hingga Full Marathon menggunakan kalkulator VDOT Jack Daniels.
                     </p>
                     
                     <div class="flex flex-col md:flex-row gap-4 justify-center">

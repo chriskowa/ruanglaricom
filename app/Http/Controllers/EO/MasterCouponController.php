@@ -56,7 +56,7 @@ class MasterCouponController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'event_id' => 'required|exists:events,id',
+            'event_id' => 'nullable|exists:events,id',
             'code' => 'required|string|max:50|unique:coupons,code',
             'type' => 'required|in:percent,fixed',
             'value' => 'required|numeric|min:0',
@@ -71,20 +71,31 @@ class MasterCouponController extends Controller
             'applicable_categories.*' => 'integer|exists:race_categories,id',
         ]);
 
-        // Security Check: Ensure event belongs to auth user
-        $event = Event::findOrFail($validated['event_id']);
-        if ($event->user_id !== auth()->id()) {
-            abort(403);
+        if (! empty($validated['event_id'])) {
+            $event = Event::findOrFail($validated['event_id']);
+            if ($event->user_id !== auth()->id()) {
+                abort(403);
+            }
+        } else {
+            $validated['event_id'] = null;
         }
 
-        $validated['is_active'] = $request->has('is_active');
-        $validated['is_stackable'] = $request->has('is_stackable');
+        $validated['is_active'] = $request->has('is_active') ? (bool) $request->input('is_active') : true;
+        $validated['is_stackable'] = $request->has('is_stackable') ? (bool) $request->input('is_stackable') : false;
         $validated['code'] = strtoupper($validated['code']);
 
         // Default values for nullable fields to avoid null violation if DB default is missing or strict
         $validated['min_transaction_amount'] = $validated['min_transaction_amount'] ?? 0;
 
-        Coupon::create($validated);
+        $coupon = Coupon::create($validated);
+
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kupon berhasil dibuat!',
+                'coupon' => $coupon,
+            ]);
+        }
 
         return redirect()->route('eo.coupons.index')
             ->with('success', 'Kupon berhasil dibuat!');
@@ -178,5 +189,30 @@ class MasterCouponController extends Controller
         }
 
         return response()->json(['code' => $code]);
+    }
+
+    /**
+     * Search coupons for multi-select input.
+     */
+    public function search(Request $request)
+    {
+        $term = trim((string) $request->input('q', ''));
+
+        $query = Coupon::where(function ($q) {
+            $q->whereHas('event', function ($eq) {
+                $eq->where('user_id', auth()->id());
+            })->orWhereNull('event_id');
+        });
+
+        if ($term !== '') {
+            $query->where('code', 'like', '%'.strtoupper($term).'%');
+        }
+
+        $coupons = $query->latest()->limit(15)->get();
+
+        return response()->json([
+            'success' => true,
+            'coupons' => $coupons,
+        ]);
     }
 }

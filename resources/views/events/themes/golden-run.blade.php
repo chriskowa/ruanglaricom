@@ -5015,10 +5015,16 @@
                     </div>
                     
                     <h3 class="text-2xl font-black text-slate-900 mb-2">MASTER KUPON &amp; PROMO EVENT</h3>
+                    @if(!empty($event->premium_amenities['promo_modal_html']))
+                    <div class="mb-6 text-left text-slate-700 text-sm leading-relaxed space-y-2">
+                        {!! $event->premium_amenities['promo_modal_html'] !!}
+                    </div>
+                    @else
                     <p class="text-slate-600 mb-6 text-sm">
                         Event ini bisa punya beberapa kupon berbeda. Cek kembali komunikasi resmi dari EO
                         atau materi promosi untuk kode yang paling sesuai denganmu.
                     </p>
+                    @endif
                     
                     <div class="space-y-3">
                         <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">

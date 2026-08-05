@@ -69,6 +69,10 @@ class EoEditEventTicketEmailQrRendersCleanTest extends TestCase
             $table->string('location_name');
             $table->text('custom_email_message')->nullable();
             $table->boolean('ticket_email_use_qr')->default(true);
+            $table->string('ticket_email_template')->default('modern');
+            $table->boolean('ticket_email_show_jersey')->default(true);
+            $table->boolean('ticket_email_show_addons')->default(true);
+            $table->boolean('ticket_email_show_pic')->default(true);
             $table->boolean('is_instant_notification')->default(false);
             $table->json('payment_config')->nullable();
             $table->json('whatsapp_config')->nullable();

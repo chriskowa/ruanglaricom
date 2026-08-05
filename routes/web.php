@@ -381,8 +381,10 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
 
 use App\Http\Controllers\SelfGeneratedProgramController;
 
-// Running Program Generator V2
-Route::get('/realistic-running-program', [SelfGeneratedProgramController::class, 'index'])->name('programs.realistic');
+// Running Program Generator V2 (SEO Optimized Slug: /buat-program-lari)
+Route::redirect('/realistic-running-program', '/buat-program-lari', 301);
+Route::redirect('/tools/realistic-running-program', '/buat-program-lari', 301);
+Route::get('/buat-program-lari', [SelfGeneratedProgramController::class, 'index'])->name('programs.realistic');
 Route::post('/api/programs/generate', [SelfGeneratedProgramController::class, 'generate'])->name('generator.generate');
 Route::post('/api/programs/store-pending', [SelfGeneratedProgramController::class, 'storePending'])->name('generator.store-pending');
 Route::middleware('auth')->group(function() {
@@ -1171,16 +1173,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/membership/payment/{transaction}', [App\Http\Controllers\EO\MembershipController::class, 'payment'])->name('membership.payment');
 
         // Coupon Management (Master)
+        Route::get('coupons/search', [App\Http\Controllers\EO\MasterCouponController::class, 'search'])->name('coupons.search');
         Route::get('coupons/generate-code', [App\Http\Controllers\EO\MasterCouponController::class, 'generateCode'])->name('coupons.generate');
         Route::resource('coupons', App\Http\Controllers\EO\MasterCouponController::class)->names('coupons');
 
         // Event management
         Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
-        Route::post('events/{event}/duplicate', [App\Http\Controllers\EO\EventController::class, 'duplicate'])->name('events.duplicate');
-        Route::resource('events', App\Http\Controllers\EO\EventController::class);
-        Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
         Route::post('events/live-preview', [App\Http\Controllers\EO\EventController::class, 'livePreview'])->name('events.live-preview');
+        Route::post('events/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email-create');
+        Route::post('events/{event}/duplicate', [App\Http\Controllers\EO\EventController::class, 'duplicate'])->name('events.duplicate');
         Route::post('events/{event}/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email');
+        Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
         Route::post('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'storeParticipant'])->name('events.participants.store');

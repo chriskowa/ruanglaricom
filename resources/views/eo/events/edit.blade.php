@@ -104,18 +104,20 @@
         }
     </style>
     <script>
-        tailwind.config.theme.extend = {
-            ...tailwind.config.theme.extend,
-            colors: {
-                ...tailwind.config.theme.extend.colors,
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = tailwind.config || {};
+            tailwind.config.theme = tailwind.config.theme || {};
+            tailwind.config.theme.extend = tailwind.config.theme.extend || {};
+            tailwind.config.theme.extend.colors = {
+                ...(tailwind.config.theme.extend.colors || {}),
                 neon: {
-                    ...tailwind.config.theme.extend.colors.neon,
+                    ...((tailwind.config.theme.extend.colors && tailwind.config.theme.extend.colors.neon) || {}),
                     cyan: '#06b6d4',
                     purple: '#a855f7',
                     green: '#22c55e',
                     yellow: '#eab308',
                 }
-            }
+            };
         }
     </script>
 @endpush
@@ -153,11 +155,6 @@
                     EDIT <span class="text-yellow-400">EVENT</span>
                 </h1>
                 <p class="text-slate-400 mt-1">Update event information, categories, and settings.</p>
-            </div>
-            <button type="button" onclick="openLivePreview()" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 transition-all cursor-pointer">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                <span>Preview Landing Event</span>
-            </button>
         </div>    <div class="flex flex-wrap gap-2">
                 <a href="{{ route('eo.events.show', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 text-sm font-bold">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -201,31 +198,38 @@
                         @error('hardcoded') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Tampilkan Promo Modal <span class="text-red-400">*</span></label>
-                        <div class="flex items-center gap-6">
-                            <label class="inline-flex items-center cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="premium_amenities[promo_modal_enabled]" value="1" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled', ($event->premium_amenities ?? [])['promo_modal_enabled'] ?? 0) == '1' ? 'checked' : '' }} required>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 md:col-span-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">Tampilkan Promo Modal <span class="text-red-400">*</span></label>
+                            <div class="flex items-center gap-5 pt-0.5">
+                                <label class="inline-flex items-center cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input type="radio" name="premium_amenities[promo_modal_enabled]" value="1" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled', ($event->premium_amenities ?? [])['promo_modal_enabled'] ?? 0) == '1' ? 'checked' : '' }} required>
+                                        <div class="w-4 h-4 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                            <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="ml-2 text-slate-300 group-hover:text-white transition-colors">Ya</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="premium_amenities[promo_modal_enabled]" value="0" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled', ($event->premium_amenities ?? [])['promo_modal_enabled'] ?? 0) == '0' ? 'checked' : '' }} required>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    <span class="ml-2 text-xs text-slate-300 group-hover:text-white transition-colors">Ya (Aktif)</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input type="radio" name="premium_amenities[promo_modal_enabled]" value="0" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled', ($event->premium_amenities ?? [])['promo_modal_enabled'] ?? 0) == '0' ? 'checked' : '' }} required>
+                                        <div class="w-4 h-4 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                            <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="ml-2 text-slate-300 group-hover:text-white transition-colors">Tidak</span>
-                            </label>
+                                    <span class="ml-2 text-xs text-slate-300 group-hover:text-white transition-colors">Tidak</span>
+                                </label>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">Popup promo otomatis muncul saat pendaftaran dibuka.</p>
                         </div>
-                        <p class="text-xs text-slate-500 mt-2">Jika aktif, modal promo akan muncul otomatis saat user membuka halaman event (hanya jika pendaftaran dibuka).</p>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Custom Content / HTML Promo Modal <span class="text-slate-500 text-[10px]">(Opsional)</span></label>
+                            <input type="text" name="premium_amenities[promo_modal_html]" value="{{ old('premium_amenities.promo_modal_html', ($event->premium_amenities ?? [])['promo_modal_html'] ?? '') }}" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-yellow-400 focus:outline-none" placeholder="Isikan pesan promo / HTML custom...">
+                            <p class="text-[10px] text-slate-500 mt-1">Kosongkan untuk merender promo default tema.</p>
+                        </div>
                     </div>
 
                     <div class="md:col-span-2">
@@ -395,37 +399,27 @@
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Event Slug (SEO URL)</label>
-                        <div class="flex">
-                            <span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-700 bg-slate-800 text-slate-400 text-sm">
-                                {{ config('app.url') }}/events/
-                            </span>
-                            <input type="text" name="slug" value="{{ old('slug', $event->slug) }}" class="flex-1 bg-slate-900 border border-slate-700 rounded-r-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
-                            <a href="{{ config('app.url') }}/events/{{ old('slug', $event->slug) }}" target="_blank" class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-slate-700 bg-slate-800 text-slate-400 text-sm">
-                                View
-                            </a>
+                    <!-- Short Desc & Full Desc (1 Row, 2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Short Description</label>
+                            <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                                <div id="short_description_editor"></div>
+                                <textarea name="short_description" id="short_description" class="hidden">{{ old('short_description', $event->short_description) }}</textarea>
+                            </div>
+                            @error('short_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        @error('slug') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Full Description</label>
+                            <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                                <div id="full_description_editor"></div>
+                                <textarea name="full_description" id="full_description" class="hidden">{{ old('full_description', $event->full_description) }}</textarea>
+                            </div>
+                            @error('full_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Short Description</label>
-                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
-                            <div id="short_description_editor"></div>
-                            <textarea name="short_description" id="short_description" class="hidden">{{ old('short_description', $event->short_description) }}</textarea>
-                        </div>
-                        @error('short_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Full Description</label>
-                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
-                            <div id="full_description_editor"></div>
-                            <textarea name="full_description" id="full_description" class="hidden">{{ old('full_description', $event->full_description) }}</textarea>
-                        </div>
-                        @error('full_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Terms & Conditions</label>
                         <div class="bg-white rounded-xl overflow-hidden text-slate-900">
@@ -438,7 +432,7 @@
                     <div class="md:col-span-2">
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-sm font-medium text-slate-300">Custom Email Message (Ticket)</label>
-                            <button type="button" onclick="previewEmail()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 border border-slate-600">
+                            <button type="button" onclick="openTicketEmailPreviewModal()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 border border-slate-600">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                 Preview Email
                             </button>
@@ -464,91 +458,143 @@
                         @error('custom_email_message') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-4">Template Tiket Email</label>
-                        <div class="flex flex-wrap items-center gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="ticket_email_use_qr" value="1" class="peer sr-only" {{ old('ticket_email_use_qr', ($event->ticket_email_use_qr ?? true) ? '1' : '0') === '1' ? 'checked' : '' }} required>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                    <div class="md:col-span-2 space-y-6 pt-4 border-t border-slate-700/60">
+                        <!-- Template Theme Selection -->
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-2">Desain Template Email Tiket</label>
+                            <p class="text-xs text-slate-400 mb-4">Pilih gaya tampilan email tiket yang dikirimkan otomatis ke peserta.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Modern Dark -->
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="ticket_email_template" value="modern" class="peer sr-only" {{ old('ticket_email_template', $event->ticket_email_template ?? 'modern') === 'modern' ? 'checked' : '' }}>
+                                    <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800/80 transition-all hover:border-slate-500 h-full flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-xs font-black uppercase tracking-wider text-yellow-400 block mb-1">1. Modern Dark</span>
+                                            <p class="text-xs text-slate-400">Header gelap slate dengan aksen neon modern dan tiket bertanda putus-putus.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Gunakan QR Code</span>
-                            </label>
-
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="ticket_email_use_qr" value="0" class="peer sr-only" {{ old('ticket_email_use_qr', ($event->ticket_email_use_qr ?? true) ? '1' : '0') === '0' ? 'checked' : '' }}>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <div class="bg-yellow-400 rounded-full p-1">
+                                            <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Tanpa QR Code</span>
-                            </label>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2">Jika dimatikan, email tiket tetap menampilkan nomor tiket tanpa QR.</p>
-                        <p id="ticketEmailQrError" class="text-red-400 text-xs mt-1 hidden"></p>
-                        @error('ticket_email_use_qr') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
+                                </label>
 
-                    <div class="md:col-span-2">
-                        <label class="flex items-center gap-3 p-4 border border-slate-700 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer group">
-                            <input type="checkbox" name="is_instant_notification" value="1" class="w-5 h-5 rounded border-slate-600 bg-slate-700 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('is_instant_notification', $event->is_instant_notification) ? 'checked' : '' }}>
-                            <div>
-                                <span class="block text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">Instant Email Notification</span>
-                                <span class="block text-xs text-slate-400 mt-0.5">Kirim email tiket secara cepat dengan batas maksimal 5 email/menit per event. Gunakan hanya untuk demo atau event kecil.</span>
+                                <!-- Minimalist Clean -->
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="ticket_email_template" value="minimalist" class="peer sr-only" {{ old('ticket_email_template', $event->ticket_email_template ?? 'modern') === 'minimalist' ? 'checked' : '' }}>
+                                    <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800/80 transition-all hover:border-slate-500 h-full flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-xs font-black uppercase tracking-wider text-slate-200 block mb-1">2. Clean Minimalist</span>
+                                            <p class="text-xs text-slate-400">Tampilan bersih berlatar putih dengan border tegas, cocok untuk corporate event.</p>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <div class="bg-yellow-400 rounded-full p-1">
+                                            <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Bold Sporty -->
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="ticket_email_template" value="sporty" class="peer sr-only" {{ old('ticket_email_template', $event->ticket_email_template ?? 'modern') === 'sporty' ? 'checked' : '' }}>
+                                    <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800/80 transition-all hover:border-slate-500 h-full flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-xs font-black uppercase tracking-wider text-orange-400 block mb-1">3. Bold Sporty</span>
+                                            <p class="text-xs text-slate-400">Desain atletis energik dengan warna gradien oranye kontras dan badge tiket besar.</p>
+                                        </div>
+                                    </div>
+                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <div class="bg-yellow-400 rounded-full p-1">
+                                            <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                        </label>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-4">Daftar Peserta (Public)</label>
-                        <div class="flex flex-wrap items-center gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="show_participant_list" value="1" class="peer sr-only" {{ old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
-                                    </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Tampilkan Daftar Peserta</span>
-                            </label>
-
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="show_participant_list" value="0" class="peer sr-only" {{ !old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
-                                    </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Sembunyikan Daftar Peserta</span>
-                            </label>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2">Mengatur apakah daftar peserta dapat dilihat oleh publik di halaman event.</p>
-                        @error('show_participant_list') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Rate Limit Email (Non-Instant)</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">Ticket Email (per menit)</label>
-                                <input type="number" min="1" max="10000" name="ticket_email_rate_limit_per_minute" value="{{ old('ticket_email_rate_limit_per_minute', $event->ticket_email_rate_limit_per_minute) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Kosong = unlimited">
-                                @error('ticket_email_rate_limit_per_minute') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 mb-1">Blast Email (per menit)</label>
-                                <input type="number" min="1" max="10000" name="blast_email_rate_limit_per_minute" value="{{ old('blast_email_rate_limit_per_minute', $event->blast_email_rate_limit_per_minute) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Kosong = unlimited">
-                                @error('blast_email_rate_limit_per_minute') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                            <div class="mt-4 flex items-center justify-between">
+                                <button type="button" onclick="openTicketEmailPreviewModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-400/10 hover:bg-yellow-400 hover:text-black text-yellow-400 text-xs font-bold rounded-xl border border-yellow-400/30 transition-all cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>Preview HTML Template Email Tiket</span>
+                                </button>
                             </div>
                         </div>
-                        <p class="text-slate-500 text-xs mt-2">Ticket rate dipakai saat Instant dimatikan. Instant tetap mengikuti batas 5 email/menit. Blast akan mengikuti setting ini jika diisi.</p>
+
+                        <!-- Content Items Toggle -->
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-2">Item yang Ditampilkan di Email Tiket</label>
+                            <p class="text-xs text-slate-400 mb-3">Centang bagian yang ingin ditampilkan di dalam tiket email peserta:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="ticket_email_use_qr" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('ticket_email_use_qr', ($event->ticket_email_use_qr ?? true) ? '1' : '0') == '1' ? 'checked' : '' }}>
+                                    <span class="text-xs font-semibold text-slate-200">QR Code Verifikasi Tiket</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="ticket_email_show_jersey" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('ticket_email_show_jersey', ($event->ticket_email_show_jersey ?? true) ? '1' : '0') == '1' ? 'checked' : '' }}>
+                                    <span class="text-xs font-semibold text-slate-200">Ukuran Jersey Peserta</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="ticket_email_show_addons" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('ticket_email_show_addons', ($event->ticket_email_show_addons ?? true) ? '1' : '0') == '1' ? 'checked' : '' }}>
+                                    <span class="text-xs font-semibold text-slate-200">Detail Addon / Item Tambahan</span>
+                                </label>
+
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-900 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="ticket_email_show_pic" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('ticket_email_show_pic', ($event->ticket_email_show_pic ?? true) ? '1' : '0') == '1' ? 'checked' : '' }}>
+                                    <span class="text-xs font-semibold text-slate-200">Informasi & Kontak PIC</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Public Participants & SEO Slug (1 Row, 2 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-4">Daftar Peserta (Public)</label>
+                            <div class="flex flex-wrap items-center gap-6">
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input type="radio" name="show_participant_list" value="1" class="peer sr-only" {{ old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
+                                        <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                            <div class="w-2 h-2 bg-black rounded-full"></div>
+                                        </div>
+                                    </div>
+                                    <span class="text-slate-300 group-hover:text-white transition-colors text-sm">Tampilkan Daftar Peserta</span>
+                                </label>
+
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input type="radio" name="show_participant_list" value="0" class="peer sr-only" {{ !old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
+                                        <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                            <div class="w-2 h-2 bg-black rounded-full"></div>
+                                        </div>
+                                    </div>
+                                    <span class="text-slate-300 group-hover:text-white transition-colors text-sm">Sembunyikan Daftar Peserta</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">Mengatur apakah daftar peserta dapat dilihat oleh publik di halaman event.</p>
+                            @error('show_participant_list') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Event Slug (SEO URL)</label>
+                            <div class="flex">
+                                <span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-700 bg-slate-800 text-slate-400 text-xs">
+                                    /events/
+                                </span>
+                                <input type="text" name="slug" value="{{ old('slug', $event->slug) }}" class="flex-1 bg-slate-900 border border-slate-700 rounded-r-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors text-sm">
+                                <a href="{{ config('app.url') }}/events/{{ old('slug', $event->slug) }}" target="_blank" class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-slate-700 bg-slate-800 text-slate-400 text-xs">
+                                    View
+                                </a>
+                            </div>
+                            @error('slug') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2 flex items-center justify-between">
@@ -730,17 +776,31 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="md:col-span-2 hidden">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Promo Code <span class="text-slate-500 text-xs">(Optional)</span></label>
-                        <input type="hidden" name="promo_code" value="">
-                        <p class="text-xs text-slate-500 mt-1">Code for discount.</p>
-                        @error('promo_code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Promo Beli X Gratis 1 <span class="text-slate-500 text-xs">(Optional)</span></label>
                         <input type="number" name="promo_buy_x" value="{{ old('promo_buy_x', $event->promo_buy_x) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. 10">
                         <p class="text-xs text-slate-500 mt-1">Isi jumlah beli untuk dapat 1 gratis (misal 10).</p>
                         @error('promo_buy_x') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Kupon Diskon Terkait <span class="text-slate-500 text-xs">(Bisa Pilih Banyak)</span></label>
+                        <div class="relative">
+                            <div id="coupon_tags_container" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 flex flex-wrap items-center gap-2 min-h-[48px] focus-within:border-yellow-400 focus-within:ring-1 focus-within:ring-yellow-400 transition-colors cursor-text" onclick="document.getElementById('coupon_search_input').focus()">
+                                <div id="selected_coupon_badges" class="flex flex-wrap items-center gap-2"></div>
+                                <input type="text" id="coupon_search_input" class="flex-1 bg-transparent border-0 text-white text-sm focus:outline-none focus:ring-0 p-1 min-w-[120px]" placeholder="Cari kode kupon..." autocomplete="off">
+                                <button type="button" onclick="openCreateCouponModal()" class="ml-auto px-3 py-1.5 bg-yellow-400/20 hover:bg-yellow-400 text-yellow-400 hover:text-black font-bold rounded-lg border border-yellow-400/40 transition-all text-xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span>+ Buat Kupon</span>
+                                </button>
+                            </div>
+
+                            <input type="hidden" id="promo_code_input" name="promo_code" value="{{ old('promo_code', $event->promo_code) }}">
+                            <div id="promo_codes_hidden_container"></div>
+
+                            <div id="coupon_search_dropdown" class="absolute left-0 right-0 top-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-40 hidden max-h-60 overflow-y-auto divide-y divide-slate-800"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Ketik kode kupon untuk mencari kupon yang ada atau klik <strong>+ Buat Kupon</strong> untuk menambah kupon baru.</p>
+                        @error('promo_code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
@@ -861,7 +921,7 @@
                         @error('twibbon_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     
-                    <div class="md:col-span-2">
+                    <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Gallery (Multiple, Drag to Reorder)</label>
                         <div id="gallery-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors min-h-[150px]">
                              <div class="dz-message text-center py-8">
@@ -1596,13 +1656,25 @@
         nameInput.value = name;
         form.appendChild(nameInput);
 
-        if (ticketEmailUseQr !== undefined) {
-            const qrInput = document.createElement('input');
-            qrInput.type = 'hidden';
-            qrInput.name = 'ticket_email_use_qr';
-            qrInput.value = ticketEmailUseQr;
-            form.appendChild(qrInput);
-        }
+        const ticketEmailUseQr = document.querySelector('input[name="ticket_email_use_qr"]:checked')?.value || '1';
+        const templateVal = document.querySelector('input[name="ticket_email_template"]:checked')?.value || 'modern';
+        const showJerseyVal = document.querySelector('input[name="ticket_email_show_jersey"]')?.checked ? 1 : 0;
+        const showAddonsVal = document.querySelector('input[name="ticket_email_show_addons"]')?.checked ? 1 : 0;
+        const showPicVal = document.querySelector('input[name="ticket_email_show_pic"]')?.checked ? 1 : 0;
+
+        const appendHiddenInput = (n, v) => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = n;
+            inp.value = v;
+            form.appendChild(inp);
+        };
+
+        appendHiddenInput('ticket_email_use_qr', ticketEmailUseQr);
+        appendHiddenInput('ticket_email_template', templateVal);
+        appendHiddenInput('ticket_email_show_jersey', showJerseyVal);
+        appendHiddenInput('ticket_email_show_addons', showAddonsVal);
+        appendHiddenInput('ticket_email_show_pic', showPicVal);
         
         document.body.appendChild(form);
         form.submit();
@@ -1636,8 +1708,12 @@
         }
 
         const content = document.querySelector('#custom_email_message')?.value || '';
-        const name = document.querySelector('input[name=\"name\"]')?.value || '';
-        const ticketEmailUseQr = document.querySelector('input[name=\"ticket_email_use_qr\"]:checked')?.value;
+        const name = document.querySelector('input[name="name"]')?.value || '';
+        const ticketEmailUseQr = document.querySelector('input[name="ticket_email_use_qr"]:checked')?.value || '1';
+        const templateVal = document.querySelector('input[name="ticket_email_template"]:checked')?.value || 'modern';
+        const showJerseyVal = document.querySelector('input[name="ticket_email_show_jersey"]')?.checked ? 1 : 0;
+        const showAddonsVal = document.querySelector('input[name="ticket_email_show_addons"]')?.checked ? 1 : 0;
+        const showPicVal = document.querySelector('input[name="ticket_email_show_pic"]')?.checked ? 1 : 0;
 
         if (btn) {
             btn.disabled = true;
@@ -1654,13 +1730,17 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name=\"_token\"]').value
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
                 },
                 body: JSON.stringify({
                     test_email: email,
                     custom_email_message: content,
                     name: name,
-                    ticket_email_use_qr: ticketEmailUseQr
+                    ticket_email_use_qr: ticketEmailUseQr,
+                    ticket_email_template: templateVal,
+                    ticket_email_show_jersey: showJerseyVal,
+                    ticket_email_show_addons: showAddonsVal,
+                    ticket_email_show_pic: showPicVal
                 })
             });
 
@@ -1714,6 +1794,366 @@
                 }
             });
         }
+    });
+</script>
+
+<!-- Live HTML Email Preview Modal -->
+<div id="ticketEmailPreviewModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+            <h3 class="font-bold text-white text-base flex items-center gap-2">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>Live Preview HTML Template Email Tiket</span>
+            </h3>
+            <button type="button" onclick="closeTicketEmailPreviewModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto bg-slate-950/50">
+            <iframe id="ticketEmailPreviewFrame" name="ticketEmailPreviewFrame" class="w-full h-[65vh] rounded-xl border border-slate-800 bg-white" src="about:blank"></iframe>
+        </div>
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+            <button type="button" onclick="closeTicketEmailPreviewModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-all">Tutup Preview</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Buat Kupon Baru (Persis /eo/coupons/create) -->
+<div id="createCouponModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl my-auto">
+        <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+            <h3 class="font-bold text-white text-lg flex items-center gap-2">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                <span>Buat Kupon Baru Terkait</span>
+            </h3>
+            <button type="button" onclick="closeCreateCouponModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form id="createCouponModalForm" onsubmit="submitModalCoupon(event)" class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+            <input type="hidden" name="event_id" value="{{ $event->id }}">
+            <div id="couponModalStatus" class="hidden text-xs p-3 rounded-xl"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Kode Kupon <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="text" id="modal_coupon_code" name="code" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono uppercase text-sm focus:border-yellow-400 focus:outline-none" placeholder="MERDEKA45" required>
+                        <button type="button" onclick="generateModalCouponCode()" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs" title="Generate Code">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Tipe Diskon <span class="text-red-400">*</span></label>
+                    <select id="modal_coupon_type" name="type" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none" required>
+                        <option value="percent">Persentase (%)</option>
+                        <option value="fixed">Nominal Tetap (Rp)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Nilai Diskon <span class="text-red-400">*</span></label>
+                    <input type="number" id="modal_coupon_value" name="value" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="10" required min="0">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Min. Transaksi (Rp)</label>
+                    <input type="number" id="modal_coupon_min" name="min_transaction_amount" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="0" min="0" value="0">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Kuota Total (Stok)</label>
+                    <input type="number" name="max_uses" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Kosongkan untuk unlimited" min="1">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Batas Per User</label>
+                    <input type="number" name="usage_limit_per_user" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="1" min="1" value="1">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal Mulai</label>
+                    <input type="datetime-local" name="start_at" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none [color-scheme:dark]">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Tanggal Berakhir</label>
+                    <input type="datetime-local" name="expires_at" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:border-yellow-400 focus:outline-none [color-scheme:dark]">
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 space-y-2">
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" name="is_active" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400" checked>
+                    <span class="text-xs text-slate-300">Aktifkan Kupon Ini</span>
+                </label>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" name="is_stackable" value="1" class="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-400">
+                    <span class="text-xs text-slate-300">Dapat Digabungkan dengan Promo Lain</span>
+                </label>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                <button type="button" onclick="closeCreateCouponModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl">Batal</button>
+                <button type="submit" id="submitCouponBtn" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-black rounded-xl shadow-lg transition-all">Simpan & Tautkan Kupon</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openTicketEmailPreviewModal() {
+        const modal = document.getElementById('ticketEmailPreviewModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const content = document.querySelector('#custom_email_message')?.value || '';
+        const name = document.querySelector('input[name="name"]')?.value || '{{ addslashes($event->name ?? "Jakarta Marathon 2025") }}';
+        const ticketEmailUseQr = document.querySelector('input[name="ticket_email_use_qr"]')?.checked ? 1 : 0;
+        const templateVal = document.querySelector('input[name="ticket_email_template"]:checked')?.value || 'modern';
+        const showJerseyVal = document.querySelector('input[name="ticket_email_show_jersey"]')?.checked ? 1 : 0;
+        const showAddonsVal = document.querySelector('input[name="ticket_email_show_addons"]')?.checked ? 1 : 0;
+        const showPicVal = document.querySelector('input[name="ticket_email_show_pic"]')?.checked ? 1 : 0;
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ route('eo.events.preview-email', $event) }}";
+        form.target = 'ticketEmailPreviewFrame';
+
+        const appendInp = (n, v) => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = n;
+            inp.value = v;
+            form.appendChild(inp);
+        };
+
+        appendInp('_token', document.querySelector('input[name="_token"]').value);
+        appendInp('custom_email_message', content);
+        appendInp('name', name);
+        appendInp('slug', document.querySelector('input[name="slug"]')?.value || '{{ $event->slug ?? "jakarta-marathon-2025" }}');
+        appendInp('ticket_email_use_qr', ticketEmailUseQr);
+        appendInp('ticket_email_template', templateVal);
+        appendInp('ticket_email_show_jersey', showJerseyVal);
+        appendInp('ticket_email_show_addons', showAddonsVal);
+        appendInp('ticket_email_show_pic', showPicVal);
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+
+    function closeTicketEmailPreviewModal() {
+        const modal = document.getElementById('ticketEmailPreviewModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    function openCreateCouponModal() {
+        const modal = document.getElementById('createCouponModal');
+        if (!modal) return;
+        generateModalCouponCode();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeCreateCouponModal() {
+        const modal = document.getElementById('createCouponModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    function generateModalCouponCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const input = document.getElementById('modal_coupon_code');
+        if (input) input.value = code;
+    }
+
+    async function submitModalCoupon(e) {
+        e.preventDefault();
+        const form = document.getElementById('createCouponModalForm');
+        const statusEl = document.getElementById('couponModalStatus');
+        const submitBtn = document.getElementById('submitCouponBtn');
+        if (!form) return;
+
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((val, key) => { data[key] = val; });
+        data._token = document.querySelector('input[name="_token"]').value;
+
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+        if (statusEl) { statusEl.className = 'text-xs p-3 rounded-xl bg-slate-800 text-slate-300'; statusEl.textContent = 'Menyimpan kupon...'; statusEl.classList.remove('hidden'); }
+
+        try {
+            const res = await fetch("{{ route('eo.coupons.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': data._token
+                },
+                body: JSON.stringify(data)
+            });
+
+            const resData = await res.json().catch(() => ({}));
+
+            if (res.ok && resData.success) {
+                if (resData.coupon && resData.coupon.code) {
+                    selectCouponCode(resData.coupon.code);
+                }
+                if (statusEl) {
+                    statusEl.className = 'text-xs p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                    statusEl.textContent = 'Kupon berhasil dibuat dan ditautkan!';
+                }
+                setTimeout(() => {
+                    closeCreateCouponModal();
+                    if (statusEl) statusEl.classList.add('hidden');
+                }, 800);
+            } else {
+                const msg = resData.message || (resData.errors ? Object.values(resData.errors).flat().join(', ') : 'Gagal membuat kupon.');
+                if (statusEl) {
+                    statusEl.className = 'text-xs p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30';
+                    statusEl.textContent = msg;
+                }
+            }
+        } catch (err) {
+            if (statusEl) {
+                statusEl.className = 'text-xs p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30';
+                statusEl.textContent = 'Terjadi kesalahan sistem saat membuat kupon.';
+            }
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan & Tautkan Kupon'; }
+        }
+    }
+
+    let selectedCoupons = [];
+
+    function initCouponMultiSelect(initialCodesStr) {
+        if (initialCodesStr && typeof initialCodesStr === 'string') {
+            selectedCoupons = initialCodesStr.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+        }
+        renderCouponBadges();
+
+        const searchInput = document.getElementById('coupon_search_input');
+        const dropdown = document.getElementById('coupon_search_dropdown');
+
+        if (!searchInput) return;
+
+        let debounceTimer;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+            debounceTimer = setTimeout(() => searchCouponsAjax(query), 200);
+        });
+
+        searchInput.addEventListener('focus', function () {
+            searchCouponsAjax(this.value.trim());
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#coupon_tags_container') && !e.target.closest('#coupon_search_dropdown')) {
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    async function searchCouponsAjax(query) {
+        const dropdown = document.getElementById('coupon_search_dropdown');
+        if (!dropdown) return;
+
+        try {
+            const res = await fetch(`{{ route('eo.coupons.search') }}?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if (data.success && data.coupons) {
+                renderCouponDropdown(data.coupons);
+            }
+        } catch (e) {
+            console.error('Error searching coupons:', e);
+        }
+    }
+
+    function renderCouponDropdown(coupons) {
+        const dropdown = document.getElementById('coupon_search_dropdown');
+        if (!dropdown) return;
+
+        if (coupons.length === 0) {
+            dropdown.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">Kupon tidak ditemukan. Klik <strong>+ Buat Kupon</strong> untuk menambah baru.</div>`;
+            dropdown.classList.remove('hidden');
+            return;
+        }
+
+        let html = '';
+        coupons.forEach(c => {
+            const isSelected = selectedCoupons.includes(c.code.toUpperCase());
+            const typeLabel = c.type === 'percent' ? `${parseFloat(c.value)}%` : `Rp ${parseInt(c.value).toLocaleString('id-ID')}`;
+            html += `
+                <div onclick="selectCouponCode('${c.code.toUpperCase()}')" class="p-3 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors ${isSelected ? 'opacity-50 bg-slate-950/40' : ''}">
+                    <div>
+                        <span class="font-mono font-bold text-yellow-400 text-xs">${c.code}</span>
+                        <span class="text-xs text-slate-400 ml-2">(${typeLabel})</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${c.is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">
+                        ${c.is_active ? 'Aktif' : 'Non-Aktif'}
+                    </span>
+                </div>
+            `;
+        });
+        dropdown.innerHTML = html;
+        dropdown.classList.remove('hidden');
+    }
+
+    function selectCouponCode(code) {
+        code = code.trim().toUpperCase();
+        if (!code) return;
+        if (!selectedCoupons.includes(code)) {
+            selectedCoupons.push(code);
+        }
+        renderCouponBadges();
+        const searchInput = document.getElementById('coupon_search_input');
+        if (searchInput) searchInput.value = '';
+        const dropdown = document.getElementById('coupon_search_dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+    }
+
+    function removeCouponCode(code) {
+        selectedCoupons = selectedCoupons.filter(c => c !== code);
+        renderCouponBadges();
+    }
+
+    function renderCouponBadges() {
+        const badgesContainer = document.getElementById('selected_coupon_badges');
+        const hiddenContainer = document.getElementById('promo_codes_hidden_container');
+        const mainInput = document.getElementById('promo_code_input');
+
+        if (mainInput) mainInput.value = selectedCoupons.join(', ');
+
+        if (hiddenContainer) {
+            hiddenContainer.innerHTML = selectedCoupons.map(c => `<input type="hidden" name="promo_codes[]" value="${c}">`).join('');
+        }
+
+        if (badgesContainer) {
+            badgesContainer.innerHTML = selectedCoupons.map(c => `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 rounded-lg text-xs font-mono font-bold">
+                    <span>${c}</span>
+                    <button type="button" onclick="removeCouponCode('${c}')" class="hover:text-white transition-colors text-slate-400 font-bold ml-1">&times;</button>
+                </span>
+            `).join('');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initCouponMultiSelect("{{ old('promo_code', $event->promo_code) }}");
     });
 </script>
 @endpush

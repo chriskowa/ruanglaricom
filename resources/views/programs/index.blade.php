@@ -485,7 +485,7 @@
                     Buat custom program latihan personal gratis yang disesuaikan secara ilmiah dengan target Anda menggunakan AI Generator berbasis VDOT kami, atau hubungi pelatih profesional untuk konsultasi privat.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="{{ url('/tools/realistic-running-program') }}" class="px-6 py-3.5 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-sm transition-all uppercase tracking-wider shadow-lg shadow-neon/10 hover:shadow-neon/20">
+                    <a href="{{ route('programs.realistic') }}" class="px-6 py-3.5 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-sm transition-all uppercase tracking-wider shadow-lg shadow-neon/10 hover:shadow-neon/20">
                         Buat Custom Program (AI)
                     </a>
                     <a href="{{ url('/coaches') }}" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition-colors border border-slate-700 uppercase tracking-wider">

@@ -5047,6 +5047,11 @@
                     </div>
                     
                     <h3 class="text-2xl font-black text-slate-900 mb-2">PENGUMUMAN EVENT</h3>                    
+                    @if(!empty($event->premium_amenities['promo_modal_html']))
+                    <div class="mb-5 text-left text-slate-700 text-sm leading-relaxed space-y-2">
+                        {!! $event->premium_amenities['promo_modal_html'] !!}
+                    </div>
+                    @else
                     @php $nowPromo = now(); @endphp
                     @if($nowPromo >= \Carbon\Carbon::parse('2026-06-01'))
                     {{-- Jersey stock warning active from June 1 --}}
@@ -5076,6 +5081,7 @@
                             </p>
                         </div>
                     </div>
+                    @endif
                     @endif
                     
                     <div class="space-y-3">

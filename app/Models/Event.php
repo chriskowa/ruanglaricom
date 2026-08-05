@@ -49,6 +49,10 @@ class Event extends Model
         'promo_buy_x',
         'custom_email_message',
         'ticket_email_use_qr',
+        'ticket_email_template',
+        'ticket_email_show_jersey',
+        'ticket_email_show_addons',
+        'ticket_email_show_pic',
         'is_instant_notification',
         'ticket_email_rate_limit_per_minute',
         'blast_email_rate_limit_per_minute',
@@ -94,6 +98,9 @@ class Event extends Model
         'ticket_email_rate_limit_per_minute' => 'integer',
         'blast_email_rate_limit_per_minute' => 'integer',
         'ticket_email_use_qr' => 'boolean',
+        'ticket_email_show_jersey' => 'boolean',
+        'ticket_email_show_addons' => 'boolean',
+        'ticket_email_show_pic' => 'boolean',
         'is_featured' => 'boolean',
         'show_participant_list' => 'boolean',
         'is_active' => 'boolean',
@@ -480,5 +487,10 @@ class Event extends Model
         }
 
         return '';
+    }
+
+    public function coupons(): HasMany
+    {
+        return $this->hasMany(Coupon::class);
     }
 }

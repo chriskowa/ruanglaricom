@@ -13,9 +13,9 @@
             
             <!-- Column 1: Brand & Purpose Statement (2 Cols width on desktop) -->
             <div class="lg:col-span-2 space-y-4">
-                <a href="{{ url('/') }}" class="flex items-center gap-2 group inline-block">
+                <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 group">
                     <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="{{ $siteTitle }} Logo" class="h-8 w-auto group-hover:scale-105 transition duration-300">
-                    <span class="text-2xl font-black italic tracking-tighter text-white">RUANG<span class="pl-1 text-neon">LARI</span></span>
+                    <span class="text-2xl font-black italic tracking-tighter text-white whitespace-nowrap">RUANG<span class="pl-1 text-neon">LARI</span></span>
                 </a>
                 
                 <p class="text-slate-400 text-sm leading-relaxed max-w-md">

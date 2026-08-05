@@ -150,7 +150,7 @@
                                         </a>
                                     @empty
                                         <div class="snap-center flex-none w-full relative">
-                                             <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : $fallbackHero }}" alt="Hero" class="w-full h-[400px] md:h-[480px] object-cover object-center" onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
+                                             <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : $fallbackHero }}" alt="Hero" class="w-full h-[400px] md:h-[480px] object-cover object-center" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
                                         </div>
                                     @endforelse
                                 </div>
@@ -294,7 +294,7 @@
                             </div>
                             
                             <!-- Live Output Results Box -->
-                            <div id="vdot_widget_result" class="hidden p-4 rounded-2xl bg-[#08111F] border border-[#1F2D44] space-y-4">
+                            <div id="vdot_widget_result" class="hidden p-4 rounded-2xl bg-[#08111F] border border-[#1F2D44] space-y-4 transition-all duration-500 ease-out transform opacity-0 translate-y-4">
                                 <div class="flex items-center justify-between border-b border-[#1F2D44] pb-3">
                                     <div>
                                         <span class="text-[10px] text-[#94A3B8] font-mono uppercase block">Skor VDOT:</span>
@@ -591,7 +591,7 @@
                     <div class="relative" data-aos="fade-left" data-aos-delay="200">
                         <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-[2rem] transform rotate-3 scale-95 opacity-25 blur-sm z-0"></div>
                         <div class="relative z-10 rounded-[2rem] overflow-hidden border border-[#1F2D44] shadow-2xl bg-[#0E1A2D]">
-                            <img src="https://ruanglari.com/storage/blog/media/Eg6tJAZfqg7uRUqFufYDcPdFzd1uCJy1Uad4A2xg.webp" alt="Cari Teman Lari Ruang Lari" class="w-full h-[380px] md:h-[420px] object-cover object-center">
+                            <img src="https://ruanglari.com/storage/blog/media/Eg6tJAZfqg7uRUqFufYDcPdFzd1uCJy1Uad4A2xg.webp" alt="Cari Teman Lari Ruang Lari" class="w-full h-[380px] md:h-[420px] object-cover object-center" loading="lazy" decoding="async">
                             <!-- Overlay Badge -->
                             <div class="absolute bottom-6 left-6 right-6 z-20 bg-[#0E1A2D]/95 backdrop-blur-md p-4 rounded-xl border border-[#1F2D44]">
                                 <div class="flex items-center gap-3">
@@ -1435,6 +1435,15 @@
             }
 
             resultBox.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                resultBox.classList.remove('opacity-0', 'translate-y-4');
+                resultBox.classList.add('opacity-100', 'translate-y-0');
+            });
+
+            // Smooth scroll down to Pace Latihan result box
+            setTimeout(() => {
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 120);
         });
     }
 

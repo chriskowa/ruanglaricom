@@ -187,6 +187,10 @@ class EventController extends Controller
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
+            'ticket_email_template' => 'nullable|string|in:modern,minimalist,sporty',
+            'ticket_email_show_jersey' => 'nullable|boolean',
+            'ticket_email_show_addons' => 'nullable|boolean',
+            'ticket_email_show_pic' => 'nullable|boolean',
             'show_participant_list' => 'required|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
@@ -259,6 +263,19 @@ class EventController extends Controller
                 : true;
         } else {
             unset($validated['ticket_email_use_qr']);
+        }
+
+        if (Schema::hasColumn('events', 'ticket_email_template')) {
+            $validated['ticket_email_template'] = $validated['ticket_email_template'] ?? 'modern';
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_jersey')) {
+            $validated['ticket_email_show_jersey'] = array_key_exists('ticket_email_show_jersey', $validated) ? (bool)$validated['ticket_email_show_jersey'] : true;
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_addons')) {
+            $validated['ticket_email_show_addons'] = array_key_exists('ticket_email_show_addons', $validated) ? (bool)$validated['ticket_email_show_addons'] : true;
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_pic')) {
+            $validated['ticket_email_show_pic'] = array_key_exists('ticket_email_show_pic', $validated) ? (bool)$validated['ticket_email_show_pic'] : true;
         }
 
         if (Schema::hasColumn('events', 'is_instant_notification')) {
@@ -383,8 +400,31 @@ class EventController extends Controller
             $validated['hero_image_url'] = null;
         }
 
+        $promoCodesInput = $request->input('promo_codes', []);
+        if (is_string($promoCodesInput)) {
+            $promoCodesInput = explode(',', $promoCodesInput);
+        }
+        if (! is_array($promoCodesInput)) {
+            $promoCodesInput = [];
+        }
+        if (! empty($validated['promo_code'])) {
+            $promoCodesInput = array_merge($promoCodesInput, explode(',', $validated['promo_code']));
+        }
+        $cleanCodes = array_values(array_unique(array_filter(array_map('trim', array_map('strtoupper', $promoCodesInput)))));
+        if (! empty($cleanCodes)) {
+            $validated['promo_code'] = implode(', ', $cleanCodes);
+        }
+
         // Create event
         $event = Event::create($validated);
+
+        if (! empty($cleanCodes)) {
+            \App\Models\Coupon::whereIn('code', $cleanCodes)
+                ->where(function ($q) use ($event) {
+                    $q->whereNull('event_id')->orWhere('event_id', $event->id);
+                })
+                ->update(['event_id' => $event->id]);
+        }
 
         // Create categories
         \Illuminate\Support\Facades\Log::info('Creating categories', ['categories' => $categories]);
@@ -490,6 +530,10 @@ class EventController extends Controller
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
+            'ticket_email_template' => 'nullable|string|in:modern,minimalist,sporty',
+            'ticket_email_show_jersey' => 'nullable|boolean',
+            'ticket_email_show_addons' => 'nullable|boolean',
+            'ticket_email_show_pic' => 'nullable|boolean',
             'show_participant_list' => 'required|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
@@ -581,6 +625,19 @@ class EventController extends Controller
                 : (bool) ($event->ticket_email_use_qr ?? true);
         } else {
             unset($validated['ticket_email_use_qr']);
+        }
+
+        if (Schema::hasColumn('events', 'ticket_email_template')) {
+            $validated['ticket_email_template'] = $validated['ticket_email_template'] ?? ($event->ticket_email_template ?? 'modern');
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_jersey')) {
+            $validated['ticket_email_show_jersey'] = array_key_exists('ticket_email_show_jersey', $validated) ? (bool)$validated['ticket_email_show_jersey'] : false;
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_addons')) {
+            $validated['ticket_email_show_addons'] = array_key_exists('ticket_email_show_addons', $validated) ? (bool)$validated['ticket_email_show_addons'] : false;
+        }
+        if (Schema::hasColumn('events', 'ticket_email_show_pic')) {
+            $validated['ticket_email_show_pic'] = array_key_exists('ticket_email_show_pic', $validated) ? (bool)$validated['ticket_email_show_pic'] : false;
         }
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
@@ -733,6 +790,21 @@ class EventController extends Controller
             $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
         }
 
+        $promoCodesInput = $request->input('promo_codes', []);
+        if (is_string($promoCodesInput)) {
+            $promoCodesInput = explode(',', $promoCodesInput);
+        }
+        if (! is_array($promoCodesInput)) {
+            $promoCodesInput = [];
+        }
+        if (! empty($validated['promo_code'])) {
+            $promoCodesInput = array_merge($promoCodesInput, explode(',', $validated['promo_code']));
+        }
+        $cleanCodes = array_values(array_unique(array_filter(array_map('trim', array_map('strtoupper', $promoCodesInput)))));
+        if (! empty($cleanCodes)) {
+            $validated['promo_code'] = implode(', ', $cleanCodes);
+        }
+
         if (array_key_exists('custom_email_message', $validated)) {
             $validated['custom_email_message'] = $this->normalizeCustomEmailMessage($validated['custom_email_message'] ?? null, $event);
         }
@@ -740,8 +812,16 @@ class EventController extends Controller
         $affectedCategoryIds = [];
         $deletedCategoryIds = [];
 
-        DB::transaction(function () use ($event, $validated, $categories, $jerseyStockInput, &$affectedCategoryIds, &$deletedCategoryIds) {
+        DB::transaction(function () use ($event, $validated, $categories, $jerseyStockInput, $cleanCodes, &$affectedCategoryIds, &$deletedCategoryIds) {
             $event->update($validated);
+
+            if (! empty($cleanCodes)) {
+                \App\Models\Coupon::whereIn('code', $cleanCodes)
+                    ->where(function ($q) use ($event) {
+                        $q->whereNull('event_id')->orWhere('event_id', $event->id);
+                    })
+                    ->update(['event_id' => $event->id]);
+            }
 
             // Handle categories if provided
             if (! empty($categories)) {
@@ -3446,13 +3526,40 @@ class EventController extends Controller
     /**
      * Preview ticket email
      */
-    public function previewEmail(Request $request, Event $event)
+    public function previewEmail(Request $request, ?Event $event = null)
     {
-        $this->authorizeEvent($event);
+        if (! $event || ! $event->exists) {
+            $event = new Event([
+                'name' => $request->input('name', 'Jakarta Marathon 2025'),
+                'slug' => $request->input('slug', 'jakarta-marathon-2025'),
+                'location_name' => 'Gelora Bung Karno (GBK), Jakarta',
+                'start_at' => now()->addDays(30)->setTime(6, 0),
+            ]);
+        } else {
+            $this->authorizeEvent($event);
+        }
+
+        if ($request->filled('slug')) {
+            $event->slug = $request->input('slug');
+        } elseif (empty($event->slug)) {
+            $event->slug = 'jakarta-marathon-2025';
+        }
 
         $event->custom_email_message = $this->normalizeCustomEmailMessage($request->input('custom_email_message'), $event);
         if ($request->has('ticket_email_use_qr')) {
             $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
+        }
+        if ($request->has('ticket_email_template')) {
+            $event->ticket_email_template = $request->input('ticket_email_template');
+        }
+        if ($request->has('ticket_email_show_jersey')) {
+            $event->ticket_email_show_jersey = (bool) $request->boolean('ticket_email_show_jersey');
+        }
+        if ($request->has('ticket_email_show_addons')) {
+            $event->ticket_email_show_addons = (bool) $request->boolean('ticket_email_show_addons');
+        }
+        if ($request->has('ticket_email_show_pic')) {
+            $event->ticket_email_show_pic = (bool) $request->boolean('ticket_email_show_pic');
         }
         if ($request->has('name')) {
             $event->name = $request->input('name');
@@ -3524,6 +3631,18 @@ class EventController extends Controller
         $event->custom_email_message = $this->normalizeCustomEmailMessage($validated['custom_email_message'] ?? null, $event);
         if ($request->has('ticket_email_use_qr')) {
             $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
+        }
+        if ($request->has('ticket_email_template')) {
+            $event->ticket_email_template = $request->input('ticket_email_template');
+        }
+        if ($request->has('ticket_email_show_jersey')) {
+            $event->ticket_email_show_jersey = (bool) $request->boolean('ticket_email_show_jersey');
+        }
+        if ($request->has('ticket_email_show_addons')) {
+            $event->ticket_email_show_addons = (bool) $request->boolean('ticket_email_show_addons');
+        }
+        if ($request->has('ticket_email_show_pic')) {
+            $event->ticket_email_show_pic = (bool) $request->boolean('ticket_email_show_pic');
         }
         if (! empty($validated['name'])) {
             $event->name = $validated['name'];
