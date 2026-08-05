@@ -123,6 +123,10 @@
                                         <i class="fa-solid fa-chart-line text-[10px]"></i>
                                         <span>Monitor</span>
                                     </a>
+                                    <button onclick="openSendAccessModal('{{ $enrollment->id }}', '{{ addslashes($enrollment->runner->name) }}', '{{ addslashes($enrollment->runner->email) }}', '{{ addslashes($enrollment->runner->phone ?? '') }}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-dark font-bold text-[11px] transition flex items-center gap-1" title="Kirim Akses Login">
+                                        <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                                        <span>Kirim Akses</span>
+                                    </button>
                                     <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-2.5 py-1.5 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-[11px] transition flex items-center gap-1">
                                         <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         <span>Reminder</span>
@@ -185,6 +189,10 @@
                                         <i class="fa-solid fa-chart-line text-[10px]"></i>
                                         <span>Monitor</span>
                                     </a>
+                                    <button onclick="openSendAccessModal('{{ $enrollment->id }}', '{{ addslashes($enrollment->runner->name) }}', '{{ addslashes($enrollment->runner->email) }}', '{{ addslashes($enrollment->runner->phone ?? '') }}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-dark font-bold text-[11px] transition flex items-center gap-1" title="Kirim Akses Login">
+                                        <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                                        <span>Kirim Akses</span>
+                                    </button>
                                     <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-2.5 py-1.5 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-[11px] transition flex items-center gap-1">
                                         <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                         <span>Reminder</span>
@@ -286,6 +294,10 @@
                                     <i class="fa-solid fa-chart-line text-[10px]"></i>
                                     <span>Monitor</span>
                                 </a>
+                                <button onclick="openSendAccessModal('{{ $enrollment->id }}', '{{ addslashes($enrollment->runner->name) }}', '{{ addslashes($enrollment->runner->email) }}', '{{ addslashes($enrollment->runner->phone ?? '') }}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-dark font-bold text-[11px] transition flex items-center gap-1" title="Kirim Akses Login">
+                                    <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                                    <span>Kirim Akses</span>
+                                </button>
                                 <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-2.5 py-1.5 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-[11px] transition flex items-center gap-1">
                                     <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                     <span>Reminder</span>
@@ -368,6 +380,10 @@
                             <i class="fa-solid fa-chart-line text-[10px]"></i>
                             <span>Monitor</span>
                         </a>
+                        <button onclick="openSendAccessModal('{{ $enrollment->id }}', '{{ addslashes($enrollment->runner->name) }}', '{{ addslashes($enrollment->runner->email) }}', '{{ addslashes($enrollment->runner->phone ?? '') }}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-dark font-bold text-[11px] transition flex items-center gap-1" title="Kirim Akses Login">
+                            <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                            <span>Kirim Akses</span>
+                        </button>
                         <button onclick="openReminderModal('{{ $enrollment->id }}')" class="px-2.5 py-1.5 rounded-lg bg-neon/10 text-neon border border-neon/20 hover:bg-neon hover:text-dark font-bold text-[11px] transition flex items-center gap-1">
                             <i class="fa-solid fa-paper-plane text-[10px]"></i>
                             <span>Reminder</span>

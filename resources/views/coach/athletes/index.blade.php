@@ -571,6 +571,82 @@
         </div>
     </div>
 </div>
+
+<!-- Send Login Access Modal -->
+<div id="sendAccessModal" class="fixed inset-0 z-[110] hidden overflow-y-auto p-3 sm:p-4">
+    <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" onclick="closeSendAccessModal()"></div>
+    <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl transition-all duration-300 scale-95 opacity-0 transform my-auto max-h-[calc(100vh-2.5rem)] flex flex-col" id="sendAccessModalContent">
+            
+            <div class="flex justify-between items-start p-5 sm:p-6 pb-4 border-b border-slate-800/80 flex-shrink-0 bg-slate-900 rounded-t-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white tracking-tight uppercase">Kirim Akses Login</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Instruksi login untuk <span id="sendaccess-runner-name" class="font-bold text-white"></span></p>
+                    </div>
+                </div>
+                <button onclick="closeSendAccessModal()" class="text-slate-500 hover:text-white transition-colors p-1 -mr-1 -mt-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form id="sendAccessForm" onsubmit="submitSendAccessForm(event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                @csrf
+                <input type="hidden" id="sendaccess_enrollment_id">
+
+                <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+                    <div class="p-3 bg-slate-800/60 border border-slate-700/60 rounded-xl text-xs space-y-2 text-slate-300">
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Halaman Login:</span>
+                            <span class="font-mono text-neon font-bold">/login</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Username/Email:</span>
+                            <span id="sendaccess-username" class="font-mono text-white font-bold"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Password:</span>
+                            <span class="text-emerald-400 text-[11px] font-medium flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Privat (Password Terenkripsi)</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 leading-relaxed bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                        <i class="fa-solid fa-circle-info text-neon mr-1"></i>
+                        Pesan otomatis berisi link login dan instruksi atur password akan dikirimkan ke kontak atlet. Coach tidak dapat melihat password atlet secara langsung demi menjaga privasi & keamanan akun.
+                    </div>
+
+                    <div>
+                        <label for="sendaccess_channel" class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Saluran Pengiriman (Channel)</label>
+                        <select name="channel" id="sendaccess_channel" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                            <option value="both">WhatsApp & Email</option>
+                            <option value="wa">WhatsApp Saja</option>
+                            <option value="email">Email Saja</option>
+                        </select>
+                    </div>
+
+                    <div id="sendaccess-error-msg" class="hidden text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl p-3"></div>
+                    <div id="sendaccess-success-msg" class="hidden text-emerald-400 text-xs bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3"></div>
+                </div>
+
+                <div class="flex justify-end gap-2.5 sm:gap-3 p-4 sm:p-5 border-t border-slate-800/80 bg-slate-900/95 backdrop-blur-sm flex-shrink-0 rounded-b-2xl">
+                    <button type="button" onclick="closeSendAccessModal()" class="px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="sendaccess-submit-btn" class="px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-black text-dark bg-emerald-500 rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span>Kirim Akses Login</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1121,6 +1197,85 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Kirim Pengingat';
+        }
+    };
+
+    // ── Send Login Access Modal ──────────────────────────────────────
+    const sendAccessModal = document.getElementById('sendAccessModal');
+    const sendAccessModalContent = document.getElementById('sendAccessModalContent');
+
+    window.openSendAccessModal = function(enrollmentId, runnerName, runnerEmail, runnerPhone) {
+        if (!sendAccessModal || !sendAccessModalContent) return;
+        document.getElementById('sendaccess_enrollment_id').value = enrollmentId;
+        document.getElementById('sendaccess-runner-name').textContent = runnerName;
+        document.getElementById('sendaccess-username').textContent = runnerEmail || runnerPhone || '-';
+        document.getElementById('sendaccess_channel').value = runnerPhone ? 'both' : 'email';
+        document.getElementById('sendaccess-error-msg').classList.add('hidden');
+        document.getElementById('sendaccess-success-msg').classList.add('hidden');
+
+        sendAccessModal.classList.remove('hidden');
+        setTimeout(() => {
+            sendAccessModalContent.classList.remove('scale-95', 'opacity-0');
+            sendAccessModalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeSendAccessModal = function() {
+        if (!sendAccessModal || !sendAccessModalContent) return;
+        sendAccessModalContent.classList.remove('scale-100', 'opacity-100');
+        sendAccessModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            sendAccessModal.classList.add('hidden');
+        }, 300);
+    };
+
+    window.submitSendAccessForm = async function(e) {
+        e.preventDefault();
+        const enrollmentId = document.getElementById('sendaccess_enrollment_id').value;
+        const channel = document.getElementById('sendaccess_channel').value;
+        const submitBtn = document.getElementById('sendaccess-submit-btn');
+        const errorMsg = document.getElementById('sendaccess-error-msg');
+        const successMsg = document.getElementById('sendaccess-success-msg');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i><span>Mengirim...</span>';
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        try {
+            const response = await fetch(`/coach/athletes/${enrollmentId}/send-login-access`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ channel: channel })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                successMsg.textContent = data.message || 'Akses login berhasil dikirim!';
+                successMsg.classList.remove('hidden');
+
+                if (data.wa_url && (channel === 'wa' || channel === 'both')) {
+                    window.open(data.wa_url, '_blank');
+                }
+
+                setTimeout(() => {
+                    closeSendAccessModal();
+                }, 1800);
+            } else {
+                errorMsg.textContent = data.message || 'Gagal mengirim akses login.';
+                errorMsg.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error(err);
+            errorMsg.textContent = 'Terjadi kesalahan koneksi.';
+            errorMsg.classList.remove('hidden');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i><span>Kirim Akses Login</span>';
         }
     };
     // ───────────────────────────────────────────────────────────────

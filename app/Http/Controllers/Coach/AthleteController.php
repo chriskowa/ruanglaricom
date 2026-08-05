@@ -2554,6 +2554,89 @@ class AthleteController extends Controller
         }
     }
 
+    /**
+     * Send Login Access credentials & instructions to athlete via WhatsApp or Email
+     */
+    public function sendLoginAccess(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['runner', 'program'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'channel' => 'required|in:wa,email,both',
+        ]);
+
+        $runner = $enrollment->runner;
+        $coachName = auth()->user()->name ?? 'Coach';
+        $loginUrl = route('login');
+        $resetUrl = route('password.request');
+        $username = $runner->username ?: $runner->email;
+
+        $accessMessage = "Halo {$runner->name},\n\nBerikut informasi akses login akun RuangLari Anda:\n\n🌐 Login: {$loginUrl}\n👤 Username / Email: {$username}\n🔑 Password: (Gunakan password yang sudah dibuat, atau atur ulang melalui: {$resetUrl})\n\nJika ada pertanyaan mengenai latihan, hubungi Coach {$coachName}.\n\nSalam,\nRuangLari Team";
+
+        $sentChannels = [];
+        $waUrl = null;
+
+        try {
+            if ($validated['channel'] === 'wa' || $validated['channel'] === 'both') {
+                if (!$runner->phone) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Atlet tidak memiliki nomor WhatsApp terdaftar.'
+                    ], 422);
+                }
+
+                $cleanPhone = preg_replace('/\D+/', '', $runner->phone);
+                if (str_starts_with($cleanPhone, '0')) {
+                    $cleanPhone = '62' . substr($cleanPhone, 1);
+                } elseif (!str_starts_with($cleanPhone, '62')) {
+                    $cleanPhone = '62' . $cleanPhone;
+                }
+
+                try {
+                    \App\Helpers\WhatsApp::send($runner->phone, $accessMessage);
+                } catch (\Throwable $waErr) {
+                    Log::warning('WhatsApp API send failed, providing wa.me fallback', ['error' => $waErr->getMessage()]);
+                }
+
+                $waUrl = 'https://wa.me/' . $cleanPhone . '?text=' . urlencode($accessMessage);
+                $sentChannels[] = 'WhatsApp';
+            }
+
+            if ($validated['channel'] === 'email' || $validated['channel'] === 'both') {
+                if (!$runner->email) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Atlet tidak memiliki email terdaftar.'
+                    ], 422);
+                }
+
+                \Illuminate\Support\Facades\Mail::raw($accessMessage, function ($m) use ($runner) {
+                    $m->to($runner->email)
+                      ->subject('Informasi Akses Login Akun RuangLari');
+                });
+                $sentChannels[] = 'Email';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Akses login berhasil dikirim via ' . implode(' & ', $sentChannels) . '.',
+                'wa_url' => $waUrl
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim akses: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     private function getManualFallbackMessage($runner, $sessionData, $program, $calendarUrl)
     {
         $runnerName = $runner->name ?? 'Atlet';
