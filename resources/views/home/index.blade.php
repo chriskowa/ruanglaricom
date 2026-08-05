@@ -37,7 +37,7 @@
                         </h1>
                         
                         <p class="text-[#94A3B8] text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
-                            Temukan event lari, kelola progres latihan, dan terhubung dengan komunitas pelari di Indonesia. Untuk event organizer, RuangLari membantu publikasi, ticketing, dan manajemen peserta dalam satu sistem.
+                            Buat Program Lari, Temukan event lari terbaru, kelola progres latihan, dan terhubung dengan komunitas pelari di Indonesia. Untuk event organizer, RuangLari membantu publikasi, ticketing, dan manajemen peserta dalam satu sistem.
                         </p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">

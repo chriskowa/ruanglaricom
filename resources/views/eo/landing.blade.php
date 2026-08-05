@@ -1,153 +1,168 @@
 @extends('layouts.pacerhub')
+
 @php
     $withSidebar = false;
-    $packages = [
-        [
-            'name' => 'Lite',
-            'slug' => 'lite',
-            'tagline' => 'Untuk event komunitas kecil atau fun run lokal',
-            'description' => 'Sistem pendaftaran dasar dengan fitur pembayaran otomatis yang andal.',
-            'badge' => 'Komunitas',
-            'is_recommended' => false,
-            'features' => [
-                'Landing page pendaftaran standar',
-                'Form pendaftaran online (Quick Reg)',
-                'Integrasi payment gateway (VA, QRIS, E-Wallet)',
-                'Penomoran BIB otomatis sesuai urutan',
-                'Export data peserta ke Excel/CSV',
-                'Dukungan via Email & dokumentasi online'
-            ],
-            'cta_label' => 'Mulai dengan Lite',
-        ],
-        [
-            'name' => 'Pro',
-            'slug' => 'pro',
-            'tagline' => 'Untuk event menengah dengan 500 – 2.000 peserta',
-            'description' => 'Solusi lengkap dengan integrasi komunikasi otomatis untuk kepuasan pelari.',
-            'badge' => 'Recommended',
-            'is_recommended' => true,
-            'features' => [
-                'Semua fitur paket Lite',
-                'WhatsApp Blaster otomatis (konfirmasi registrasi, pengingat bayar)',
-                'Pengiriman info nomor BIB via WhatsApp',
-                'Manajemen kuota per kategori lari (10K, 5K, HM, dll.)',
-                'Publikasi Race Results dinamis di landing page',
-                'Dukungan dedicated Account Manager via WhatsApp'
-            ],
-            'cta_label' => 'Mulai dengan Pro',
-        ],
-        [
-            'name' => 'Premium',
-            'slug' => 'premium',
-            'tagline' => 'Untuk event skala besar dan kebutuhan kustom',
-            'description' => 'Dukungan penuh dari tim kami untuk memastikan operasional lomba berjalan lancar.',
-            'badge' => 'Kustom Ops',
-            'is_recommended' => false,
-            'features' => [
-                'Semua fitur paket Pro',
-                'Kustom desain landing page sesuai sponsor/branding',
-                'Dashboard khusus Race Director (arus kas, tren harian)',
-                'Integrasi penarikan dana (Wallet Integration) fleksibel',
-                'Race Management: Check-in RPC dengan sistem QR Code',
-                'Prioritas rekomendasi event ke database pelari aktif RuangLari',
-                'On-site technical support saat hari H pelaksanaan (opsional)'
-            ],
-            'cta_label' => 'Hubungi Kontak Kami',
-        ]
-    ];
 @endphp
 
-@section('title', 'Ticketing Event Lari untuk Event Organizer | Ruang Lari')
-@section('meta_title', 'Ticketing Event Lari Advanced untuk Event Organizer | Ruang Lari')
-@section('meta_description', 'Bangun event lari dengan sistem ticketing dinamis: kategori & kuota real-time, promo/kupon, add-ons, pembayaran terintegrasi, notifikasi, dashboard, dan manajemen peserta. Cocok untuk fun run sampai marathon.')
+@section('title', 'Buat Registration Page & Sistem Registrasi Event Lari Gratis | RuangLari EO')
+@section('meta_title', 'Buat Registration Page & Sistem Registrasi Event Lari Gratis | RuangLari EO')
+@section('meta_description', 'Bingung buat registration page & sistem pendaftaran event lari? RuangLari menyediakan platform registrasi event lari gratis tanpa biaya awal. Form pendaftaran instan, E-Ticket QR, Notifikasi WA otomatis, & Dashboard EO.')
+@section('meta_keywords', 'buat registration page event lari, platform registrasi event lari gratis, buat website event lari, sistem ticketing event lari, buat form pendaftaran lari, registrasi event lari otomatis, ruang lari eo, manajemen peserta lari')
 @section('canonical_url', url('/event-organizer'))
 
+@push('styles')
+<style>
+    @keyframes heroZoom {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+    .animate-hero-zoom {
+        animation: heroZoom 22s ease-in-out infinite alternate;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="min-h-screen bg-slate-950 text-slate-300 antialiased selection:bg-brand-500/20 selection:text-brand-400">
+<div class="min-h-screen bg-[#08111F] text-slate-300 antialiased selection:bg-[#B8FF00]/20 selection:text-[#B8FF00]">
     
-    <!-- Hero Section -->
-    <section class="relative pt-32 pb-20 overflow-hidden">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-slate-300 text-xs font-semibold uppercase tracking-wider">
-                    Solusi Ticketing Event Lari
-                </span>
+    <!-- Hero Section with Background Zoom Effect & High Contrast H1 -->
+    <section class="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden flex items-center min-h-[90vh]">
+        <!-- Hero Background Image Container with Smooth Zoom In/Out Animation & High Contrast Heavy Overlay -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img src="{{ asset('images/hero/management event lari gratis.webp') }}" 
+                 alt="Management Event Lari Gratis RuangLari" 
+                 class="w-full h-full object-cover object-center animate-hero-zoom filter brightness-[0.25] contrast-[1.2]"
+                 fetchpriority="high"
+                 decoding="async">
+            
+            <!-- Dark Solid Heavy Overlay Layer -->
+            <div class="absolute inset-0 bg-[#08111F]/85 backdrop-blur-[2px]"></div>
+            
+            <!-- Dark Gradient Vignette Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-b from-[#08111F] via-[#08111F]/70 to-[#08111F]"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="text-center max-w-4xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#B8FF00]/15 backdrop-blur-md text-[#B8FF00] text-xs font-black uppercase tracking-wider mb-6">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B8FF00] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#B8FF00]"></span>
+                    </span>
+                    100% Gratis Tanpa Biaya Paket / Setup Awal
+                </div>
                 
-                <h1 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
-                    Ticketing Event Lari untuk Event Organizer yang <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-emerald-400">Butuh Sistem Rapi</span>
+                <!-- High Contrast Optimized H1 Title -->
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+                    Bingung Buat Page Registrasi? <br class="hidden sm:block">
+                    <span class="text-[#B8FF00] drop-shadow-[0_2px_15px_rgba(184,255,0,0.4)]">Buat Registration Page Event Lari</span> Instan &amp; Otomatis
                 </h1>
                 
-                <p class="mt-6 text-base sm:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
-                    RuangLari membantu tim EO mengelola kategori tiket, kuota peserta, promo, pembayaran, komunikasi peserta, dan laporan event dalam satu sistem yang mudah dipantau.
+                <p class="text-slate-200 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed font-normal mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                    Tak perlu pusing coding atau sewa developer mahal. RuangLari menyediakan platform registrasi event lari siap pakai dengan <strong class="text-white font-bold">form pendaftaran instan, payment gateway otomatis, E-Ticket QR, notifikasi WA, &amp; dashboard peserta</strong> tanpa biaya berlangganan.
                 </p>
 
-                <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition-all text-center duration-200">
-                        Mulai untuk EO
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full sm:w-auto px-9 py-4 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-xl shadow-[#B8FF00]/20 flex items-center justify-center gap-2.5">
+                        <i class="fa-solid fa-rocket text-base"></i>
+                        <span>Buat Registration Page Gratis</span>
                     </a>
-                    <a href="#paket" class="w-full sm:w-auto px-8 py-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 text-white font-bold transition-all text-center duration-200">
-                        Lihat Paket
+                    <a href="#fitur-utama" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0E1A2D] hover:bg-[#111F35] text-white font-bold text-sm uppercase tracking-wider transition-all backdrop-blur-md flex items-center justify-center gap-2">
+                        <span>Pelajari Fitur Platform</span>
+                        <i class="fa-solid fa-arrow-down text-xs text-[#B8FF00]"></i>
                     </a>
+                </div>
+
+                <!-- Trust Metrics Badges -->
+                <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto border-t border-slate-800/80 pt-8">
+                    <div class="text-center p-2">
+                        <div class="text-2xl font-black text-[#B8FF00]">Rp 0</div>
+                        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Biaya Setup Awal</div>
+                    </div>
+                    <div class="text-center p-2">
+                        <div class="text-2xl font-black text-white">&lt; 5 Menit</div>
+                        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Page Siap Tayang</div>
+                    </div>
+                    <div class="text-center p-2">
+                        <div class="text-2xl font-black text-[#B8FF00]">Otomatis</div>
+                        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Konfirmasi WA &amp; QR</div>
+                    </div>
+                    <div class="text-center p-2">
+                        <div class="text-2xl font-black text-white">Excel / CSV</div>
+                        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Export Laporan Real-Time</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Realistic Product Dashboard Mockup -->
-            <div class="mt-20 relative rounded-2xl border border-slate-800 bg-slate-950/80 p-4 md:p-6 shadow-2xl max-w-4xl mx-auto overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/5 via-transparent to-transparent pointer-events-none"></div>
-                <!-- Window header -->
-                <div class="flex items-center justify-between border-b border-slate-900 pb-4 mb-4">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
-                        <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-                        <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+            <div class="mt-16 relative rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/90 p-4 md:p-6 shadow-2xl max-w-5xl mx-auto overflow-hidden backdrop-blur-xl">
+                <div class="absolute inset-0 bg-gradient-to-tr from-[#B8FF00]/5 via-transparent to-transparent pointer-events-none"></div>
+                <!-- Window Header Bar -->
+                <div class="flex items-center justify-between border-b border-[#1F2D44] pb-4 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
                     </div>
-                    <div class="text-[11px] font-mono text-slate-600 tracking-wider">ruanglari.com/dashboard/eo</div>
+                    <div class="text-xs font-mono text-slate-400 bg-[#08111F] px-4 py-1 rounded-full border border-[#1F2D44]">ruanglari.com/eo/events/create</div>
                     <div class="w-12"></div>
                 </div>
-                <!-- Dashboard inner grid -->
+
+                <!-- Dashboard Preview Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <!-- Sidebar mockup -->
-                    <div class="hidden md:block col-span-1 border-r border-slate-900 pr-4 space-y-3">
-                        <div class="h-6 bg-brand-500/10 border border-brand-500/20 rounded-lg w-full"></div>
-                        <div class="h-6 bg-slate-900 rounded-lg w-11/12"></div>
-                        <div class="h-6 bg-slate-900 rounded-lg w-10/12"></div>
-                        <div class="h-6 bg-slate-900 rounded-lg w-8/12"></div>
+                    <div class="hidden md:block col-span-1 border-r border-[#1F2D44] pr-4 space-y-3">
+                        <div class="h-8 bg-[#B8FF00]/10 border border-[#B8FF00]/30 rounded-xl w-full flex items-center px-3 text-[11px] font-bold text-[#B8FF00]">⚡ Event Registration Page</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">📊 Laporan &amp; Data Peserta</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">🎟️ Kupon Diskon &amp; Promo</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">📱 Pengirim WA Blaster</div>
                     </div>
-                    <!-- Main content mockup -->
-                    <div class="col-span-1 md:col-span-3 space-y-5">
-                        <!-- Stats -->
+                    
+                    <div class="col-span-1 md:col-span-3 space-y-4">
                         <div class="grid grid-cols-3 gap-3">
-                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                                <span class="text-[9px] font-mono text-slate-500 uppercase">Total Tiket</span>
-                                <div class="text-sm font-black text-white mt-1">1,250</div>
+                            <div class="p-3.5 bg-[#08111F] rounded-2xl border border-[#1F2D44]">
+                                <span class="text-[10px] font-mono text-slate-400 uppercase block">Total Pendaftar</span>
+                                <div class="text-lg font-black text-white mt-1">1,480 <span class="text-xs text-[#B8FF00]">Peserta</span></div>
                             </div>
-                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                                <span class="text-[9px] font-mono text-slate-500 uppercase">Terjual</span>
-                                <div class="text-sm font-black text-brand-400 mt-1">984 <span class="text-[9px] text-slate-400 font-normal">(78%)</span></div>
+                            <div class="p-3.5 bg-[#08111F] rounded-2xl border border-[#1F2D44]">
+                                <span class="text-[10px] font-mono text-slate-400 uppercase block">Status Slot</span>
+                                <div class="text-lg font-black text-[#B8FF00] mt-1">92% <span class="text-[10px] text-slate-400 font-normal">Terisi</span></div>
                             </div>
-                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                                <span class="text-[9px] font-mono text-slate-500 uppercase">Pendapatan</span>
-                                <div class="text-sm font-black text-white mt-1">Rp 147.6M</div>
+                            <div class="p-3.5 bg-[#08111F] rounded-2xl border border-[#1F2D44]">
+                                <span class="text-[10px] font-mono text-slate-400 uppercase block">Pembayaran</span>
+                                <div class="text-lg font-black text-emerald-400 mt-1">Otomatis Lunas</div>
                             </div>
                         </div>
-                        <!-- Recent Sales table -->
-                        <div class="bg-slate-900/50 rounded-xl border border-slate-800/80 p-4 space-y-3">
-                            <div class="text-xs font-semibold text-slate-400">Pendaftaran Terbaru</div>
+
+                        <div class="bg-[#08111F] rounded-2xl border border-[#1F2D44] p-4 space-y-2.5">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-300 pb-2 border-b border-[#1F2D44]">
+                                <span>Live Registration Feed</span>
+                                <span class="text-[10px] text-[#B8FF00] font-mono">● Instant Updates</span>
+                            </div>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-900">
-                                    <span class="text-slate-300 font-medium">Andi Wijaya</span>
-                                    <span class="text-slate-500">10K Runner</span>
-                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">LUNAS</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px]">AW</div>
+                                        <span class="text-white font-medium">Andi Wijaya</span>
+                                    </div>
+                                    <span class="text-slate-400 text-[11px]">10K Runner</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">LUNAS</span>
                                 </div>
                                 <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-900">
-                                    <span class="text-slate-300 font-medium">Siti Rahma</span>
-                                    <span class="text-slate-500">5K Runner</span>
-                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">LUNAS</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px]">SR</div>
+                                        <span class="text-white font-medium">Siti Rahma</span>
+                                    </div>
+                                    <span class="text-slate-400 text-[11px]">5K Runner</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">LUNAS</span>
                                 </div>
                                 <div class="flex items-center justify-between text-xs py-1.5">
-                                    <span class="text-slate-300 font-medium">Budi Santoso</span>
-                                    <span class="text-slate-500">Half Marathon</span>
-                                    <span class="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px] font-bold">WAITING</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold text-[10px]">BS</div>
+                                        <span class="text-white font-medium">Budi Santoso</span>
+                                    </div>
+                                    <span class="text-slate-400 text-[11px]">Half Marathon (21K)</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold">WAITING VA</span>
                                 </div>
                             </div>
                         </div>
@@ -157,253 +172,229 @@
         </div>
     </section>
 
-    <!-- Key Benefits (Features) Section -->
-    <section class="py-24 border-t border-slate-900 bg-slate-950">
+    <!-- Main Problem & Solution Section for EOs -->
+    <section class="py-24 border-t border-[#1F2D44] bg-[#0E1A2D]/40">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl font-extrabold text-white tracking-tight">Sistem Ticketing yang Didesain untuk Skala</h2>
-                <p class="mt-4 text-slate-400 leading-relaxed">Kelola seluruh kebutuhan operasional pendaftaran lomba lari Anda dengan fitur B2B SaaS yang solid dan andal.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Card 1 -->
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-bold text-base mb-2">Kelola kategori & kuota</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Cegah oversell, status sold-out otomatis, dan kontrol kuota per kategori secara real-time.</p>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-bold text-base mb-2">Pantau bayar & registrasi</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Sistem checkout cepat terintegrasi dengan pencatatan pembayaran otomatis yang rapi.</p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 8V8m0 8h2m-2 0H8m4 0V9" />
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-bold text-base mb-2">Atur kupon & add-ons</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Strategi pricing lebih dinamis untuk early momentum dengan diskon unik atau bundling.</p>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m-4 4h6m-6 4h6m2 0a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 0H7a2 2 0 00-2 2v9a2 2 0 002 2h2" />
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-bold text-base mb-2">Akses dashboard & laporan</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Manajemen peserta lengkap, ekspor database excel sekali klik, dan monitoring operasional.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Workflow Section -->
-    <section class="py-24 border-t border-slate-900 bg-slate-900/10">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-                <div class="lg:col-span-1">
-                    <span class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Alur Kerja</span>
-                    <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">Cara kerja yang simple untuk tim EO</h2>
-                    <p class="mt-4 text-slate-400 text-sm leading-relaxed">Dari setting event sampai seluruh peserta terkonfirmasi—tanpa dokumen spreadsheet yang berantakan.</p>
-                </div>
-                
-                <div class="lg:col-span-2 space-y-4">
-                    <!-- Step 1 -->
-                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">1</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">Setup Event</h4>
-                            <p class="mt-1 text-slate-400 text-xs">Buat kategori tiket, kuota, harga, add-ons, dan periode registrasi.</p>
-                        </div>
-                    </div>
-                    <!-- Step 2 -->
-                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">2</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">Atur Tiket dan Kuota</h4>
-                            <p class="mt-1 text-slate-400 text-xs">Tentukan batas tiket sold-out otomatis dan masa berlaku early bird.</p>
-                        </div>
-                    </div>
-                    <!-- Step 3 -->
-                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">3</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">Publikasikan Event</h4>
-                            <p class="mt-1 text-slate-400 text-xs">Landing page siap tayang dan pendaftaran resmi dibuka untuk umum.</p>
-                        </div>
-                    </div>
-                    <!-- Step 4 -->
-                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">4</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">Pantau Registrasi</h4>
-                            <p class="mt-1 text-slate-400 text-xs">Pantau transaksi masuk, sisa kuota kategori, dan status lunas secara langsung.</p>
-                        </div>
-                    </div>
-                    <!-- Step 5 -->
-                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">5</div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">Export Data Peserta</h4>
-                            <p class="mt-1 text-slate-400 text-xs">Unduh data lengkap peserta untuk penyiapan race pack dan kebutuhan di hari-H.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Skema Platform Fee Section (Zero Subscription) -->
-    <section id="skema" class="py-24 border-t border-slate-900 bg-slate-950">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                    Tanpa Biaya Langganan (Zero Subscription Fee)
-                </span>
-                <h2 class="mt-4 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Skema Kerjasama Berbasis Platform Fee</h2>
-                <p class="mt-4 text-slate-400 leading-relaxed">
-                    Tidak ada biaya langganan bulanan atau bayar paket di awal. RuangLari bekerja dengan skema <strong class="text-white">Platform Fee per tiket</strong> yang transparan dan efisien untuk Event Organizer.
+                <span class="text-xs font-black text-[#B8FF00] uppercase tracking-widest block mb-2">Solusi EO Event Lari</span>
+                <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight">Stuck / Bingung Cara Buat Page Registrasi Event Lari?</h2>
+                <p class="mt-4 text-slate-400 text-base leading-relaxed">
+                    Menyelenggarakan lomba lari itu penuh tantangan. Jangan biarkan urusan website pendaftaran yang rumit menghambat event Anda.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/30 p-8 flex flex-col justify-between shadow-lg">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6">
-                            <i class="fa-solid fa-gift text-xl"></i>
-                        </div>
-                        <h3 class="text-white font-extrabold text-xl mb-2">100% Bebas Langganan</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">
-                            Buat dan umumkan event lari Anda tanpa biaya pendaftaran, biaya setup sistem, atau biaya paket bulanan.
-                        </p>
+                <!-- Challenge 1 -->
+                <div class="p-8 rounded-3xl bg-[#08111F] border border-red-500/30 relative">
+                    <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mb-6 text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
-                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-emerald-400 font-bold">
-                        Rp 0 / Bulan
-                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-3">Cara Lama (Penuh Masalah)</h3>
+                    <ul class="space-y-2.5 text-xs text-slate-400 leading-relaxed">
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">✕</span>
+                            <span>Input manual via Google Form yang rawan rekap ganda &amp; kacau.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">✕</span>
+                            <span>Konfirmasi bukti transfer manual satu per satu hingga larut malam.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">✕</span>
+                            <span>Biaya mahal buat website custom di agency ($500 - $2000).</span>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="rounded-2xl border border-brand-500/40 bg-slate-900/60 p-8 flex flex-col justify-between relative shadow-lg shadow-brand-500/5">
-                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/20 text-brand-300 text-[10px] font-bold uppercase tracking-wider">
-                            Model Transaksi
-                        </span>
-                    </div>
+                <!-- Solution Arrow -->
+                <div class="p-8 rounded-3xl bg-[#0E1A2D] border border-[#B8FF00]/40 relative shadow-xl shadow-[#B8FF00]/5 flex flex-col justify-between md:col-span-2">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center mb-6">
-                            <i class="fa-solid fa-receipt text-xl"></i>
+                        <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 border border-[#B8FF00]/30 text-[#B8FF00] flex items-center justify-center mb-6 text-xl">
+                            <i class="fa-solid fa-bolt"></i>
                         </div>
-                        <h3 class="text-white font-extrabold text-xl mb-2">Platform Fee per Tiket</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">
-                            Biaya layanan hanya dikenakan per pendaftaran tiket yang berhasil diproses oleh sistem pendaftaran.
+                        <h3 class="text-white font-extrabold text-2xl mb-3">Solusi RuangLari EO (Serba Otomatis)</h3>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                            Dalam 5 menit, Anda sudah memiliki <strong class="text-white">Registration Page Event Lari Profesional</strong> lengkap dengan form pendaftaran multi-kategori, penomoran BIB otomatis, Notifikasi WA, dan sistem checkout pembayaran instan.
                         </p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div class="flex items-center gap-2 text-slate-200">
+                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <span>Form Pendaftaran Multi-Kategori (5K, 10K, HM, FM)</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-200">
+                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <span>Pembayaran Otomatis (VA, QRIS, E-Wallet)</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-200">
+                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <span>Kupon Promo &amp; Diskon Khusus Komunitas</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-200">
+                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <span>Export Data Peserta ke Excel 1-Klik</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-brand-400 font-bold">
-                        Pay per Successful Ticket
+
+                    <div class="mt-8 pt-6 border-t border-[#1F2D44] flex items-center justify-between">
+                        <span class="text-xs text-[#B8FF00] font-bold uppercase tracking-wider">Tanpa Biaya Langganan Bulanan</span>
+                        <a href="{{ route('register', ['role' => 'eo']) }}" class="px-6 py-3 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-xs uppercase tracking-wider transition-all">
+                            Buat Event Sekarang →
+                        </a>
                     </div>
                 </div>
-
-                <div class="rounded-2xl border border-slate-900 bg-slate-900/30 p-8 flex flex-col justify-between shadow-lg">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-6">
-                            <i class="fa-solid fa-layer-group text-xl"></i>
-                        </div>
-                        <h3 class="text-white font-extrabold text-xl mb-2">Akses Semua Fitur Utama</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">
-                            Akses langsung fitur Quick Reg, Payment Gateway, E-Ticket QR, Multi-Kategori, WA Blaster, dan Live Analytics.
-                        </p>
-                    </div>
-                    <div class="mt-6 pt-6 border-t border-slate-900 text-xs font-mono text-cyan-400 font-bold">
-                        All Features Included
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-12 text-center">
-                <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition duration-200 text-sm">
-                    Daftar EO & Mulai Buat Event
-                </a>
             </div>
         </div>
     </section>
 
-    <!-- Simple FAQ Section -->
-    <section class="py-24 border-t border-slate-900 bg-slate-950">
+    <!-- Key Features Section -->
+    <section id="fitur-utama" class="py-24 border-t border-[#1F2D44] bg-[#08111F]">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-black text-[#B8FF00] uppercase tracking-widest block mb-2">Fitur Unggulan EO</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Fitur Platform Registrasi Event Lari Modern</h2>
+                <p class="mt-4 text-slate-400 leading-relaxed">Seluruh alat yang dibutuhkan Event Organizer untuk sukses menyelenggarakan event lari skala kecil hingga marathon internasional.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-[#B8FF00] flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-desktop text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Registration Page Instan</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Tampilan landing page event yang futuristik, responsif di HP/Desktop, dan siap dipublikasikan ke media sosial.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-qrcode text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">E-Ticket QR Code &amp; BIB</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Peserta otomatis mendapatkan E-Ticket QR Code resmi dan nomor BIB unik setelah pembayaran lunas.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-cyan-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Notifikasi WA Blaster</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Pesan konfirmasi registrasi, nomor BIB, dan pengingat jadwal lari otomatis dikirimkan ke WhatsApp peserta.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-amber-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-tags text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Multi-Kupon &amp; Promo</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Buat kode kupon diskon komunitas (nominal/persen) dengan fitur pencarian AJAX &amp; pembatasan kuota.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-excel text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Export Data Excel / CSV</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Unduh data lengkap peserta (ukuran jersey, kontak darurat, golongan darah) sekali klik untuk persiapan Race Pack Collection.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-rose-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-shield-halved text-lg"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Keamanan &amp; Anti Oversell</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed">Kontrol kuota real-time yang mencegah tiket terjual melebihi batas (oversell) secara akurat.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transparancy & No Subscription Section -->
+    <section class="py-20 border-t border-[#1F2D44] bg-[#0E1A2D]/40">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <span class="px-3.5 py-1.5 rounded-full border border-[#B8FF00]/30 bg-[#B8FF00]/10 text-[#B8FF00] text-xs font-bold uppercase tracking-wider inline-block mb-4">
+                Transparan &amp; Tanpa Resiko
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">Model Kerjasama Platform Fee Transparan</h2>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-8 max-w-2xl mx-auto">
+                RuangLari beroperasi dengan skema <strong class="text-white">Platform Fee kecil per tiket yang berhasil diproses</strong>. Anda bisa langsung mendaftar akun EO, membuat event, dan mempublikasikan registration page Anda hari ini tanpa biaya paket apapun.
+            </p>
+            
+            <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all transform hover:scale-105 shadow-xl shadow-[#B8FF00]/20 gap-2">
+                <i class="fa-solid fa-user-plus text-base"></i>
+                <span>Daftar Akun EO &amp; Mulai Buat Event</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-24 border-t border-[#1F2D44] bg-[#08111F]">
         <div class="max-w-4xl mx-auto px-4 sm:px-6">
             <div class="text-center mb-16">
-                <span class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Pertanyaan & Jawaban</span>
-                <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">FAQ Sistem RuangLari</h2>
-                <p class="mt-3 text-slate-400 text-sm">Jawaban atas pertanyaan umum seputar pendaftaran dan kerjasama dengan RuangLari.</p>
+                <span class="text-xs font-black text-[#B8FF00] uppercase tracking-widest block mb-2">Tanya Jawab EO</span>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight">Pertanyaan Umum Event Organizer</h2>
+                <p class="mt-3 text-slate-400 text-sm">Jawaban atas pertanyaan seputar pembuatan registration page dan sistem registrasi lari di RuangLari.</p>
             </div>
 
             <div class="space-y-4">
-                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                <details class="group rounded-2xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-5">
                     <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
-                        <span class="text-white font-bold text-sm">Apakah bisa multi-kategori dan kuota per kategori?</span>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span class="text-white font-bold text-sm">Bagaimana cara membuat registration page event lari di RuangLari?</span>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
-                        Bisa. Event dapat memiliki beberapa kategori sekaligus (seperti 5K, 10K, HM) dengan alokasi kuota tiket masing-masing. Sistem akan otomatis menutup penjualan saat kuota kategori tercapai.
+                    <div class="mt-3 text-slate-300 text-xs leading-relaxed border-t border-[#1F2D44] pt-3">
+                        Cukup daftar akun Event Organizer (EO) gratis di RuangLari, lalu masuk ke menu "Buat Event Baru". Isikan informasi nama event, kategori lari (5K, 10K, HM, FM), kuota, dan harga tiket. Dalam 5 menit, registration page event lari Anda siap dipublikasikan.
                     </div>
                 </details>
 
-                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                <details class="group rounded-2xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-5">
                     <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
-                        <span class="text-white font-bold text-sm">Apakah mendukung kupon/promo dan add-ons?</span>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span class="text-white font-bold text-sm">Apakah ada biaya berlangganan atau beli paket di awal?</span>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
-                        Ya. Anda bisa menyetel kode kupon diskon (nominal atau persentase) dengan pembatasan jumlah pemakaian. Kebutuhan penjualan add-ons (seperti upgrade jersey atau merchandise) juga didukung dalam alur registrasi.
+                    <div class="mt-3 text-slate-300 text-xs leading-relaxed border-t border-[#1F2D44] pt-3">
+                        Tidak ada. Anda tidak perlu membayar paket atau langganan bulanan di awal. RuangLari beroperasi secara transparan dengan skema Platform Fee kecil yang terpotong otomatis hanya saat tiket pendaftaran berhasil diproses.
                     </div>
                 </details>
 
-                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                <details class="group rounded-2xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-5">
                     <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
-                        <span class="text-white font-bold text-sm">Apakah peserta bisa daftar untuk beberapa orang dalam satu checkout?</span>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span class="text-white font-bold text-sm">Metode pembayaran apa saja yang bisa digunakan peserta?</span>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
-                        Ya. Alur checkout mendukung input data multi-peserta sekaligus untuk mempercepat pendaftaran kolektif atau pendaftaran bersama keluarga/komunitas dalam satu kali transaksi pembayaran.
+                    <div class="mt-3 text-slate-300 text-xs leading-relaxed border-t border-[#1F2D44] pt-3">
+                        Sistem RuangLari sudah terintegrasi dengan Payment Gateway nasional yang mendukung QRIS, Bank Virtual Account (BCA, Mandiri, BNI, BRI, Permata), serta E-Wallet populer. Pendaftaran langsung terverifikasi lunas secara otomatis tanpa perlu konfirmasi manual.
                     </div>
                 </details>
 
-                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                <details class="group rounded-2xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-5">
                     <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
-                        <span class="text-white font-bold text-sm">Bagaimana dengan ekspor data peserta untuk race day?</span>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <span class="text-white font-bold text-sm">Apakah bisa mengunduh data peserta untuk pencetakan BIB &amp; Jersey?</span>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
-                        Tim EO memiliki akses penuh ke dashboard pendaftaran untuk mengunduh laporan real-time dan mengekspor seluruh database peserta (data profil, ukuran jersey, kontak WhatsApp) ke format Excel/CSV kapan saja.
+                    <div class="mt-3 text-slate-300 text-xs leading-relaxed border-t border-[#1F2D44] pt-3">
+                        Ya. Anda memiliki akses penuh ke Dashboard EO untuk mengunduh laporan peserta real-time dalam format Excel / CSV kapan saja. Data mencakup nomor BIB, ukuran jersey, kontak WhatsApp, data medis, dan info penting lainnya.
                     </div>
                 </details>
             </div>
             
             <div class="mt-16 text-center">
-                <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition duration-200 text-sm">
-                    Mulai untuk EO Sekarang
+                <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-sm uppercase tracking-wider transition duration-200">
+                    Buat Registration Page Sekarang
                 </a>
             </div>
         </div>
@@ -416,20 +407,20 @@
 @php
     $faqItems = [
         [
-            'question' => 'Apakah bisa multi-kategori dan kuota per kategori?',
-            'answer' => 'Bisa. Event dapat memiliki beberapa kategori sekaligus (seperti 5K, 10K, HM) dengan alokasi kuota tiket masing-masing. Sistem akan otomatis menutup penjualan saat kuota kategori tercapai.',
+            'question' => 'Bagaimana cara membuat registration page event lari di RuangLari?',
+            'answer' => 'Cukup daftar akun Event Organizer (EO) gratis di RuangLari, lalu masuk ke menu Buat Event Baru. Isikan informasi nama event, kategori lari (5K, 10K, HM, FM), kuota, dan harga tiket. Dalam 5 menit, registration page event lari Anda siap dipublikasikan.',
         ],
         [
-            'question' => 'Apakah mendukung kupon/promo dan add-ons?',
-            'answer' => 'Ya. Anda bisa menyetel kode kupon diskon (nominal atau persentase) dengan pembatasan jumlah pemakaian. Kebutuhan penjualan add-ons (seperti upgrade jersey atau merchandise) juga didukung dalam alur registrasi.',
+            'question' => 'Apakah ada biaya berlangganan atau beli paket di awal?',
+            'answer' => 'Tidak ada. Anda tidak perlu membayar paket atau langganan bulanan di awal. RuangLari beroperasi secara transparan dengan skema Platform Fee kecil yang terpotong otomatis hanya saat tiket pendaftaran berhasil diproses.',
         ],
         [
-            'question' => 'Apakah peserta bisa daftar untuk beberapa orang dalam satu checkout?',
-            'answer' => 'Ya. Alur checkout mendukung pendaftaran multi-peserta sekaligus dalam satu kali pembayaran.',
+            'question' => 'Metode pembayaran apa saja yang bisa digunakan peserta?',
+            'answer' => 'Sistem RuangLari sudah terintegrasi dengan Payment Gateway nasional yang mendukung QRIS, Bank Virtual Account (BCA, Mandiri, BNI, BRI, Permata), serta E-Wallet populer.',
         ],
         [
-            'question' => 'Bagaimana dengan ekspor data peserta untuk race day?',
-            'answer' => 'Tim EO memiliki akses penuh ke dashboard untuk mengunduh laporan real-time dan mengekspor seluruh database peserta ke format Excel/CSV.',
+            'question' => 'Apakah bisa mengunduh data peserta untuk pencetakan BIB & Jersey?',
+            'answer' => 'Ya. Anda memiliki akses penuh ke Dashboard EO untuk mengunduh laporan peserta real-time dalam format Excel / CSV kapan saja.',
         ],
     ];
 @endphp
@@ -439,8 +430,19 @@
     '@graph' => [
         [
             '@type' => 'WebPage',
-            'name' => 'Ticketing Event Lari untuk Event Organizer',
+            'name' => 'Buat Registration Page & Sistem Registrasi Event Lari Gratis',
             'url' => url('/event-organizer'),
+        ],
+        [
+            '@type' => 'SoftwareApplication',
+            'name' => 'RuangLari EO Platform',
+            'applicationCategory' => 'BusinessApplication',
+            'operatingSystem' => 'All',
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => '0',
+                'priceCurrency' => 'IDR',
+            ],
         ],
         [
             '@type' => 'FAQPage',

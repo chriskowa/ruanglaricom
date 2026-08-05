@@ -13,7 +13,7 @@
 
 @section('title', $title)
 @section('meta_title', $title)
-@section('meta_description', $metaDescription)
+@section('meta_keywords', 'jadwal lari 2026, submit event lari gratis, kalender event lari indonesia, event lari 5k 10k, marathon indonesia, publikasi event lari gratis, registration page event lari, ruang lari eo')
 @section('canonical_url', $canonicalUrl)
 @section('og_image', 'https://ruanglari.com/images/og/jadwal-lari-2026.jpg')
 
@@ -33,15 +33,18 @@
                         Temukan jadwal lari 2026 di Indonesia dalam satu kalender lengkap. Ruang Lari menyajikan informasi event lari terbaru, mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, ultra run, hingga virtual run. Setiap event dilengkapi dengan tanggal pelaksanaan, lokasi, kategori jarak, status pendaftaran, dan tautan menuju halaman resmi pendaftaran.
                     </p>
                     <p class="text-xs md:text-sm text-slate-500">
-                        Kalender ini diperbarui secara berkala agar pelari dapat lebih mudah memilih event berdasarkan kota, bulan, jenis lomba, dan kategori jarak. Gunakan fitur pencarian dan filter untuk menemukan event lari terdekat di Jakarta, Bandung, Surabaya, Malang, Yogyakarta, Bali, Makassar, dan berbagai kota lainnya di Indonesia.
+                        Punya event lari sendiri? Anda dapat memilih fitur <strong class="text-white">Submit Event Lari Gratis</strong> atau membuat <strong class="text-white">Registration Page Event Lari</strong> otomatis tanpa biaya awal di Ruang Lari.
                     </p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
                     <button type="button" id="btn-open-submit-event" class="px-8 py-3 rounded-full bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-neon/20">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                        Submit Event Lari
+                        Submit Event Lari Gratis
                     </button>
+                    <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider transition-all inline-flex items-center justify-center gap-1.5 border border-slate-700">
+                        ⚡ Buat Registration Page EO
+                    </a>
                 </div>
             </div>
             
@@ -200,8 +203,31 @@
                 @endif
             </div>
         </div>
+    <!-- EO Callout Banner: Submit Event Lari Gratis & Registration Page -->
+    <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up">
+        <div class="bg-gradient-to-r from-[#0E1A2D] via-[#111F35] to-[#0E1A2D] border border-neon/30 rounded-3xl p-6 md:p-7 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-1.5 text-center md:text-left max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon/10 text-neon text-xs font-black uppercase tracking-wider">
+                    📢 Event Organizer (EO) &amp; Komunitas Lari
+                </div>
+                <h3 class="text-xl md:text-2xl font-black text-white tracking-tight">
+                    Punya Event Lari? <span class="text-neon">Publikasikan Event &amp; Buat Registration Page Gratis!</span>
+                </h3>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Jangkau puluhan ribu pelari di seluruh Indonesia. Dapatkan fitur <strong class="text-white">Submit Event Lari Gratis</strong>, landing page pendaftaran otomatis, Notifikasi WA, E-Ticket QR, &amp; pembayaran online tanpa biaya awal.
+                </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2.5 shrink-0 w-full md:w-auto">
+                <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-xl bg-neon hover:bg-lime-300 text-dark font-black text-xs uppercase tracking-wider transition-all transform hover:scale-105 text-center shadow-lg shadow-neon/10">
+                    Buat Registration Page
+                </a>
+                <button type="button" onclick="document.getElementById('btn-open-submit-event').click()" class="px-6 py-3 rounded-xl bg-dark hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all border border-slate-700 text-center">
+                    Submit Event Gratis
+                </button>
+            </div>
+        </div>
     </div>
-
 
     <!-- Filter Section -->
     <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up" data-aos-delay="100">
