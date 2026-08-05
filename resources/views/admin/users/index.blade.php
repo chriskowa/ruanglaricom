@@ -4,475 +4,7 @@
 @section('title', 'Manage Users')
 
 @section('content')
-<div x-data="{ 
-    showModal: false, 
-    createModal: false,
-    whatsappModal: false,
-    whatsappMessage: '',
-    whatsappUserId: null,
-    whatsappUserName: '',
-    whatsappUserPhone: '',
-    whatsappLoading: false,
-    whatsappError: '',
-    whatsappSuccess: '',
-    isLoading: false,
-    loadingTransactions: false,
-    loadingUser: false,
-    savingCreate: false,
-    savingEdit: false,
-    createErrors: {},
-    editErrors: {},
-    searchQuery: '{{ request('q') }}',
-    filterRole: '{{ request('role', 'all') }}',
-    filterStatus: '{{ request('status', 'all') }}',
-    activeTab: 'profile',
-    listAbortController: null,
-    listRequestSeq: 0,
-    walletTransactionsUserId: null,
-    
-    selectedUser: {
-        id: null,
-        name: '',
-        username: '',
-        email: '',
-        phone: '',
-        gender: '',
-        address: '',
-        avatar: '',
-        banner: '',
-        pb_5k: '',
-        pb_10k: '',
-        pb_hm: '',
-        pb_fm: '',
-        strava_url: '',
-        instagram_url: '',
-        facebook_url: '',
-        tiktok_url: '',
-        bank_name: '',
-        bank_account_name: '',
-        bank_account_number: '',
-        role: 'runner',
-        is_active: 0,
-        date_of_birth: '',
-        program_id: null,
-        wallet: { balance: 0, transactions: [] }
-    },
-
-    getBlankUser() {
-        return {
-            id: null,
-            name: '',
-            username: '',
-            email: '',
-            phone: '',
-            gender: '',
-            address: '',
-            avatar: '',
-            banner: '',
-            pb_5k: '',
-            pb_10k: '',
-            pb_hm: '',
-            pb_fm: '',
-            strava_url: '',
-            instagram_url: '',
-            facebook_url: '',
-            tiktok_url: '',
-            bank_name: '',
-            bank_account_name: '',
-            bank_account_number: '',
-            role: 'runner',
-            is_active: 0,
-            date_of_birth: '',
-            program_id: null,
-            wallet: { balance: 0, transactions: [] }
-        };
-    },
-
-    newUser: {
-        name: '',
-        email: '',
-        username: '',
-        password: '',
-        role: 'runner',
-        program_id: ''
-    },
-
-    init() {
-        this.initPaginationListener();
-        this.$watch('activeTab', (tab) => {
-            if (tab === 'wallet') this.ensureWalletTransactionsLoaded();
-        });
-    },
-
-    async fetchUsers(url = null) {
-        if (typeof url !== 'string') url = null;
-
-        if (this.listAbortController) {
-            this.listAbortController.abort();
-        }
-        this.listAbortController = new AbortController();
-        const currentSeq = ++this.listRequestSeq;
-
-        this.isLoading = true;
-        const params = new URLSearchParams({
-            q: this.searchQuery || '',
-            role: this.filterRole || 'all',
-            status: this.filterStatus || 'all'
-        });
-        
-        try {
-            const endpoint = url || '{{ route('admin.users.index') }}';
-            const res = await fetch(`${endpoint}?${params.toString()}`, {
-                signal: this.listAbortController.signal,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            
-            if (!res.ok) throw new Error('Network response was not ok');
-
-            const html = await res.text();
-            if (currentSeq !== this.listRequestSeq) return;
-            const container = document.getElementById('users-table-container');
-            if (container) {
-                container.innerHTML = html;
-            }
-        } catch (error) {
-            if (error && error.name === 'AbortError') return;
-            console.error('Error fetching users:', error);
-        } finally {
-            if (currentSeq !== this.listRequestSeq) return;
-            this.isLoading = false;
-        }
-    },
-
-    initPaginationListener() {
-        const container = document.getElementById('users-table-container');
-        if (!container) return;
-        
-        container.addEventListener('click', (e) => {
-            const link = e.target.closest('a.page-link, .pagination a');
-            if (link && container.contains(link)) {
-                e.preventDefault();
-                const href = link.getAttribute('href');
-                if (href && href !== '#') {
-                    this.fetchUsers(href);
-                }
-            }
-        });
-    },
-
-    ensureWalletTransactionsLoaded() {
-        const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
-        if (!userId) return;
-        if (this.walletTransactionsUserId === userId) return;
-        this.fetchTransactions(userId);
-    },
-
-    normalizeUser(user) {
-        const base = this.getBlankUser();
-        const normalized = {
-            ...base,
-            ...user,
-            name: (user && user.name) || '',
-            username: (user && user.username) || '',
-            email: (user && user.email) || '',
-            phone: (user && user.phone) || '',
-            gender: (user && user.gender) || '',
-            address: (user && user.address) || '',
-            pb_5k: (user && user.pb_5k) || '',
-            pb_10k: (user && user.pb_10k) || '',
-            pb_hm: (user && user.pb_hm) || '',
-            pb_fm: (user && user.pb_fm) || '',
-            strava_url: (user && user.strava_url) || '',
-            instagram_url: (user && user.instagram_url) || '',
-            facebook_url: (user && user.facebook_url) || '',
-            tiktok_url: (user && user.tiktok_url) || '',
-            bank_name: (user && user.bank_name) || '',
-            bank_account_name: (user && user.bank_account_name) || '',
-            bank_account_number: (user && user.bank_account_number) || ''
-        };
-
-        if (normalized.bank_account && typeof normalized.bank_account === 'object') {
-            normalized.bank_name = normalized.bank_name || normalized.bank_account.bank_name || '';
-            normalized.bank_account_name = normalized.bank_account_name || normalized.bank_account.account_name || '';
-            normalized.bank_account_number = normalized.bank_account_number || normalized.bank_account.account_number || '';
-        }
-
-        normalized.wallet = normalized.wallet || { balance: 0, transactions: [] };
-
-        if (normalized.avatar) normalized.avatar = String(normalized.avatar).replace(/^\/?storage\//, '');
-        if (normalized.banner) normalized.banner = String(normalized.banner).replace(/^\/?storage\//, '');
-
-        if (normalized.date_of_birth) {
-            normalized.date_of_birth = String(normalized.date_of_birth).split('T')[0];
-        }
-
-        return normalized;
-    },
-
-    getUserAvatarUrl(user) {
-        if (!user) return '{{ asset("images/default-male.svg") }}';
-        if (user.avatar_url) return user.avatar_url;
-        if (!user.avatar) {
-            return user.gender === 'female' ? '{{ asset("images/default-female.svg") }}' : '{{ asset("images/default-male.svg") }}';
-        }
-        const avatar = String(user.avatar).trim();
-        if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
-            return avatar;
-        }
-        if (avatar.startsWith('images/')) {
-            return '/' + avatar;
-        }
-        const clean = avatar.replace(/^\/?storage\//, '').replace(/^\//, '');
-        return '/storage/' + clean;
-    },
-
-    async copyLoginToken(userId, userName) {
-        try {
-            const response = await fetch(`/admin/users/${userId}/login-token`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            if (data.success && data.login_url) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(data.login_url);
-                    alert(`Link Login Token untuk "${userName}" telah disalin ke clipboard!\n\nLink berlaku 30 hari:\n${data.login_url}`);
-                } else {
-                    prompt(`Link Login Token untuk "${userName}" (berlaku 30 hari):`, data.login_url);
-                }
-            } else {
-                alert(data.message || 'Gagal membuat link login token.');
-            }
-        } catch (e) {
-            console.error(e);
-            alert('Terjadi kesalahan koneksi.');
-        }
-    },
-
-    async openModal(userId) {
-        this.showModal = true;
-        this.loadingUser = true;
-        this.selectedUser = this.getBlankUser();
-        this.activeTab = 'profile';
-        this.walletTransactionsUserId = null;
-        this.editErrors = {};
-
-        try {
-            const res = await fetch(`{{ url('admin/users') }}/${userId}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            
-            if (!res.ok) throw new Error('Failed to fetch user');
-            
-            const user = await res.json();
-            
-            this.selectedUser = this.normalizeUser(user);
-
-        } catch (error) {
-            console.error(error);
-            alert('Failed to load user data');
-            this.showModal = false;
-        } finally {
-            this.loadingUser = false;
-        }
-    },
-
-    async submitCreateUser() {
-        this.createErrors = {};
-        const form = this.$refs.createForm;
-        if (!form) return;
-
-        this.savingCreate = true;
-        try {
-            const res = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache'
-                },
-                body: new FormData(form)
-            });
-
-            if (res.status === 422) {
-                const data = await res.json();
-                this.createErrors = data.errors || {};
-                return;
-            }
-
-            if (!res.ok) throw new Error('Failed to create user');
-
-            this.closeCreateModal();
-            this.fetchUsers();
-        } catch (error) {
-            console.error(error);
-            alert('Failed to create user');
-        } finally {
-            this.savingCreate = false;
-        }
-    },
-
-    async submitEditUser() {
-        this.editErrors = {};
-        const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
-        const form = this.$refs.editForm;
-        if (!userId || !form) return;
-
-        this.savingEdit = true;
-        try {
-            const endpoint = `{{ url('admin/users') }}/${userId}`;
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache'
-                },
-                body: new FormData(form)
-            });
-
-            if (res.status === 422) {
-                const data = await res.json();
-                this.editErrors = data.errors || {};
-                return;
-            }
-
-            if (!res.ok) throw new Error('Failed to update user');
-
-            const data = await res.json();
-            this.selectedUser = this.normalizeUser(data.user);
-            this.fetchUsers();
-            this.closeModal();
-        } catch (error) {
-            console.error(error);
-            alert('Failed to update user');
-        } finally {
-            this.savingEdit = false;
-        }
-    },
-
-    async fetchTransactions(userId) {
-        this.loadingTransactions = true;
-        try {
-            const res = await fetch(`{{ url('admin/users') }}/${userId}/transactions`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            if (!res.ok) throw new Error('Failed to fetch transactions');
-            const data = await res.json();
-            if (this.selectedUser && this.selectedUser.id === userId && this.selectedUser.wallet) {
-                this.selectedUser.wallet.transactions = data.transactions;
-            }
-            this.walletTransactionsUserId = userId;
-        } catch (error) {
-            console.error('Error fetching transactions:', error);
-        } finally {
-            this.loadingTransactions = false;
-        }
-    },
-
-    closeModal() {
-        this.showModal = false;
-        setTimeout(() => {
-            this.selectedUser = this.getBlankUser();
-            this.activeTab = 'profile';
-            this.walletTransactionsUserId = null;
-            this.editErrors = {};
-        }, 300);
-    },
-    openCreateModal() {
-        this.createModal = true;
-        this.createErrors = {};
-    },
-    closeCreateModal() {
-        this.createModal = false;
-        this.createErrors = {};
-        this.newUser = {
-            name: '',
-            email: '',
-            username: '',
-            password: '',
-            role: 'runner',
-            program_id: ''
-        };
-    },
-    openWhatsAppModal(userId, userName, userPhone) {
-        this.whatsappUserId = userId;
-        this.whatsappUserName = userName;
-        this.whatsappUserPhone = (userPhone && userPhone !== 'null' && userPhone !== 'undefined') ? String(userPhone).trim() : '';
-        this.whatsappMessage = '';
-        this.whatsappError = '';
-        this.whatsappSuccess = '';
-        this.whatsappModal = true;
-    },
-    closeWhatsAppModal() {
-        this.whatsappModal = false;
-    },
-    async submitWhatsApp() {
-    if (!this.whatsappMessage.trim()) {
-        this.whatsappError = 'Pesan tidak boleh kosong.';
-        return;
-    }
-
-    this.whatsappLoading = true;
-    this.whatsappError = '';
-    this.whatsappSuccess = '';
-
-    try {
-        const csrfMeta = document.querySelector('meta[name=csrf-token]');
-        const token = csrfMeta ? csrfMeta.getAttribute('content') : '';
-
-        const res = await fetch(
-            `/admin/users/${this.whatsappUserId}/send-whatsapp`,
-            {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: this.whatsappMessage
-                })
-            }
-        );
-
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-            this.whatsappSuccess =
-                data.message || 'Pesan berhasil dikirim!';
-
-            setTimeout(() => {
-                this.closeWhatsAppModal();
-            }, 1500);
-        } else {
-            this.whatsappError =
-                data.message || 'Gagal mengirim pesan.';
-        }
-    } catch (err) {
-        console.error(err);
-        this.whatsappError = 'Terjadi kesalahan koneksi.';
-    } finally {
-        this.whatsappLoading = false;
-    }
-}
-}" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div x-data="userManagementComponent" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
     <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
@@ -1163,6 +695,479 @@
 
 @push('scripts')
 <script>
+    document.addEventListener('alpine:init', function() {
+        Alpine.data('userManagementComponent', function() {
+            return {
+                showModal: false, 
+                createModal: false,
+                whatsappModal: false,
+                whatsappMessage: '',
+                whatsappUserId: null,
+                whatsappUserName: '',
+                whatsappUserPhone: '',
+                whatsappLoading: false,
+                whatsappError: '',
+                whatsappSuccess: '',
+                isLoading: false,
+                loadingTransactions: false,
+                loadingUser: false,
+                savingCreate: false,
+                savingEdit: false,
+                createErrors: {},
+                editErrors: {},
+                searchQuery: '{{ request('q') }}',
+                filterRole: '{{ request('role', 'all') }}',
+                filterStatus: '{{ request('status', 'all') }}',
+                activeTab: 'profile',
+                listAbortController: null,
+                listRequestSeq: 0,
+                walletTransactionsUserId: null,
+                
+                selectedUser: {
+                    id: null,
+                    name: '',
+                    username: '',
+                    email: '',
+                    phone: '',
+                    gender: '',
+                    address: '',
+                    avatar: '',
+                    banner: '',
+                    pb_5k: '',
+                    pb_10k: '',
+                    pb_hm: '',
+                    pb_fm: '',
+                    strava_url: '',
+                    instagram_url: '',
+                    facebook_url: '',
+                    tiktok_url: '',
+                    bank_name: '',
+                    bank_account_name: '',
+                    bank_account_number: '',
+                    role: 'runner',
+                    is_active: 0,
+                    date_of_birth: '',
+                    program_id: null,
+                    wallet: { balance: 0, transactions: [] }
+                },
+
+                getBlankUser() {
+                    return {
+                        id: null,
+                        name: '',
+                        username: '',
+                        email: '',
+                        phone: '',
+                        gender: '',
+                        address: '',
+                        avatar: '',
+                        banner: '',
+                        pb_5k: '',
+                        pb_10k: '',
+                        pb_hm: '',
+                        pb_fm: '',
+                        strava_url: '',
+                        instagram_url: '',
+                        facebook_url: '',
+                        tiktok_url: '',
+                        bank_name: '',
+                        bank_account_name: '',
+                        bank_account_number: '',
+                        role: 'runner',
+                        is_active: 0,
+                        date_of_birth: '',
+                        program_id: null,
+                        wallet: { balance: 0, transactions: [] }
+                    };
+                },
+
+                newUser: {
+                    name: '',
+                    email: '',
+                    username: '',
+                    password: '',
+                    role: 'runner',
+                    program_id: ''
+                },
+
+                init() {
+                    this.initPaginationListener();
+                    this.$watch('activeTab', (tab) => {
+                        if (tab === 'wallet') this.ensureWalletTransactionsLoaded();
+                    });
+                },
+
+                async fetchUsers(url = null) {
+                    if (typeof url !== 'string') url = null;
+
+                    if (this.listAbortController) {
+                        this.listAbortController.abort();
+                    }
+                    this.listAbortController = new AbortController();
+                    const currentSeq = ++this.listRequestSeq;
+
+                    this.isLoading = true;
+                    const params = new URLSearchParams({
+                        q: this.searchQuery || '',
+                        role: this.filterRole || 'all',
+                        status: this.filterStatus || 'all'
+                    });
+                    
+                    try {
+                        const endpoint = url || '{{ route('admin.users.index') }}';
+                        const res = await fetch(`${endpoint}?${params.toString()}`, {
+                            signal: this.listAbortController.signal,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        
+                        if (!res.ok) throw new Error('Network response was not ok');
+
+                        const html = await res.text();
+                        if (currentSeq !== this.listRequestSeq) return;
+                        const container = document.getElementById('users-table-container');
+                        if (container) {
+                            container.innerHTML = html;
+                        }
+                    } catch (error) {
+                        if (error && error.name === 'AbortError') return;
+                        console.error('Error fetching users:', error);
+                    } finally {
+                        if (currentSeq !== this.listRequestSeq) return;
+                        this.isLoading = false;
+                    }
+                },
+
+                initPaginationListener() {
+                    const container = document.getElementById('users-table-container');
+                    if (!container) return;
+                    
+                    container.addEventListener('click', (e) => {
+                        const link = e.target.closest('a.page-link, .pagination a');
+                        if (link && container.contains(link)) {
+                            e.preventDefault();
+                            const href = link.getAttribute('href');
+                            if (href && href !== '#') {
+                                this.fetchUsers(href);
+                            }
+                        }
+                    });
+                },
+
+                ensureWalletTransactionsLoaded() {
+                    const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
+                    if (!userId) return;
+                    if (this.walletTransactionsUserId === userId) return;
+                    this.fetchTransactions(userId);
+                },
+
+                normalizeUser(user) {
+                    const base = this.getBlankUser();
+                    const normalized = {
+                        ...base,
+                        ...user,
+                        name: (user && user.name) || '',
+                        username: (user && user.username) || '',
+                        email: (user && user.email) || '',
+                        phone: (user && user.phone) || '',
+                        gender: (user && user.gender) || '',
+                        address: (user && user.address) || '',
+                        pb_5k: (user && user.pb_5k) || '',
+                        pb_10k: (user && user.pb_10k) || '',
+                        pb_hm: (user && user.pb_hm) || '',
+                        pb_fm: (user && user.pb_fm) || '',
+                        strava_url: (user && user.strava_url) || '',
+                        instagram_url: (user && user.instagram_url) || '',
+                        facebook_url: (user && user.facebook_url) || '',
+                        tiktok_url: (user && user.tiktok_url) || '',
+                        bank_name: (user && user.bank_name) || '',
+                        bank_account_name: (user && user.bank_account_name) || '',
+                        bank_account_number: (user && user.bank_account_number) || ''
+                    };
+
+                    if (normalized.bank_account && typeof normalized.bank_account === 'object') {
+                        normalized.bank_name = normalized.bank_name || normalized.bank_account.bank_name || '';
+                        normalized.bank_account_name = normalized.bank_account_name || normalized.bank_account.account_name || '';
+                        normalized.bank_account_number = normalized.bank_account_number || normalized.bank_account.account_number || '';
+                    }
+
+                    normalized.wallet = normalized.wallet || { balance: 0, transactions: [] };
+
+                    if (normalized.avatar) normalized.avatar = String(normalized.avatar).replace(/^\/?storage\//, '');
+                    if (normalized.banner) normalized.banner = String(normalized.banner).replace(/^\/?storage\//, '');
+
+                    if (normalized.date_of_birth) {
+                        normalized.date_of_birth = String(normalized.date_of_birth).split('T')[0];
+                    }
+
+                    return normalized;
+                },
+
+                getUserAvatarUrl(user) {
+                    if (!user) return '{{ asset('images/default-male.svg') }}';
+                    if (user.avatar_url) return user.avatar_url;
+                    if (!user.avatar) {
+                        return user.gender === 'female' ? '{{ asset('images/default-female.svg') }}' : '{{ asset('images/default-male.svg') }}';
+                    }
+                    const avatar = String(user.avatar).trim();
+                    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+                        return avatar;
+                    }
+                    if (avatar.startsWith('images/')) {
+                        return '/' + avatar;
+                    }
+                    const clean = avatar.replace(/^\/?storage\//, '').replace(/^\//, '');
+                    return '/storage/' + clean;
+                },
+
+                async copyLoginToken(userId, userName) {
+                    try {
+                        const response = await fetch(`/admin/users/${userId}/login-token`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.success && data.login_url) {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                await navigator.clipboard.writeText(data.login_url);
+                                alert(`Link Login Token untuk "${userName}" telah disalin ke clipboard!\n\nLink berlaku 30 hari:\n${data.login_url}`);
+                            } else {
+                                prompt(`Link Login Token untuk "${userName}" (berlaku 30 hari):`, data.login_url);
+                            }
+                        } else {
+                            alert(data.message || 'Gagal membuat link login token.');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('Terjadi kesalahan koneksi.');
+                    }
+                },
+
+                async openModal(userId) {
+                    this.showModal = true;
+                    this.loadingUser = true;
+                    this.selectedUser = this.getBlankUser();
+                    this.activeTab = 'profile';
+                    this.walletTransactionsUserId = null;
+                    this.editErrors = {};
+
+                    try {
+                        const res = await fetch(`{{ url('admin/users') }}/${userId}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        
+                        if (!res.ok) throw new Error('Failed to fetch user');
+                        
+                        const user = await res.json();
+                        
+                        this.selectedUser = this.normalizeUser(user);
+
+                    } catch (error) {
+                        console.error(error);
+                        alert('Failed to load user data');
+                        this.showModal = false;
+                    } finally {
+                        this.loadingUser = false;
+                    }
+                },
+
+                async submitCreateUser() {
+                    this.createErrors = {};
+                    const form = this.$refs.createForm;
+                    if (!form) return;
+
+                    this.savingCreate = true;
+                    try {
+                        const res = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            },
+                            body: new FormData(form)
+                        });
+
+                        if (res.status === 422) {
+                            const data = await res.json();
+                            this.createErrors = data.errors || {};
+                            return;
+                        }
+
+                        if (!res.ok) throw new Error('Failed to create user');
+
+                        this.closeCreateModal();
+                        this.fetchUsers();
+                    } catch (error) {
+                        console.error(error);
+                        alert('Failed to create user');
+                    } finally {
+                        this.savingCreate = false;
+                    }
+                },
+
+                async submitEditUser() {
+                    this.editErrors = {};
+                    const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
+                    const form = this.$refs.editForm;
+                    if (!userId || !form) return;
+
+                    this.savingEdit = true;
+                    try {
+                        const endpoint = `{{ url('admin/users') }}/${userId}`;
+                        const res = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            },
+                            body: new FormData(form)
+                        });
+
+                        if (res.status === 422) {
+                            const data = await res.json();
+                            this.editErrors = data.errors || {};
+                            return;
+                        }
+
+                        if (!res.ok) throw new Error('Failed to update user');
+
+                        const data = await res.json();
+                        this.selectedUser = this.normalizeUser(data.user);
+                        this.fetchUsers();
+                        this.closeModal();
+                    } catch (error) {
+                        console.error(error);
+                        alert('Failed to update user');
+                    } finally {
+                        this.savingEdit = false;
+                    }
+                },
+
+                async fetchTransactions(userId) {
+                    this.loadingTransactions = true;
+                    try {
+                        const res = await fetch(`{{ url('admin/users') }}/${userId}/transactions`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        if (!res.ok) throw new Error('Failed to fetch transactions');
+                        const data = await res.json();
+                        if (this.selectedUser && this.selectedUser.id === userId && this.selectedUser.wallet) {
+                            this.selectedUser.wallet.transactions = data.transactions;
+                        }
+                        this.walletTransactionsUserId = userId;
+                    } catch (error) {
+                        console.error('Error fetching transactions:', error);
+                    } finally {
+                        this.loadingTransactions = false;
+                    }
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    setTimeout(() => {
+                        this.selectedUser = this.getBlankUser();
+                        this.activeTab = 'profile';
+                        this.walletTransactionsUserId = null;
+                        this.editErrors = {};
+                    }, 300);
+                },
+                openCreateModal() {
+                    this.createModal = true;
+                    this.createErrors = {};
+                },
+                closeCreateModal() {
+                    this.createModal = false;
+                    this.createErrors = {};
+                    this.newUser = {
+                        name: '',
+                        email: '',
+                        username: '',
+                        password: '',
+                        role: 'runner',
+                        program_id: ''
+                    };
+                },
+                openWhatsAppModal(userId, userName, userPhone) {
+                    this.whatsappUserId = userId;
+                    this.whatsappUserName = userName;
+                    this.whatsappUserPhone = (userPhone && userPhone !== 'null' && userPhone !== 'undefined') ? String(userPhone).trim() : '';
+                    this.whatsappMessage = '';
+                    this.whatsappError = '';
+                    this.whatsappSuccess = '';
+                    this.whatsappModal = true;
+                },
+                closeWhatsAppModal() {
+                    this.whatsappModal = false;
+                },
+                async submitWhatsApp() {
+                    if (!this.whatsappMessage.trim()) {
+                        this.whatsappError = 'Pesan tidak boleh kosong.';
+                        return;
+                    }
+
+                    this.whatsappLoading = true;
+                    this.whatsappError = '';
+                    this.whatsappSuccess = '';
+
+                    try {
+                        const csrfMeta = document.querySelector('meta[name=csrf-token]');
+                        const token = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+                        const res = await fetch(
+                            `/admin/users/${this.whatsappUserId}/send-whatsapp`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': token,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    message: this.whatsappMessage
+                                })
+                            }
+                        );
+
+                        const data = await res.json();
+
+                        if (res.ok && data.success) {
+                            this.whatsappSuccess =
+                                data.message || 'Pesan berhasil dikirim!';
+
+                            setTimeout(() => {
+                                this.closeWhatsAppModal();
+                            }, 1500);
+                        } else {
+                            this.whatsappError =
+                                data.message || 'Gagal mengirim pesan.';
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        this.whatsappError = 'Terjadi kesalahan koneksi.';
+                    } finally {
+                        this.whatsappLoading = false;
+                    }
+                }
+            };
+        });
+    });
     // Global Error Handling for better debugging
     window.addEventListener('unhandledrejection', function(event) {
         console.warn('Unhandled promise rejection:', event.reason);

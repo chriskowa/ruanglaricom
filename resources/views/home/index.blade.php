@@ -6,23 +6,20 @@
 @section('canonical_url', url('/'))
 
 @section('content')
-    <div id="home-app" class="overflow-x-hidden bg-[#08111F]">
+    <div id="home-app" class="bg-[#08111F]">
         
         <!-- HERO SECTION -->
-        <header class="relative min-h-screen flex items-center justify-center pt-10 md:pt-0">
+        <header class="relative py-12 md:py-16 lg:py-20 flex items-center justify-center">
             <!-- Dynamic Background -->
             <div class="absolute inset-0 z-0 overflow-hidden">
                 <div class="absolute inset-0 bg-[#08111F]"></div>
-                <!-- Subtle Radial Glow (GPU Accelerated) -->
-                <div class="hidden md:block absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
-                <div class="hidden md:block absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none transform-gpu"></div>
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-2">
                 <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
                     
                     <!-- Hero Text -->
-                    <div class="text-center md:text-left order-2 md:order-1" data-aos="fade-up">
+                    <div class="text-center md:text-left order-2 md:order-1">
                         <!-- Desktop Badge -->
                         <div class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/20 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-8">
                             <span class="relative flex h-2 w-2">
@@ -123,7 +120,7 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/90 via-[#08111F]/30 to-transparent z-10 pointer-events-none"></div>
 
                             <div class="relative">
-                                <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                                <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory" style="touch-action: pan-y; overscroll-behavior-x: contain; overscroll-behavior-y: auto;">
                                     @forelse($slides as $i => $s)
                                         <a href="{{ $s['href'] }}" class="snap-center flex-none w-full relative block" aria-label="{{ $s['eyebrow'] }}: {{ $s['title'] }}">
                                             <img src="{{ $s['image'] ?: $fallbackHero }}" alt="{{ $s['title'] }}" class="w-full h-[400px] md:h-[480px] object-cover object-center transform transition duration-1000 group-hover:scale-105" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
@@ -186,7 +183,7 @@
         </header>
 
         <!-- PROGRAM LATIHAN VDOT SECTION (NO EMOJIS, CLEAN & PROFESSIONAL) -->
-        <section id="vdot-section" class="py-20 relative overflow-hidden bg-[#0B1526] border-t border-[#1F2D44]">
+        <section id="vdot-section" class="py-20 relative bg-[#0B1526] border-t border-[#1F2D44]">
             <!-- Subtle Glow Effect -->
             <div class="hidden md:block absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
             
@@ -409,7 +406,7 @@
                 </div>
             </div>
         </section>
-        <section id="events" class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+        <section id="events" class="py-24 relative bg-[#08111F] border-t border-[#1F2D44]">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
                     <div data-aos="fade-right">
@@ -440,7 +437,7 @@
         </section>
 
         <!-- SATU EKOSISTEM UNTUK PELARI -->
-        <section class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+        <section class="py-24 relative bg-[#08111F] border-t border-[#1F2D44]">
             <!-- Subtle glow -->
             <div class="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
 
@@ -538,7 +535,7 @@
         </section>
 
         <!-- CARI TEMAN LARI (RUN CONNECT) INTRO SECTION -->
-        <section class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+        <section class="py-24 relative bg-[#08111F] border-t border-[#1F2D44]">
             <!-- Subtle Glows -->
             <div class="absolute top-[20%] left-[-10%] w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px] pointer-events-none"></div>
             <div class="absolute bottom-[20%] right-[-10%] w-[450px] h-[450px] bg-[#B8FF00]/5 rounded-full blur-[130px] pointer-events-none"></div>
@@ -625,7 +622,7 @@
         </section>
 
         <!-- KELOLA EVENT LARI TANPA RIBET (EO SECTION) -->
-        <section class="py-24 bg-[#08111F] relative overflow-hidden border-t border-[#1F2D44]">
+        <section class="py-24 bg-[#08111F] relative border-t border-[#1F2D44]">
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1083,6 +1080,14 @@
         } catch (e) {
             track.addEventListener('scroll', function () {
                 setActiveDot(getActiveIndex());
+            }, { passive: true });
+        }
+
+        if (track) {
+            track.addEventListener('wheel', function (e) {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    window.scrollBy({ top: e.deltaY, behavior: 'auto' });
+                }
             }, { passive: true });
         }
 

@@ -239,8 +239,10 @@
                 padding-left: 0 !important;
                 overflow: hidden !important;
             }
-        }
         @endif
+        html, body {
+            overflow-x: hidden !important;
+        }
     </style>
     @stack('styles')
     @stack('structured_data')
@@ -325,7 +327,7 @@
                 window.AOS.init({
                     duration: 400,
                     once: true,
-                    disable: function() { return window.innerWidth < 768; }
+                    disable: function() { return window.location.pathname === '/' || window.innerWidth < 768; }
                 });
             }
         } catch (e) {}
