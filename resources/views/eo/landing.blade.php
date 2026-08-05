@@ -28,19 +28,20 @@
     
     <!-- Hero Section with Background Zoom Effect & High Contrast H1 -->
     <section class="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden flex items-center min-h-[90vh]">
-        <!-- Hero Background Image Container with Smooth Zoom In/Out Animation & Extra Dark Overlay -->
+        <!-- Hero Background Image Container with Smooth Zoom In/Out Animation & Balanced Overlay -->
         <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <img src="{{ asset('images/hero/management event lari gratis.webp') }}" 
                  alt="Management Event Lari Gratis RuangLari" 
-                 class="w-full h-full object-cover object-center animate-hero-zoom filter brightness-[0.15] contrast-[1.2]"
+                 class="w-full h-full object-cover object-center animate-hero-zoom"
+                 style="filter: brightness(0.55) contrast(1.1);"
                  fetchpriority="high"
                  decoding="async">
             
-            <!-- Extra Dark Solid Overlay Layer -->
-            <div class="absolute inset-0 bg-[#08111F]/92 backdrop-blur-[3px]"></div>
+            <!-- Soft Dark Solid Overlay Layer -->
+            <div class="absolute inset-0" style="background-color: rgba(8, 17, 31, 0.60); backdrop-filter: blur(1px);"></div>
             
-            <!-- Dark Gradient Vignette Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-b from-[#08111F] via-[#08111F]/85 to-[#08111F]"></div>
+            <!-- Balanced Dark Gradient Vignette Overlay -->
+            <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(8,17,31,0.85) 0%, rgba(8,17,31,0.35) 50%, rgba(8,17,31,0.95) 100%);"></div>
         </div>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
@@ -64,11 +65,11 @@
                 </p>
 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full sm:w-auto px-9 py-4 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-xl shadow-[#B8FF00]/20 flex items-center justify-center gap-2.5">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full sm:w-auto px-8 sm:px-10 py-4 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-xl shadow-[#B8FF00]/20 flex items-center justify-center gap-2.5">
                         <i class="fa-solid fa-rocket text-base"></i>
-                        <span>Buat Registration Page Gratis</span>
+                        <span>Buat Registration Page</span>
                     </a>
-                    <a href="#fitur-utama" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#0E1A2D] hover:bg-[#111F35] text-white font-bold text-sm uppercase tracking-wider transition-all backdrop-blur-md flex items-center justify-center gap-2">
+                    <a href="#fitur-utama" class="w-full sm:w-auto px-8 sm:px-10 py-4 rounded-xl bg-[#0E1A2D] hover:bg-[#111F35] text-white font-bold text-sm uppercase tracking-wider transition-all backdrop-blur-md flex items-center justify-center gap-2">
                         <span>Pelajari Fitur Platform</span>
                         <i class="fa-solid fa-arrow-down text-xs text-[#B8FF00]"></i>
                     </a>

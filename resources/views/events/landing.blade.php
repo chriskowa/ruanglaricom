@@ -88,7 +88,7 @@
                                     >
                                     
                                     <!-- Gradients for readability -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-90"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-10"></div>
                                     
                                     <!-- Content Overlay -->
                                     <div class="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex flex-col justify-end bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent">
