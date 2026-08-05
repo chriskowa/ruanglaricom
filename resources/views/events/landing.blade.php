@@ -211,7 +211,7 @@
                     Event Organizer (EO) &amp; Komunitas Lari
                 </div>
                 <h3 class="text-xl md:text-2xl font-black text-white tracking-tight">
-                    Punya Event Lari? <span class="text-neon">Publikasikan Event &amp; Buat Registration Page Gratis!</span>
+                    Punya Event Lari?<br/><span class="text-neon">Publikasikan Event &amp; Buat Registration Page Gratis!</span>
                 </h3>
                 <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
                     Jangkau puluhan ribu pelari di seluruh Indonesia. Dapatkan fitur <strong class="text-white">Submit Event Lari Gratis</strong>, landing page pendaftaran otomatis, Notifikasi WA, E-Ticket QR, &amp; pembayaran online tanpa biaya awal.
@@ -1372,12 +1372,17 @@
                     .catch(function () {
                         showAlert('error', 'Terjadi kesalahan saat submit.');
                     })
-                    .finally(function () {
-                        setBusy(submitBtn, false, 'Submit Event');
-                    });
-                });
-            });
-        }
+        if (openBtn) openBtn.addEventListener('click', openModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        // Auto open modal if URL has submit=1 or open_submit=1
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('submit') === '1' || urlParams.get('open_submit') === '1') {
+                setTimeout(openModal, 200);
+            }
+        } catch (e) {}
     })();
 </script>
 @endpush

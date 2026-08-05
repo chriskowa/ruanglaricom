@@ -323,8 +323,9 @@
         try {
             if (window.AOS && typeof window.AOS.init === 'function') {
                 window.AOS.init({
-                    duration: 800,
+                    duration: 600,
                     once: true,
+                    disable: function() { return window.innerWidth < 768; }
                 });
             }
         } catch (e) {}

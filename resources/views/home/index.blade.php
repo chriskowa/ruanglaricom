@@ -13,9 +13,9 @@
             <!-- Dynamic Background -->
             <div class="absolute inset-0 z-0 overflow-hidden">
                 <div class="absolute inset-0 bg-[#08111F]"></div>
-                <!-- Subtle Radial Glow -->
-                <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[120px] animate-pulse-slow"></div>
-                <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[150px] animate-pulse-slow" style="animation-delay: 2s"></div>
+                <!-- Subtle Radial Glow (GPU Accelerated) -->
+                <div class="hidden md:block absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
+                <div class="hidden md:block absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none transform-gpu"></div>
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-12">
@@ -23,12 +23,25 @@
                     
                     <!-- Hero Text -->
                     <div class="text-center md:text-left order-2 md:order-1" data-aos="fade-up">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/20 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-8">
+                        <!-- Desktop Badge -->
+                        <div class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/20 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-8">
                             <span class="relative flex h-2 w-2">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B8FF00] opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-[#B8FF00]"></span>
                             </span>
                             Dari Pelari Untuk Pelari
+                        </div>
+
+                        <!-- Mobile Quick Action Buttons -->
+                        <div class="flex md:hidden items-center justify-center gap-2 mb-6 flex-wrap">
+                            <a href="#vdot-section" onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});" class="px-4 py-2 rounded-full bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#B8FF00]/20 flex items-center gap-1.5 active:scale-95 transition-all">
+                                <i class="fa-solid fa-calculator text-xs"></i>
+                                <span>Buat Program Lari</span>
+                            </a>
+                            <a href="{{ url('/jadwal-lari?submit=1') }}" class="px-4 py-2 rounded-full bg-[#0E1A2D] border border-[#1F2D44] text-[#B8FF00] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                                <i class="fa-solid fa-plus-circle text-xs"></i>
+                                <span>Submit Event Lari</span>
+                            </a>
                         </div>
                         
                         <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-none mb-6 text-[#F8FAFC] tracking-tighter uppercase">
@@ -173,9 +186,9 @@
         </header>
 
         <!-- PROGRAM LATIHAN VDOT SECTION (NO EMOJIS, CLEAN & PROFESSIONAL) -->
-        <section class="py-20 relative overflow-hidden bg-[#0B1526] border-t border-[#1F2D44]">
+        <section id="vdot-section" class="py-20 relative overflow-hidden bg-[#0B1526] border-t border-[#1F2D44]">
             <!-- Subtle Glow Effect -->
-            <div class="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#B8FF00]/5 rounded-full blur-[140px] pointer-events-none"></div>
+            <div class="hidden md:block absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
             
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -230,7 +243,7 @@
                         
                         <div class="pt-2">
                             <a href="{{ route('programs.realistic') }}" class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm">
-                                <span>Buat Program Latihan Sekarang</span>
+                                <span>Buat Program Latihan</span>
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
                         </div>
@@ -429,7 +442,7 @@
         <!-- SATU EKOSISTEM UNTUK PELARI -->
         <section class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
             <!-- Subtle glow -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#B8FF00]/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div class="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none transform-gpu"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16" data-aos="fade-up">
