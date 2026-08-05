@@ -2495,7 +2495,8 @@ class AthleteController extends Controller
                     if ($message) {
                         $message = preg_replace('/[*_~`]+/', '', $message);
                         $message = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{2190}-\x{21FF}\x{2B00}-\x{2BFF}\x{FE00}-\x{FE0F}]/u', '', $message);
-                        $message = preg_replace('/\s+/', ' ', $message);
+                        $message = preg_replace('/[ \t]+/', ' ', $message);
+                        $message = preg_replace('/\n{3,}/', "\n\n", $message);
                         $message = trim($message);
                         
                         $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);

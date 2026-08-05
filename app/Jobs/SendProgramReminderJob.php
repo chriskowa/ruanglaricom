@@ -69,12 +69,14 @@ class SendProgramReminderJob implements ShouldQueue
 
             // Generate message using OpenAI
             $systemMessage = "Anda adalah pelatih lari (Coach lari) Ruang Lari. Tulis pesan WhatsApp pengingat jadwal program lari besok.\n\n"
-                . "Wajib sertakan rincian latihan berikut secara jelas:\n"
+                . "Wajib sertakan rincian latihan berikut secara jelas pada baris terpisah (gunakan newline/baris baru):\n"
                 . "- Jarak (km)\n"
-                . "- Target Pace\n"
-                . "- Deskripsi/Instruksi Latihan\n\n"
-                . "ATURAN:\n"
+                . "- Target Pace (WAJIB sebutkan target pace persisnya dalam min/km)\n"
+                . "- Rincian/Instruksi Latihan\n\n"
+                . "ATURAN FORMAT:\n"
                 . "- Gunakan bahasa Indonesia santai dan akrab sehari-hari, sebut nama panggilan atlet secara langsung.\n"
+                . "- WAJIB gunakan baris baru (newline) untuk memisahkan setiap poin rincian latihan agar mudah dibaca.\n"
+                . "- JANGAN gabungkan seluruh pesan menjadi 1 alinea/paragraf panjang tanpa baris baru.\n"
                 . "- Jangan gunakan emoji sama sekali di dalam pesan.\n"
                 . "- Jangan gunakan format markdown (seperti *bold* atau _miring_). Tulis teks polos saja.";
             
@@ -88,7 +90,7 @@ class SendProgramReminderJob implements ShouldQueue
                 $message = str_replace('[LINK_CALENDAR]', '', $message);
             } else {
                 // Fallback message if OpenAI fails
-                $message = $this->getFallbackMessage($calendarUrl);
+                $message = $this->getFallbackMessage($profileData, $calendarUrl);
             }
 
             // Tambahkan footer berhenti berlangganan (anti-spam WA).
@@ -108,7 +110,7 @@ class SendProgramReminderJob implements ShouldQueue
      * Bersihkan output AI agar aman dikirim via WhatsApp:
      * - hapus markdown (*bold*, _miring_)
      * - hapus emoji
-     * - normalisasi whitespace
+     * - normalisasi whitespace per baris tanpa merusak newline (\n)
      */
     private function sanitizeMessage(string $message): string
     {
@@ -116,9 +118,57 @@ class SendProgramReminderJob implements ShouldQueue
         $message = preg_replace('/[*_~`]+/', '', $message);
         // Hapus emoji (range unicode)
         $message = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{2190}-\x{21FF}\x{2B00}-\x{2BFF}\x{FE00}-\x{FE0F}]/u', '', $message);
-        // Rapikan spasi berlebih
-        $message = preg_replace('/\s+/', ' ', $message);
+        // Normalisasi spasi horizontal per baris
+        $message = preg_replace('/[ \t]+/', ' ', $message);
+        // Batasi newline berturut-turut maksimal 2
+        $message = preg_replace('/\n{3,}/', "\n\n", $message);
         return trim($message);
+    }
+
+    /**
+     * Resolve target pace based on session type and athlete VDOT profile paces
+     */
+    private function resolveTargetPace(array $sessionData, array $profileData): string
+    {
+        $targetPaceVal = $sessionData['target_pace'] ?? $sessionData['pace'] ?? '';
+        if (!empty($targetPaceVal)) {
+            return (string) $targetPaceVal;
+        }
+
+        $type = strtolower($sessionData['type'] ?? $sessionData['title'] ?? '');
+        $paces = $profileData['paces'] ?? [];
+
+        if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
+            if (!empty($paces['E_high']) && !empty($paces['E_low'])) {
+                return $this->formatMinPerKm($paces['E_high']) . ' - ' . $this->formatMinPerKm($paces['E_low']) . ' /km (Easy Pace)';
+            } elseif (isset($paces['E'])) {
+                return '~' . $this->formatMinPerKm($paces['E']) . ' /km (Easy Pace)';
+            } elseif (isset($paces['easy'])) {
+                return '~' . $this->formatMinPerKm($paces['easy']) . ' /km (Easy Pace)';
+            }
+            return 'Zona aerobik ringan (Easy Pace)';
+        } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
+            $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : ($paces['threshold'] ?? null);
+            return $tPace ? '~' . $this->formatMinPerKm($tPace) . ' /km (Tempo/Threshold)' : 'Zona threshold terkontrol';
+        } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
+            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
+            $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : ($paces['repetition'] ?? null);
+            return $iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval)' : ($rPace ? '~' . $this->formatMinPerKm($rPace) . ' /km (Repetition)' : 'Interval Pace maksimal');
+        } elseif (in_array($type, ['long_run', 'long'])) {
+            $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : ($paces['marathon'] ?? null);
+            $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : ($paces['easy'] ?? null);
+            return $mPace ? '~' . $this->formatMinPerKm($mPace) . ' /km (Marathon Pace)' : ($ePace ? '~' . $this->formatMinPerKm($ePace) . ' /km (Endurance)' : 'Zona endurance terkontrol');
+        }
+
+        return 'Sesuaikan pace dengan instruksi program';
+    }
+
+    private function formatMinPerKm($minutes): string
+    {
+        if (is_string($minutes) && str_contains($minutes, ':')) return $minutes;
+        $m = floor((float)$minutes);
+        $s = round(((float)$minutes - $m) * 60);
+        return sprintf('%d:%02d', $m, $s);
     }
 
     /**
@@ -131,13 +181,13 @@ class SendProgramReminderJob implements ShouldQueue
         
         $distance = $this->sessionData['distance'] ?? '';
         $duration = $this->sessionData['duration'] ?? '';
-        $targetPace = $this->sessionData['target_pace'] ?? '';
+        $targetPace = $this->resolveTargetPace($this->sessionData, $profileData);
         $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? '';
         
         $pacesInfo = "";
         if (!empty($profileData['paces'])) {
             $paces = $profileData['paces'];
-            $pacesInfo = "Pace Latihan: Easy (" . ($paces['easy'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? '-') . "), Interval (" . ($paces['interval'] ?? '-') . ").";
+            $pacesInfo = "Pace VDOT Atlet: Easy (" . ($paces['easy'] ?? $paces['E'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? $paces['T'] ?? '-') . "), Interval (" . ($paces['interval'] ?? $paces['I'] ?? '-') . ").";
         }
 
         $prompt = "Buatkan pesan WhatsApp pengingat jadwal program lari besok.\n\n";
@@ -152,10 +202,10 @@ class SendProgramReminderJob implements ShouldQueue
             $prompt .= "Jadwal Besok: {$this->sessionData['type']}\n";
             if ($distance) $prompt .= "Jarak: {$distance} km\n";
             if ($duration) $prompt .= "Durasi: {$duration}\n";
-            if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
+            $prompt .= "Target Pace Spesifik: {$targetPace}\n";
             if ($description) $prompt .= "Deskripsi Latihan (Instruksi Coach): {$description}\n";
             
-            $prompt .= "Instruksi: Informasikan menu latihan besok secara singkat berdasarkan deskripsi latihan dari coach, dan beri motivasi ringkas agar semangat.";
+            $prompt .= "Instruksi: Tulis pesan WhatsApp dengan baris terpisah yang rapi. Informasikan menu latihan besok, jarak, target pace ({$targetPace}), dan rincian instruksi coach secara jelas.";
         }
 
         return $prompt;
@@ -164,7 +214,7 @@ class SendProgramReminderJob implements ShouldQueue
     /**
      * Fallback message if OpenAI fails
      */
-    private function getFallbackMessage(string $calendarUrl): string
+    private function getFallbackMessage(array $profileData, string $calendarUrl): string
     {
         $type = strtolower($this->sessionData['type'] ?? 'rest');
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
@@ -175,7 +225,7 @@ class SendProgramReminderJob implements ShouldQueue
 
         $sessionName = $this->sessionData['session_name'] ?? $this->sessionData['title'] ?? $this->sessionData['name'] ?? ucfirst(str_replace('_', ' ', $type));
         $distance = !empty($this->sessionData['distance']) ? "{$this->sessionData['distance']} km" : (!empty($this->sessionData['target_distance']) ? "{$this->sessionData['target_distance']} km" : '-');
-        $targetPace = !empty($this->sessionData['target_pace']) ? $this->sessionData['target_pace'] : (!empty($this->sessionData['pace']) ? $this->sessionData['pace'] : '-');
+        $targetPace = $this->resolveTargetPace($this->sessionData, $profileData);
         $description = $this->sessionData['description'] ?? $this->sessionData['notes'] ?? $this->sessionData['instruction'] ?? 'Lakukan latihan sesuai instruksi program.';
 
         return "Halo {$this->user->name}, besok kamu ada sesi: {$sessionName} untuk program {$this->program->title}.\n\n"
