@@ -130,15 +130,6 @@ class AuthController extends Controller
                     ->with('warning', 'Masa aktif paket Anda telah habis atau belum aktif. Silakan pilih paket.');
             }
 
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Login successful',
-                    'user' => $user,
-                ]);
-            }
-
-            // Redirect ke intended URL atau dashboard berdasarkan role
             $dashboard = match ($user->role) {
                 'admin' => route('admin.dashboard'),
                 'coach' => route('coach.dashboard'),
@@ -147,7 +138,22 @@ class AuthController extends Controller
                 default => route('runner.dashboard'),
             };
 
-            return redirect()->intended($dashboard);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login berhasil',
+                    'user' => $user,
+                    'redirect_url' => $dashboard,
+                ]);
+            }
+
+            return redirect()->route(match ($user->role) {
+                'admin' => 'admin.dashboard',
+                'coach' => 'coach.dashboard',
+                'runner' => 'runner.dashboard',
+                'eo' => 'eo.dashboard',
+                default => 'runner.dashboard',
+            });
         }
 
         if ($request->wantsJson()) {
@@ -388,7 +394,22 @@ class AuthController extends Controller
                 default => route('runner.dashboard'),
             };
 
-            return redirect()->intended($dashboard);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Registrasi berhasil',
+                    'user' => $user,
+                    'redirect_url' => $dashboard,
+                ]);
+            }
+
+            return redirect()->route(match ($user->role) {
+                'admin' => 'admin.dashboard',
+                'coach' => 'coach.dashboard',
+                'runner' => 'runner.dashboard',
+                'eo' => 'eo.dashboard',
+                default => 'runner.dashboard',
+            });
         }
 
         $this->otpService->generateAndSend($user);

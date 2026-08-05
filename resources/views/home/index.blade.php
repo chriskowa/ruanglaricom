@@ -123,7 +123,7 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/90 via-[#08111F]/30 to-transparent z-10 pointer-events-none"></div>
 
                             <div class="relative">
-                                <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth">
+                                <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory">
                                     @forelse($slides as $i => $s)
                                         <a href="{{ $s['href'] }}" class="snap-center flex-none w-full relative block" aria-label="{{ $s['eyebrow'] }}: {{ $s['title'] }}">
                                             <img src="{{ $s['image'] ?: $fallbackHero }}" alt="{{ $s['title'] }}" class="w-full h-[400px] md:h-[480px] object-cover object-center transform transition duration-1000 group-hover:scale-105" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
@@ -1460,16 +1460,19 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    let homeInitialized = false;
+    function initHomePage() {
+        if (homeInitialized) return;
+        homeInitialized = true;
         loadLatestBlogs();
         loadUpcomingEvents();
         initVdotWidget();
-    });
-    // In case DOMContentLoaded already fired (script loaded late)
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        loadLatestBlogs();
-        loadUpcomingEvents();
-        initVdotWidget();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHomePage);
+    } else {
+        initHomePage();
     }
 </script>
 @endpush

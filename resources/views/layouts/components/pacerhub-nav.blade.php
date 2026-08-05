@@ -21,8 +21,9 @@
                 @endif
                 <div class="flex items-center gap-1 nav-logo">
                     <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-6 sm:h-8 w-auto">
-                    <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" 
-                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}">
+                    <a href="{{ url('/') }}" 
+                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}"
+                        title="RuangLari Utama">
                         RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
                     </a>
                 </div>
@@ -81,6 +82,14 @@
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 @endif
+
+                <!-- Dedicated Dashboard Button for Logged-In Users -->
+                @auth
+                <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark text-xs font-black uppercase tracking-wider transition-all" title="Ke Dashboard Saya">
+                    <i class="fa-solid fa-gauge-high text-xs"></i>
+                    <span>Dashboard</span>
+                </a>
+                @endauth
 
                 <!-- Cart Icon -->
                 @auth

@@ -21,8 +21,9 @@
                 <?php endif; ?>
                 <div class="flex items-center gap-1 nav-logo">
                     <img src="<?php echo e(asset('images/logo saja ruang lari.png')); ?>" alt="RuangLari" class="h-6 sm:h-8 w-auto">
-                    <a href="<?php echo e(auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home')); ?>" 
-                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center <?php echo e($lightMode ? 'text-slate-900' : 'text-white'); ?>">
+                    <a href="<?php echo e(url('/')); ?>" 
+                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center <?php echo e($lightMode ? 'text-slate-900' : 'text-white'); ?>"
+                        title="RuangLari Utama">
                         RUANG<span class="pl-1" style="<?php echo e($lightMode ? 'color: #000000ff;' : 'color: #ccff00;'); ?>">LARI</span>
                     </a>
                 </div>
@@ -83,6 +84,14 @@
                 <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
+                <?php endif; ?>
+
+                <!-- Dedicated Dashboard Button for Logged-In Users -->
+                <?php if(auth()->guard()->check()): ?>
+                <a href="<?php echo e(route(auth()->user()->role . '.dashboard')); ?>" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark text-xs font-black uppercase tracking-wider transition-all" title="Ke Dashboard Saya">
+                    <i class="fa-solid fa-gauge-high text-xs"></i>
+                    <span>Dashboard</span>
+                </a>
                 <?php endif; ?>
 
                 <!-- Cart Icon -->

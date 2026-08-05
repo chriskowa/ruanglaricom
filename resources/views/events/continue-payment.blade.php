@@ -14,7 +14,7 @@
 @section('title', 'Lanjutkan Pembayaran')
 
 @section('content')
-    <div class="max-w-5xl mx-auto px-4 py-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-10">
         <div class="mb-6">
             <a href="{{ route('events.show', $event->slug) }}" class="text-sm text-slate-400 hover:text-white flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +24,7 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             <!-- Event Info Column -->
             <div class="lg:col-span-1">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden sticky top-6">
@@ -34,18 +34,18 @@
                              class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
                     </div>
-                    <div class="p-6">
-                        <h2 class="text-xl font-black text-white leading-tight">{{ $event->name }}</h2>
+                    <div class="p-5 md:p-6">
+                        <h2 class="text-lg md:text-xl font-black text-white leading-tight">{{ $event->name }}</h2>
                         
-                        <div class="mt-4 space-y-3 text-sm text-slate-400">
+                        <div class="mt-4 space-y-3 text-xs md:text-sm text-slate-400">
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 <span>{{ \Carbon\Carbon::parse($event->start_at)->translatedFormat('l, d F Y') }}</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 text-neon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
@@ -58,9 +58,9 @@
 
             <!-- Payment Recovery Form Column -->
             <div class="lg:col-span-2">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h1 class="text-2xl font-black text-white">Lanjutkan Pembayaran</h1>
-                    <p class="text-sm text-slate-400 mt-2">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-6">
+                    <h1 class="text-xl md:text-2xl font-black text-white">Lanjutkan Pembayaran</h1>
+                    <p class="text-xs md:text-sm text-slate-400 mt-2">
                         @if(auth()->check() && count($autoTransactions) > 0)
                             Kami menemukan transaksi pending Anda secara otomatis berdasarkan session login Anda.
                         @else
@@ -70,18 +70,18 @@
 
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">No. HP PIC</label>
-                            <input id="phone" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 0812xxxxxxx">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">No. HP PIC</label>
+                            <input id="phone" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 0812xxxxxxx">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">ID Registrasi (Opsional)</label>
-                            <input id="transaction_id" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 12345">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">ID Registrasi (Opsional)</label>
+                            <input id="transaction_id" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-neon focus:ring-1 focus:ring-neon transition-colors" placeholder="contoh: 12345">
                         </div>
                     </div>
 
-                    <div class="mt-4 flex flex-wrap gap-3">
-                        <button id="btnFind" class="bg-neon hover:bg-neon/90 text-black font-bold px-5 py-2.5 rounded-xl transition-colors">Cari Transaksi</button>
-                        <button id="btnClear" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl transition-colors">Reset</button>
+                    <div class="mt-4 flex flex-col sm:flex-row gap-3">
+                        <button id="btnFind" class="w-full sm:w-auto bg-neon hover:bg-neon/90 text-black font-bold px-6 py-3 rounded-xl transition-colors text-xs uppercase tracking-wider">Cari Transaksi</button>
+                        <button id="btnClear" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-colors text-xs uppercase tracking-wider">Reset</button>
                     </div>
 
                     <div id="msg" class="mt-4 text-sm"></div>
@@ -132,7 +132,7 @@
                 transactions.forEach(tx => {
                     const txPhone = tx.pic_phone_raw || phone;
                     const card = document.createElement('div');
-                    card.className = 'bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4';
+                    card.className = 'bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col gap-4';
                     
                     let statusBadge = '';
                     if (tx.payment_status === 'pending') {
@@ -145,7 +145,7 @@
 
                     const participantsHtml = tx.participants && tx.participants.length > 0
                         ? `<div class="pt-3 border-t border-slate-800/60">
-                             <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Peserta Terdaftar:</div>
+                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Peserta Terdaftar:</div>
                              <div class="flex flex-wrap gap-2">
                                  ${tx.participants.map(p => `
                                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
@@ -161,24 +161,24 @@
                         : '';
 
                     card.innerHTML = `
-                        <div class="flex items-start justify-between gap-4">
+                        <div class="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
                             <div>
-                                <div class="text-white font-bold flex items-center gap-2">
+                                <div class="text-white font-bold flex flex-wrap items-center gap-2">
                                     <span>ID Registrasi: <span class="font-mono text-neon">${tx.public_ref || tx.id}</span></span>
                                     ${statusBadge}
                                 </div>
                                 <div class="text-xs text-slate-400 mt-1.5">${tx.pic_name ? 'PIC: ' + tx.pic_name + ' • ' : ''}HP: ${tx.pic_phone_masked || '-'}</div>
                                 ${tx.midtrans_transaction_status ? `<div class="text-xs text-slate-500 mt-1">Midtrans: <span class="text-slate-300">${tx.midtrans_transaction_status}</span></div>` : ''}
                             </div>
-                            <div class="text-right">
+                            <div class="text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
                                 <div class="text-white font-black text-lg">Rp ${Number(tx.final_amount || 0).toLocaleString('id-ID')}</div>
-                                <div class="text-[10px] text-slate-500 mt-1">${tx.created_at ? new Date(tx.created_at).toLocaleString('id-ID') : ''}</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">${tx.created_at ? new Date(tx.created_at).toLocaleString('id-ID') : ''}</div>
                             </div>
                         </div>
                         ${participantsHtml}
-                        <div class="flex flex-wrap gap-3 pt-2">
-                            <button class="btnStatus bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl transition-colors">Cek Status</button>
-                            <button class="btnResume bg-neon hover:bg-neon/90 text-black font-bold px-4 py-2 rounded-xl transition-colors">Lanjutkan Pembayaran</button>
+                        <div class="flex flex-col sm:flex-row gap-2.5 pt-3">
+                            <button class="btnStatus w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2.5 rounded-xl transition-colors text-xs uppercase tracking-wider">Cek Status</button>
+                            <button class="btnResume w-full sm:w-auto bg-neon hover:bg-neon/90 text-black font-bold px-4 py-2.5 rounded-xl transition-colors text-xs uppercase tracking-wider">Lanjutkan Pembayaran</button>
                         </div>
                     `;
                     results.appendChild(card);
