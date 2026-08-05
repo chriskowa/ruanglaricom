@@ -50,7 +50,7 @@
         
         <!-- Flash Messages -->
         @if(session('success'))
-            <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-between backdrop-blur-md" data-aos="fade-down">
+            <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-between backdrop-blur-md">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                     <span>{{ session('success') }}</span>
@@ -65,7 +65,7 @@
             <div class="lg:col-span-4 space-y-6">
                 
                 <!-- Profile Card -->
-                <div class="glass rounded-2xl p-6 text-center relative overflow-hidden" data-aos="fade-up">
+                <div class="glass rounded-2xl p-6 text-center relative overflow-hidden">
                     <div class="relative inline-block mb-4 group/avatar" id="avatar_dropzone">
                         <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-dark shadow-2xl overflow-hidden relative z-10 mx-auto bg-slate-800 cursor-pointer">
                             <img id="avatar_preview_img" src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(ltrim($user->avatar, '/')) : asset('storage/' . $user->avatar))) : asset('images/profile/profile.png') }}" alt="Avatar" class="w-full h-full object-cover group-hover/avatar:opacity-80 transition-opacity">
@@ -136,7 +136,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3" data-aos="fade-up" data-aos-delay="50">
+                <div class="glass rounded-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
                     <a href="{{ route('wallet.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all text-center w-full sm:w-auto">
                         Wallet
                     </a>
@@ -149,7 +149,7 @@
                 </div>
 
                 <!-- Gallery Preview -->
-                <div class="glass rounded-2xl p-6 {{ (!$user->profile_images || count($user->profile_images) === 0) ? 'hidden' : '' }}" id="sidebar_gallery_card" data-aos="fade-up" data-aos-delay="100">
+                <div class="glass rounded-2xl p-6 {{ (!$user->profile_images || count($user->profile_images) === 0) ? 'hidden' : '' }}" id="sidebar_gallery_card">
                     <h3 class="text-lg font-bold text-white mb-4 flex items-center justify-between">
                         Gallery
                         <span id="sidebar_gallery_count" class="text-xs font-normal text-slate-500">{{ count($user->profile_images ?? []) }} Photos</span>
@@ -172,7 +172,7 @@
 
             <!-- Right Column: Settings Form -->
             <div class="lg:col-span-8">
-                <div class="glass rounded-2xl p-6 md:p-8" data-aos="fade-up" data-aos-delay="200">
+                <div class="glass rounded-2xl p-6 md:p-8">
                     
                     <div class="flex items-center justify-between mb-8">
                         <h2 class="text-2xl font-bold text-white">Edit Profile</h2>

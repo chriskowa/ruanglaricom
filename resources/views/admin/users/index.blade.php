@@ -229,6 +229,33 @@
         return '/storage/' + clean;
     },
 
+    async copyLoginToken(userId, userName) {
+        try {
+            const response = await fetch(`/admin/users/${userId}/login-token`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (data.success && data.login_url) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(data.login_url);
+                    alert(`Link Login Token untuk "${userName}" telah disalin ke clipboard!\n\nLink berlaku 30 hari:\n${data.login_url}`);
+                } else {
+                    prompt(`Link Login Token untuk "${userName}" (berlaku 30 hari):`, data.login_url);
+                }
+            } else {
+                alert(data.message || 'Gagal membuat link login token.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Terjadi kesalahan koneksi.');
+        }
+    },
+
     async openModal(userId) {
         this.showModal = true;
         this.loadingUser = true;

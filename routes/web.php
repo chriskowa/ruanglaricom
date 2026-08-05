@@ -910,6 +910,7 @@ Route::middleware('auth')->group(function () {
         Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::post('users/{user}/toggle-wa', [App\Http\Controllers\Admin\UserController::class, 'toggleWaNotify'])->name('users.toggle-wa');
         Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+        Route::post('users/{user}/login-token', [App\Http\Controllers\Admin\UserController::class, 'generateLoginToken'])->name('users.login-token');
         Route::post('users/{user}/send-whatsapp', [App\Http\Controllers\Admin\UserController::class, 'sendWhatsApp'])->name('users.send-whatsapp');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');

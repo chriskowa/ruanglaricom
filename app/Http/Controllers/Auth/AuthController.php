@@ -666,9 +666,18 @@ class AuthController extends Controller
         // Regenerate session
         $request->session()->regenerate();
 
-        // Redirect to intended or fallback
-        $redirectUrl = $request->get('redirect', route('runner.calendar'));
+        // Determine fallback dashboard by role
+        $roleDashboards = [
+            'admin' => route('admin.dashboard'),
+            'eo' => route('eo.dashboard'),
+            'coach' => route('coach.dashboard'),
+            'runner' => route('runner.dashboard'),
+        ];
+        $fallback = $roleDashboards[$user->role] ?? route('runner.dashboard');
 
-        return redirect($redirectUrl);
+        // Redirect to intended or fallback dashboard
+        $redirectUrl = $request->get('redirect', $fallback);
+
+        return redirect($redirectUrl)->with('success', 'Berhasil masuk sebagai ' . $user->name . ' via link token.');
     }
 }

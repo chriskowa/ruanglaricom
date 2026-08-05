@@ -445,4 +445,39 @@ class UserController extends Controller
 
         return back()->with('success', 'User deleted successfully.');
     }
+
+    /**
+     * Generate a temporary signed login URL for the user.
+     */
+    public function generateLoginToken(Request $request, User $user)
+    {
+        $roleDashboards = [
+            'admin' => route('admin.dashboard'),
+            'eo' => route('eo.dashboard'),
+            'coach' => route('coach.dashboard'),
+            'runner' => route('runner.dashboard'),
+        ];
+        $targetUrl = $roleDashboards[$user->role] ?? route('runner.dashboard');
+
+        // Generate signed URL valid for 30 days
+        $loginUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'login.token',
+            now()->addDays(30),
+            [
+                'user' => $user->id,
+                'redirect' => $targetUrl,
+            ]
+        );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'user_name' => $user->name,
+                'login_url' => $loginUrl,
+                'message' => 'Link login token berhasil dibuat.'
+            ]);
+        }
+
+        return back()->with('success', 'Link login token untuk ' . $user->name . ': ' . $loginUrl);
+    }
 }
