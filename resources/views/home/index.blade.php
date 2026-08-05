@@ -399,7 +399,7 @@
                                 </div>
                                 
                                 <a id="vdot_widget_action_btn" href="{{ route('programs.realistic') }}" class="w-full mt-2 py-3 px-4 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-lime-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#B8FF00]/10">
-                                    <span>Gunakan PB Ini & Buat Program</span>
+                                    <span>Buat Program Lari</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                 </a>
                             </div>
