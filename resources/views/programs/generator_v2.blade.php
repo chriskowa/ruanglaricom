@@ -534,8 +534,8 @@
                                 </div>
                             </div>
 
-                            <!-- Highlighted Save to Calendar Button (Solid Neon, No Gradient) -->
-                            <button @click="saveAndOpenCalendar()" :disabled="saving" class="w-full py-3.5 px-4 bg-[#ccff00] hover:bg-[#b8e600] text-[#08111f] font-black text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-[#ccff00]/20 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 mb-2.5">
+                            <!-- Highlighted Save to Calendar Button -->
+                            <button @click="saveAndOpenCalendar()" :disabled="saving" class="w-full py-3.5 px-4 bg-[#ccff00] hover:bg-[#b8e600] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 mb-2.5 cursor-pointer">
                                 <i v-if="!saving" class="fa-solid fa-calendar-check text-sm"></i>
                                 <i v-else class="fa-solid fa-circle-notch fa-spin text-sm"></i>
                                 <span>@{{ saving ? 'MENYIMPAN...' : 'BUAT PROGRAM' }}</span>
