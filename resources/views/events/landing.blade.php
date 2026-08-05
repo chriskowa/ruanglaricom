@@ -43,7 +43,7 @@
                         Submit Event Lari Gratis
                     </button>
                     <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider transition-all inline-flex items-center justify-center gap-1.5 border border-slate-700">
-                        ⚡ Buat Registration Page EO
+                        Buat Registration Page EO
                     </a>
                 </div>
             </div>
@@ -204,11 +204,11 @@
             </div>
         </div>
     <!-- EO Callout Banner: Submit Event Lari Gratis & Registration Page -->
-    <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up">
+    <div class="max-w-7xl mx-auto mt-12 mb-8 relative z-10" data-aos="fade-up">
         <div class="bg-gradient-to-r from-[#0E1A2D] via-[#111F35] to-[#0E1A2D] border border-neon/30 rounded-3xl p-6 md:p-7 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="space-y-1.5 text-center md:text-left max-w-3xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon/10 text-neon text-xs font-black uppercase tracking-wider">
-                    📢 Event Organizer (EO) &amp; Komunitas Lari
+                    Event Organizer (EO) &amp; Komunitas Lari
                 </div>
                 <h3 class="text-xl md:text-2xl font-black text-white tracking-tight">
                     Punya Event Lari? <span class="text-neon">Publikasikan Event &amp; Buat Registration Page Gratis!</span>

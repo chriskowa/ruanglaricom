@@ -28,19 +28,19 @@
     
     <!-- Hero Section with Background Zoom Effect & High Contrast H1 -->
     <section class="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden flex items-center min-h-[90vh]">
-        <!-- Hero Background Image Container with Smooth Zoom In/Out Animation & High Contrast Heavy Overlay -->
+        <!-- Hero Background Image Container with Smooth Zoom In/Out Animation & Extra Dark Overlay -->
         <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <img src="{{ asset('images/hero/management event lari gratis.webp') }}" 
                  alt="Management Event Lari Gratis RuangLari" 
-                 class="w-full h-full object-cover object-center animate-hero-zoom filter brightness-[0.25] contrast-[1.2]"
+                 class="w-full h-full object-cover object-center animate-hero-zoom filter brightness-[0.15] contrast-[1.2]"
                  fetchpriority="high"
                  decoding="async">
             
-            <!-- Dark Solid Heavy Overlay Layer -->
-            <div class="absolute inset-0 bg-[#08111F]/85 backdrop-blur-[2px]"></div>
+            <!-- Extra Dark Solid Overlay Layer -->
+            <div class="absolute inset-0 bg-[#08111F]/92 backdrop-blur-[3px]"></div>
             
             <!-- Dark Gradient Vignette Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-b from-[#08111F] via-[#08111F]/70 to-[#08111F]"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-[#08111F] via-[#08111F]/85 to-[#08111F]"></div>
         </div>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
