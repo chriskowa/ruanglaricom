@@ -18,7 +18,7 @@
                 <div class="hidden md:block absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none transform-gpu"></div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-2">
                 <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
                     
                     <!-- Hero Text -->

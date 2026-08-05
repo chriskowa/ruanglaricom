@@ -323,9 +323,11 @@
         try {
             if (window.AOS && typeof window.AOS.init === 'function') {
                 window.AOS.init({
-                    duration: 600,
+                    duration: 500,
                     once: true,
-                    disable: function() { return window.innerWidth < 768; }
+                    throttleDelay: 99,
+                    debounceDelay: 50,
+                    disableMutationObserver: true,
                 });
             }
         } catch (e) {}
