@@ -27,6 +27,7 @@ class CalendarController extends Controller
             'hideNav' => $embed,
             'hideFooter' => $embed,
             'hideChat' => $embed,
+            'needCalendar' => true,
         ]);
     }
 
