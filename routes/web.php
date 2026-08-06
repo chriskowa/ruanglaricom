@@ -1118,7 +1118,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('program-orders.destroy');
     });
 
-    // Public Seller Store (placed after specific marketplace/seller/products routes to prevent route collision)
+    // Public Seller Store & Cart Count (placed after specific marketplace routes to prevent route collision)
+    Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
     Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])
         ->where('username', '^(?!products$)[a-zA-Z0-9_\-\.]+$')
         ->name('marketplace.seller.store');

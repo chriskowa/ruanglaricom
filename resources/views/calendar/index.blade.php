@@ -2122,9 +2122,8 @@
                         // A. Get Athlete Profile (ID & Shoes)
                         const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', { headers });
                         
-                        if(athleteRes.status === 401) {
-                            // Token expired or invalid
-                            //alert('Strava session expired. Please reconnect.');
+                        if(athleteRes.status === 401 || athleteRes.status === 403) {
+                            // Token expired, revoked, or forbidden
                             this.disconnectStrava();
                             return;
                         }
