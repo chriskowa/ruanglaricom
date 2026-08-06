@@ -147,64 +147,23 @@ class MarketplaceController extends Controller
         return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids', 'withSidebar', 'isAuction', 'currentBid', 'auctionRunning', 'auctionEnded', 'now'));
     }
 
-    public function sellerStore(Request $request, $username)
+    public function sellerStore($username)
     {
         $seller = \App\Models\User::where('username', $username)
             ->orWhere('id', $username)
             ->with('city')
             ->firstOrFail();
 
-        $query = MarketplaceProduct::where('user_id', $seller->id)
+        $products = MarketplaceProduct::where('user_id', $seller->id)
             ->where('is_active', true)
-            ->with(['category', 'primaryImage', 'brand', 'seller']);
-
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
-        }
-
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
-        }
-
-        if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'latest':
-                default:
-                    $query->latest();
-                    break;
-            }
-        } else {
-            $query->latest();
-        }
-
-        $products = $query->paginate(12)->withQueryString();
-
-        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('marketplace.partials.seller-product-grid', compact('products', 'seller'))->render();
-        }
-
-        $categories = MarketplaceCategory::whereNull('parent_id')
-            ->whereHas('products', function($q) use ($seller) {
-                $q->where('user_id', $seller->id)->where('is_active', true);
-            })
-            ->get();
+            ->with(['category', 'primaryImage', 'brand'])
+            ->latest()
+            ->paginate(12);
 
         $salesCount = \App\Models\Marketplace\MarketplaceOrder::where('seller_id', $seller->id)
             ->whereIn('status', ['paid', 'shipped', 'completed'])
             ->count();
 
-        return view('marketplace.seller-store', compact('seller', 'products', 'salesCount', 'categories'));
+        return view('marketplace.seller-store', compact('seller', 'products', 'salesCount'));
     }
 }

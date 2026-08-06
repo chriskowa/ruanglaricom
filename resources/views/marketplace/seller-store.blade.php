@@ -6,20 +6,10 @@
 <div class="min-h-screen pt-20 pb-16 px-4 md:px-8 relative overflow-hidden font-sans bg-[#08111F]">
     <div class="max-w-7xl mx-auto">
         <!-- Breadcrumb -->
-        <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                <a href="{{ route('marketplace.index') }}" class="hover:text-[#B8FF00] transition-colors">MARKETPLACE</a>
-                <span>/</span>
-                <span class="text-white uppercase font-bold">PENJUAL: {{ $seller->name }}</span>
-            </div>
-
-            <!-- Share Store Button -->
-            <button type="button" onclick="openShareModal('Toko {{ e($seller->name) }} di RuangLari Market', '{{ route('marketplace.seller.store', $seller->username ?: $seller->id) }}')" class="px-3.5 py-1.5 rounded-xl border border-[#1F2D44] bg-[#0E1A2D] text-xs font-bold text-slate-300 hover:text-white hover:border-[#B8FF00] transition flex items-center gap-1.5" title="Bagikan Toko">
-                <svg class="w-3.5 h-3.5 text-[#B8FF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-                </svg>
-                <span>Bagikan Toko</span>
-            </button>
+        <div class="mb-6 flex items-center gap-2 text-xs text-slate-400 font-mono">
+            <a href="{{ route('marketplace.index') }}" class="hover:text-[#B8FF00] transition-colors">MARKETPLACE</a>
+            <span>/</span>
+            <span class="text-white uppercase font-bold">PENJUAL: {{ $seller->name }}</span>
         </div>
 
         <!-- Seller Header Banner Card -->
@@ -59,7 +49,7 @@
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
                         <div class="bg-[#111F35] border border-[#1F2D44] px-4 py-2 rounded-2xl text-center">
                             <div class="text-xs text-slate-400 font-mono uppercase">Produk Aktif</div>
-                            <div class="text-xl font-black text-white font-mono" id="seller-products-count">{{ $products->total() }}</div>
+                            <div class="text-xl font-black text-white font-mono">{{ $products->total() }}</div>
                         </div>
                         <div class="bg-[#111F35] border border-[#1F2D44] px-4 py-2 rounded-2xl text-center">
                             <div class="text-xs text-slate-400 font-mono uppercase">Total Terjual</div>
@@ -84,232 +74,70 @@
             </div>
         </div>
 
-        <!-- Filter & Search Toolbar Card -->
-        <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-4 md:p-6 mb-8 shadow-xl">
-            <form id="seller-filter-form" action="{{ route('marketplace.seller.store', $seller->username ?: $seller->id) }}" method="GET" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
-                    
-                    <!-- Search Input -->
-                    <div class="lg:col-span-4 relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        </span>
-                        <input type="text" id="seller-search" name="search" value="{{ request('search') }}" placeholder="Cari produk toko ini..." class="w-full bg-[#08111F] border border-[#1F2D44] text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-[#B8FF00] focus:ring-1 focus:ring-[#B8FF00] focus:outline-none transition-all placeholder-slate-500">
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div class="lg:col-span-3">
-                        <select id="seller-category" name="category" class="w-full bg-[#08111F] border border-[#1F2D44] text-slate-300 text-xs rounded-xl px-3.5 py-2.5 focus:border-[#B8FF00] focus:outline-none transition-all">
-                            <option value="">Semua Kategori</option>
-                            @if(isset($categories))
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->slug }}" {{ request('category') == $cat->slug ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-
-                    <!-- Condition Radio/Pill -->
-                    <div class="lg:col-span-3 flex gap-1.5 bg-[#08111F] p-1 border border-[#1F2D44] rounded-xl">
-                        <label class="flex-1 text-center cursor-pointer">
-                            <input type="radio" name="condition" value="" class="hidden peer" {{ !request('condition') ? 'checked' : '' }}>
-                            <div class="py-1.5 rounded-lg text-[11px] font-bold text-slate-400 peer-checked:bg-[#B8FF00] peer-checked:text-[#08111F] transition-all">Semua</div>
-                        </label>
-                        <label class="flex-1 text-center cursor-pointer">
-                            <input type="radio" name="condition" value="new" class="hidden peer" {{ request('condition') == 'new' ? 'checked' : '' }}>
-                            <div class="py-1.5 rounded-lg text-[11px] font-bold text-slate-400 peer-checked:bg-[#B8FF00] peer-checked:text-[#08111F] transition-all">Baru</div>
-                        </label>
-                        <label class="flex-1 text-center cursor-pointer">
-                            <input type="radio" name="condition" value="used" class="hidden peer" {{ request('condition') == 'used' ? 'checked' : '' }}>
-                            <div class="py-1.5 rounded-lg text-[11px] font-bold text-slate-400 peer-checked:bg-[#B8FF00] peer-checked:text-[#08111F] transition-all">Bekas</div>
-                        </label>
-                    </div>
-
-                    <!-- Sort Dropdown -->
-                    <div class="lg:col-span-2">
-                        <select id="seller-sort" name="sort" class="w-full bg-[#08111F] border border-[#1F2D44] text-slate-300 text-xs rounded-xl px-3.5 py-2.5 focus:border-[#B8FF00] focus:outline-none transition-all">
-                            <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
-                            <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Harga: Rendah</option>
-                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Harga: Tinggi</option>
-                        </select>
-                    </div>
-
-                </div>
-            </form>
-        </div>
-
         <!-- Products Section Header -->
         <div class="mb-6 flex items-center justify-between">
             <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">
                 PRODUK DARI <span class="text-[#B8FF00]">{{ strtoupper($seller->name) }}</span>
             </h2>
-            <div id="seller-results-count" class="text-xs text-slate-400 font-mono">
+            <div class="text-xs text-slate-400 font-mono">
                 Menampilkan {{ $products->count() }} dari {{ $products->total() }} barang
             </div>
         </div>
 
-        <!-- Products Grid Container (AJAX Target) -->
-        <div id="seller-product-grid-container" class="relative min-h-[300px]">
-            <div id="seller-grid-loader" class="hidden absolute inset-0 bg-[#08111F]/70 backdrop-blur-xs z-30 flex items-center justify-center rounded-2xl">
-                <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-mono font-bold shadow-2xl">
-                    <div class="w-4 h-4 border-2 border-[#B8FF00] border-t-transparent rounded-full animate-spin"></div>
-                    <span>Memuat Produk...</span>
-                </div>
+        <!-- Products Grid -->
+        @if($products->count() > 0)
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                @foreach($products as $prod)
+                    <div class="group bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl overflow-hidden hover:border-[#B8FF00]/50 transition duration-300 flex flex-col justify-between h-full relative">
+                        <div>
+                            <!-- Image -->
+                            <a href="{{ route('marketplace.show', $prod->slug) }}" class="block overflow-hidden relative aspect-square bg-[#08111F]">
+                                @if($prod->primaryImage)
+                                    <img src="{{ asset('storage/' . $prod->primaryImage->image_path) }}" alt="{{ $prod->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-600">
+                                        <svg class="w-10 h-10 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    </div>
+                                @endif
+                                <div class="absolute top-2 left-2">
+                                    <span class="bg-[#08111F]/80 backdrop-blur border border-[#1F2D44] text-[10px] text-white font-bold px-2 py-0.5 rounded uppercase">
+                                        {{ $prod->condition == 'new' ? 'Baru' : 'Bekas' }}
+                                    </span>
+                                </div>
+                            </a>
+
+                            <!-- Body -->
+                            <div class="p-4">
+                                <div class="text-[10px] text-[#B8FF00] font-bold uppercase tracking-wider mb-1 truncate">
+                                    {{ $prod->brand ? $prod->brand->name : ($prod->category ? $prod->category->name : 'Gear') }}
+                                </div>
+                                <h3 class="text-sm font-bold text-white mb-2 line-clamp-2 leading-snug hover:text-[#B8FF00] transition">
+                                    <a href="{{ route('marketplace.show', $prod->slug) }}">{{ $prod->title }}</a>
+                                </h3>
+                                <div class="text-base font-black text-[#B8FF00] font-mono mb-3">
+                                    Rp {{ number_format($prod->price, 0, ',', '.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer CTA -->
+                        <div class="p-4 pt-0">
+                            <a href="{{ route('marketplace.show', $prod->slug) }}" class="w-full py-2.5 rounded-xl bg-[#111F35] border border-[#1F2D44] text-white hover:bg-[#B8FF00] hover:text-[#08111F] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1">
+                                <span>Lihat Detail</span>
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
-            @include('marketplace.partials.seller-product-grid')
-        </div>
+            <div class="mt-10">
+                {{ $products->links() }}
+            </div>
+        @else
+            <div class="bg-[#0E1A2D] border border-dashed border-[#1F2D44] rounded-3xl p-12 text-center text-slate-400">
+                Penjual ini belum memiliki barang jualan aktif lainnya saat ini.
+            </div>
+        @endif
     </div>
 </div>
-
-<!-- Share Modal Component -->
-<div id="mp-share-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm hidden" onclick="if(event.target===this) closeShareModal();">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl relative">
-        <button type="button" onclick="closeShareModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">&times;</button>
-        
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-2xl bg-[#B8FF00]/10 border border-[#B8FF00]/30 flex items-center justify-center text-[#B8FF00] shrink-0">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-                </svg>
-            </div>
-            <div class="min-w-0 flex-1">
-                <h3 class="text-sm font-bold text-white">Bagikan</h3>
-                <p id="mp-share-title" class="text-xs text-slate-400 truncate">Halaman Toko / Produk</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-4 gap-2.5 my-5">
-            <!-- WhatsApp -->
-            <a id="mp-share-wa" href="#" target="_blank" class="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition group">
-                <i class="fa-brands fa-whatsapp text-2xl group-hover:scale-110 transition-transform"></i>
-                <span class="text-[10px] font-bold">WhatsApp</span>
-            </a>
-            <!-- Facebook -->
-            <a id="mp-share-fb" href="#" target="_blank" class="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition group">
-                <i class="fa-brands fa-facebook text-2xl group-hover:scale-110 transition-transform"></i>
-                <span class="text-[10px] font-bold">Facebook</span>
-            </a>
-            <!-- X / Twitter -->
-            <a id="mp-share-tw" href="#" target="_blank" class="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition group">
-                <i class="fa-brands fa-x-twitter text-2xl group-hover:scale-110 transition-transform"></i>
-                <span class="text-[10px] font-bold">Twitter</span>
-            </a>
-            <!-- Copy Link -->
-            <button type="button" onclick="copyShareLink()" class="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-[#B8FF00]/10 border border-[#B8FF00]/30 text-[#B8FF00] hover:bg-[#B8FF00]/20 transition group">
-                <i class="fa-solid fa-link text-2xl group-hover:scale-110 transition-transform"></i>
-                <span class="text-[10px] font-bold">Salin</span>
-            </button>
-        </div>
-
-        <div class="relative mt-2">
-            <input id="mp-share-url-input" type="text" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 pr-16 text-xs text-slate-300 font-mono focus:outline-none select-all">
-            <button type="button" onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-[#B8FF00] text-[#08111F] text-[10px] font-black hover:bg-white transition-colors">
-                <span id="mp-copy-btn-text">Salin</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var form = document.getElementById('seller-filter-form');
-        var container = document.getElementById('seller-product-grid-container');
-        var loader = document.getElementById('seller-grid-loader');
-        var searchInput = document.getElementById('seller-search');
-        var categorySelect = document.getElementById('seller-category');
-        var sortSelect = document.getElementById('seller-sort');
-        var conditionInputs = form ? form.querySelectorAll('input[name="condition"]') : [];
-        var searchTimeout = null;
-
-        function fetchFilteredProducts(url) {
-            if (!form || !container) return;
-            var fetchUrl = url || form.action + '?' + new URLSearchParams(new FormData(form)).toString();
-            
-            if (loader) loader.classList.remove('hidden');
-
-            fetch(fetchUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(function(res) { return res.text(); })
-            .then(function(html) {
-                container.innerHTML = '<div id="seller-grid-loader" class="hidden absolute inset-0 bg-[#08111F]/70 backdrop-blur-xs z-30 flex items-center justify-center rounded-2xl"><div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-mono font-bold shadow-2xl"><div class="w-4 h-4 border-2 border-[#B8FF00] border-t-transparent rounded-full animate-spin"></div><span>Memuat Produk...</span></div></div>' + html;
-                window.history.pushState({}, '', fetchUrl);
-            })
-            .catch(function(err) {
-                console.error('AJAX Filter error:', err);
-            })
-            .finally(function() {
-                if (loader) loader.classList.add('hidden');
-            });
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(function() {
-                    fetchFilteredProducts();
-                }, 350);
-            });
-        }
-
-        if (categorySelect) categorySelect.addEventListener('change', function() { fetchFilteredProducts(); });
-        if (sortSelect) sortSelect.addEventListener('change', function() { fetchFilteredProducts(); });
-        conditionInputs.forEach(function(input) {
-            input.addEventListener('change', function() { fetchFilteredProducts(); });
-        });
-
-        // Delegate pagination link clicks to AJAX
-        document.addEventListener('click', function(e) {
-            var pageLink = e.target.closest('.seller-pagination-wrapper a');
-            if (pageLink && pageLink.href) {
-                e.preventDefault();
-                fetchFilteredProducts(pageLink.href);
-            }
-        });
-    });
-
-    function openShareModal(title, url) {
-        if (navigator.share && /mobile|android|iphone/i.test(navigator.userAgent)) {
-            navigator.share({
-                title: title,
-                url: url
-            }).catch(function() {});
-            return;
-        }
-        
-        var modal = document.getElementById('mp-share-modal');
-        if (!modal) return;
-        document.getElementById('mp-share-title').textContent = title;
-        document.getElementById('mp-share-url-input').value = url;
-        document.getElementById('mp-share-wa').href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(title + ' ' + url);
-        document.getElementById('mp-share-fb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
-        document.getElementById('mp-share-tw').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url);
-        modal.classList.remove('hidden');
-    }
-
-    function closeShareModal() {
-        var modal = document.getElementById('mp-share-modal');
-        if (modal) modal.classList.add('hidden');
-    }
-
-    function copyShareLink() {
-        var input = document.getElementById('mp-share-url-input');
-        if (!input) return;
-        input.select();
-        navigator.clipboard.writeText(input.value).then(function() {
-            var btnText = document.getElementById('mp-copy-btn-text');
-            if (btnText) {
-                btnText.textContent = 'Tersalin!';
-                setTimeout(function() { btnText.textContent = 'Salin'; }, 2000);
-            }
-        }).catch(function() {
-            document.execCommand('copy');
-        });
-    }
-</script>
-@endpush
 @endsection

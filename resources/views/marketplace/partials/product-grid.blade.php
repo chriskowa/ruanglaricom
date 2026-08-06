@@ -39,17 +39,10 @@
                     @endif
                 </div>
 
-                <!-- Quick Action Buttons Top Right -->
-                <div class="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
-                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openShareModal('{{ e($product->title) }}', '{{ route('marketplace.show', $product->slug) }}')" class="w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-neon transition-all hover:scale-110 active:scale-95" title="Bagikan Produk">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-                        </svg>
-                    </button>
-                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" class="w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center transition-transform active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-400 hover:text-white' }}" title="Wishlist">
-                        <svg class="w-4 h-4 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    </button>
-                </div>
+                <!-- Quick Wishlist Button Top Right -->
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center transition-transform active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-400 hover:text-white' }}" title="Wishlist">
+                    <svg class="w-4 h-4 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                </button>
                 
                 <!-- Sold Out Overlay -->
                 @if($product->stock < 1)
@@ -63,15 +56,9 @@
             <div class="p-4 flex flex-col flex-1 min-w-0">
                 <div class="flex justify-between items-center gap-2 mb-1.5 min-w-0">
                     <div class="text-[9px] text-neon font-mono uppercase tracking-wider truncate">{{ $product->category ? $product->category->name : 'Gear' }}</div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="text-[9px] text-slate-400 font-mono flex items-center gap-1" title="Dilihat {{ number_format($product->views_count ?? 0) }} kali (Unik IP)">
-                            <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                            {{ number_format($product->views_count ?? 0) }}
-                        </span>
-                        @if($product->brand)
-                            <div class="text-[9px] text-slate-500 font-mono uppercase tracking-wider truncate text-right">{{ $product->brand->name }}</div>
-                        @endif
-                    </div>
+                    @if($product->brand)
+                        <div class="text-[9px] text-slate-500 font-mono uppercase tracking-wider truncate text-right">{{ $product->brand->name }}</div>
+                    @endif
                 </div>
                 
                 <h3 class="font-bold text-white text-xs md:text-sm leading-snug mb-2 line-clamp-2 group-hover:text-neon transition-colors">
@@ -138,7 +125,7 @@
                                         </button>
                                     </form>
                                 @else
-                                    <button type="button" onclick="window.openLoginModal ? window.openLoginModal() : (window.location.href='{{ route('login') }}');" class="w-full py-2 bg-[#111F35] border border-[#1F2D44] text-slate-300 font-bold rounded-xl text-center text-xs">
+                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="w-full py-2 bg-[#111F35] border border-[#1F2D44] text-slate-300 font-bold rounded-xl text-center text-xs">
                                         + Cart
                                     </button>
                                 @endauth
@@ -153,7 +140,7 @@
                                         </button>
                                     </form>
                                 @else
-                                    <button type="button" onclick="window.openLoginModal ? window.openLoginModal() : (window.location.href='{{ route('login') }}');" class="w-full py-2 bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black rounded-xl text-center text-xs">
+                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="w-full py-2 bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black rounded-xl text-center text-xs">
                                         Beli
                                     </button>
                                 @endauth
@@ -185,14 +172,14 @@
 
 <script>
     async function quickToggleWishlist(productId, btn) {
-        if (!{{ auth()->check() ? 'true' : 'false' }}) {
+        @guest
             if (window.openLoginModal) {
                 window.openLoginModal();
             } else {
                 window.location.href = '{{ route('login') }}';
             }
             return;
-        }
+        @endguest
 
         try {
             const res = await fetch(`/marketplace/wishlist/toggle/${productId}`, {
