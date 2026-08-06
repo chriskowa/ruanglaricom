@@ -377,6 +377,16 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'desc')
             ->get();
 
+        $marketplacePurchases = \App\Models\Marketplace\MarketplaceOrder::where('buyer_id', $user->id)
+            ->with(['items.product.primaryImage', 'seller'])
+            ->latest()
+            ->get();
+
+        $wishlistedProducts = \App\Models\Marketplace\MarketplaceWishlist::where('user_id', $user->id)
+            ->with(['product.primaryImage', 'product.seller.city', 'product.brand'])
+            ->latest()
+            ->get();
+
         return view('runner.dashboard', [
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
@@ -398,6 +408,8 @@ class DashboardController extends Controller
             'greeting' => $greeting,
             'weeklyReports' => $weeklyReports,
             'eventRegistrations' => $eventRegistrations,
+            'marketplacePurchases' => $marketplacePurchases,
+            'wishlistedProducts' => $wishlistedProducts,
             // Calendar fields
             'enrollments' => $enrollments,
             'programBag' => $programBag,

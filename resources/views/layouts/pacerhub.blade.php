@@ -239,6 +239,7 @@
                 padding-left: 0 !important;
                 overflow: hidden !important;
             }
+        }
         @endif
         html, body {
             overflow-x: hidden !important;

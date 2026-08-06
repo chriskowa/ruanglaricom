@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Marketplace\MarketplaceProduct;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -10,6 +11,7 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'program_id',
+        'product_id',
         'quantity',
         'price',
     ];
@@ -28,8 +30,13 @@ class Cart extends Model
         return $this->belongsTo(Program::class);
     }
 
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(MarketplaceProduct::class, 'product_id');
+    }
+
     public function getSubtotalAttribute(): float
     {
-        return $this->price * $this->quantity;
+        return (float) ($this->price * $this->quantity);
     }
 }

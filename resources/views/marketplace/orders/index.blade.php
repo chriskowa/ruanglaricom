@@ -46,7 +46,7 @@
 
     <!-- Main Container -->
     <!-- Main Container -->
-    <div x-data="{ tab: '{{ $cartItems->count() > 0 ? 'cart' : request()->query('tab', 'programs') }}' }" class="space-y-6">
+    <div x-data="{ tab: '{{ request()->query('tab', $cartItems->count() > 0 ? 'cart' : 'purchases') }}' }" class="space-y-6">
         
         <!-- Tab Navigation -->
         <div class="bg-slate-900/50 backdrop-blur-md rounded-xl p-1 border border-slate-800 inline-flex flex-wrap gap-1">
@@ -98,6 +98,12 @@
                          </div>
 
                          @foreach($cartItems as $item)
+                             <?php
+                                 $isProduct = (bool) $item->product_id;
+                                 $title = $isProduct ? ($item->product->title ?? 'Produk Marketplace') : ($item->program->title ?? 'Program Latihan');
+                                 $url = $isProduct ? route('marketplace.show', $item->product->slug ?? '#') : ($item->program ? route('programs.show', $item->program->slug) : '#');
+                                 $subtitle = $isProduct ? ('Penjual: ' . ($item->product->seller->name ?? 'Seller')) : ('Coach: ' . ($item->program->coach->name ?? 'Coach'));
+                             ?>
                              <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-4 md:p-6 hover:border-neon/30 transition-all group relative overflow-hidden shadow-xl" id="cart-row-{{ $item->id }}">
                                  <div class="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
@@ -108,9 +114,9 @@
                                              <div class="flex justify-between items-start">
                                                  <div>
                                                      <h3 class="text-xl font-bold text-white mb-1 group-hover:text-neon transition-colors">
-                                                         <a href="{{ route('programs.show', $item->program->slug) }}">{{ $item->program->title }}</a>
+                                                         <a href="{{ $url }}">{{ $title }}</a>
                                                      </h3>
-                                                     <p class="text-sm text-slate-400 mb-2">Coach <span class="text-white font-bold">{{ $item->program->coach->name ?? 'Unknown' }}</span></p>
+                                                     <p class="text-sm text-slate-400 mb-2">{{ $subtitle }}</p>
                                                  </div>
                                                  <form action="{{ route('marketplace.cart.remove', $item->id) }}" method="POST">
                                                      @csrf
@@ -121,12 +127,19 @@
                                                  </form>
                                              </div>
                                              
-                                             <div class="flex flex-wrap gap-2 mt-2">
-                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">{{ $item->program->distance_target }}</span>
-                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $item->program->difficulty == 'beginner' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : ($item->program->difficulty == 'intermediate' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20') }}">
-                                                     {{ ucfirst($item->program->difficulty) }}
-                                                 </span>
-                                             </div>
+                                             @if($isProduct && $item->product)
+                                                 <div class="flex flex-wrap gap-2 mt-2">
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">Size: {{ $item->product->size ?: '-' }}</span>
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-neon border border-slate-700">{{ $item->product->condition == 'new' ? 'Baru' : 'Bekas' }}</span>
+                                                 </div>
+                                             @elseif($item->program)
+                                                 <div class="flex flex-wrap gap-2 mt-2">
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">{{ $item->program->distance_target }}</span>
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $item->program->difficulty == 'beginner' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : ($item->program->difficulty == 'intermediate' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20') }}">
+                                                         {{ ucfirst($item->program->difficulty) }}
+                                                     </span>
+                                                 </div>
+                                             @endif
                                          </div>
 
                                          <div class="flex justify-between items-end mt-4 md:mt-0">
@@ -165,12 +178,27 @@
                                      </div>
                                  </div>
 
-                                 <a href="{{ route('marketplace.checkout.index') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
-                                     Checkout Now
-                                 </a>
-                                 <a href="{{ route('marketplace.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-xl transition-colors text-sm">
-                                     Browse More Programs
-                                 </a>
+                                  <?php
+                                      $firstProductItem = $cartItems->first(function($it) {
+                                          return !empty($it->product_id);
+                                      });
+                                  ?>
+                                  @if($firstProductItem)
+                                      <form action="{{ route('marketplace.checkout.init') }}" method="POST">
+                                          @csrf
+                                          <input type="hidden" name="product_id" value="{{ $firstProductItem->product_id }}">
+                                          <button type="submit" class="w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
+                                              Checkout Now
+                                          </button>
+                                      </form>
+                                  @else
+                                      <a href="{{ route('marketplace.checkout.index') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
+                                          Checkout Now
+                                      </a>
+                                  @endif
+                                  <a href="{{ route('marketplace.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-xl transition-colors text-sm">
+                                      Browse Market
+                                  </a>
                              </div>
                          </div>
                      </div>

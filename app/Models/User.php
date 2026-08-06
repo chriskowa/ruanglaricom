@@ -238,6 +238,16 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
+    public function marketplaceWishlists()
+    {
+        return $this->hasMany(\App\Models\Marketplace\MarketplaceWishlist::class, 'user_id');
+    }
+
+    public function marketplacePurchases()
+    {
+        return $this->hasMany(\App\Models\Marketplace\MarketplaceOrder::class, 'buyer_id');
+    }
+
     public function referredBy()
     {
         return $this->belongsTo(User::class, 'referred_by');
