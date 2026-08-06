@@ -1,6 +1,13 @@
 @extends('layouts.pacerhub')
 
 @section('title', ($product->title ?? 'Product') . ' - Marketplace RuangLari')
+@section('meta_title', ($product->title ?? 'Product') . ' - Beli Gear & Sepatu Lari | RuangLari Marketplace')
+@section('meta_description', \Illuminate\Support\Str::limit(strip_tags($product->description ?? ($product->title . ' - Beli gear dan sepatu lari berkualitas di RuangLari Marketplace.')), 155))
+@section('meta_keywords', 'ruanglari, marketplace lari, ' . ($product->brand ? $product->brand->name . ', ' : '') . ($product->category ? $product->category->name . ', ' : '') . ($product->title ?? 'product') . ', sepatu lari, gear lari indonesia')
+@section('og_type', 'product')
+@section('og_url', route('marketplace.show', $product->slug))
+@section('og_image', $product->primaryImage ? asset('storage/' . $product->primaryImage->image_path) : 'https://ruanglari.id/assets/images/ruanglari-cover.jpg')
+@section('canonical_url', route('marketplace.show', $product->slug))
 
 @section('content')
 <div class="min-h-screen pt-20 pb-16 px-4 md:px-8 relative overflow-hidden font-sans bg-[#08111F]">
@@ -341,5 +348,43 @@
             form.submit();
         }
     }
+</script>
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org/",
+  "@@type": "Product",
+  "name": "{{ e($product->title) }}",
+  "image": [
+    @if($product->images && $product->images->count() > 0)
+        @foreach($product->images as $img)
+            "{{ asset('storage/' . $img->image_path) }}"{{ !$loop->last ? ',' : '' }}
+        @endforeach
+    @else
+        "https://ruanglari.id/assets/images/ruanglari-cover.jpg"
+    @endif
+  ],
+  "description": "{{ e(\Illuminate\Support\Str::limit(strip_tags($product->description ?? $product->title), 250)) }}",
+  "sku": "RL-MP-{{ $product->id }}",
+  "itemCondition": "{{ $product->condition === 'new' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition' }}",
+  @if($product->brand)
+  "brand": {
+    "@@type": "Brand",
+    "name": "{{ e($product->brand->name) }}"
+  },
+  @endif
+  "offers": {
+    "@@type": "Offer",
+    "url": "{{ route('marketplace.show', $product->slug) }}",
+    "priceCurrency": "IDR",
+    "price": "{{ (float) ($product->price ?? $product->starting_price ?? 0) }}",
+    "itemCondition": "{{ $product->condition === 'new' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition' }}",
+    "availability": "{{ ($product->stock ?? 1) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
+    "seller": {
+      "@@type": "Person",
+      "name": "{{ e($product->seller ? $product->seller->name : 'RuangLari Seller') }}"
+    }
+  }
+}
 </script>
 @endsection
