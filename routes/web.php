@@ -464,7 +464,9 @@ Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'
 // Public Marketplace
 Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
-Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])->name('marketplace.seller.store');
+Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])
+    ->where('username', '^(?!products$).*')
+    ->name('marketplace.seller.store');
 
 // Newsletter
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
