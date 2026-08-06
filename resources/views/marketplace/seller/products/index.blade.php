@@ -1,11 +1,11 @@
 @extends('layouts.pacerhub')
-@php
-    $withSidebar = true;
-@endphp
 
 @section('title', 'Seller Dashboard - Marketplace')
 
 @section('content')
+@php
+    $withSidebar = true;
+@endphp
 <div class="min-h-screen pt-24 pb-12 px-4 md:px-8 font-sans" x-data="{
     activeTab: 'products',
     toast: { show: false, message: '', type: 'success' },

@@ -1,9 +1,9 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
 
 @section('title', 'Complete Payment')
 
 @section('content')
+@php($withSidebar = true)
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans flex items-center justify-center">
     
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 text-center relative overflow-hidden">

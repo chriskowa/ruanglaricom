@@ -1100,7 +1100,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/orders/{order}/completed', [App\Http\Controllers\Marketplace\OrderController::class, 'markCompleted'])->name('orders.completed');
         Route::delete('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'destroy'])->name('orders.destroy');
         Route::post('/cart/add/{program}', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
-        Route::delete('/cart/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
+        Route::match(['get', 'delete'], '/cart/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
+        Route::get('/cart/{cart}/remove', [App\Http\Controllers\CartController::class, 'remove']);
         Route::put('/cart/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
         Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');

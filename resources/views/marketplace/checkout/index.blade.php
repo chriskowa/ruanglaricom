@@ -1,7 +1,7 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
 
 @section('content')
+@php($withSidebar = true)
 <div class="min-h-screen pt-24 pb-20 px-4 md:px-8 font-sans bg-dark text-slate-200">
     <div class="max-w-7xl mx-auto">
         <div class="mb-8">

@@ -1,7 +1,9 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
+
+@section('title', 'Sell Product - Marketplace')
 
 @section('content')
+@php($withSidebar = true)
 <div class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen">
     <!-- Breadcrumb -->
     <nav class="flex mb-8" aria-label="Breadcrumb">

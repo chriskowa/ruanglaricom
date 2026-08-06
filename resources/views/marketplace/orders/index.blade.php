@@ -1,7 +1,7 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
 
 @section('content')
+@php($withSidebar = true)
 <div class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

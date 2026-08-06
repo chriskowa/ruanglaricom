@@ -1,5 +1,4 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
 
 @section('title', 'Edit Product')
 

@@ -18,6 +18,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = MarketplaceProduct::where('user_id', Auth::id())->with('primaryImage')->latest()->paginate(10);
+        $withSidebar = true;
 
         // Fetch active orders (pending, paid, shipped, disputed)
         $activeOrders = MarketplaceOrder::where('seller_id', Auth::id())
@@ -33,15 +34,16 @@ class ProductController extends Controller
             ->latest()
             ->get();
 
-        return view('marketplace.seller.products.index', compact('products', 'activeOrders', 'salesHistory'));
+        return view('marketplace.seller.products.index', compact('products', 'activeOrders', 'salesHistory', 'withSidebar'));
     }
 
     public function create()
     {
         $categories = MarketplaceCategory::all();
         $brands = MarketplaceBrand::with('categories:id,slug')->orderBy('name')->get();
+        $withSidebar = true;
 
-        return view('marketplace.seller.products.create', compact('categories', 'brands'));
+        return view('marketplace.seller.products.create', compact('categories', 'brands', 'withSidebar'));
     }
 
     public function store(Request $request)
@@ -127,8 +129,9 @@ class ProductController extends Controller
         }
         $categories = MarketplaceCategory::all();
         $brands = MarketplaceBrand::with('categories:id,slug')->orderBy('name')->get();
+        $withSidebar = true;
 
-        return view('marketplace.seller.products.edit', compact('product', 'categories', 'brands'));
+        return view('marketplace.seller.products.edit', compact('product', 'categories', 'brands', 'withSidebar'));
     }
 
     public function update(Request $request, MarketplaceProduct $product)
