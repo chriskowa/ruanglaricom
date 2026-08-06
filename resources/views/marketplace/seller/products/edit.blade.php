@@ -298,14 +298,12 @@
                 if (option.value === "") return; // Skip default option
 
                 const categories = JSON.parse(option.dataset.categories || '[]');
+                const isMatch = !selectedCategorySlug || categories.includes(selectedCategorySlug);
                 
-                if (!selectedCategorySlug || categories.includes(selectedCategorySlug)) {
-                    option.hidden = false;
-                    option.disabled = false;
-                    if (option.value == currentBrand) isCurrentValid = true;
-                } else {
-                    option.hidden = true;
-                    option.disabled = true;
+                option.hidden = !isMatch;
+                option.disabled = !isMatch;
+                if (isMatch && option.value == currentBrand) {
+                    isCurrentValid = true;
                 }
             });
 
@@ -323,8 +321,9 @@
         const consignmentFields = document.getElementById('consignment-fields');
         radios.forEach(r => {
             r.addEventListener('change', function() {
-                if (this.value === 'consignment') consignmentFields.classList.remove('hidden');
-                else consignmentFields.classList.add('hidden');
+                if (consignmentFields) {
+                    consignmentFields.classList.toggle('hidden', this.value !== 'consignment');
+                }
             });
         });
     });

@@ -332,50 +332,38 @@
 <script>
 function toggleType(val) {
     const slotFields = document.getElementById('slot-fields');
-    if(val === 'digital_slot') {
-        slotFields.style.display = 'block';
-    } else {
-        slotFields.style.display = 'none';
-    }
+    if (slotFields) slotFields.style.display = val === 'digital_slot' ? 'block' : 'none';
 }
 
 function toggleSaleType(val) {
     const fixed = document.getElementById('fixed-fields');
     const auction = document.getElementById('auction-fields');
-    if (val === 'auction') {
-        fixed.classList.add('hidden');
-        auction.classList.remove('hidden');
-    } else {
-        auction.classList.add('hidden');
-        fixed.classList.remove('hidden');
-    }
+    const isAuction = val === 'auction';
+    if (fixed) fixed.classList.toggle('hidden', isAuction);
+    if (auction) auction.classList.toggle('hidden', !isAuction);
 }
 
 function toggleFulfillment(val) {
     const consignmentHint = document.getElementById('consignment-hint');
     const consignmentFields = document.getElementById('consignment-fields');
-    if (val === 'consignment') {
-        consignmentHint.classList.remove('hidden');
-        consignmentFields.classList.remove('hidden');
-    } else {
-        consignmentHint.classList.add('hidden');
-        consignmentFields.classList.add('hidden');
-    }
+    const isConsignment = val === 'consignment';
+    if (consignmentHint) consignmentHint.classList.toggle('hidden', !isConsignment);
+    if (consignmentFields) consignmentFields.classList.toggle('hidden', !isConsignment);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const saleType = document.querySelector('input[name="sale_type"]:checked').value;
-    const fulfillmentMode = document.querySelector('input[name="fulfillment_mode"]:checked').value;
+    const saleTypeInput = document.querySelector('input[name="sale_type"]:checked');
+    const fulfillmentModeInput = document.querySelector('input[name="fulfillment_mode"]:checked');
     
-    toggleSaleType(saleType);
-    toggleFulfillment(fulfillmentMode);
+    if (saleTypeInput) toggleSaleType(saleTypeInput.value);
+    if (fulfillmentModeInput) toggleFulfillment(fulfillmentModeInput.value);
 });
 
 function previewImage(input) {
     const preview = document.getElementById('image-preview');
-    const img = preview.querySelector('img');
+    const img = preview ? preview.querySelector('img') : null;
     
-    if (input.files && input.files[0]) {
+    if (input.files && input.files[0] && img && preview) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
@@ -394,11 +382,12 @@ function previewImage(input) {
     document.addEventListener('DOMContentLoaded', function() {
         const categorySelect = document.getElementById('category-select');
         const brandSelect = document.getElementById('brand-select');
-        const brandOptions = Array.from(brandSelect.querySelectorAll('option'));
+        const brandOptions = brandSelect ? Array.from(brandSelect.querySelectorAll('option')) : [];
 
         function filterBrands() {
+            if (!categorySelect || !brandSelect) return;
             const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-            const selectedCategorySlug = selectedOption.dataset.slug;
+            const selectedCategorySlug = selectedOption ? selectedOption.dataset.slug : null;
             
             // Reset brand selection
             brandSelect.value = "";
@@ -407,18 +396,14 @@ function previewImage(input) {
                 if (option.value === "") return; // Skip default option
 
                 const categories = JSON.parse(option.dataset.categories || '[]');
+                const isMatch = !selectedCategorySlug || categories.includes(selectedCategorySlug);
                 
-                if (!selectedCategorySlug || categories.includes(selectedCategorySlug)) {
-                    option.hidden = false;
-                    option.disabled = false;
-                } else {
-                    option.hidden = true;
-                    option.disabled = true;
-                }
+                option.hidden = !isMatch;
+                option.disabled = !isMatch;
             });
         }
 
-        categorySelect.addEventListener('change', filterBrands);
+        if (categorySelect) categorySelect.addEventListener('change', filterBrands);
         
         // Run once on load
         filterBrands();
