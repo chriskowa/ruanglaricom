@@ -136,4 +136,24 @@ class MarketplaceController extends Controller
 
         return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids', 'withSidebar', 'isAuction', 'currentBid', 'auctionRunning', 'auctionEnded', 'now'));
     }
+
+    public function sellerStore($username)
+    {
+        $seller = \App\Models\User::where('username', $username)
+            ->orWhere('id', $username)
+            ->with('city')
+            ->firstOrFail();
+
+        $products = MarketplaceProduct::where('user_id', $seller->id)
+            ->where('is_active', true)
+            ->with(['category', 'primaryImage', 'brand'])
+            ->latest()
+            ->paginate(12);
+
+        $salesCount = \App\Models\Marketplace\MarketplaceOrder::where('seller_id', $seller->id)
+            ->whereIn('status', ['paid', 'shipped', 'completed'])
+            ->count();
+
+        return view('marketplace.seller-store', compact('seller', 'products', 'salesCount'));
+    }
 }

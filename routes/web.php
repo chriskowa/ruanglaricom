@@ -290,6 +290,8 @@ Route::get('/tools/buat-rute-lari', function () {
     return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');
 
+Route::post('/tools/buat-rute-lari/ai-generate', [App\Http\Controllers\Tools\AiRouteController::class, 'generate'])->name('tools.buat-rute-lari.ai-generate');
+
 Route::get('/tools/qr-generator', function () {
     return view('tools.qr-generator');
 })->name('tools.qr-generator');
@@ -462,6 +464,7 @@ Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'
 // Public Marketplace
 Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
+Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])->name('marketplace.seller.store');
 
 // Newsletter
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
@@ -1079,6 +1082,11 @@ Route::middleware('auth')->group(function () {
 
         // Cart routes
         Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+        Route::post('/cart/add-product/{product}', [App\Http\Controllers\CartController::class, 'addProduct'])->name('cart.add-product');
+
+        // Wishlist routes
+        Route::get('/wishlist', [App\Http\Controllers\Marketplace\WishlistController::class, 'index'])->name('wishlist.index');
+        Route::post('/wishlist/toggle/{product}', [App\Http\Controllers\Marketplace\WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
         // Checkout routes (Marketplace products: shipping + wallet/Midtrans)
         Route::post('/checkout/init', [App\Http\Controllers\Marketplace\CheckoutController::class, 'init'])->name('checkout.init');

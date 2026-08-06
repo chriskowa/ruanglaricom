@@ -227,6 +227,29 @@ class CheckoutController extends Controller
                 ]);
             });
 
+            // Dispatch Notifications to Seller & Admin
+            try {
+                $order->load(['seller', 'buyer', 'items.product']);
+                if ($order->seller && $order->seller->email) {
+                    \Illuminate\Support\Facades\Mail::to($order->seller->email)->send(new \App\Mail\MarketplaceOrderPaidSellerMail($order));
+                }
+
+                $adminEmail = config('mail.admin_address', 'admin@ruanglari.com');
+                \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\MarketplaceOrderPaidAdminMail($order));
+
+                if ($order->seller && $order->seller->phone && $order->seller->is_receive_wa) {
+                    $waMsg = "Halo {$order->seller->name}! Ada pesanan baru masuk di RuangLari Marketplace.\n\n"
+                        . "Invoice: {$order->invoice_number}\n"
+                        . "Pembeli: " . ($order->buyer->name ?? 'Buyer') . "\n"
+                        . "Alamat: {$order->shipping_address}, {$order->shipping_city}\n"
+                        . "Nominal Bersih: Rp " . number_format($order->seller_amount, 0, ',', '.') . "\n\n"
+                        . "Silakan cek dashboard seller Anda untuk memproses pengiriman.";
+                    \App\Helpers\WhatsApp::send($order->seller->phone, $waMsg, 'seller_order');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send marketplace order notifications: ' . $e->getMessage());
+            }
+
             return redirect()
                 ->route('marketplace.orders.show', $order->id)
                 ->with('success', 'Pembayaran via wallet berhasil. Order menunggu pengiriman dari seller.');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Marketplace\MarketplaceProduct;
 use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class CartController extends Controller
     {
         $user = Auth::user();
         $cartItems = Cart::where('user_id', $user->id)
-            ->with('program.coach')
+            ->with(['program.coach', 'product.primaryImage', 'product.seller.city', 'product.brand'])
             ->get();
 
         $subtotal = $cartItems->sum('subtotal');
@@ -32,10 +33,58 @@ class CartController extends Controller
     }
 
     /**
+     * Add marketplace physical product to cart
+     */
+    public function addProduct(Request $request, $productId)
+    {
+        $user = Auth::user();
+        $product = MarketplaceProduct::findOrFail($productId);
+
+        if ($product->stock < 1) {
+            return back()->withErrors(['error' => 'Stok produk ini sedang habis.']);
+        }
+
+        if ((int) $product->user_id === (int) $user->id) {
+            return back()->withErrors(['error' => 'Anda tidak bisa membeli produk Anda sendiri.']);
+        }
+
+        $cartItem = Cart::where('user_id', $user->id)
+            ->where('product_id', $product->id)
+            ->first();
+
+        $qty = (int) $request->input('quantity', 1);
+
+        if ($cartItem) {
+            $newQty = min($product->stock, $cartItem->quantity + $qty);
+            $cartItem->update(['quantity' => $newQty]);
+        } else {
+            Cart::create([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'quantity' => min($product->stock, $qty),
+                'price' => $product->price,
+            ]);
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil ditambahkan ke Keranjang Belanja!',
+                'count' => Cart::where('user_id', $user->id)->count(),
+            ]);
+        }
+
+        return redirect()->route('marketplace.cart.index')
+            ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+    }
+
+    /**
      * Add program to cart
      */
     public function add(Request $request, Program $program)
     {
+        $user = Auth::user();
+
         if (! $program->is_published || ! $program->is_active) {
             return back()->withErrors(['error' => 'Program tidak tersedia.']);
         }
@@ -55,7 +104,7 @@ class CartController extends Controller
             ->first();
 
         if ($cartItem) {
-            return redirect()->route('marketplace.checkout.index')
+            return redirect()->route('marketplace.cart.index')
                 ->with('info', 'Program sudah ada di keranjang.');
         }
 
@@ -66,7 +115,7 @@ class CartController extends Controller
             'price' => $program->price,
         ]);
 
-        return redirect()->route('marketplace.checkout.index')
+        return redirect()->route('marketplace.cart.index')
             ->with('success', 'Program berhasil ditambahkan ke keranjang.');
     }
 
@@ -94,10 +143,13 @@ class CartController extends Controller
         }
 
         $validated = $request->validate([
-            'quantity' => 'required|integer|min:1|max:10',
+            'quantity' => 'required|integer|min:1|max:50',
         ]);
 
-        $cart->update(['quantity' => $validated['quantity']]);
+        $maxStock = $cart->product ? $cart->product->stock : 10;
+        $qty = min($maxStock, (int) $validated['quantity']);
+
+        $cart->update(['quantity' => $qty]);
 
         if ($request->ajax()) {
             return response()->json([
@@ -121,7 +173,7 @@ class CartController extends Controller
     }
 
     /**
-     * Get cart count (for header)
+     * Get cart count (for header badge)
      */
     public function count()
     {

@@ -41,6 +41,28 @@ class WebhookController extends Controller
             if ($transactionStatus == 'capture' || $transactionStatus == 'settlement') {
                 if ($fraudStatus !== 'challenge') {
                     $marketplaceOrder->update(['status' => 'paid']);
+
+                    try {
+                        $marketplaceOrder->load(['seller', 'buyer', 'items.product']);
+                        if ($marketplaceOrder->seller && $marketplaceOrder->seller->email) {
+                            \Illuminate\Support\Facades\Mail::to($marketplaceOrder->seller->email)->send(new \App\Mail\MarketplaceOrderPaidSellerMail($marketplaceOrder));
+                        }
+
+                        $adminEmail = config('mail.admin_address', 'admin@ruanglari.com');
+                        \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\MarketplaceOrderPaidAdminMail($marketplaceOrder));
+
+                        if ($marketplaceOrder->seller && $marketplaceOrder->seller->phone && $marketplaceOrder->seller->is_receive_wa) {
+                            $waMsg = "Halo {$marketplaceOrder->seller->name}! Ada pesanan baru masuk di RuangLari Marketplace.\n\n"
+                                . "Invoice: {$marketplaceOrder->invoice_number}\n"
+                                . "Pembeli: " . ($marketplaceOrder->buyer->name ?? 'Buyer') . "\n"
+                                . "Alamat: {$marketplaceOrder->shipping_address}, {$marketplaceOrder->shipping_city}\n"
+                                . "Nominal Bersih: Rp " . number_format($marketplaceOrder->seller_amount, 0, ',', '.') . "\n\n"
+                                . "Silakan cek dashboard seller Anda untuk memproses pengiriman.";
+                            \App\Helpers\WhatsApp::send($marketplaceOrder->seller->phone, $waMsg, 'seller_order');
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Failed to dispatch webhook marketplace notifications: ' . $e->getMessage());
+                    }
                 }
             } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
                 $marketplaceOrder->update(['status' => 'cancelled']);

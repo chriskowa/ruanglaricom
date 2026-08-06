@@ -29,7 +29,7 @@ class OrderController extends Controller
             ->get();
 
         $cartItems = \App\Models\Cart::where('user_id', Auth::id())
-            ->with('program.coach')
+            ->with(['program.coach', 'product.primaryImage', 'product.seller'])
             ->get();
 
         $cartSubtotal = $cartItems->sum('subtotal');

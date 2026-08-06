@@ -171,12 +171,18 @@
                                         <input id="rl-color-arrow" type="color" value="#ccff00" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                 </div>
-                                <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-2">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
-                                        <div id="rl-arrow-interval-label" class="text-[11px] font-black text-slate-200">250m</div>
+                                <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-2 space-y-1.5">
+                                    <label class="flex items-center justify-between gap-2 cursor-pointer select-none">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tampilkan Panah Arah</div>
+                                        <input id="rl-show-arrows" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
+                                    </label>
+                                    <div id="rl-arrow-interval-wrap">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
+                                            <div id="rl-arrow-interval-label" class="text-[11px] font-black text-slate-200">250m</div>
+                                        </div>
+                                        <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-1.5 w-full accent-[#ccff00]">
                                     </div>
-                                    <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-1.5 w-full accent-[#ccff00]">
                                 </div>
                             </div>
                         </div>
@@ -264,15 +270,73 @@
                                     </label>
                                 </div>
                             </div>
+                            
+                            <!-- GPS Art Shapes & AI Section -->
+                            <div class="pt-3 border-t border-slate-800/60 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">GPS Art / Shape</label>
+                                    <span class="text-[9px] font-bold text-slate-500 font-mono">Strava Art</span>
+                                </div>
+                                
+                                <!-- Preset Shape Buttons -->
+                                <div class="grid grid-cols-3 gap-1.5" id="rl-gps-art-presets">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="pistol">
+                                        <i class="fa-solid fa-gun text-[10px]"></i> Pistol
+                                    </button>
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="heart">
+                                        <i class="fa-solid fa-heart text-[10px]"></i> Hati
+                                    </button>
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="star">
+                                        <i class="fa-solid fa-star text-[10px]"></i> Bintang
+                                    </button>
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="triangle">
+                                        <i class="fa-solid fa-play text-[10px] rotate-[-30deg]"></i> Segitiga
+                                    </button>
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="circle">
+                                        <i class="fa-regular fa-circle text-[10px]"></i> Lingkaran
+                                    </button>
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="number8">
+                                        <i class="fa-solid fa-infinity text-[10px]"></i> Angka 8
+                                    </button>
+                                </div>
+
+                                <!-- ChatGPT Custom Prompt Input -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custom AI Prompt</label>
+                                        <span class="text-[9px] text-slate-600 font-mono">OpenAI</span>
+                                    </div>
+                                    <input id="rl-ai-prompt-input" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-slate-600 transition" placeholder="Contoh: bentuk kaktus, angka 10, huruf A">
+                                </div>
+
+                                <!-- Shape Options: Scale & Snap Mode -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mode Garis</label>
+                                        <select id="rl-gps-art-snap-mode" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-600 transition">
+                                            <option value="osrm" selected>Ikuti Jalan (OSRM)</option>
+                                            <option value="direct">Garis Langsung</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Skala Bentuk</label>
+                                        <select id="rl-gps-art-scale" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-600 transition">
+                                            <option value="1.0" selected>Presisi (1x Jarak Target)</option>
+                                            <option value="1.3">Sedang (1.3x Target)</option>
+                                            <option value="1.6">Luas (1.6x Target)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="grid grid-cols-2 gap-2 pt-1">
-                                <button id="rl-ai-generate-btn" type="button" class="py-2 px-3 rounded-xl bg-slate-100 text-slate-950 font-bold text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm">
-                                    <i class="fa-solid fa-route text-xs"></i>
+                                <button id="rl-ai-generate-btn" type="button" class="py-2 px-3 rounded-lg bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-route text-[10px]"></i>
                                     Gambar Rute
                                 </button>
-                                <button id="rl-ai-regenerate-btn" type="button" class="py-2 px-3 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white font-bold text-xs transition flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-rotate-left text-xs"></i>
-                                    Reset & Ulang
+                                <button id="rl-ai-regenerate-btn" type="button" class="py-2 px-3 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                                    Reset
                                 </button>
                             </div>
                         </div>
@@ -670,6 +734,8 @@
                 markerPalette: document.getElementById('rl-marker-palette'),
                 followRoad: document.getElementById('rl-follow-road'),
                 showDirections: document.getElementById('rl-show-directions'),
+                showArrows: document.getElementById('rl-show-arrows'),
+                arrowIntervalWrap: document.getElementById('rl-arrow-interval-wrap'),
                 colorRoute: document.getElementById('rl-color-route'),
                 colorMarker: document.getElementById('rl-color-marker'),
                 colorStart: document.getElementById('rl-color-start'),
@@ -921,6 +987,8 @@
             var map = L.map('rl-route-map', {
                 zoomControl: true,
                 attributionControl: true,
+                tap: false,
+                keyboard: false,
             }).setView([-6.200000, 106.816666], 12);
 
             var mapboxToken = window.RL_MAPBOX_TOKEN;
@@ -987,7 +1055,13 @@
                 if (isUndoing) return;
                 
                 var stateObj = {
-                    points: points,
+                    points: points.map(function(p) {
+                        return {
+                            lat: p.lat,
+                            lng: p.lng,
+                            mode: p.mode || 'osrm'
+                        };
+                    }),
                     customMarkers: customMarkers.map(function(cm) {
                         return {
                             lat: cm.lat,
@@ -2141,7 +2215,6 @@
                             setStatus('Rute dari link');
                             setTimeout(function () {
                                 fitRoute();
-                                scrollToMap();
                             }, 250);
                             pushState();
                         });
@@ -2156,7 +2229,9 @@
             }
 
             function updateDirections() {
-                var on = !!(els.showDirections && els.showDirections.checked);
+                var showDir = !els.showDirections || els.showDirections.checked;
+                var showArr = !els.showArrows || els.showArrows.checked;
+                var on = showDir && showArr;
                 directionLayer.clearLayers();
                 if (!on || routePoints.length < 2) return;
 
@@ -2324,9 +2399,9 @@
             }
 
             function fetchOsrmFallback(waypoints, profile, excludes) {
-                var osrmProfile = profile === 'cycling' ? 'driving' : (profile || 'driving');
+                var osrmProfile = (profile === 'foot' || profile === 'walking') ? 'foot' : ((profile === 'cycling' || profile === 'bike') ? 'bike' : 'foot');
                 var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
-                // The public OSRM server (router.project-osrm.org) does not support the 'exclude' parameter.
+                // The public OSRM server (router.project-osrm.org) supports 'driving', 'foot', and 'bike' profiles.
                 var url = 'https://router.project-osrm.org/route/v1/' + osrmProfile + '/' + coords + '?overview=full&geometries=geojson&steps=false&continue_straight=true';
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
                     .then(function (r) {
@@ -2706,6 +2781,15 @@
             var expandedContent = document.getElementById('rl-expanded-content');
 
             if (sheetToggle && summaryPanel && compactStats && toggleHint && expandedContent) {
+                // Auto-minimize on mobile so the map is fully accessible for drawing
+                if (window.innerWidth <= 1024) {
+                    isMinimized = true;
+                    summaryPanel.classList.add('rl-minimized');
+                    compactStats.classList.remove('hidden');
+                    toggleHint.classList.add('hidden');
+                    expandedContent.classList.add('hidden');
+                }
+
                 sheetToggle.addEventListener('click', function () {
                     isMinimized = !isMinimized;
                     if (isMinimized) {
@@ -2808,6 +2892,15 @@
             }
             if (els.showDirections) {
                 els.showDirections.addEventListener('change', function () {
+                    if (els.showArrows) els.showArrows.checked = els.showDirections.checked;
+                    if (els.arrowIntervalWrap) els.arrowIntervalWrap.style.display = els.showDirections.checked ? 'block' : 'none';
+                    updateDirections();
+                });
+            }
+            if (els.showArrows) {
+                els.showArrows.addEventListener('change', function () {
+                    if (els.showDirections) els.showDirections.checked = els.showArrows.checked;
+                    if (els.arrowIntervalWrap) els.arrowIntervalWrap.style.display = els.showArrows.checked ? 'block' : 'none';
                     updateDirections();
                 });
             }
@@ -3060,6 +3153,25 @@
             var aiBtns = document.querySelectorAll('.rl-ai-dist-btn');
             var activeAiDist = 5;
 
+            var selectedShape = '';
+            var shapeBtns = document.querySelectorAll('.rl-shape-btn');
+            shapeBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var isSelected = btn.classList.contains('border-white');
+                    shapeBtns.forEach(function (b) {
+                        b.classList.remove('border-white', 'bg-white/10', 'text-white');
+                        b.classList.add('border-slate-800', 'bg-slate-950/50', 'text-slate-400');
+                    });
+                    if (!isSelected) {
+                        btn.classList.remove('border-slate-800', 'bg-slate-950/50', 'text-slate-400');
+                        btn.classList.add('border-white', 'bg-white/10', 'text-white');
+                        selectedShape = btn.getAttribute('data-shape');
+                    } else {
+                        selectedShape = '';
+                    }
+                });
+            });
+
             aiBtns.forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     aiBtns.forEach(function (b) {
@@ -3235,13 +3347,73 @@
                 var avoidIntersections = els.aiAvoidIntersection ? els.aiAvoidIntersection.checked : false;
                 var avoidGang = els.aiAvoidGang ? els.aiAvoidGang.checked : true;
 
-                // Setup routing profile: use cycling profile to stay on paved vehicular roads and avoid narrow alleys/gangs
                 var profile = avoidGang ? 'cycling' : 'foot';
                 var excludes = [];
-                excludes.push('toll'); // Always avoid toll roads
-                
+                excludes.push('toll');
+
                 if (els.aiAvoidMain && els.aiAvoidMain.checked) {
                     excludes.push('motorway', 'trunk');
+                }
+
+                var promptInputEl = document.getElementById('rl-ai-prompt-input');
+                var customPrompt = promptInputEl ? promptInputEl.value.trim() : '';
+
+                var snapModeEl = document.getElementById('rl-gps-art-snap-mode');
+                var snapMode = snapModeEl ? snapModeEl.value : 'direct';
+
+                var scaleEl = document.getElementById('rl-gps-art-scale');
+                var scaleFactor = scaleEl ? parseFloat(scaleEl.value) : 1.0;
+
+                if (selectedShape || customPrompt) {
+                    var targetShape = customPrompt ? customPrompt : selectedShape;
+                    setStatus('Menghitung rute GPS Art (' + targetShape + ')...');
+                    fetch('{{ route('tools.buat-rute-lari.ai-generate') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            lat: savedStart.lat,
+                            lng: savedStart.lng,
+                            target_distance: targetDist,
+                            shape: targetShape,
+                            scale_factor: scaleFactor,
+                            use_ai: customPrompt ? true : false
+                        })
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.success && data.waypoints && data.waypoints.length > 0) {
+                            var wpts = data.waypoints.map(function(w) { return { lat: parseFloat(w.lat), lng: parseFloat(w.lng) }; });
+                            
+                            if (data.relocated_center && data.relocated_center.lat && data.relocated_center.lng) {
+                                map.panTo([data.relocated_center.lat, data.relocated_center.lng]);
+                            }
+
+                            clearAll();
+                            if (snapMode === 'direct') {
+                                wpts.forEach(function (w) {
+                                    addPoint({ lat: w.lat, lng: w.lng, mode: 'direct' });
+                                });
+                                setStatus('Rute Vektor ' + (data.shape_name || targetShape) + ' berhasil digambar!');
+                            } else {
+                                fetchLoopRoute(wpts, profile, excludes).then(function(res) {
+                                    if (res && res.points && res.points.length > 0) {
+                                        res.points.forEach(function (p) { addPoint(p); });
+                                        setStatus((data.mode === 'osm_smart_feature' ? 'Geometri Riil: ' : 'Rute OSRM: ') + (data.shape_name || targetShape) + ' berhasil dibuat!');
+                                    }
+                                });
+                            }
+                        } else {
+                            alert(data.message || 'Gagal menghasilkan rute AI.');
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('AI route error:', err);
+                    });
+                    return;
                 }
 
                 var initialWpts = getAiWaypoints(savedStart, targetDist, angleRad, isLoop, avoidIntersections);
@@ -3321,14 +3493,45 @@
             }
 
 
+            // Blur form controls only after the map action is processed.
+            // Blurring on mousedown/touchstart can change the mobile viewport before
+            // Leaflet emits its click event, causing the page to jump and the first
+            // route point to be lost.
+            function blurActiveFormControlWithoutScroll() {
+                var active = document.activeElement;
+                if (!active) return;
+
+                var tag = (active.tagName || '').toUpperCase();
+                if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
+                if (typeof active.blur !== 'function') return;
+
+                var scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+                var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+
+                active.blur();
+
+                // Some mobile browsers restore the viewport to the focused field
+                // when the virtual keyboard closes. Keep the map at the same place.
+                requestAnimationFrame(function () {
+                    if (Math.abs((window.pageXOffset || 0) - scrollX) > 1 ||
+                        Math.abs((window.pageYOffset || 0) - scrollY) > 1) {
+                        window.scrollTo(scrollX, scrollY);
+                    }
+                });
+            }
+
             map.on('click', function (e) {
                 if (freehandActive) return;
+
                 if (customMarkerMode) {
                     addCustomMarker(e.latlng, selectedCustomIcon);
                     deactivateCustomMarkerMode();
                 } else {
                     addPoint(e.latlng);
                 }
+
+                // Defer blur until the point/marker has already been accepted.
+                requestAnimationFrame(blurActiveFormControlWithoutScroll);
             });
             map.on('mousedown', onFreehandStart);
             map.on('mousemove', onFreehandMove);

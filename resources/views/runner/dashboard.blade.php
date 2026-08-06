@@ -52,6 +52,12 @@
                         </svg>
                         <span class="hidden sm:inline">Kalkulator</span>
                     </button>
+                    <button onclick="switchTab('marketplace')" id="tab-btn-marketplace" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Marketplace</span>
+                    </button>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2 w-full md:w-auto md:flex">
@@ -280,6 +286,7 @@
                                     </div>
                                 </div>
                             @endif
+                        @endif
                         @else
                             <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5">
                                 <div class="text-sm font-bold text-white">Rest day / tidak ada jadwal hari ini.</div>
@@ -295,7 +302,6 @@
                                 </div>
                             </div>
                         @endif
-                    @endif
                     </div>
                 </div>
 
@@ -1538,6 +1544,135 @@
             <iframe id="calculator-iframe" data-src="/tools/calculator?embed=1" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
         </div>
 
+        <!-- Tab Content Marketplace (Purchases History & Wishlist) -->
+        <div id="tab-content-marketplace" class="tab-content mt-6 space-y-8 hidden">
+            <!-- Marketplace Quick Header -->
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <div class="text-xs text-[#B8FF00] font-mono uppercase tracking-widest mb-1">Pusat Belanja Pelari</div>
+                    <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">RuangLari Marketplace</h2>
+                    <p class="text-xs text-slate-400">Temukan perlengkapan lari terbaik, sepatu, jam GPS, dan slot event lari.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('marketplace.index') }}" class="px-5 py-2.5 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-[#9FE000] transition">
+                        Buka Shop
+                    </a>
+                    <a href="{{ route('marketplace.cart.index') }}" class="px-4 py-2.5 rounded-xl bg-[#111F35] border border-[#1F2D44] text-white hover:border-[#B8FF00] font-bold text-xs uppercase transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#B8FF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        <span>Keranjang</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Riwayat Pembelian Marketplace -->
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#B8FF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Riwayat Pembelian Barang
+                    </h3>
+                    <a href="{{ route('marketplace.orders.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Lihat Semua Order &rarr;</a>
+                </div>
+
+                @if(isset($marketplacePurchases) && $marketplacePurchases->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($marketplacePurchases as $pur)
+                            <div class="bg-[#08111F] border border-[#1F2D44] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-mono font-bold text-white">{{ $pur->invoice_number }}</span>
+                                        <?php
+                                            $st = $pur->status;
+                                            $stMap = [
+                                                'paid' => 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+                                                'shipped' => 'bg-blue-500/20 text-blue-400 border-blue-500/40',
+                                                'completed' => 'bg-[#B8FF00]/20 text-[#B8FF00] border-[#B8FF00]/40',
+                                                'cancelled' => 'bg-rose-500/20 text-rose-400 border-rose-500/40',
+                                            ];
+                                            $stClass = $stMap[$st] ?? 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+                                        ?>
+                                        <span class="px-2.5 py-0.5 border text-[10px] font-bold rounded-full uppercase font-mono {{ $stClass }}">
+                                            {{ strtoupper($st) }}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-slate-400 mb-2">
+                                        Penjual: <strong class="text-white">{{ $pur->seller->name ?? 'Seller' }}</strong> • {{ $pur->created_at->translatedFormat('d M Y, H:i') }}
+                                    </div>
+                                    <div class="space-y-1">
+                                        @foreach($pur->items as $it)
+                                            <div class="text-xs text-slate-300 flex items-center gap-2">
+                                                <span>• {{ $it->product_title_snapshot }}</span>
+                                                <span class="text-slate-500 font-mono">x{{ $it->quantity }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="text-right w-full md:w-auto flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-3 md:pt-0 border-[#1F2D44]">
+                                    <div class="text-xs text-slate-400">Total Belanja</div>
+                                    <div class="text-base font-black text-[#B8FF00] font-mono">
+                                        Rp {{ number_format($pur->total_amount, 0, ',', '.') }}
+                                    </div>
+                                    <a href="{{ route('marketplace.orders.show', $pur->id) }}" class="mt-2 text-xs font-bold text-white bg-[#111F35] border border-[#1F2D44] hover:border-[#B8FF00] px-3 py-1.5 rounded-lg transition">
+                                        Detail Order
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8 text-slate-500 text-xs font-mono">
+                        Anda belum memiliki riwayat pembelian barang di marketplace.
+                    </div>
+                @endif
+            </div>
+
+            <!-- Wishlist Produk Pelari -->
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight flex items-center gap-2">
+                        <svg class="w-5 h-5 text-rose-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        Wishlist Produk Saya
+                    </h3>
+                    <a href="{{ route('marketplace.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Tambah Wishlist &rarr;</a>
+                </div>
+
+                @if(isset($wishlistedProducts) && $wishlistedProducts->count() > 0)
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @foreach($wishlistedProducts as $wl)
+                            @if($wl->product)
+                                <div class="bg-[#08111F] border border-[#1F2D44] rounded-2xl p-3 flex flex-col justify-between h-full">
+                                    <div>
+                                        <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-[#0E1A2D] rounded-xl overflow-hidden mb-3">
+                                            @if($wl->product->primaryImage)
+                                                <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center text-slate-700">📷</div>
+                                            @endif
+                                        </a>
+                                        <div class="text-[10px] text-[#B8FF00] font-bold uppercase truncate">{{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}</div>
+                                        <h4 class="text-xs font-bold text-white truncate mb-1">
+                                            <a href="{{ route('marketplace.show', $wl->product->slug) }}">{{ $wl->product->title }}</a>
+                                        </h4>
+                                        <div class="text-xs font-black text-[#B8FF00] font-mono mb-3">
+                                            Rp {{ number_format($wl->product->price, 0, ',', '.') }}
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="w-full py-1.5 bg-[#111F35] text-white hover:bg-[#B8FF00] hover:text-[#08111F] text-[11px] font-bold rounded-lg text-center transition">
+                                        Lihat Produk
+                                    </a>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-8 text-slate-500 text-xs font-mono">
+                        Belum ada barang yang disimpan di wishlist Anda.
+                    </div>
+                @endif
+            </div>
+        </div>
+
     </div> <!-- closes max-w-7xl mx-auto -->
 </div> <!-- closes wrapper -->
 @push('scripts')
@@ -2230,6 +2365,8 @@
             switchTab('strava');
         } else if (tab === 'calculator') {
             switchTab('calculator');
+        } else if (tab === 'marketplace') {
+            switchTab('marketplace');
         } else {
             switchTab('overview');
         }
