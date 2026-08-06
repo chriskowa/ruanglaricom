@@ -464,9 +464,6 @@ Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'
 // Public Marketplace
 Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
-Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])
-    ->where('username', '^(?!products$).*')
-    ->name('marketplace.seller.store');
 
 // Newsletter
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
@@ -1122,7 +1119,7 @@ Route::middleware('auth')->group(function () {
 
     // Public Seller Store (placed after specific marketplace/seller/products routes to prevent route collision)
     Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])
-        ->where('username', '[a-zA-Z0-9_\-\.]+')
+        ->where('username', '^(?!products$)[a-zA-Z0-9_\-\.]+$')
         ->name('marketplace.seller.store');
 
     // Coach routes
