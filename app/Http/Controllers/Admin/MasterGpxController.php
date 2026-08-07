@@ -11,16 +11,35 @@ use Illuminate\Validation\Rule;
 
 class MasterGpxController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $items = MasterGpx::query()
-            ->with(['event'])
-            ->orderByDesc('created_at')
-            ->paginate(25);
+        $query = MasterGpx::query()
+            ->with(['event', 'user'])
+            ->orderByDesc('created_at');
+
+        if ($request->filled('status')) {
+            if ($request->input('status') === 'published') {
+                $query->where('is_published', true);
+            } elseif ($request->input('status') === 'draft') {
+                $query->where('is_published', false);
+            }
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->paginate(25)->withQueryString();
 
         return view('admin.master-gpx.index', [
             'withSidebar' => true,
             'items' => $items,
+            'status' => $request->input('status'),
+            'search' => $request->input('q'),
         ]);
     }
 
@@ -42,6 +61,7 @@ class MasterGpxController extends Controller
         $data = $request->validate([
             'event_id' => ['nullable', Rule::exists('events', 'id')->where('event_kind', 'directory')],
             'title' => 'required|string|max:255',
+            'city' => 'nullable|string|max:255',
             'gpx_file' => 'required|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
             'is_published' => 'nullable|boolean',
             'notes' => 'nullable|string|max:5000',
@@ -53,7 +73,9 @@ class MasterGpxController extends Controller
 
         $item = MasterGpx::create([
             'event_id' => $data['event_id'] ?? null,
+            'user_id' => auth()->id(),
             'title' => $data['title'],
+            'city' => $data['city'] ?? null,
             'gpx_path' => $path,
             'distance_km' => $stats['distance_km'],
             'elevation_gain_m' => $stats['elevation_gain_m'],
@@ -74,7 +96,7 @@ class MasterGpxController extends Controller
 
         return view('admin.master-gpx.edit', [
             'withSidebar' => true,
-            'item' => $masterGpx->load('event'),
+            'item' => $masterGpx->load(['event', 'user']),
             'events' => $events,
         ]);
     }
@@ -84,6 +106,7 @@ class MasterGpxController extends Controller
         $data = $request->validate([
             'event_id' => ['nullable', Rule::exists('events', 'id')->where('event_kind', 'directory')],
             'title' => 'required|string|max:255',
+            'city' => 'nullable|string|max:255',
             'gpx_file' => 'nullable|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
             'is_published' => 'nullable|boolean',
             'notes' => 'nullable|string|max:5000',
@@ -92,6 +115,7 @@ class MasterGpxController extends Controller
         $update = [
             'event_id' => $data['event_id'] ?? null,
             'title' => $data['title'],
+            'city' => $data['city'] ?? null,
             'is_published' => $request->boolean('is_published'),
             'notes' => $data['notes'] ?? null,
         ];
@@ -114,6 +138,17 @@ class MasterGpxController extends Controller
         $masterGpx->update($update);
 
         return redirect()->route('admin.master-gpx.edit', $masterGpx)->with('success', 'Master GPX berhasil diupdate.');
+    }
+
+    public function togglePublish(MasterGpx $masterGpx)
+    {
+        $masterGpx->update([
+            'is_published' => ! $masterGpx->is_published,
+        ]);
+
+        $statusText = $masterGpx->is_published ? 'dipublish' : 'dijadikan draft (belum publish)';
+
+        return back()->with('success', "Master GPX '{$masterGpx->title}' berhasil {$statusText}.");
     }
 
     public function destroy(MasterGpx $masterGpx)

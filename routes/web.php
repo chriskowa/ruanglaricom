@@ -131,7 +131,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/popups-analytics', [App\Http\Controllers\Admin\PopupAnalyticsController::class, 'index'])->name('popups.analytics');
     Route::get('/popups-settings', [App\Http\Controllers\Admin\PopupSettingsController::class, 'index'])->name('popups.settings');
     Route::post('/popups-settings', [App\Http\Controllers\Admin\PopupSettingsController::class, 'update'])->name('popups.settings.update');
+
+    // Master GPX Management
+    Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class);
+    Route::post('/master-gpx/{master_gpx}/toggle-publish', [App\Http\Controllers\Admin\MasterGpxController::class, 'togglePublish'])->name('master-gpx.toggle-publish');
 });
+
+// Public GPX Database & Submit GPX Modal
+Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
+Route::get('/database-gpx/{masterGpx}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
+Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
 
 Route::get('/popups/active', [App\Http\Controllers\PopupRuntimeController::class, 'active'])->name('popups.active');
 Route::post('/popups/{popup}/track', [App\Http\Controllers\PopupRuntimeController::class, 'track'])->name('popups.track');

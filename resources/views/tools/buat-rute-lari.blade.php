@@ -64,9 +64,17 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
+                        <a href="{{ route('gpx.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-database text-xs text-slate-400"></i>
+                            <span>Database GPX</span>
+                        </a>
+                        <button id="btn-open-submit-gpx-modal" type="button" class="px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-xs font-black flex items-center gap-1.5 shadow-md shadow-neon/10">
+                            <i class="fa-solid fa-cloud-arrow-up text-xs text-dark"></i>
+                            <span>Unggah GPX (+10 PTS)</span>
+                        </button>
                         <a href="{{ route('calculator') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-calculator text-xs text-slate-400"></i>
-                            Tools Lain
+                            <span>Tools Lain</span>
                         </a>
                     </div>
                 </div>
@@ -3984,6 +3992,399 @@
                 }, 250);
             });
 
+        })();
+    </script>
+
+    <!-- Modal Submit GPX -->
+    <div id="modal-submit-gpx" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-xl max-h-[90vh] bg-[#0b1220] border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 font-sans" @click.outside="closeGpxModal()">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between flex-shrink-0 bg-slate-900/50">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+                        <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white uppercase tracking-tight">Unggah Rute GPX</h3>
+                        <p class="text-[11px] text-slate-400">Dapatkan +10 poin runner setelah mengunggah file GPX</p>
+                    </div>
+                </div>
+                <button id="btn-close-submit-gpx-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-grow space-y-4">
+                
+                <div id="gpx-modal-alert" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="form-submit-gpx-modal" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    
+                    <!-- File Input -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">File GPX (.gpx / .xml)</label>
+                        <input id="input-modal-gpx-file" type="file" name="gpx_file" accept=".gpx,.xml" required
+                            class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 transition cursor-pointer">
+                    </div>
+
+                    <!-- Live Mapbox Light Preview Container -->
+                    <div id="modal-gpx-preview-container" class="hidden space-y-2">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-400">
+                            <span>Preview Map Rute (Mapbox Light)</span>
+                            <span id="modal-gpx-point-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">0 pts</span>
+                        </div>
+
+                        <div id="modal-gpx-preview-map" class="h-44 w-full rounded-xl bg-slate-950 border border-slate-800 overflow-hidden relative"></div>
+
+                        <!-- Parsed Stats Badges -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
+                                <div class="text-[10px] uppercase font-bold text-slate-500">Jarak</div>
+                                <div id="modal-stat-distance" class="text-xs font-black text-white mt-0.5">0.00 km</div>
+                            </div>
+                            <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
+                                <div class="text-[10px] uppercase font-bold text-slate-500">Elev Gain</div>
+                                <div id="modal-stat-gain" class="text-xs font-black text-emerald-400 mt-0.5">+0m</div>
+                            </div>
+                            <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
+                                <div class="text-[10px] uppercase font-bold text-slate-500">Elev Loss</div>
+                                <div id="modal-stat-loss" class="text-xs font-black text-rose-400 mt-0.5">-0m</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Title & City -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nama Rute</label>
+                            <input id="input-modal-title" type="text" name="title" required placeholder="Mis. Loop Senayan 5K" class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kota / Lokasi</label>
+                                <button id="btn-modal-detect-location" type="button" class="text-[10px] text-neon hover:underline font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+                                    <span>Deteksi GPS</span>
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <input id="input-modal-city" type="text" name="city" required placeholder="Mis. Jakarta Pusat" class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                                <span id="modal-city-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                                    <i class="fa-solid fa-spinner animate-spin"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes / Description -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Catatan / Deskripsi (Opsional)</label>
+                        <textarea id="input-modal-notes" name="notes" rows="3" placeholder="Informasi jenis permukaan (aspal/trail), fasilitas, atau tips rute..." class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition"></textarea>
+                    </div>
+
+                    <input type="hidden" id="input-modal-dist" name="client_distance_km">
+                    <input type="hidden" id="input-modal-gain" name="client_elevation_gain">
+                    <input type="hidden" id="input-modal-loss" name="client_elevation_loss">
+                    <input type="hidden" id="input-modal-coords" name="coordinates_json">
+
+                    <div class="pt-2">
+                        <button id="btn-submit-gpx-form" type="submit" class="w-full py-3 bg-neon text-dark font-black rounded-xl hover:bg-white transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-neon/10">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>Kirim Rute GPX (+10 PTS)</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const modal = document.getElementById('modal-submit-gpx');
+            const openBtn = document.getElementById('btn-open-submit-gpx-modal');
+            const closeBtn = document.getElementById('btn-close-submit-gpx-modal');
+            const fileInput = document.getElementById('input-modal-gpx-file');
+            const previewContainer = document.getElementById('modal-gpx-preview-container');
+            const form = document.getElementById('form-submit-gpx-modal');
+            const alertBox = document.getElementById('gpx-modal-alert');
+            let previewMap = null;
+            let previewPolyline = null;
+
+            function showAlert(msg, isSuccess = false) {
+                if (!alertBox) return;
+                alertBox.className = isSuccess 
+                    ? 'p-3 rounded-xl text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                    : 'p-3 rounded-xl text-xs font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-300';
+                alertBox.innerHTML = msg;
+                alertBox.classList.remove('hidden');
+            }
+
+            function hideAlert() {
+                if (alertBox) alertBox.classList.add('hidden');
+            }
+
+            function openGpxModal() {
+                if (!modal) return;
+                @guest
+                    if (typeof window.openLoginModal === 'function') {
+                        window.openLoginModal();
+                        return;
+                    }
+                @endguest
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeGpxModal() {
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            if (openBtn) {
+                openBtn.addEventListener('click', openGpxModal);
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeGpxModal);
+            }
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) closeGpxModal();
+                });
+            }
+
+            // Auto open if URL query has open_gpx_modal=1
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open_gpx_modal') === '1') {
+                openGpxModal();
+            }
+
+            // GPX Parser and Map Preview
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    hideAlert();
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const titleInput = document.getElementById('input-modal-title');
+                    if (titleInput && !titleInput.value) {
+                        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+                        titleInput.value = nameWithoutExt.replace(/[-_]/g, ' ');
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const xmlText = evt.target.result;
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                        let trkpts = xmlDoc.getElementsByTagName('trkpt');
+                        if (trkpts.length === 0) {
+                            trkpts = xmlDoc.getElementsByTagName('rtept');
+                        }
+
+                        if (trkpts.length < 2) {
+                            showAlert('File GPX tidak valid atau tidak memiliki titik koordinat yang cukup.');
+                            return;
+                        }
+
+                        const coords = [];
+                        let prevLat = null, prevLon = null, prevEle = null;
+                        let totalDist = 0, gainSum = 0, lossSum = 0;
+
+                        for (let i = 0; i < trkpts.length; i++) {
+                            const pt = trkpts[i];
+                            const lat = parseFloat(pt.getAttribute('lat'));
+                            const lon = parseFloat(pt.getAttribute('lon'));
+                            if (isNaN(lat) || isNaN(lon)) continue;
+
+                            coords.push([lat, lon]);
+
+                            const eleEl = pt.getElementsByTagName('ele')[0];
+                            const ele = eleEl ? parseFloat(eleEl.textContent) : null;
+
+                            if (prevLat !== null) {
+                                totalDist += haversineDistance(prevLat, prevLon, lat, lon);
+                                if (prevEle !== null && ele !== null) {
+                                    const diff = ele - prevEle;
+                                    if (diff > 0) gainSum += diff;
+                                    if (diff < 0) lossSum += Math.abs(diff);
+                                }
+                            }
+
+                            prevLat = lat; prevLon = lon; prevEle = ele;
+                        }
+
+                        const distKm = (totalDist / 1000).toFixed(2);
+                        document.getElementById('modal-stat-distance').textContent = distKm + ' km';
+                        document.getElementById('modal-stat-gain').textContent = '+' + Math.round(gainSum) + 'm';
+                        document.getElementById('modal-stat-loss').textContent = '-' + Math.round(lossSum) + 'm';
+                        document.getElementById('modal-gpx-point-count').textContent = coords.length + ' pts';
+
+                        document.getElementById('input-modal-dist').value = (totalDist / 1000).toFixed(3);
+                        document.getElementById('input-modal-gain').value = Math.round(gainSum);
+                        document.getElementById('input-modal-loss').value = Math.round(lossSum);
+                        
+                        const step = Math.max(1, Math.floor(coords.length / 200));
+                        const sampledCoords = coords.filter((_, idx) => idx % step === 0);
+                        document.getElementById('input-modal-coords').value = JSON.stringify(sampledCoords);
+
+                        if (previewContainer) previewContainer.classList.remove('hidden');
+
+                        if (!previewMap) {
+                            previewMap = L.map('modal-gpx-preview-map', {
+                                zoomControl: false,
+                                attributionControl: false
+                            });
+                            
+                            // Light Mapbox / Carto style voyager tiles
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                                maxZoom: 19,
+                                subdomains: 'abcd'
+                            }).addTo(previewMap);
+                        }
+
+                        if (previewPolyline) {
+                            previewMap.removeLayer(previewPolyline);
+                        }
+
+                        previewPolyline = L.polyline(coords, {
+                            color: '#ccff00',
+                            weight: 4,
+                            opacity: 0.95
+                        }).addTo(previewMap);
+
+                        previewMap.fitBounds(previewPolyline.getBounds(), { padding: [15, 15] });
+
+                        if (coords.length > 0) {
+                            reverseGeocodeCity(coords[0][0], coords[0][1]);
+                        }
+
+                        setTimeout(() => {
+                            previewMap.invalidateSize();
+                        }, 250);
+                    };
+                    reader.readAsText(file);
+                });
+            }
+
+            // Reverse Geocoding Helper Function
+            async function reverseGeocodeCity(lat, lon) {
+                const loader = document.getElementById('modal-city-loading');
+                if (loader) loader.classList.remove('hidden');
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.address) {
+                            const a = data.address;
+                            const city = a.city || a.town || a.city_district || a.county || a.municipality || a.state_district || a.state;
+                            if (city) {
+                                const cleanCity = city.replace(/^(Kota|Kabupaten)\s+/i, '').trim();
+                                const cityInput = document.getElementById('input-modal-city');
+                                if (cityInput) cityInput.value = cleanCity;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Reverse geocode error:', e);
+                } finally {
+                    if (loader) loader.classList.add('hidden');
+                }
+            }
+
+            // Detect GPS Location Button
+            const detectBtn = document.getElementById('btn-modal-detect-location');
+            if (detectBtn) {
+                detectBtn.addEventListener('click', function() {
+                    if (!navigator.geolocation) {
+                        showAlert('Browser Anda tidak mendukung Geolocation.');
+                        return;
+                    }
+                    const loader = document.getElementById('modal-city-loading');
+                    if (loader) loader.classList.remove('hidden');
+                    navigator.geolocation.getCurrentPosition(
+                        function(pos) {
+                            reverseGeocodeCity(pos.coords.latitude, pos.coords.longitude);
+                        },
+                        function(err) {
+                            if (loader) loader.classList.add('hidden');
+                            showAlert('Gagal mengakses lokasi GPS: ' + err.message);
+                        },
+                        { timeout: 10000 }
+                    );
+                });
+            }
+
+            function haversineDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371000;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            // AJAX Submit Form Handler
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    hideAlert();
+
+                    const submitBtn = document.getElementById('btn-submit-gpx-form');
+                    const originalBtnHtml = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i><span>Mengirim...</span>';
+
+                    const formData = new FormData(form);
+
+                    fetch('{{ route("tools.buat-rute-lari.submit-gpx") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                    .then(resObj => {
+                        const data = resObj.body;
+                        if (resObj.status === 401 && data.requires_login) {
+                            closeGpxModal();
+                            if (typeof window.openLoginModal === 'function') {
+                                window.openLoginModal();
+                            }
+                            return;
+                        }
+
+                        if (data.success) {
+                            showAlert(data.message, true);
+                            form.reset();
+                            if (previewContainer) previewContainer.classList.add('hidden');
+                            setTimeout(() => {
+                                closeGpxModal();
+                            }, 2500);
+                        } else {
+                            showAlert(data.message || 'Gagal mengirim GPX. Silakan coba lagi.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showAlert('Terjadi kesalahan jaringan/sistem.');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnHtml;
+                    });
+                });
+            }
         })();
     </script>
 @endpush

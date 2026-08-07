@@ -11,11 +11,14 @@ class MasterGpx extends Model
 
     protected $fillable = [
         'event_id',
+        'user_id',
         'title',
+        'city',
         'gpx_path',
         'distance_km',
         'elevation_gain_m',
         'elevation_loss_m',
+        'coordinates_json',
         'is_published',
         'notes',
     ];
@@ -25,11 +28,17 @@ class MasterGpx extends Model
         return [
             'distance_km' => 'decimal:3',
             'is_published' => 'boolean',
+            'coordinates_json' => 'array',
         ];
     }
 
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

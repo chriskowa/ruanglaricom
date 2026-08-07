@@ -76,6 +76,13 @@
         <div id="tab-content-overview" class="tab-content mt-6">
             <div x-data="dashboardComponent()">
                 <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <!-- Run Points Badge -->
+                    <a href="{{ route('gpx.index') }}" title="Unggah GPX rute lari untuk mendapatkan poin & tukar reward" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/40 text-xs font-bold text-white hover:border-amber-400 transition shadow-sm">
+                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+                        <span class="text-slate-300">Run Points:</span>
+                        <span class="text-neon font-black font-mono">{{ number_format(auth()->user()->run_points ?? 0) }} PTS</span>
+                    </a>
+
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-300">
                         <span class="text-slate-400">Hari ini</span>
                         <span id="runner-dashboard-date" class="font-bold text-white"></span>

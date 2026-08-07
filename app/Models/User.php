@@ -99,6 +99,16 @@ class User extends Authenticatable
         return $this->morphMany(\App\Models\PersonalAccessToken::class, 'tokenable');
     }
 
+    public function masterGpxes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MasterGpx::class);
+    }
+
+    public function addPoints(int $points): void
+    {
+        $this->increment('run_points', $points);
+    }
+
     public function createToken(string $name = 'mobile-app', array $abilities = ['*']): array
     {
         return \App\Models\PersonalAccessToken::createToken($this, $name, $abilities);

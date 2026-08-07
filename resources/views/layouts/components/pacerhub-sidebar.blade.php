@@ -83,6 +83,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.master-gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.master-gpx.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
+                                    <span>Master GPX</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.users.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.users.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-users"></i></span>
                                     <span>Manage Users</span>
@@ -416,6 +422,12 @@
                             <a href="{{ route('calculator') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('calculator') ? $activeClass : $inactiveClass }}">
                                 <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calculator"></i></span>
                                 <span>Calculator</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('gpx.*') ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
+                                <span>Database GPX</span>
                             </a>
                         </li>
                         <li>
