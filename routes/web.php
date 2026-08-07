@@ -141,6 +141,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
 Route::get('/database-gpx/{masterGpx}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
+Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
+
 // Cart count routes (Publicly accessible for header badge, handles guest & auth gracefully)
 Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
 Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');

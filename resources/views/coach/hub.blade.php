@@ -4,12 +4,14 @@
 
 @push('styles')
     <script>
-        // Extending existing Tailwind config from pacerhub layout
-        tailwind.config.theme.extend = {
-            ...tailwind.config.theme.extend,
-            colors: {
-                ...tailwind.config.theme.extend.colors,
+        // Extending existing Tailwind config if Tailwind CDN JS is present
+        if (typeof tailwind !== 'undefined' && tailwind && tailwind.config) {
+            tailwind.config.theme = tailwind.config.theme || {};
+            tailwind.config.theme.extend = tailwind.config.theme.extend || {};
+            tailwind.config.theme.extend.colors = {
+                ...(tailwind.config.theme.extend.colors || {}),
                 neon: {
+                    ...(tailwind.config.theme.extend.colors?.neon || {}),
                     cyan: '#06b6d4',
                     purple: '#a855f7',
                     green: '#22c55e',
@@ -17,12 +19,12 @@
                     dark: '#0f172a',
                     card: '#1e293b'
                 }
-            },
-            boxShadow: {
-                ...tailwind.config.theme.extend.boxShadow,
+            };
+            tailwind.config.theme.extend.boxShadow = {
+                ...(tailwind.config.theme.extend.boxShadow || {}),
                 'neon-cyan': '0 0 5px rgba(6, 182, 212, 0.5), 0 0 15px rgba(6, 182, 212, 0.2)',
                 'neon-purple': '0 0 5px rgba(168, 85, 247, 0.5), 0 0 15px rgba(168, 85, 247, 0.2)',
-            }
+            };
         }
     </script>
     <style>

@@ -4,11 +4,11 @@
 
 @push('styles')
     <script>
-        // Extending existing Tailwind config from pacerhub layout
-        tailwind.config.theme.extend = {
-            ...tailwind.config.theme.extend,
-            colors: {
-                ...tailwind.config.theme.extend.colors,
+        if (typeof tailwind !== 'undefined' && tailwind && tailwind.config) {
+            tailwind.config.theme = tailwind.config.theme || {};
+            tailwind.config.theme.extend = tailwind.config.theme.extend || {};
+            tailwind.config.theme.extend.colors = {
+                ...(tailwind.config.theme.extend.colors || {}),
                 neon: {
                     DEFAULT: '#ccff00',
                     cyan: '#06b6d4',
@@ -17,23 +17,23 @@
                     dark: '#0f172a',
                     card: '#1e293b'
                 }
-            },
-            boxShadow: {
-                ...tailwind.config.theme.extend.boxShadow,
+            };
+            tailwind.config.theme.extend.boxShadow = {
+                ...(tailwind.config.theme.extend.boxShadow || {}),
                 'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)',
                 'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
-            },
-            animation: {
-                ...tailwind.config.theme.extend.animation,
+            };
+            tailwind.config.theme.extend.animation = {
+                ...(tailwind.config.theme.extend.animation || {}),
                 'scan': 'scan 2s linear infinite',
-            },
-            keyframes: {
-                ...tailwind.config.theme.extend.keyframes,
+            };
+            tailwind.config.theme.extend.keyframes = {
+                ...(tailwind.config.theme.extend.keyframes || {}),
                 scan: {
                     '0%': { transform: 'translateY(-100%)' },
                     '100%': { transform: 'translateY(100%)' },
                 }
-            }
+            };
         }
     </script>
     

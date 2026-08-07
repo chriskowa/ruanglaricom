@@ -9,7 +9,12 @@
 
 @push('styles')
 <script>
-    tailwind.config.theme.extend.colors.neon = '#ccff00';
+    if (typeof tailwind !== 'undefined' && tailwind && tailwind.config) {
+        tailwind.config.theme = tailwind.config.theme || {};
+        tailwind.config.theme.extend = tailwind.config.theme.extend || {};
+        tailwind.config.theme.extend.colors = tailwind.config.theme.extend.colors || {};
+        tailwind.config.theme.extend.colors.neon = '#ccff00';
+    }
 </script>
 <style>
     .glass-panel {
