@@ -189,7 +189,6 @@
                     <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-4 md:p-5 relative overflow-hidden group">
                         <div class="flex items-center justify-between">
                             <div class="text-xs font-black tracking-wider text-slate-200 uppercase flex items-center gap-2">
-                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-xs"></i>
                                 AI Route Generator
                             </div>
                             <span class="text-[9px] font-bold text-amber-400/90 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 uppercase tracking-wider">BETA</span>
@@ -550,7 +549,7 @@
                                 <div class="pl-3 text-slate-400 text-xs">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                 </div>
-                                <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-2.5 pr-8 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
+                                <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-3 pr-8 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
                                 <button id="rl-search-btn" type="button" class="absolute right-2 p-1 text-slate-400 hover:text-white transition">
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
