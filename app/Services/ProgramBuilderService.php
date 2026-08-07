@@ -84,7 +84,7 @@ class ProgramBuilderService
         $goal = $distanceMap[strtolower($targetDistance)] ?? '10K';
 
         // ===== PHASE CALCULATION =====
-        $phases = $this->calculatePhases($weeks, $targetDistance);
+        $phases = $this->calculatePhases($weeks, $targetDistance, $runnerLevel);
         $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
 
@@ -161,7 +161,7 @@ class ProgramBuilderService
             $weekQualityWorkouts = [];
             for ($q = 0; $q < $weeklyQualityCount; $q++) {
                 $workout = $this->getOrderedWorkoutForPhase(
-                    $goal, $phase, $library, $allWorkouts, $workoutCycleIndex
+                    $goal, $phase, $library, $allWorkouts, $workoutCycleIndex, $runnerLevel
                 );
                 if ($workout) {
                     $weekQualityWorkouts[] = $workout;
@@ -346,9 +346,30 @@ class ProgramBuilderService
                         floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
                     );
 
-                    $session['description'] = $assignment['type'] === 'recovery_run'
-                        ? ($isDeload ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget: $rangeStr (RPE < 3)" : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget: $rangeStr (RPE < 3)")
-                        : "Easy Aerobic Run - Membangun daya tahan dasar.\nTarget: $rangeStr (RPE 3-4)";
+                    // Level-aware Zone 2 / HR guidance
+                    $zoneGuidance = $levelRules['zone2_hr_guidance'] ?? '';
+
+                    if ($assignment['type'] === 'recovery_run') {
+                        $session['description'] = $isDeload
+                            ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget pace: $rangeStr (RPE < 3)"
+                            : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget pace: $rangeStr (RPE < 3)";
+                    } elseif ($runnerLevel === 'beginner' && $phase === 'Base') {
+                        $session['description'] = "Zone 2 Aerobic Run — Fondasi Mitokondria\n"
+                            . "Target pace: $rangeStr\n"
+                            . ($zoneGuidance ? "Target HR: $zoneGuidance\n" : '')
+                            . "TUJUAN: Sesi ini melatih mitokondria Anda — 'mesin energi' sel otot yang mengubah oksigen menjadi ATP. "
+                            . "Semakin banyak dan efisien mitokondria, semakin mudah Anda berlari jauh. "
+                            . "Berlari terlalu cepat di sesi ini justru MENGURANGI manfaatnya. "
+                            . "Test: Jika bisa berbicara kalimat penuh tanpa terengah = pace yang tepat (RPE 3-4).";
+                    } elseif ($runnerLevel === 'beginner') {
+                        $session['description'] = "Easy Aerobic Run — Membangun aerobic base.\n"
+                            . "Target pace: $rangeStr\n"
+                            . ($zoneGuidance ? "Target HR: $zoneGuidance (RPE 3-4)" : "RPE 3-4");
+                    } elseif ($runnerLevel === 'intermediate') {
+                        $session['description'] = "Easy Aerobic Run — Aerobic maintenance & recovery.\nTarget pace: $rangeStr (RPE 3-5)";
+                    } else {
+                        $session['description'] = "Easy Aerobic Run — Active aerobic stimulus.\nTarget pace: $rangeStr (RPE 3-5)";
+                    }
                 } elseif ($assignment['type'] === 'strength') {
                     $session['type'] = 'strength';
                     $session['distance'] = 0;
@@ -465,7 +486,7 @@ class ProgramBuilderService
     ): float {
         $maxKm = $longRunCaps['max_km'];
         $maxRatio = $longRunCaps['max_ratio'];
-        $minLongRunFloor = $this->getMinLongRunFloor($targetDistance);
+        $minLongRunFloor = $this->getMinLongRunFloor($targetDistance, $weeklyMileage, $runnerLevel);
 
         // Calculate the peak long run distance (capped)
         $peakLongRun = min($maxKm, round($weeklyMileage * $maxRatio, 1));
@@ -508,15 +529,24 @@ class ProgramBuilderService
         return $longRunDistance;
     }
 
-    private function getMinLongRunFloor(string $targetDistance): float
+    private function getMinLongRunFloor(string $targetDistance, float $weeklyMileage = 0.0, string $runnerLevel = 'intermediate'): float
     {
-        return match (strtolower($targetDistance)) {
+        $hardFloor = match (strtolower($targetDistance)) {
             '42k' => 18.0,
             '21k' => 12.0,
             '10k' => 8.0,
-            '5k' => 5.0,
+            '5k'  => 5.0,
             default => 5.0,
         };
+
+        // For beginners with lower mileage, cap the floor at 30% of weekly mileage
+        // Prevents imposing a 8km long run floor on a beginner running only 15km/week
+        if ($runnerLevel === 'beginner' && $weeklyMileage > 0) {
+            $dynamicFloor = round($weeklyMileage * 0.30, 1);
+            return min($hardFloor, max(3.0, $dynamicFloor));
+        }
+
+        return $hardFloor;
     }
 
     // =========================================================================
@@ -524,36 +554,49 @@ class ProgramBuilderService
     // =========================================================================
 
     /**
-     * Calculate phase boundaries based on target distance and total weeks.
+     * Calculate phase boundaries — now level-aware.
      *
-     * Returns: ['base' => weeks, 'strength' => weeks, 'speed' => weeks]
-     * Taper is handled separately from taper_config.
+     * Beginners need a longer Base phase (connective tissue adaptation + aerobic foundation).
+     * Advanced runners can spend relatively more time in Speed/Race-specific phases.
      */
-    private function calculatePhases(int $totalWeeks, string $targetDistance): array
+    private function calculatePhases(int $totalWeeks, string $targetDistance, string $runnerLevel = 'intermediate'): array
     {
-        // Taper weeks are taken from config, remaining weeks are split among Base/Strength/Speed
         $library = $this->loadLibrary();
         $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
         $trainingWeeks = max(3, $totalWeeks - $taperWeeks);
 
-        // Phase ratios per distance
-        if ($targetDistance === '42k') {
-            $baseRatio = 0.40; $strengthRatio = 0.30; $speedRatio = 0.30;
-        } elseif ($targetDistance === '21k') {
-            $baseRatio = 0.30; $strengthRatio = 0.30; $speedRatio = 0.40;
-        } else { // 5k, 10k
-            $baseRatio = 0.25; $strengthRatio = 0.30; $speedRatio = 0.45;
-        }
+        // Level-aware phase ratios
+        // Beginners: more Base (connective tissue + aerobic base + gradual progression)
+        // Advanced: less Base, more Speed/Race-specific
+        $ratios = match ($runnerLevel) {
+            'beginner' => match (strtolower($targetDistance)) {
+                '42k' => ['base' => 0.50, 'strength' => 0.32, 'speed' => 0.18],
+                '21k' => ['base' => 0.45, 'strength' => 0.32, 'speed' => 0.23],
+                '10k' => ['base' => 0.40, 'strength' => 0.35, 'speed' => 0.25],
+                default => ['base' => 0.38, 'strength' => 0.37, 'speed' => 0.25], // 5k
+            },
+            'advanced' => match (strtolower($targetDistance)) {
+                '42k' => ['base' => 0.30, 'strength' => 0.30, 'speed' => 0.40],
+                '21k' => ['base' => 0.22, 'strength' => 0.30, 'speed' => 0.48],
+                '10k' => ['base' => 0.18, 'strength' => 0.27, 'speed' => 0.55],
+                default => ['base' => 0.18, 'strength' => 0.27, 'speed' => 0.55], // 5k
+            },
+            default => match (strtolower($targetDistance)) { // intermediate
+                '42k' => ['base' => 0.40, 'strength' => 0.30, 'speed' => 0.30],
+                '21k' => ['base' => 0.30, 'strength' => 0.30, 'speed' => 0.40],
+                default => ['base' => 0.25, 'strength' => 0.30, 'speed' => 0.45],
+            },
+        };
 
-        $baseWeeks = max(1, (int) round($trainingWeeks * $baseRatio));
-        $strengthWeeks = max(1, (int) round($trainingWeeks * $strengthRatio));
-        $speedWeeks = max(1, $trainingWeeks - $baseWeeks - $strengthWeeks);
+        $baseWeeks    = max(1, (int) round($trainingWeeks * $ratios['base']));
+        $strengthWeeks = max(1, (int) round($trainingWeeks * $ratios['strength']));
+        $speedWeeks   = max(1, $trainingWeeks - $baseWeeks - $strengthWeeks);
 
         return [
-            'base' => $baseWeeks,
+            'base'     => $baseWeeks,
             'strength' => $strengthWeeks,
-            'speed' => $speedWeeks,
+            'speed'    => $speedWeeks,
         ];
     }
 
@@ -610,24 +653,47 @@ class ProgramBuilderService
     // =========================================================================
 
     /**
-     * Select a workout using ordered cycling instead of random selection.
+     * Select a workout using ordered cycling with level-aware filtering.
      *
      * Strategy:
-     * 1. Filter workouts by phase preference
-     * 2. Sort by difficulty_order
-     * 3. Cycle through in order using the global index
-     *
-     * This ensures progressive difficulty and no random repetition.
+     * 1. Filter by level_restriction (if present) — beginner only sees beginner-safe workouts
+     * 2. Filter by phase preference
+     * 3. For beginner in Base phase: prefer strides/hill types (safe high-intensity)
+     * 4. Sort by difficulty_order (difficulty_order 0 = beginner-safe = appear first)
+     * 5. Cycle through in order using the global index
      */
     private function getOrderedWorkoutForPhase(
-        string $goal, string $phase, array $library, array $allWorkouts, int $cycleIndex
+        string $goal, string $phase, array $library, array $allWorkouts, int $cycleIndex,
+        string $runnerLevel = 'intermediate'
     ): ?array {
         if (empty($allWorkouts)) {
             return null;
         }
 
-        // Filter by phase preference first
-        $phaseMatched = array_filter($allWorkouts, function ($w) use ($phase) {
+        // === STEP 1: Filter by level_restriction ===
+        // If a workout has level_restriction, only runners in that list can get it
+        // If no level_restriction, it's available to all levels
+        $levelFiltered = array_values(array_filter($allWorkouts, function ($w) use ($runnerLevel) {
+            $restriction = $w['level_restriction'] ?? null;
+            if ($restriction === null) {
+                return true; // No restriction = available to all
+            }
+            return in_array($runnerLevel, $restriction, true);
+        }));
+
+        // If no workouts available for this level, fall back to unrestricted workouts
+        if (empty($levelFiltered)) {
+            $levelFiltered = array_values(array_filter($allWorkouts, function ($w) {
+                return empty($w['level_restriction']);
+            }));
+        }
+
+        if (empty($levelFiltered)) {
+            $levelFiltered = $allWorkouts;
+        }
+
+        // === STEP 2: Filter by phase preference ===
+        $phaseMatched = array_filter($levelFiltered, function ($w) use ($phase) {
             $prefs = $w['phase_preference'] ?? [];
             return in_array($phase, $prefs, true);
         });
@@ -637,29 +703,42 @@ class ProgramBuilderService
             $phaseRule = $library['training_phase_rules'][strtolower($phase)] ?? null;
             $preferredTypes = $phaseRule['preferred_types'] ?? [];
 
-            $phaseMatched = array_filter($allWorkouts, function ($w) use ($preferredTypes) {
+            $phaseMatched = array_filter($levelFiltered, function ($w) use ($preferredTypes) {
                 return in_array($w['type'], $preferredTypes, true);
             });
         }
 
-        $pool = !empty($phaseMatched) ? array_values($phaseMatched) : $allWorkouts;
+        $pool = !empty($phaseMatched) ? array_values($phaseMatched) : $levelFiltered;
 
-        // Base Phase Coaching Guardrail: Exclude heavy VO2Max intervals during Base phase if non-interval workouts exist
+        // === STEP 3: Base Phase Coaching Guardrail ===
         if ($phase === 'Base') {
-            $nonIntervals = array_filter($pool, function ($w) {
-                return ($w['type'] ?? '') !== 'interval';
-            });
-            if (!empty($nonIntervals)) {
-                $pool = array_values($nonIntervals);
+            // For BEGINNERS in Base phase: prefer strides & hill sprints (difficulty_order 0)
+            // These are safe high-intensity that stimulate Type IIA mitochondria
+            if ($runnerLevel === 'beginner') {
+                $beginnerBase = array_filter($pool, function ($w) {
+                    return in_array($w['type'] ?? '', ['strides', 'hill'], true)
+                        && ($w['difficulty_order'] ?? 99) <= 0;
+                });
+                if (!empty($beginnerBase)) {
+                    $pool = array_values($beginnerBase);
+                }
+            } else {
+                // Non-beginners: exclude heavy VO2Max intervals during Base if alternatives exist
+                $nonIntervals = array_filter($pool, function ($w) {
+                    return ($w['type'] ?? '') !== 'interval';
+                });
+                if (!empty($nonIntervals)) {
+                    $pool = array_values($nonIntervals);
+                }
             }
         }
 
-        // Sort by difficulty_order
+        // === STEP 4: Sort by difficulty_order ===
         usort($pool, function ($a, $b) {
             return ($a['difficulty_order'] ?? 99) <=> ($b['difficulty_order'] ?? 99);
         });
 
-        // Cycle through ordered pool
+        // === STEP 5: Cycle through ordered pool ===
         $index = $cycleIndex % count($pool);
         return $pool[$index];
     }

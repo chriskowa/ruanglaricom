@@ -5,6 +5,38 @@ return [
     'goals' => [
 
         '5K' => [
+            // ─── BEGINNER-SAFE WORKOUTS (difficulty_order: 0) ───
+            [
+                'id' => '5k_strides_8x20sec',
+                'goal' => '5K',
+                'type' => 'strides',
+                'name' => 'Strides 8×20 Detik',
+                'focus' => 'Neuromuscular activation & running economy',
+                'main_set' => '8 reps x 20 sec stride (bukan sprint — ~85% effort, terasa cepat tapi rileks)',
+                'recovery' => 'Jalan santai 60-90 detik antar repetisi',
+                'intensity' => 'RPE 6-7 — terasa cepat, terkontrol, langkah ringan',
+                'best_for' => 'Aktivasi fast-twitch fiber & stimulasi mitokondria Type IIA — aman untuk semua level sejak hari pertama',
+                'note' => 'Strides sangat pendek (20 detik) dengan recovery penuh → aman untuk pemula. Fokus: postur tegak, kontak tanah ringan, langkah cepat. Ini bukan sprint.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength', 'Speed', 'Taper'],
+                'level_restriction' => ['beginner'],
+            ],
+            [
+                'id' => '5k_hill_sprint_6x20sec',
+                'goal' => '5K',
+                'type' => 'hill',
+                'name' => 'Hill Sprint Pendek 6×20 Detik',
+                'focus' => 'Leg power, postur lari & aerobic strength',
+                'main_set' => '6 reps x 20 sec uphill (tanjakan 5-8%), fokus power & postur',
+                'recovery' => 'Jalan santai kembali ke bawah (~60 detik)',
+                'intensity' => 'RPE 7-8 — hard tapi singkat. Aman karena kecepatan lari di tanjakan lebih rendah dari sprint datar.',
+                'best_for' => 'Membangun kekuatan kaki, glutes, & core — lebih aman dari flat sprint untuk pemula',
+                'note' => 'Hill sprint pendek memaksimalkan stimulasi otot dengan risiko cedera minimal. Drive lutut ke atas, condong ke depan sedikit, langkah pendek dan cepat.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength'],
+                'level_restriction' => ['beginner'],
+            ],
+            // ─── STANDARD WORKOUTS ───
             [
                 'id' => '5k_hill_10x30sec',
                 'goal' => '5K',
@@ -92,6 +124,38 @@ return [
         ],
 
         '10K' => [
+            // ─── BEGINNER-SAFE WORKOUTS (difficulty_order: 0) ───
+            [
+                'id' => '10k_strides_8x20sec',
+                'goal' => '10K',
+                'type' => 'strides',
+                'name' => 'Strides 8×20 Detik',
+                'focus' => 'Neuromuscular activation & running economy',
+                'main_set' => '8 reps x 20 sec stride (~85% effort, terasa cepat tapi rileks)',
+                'recovery' => 'Jalan santai 60-90 detik antar repetisi',
+                'intensity' => 'RPE 6-7 — terasa cepat, terkontrol, langkah ringan',
+                'best_for' => 'Aktivasi fast-twitch fiber & mitokondria Type IIA — aman dari minggu pertama latihan',
+                'note' => 'Strides aman untuk pemula: tiap rep hanya 20 detik dengan recovery lengkap. Fokus postur tegak dan kontak tanah ringan.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength', 'Speed', 'Taper'],
+                'level_restriction' => ['beginner'],
+            ],
+            [
+                'id' => '10k_hill_sprint_6x20sec',
+                'goal' => '10K',
+                'type' => 'hill',
+                'name' => 'Hill Sprint Pendek 6×20 Detik',
+                'focus' => 'Leg power & postur lari untuk pelari baru',
+                'main_set' => '6 reps x 20 sec uphill (tanjakan 5-8%)',
+                'recovery' => 'Jalan kembali ke bawah (~60 detik)',
+                'intensity' => 'RPE 7-8 — hard tapi singkat. Kecepatan di tanjakan lebih aman dari flat sprint.',
+                'best_for' => 'Membangun kekuatan kaki & glutes tanpa risiko berlebih pada tendon untuk pemula',
+                'note' => 'Drive lutut ke atas, condong ke depan ringan. Jaga langkah pendek dan cepat.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength'],
+                'level_restriction' => ['beginner'],
+            ],
+            // ─── STANDARD WORKOUTS ───
             [
                 'id' => '10k_hill_8x45sec',
                 'goal' => '10K',
@@ -179,6 +243,38 @@ return [
         ],
 
         'HALF_MARATHON' => [
+            // ─── BEGINNER-SAFE WORKOUTS (difficulty_order: 0) ───
+            [
+                'id' => 'hm_strides_8x20sec',
+                'goal' => 'HALF_MARATHON',
+                'type' => 'strides',
+                'name' => 'Strides 8×20 Detik',
+                'focus' => 'Running economy & neuromuscular activation',
+                'main_set' => '8 reps x 20 sec stride (~85% effort, terasa cepat namun terkontrol)',
+                'recovery' => 'Jalan santai 60-90 detik antar repetisi',
+                'intensity' => 'RPE 6-7 — cepat tapi rileks, bukan sprint',
+                'best_for' => 'Membangun efisiensi gerak & stimulasi mitokondria fast-twitch sejak awal program',
+                'note' => 'Ideal untuk pemula half marathon yang perlu membangun koneksi neuromuskular tanpa kelelahan berlebih.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength', 'Speed', 'Taper'],
+                'level_restriction' => ['beginner'],
+            ],
+            [
+                'id' => 'hm_hill_sprint_6x20sec',
+                'goal' => 'HALF_MARATHON',
+                'type' => 'hill',
+                'name' => 'Hill Sprint Pendek 6×20 Detik',
+                'focus' => 'Aerobic strength & leg power untuk pemula HM',
+                'main_set' => '6 reps x 20 sec uphill (tanjakan 5-8%)',
+                'recovery' => 'Jalan kembali ke bawah (~60 detik)',
+                'intensity' => 'RPE 7-8 — usaha keras tapi durasi sangat pendek',
+                'best_for' => 'Membangun kekuatan kaki sebagai fondasi untuk volume half marathon yang lebih tinggi',
+                'note' => 'Hill sprint pendek memaksa rekrutmen serat otot tambahan dengan risiko cedera minimal. Gunakan di Base phase.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength'],
+                'level_restriction' => ['beginner'],
+            ],
+            // ─── STANDARD WORKOUTS ───
             [
                 'id' => 'hm_hill_6x60sec',
                 'goal' => 'HALF_MARATHON',
@@ -266,6 +362,38 @@ return [
         ],
 
         'FULL_MARATHON' => [
+            // ─── BEGINNER-SAFE WORKOUTS (difficulty_order: 0) ───
+            [
+                'id' => 'fm_strides_8x20sec',
+                'goal' => 'FULL_MARATHON',
+                'type' => 'strides',
+                'name' => 'Strides 8×20 Detik',
+                'focus' => 'Running economy & neuromuscular efficiency',
+                'main_set' => '8 reps x 20 sec stride (~85% effort, langkah cepat dan ringan)',
+                'recovery' => 'Jalan santai 60-90 detik antar repetisi',
+                'intensity' => 'RPE 6-7 — cepat namun terkontrol, bukan sprint habis-habisan',
+                'best_for' => 'Membangun efisiensi lari (running economy) sejak awal program maraton — kritis untuk menghemat energi di jarak jauh',
+                'note' => 'Untuk pemula maraton: strides 20 detik aman bahkan dari minggu ke-1. Latihan ekonomi lari di awal program akan sangat membantu di km 30+.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength', 'Speed', 'Taper'],
+                'level_restriction' => ['beginner'],
+            ],
+            [
+                'id' => 'fm_hill_sprint_6x20sec',
+                'goal' => 'FULL_MARATHON',
+                'type' => 'hill',
+                'name' => 'Hill Sprint Pendek 6×20 Detik',
+                'focus' => 'Leg strength foundation untuk volume maraton',
+                'main_set' => '6 reps x 20 sec uphill (tanjakan 5-8%), drive lutut dan langkah pendek-cepat',
+                'recovery' => 'Jalan kembali ke bawah (~60 detik)',
+                'intensity' => 'RPE 7-8 — usaha keras namun durasi sangat pendek',
+                'best_for' => 'Membangun kekuatan kaki sejak awal program — fondasi untuk volume tinggi dan long run yang lebih jauh',
+                'note' => 'Pemula maraton sangat diuntungkan dari hill sprint di Base phase untuk mengurangi risiko breakdown di minggu-minggu volume tinggi.',
+                'difficulty_order' => 0,
+                'phase_preference' => ['Base', 'Strength'],
+                'level_restriction' => ['beginner'],
+            ],
+            // ─── STANDARD WORKOUTS ───
             [
                 'id' => 'fm_hill_6x90sec',
                 'goal' => 'FULL_MARATHON',
@@ -364,13 +492,23 @@ return [
             'volume_adjustment' => 0.65,
             'min_rest_days' => 3,
             'max_frequency' => 4,
-            'description' => 'Reduce quality workout volume by around 25 to 40 percent.',
+            // Base phase gets more weeks for connective tissue & aerobic adaptation
+            'base_phase_multiplier' => 1.7,  // ~70% more Base weeks than intermediate
+            'speed_phase_multiplier' => 0.55, // Less speed work, more gradual
+            // Quality session type in Base phase: only strides/hill_sprints (safe & effective)
+            'base_quality_type' => 'strides_and_hill_sprints',
+            'zone2_hr_guidance' => '60-70% max HR (dapat bicara kalimat penuh = talk test)',
+            'description' => 'Reduce quality workout volume by around 25-40%. Base phase uses strides & hill sprints (safe high-intensity for mitochondrial development).',
         ],
         'intermediate' => [
             'max_quality_sessions_per_week' => 1,
             'volume_adjustment' => 0.85,
             'min_rest_days' => 2,
             'max_frequency' => 5,
+            'base_phase_multiplier' => 1.0,
+            'speed_phase_multiplier' => 1.0,
+            'base_quality_type' => 'threshold_and_hill',
+            'zone2_hr_guidance' => '65-75% max HR',
             'description' => 'Use moderate workout volume and keep one quality workout per week.',
         ],
         'advanced' => [
@@ -378,14 +516,22 @@ return [
             'volume_adjustment' => 1.00,
             'min_rest_days' => 1,
             'max_frequency' => 7,
-            'description' => 'Use full workout volume if weekly mileage supports it.',
+            'base_phase_multiplier' => 0.85, // Shorter Base, more Speed/Race-specific
+            'speed_phase_multiplier' => 1.3,
+            'base_quality_type' => 'threshold_interval_hill',
+            'zone2_hr_guidance' => '70-80% max HR',
+            'description' => 'Use full workout volume if weekly mileage supports it. More Speed phase relative to Base.',
         ],
     ],
 
     'training_phase_rules' => [
         'base' => [
-            'preferred_types' => ['threshold', 'repetition', 'hill'],
-            'description' => 'Focus on easy running, light threshold, strides, hill repeats, and controlled speed.',
+            'preferred_types' => ['strides', 'hill', 'repetition', 'threshold'],
+            'beginner_preferred_types' => ['strides', 'hill'], // Strides & hill sprints first for beginners
+            'description' => 'Focus on aerobic base, Zone 2 easy runs, strides, and short hill sprints. '
+                . 'For beginners: strides (8×20s) and hill sprints (6×20s) provide safe high-intensity stimulus '
+                . 'that activates fast-twitch mitochondria (Type IIA) without excessive connective tissue stress. '
+                . 'Both Zone 2 AND short high-intensity work produce mitochondria via different pathways (fat oxidation vs AMPK/calcium).',
         ],
         'build' => [
             'preferred_types' => ['interval', 'threshold', 'progression', 'hill'],

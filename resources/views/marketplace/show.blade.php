@@ -263,6 +263,70 @@
                 </div>
             </div>
         </div>
+
+        <!-- Related Products Section -->
+        @if(isset($relatedProducts) && $relatedProducts->count() > 0)
+            <div class="mt-16 pt-10 border-t border-[#1F2D44]">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <span class="text-[10px] text-[#B8FF00] font-mono font-bold uppercase tracking-widest block mb-1">REKOMENDASI UNTUK ANDA</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tight uppercase">
+                            PRODUK <span class="text-[#B8FF00]">TERKAIT</span>
+                        </h2>
+                    </div>
+                    @if($product->category)
+                        <a href="{{ route('marketplace.index', ['category' => $product->category->slug]) }}" class="text-xs text-slate-400 hover:text-[#B8FF00] font-mono font-bold transition flex items-center gap-1 group">
+                            <span>LIHAT SEMUA</span>
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    @foreach($relatedProducts as $relProd)
+                        <div class="group bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl overflow-hidden hover:border-[#B8FF00]/50 transition duration-300 flex flex-col justify-between h-full relative">
+                            <div>
+                                <!-- Image -->
+                                <a href="{{ route('marketplace.show', $relProd->slug) }}" class="block overflow-hidden relative aspect-square bg-[#08111F]">
+                                    @if($relProd->primaryImage)
+                                        <img src="{{ asset('storage/' . $relProd->primaryImage->image_path) }}" alt="{{ $relProd->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-600">
+                                            <svg class="w-10 h-10 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        </div>
+                                    @endif
+                                    <div class="absolute top-2 left-2 flex flex-col gap-1 items-start z-10">
+                                        <span class="bg-[#08111F]/80 backdrop-blur border border-[#1F2D44] text-[10px] text-white font-bold px-2 py-0.5 rounded uppercase">
+                                            {{ $relProd->condition == 'new' ? 'Baru' : 'Bekas' }}
+                                        </span>
+                                    </div>
+                                </a>
+
+                                <!-- Body -->
+                                <div class="p-4">
+                                    <div class="text-[10px] text-[#B8FF00] font-bold uppercase tracking-wider mb-1 truncate">
+                                        {{ $relProd->brand ? $relProd->brand->name : ($relProd->category ? $relProd->category->name : 'Gear') }}
+                                    </div>
+                                    <h3 class="text-sm font-bold text-white mb-2 line-clamp-2 leading-snug hover:text-[#B8FF00] transition">
+                                        <a href="{{ route('marketplace.show', $relProd->slug) }}">{{ $relProd->title }}</a>
+                                    </h3>
+                                    <div class="text-base font-black text-[#B8FF00] font-mono mb-1">
+                                        Rp {{ number_format($relProd->price, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer CTA -->
+                            <div class="p-4 pt-0">
+                                <a href="{{ route('marketplace.show', $relProd->slug) }}" class="w-full py-2.5 rounded-xl bg-[#111F35] border border-[#1F2D44] text-white hover:bg-[#B8FF00] hover:text-[#08111F] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1">
+                                    <span>Lihat Detail</span>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 

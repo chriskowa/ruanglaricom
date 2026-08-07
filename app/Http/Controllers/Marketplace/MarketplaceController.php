@@ -142,11 +142,27 @@ class MarketplaceController extends Controller
         if ($isAuction) {
             $recentBids = $product->bids()->with('bidder')->latest()->take(10)->get();
         }
-        $relatedProducts = MarketplaceProduct::where('category_id', $product->category_id)
+        $relatedProducts = MarketplaceProduct::where('is_active', true)
             ->where('id', '!=', $product->id)
-            ->with('primaryImage')
+            ->where(function ($q) use ($product) {
+                $q->where('category_id', $product->category_id)
+                  ->orWhere('user_id', $product->user_id);
+            })
+            ->with(['category', 'primaryImage', 'seller.city', 'brand'])
+            ->latest()
             ->take(4)
             ->get();
+
+        if ($relatedProducts->count() < 4) {
+            $existingIds = $relatedProducts->pluck('id')->push($product->id);
+            $moreProducts = MarketplaceProduct::where('is_active', true)
+                ->whereNotIn('id', $existingIds)
+                ->with(['category', 'primaryImage', 'seller.city', 'brand'])
+                ->latest()
+                ->take(4 - $relatedProducts->count())
+                ->get();
+            $relatedProducts = $relatedProducts->concat($moreProducts);
+        }
 
         return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids', 'withSidebar', 'isAuction', 'currentBid', 'auctionRunning', 'auctionEnded', 'now'));
     }
