@@ -1114,7 +1114,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/cart/{cart}/remove', [App\Http\Controllers\CartController::class, 'remove']);
         Route::put('/cart/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
-        Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
 
         // Checkout routes (Program cart: wallet / Midtrans)
         Route::get('/checkout', [App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');

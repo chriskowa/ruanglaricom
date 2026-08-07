@@ -194,7 +194,7 @@
 
                         <!-- VDOT Score & Target Mingguan -->
                         <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="showVdotModal = true" title="Klik untuk update VDOT / PB">
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="openVdotModal()" title="Klik untuk update VDOT / PB">
                                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold flex items-center justify-center gap-1">
                                     <span>Skor VDOT</span>
                                     <i class="fa-solid fa-pen text-[10px] text-neon opacity-0 group-hover:opacity-100 transition-opacity"></i>
@@ -2252,8 +2252,9 @@ createApp({
 
         // ── Update VDOT & PB Modal State ──
         const showVdotModal = ref(false);
+        const runnerData = @json($enrollment->runner ?? null);
         const vdotForm = ref({
-            mode: 'cooper',
+            mode: 'pb',
             cooper_distance: '',
             balke_distance: '',
             pb_distance: '5k',
@@ -2263,6 +2264,52 @@ createApp({
         const vdotLoading = ref(false);
         const vdotError = ref('');
         const vdotSuccess = ref('');
+
+        const openVdotModal = () => {
+            vdotError.value = '';
+            vdotSuccess.value = '';
+
+            const curVdot = trainingProfile.vdot || @json($enrollment->current_vdot ?? '');
+            
+            let initialMode = 'pb';
+            if (runnerData && (runnerData.pb_5k || runnerData.pb_10k || runnerData.pb_hm || runnerData.pb_fm)) {
+                initialMode = 'pb';
+            } else if (curVdot) {
+                initialMode = 'direct';
+            } else if (runnerData && runnerData.pb_balke) {
+                initialMode = 'balke';
+            } else {
+                initialMode = 'cooper';
+            }
+
+            let initialPbDist = '5k';
+            let initialPbTime = '';
+            if (runnerData) {
+                if (runnerData.pb_5k) { initialPbDist = '5k'; initialPbTime = runnerData.pb_5k; }
+                else if (runnerData.pb_10k) { initialPbDist = '10k'; initialPbTime = runnerData.pb_10k; }
+                else if (runnerData.pb_hm) { initialPbDist = '21k'; initialPbTime = runnerData.pb_hm; }
+                else if (runnerData.pb_fm) { initialPbDist = '42k'; initialPbTime = runnerData.pb_fm; }
+            }
+
+            vdotForm.value = {
+                mode: initialMode,
+                cooper_distance: runnerData?.pb_balke ? String(runnerData.pb_balke) : '',
+                balke_distance: runnerData?.pb_balke ? String(runnerData.pb_balke) : '',
+                pb_distance: initialPbDist,
+                pb_time: initialPbTime,
+                vdot_score: curVdot ? String(Number(curVdot).toFixed(1)) : ''
+            };
+
+            showVdotModal.value = true;
+        };
+
+        watch(() => vdotForm.value.pb_distance, (newDist) => {
+            if (!runnerData) return;
+            if (newDist === '5k') vdotForm.value.pb_time = runnerData.pb_5k || '';
+            else if (newDist === '10k') vdotForm.value.pb_time = runnerData.pb_10k || '';
+            else if (newDist === '21k') vdotForm.value.pb_time = runnerData.pb_hm || '';
+            else if (newDist === '42k') vdotForm.value.pb_time = runnerData.pb_fm || '';
+        });
 
         const previewVdot = computed(() => {
             if (vdotForm.value.mode === 'cooper') {
@@ -2277,6 +2324,26 @@ createApp({
                 if (!isNaN(d) && d > 0) {
                     const v = ((d / 15) - 133) * 0.172 + 33.3;
                     return Math.max(10, Math.min(85, v)).toFixed(1);
+                }
+            } else if (vdotForm.value.mode === 'pb') {
+                const timeStr = vdotForm.value.pb_time;
+                const dist = vdotForm.value.pb_distance;
+                if (timeStr && timeStr.includes(':')) {
+                    const parts = timeStr.trim().split(':').map(Number);
+                    let sec = 0;
+                    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) sec = parts[0] * 60 + parts[1];
+                    else if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) sec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+                    
+                    let distMeters = 5000;
+                    if (dist === '10k') distMeters = 10000;
+                    else if (dist === '21k') distMeters = 21097;
+                    else if (dist === '42k') distMeters = 42195;
+
+                    if (sec > 0) {
+                        const v = (distMeters / (sec / 60)) / 0.99;
+                        const vdot = -4.6 + 0.182258 * v + 0.000104 * v * v;
+                        if (!isNaN(vdot)) return Math.max(10, Math.min(85, vdot)).toFixed(1);
+                    }
                 }
             } else if (vdotForm.value.mode === 'direct') {
                 const v = parseFloat(vdotForm.value.vdot_score);
@@ -4231,7 +4298,7 @@ createApp({
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             showPaceModal, paceLoading, paceForm, openPaceModal, updatePaces,
-            showVdotModal, vdotForm, vdotLoading, vdotError, vdotSuccess, previewVdot, submitUpdateVdot,
+            showVdotModal, openVdotModal, vdotForm, vdotLoading, vdotError, vdotSuccess, previewVdot, submitUpdateVdot,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             exportCalendar,
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
