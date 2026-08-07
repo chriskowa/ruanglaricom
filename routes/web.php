@@ -141,7 +141,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
 Route::get('/database-gpx/{masterGpx}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
-Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
+// Cart count routes (Publicly accessible for header badge, handles guest & auth gracefully)
+Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
+Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
 
 Route::get('/popups/active', [App\Http\Controllers\PopupRuntimeController::class, 'active'])->name('popups.active');
 Route::post('/popups/{popup}/track', [App\Http\Controllers\PopupRuntimeController::class, 'track'])->name('popups.track');
@@ -1127,8 +1129,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('program-orders.destroy');
     });
 
-    // Public Seller Store & Cart Count (placed after specific marketplace routes to prevent route collision)
-    Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
+    // Public Seller Store (placed after specific marketplace routes to prevent route collision)
     Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])
         ->where('username', '^(?!products$)[a-zA-Z0-9_\-\.]+$')
         ->name('marketplace.seller.store');
