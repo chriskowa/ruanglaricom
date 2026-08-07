@@ -70,7 +70,7 @@
                         </a>
                         <button id="btn-open-submit-gpx-modal" type="button" class="px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-xs font-black flex items-center gap-1.5 shadow-md shadow-neon/10">
                             <i class="fa-solid fa-cloud-arrow-up text-xs text-dark"></i>
-                            <span>Unggah GPX (+10 PTS)</span>
+                            <span>Submit GPX</span>
                         </button>
                         <a href="{{ route('calculator') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-calculator text-xs text-slate-400"></i>
@@ -108,17 +108,6 @@
                             <div>
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nama Rute</label>
                                 <input id="rl-route-name" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Contoh: Long Run Minggu Pagi">
-                            </div>
-
-                            <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Cari Lokasi</label>
-                                <div class="relative group">
-                                    <input id="rl-search-q" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Ketik kota / landmark...">
-                                    <button id="rl-search-btn" type="button" class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                    </button>
-                                </div>
-                                <div id="rl-search-results" class="mt-2 hidden"></div>
                             </div>
 
                             <div>
@@ -555,6 +544,20 @@
                         </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
+                        <!-- Floating Search Box Overlay (Top Center) -->
+                        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-[calc(100%-7.5rem)] max-w-md z-[500]">
+                            <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 flex items-center">
+                                <div class="pl-3 text-slate-400 text-xs">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                                <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-2.5 pr-8 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
+                                <button id="rl-search-btn" type="button" class="absolute right-2 p-1 text-slate-400 hover:text-white transition">
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+                            <div id="rl-search-results" class="mt-1.5 hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"></div>
+                        </div>
+
                         <!-- Marker Palette (Left) -->
                         <div class="absolute top-3 left-3 z-[500] flex flex-col gap-2">
                             <button id="rl-marker-palette-toggle" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Tambah Marker Rute">
@@ -998,6 +1001,21 @@
                 tap: false,
                 keyboard: false,
             }).setView([-6.200000, 106.816666], 12);
+
+            // Auto center to real user location on load via Geolocation API
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var userLat = pos.coords.latitude;
+                    var userLng = pos.coords.longitude;
+                    map.setView([userLat, userLng], 15);
+                }, function(err) {
+                    console.warn('GPS Geolocation warning:', err ? err.message : 'Denied/Failed');
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                });
+            }
 
             var mapboxToken = window.RL_MAPBOX_TOKEN;
             
@@ -1980,59 +1998,189 @@
                 });
             }
 
+            function loadGpxCoordinates(coordsArray, title) {
+                if (!coordsArray || !Array.isArray(coordsArray) || coordsArray.length === 0) {
+                    setStatus('Data koordinat rute tidak tersedia');
+                    return;
+                }
+                points = coordsArray.map(function(pt) {
+                    return {
+                        lat: pt[0],
+                        lng: pt[1],
+                        mode: 'direct',
+                        segment: [],
+                        iconType: ''
+                    };
+                });
+                if (els.name && title) els.name.value = title;
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateElevation();
+                if (points.length >= 2) fitRoute();
+                setStatus('Rute GPX Dimuat');
+                pushState();
+            }
+
             function showLoadModal() {
-                var items = getSaved();
-                openModal('Muat Rute', function (container) {
-                    if (items.length === 0) {
-                        var empty = document.createElement('div');
-                        empty.className = 'text-sm text-slate-400';
-                        empty.textContent = 'Belum ada rute tersimpan.';
-                        container.appendChild(empty);
-                        return;
+                openModal('Muat Rute Lari', function (container) {
+                    container.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold">
+                                <button type="button" id="tab-btn-db-gpx" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Database GPX</button>
+                                <button type="button" id="tab-btn-local-gpx" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Rute Tersimpan (Lokal)</button>
+                            </div>
+
+                            <div id="tab-panel-db-gpx" class="space-y-3">
+                                <div class="relative">
+                                    <input id="db-gpx-search-input" type="text" placeholder="Cari rute GPX komunitas / kota..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                                </div>
+                                <div id="db-gpx-list-container" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                    <div class="text-xs text-slate-500 text-center py-6">Memuat rute GPX publik...</div>
+                                </div>
+                            </div>
+
+                            <div id="tab-panel-local-gpx" class="hidden space-y-2 max-h-80 overflow-y-auto pr-1"></div>
+                        </div>
+                    `;
+
+                    const btnDbTab = container.querySelector('#tab-btn-db-gpx');
+                    const btnLocalTab = container.querySelector('#tab-btn-local-gpx');
+                    const panelDb = container.querySelector('#tab-panel-db-gpx');
+                    const panelLocal = container.querySelector('#tab-panel-local-gpx');
+                    const dbListContainer = container.querySelector('#db-gpx-list-container');
+                    const searchInput = container.querySelector('#db-gpx-search-input');
+
+                    function switchTab(activeTab) {
+                        if (activeTab === 'db') {
+                            btnDbTab.className = 'py-2 rounded-lg bg-slate-800 text-white font-bold shadow-sm';
+                            btnLocalTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition';
+                            panelDb.classList.remove('hidden');
+                            panelLocal.classList.add('hidden');
+                        } else {
+                            btnLocalTab.className = 'py-2 rounded-lg bg-slate-800 text-white font-bold shadow-sm';
+                            btnDbTab.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition';
+                            panelLocal.classList.remove('hidden');
+                            panelDb.classList.add('hidden');
+                        }
                     }
-                    var list = document.createElement('div');
-                    list.className = 'space-y-2';
-                    items.forEach(function (it) {
-                        var row = document.createElement('div');
-                        row.className = 'flex items-center justify-between gap-3 bg-slate-800/40 border border-slate-700 rounded-xl p-3';
-                        var left = document.createElement('div');
-                        left.className = 'min-w-0';
-                        var t = document.createElement('div');
-                        t.className = 'font-black text-white truncate';
-                        t.textContent = it.name || 'Untitled';
-                        var meta = document.createElement('div');
-                        meta.className = 'text-[11px] text-slate-500 font-bold';
-                        meta.textContent = (it.points ? it.points.length : 0) + ' titik • ' + (new Date(it.createdAt || Date.now())).toLocaleString('id-ID');
-                        left.appendChild(t);
-                        left.appendChild(meta);
 
-                        var actions = document.createElement('div');
-                        actions.className = 'flex items-center gap-2 shrink-0';
-                        var btnLoad = document.createElement('button');
-                        btnLoad.type = 'button';
-                        btnLoad.className = 'px-3 py-2 rounded-xl bg-neon text-dark font-black';
-                        btnLoad.textContent = 'Pakai';
-                        btnLoad.addEventListener('click', function () {
-                            loadEntry(it);
-                            closeModal();
-                        });
-                        var btnDel = document.createElement('button');
-                        btnDel.type = 'button';
-                        btnDel.className = 'px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-red-300 font-black hover:border-red-500/60 transition';
-                        btnDel.textContent = 'Hapus';
-                        btnDel.addEventListener('click', function () {
-                            var next = getSaved().filter(function (x) { return x.id !== it.id; });
-                            setSaved(next);
-                            showLoadModal();
-                        });
-                        actions.appendChild(btnLoad);
-                        actions.appendChild(btnDel);
+                    btnDbTab.addEventListener('click', () => switchTab('db'));
+                    btnLocalTab.addEventListener('click', () => switchTab('local'));
 
-                        row.appendChild(left);
-                        row.appendChild(actions);
-                        list.appendChild(row);
-                    });
-                    container.appendChild(list);
+                    // Render Local Saved Routes
+                    const items = getSaved();
+                    if (items.length === 0) {
+                        panelLocal.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Belum ada rute tersimpan di browser Anda.</div>';
+                    } else {
+                        items.forEach(function (it) {
+                            const row = document.createElement('div');
+                            row.className = 'flex items-center justify-between gap-3 bg-slate-900/60 border border-slate-800 rounded-xl p-3';
+                            row.innerHTML = `
+                                <div class="min-w-0">
+                                    <div class="font-bold text-white text-xs truncate">${it.name || 'Untitled'}</div>
+                                    <div class="text-[10px] text-slate-500">${(it.points ? it.points.length : 0)} titik • ${new Date(it.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" class="btn-use-local px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition">Pakai</button>
+                                    <button type="button" class="btn-del-local p-1.5 rounded-lg bg-slate-800 text-red-400 hover:bg-slate-700 text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            `;
+                            row.querySelector('.btn-use-local').addEventListener('click', function () {
+                                loadEntry(it);
+                                closeModal();
+                            });
+                            row.querySelector('.btn-del-local').addEventListener('click', function () {
+                                setSaved(getSaved().filter(x => x.id !== it.id));
+                                showLoadModal();
+                            });
+                            panelLocal.appendChild(row);
+                        });
+                    }
+
+                    // Fetch Database GPX Routes
+                    function fetchDatabaseGpx(query = '') {
+                        dbListContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-6"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Memuat rute...</div>';
+                        fetch('{{ route("gpx.published.json") }}?q=' + encodeURIComponent(query))
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success && data.items && data.items.length > 0) {
+                                    dbListContainer.innerHTML = '';
+                                    data.items.forEach(function(item) {
+                                        const card = document.createElement('div');
+                                        card.className = 'flex items-center justify-between gap-3 bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl p-3 transition';
+                                        
+                                        const distStr = item.distance_km ? item.distance_km.toFixed(2) + ' km' : '-';
+                                        const elevStr = item.elevation_gain_m !== null ? '+' + item.elevation_gain_m + 'm' : '';
+
+                                        card.innerHTML = `
+                                            <div class="min-w-0">
+                                                <div class="font-bold text-white text-xs truncate">${item.title}</div>
+                                                <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                                    <span class="text-slate-300 font-semibold">${item.city}</span>
+                                                    <span>•</span>
+                                                    <span class="text-neon font-mono">${distStr} ${elevStr}</span>
+                                                    <span>•</span>
+                                                    <span class="text-slate-500">${item.uploader}</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn-use-db-gpx px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition whitespace-nowrap shrink-0">Pakai Rute</button>
+                                        `;
+
+                                        card.querySelector('.btn-use-db-gpx').addEventListener('click', function() {
+                                            if (item.coordinates_json && item.coordinates_json.length > 0) {
+                                                loadGpxCoordinates(item.coordinates_json, item.title);
+                                                closeModal();
+                                            } else if (item.gpx_url) {
+                                                fetch(item.gpx_url)
+                                                    .then(res => res.text())
+                                                    .then(xmlText => {
+                                                        const parser = new DOMParser();
+                                                        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                                                        let trkpts = xmlDoc.getElementsByTagName('trkpt');
+                                                        if (trkpts.length === 0) trkpts = xmlDoc.getElementsByTagName('rtept');
+                                                        const coords = [];
+                                                        for (let i = 0; i < trkpts.length; i++) {
+                                                            const lat = parseFloat(trkpts[i].getAttribute('lat'));
+                                                            const lon = parseFloat(trkpts[i].getAttribute('lon'));
+                                                            if (!isNaN(lat) && !isNaN(lon)) coords.push([lat, lon]);
+                                                        }
+                                                        loadGpxCoordinates(coords, item.title);
+                                                        closeModal();
+                                                    })
+                                                    .catch(err => {
+                                                        console.error(err);
+                                                        alert('Gagal membaca file GPX.');
+                                                    });
+                                            }
+                                        });
+
+                                        dbListContainer.appendChild(card);
+                                    });
+                                } else {
+                                    dbListContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Tidak ada rute GPX publik yang ditemukan.</div>';
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                dbListContainer.innerHTML = '<div class="text-xs text-rose-400 text-center py-6">Gagal memuat rute dari database.</div>';
+                            });
+                    }
+
+                    // Default to Database GPX tab
+                    switchTab('db');
+                    fetchDatabaseGpx();
+
+                    // Search input handler
+                    let searchTimeout;
+                    if (searchInput) {
+                        searchInput.addEventListener('input', function(e) {
+                            clearTimeout(searchTimeout);
+                            searchTimeout = setTimeout(() => {
+                                fetchDatabaseGpx(e.target.value.trim());
+                            }, 300);
+                        });
+                    }
                 });
             }
 

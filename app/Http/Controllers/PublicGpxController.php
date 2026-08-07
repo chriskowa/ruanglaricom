@@ -102,6 +102,39 @@ class PublicGpxController extends Controller
         ]);
     }
 
+    public function publishedJson(Request $request)
+    {
+        $query = MasterGpx::query()
+            ->with('user:id,name')
+            ->where('is_published', true);
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->orderByDesc('created_at')->limit(50)->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'city' => $item->city ?? 'Indonesia',
+                'distance_km' => $item->distance_km ? (float) $item->distance_km : null,
+                'elevation_gain_m' => $item->elevation_gain_m,
+                'uploader' => $item->user?->name ?? 'RuangLari',
+                'coordinates_json' => $item->coordinates_json,
+                'gpx_url' => $item->gpx_path ? Storage::disk('public')->url($item->gpx_path) : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'items' => $items,
+        ]);
+    }
+
     public function download(MasterGpx $masterGpx)
     {
         if (! $masterGpx->is_published && (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $masterGpx->user_id))) {
