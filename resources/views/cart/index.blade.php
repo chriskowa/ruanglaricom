@@ -45,11 +45,11 @@
                                 <div class="w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-[#1F2D44] bg-[#08111F] flex items-center justify-center p-2">
                                     @if($isProduct && $item->product && $item->product->primaryImage)
                                         <img src="{{ asset('storage/' . $item->product->primaryImage->image_path) }}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-500">
-                                    @elseif(!$isProduct && $item->program && $item->program->thumbnail_url)
-                                        <img src="{{ $item->program->thumbnail_url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    @elseif(!$isProduct && $item->program)
+                                        <img src="{{ $item->program->image_url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center text-slate-600">
-                                            <svg class="w-8 h-8 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            <svg class="w-8 h-8 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                         </div>
                                     @endif
                                 </div>

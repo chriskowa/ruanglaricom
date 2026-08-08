@@ -143,7 +143,7 @@ class Program extends Model
      */
     public function getImageUrlAttribute(): string
     {
-        return $this->thumbnail_url ?? asset('images/product/1.jpg');
+        return $this->thumbnail_url ?? $this->banner_url ?? asset('images/product/program lari ruang lari.webp');
     }
 
     /**

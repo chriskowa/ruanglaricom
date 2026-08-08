@@ -95,7 +95,7 @@
                                 <div class="group bg-slate-900/50 backdrop-blur-sm border border-slate-800 hover:border-neon/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col hover:shadow-xl hover:shadow-neon/5">
                                     <!-- Image -->
                                     <div class="relative h-48 overflow-hidden">
-                                        <img src="{{ $program->image_url ?? 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=400&q=80' }}" alt="{{ $program->title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                                        <img src="{{ $program->image_url ?? asset('images/product/program lari ruang lari.webp') }}" alt="{{ $program->title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
                                         
                                         <!-- Badges -->

@@ -273,15 +273,7 @@
                         <a href="{{ route('programs.show', $prog->slug) }}" class="block">
                             <!-- Cover Image -->
                             <div class="relative aspect-video w-full bg-slate-900 overflow-hidden">
-                                @if($prog->thumbnail)
-                                    <img src="{{ $prog->thumbnail_url }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                @elseif($prog->banner)
-                                    <img src="{{ $prog->banner_url }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center text-slate-700">
-                                        <i class="fas fa-running text-3xl"></i>
-                                    </div>
-                                @endif
+                                <img src="{{ $prog->image_url }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 <span class="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider
                                     @if(($prog->difficulty ?? 'beginner') === 'beginner') bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
                                     @elseif(($prog->difficulty ?? 'beginner') === 'intermediate') bg-amber-500/10 text-amber-400 border border-amber-500/20

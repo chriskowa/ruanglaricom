@@ -174,7 +174,7 @@
                     
                     <!-- Image -->
                     <div class="relative h-48 overflow-hidden">
-                        <img :src="program.image_url || 'https://source.unsplash.com/random/400x300/?running'" :alt="program.title" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
+                        <img :src="program.image_url || '{{ asset('images/product/program lari ruang lari.webp') }}'" :alt="program.title" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
                         
                         <!-- Badges -->
@@ -228,7 +228,7 @@
                                     @{{ formatPrice(program.price) }}
                                 </p>
                             </div>
-                            <a :href="'{{ url('/programs') }}/' + program.slug" class="px-4 py-2 bg-white text-dark font-bold rounded-lg hover:bg-neon transition-colors text-sm">
+                            <a :href="'/programs/' + program.slug" class="px-4 py-2 bg-white text-dark font-bold rounded-lg hover:bg-neon transition-colors text-sm">
                                 View Details
                             </a>
                         </div>
@@ -557,7 +557,7 @@
             "@@type": "Product",
             "name": {!! json_encode($prog->title) !!},
             "description": {!! json_encode(Str::limit(strip_tags($prog->description), 150)) !!},
-            "image": "{{ $prog->image_url ?? asset('images/ruanglari.png') }}",
+            "image": "{{ $prog->image_url ?? asset('images/product/program lari ruang lari.webp') }}",
             "offers": {
               "@@type": "Offer",
               "price": "{{ $prog->price }}",

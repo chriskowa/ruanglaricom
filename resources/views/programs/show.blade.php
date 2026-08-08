@@ -5,7 +5,7 @@
 @section('title'){{ $seoTitle }}@endsection
 @section('meta_title'){{ $seoTitle }}@endsection
 @section('meta_description'){{ $seoDesc }}@endsection
-@section('og_image'){{ $program->image_url ?? $program->banner_url ?? asset('images/ruanglari-cover.jpg') }}@endsection
+@section('og_image'){{ $program->image_url ?? $program->banner_url ?? asset('images/product/program lari ruang lari.webp') }}@endsection
 
 @push('styles')
 <script>
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
       "@@id": "{{ url('/programs/' . $program->slug) }}#product",
       "name": {!! json_encode($seoTitle) !!},
       "description": {!! json_encode(Str::limit(strip_tags($program->description), 200)) !!},
-      "image": "{{ $program->image_url ?? $program->banner_url ?? asset('images/ruanglari.png') }}",
+      "image": "{{ $program->image_url ?? $program->banner_url ?? asset('images/product/program lari ruang lari.webp') }}",
       "category": "Sports",
       "brand": {
         "@@type": "Brand",
