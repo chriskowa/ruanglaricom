@@ -543,18 +543,39 @@
                         </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
-                        <!-- Floating Search Box Overlay (Top Center) -->
-                        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-[calc(100%-7.5rem)] max-w-md z-[500]">
-                            <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 flex items-center">
-                                <div class="pl-3 text-slate-400 text-xs">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
+                        <!-- Floating Controls Overlay (Search Box + Floating Distance Summary) -->
+                        <div class="absolute top-3 left-14 right-16 z-[500] flex items-center justify-center gap-2 pointer-events-none">
+                            <!-- Floating Search Box -->
+                            <div class="pointer-events-auto flex-1 max-w-xs sm:max-w-sm">
+                                <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 flex items-center">
+                                    <div class="pl-3 text-slate-400 text-xs">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </div>
+                                    <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-2 pr-7 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
+                                    <button id="rl-search-btn" type="button" class="absolute right-2 p-1 text-slate-400 hover:text-white transition">
+                                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                                    </button>
                                 </div>
-                                <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-3 pr-8 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
-                                <button id="rl-search-btn" type="button" class="absolute right-2 p-1 text-slate-400 hover:text-white transition">
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
+                                <div id="rl-search-results" class="mt-1.5 hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"></div>
                             </div>
-                            <div id="rl-search-results" class="mt-1.5 hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"></div>
+
+                            <!-- Floating Distance Summary Badge (Right of Search Box) -->
+                            <div id="rl-floating-summary-badge" class="pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 py-1.5 flex items-center gap-2.5 shrink-0 text-xs">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-route text-neon text-xs"></i>
+                                    <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-400 font-bold">KM</span></span>
+                                </div>
+                                <div class="h-3 w-px bg-slate-700/80 hidden sm:block"></div>
+                                <div class="hidden sm:flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
+                                    <span id="rl-floating-time" class="font-bold text-slate-200">00:00:00</span>
+                                </div>
+                                <div class="h-3 w-px bg-slate-700/80 hidden md:block"></div>
+                                <div class="hidden md:flex items-center gap-1.5">
+                                    <i class="fa-solid fa-mountain text-slate-400 text-xs"></i>
+                                    <span id="rl-floating-elev" class="font-bold text-slate-300">+0m</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Marker Palette (Left) -->
@@ -757,6 +778,9 @@
                 estTime: document.getElementById('rl-est-time'),
                 distanceKmCompact: document.getElementById('rl-distance-km-compact'),
                 estTimeCompact: document.getElementById('rl-est-time-compact'),
+                floatingDist: document.getElementById('rl-floating-dist'),
+                floatingTime: document.getElementById('rl-floating-time'),
+                floatingElev: document.getElementById('rl-floating-elev'),
                 pointsCount: document.getElementById('rl-points-count'),
                 avgSeg: document.getElementById('rl-avg-seg'),
                 undo: document.getElementById('rl-undo'),
@@ -1570,6 +1594,8 @@
                 
                 if (els.distanceKmCompact) els.distanceKmCompact.textContent = fmt2(dist);
                 if (els.estTimeCompact) els.estTimeCompact.textContent = fmtHMS(est);
+                if (els.floatingDist) els.floatingDist.textContent = fmt2(dist);
+                if (els.floatingTime) els.floatingTime.textContent = fmtHMS(est);
 
                 // Start time & Finish time validation
                 if (els.startTime) {
@@ -2601,6 +2627,7 @@
                     els.elevSub.textContent = 'Buat rute dulu untuk lihat grafik.';
                     els.elevMeta.textContent = '';
                     els.elevSvg.innerHTML = '';
+                    if (els.floatingElev) els.floatingElev.textContent = '+0m';
                     if (elevationHoverMarker) {
                         map.removeLayer(elevationHoverMarker);
                         elevationHoverMarker = null;
@@ -2712,8 +2739,18 @@
                     els.elevMeta.textContent = '';
                     els.elevSvg.innerHTML = '';
                     els.elevSub.textContent = 'Tidak ada data elevasi.';
+                    if (els.floatingElev) els.floatingElev.textContent = '+0m';
                     return;
                 }
+
+                var elevGain = 0;
+                for (var g = 1; g < elevM.length; g++) {
+                    if (typeof elevM[g] === 'number' && typeof elevM[g-1] === 'number') {
+                        var diff = elevM[g] - elevM[g-1];
+                        if (diff > 0) elevGain += diff;
+                    }
+                }
+                if (els.floatingElev) els.floatingElev.textContent = '+' + Math.round(elevGain) + 'm';
 
                 var pad = 18;
                 var w = 1000;
