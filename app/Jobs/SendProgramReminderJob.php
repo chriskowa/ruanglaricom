@@ -150,10 +150,13 @@ class SendProgramReminderJob implements ShouldQueue
         } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
             $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : ($paces['threshold'] ?? null);
             return $tPace ? '~' . $this->formatMinPerKm($tPace) . ' /km (Tempo/Threshold)' : 'Zona threshold terkontrol';
-        } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
-            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
+        } elseif (in_array($type, ['repetition', 'speed', 'repeats'])) {
             $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : ($paces['repetition'] ?? null);
-            return $iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval)' : ($rPace ? '~' . $this->formatMinPerKm($rPace) . ' /km (Repetition)' : 'Interval Pace maksimal');
+            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
+            return $rPace ? '~' . $this->formatMinPerKm($rPace) . ' /km (Repetition Pace)' : ($iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace)' : 'Repetition Pace (Kecepatan Neuromuskular)');
+        } elseif (in_array($type, ['interval', 'vo2max'])) {
+            $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
+            return $iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace)' : 'Interval Pace VO2max';
         } elseif (in_array($type, ['long_run', 'long'])) {
             $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : ($paces['marathon'] ?? null);
             $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : ($paces['easy'] ?? null);

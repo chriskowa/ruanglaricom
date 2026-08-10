@@ -2683,7 +2683,7 @@ class AthleteController extends Controller
                 $targetPaceVal = $tPace ? "~{$tPace} /km (Tempo/Threshold)" : 'Zona threshold terkontrol';
             } elseif (in_array($type, ['repetition', 'speed', 'repeats']) || ($type === 'interval' && $isShortRep)) {
                 $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : (isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null);
-                $targetPaceVal = $rPace ? "~{$rPace} /km (Repetition Pace 100m-400m)" : 'Repetition Pace maksimal';
+                $targetPaceVal = $rPace ? "~{$rPace} /km (Repetition Pace 100m-400m)" : 'Repetition Pace (Kecepatan Neuromuskular)';
             } elseif (in_array($type, ['interval', 'vo2max'])) {
                 $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null;
                 $targetPaceVal = $iPace ? "~{$iPace} /km (Interval Pace 800m-1000m)" : 'Interval Pace VO2max';

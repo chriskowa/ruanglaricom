@@ -2176,10 +2176,13 @@ createApp({
                     } else if (['tempo', 'threshold', 'tempo_run'].some(k => type.includes(k))) {
                         const tPace = paces.T ? formatPace(paces.T) : null;
                         paceGuidance = tPace ? `~${tPace} /km (Tempo/Threshold)` : `Zona threshold terkontrol`;
-                    } else if (['interval', 'speed', 'repetition', 'vo2max'].some(k => type.includes(k))) {
+                    } else if (['repetition', 'speed', 'repeats'].some(k => type.includes(k))) {
+                        const rPace = paces.R ? formatPace(paces.R) : (paces.repetition ? formatPace(paces.repetition) : null);
                         const iPace = paces.I ? formatPace(paces.I) : null;
-                        const rPace = paces.R ? formatPace(paces.R) : null;
-                        paceGuidance = iPace ? `~${iPace} /km (Interval)` : (rPace ? `~${rPace} /km (Repetition)` : `Interval Pace maksimal`);
+                        paceGuidance = rPace ? `~${rPace} /km (Repetition Pace)` : (iPace ? `~${iPace} /km (Interval)` : `Repetition Pace (Kecepatan Neuromuskular)`);
+                    } else if (['interval', 'vo2max'].some(k => type.includes(k))) {
+                        const iPace = paces.I ? formatPace(paces.I) : null;
+                        paceGuidance = iPace ? `~${iPace} /km (Interval)` : `Interval Pace VO2max`;
                     } else if (['long_run', 'long'].some(k => type.includes(k))) {
                         const mPace = paces.M ? formatPace(paces.M) : null;
                         const ePace = paces.E ? formatPace(paces.E) : null;
