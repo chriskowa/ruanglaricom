@@ -2670,7 +2670,7 @@ class AthleteController extends Controller
 
             $isShortRep = ($distNum > 0 && $distNum <= 0.45) || (bool)preg_match('/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i', $descLower);
 
-            if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
+            if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run']) && !$isShortRep) {
                 if (!empty($paces['E_high']) && !empty($paces['E_low'])) {
                     $targetPaceVal = $this->formatMinPerKm($paces['E_high']) . ' - ' . $this->formatMinPerKm($paces['E_low']) . ' /km (Easy Pace)';
                 } elseif (isset($paces['E'])) {

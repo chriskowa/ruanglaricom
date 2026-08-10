@@ -138,7 +138,11 @@ class SendProgramReminderJob implements ShouldQueue
         $type = strtolower($sessionData['type'] ?? $sessionData['title'] ?? '');
         $paces = $profileData['paces'] ?? [];
 
-        if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
+        $descLower = strtolower(($sessionData['description'] ?? '') . ' ' . ($sessionData['notes'] ?? '') . ' ' . ($sessionData['title'] ?? '') . ' ' . ($sessionData['session_name'] ?? ''));
+        $distNum = !empty($sessionData['distance']) ? (float)$sessionData['distance'] : 0;
+        $isShortRep = ($distNum > 0 && $distNum <= 0.45) || (bool)preg_match('/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i', $descLower);
+
+        if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run']) && !$isShortRep) {
             if (!empty($paces['E_high']) && !empty($paces['E_low'])) {
                 return $this->formatMinPerKm($paces['E_high']) . ' - ' . $this->formatMinPerKm($paces['E_low']) . ' /km (Easy Pace)';
             } elseif (isset($paces['E'])) {
@@ -150,13 +154,13 @@ class SendProgramReminderJob implements ShouldQueue
         } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
             $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : ($paces['threshold'] ?? null);
             return $tPace ? '~' . $this->formatMinPerKm($tPace) . ' /km (Tempo/Threshold)' : 'Zona threshold terkontrol';
-        } elseif (in_array($type, ['repetition', 'speed', 'repeats'])) {
+        } elseif (in_array($type, ['repetition', 'speed', 'repeats']) || $isShortRep) {
             $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : ($paces['repetition'] ?? null);
             $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
-            return $rPace ? '~' . $this->formatMinPerKm($rPace) . ' /km (Repetition Pace)' : ($iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace)' : 'Repetition Pace (Kecepatan Neuromuskular)');
+            return $rPace ? '~' . $this->formatMinPerKm($rPace) . ' /km (Repetition Pace VDOT)' : ($iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace)' : 'Repetition Pace (Kecepatan Neuromuskular)');
         } elseif (in_array($type, ['interval', 'vo2max'])) {
             $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : ($paces['interval'] ?? null);
-            return $iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace)' : 'Interval Pace VO2max';
+            return $iPace ? '~' . $this->formatMinPerKm($iPace) . ' /km (Interval Pace VDOT)' : 'Interval Pace VO2max';
         } elseif (in_array($type, ['long_run', 'long'])) {
             $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : ($paces['marathon'] ?? null);
             $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : ($paces['easy'] ?? null);

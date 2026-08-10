@@ -2165,7 +2165,13 @@ createApp({
                 reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Istirahat total dan jaga pemulihan fisik dengan baik agar siap menyambut sesi berikutnya.`;
             } else {
                 if (!paceGuidance) {
-                    if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k))) {
+                    const combinedText = ((workoutTitle || '') + ' ' + (notes || '') + ' ' + (form.description || '')).toLowerCase();
+                    const distNum = distanceVal ? parseFloat(distanceVal) : 0;
+                    const isRepetition = ['repetition', 'speed', 'repeats'].some(k => type.includes(k)) ||
+                                         (distNum > 0 && distNum <= 0.45) ||
+                                         /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combinedText);
+
+                    if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k)) && !isRepetition) {
                         if (paces.E_high && paces.E_low) {
                             paceGuidance = `${formatPace(paces.E_high)} - ${formatPace(paces.E_low)} /km (Easy Pace)`;
                         } else if (paces.E) {
@@ -2176,13 +2182,13 @@ createApp({
                     } else if (['tempo', 'threshold', 'tempo_run'].some(k => type.includes(k))) {
                         const tPace = paces.T ? formatPace(paces.T) : null;
                         paceGuidance = tPace ? `~${tPace} /km (Tempo/Threshold)` : `Zona threshold terkontrol`;
-                    } else if (['repetition', 'speed', 'repeats'].some(k => type.includes(k))) {
+                    } else if (isRepetition) {
                         const rPace = paces.R ? formatPace(paces.R) : (paces.repetition ? formatPace(paces.repetition) : null);
                         const iPace = paces.I ? formatPace(paces.I) : null;
-                        paceGuidance = rPace ? `~${rPace} /km (Repetition Pace)` : (iPace ? `~${iPace} /km (Interval)` : `Repetition Pace (Kecepatan Neuromuskular)`);
+                        paceGuidance = rPace ? `~${rPace} /km (Repetition Pace VDOT)` : (iPace ? `~${iPace} /km (Interval)` : `Repetition Pace (Kecepatan Neuromuskular)`);
                     } else if (['interval', 'vo2max'].some(k => type.includes(k))) {
                         const iPace = paces.I ? formatPace(paces.I) : null;
-                        paceGuidance = iPace ? `~${iPace} /km (Interval)` : `Interval Pace VO2max`;
+                        paceGuidance = iPace ? `~${iPace} /km (Interval Pace VDOT)` : `Interval Pace VO2max`;
                     } else if (['long_run', 'long'].some(k => type.includes(k))) {
                         const mPace = paces.M ? formatPace(paces.M) : null;
                         const ePace = paces.E ? formatPace(paces.E) : null;
