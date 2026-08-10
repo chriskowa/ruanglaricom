@@ -544,9 +544,9 @@
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
                         <!-- Floating Top Controls Bar (Unified Search + Marker Pin + Stats Badge) -->
-                        <div class="absolute top-3 left-3 right-16 z-[500] flex items-center justify-start gap-2 pointer-events-none">
+                        <div class="absolute top-3 left-3 right-16 z-[500] flex flex-col sm:flex-row items-start sm:items-center justify-start gap-2 pointer-events-none">
                             <!-- Unified Search + Marker Pill -->
-                            <div class="pointer-events-auto relative flex-1 max-w-xs sm:max-w-sm">
+                            <div class="pointer-events-auto relative w-full sm:w-auto sm:flex-1 max-w-xs sm:max-w-sm">
                                 <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 h-10 flex items-center gap-1.5">
                                     <!-- Marker Pin Toggle Button -->
                                     <button id="rl-marker-palette-toggle" type="button" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-neon transition flex items-center justify-center shrink-0 shadow-sm" title="Tambah Marker Rute">
@@ -593,8 +593,8 @@
                                 <div id="rl-search-results" class="mt-1.5 hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"></div>
                             </div>
 
-                            <!-- Floating Distance Stats Badge -->
-                            <div id="rl-floating-summary-badge" class="pointer-events-auto h-10 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 flex items-center gap-2 shrink-0 text-xs">
+                            <!-- Floating Distance Stats Badge (Stacked below on mobile, side-by-side on desktop) -->
+                            <div id="rl-floating-summary-badge" class="pointer-events-auto h-9 sm:h-10 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 flex items-center gap-2 shrink-0 text-xs">
                                 <div class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-route text-neon text-xs"></i>
                                     <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-400 font-bold">KM</span></span>
@@ -1704,9 +1704,25 @@
             });
 
             function fitRoute() {
-                if (routePoints.length < 2) return;
-                if (typeof routeLayer !== 'undefined' && routeLayer.getLayers().length > 0) {
-                    map.fitBounds(routeLayer.getBounds().pad(0.18));
+                if (!map) return;
+                try {
+                    map.invalidateSize();
+                    if (typeof routeLayer !== 'undefined' && routeLayer.getLayers().length > 0) {
+                        var bounds = routeLayer.getBounds();
+                        if (bounds && bounds.isValid()) {
+                            map.fitBounds(bounds.pad(0.18));
+                            return;
+                        }
+                    }
+                    if (points && points.length >= 2) {
+                        var latlngs = points.map(function(p) { return [p.lat, p.lng]; });
+                        var b = L.latLngBounds(latlngs);
+                        if (b && b.isValid()) {
+                            map.fitBounds(b.pad(0.18));
+                        }
+                    }
+                } catch (e) {
+                    console.warn('fitRoute failed:', e);
                 }
             }
 
@@ -2401,13 +2417,23 @@
                             updateStats();
                             updateElevation();
                             setStatus('Rute dari link');
+                            map.invalidateSize();
                             fitRoute();
-                            setTimeout(function () {
+                            
+                            requestAnimationFrame(function() {
+                                map.invalidateSize();
                                 fitRoute();
-                            }, 250);
+                            });
+                            
                             setTimeout(function () {
+                                map.invalidateSize();
                                 fitRoute();
-                            }, 600);
+                            }, 300);
+                            
+                            setTimeout(function () {
+                                map.invalidateSize();
+                                fitRoute();
+                            }, 800);
                             pushState();
                         });
                     }
