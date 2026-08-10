@@ -272,17 +272,20 @@ class AthleteController extends Controller
 
             $events[] = [
                 'id' => "session_{$index}",
-                'title' => $titlePrefix.($session['type'] ?? 'Run'),
+                'title' => $titlePrefix.($session['title'] ?? $session['session_name'] ?? ucfirst(str_replace('_', ' ', $session['type'] ?? 'Run'))),
                 'start' => $sessionDate->format('Y-m-d'),
                 'backgroundColor' => $backgroundColor,
                 'borderColor' => $borderColor,
                 'textColor' => '#FFFFFF', // Ensure text is white
                 'extendedProps' => [
                     'session_day' => $session['day'],
-                    'type' => $session['type'],
+                    'type' => $session['type'] ?? 'run',
                     'distance' => $session['distance'] ?? null,
+                    'duration' => $session['duration'] ?? null,
                     'description' => $session['description'] ?? null,
+                    'notes' => $session['notes'] ?? null,
                     'status' => $status,
+                    'workout_structure' => $session['workout_structure'] ?? $session['structure_json'] ?? $session['structure'] ?? null,
                     'tracking' => $tracking, // Contains feedback, rating, rpe, feeling
                 ],
             ];
@@ -2662,6 +2665,11 @@ class AthleteController extends Controller
 
         $targetPaceVal = $sessionData['target_pace'] ?? $sessionData['pace'] ?? '';
         if (empty($targetPaceVal)) {
+            $distNum = !empty($distanceVal) ? (float)$distanceVal : 0;
+            $descLower = strtolower(($sessionData['description'] ?? '') . ' ' . ($sessionData['notes'] ?? '') . ' ' . ($sessionData['title'] ?? ''));
+
+            $isShortRep = ($distNum > 0 && $distNum <= 0.45) || (bool)preg_match('/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i', $descLower);
+
             if (in_array($type, ['easy_run', 'easy', 'recovery', 'recovery_run', 'run'])) {
                 if (!empty($paces['E_high']) && !empty($paces['E_low'])) {
                     $targetPaceVal = $this->formatMinPerKm($paces['E_high']) . ' - ' . $this->formatMinPerKm($paces['E_low']) . ' /km (Easy Pace)';
@@ -2673,10 +2681,12 @@ class AthleteController extends Controller
             } elseif (in_array($type, ['tempo', 'threshold', 'tempo_run'])) {
                 $tPace = isset($paces['T']) ? $this->formatMinPerKm($paces['T']) : null;
                 $targetPaceVal = $tPace ? "~{$tPace} /km (Tempo/Threshold)" : 'Zona threshold terkontrol';
-            } elseif (in_array($type, ['interval', 'speed', 'repetition', 'vo2max'])) {
+            } elseif (in_array($type, ['repetition', 'speed', 'repeats']) || ($type === 'interval' && $isShortRep)) {
+                $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : (isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null);
+                $targetPaceVal = $rPace ? "~{$rPace} /km (Repetition Pace 100m-400m)" : 'Repetition Pace maksimal';
+            } elseif (in_array($type, ['interval', 'vo2max'])) {
                 $iPace = isset($paces['I']) ? $this->formatMinPerKm($paces['I']) : null;
-                $rPace = isset($paces['R']) ? $this->formatMinPerKm($paces['R']) : null;
-                $targetPaceVal = $iPace ? "~{$iPace} /km (Interval)" : ($rPace ? "~{$rPace} /km (Repetition)" : 'Interval Pace maksimal');
+                $targetPaceVal = $iPace ? "~{$iPace} /km (Interval Pace 800m-1000m)" : 'Interval Pace VO2max';
             } elseif (in_array($type, ['long_run', 'long'])) {
                 $mPace = isset($paces['M']) ? $this->formatMinPerKm($paces['M']) : null;
                 $ePace = isset($paces['E']) ? $this->formatMinPerKm($paces['E']) : null;

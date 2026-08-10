@@ -234,16 +234,23 @@
                                     <span>Programs</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="{{ route('challenge.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('challenge.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-trophy"></i></span>
-                                    <span>Leaderboard 40days</span>
-                                </a>
-                            </li>
+                           
                             <li>
                                 <a href="{{ route('runner.analysis-requests.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.analysis-requests.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-person-running"></i></span>
                                     <span>Analisis Lari</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('runner.gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.gpx.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt text-neon"></i></span>
+                                    <span>My GPX</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('marketplace.wishlist.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.wishlist.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-heart text-rose-500"></i></span>
+                                    <span>Wishlist Saya</span>
                                 </a>
                             </li>
                         @elseif(auth()->user()->isEventOrganizer())
@@ -436,12 +443,7 @@
                                 <span>Marketplace</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="{{ route('challenge.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('challenge.index') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-trophy"></i></span>
-                                <span>Leaderboard 40days</span>
-                            </a>
-                        </li>
+                        
                     </ul>
                 </li>
             @endauth

@@ -140,7 +140,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Public GPX Database & Submit GPX Modal
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
-Route::get('/database-gpx/{masterGpx}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
+Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
+Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
 Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
 
 // Cart count routes (Publicly accessible for header badge, handles guest & auth gracefully)
@@ -1067,6 +1068,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/reschedule-program', [CalendarController::class, 'rescheduleProgram'])->name('calendar.reschedule-program');
         Route::post('/calendar/adaptive-reschedule/preview', [CalendarController::class, 'previewAdaptiveReschedule'])->name('calendar.adaptive-reschedule.preview');
         Route::post('/calendar/adaptive-reschedule/apply', [CalendarController::class, 'applyAdaptiveReschedule'])->name('calendar.adaptive-reschedule.apply');
+
+        // My GPX Management (Runner)
+        Route::get('/gpx', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->name('gpx.index');
+        Route::get('/gpx/{masterGpx}/edit', [App\Http\Controllers\PublicGpxController::class, 'editMyGpx'])->name('gpx.edit');
+        Route::put('/gpx/{masterGpx}', [App\Http\Controllers\PublicGpxController::class, 'updateMyGpx'])->name('gpx.update');
+        Route::delete('/gpx/{masterGpx}', [App\Http\Controllers\PublicGpxController::class, 'destroyMyGpx'])->name('gpx.destroy');
         Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
 
         // Program purchase & enrollment

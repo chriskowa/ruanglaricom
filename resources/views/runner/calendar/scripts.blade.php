@@ -1937,18 +1937,19 @@ const runnerCalendarApp = createApp({
 
             const combined = ((title || '') + ' ' + (description || '')).toLowerCase();
 
-            // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m, 800m)
+            // Logic override: If Interval (I) and matches short repetition distance (100m, 200m, 300m, 400m <= 0.45km)
             if (key === 'I') {
-                let isShort = false;
-                if (distance && parseFloat(distance) <= 0.805) {
-                    isShort = true;
-                } else if (/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i.test(combined)) {
-                    isShort = true;
-                } else if (/\b0\.[1-8]\s*km\b/i.test(combined)) {
-                    isShort = true;
+                let isShortRep = false;
+                const distNum = distance ? parseFloat(distance) : null;
+                if (distNum && distNum > 0 && distNum <= 0.45) {
+                    isShortRep = true;
+                } else if (/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combined)) {
+                    isShortRep = true;
+                } else if (/\b0\.[1-4]\s*km\b/i.test(combined)) {
+                    isShortRep = true;
                 }
 
-                if (isShort) {
+                if (isShortRep) {
                     key = 'R';
                 }
             }
@@ -2097,8 +2098,11 @@ const runnerCalendarApp = createApp({
 
         const guidedSteps = computed(() => {
             const steps = [];
-            if (detail.workout_structure && Array.isArray(detail.workout_structure) && detail.workout_structure.length > 0) {
-                detail.workout_structure.forEach((s, idx) => {
+            const ws = detail.workout_structure;
+
+            // 1. Array of steps
+            if (ws && Array.isArray(ws) && ws.length > 0) {
+                ws.forEach((s, idx) => {
                     const meta = stepBadgeMeta(s.type);
                     const valueText = (s.value !== null && s.value !== undefined && String(s.value) !== '')
                         ? `${s.value} ${s.unit || ''}`.trim()
@@ -2117,6 +2121,106 @@ const runnerCalendarApp = createApp({
                 return steps;
             }
 
+            // 2. Advanced JSON object structure (warmup, main/interval/tempo, cooldown)
+            const adv = (ws && typeof ws === 'object' && ws.advanced) ? ws.advanced : (ws && typeof ws === 'object' && !Array.isArray(ws) ? ws : null);
+            if (adv) {
+                if (adv.warmup && adv.warmup.enabled) {
+                    const val = adv.warmup.by === 'distance' ? `${adv.warmup.distance || 0} ${adv.warmup.unit || 'km'}` : (adv.warmup.duration || '');
+                    steps.push({
+                        id: 'adv:warmup',
+                        title: 'Warm Up',
+                        subtitle: adv.warmup.pace ? `Pace @${adv.warmup.pace}` : null,
+                        valueText: val,
+                        paceText: adv.warmup.pace || null,
+                        badge: 'WARM UP',
+                        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                    });
+                }
+
+                if (adv.type === 'interval' || adv.type === 'repetition') {
+                    const badgeTitle = adv.type === 'repetition' ? 'REPETITION' : 'INTERVAL';
+                    const badgeStyle = adv.type === 'repetition' ? 'bg-pink-500/20 text-pink-300 border-pink-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+                    if (adv.interval?.sets && adv.interval.sets.length > 0) {
+                        adv.interval.sets.forEach((st, idx) => {
+                            const val = st.by === 'distance' ? `${st.reps}x ${st.dist || 0} ${st.unit || 'km'}` : `${st.reps}x ${st.time || ''}`;
+                            steps.push({
+                                id: `adv:interval:${idx}`,
+                                title: `${badgeTitle} Set ${idx + 1}`,
+                                subtitle: st.recovery ? `Recovery: ${st.recovery}` : null,
+                                valueText: val,
+                                paceText: st.pace || null,
+                                badge: badgeTitle,
+                                badgeClass: badgeStyle,
+                            });
+                        });
+                    } else if (adv.interval) {
+                        const val = adv.interval.by === 'distance'
+                            ? `${adv.interval.reps}x ${adv.interval.repDistance || 0} ${adv.interval.repDistanceUnit || 'km'}`
+                            : `${adv.interval.reps}x ${adv.interval.repTime || ''}`;
+                        steps.push({
+                            id: 'adv:interval',
+                            title: `${badgeTitle} Work`,
+                            subtitle: adv.interval.recovery ? `Recovery: ${adv.interval.recovery}` : null,
+                            valueText: val,
+                            paceText: adv.interval.pace || null,
+                            badge: badgeTitle,
+                            badgeClass: badgeStyle,
+                        });
+                    }
+                } else if (adv.type === 'tempo' && adv.tempo) {
+                    const val = adv.tempo.by === 'distance' ? `${adv.tempo.distance || 0} ${adv.tempo.unit || 'km'}` : (adv.tempo.duration || '');
+                    steps.push({
+                        id: 'adv:tempo',
+                        title: 'Tempo Effort',
+                        subtitle: adv.tempo.effort ? `Effort: ${adv.tempo.effort}` : null,
+                        valueText: val,
+                        paceText: adv.tempo.pace || null,
+                        badge: 'TEMPO',
+                        badgeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+                    });
+                } else if (adv.type === 'long_run' && adv.main) {
+                    const val = adv.main.by === 'distance' ? `${adv.main.distance || 0} ${adv.main.unit || 'km'}` : (adv.main.duration || '');
+                    steps.push({
+                        id: 'adv:long_run',
+                        title: 'Long Run',
+                        subtitle: adv.longRun?.fastFinish?.enabled ? `+ Fast Finish: ${adv.longRun.fastFinish.distance || 0}${adv.longRun.fastFinish.unit || 'km'}` : null,
+                        valueText: val,
+                        paceText: adv.main.pace || null,
+                        badge: 'LONG RUN',
+                        badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+                    });
+                } else if (adv.main) {
+                    const val = adv.main.by === 'distance' ? `${adv.main.distance || 0} ${adv.main.unit || 'km'}` : (adv.main.duration || '');
+                    steps.push({
+                        id: 'adv:main',
+                        title: 'Main Work',
+                        subtitle: null,
+                        valueText: val,
+                        paceText: adv.main.pace || null,
+                        badge: 'MAIN',
+                        badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                    });
+                }
+
+                if (adv.cooldown && adv.cooldown.enabled) {
+                    const val = adv.cooldown.by === 'distance' ? `${adv.cooldown.distance || 0} ${adv.cooldown.unit || 'km'}` : (adv.cooldown.duration || '');
+                    steps.push({
+                        id: 'adv:cooldown',
+                        title: 'Cool Down',
+                        subtitle: adv.cooldown.pace ? `Pace @${adv.cooldown.pace}` : null,
+                        valueText: val,
+                        paceText: adv.cooldown.pace || null,
+                        badge: 'COOL DOWN',
+                        badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                    });
+                }
+
+                if (steps.length > 0) {
+                    return steps;
+                }
+            }
+
+            // 3. Fallback to lines in description
             const lines = String(detail.description || '').split('\n').map(normalizeTextLine).filter(Boolean);
             lines.slice(0, 12).forEach((line, idx) => {
                 steps.push({
@@ -2322,6 +2426,7 @@ const runnerCalendarApp = createApp({
                 detail.session_day = s.day;
                 detail.target_pace = props.target_pace || null;
                 detail.strength = s.strength || null;
+                detail.workout_structure = s.workout_structure || s.structure_json || s.structure || props.workout_structure || null;
                 detail.source = 'program';
                 
                 if (['strength', 'rest', 'rest_day', 'yoga', 'cycling'].includes(String(detail.type || '').toLowerCase())) {

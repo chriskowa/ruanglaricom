@@ -102,6 +102,67 @@ class PublicGpxController extends Controller
         ]);
     }
 
+    public function show($identifier)
+    {
+        $item = MasterGpx::query()
+            ->with(['user', 'event'])
+            ->where(function ($q) use ($identifier) {
+                if (is_numeric($identifier)) {
+                    $q->where('id', $identifier)->orWhere('slug', $identifier);
+                } else {
+                    $q->where('slug', $identifier);
+                }
+            })
+            ->firstOrFail();
+
+        if (! $item->is_published && (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $item->user_id))) {
+            abort(404);
+        }
+
+        // Auto-generate slug if missing
+        if (empty($item->slug)) {
+            $item->slug = MasterGpx::generateUniqueSlug($item->title, $item->id);
+            $item->save();
+        }
+
+        // Auto-parse coordinates_json from GPX file if missing
+        if (empty($item->coordinates_json) && $item->gpx_path && Storage::disk('public')->exists($item->gpx_path)) {
+            $parsedCoords = $this->parseGpxCoordinates(Storage::disk('public')->path($item->gpx_path));
+            if (! empty($parsedCoords)) {
+                $item->coordinates_json = $parsedCoords;
+                $item->save();
+            }
+        }
+
+        // Related GPX routes in the same city or general
+        $related = MasterGpx::query()
+            ->where('is_published', true)
+            ->where('id', '!=', $item->id)
+            ->where(function ($q) use ($item) {
+                if ($item->city) {
+                    $q->where('city', $item->city);
+                }
+            })
+            ->limit(4)
+            ->get();
+
+        if ($related->count() < 4) {
+            $existingIds = $related->pluck('id')->push($item->id);
+            $fallback = MasterGpx::query()
+                ->where('is_published', true)
+                ->whereNotIn('id', $existingIds)
+                ->orderByDesc('created_at')
+                ->limit(4 - $related->count())
+                ->get();
+            $related = $related->concat($fallback);
+        }
+
+        return view('gpx.show', [
+            'item' => $item,
+            'related' => $related,
+        ]);
+    }
+
     public function publishedJson(Request $request)
     {
         $query = MasterGpx::query()
@@ -120,12 +181,14 @@ class PublicGpxController extends Controller
             return [
                 'id' => $item->id,
                 'title' => $item->title,
+                'slug' => $item->slug ?: $item->id,
                 'city' => $item->city ?? 'Indonesia',
                 'distance_km' => $item->distance_km ? (float) $item->distance_km : null,
                 'elevation_gain_m' => $item->elevation_gain_m,
                 'uploader' => $item->user?->name ?? 'RuangLari',
                 'coordinates_json' => $item->coordinates_json,
                 'gpx_url' => $item->gpx_path ? Storage::disk('public')->url($item->gpx_path) : null,
+                'detail_url' => route('gpx.show', $item->slug ?: $item->id),
             ];
         });
 
@@ -135,8 +198,12 @@ class PublicGpxController extends Controller
         ]);
     }
 
-    public function download(MasterGpx $masterGpx)
+    public function download($identifier)
     {
+        $masterGpx = MasterGpx::where('id', $identifier)
+            ->orWhere('slug', $identifier)
+            ->firstOrFail();
+
         if (! $masterGpx->is_published && (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $masterGpx->user_id))) {
             abort(404);
         }
@@ -163,6 +230,7 @@ class PublicGpxController extends Controller
             'title' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'gpx_file' => 'required|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
+            'description' => 'nullable|string|max:5000',
             'notes' => 'nullable|string|max:3000',
             'client_distance_km' => 'nullable|numeric',
             'client_elevation_gain' => 'nullable|numeric',
@@ -190,6 +258,7 @@ class PublicGpxController extends Controller
             'user_id' => $user->id,
             'title' => $request->input('title'),
             'city' => $request->input('city'),
+            'description' => $request->input('description') ?? $request->input('notes'),
             'gpx_path' => $path,
             'distance_km' => $distanceKm,
             'elevation_gain_m' => $gainM,
@@ -302,5 +371,122 @@ class PublicGpxController extends Controller
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $R * $c;
+    }
+
+    private function parseGpxCoordinates(string $absolutePath): array
+    {
+        $xml = @simplexml_load_file($absolutePath);
+        if (! $xml) {
+            return [];
+        }
+
+        $trkpts = $xml->xpath('//*[local-name()="trkpt"]');
+        if (! $trkpts || count($trkpts) < 2) {
+            $trkpts = $xml->xpath('//*[local-name()="rtept"]');
+        }
+        if (! $trkpts) {
+            return [];
+        }
+
+        $coords = [];
+        $totalPts = count($trkpts);
+        $step = $totalPts > 2000 ? (int) ceil($totalPts / 2000) : 1;
+
+        for ($i = 0; $i < $totalPts; $i += $step) {
+            $pt = $trkpts[$i];
+            $lat = isset($pt['lat']) ? (float) $pt['lat'] : null;
+            $lon = isset($pt['lon']) ? (float) $pt['lon'] : (isset($pt['lng']) ? (float) $pt['lng'] : null);
+
+            if (is_finite($lat) && is_finite($lon)) {
+                $coords[] = ['lat' => $lat, 'lng' => $lon];
+            }
+        }
+
+        return $coords;
+    }
+
+    /**
+     * Display list of GPX routes uploaded by the logged-in runner
+     */
+    public function myGpx(Request $request)
+    {
+        $query = MasterGpx::query()
+            ->where('user_id', auth()->id())
+            ->orderByDesc('created_at');
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        $items = $query->paginate(15)->withQueryString();
+
+        return view('runner.gpx.index', [
+            'withSidebar' => true,
+            'items' => $items,
+            'search' => $request->input('q'),
+        ]);
+    }
+
+    /**
+     * Edit form for runner's own GPX route
+     */
+    public function editMyGpx(MasterGpx $masterGpx)
+    {
+        if ((int) $masterGpx->user_id !== (int) auth()->id()) {
+            abort(403, 'Anda tidak memiliki akses untuk mengedit rute GPX ini.');
+        }
+
+        return view('runner.gpx.edit', [
+            'withSidebar' => true,
+            'item' => $masterGpx,
+        ]);
+    }
+
+    /**
+     * Update runner's own GPX route
+     */
+    public function updateMyGpx(Request $request, MasterGpx $masterGpx)
+    {
+        if ((int) $masterGpx->user_id !== (int) auth()->id()) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah rute GPX ini.');
+        }
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:5000',
+            'notes' => 'nullable|string|max:3000',
+        ]);
+
+        $masterGpx->update([
+            'title' => $data['title'],
+            'city' => $data['city'] ?? null,
+            'description' => $data['description'] ?? null,
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        return redirect()->route('runner.gpx.index')->with('success', 'Rute GPX berhasil diperbarui.');
+    }
+
+    /**
+     * Delete runner's own GPX route
+     */
+    public function destroyMyGpx(MasterGpx $masterGpx)
+    {
+        if ((int) $masterGpx->user_id !== (int) auth()->id()) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus rute GPX ini.');
+        }
+
+        if ($masterGpx->gpx_path) {
+            Storage::disk('public')->delete($masterGpx->gpx_path);
+        }
+
+        $masterGpx->delete();
+
+        return redirect()->route('runner.gpx.index')->with('success', 'Rute GPX berhasil dihapus.');
     }
 }

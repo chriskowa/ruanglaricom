@@ -1002,7 +1002,8 @@
                                     <select v-model="form.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
                                         <option value="run">Run</option>
                                         <option value="easy_run">Easy Run</option>
-                                        <option value="interval">Interval</option>
+                                        <option value="interval">Interval (600m - 1600m)</option>
+                                        <option value="repetition">Repetition (100m - 400m)</option>
                                         <option value="tempo">Tempo</option>
                                         <option value="yoga">Yoga</option>
                                         <option value="cycling">Cycling</option>
@@ -2526,6 +2527,8 @@ createApp({
                 let config = null;
                 if (form.workout_structure && form.workout_structure.advanced) {
                     config = form.workout_structure.advanced;
+                } else if (form.workout_structure && typeof form.workout_structure === 'object' && !Array.isArray(form.workout_structure) && form.workout_structure.type) {
+                    config = form.workout_structure;
                 }
                 
                 if (config) {
@@ -2667,12 +2670,9 @@ createApp({
                 if (session.extendedProps.is_custom) {
                     form.workout_id = session.extendedProps.id;
                     form.workout_structure = session.extendedProps.workout_structure || [];
-                    
-                    // Auto-open builder for editing
-                    openBuilder(true);
                 } else {
                     form.workout_id = '';
-                    form.workout_structure = [];
+                    form.workout_structure = session.extendedProps.workout_structure || [];
                 }
                 
                 form.workout_date = session.startStr.split('T')[0];

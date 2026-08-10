@@ -61,8 +61,13 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan</label>
-                    <textarea name="notes" rows="4" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Optional">{{ old('notes') }}</textarea>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Deskripsi Rute (SEO Detail)</label>
+                    <textarea name="description" rows="4" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Jelaskan detail medan rute, pemandangan, rintangan, water station, dll.">{{ old('description') }}</textarea>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan Internal / Tips</label>
+                    <textarea name="notes" rows="3" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Optional">{{ old('notes') }}</textarea>
                 </div>
 
                 <div class="pt-2 flex items-center justify-end">

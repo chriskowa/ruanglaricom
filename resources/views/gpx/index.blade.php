@@ -1,6 +1,8 @@
 @extends('layouts.pacerhub')
 
 @section('title', 'Database Rute GPX - Ruang Lari')
+@section('meta_description', 'Direktori & database rute GPX lari terlengkap di Indonesia. Temukan rute lari di Jakarta, Bandung, Surabaya, Bali, dan kota lainnya. Unduh gratis file GPX untuk Garmin, Coros, Suunto, & Strava.')
+@section('meta_keywords', 'database gpx, rute gpx lari, download file gpx, rute lari jakarta, gpx garmin, gpx coros, gpx strava, gpx running indonesia')
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
@@ -158,7 +160,7 @@
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div>
                                     <h3 class="font-bold text-white text-base group-hover:text-neon transition-colors line-clamp-1">
-                                        {{ $item->title }}
+                                        <a href="{{ route('gpx.show', $item->slug ?: $item->id) }}">{{ $item->title }}</a>
                                     </h3>
                                     <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
                                         <i class="fa-solid fa-location-dot text-slate-500 text-[11px]"></i>
@@ -216,10 +218,16 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('gpx.download', $item) }}" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-download text-slate-400 text-xs"></i>
-                                <span>Unduh</span>
-                            </a>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <a href="{{ route('gpx.show', $item->slug ?: $item->id) }}" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-circle-info text-slate-400 text-xs"></i>
+                                    <span>Detail</span>
+                                </a>
+                                <a href="{{ route('gpx.download', $item) }}" class="px-2.5 py-1.5 rounded-xl bg-neon/10 hover:bg-neon border border-neon/30 text-neon hover:text-dark font-bold text-xs transition-all flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-download text-xs"></i>
+                                    <span>Unduh</span>
+                                </a>
+                            </div>
                         </div>
 
                     </div>

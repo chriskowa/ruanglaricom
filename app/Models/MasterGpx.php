@@ -13,7 +13,9 @@ class MasterGpx extends Model
         'event_id',
         'user_id',
         'title',
+        'slug',
         'city',
+        'description',
         'gpx_path',
         'distance_km',
         'elevation_gain_m',
@@ -22,6 +24,39 @@ class MasterGpx extends Model
         'is_published',
         'notes',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($model) {
+            if (empty($model->slug)) {
+                $model->slug = static::generateUniqueSlug($model->title);
+            }
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('title') && empty($model->slug)) {
+                $model->slug = static::generateUniqueSlug($model->title, $model->id);
+            }
+        });
+    }
+
+    public static function generateUniqueSlug(string $title, ?int $ignoreId = null): string
+    {
+        $slug = \Illuminate\Support\Str::slug($title);
+        if (empty($slug)) {
+            $slug = 'rute-gpx-' . time();
+        }
+
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (static::where('slug', $slug)->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))->exists()) {
+            $slug = "{$originalSlug}-{$count}";
+            $count++;
+        }
+
+        return $slug;
+    }
 
     protected function casts(): array
     {

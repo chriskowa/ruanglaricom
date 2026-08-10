@@ -13,7 +13,8 @@ window.RLBuilderUtils = (function() {
   const normalizeType = (raw) => {
     const t = (raw || '').toString().toLowerCase().replace(/\s+/g, '_');
     if (t === 'run' || t === 'recovery' || t === 'easy') return 'easy_run';
-    if (t === 'speed' || t === 'repetition' || t === 'intervals') return 'interval';
+    if (t === 'repetition' || t === 'repeats') return 'repetition';
+    if (t === 'speed' || t === 'intervals') return 'interval';
     if (t === 'threshold' || t === 'tempo_run') return 'tempo';
     if (t === 'long') return 'long_run';
     if (t === 'time_trial' || t === 'timetrial' || t === 'tt') return 'time_trial';
@@ -31,7 +32,7 @@ window.RLBuilderUtils = (function() {
         parts.push(`WU: ${bf.warmup.duration}${bf.warmup.pace ? ` @${bf.warmup.pace}` : ''}`);
       }
     }
-    if (bf.type === 'interval') {
+    if (bf.type === 'interval' || bf.type === 'repetition') {
       if (bf.interval.sets && bf.interval.sets.length > 0) {
         const setDescs = bf.interval.sets.map(s => {
           if (s.by === 'distance') {
@@ -136,7 +137,7 @@ window.RLBuilderUtils = (function() {
     } else if (bf.type === 'time_trial') {
       if (bf.timeTrial?.by === 'distance') total += getVal(bf.timeTrial, 'distance', 'unit');
       else addByTime(bf.timeTrial.duration, bf.timeTrial.pace);
-    } else if (bf.type === 'interval') {
+    } else if (bf.type === 'interval' || bf.type === 'repetition') {
       if (bf.interval.sets && bf.interval.sets.length > 0) {
         bf.interval.sets.forEach(set => {
           if (set.by === 'distance') {

@@ -452,6 +452,70 @@
                     </div>
                 </div>
 
+                <!-- Wishlist Produk Saya Section -->
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
+                        <div class="min-w-0">
+                            <div class="text-xs font-mono text-rose-400 uppercase tracking-widest">Wishlist</div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1 flex items-center gap-2">
+                                    <i class="fas fa-heart text-rose-500 text-lg"></i>
+                                    <span>Wishlist Produk Saya</span>
+                                </h2>
+                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="shrink-0" @click.stop>
+                            <a href="{{ route('marketplace.wishlist.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold text-xs transition">
+                                Lihat Semua Wishlist &rarr;
+                            </a>
+                        </div>
+                    </div>
+
+                    <div x-show="!collapsed" x-transition class="mt-5">
+                        @if(isset($wishlistedProducts) && $wishlistedProducts->count() > 0)
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                @foreach($wishlistedProducts->take(4) as $wl)
+                                    @if($wl->product)
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between h-full group hover:border-slate-700 transition">
+                                            <div>
+                                                <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-slate-950 rounded-xl overflow-hidden mb-3">
+                                                    @if($wl->product->primaryImage)
+                                                        <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                                    @else
+                                                        <div class="w-full h-full flex items-center justify-center text-slate-700">📷</div>
+                                                    @endif
+                                                </a>
+                                                <div class="text-[10px] text-neon font-black uppercase tracking-wider truncate mb-0.5">{{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}</div>
+                                                <h4 class="text-xs font-bold text-white truncate mb-1">
+                                                    <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="hover:text-neon transition">{{ $wl->product->title }}</a>
+                                                </h4>
+                                                <div class="text-xs font-black text-white font-mono mb-3">
+                                                    Rp {{ number_format($wl->product->price, 0, ',', '.') }}
+                                                </div>
+                                            </div>
+                                            <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="w-full py-1.5 bg-slate-800 text-slate-200 hover:bg-neon hover:text-dark text-[11px] font-bold rounded-lg text-center transition">
+                                                Lihat Produk
+                                            </a>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 text-center">
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Belum ada produk perlengkapan lari yang Anda simpan di Wishlist.
+                                </p>
+                                <a href="{{ route('marketplace.index') }}" class="mt-3 inline-block px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
+                                    Cari Perlengkapan Lari
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>

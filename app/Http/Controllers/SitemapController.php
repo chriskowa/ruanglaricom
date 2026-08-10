@@ -20,6 +20,7 @@ class SitemapController extends Controller
             ['loc' => route('challenge.index'), 'priority' => '0.7', 'changefreq' => 'daily'],
             ['loc' => route('vcard.index'), 'priority' => '0.6', 'changefreq' => 'weekly'],
             ['loc' => route('eo.landing'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+            ['loc' => route('gpx.index'), 'priority' => '0.9', 'changefreq' => 'daily'],
         ];
 
         // 2. Events (Published)
@@ -112,6 +113,18 @@ class SitemapController extends Controller
                     'lastmod' => $pacer->updated_at->toIso8601String(),
                     'priority' => '0.6',
                     'changefreq' => 'monthly',
+                ];
+            }
+        });
+
+        // 6. Master GPX Database Routes (Published)
+        \App\Models\MasterGpx::where('is_published', true)->chunk(100, function ($gpxes) use (&$urls) {
+            foreach ($gpxes as $gpx) {
+                $urls[] = [
+                    'loc' => route('gpx.show', $gpx->slug ?: $gpx->id),
+                    'lastmod' => $gpx->updated_at ? $gpx->updated_at->toIso8601String() : now()->toIso8601String(),
+                    'priority' => '0.8',
+                    'changefreq' => 'weekly',
                 ];
             }
         });
