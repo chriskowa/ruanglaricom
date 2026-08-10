@@ -57,9 +57,13 @@
             
             <!-- Left Column: Interactive Image Gallery (5 cols) -->
             <div class="lg:col-span-5 space-y-4">
-                <div class="aspect-square bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl overflow-hidden relative group shadow-2xl flex items-center justify-center p-4">
+                <div class="aspect-square bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl overflow-hidden relative group shadow-2xl flex items-center justify-center p-4 cursor-pointer" onclick="openLightbox(currentImageIndex)">
                     @if($product->primaryImage)
-                        <img id="mainProductImage" src="{{ asset('storage/' . $product->primaryImage->image_path) }}" alt="{{ $product->title }}" class="max-h-full max-w-full object-contain transition duration-300">
+                        <img id="mainProductImage" src="{{ asset('storage/' . $product->primaryImage->image_path) }}" alt="{{ $product->title }}" class="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105">
+                        <div class="absolute bottom-3 right-3 bg-[#08111F]/80 backdrop-blur border border-slate-700/60 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity shadow-lg">
+                            <i class="fa-solid fa-expand text-xs text-[#B8FF00]"></i>
+                            <span class="text-[10px] uppercase font-mono tracking-wider">Perbesar</span>
+                        </div>
                     @else
                         <div class="w-full h-full flex flex-col items-center justify-center text-slate-600">
                             <svg class="w-16 h-16 mb-2 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -67,7 +71,7 @@
                         </div>
                     @endif
 
-                    <div class="absolute top-4 left-4 flex flex-col gap-2">
+                    <div class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
                         <span class="bg-dark/80 backdrop-blur border border-slate-700/60 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
                             {{ $product->condition == 'new' ? 'BARU' : 'BEKAS' }}
                         </span>
@@ -341,12 +345,59 @@
     </div>
 </div>
 
+<!-- Lightbox Modal Component -->
+<div id="product-lightbox" class="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black/92 backdrop-blur-md p-4 hidden select-none" onclick="if(event.target===this) closeLightbox();">
+    <!-- Top Header -->
+    <div class="w-full max-w-6xl flex items-center justify-between z-10 py-2">
+        <div class="flex items-center gap-3">
+            <span id="lightbox-counter" class="text-xs font-mono font-bold text-slate-300 bg-slate-900/90 px-3 py-1 rounded-full border border-slate-800">1 / 1</span>
+            <span class="text-xs text-slate-400 font-medium truncate max-w-[200px] md:max-w-md hidden sm:inline">{{ $product->title }}</span>
+        </div>
+        <button type="button" onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xl font-bold transition hover:bg-slate-800 cursor-pointer">
+            &times;
+        </button>
+    </div>
+
+    <!-- Main Image Display Container -->
+    <div class="relative flex-1 w-full max-w-5xl flex items-center justify-center my-auto overflow-hidden p-2">
+        <!-- Prev Button -->
+        <button type="button" id="lightbox-prev" onclick="prevLightboxImage()" class="absolute left-2 md:left-4 z-20 w-11 h-11 rounded-full bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 flex items-center justify-center transition active:scale-95 shadow-2xl cursor-pointer">
+            <i class="fa-solid fa-chevron-left text-sm"></i>
+        </button>
+
+        <img id="lightbox-image" src="" alt="{{ $product->title }}" class="max-h-[78vh] max-w-full object-contain transition-all duration-300 rounded-2xl shadow-2xl">
+
+        <!-- Next Button -->
+        <button type="button" id="lightbox-next" onclick="nextLightboxImage()" class="absolute right-2 md:right-4 z-20 w-11 h-11 rounded-full bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 flex items-center justify-center transition active:scale-95 shadow-2xl cursor-pointer">
+            <i class="fa-solid fa-chevron-right text-sm"></i>
+        </button>
+    </div>
+
+    <!-- Bottom Thumbnails -->
+    <div id="lightbox-thumbnails" class="flex items-center justify-center gap-2 py-2 overflow-x-auto max-w-full z-10"></div>
+</div>
+
 @include('marketplace.partials.share-modal')
 
 <script>
+    const productImages = [
+        @if($product->images && $product->images->count() > 0)
+            @foreach($product->images as $img)
+                "{{ asset('storage/' . $img->image_path) }}",
+            @endforeach
+        @elseif($product->primaryImage)
+            "{{ asset('storage/' . $product->primaryImage->image_path) }}",
+        @endif
+    ];
+
+    let currentImageIndex = 0;
+
     function switchProductImage(src, btn) {
         var mainImg = document.getElementById('mainProductImage');
         if (mainImg) mainImg.src = src;
+        
+        var idx = productImages.indexOf(src);
+        if (idx !== -1) currentImageIndex = idx;
         
         var btns = document.querySelectorAll('.thumb-btn');
         btns.forEach(function(b) {
@@ -358,6 +409,80 @@
             btn.classList.add('border-[#B8FF00]');
         }
     }
+
+    function openLightbox(index) {
+        if (!productImages.length) return;
+        if (typeof index === 'number' && index >= 0 && index < productImages.length) {
+            currentImageIndex = index;
+        }
+        updateLightbox();
+        const modal = document.getElementById('product-lightbox');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeLightbox() {
+        const modal = document.getElementById('product-lightbox');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function updateLightbox() {
+        if (!productImages.length) return;
+        if (currentImageIndex < 0) currentImageIndex = 0;
+        if (currentImageIndex >= productImages.length) currentImageIndex = productImages.length - 1;
+
+        const imgEl = document.getElementById('lightbox-image');
+        const counterEl = document.getElementById('lightbox-counter');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
+        const thumbsContainer = document.getElementById('lightbox-thumbnails');
+
+        if (imgEl) imgEl.src = productImages[currentImageIndex];
+        if (counterEl) counterEl.textContent = `${currentImageIndex + 1} / ${productImages.length}`;
+
+        if (prevBtn) prevBtn.style.display = productImages.length > 1 ? 'flex' : 'none';
+        if (nextBtn) nextBtn.style.display = productImages.length > 1 ? 'flex' : 'none';
+
+        if (thumbsContainer) {
+            thumbsContainer.innerHTML = '';
+            if (productImages.length > 1) {
+                productImages.forEach((src, idx) => {
+                    const thumb = document.createElement('button');
+                    thumb.type = 'button';
+                    thumb.className = `w-12 h-12 rounded-xl overflow-hidden border-2 transition p-0.5 cursor-pointer ${idx === currentImageIndex ? 'border-[#B8FF00] scale-105' : 'border-slate-800 opacity-60 hover:opacity-100'}`;
+                    thumb.onclick = () => { currentImageIndex = idx; updateLightbox(); };
+                    thumb.innerHTML = `<img src="${src}" class="w-full h-full object-cover rounded-lg">`;
+                    thumbsContainer.appendChild(thumb);
+                });
+            }
+        }
+    }
+
+    function prevLightboxImage() {
+        if (productImages.length <= 1) return;
+        currentImageIndex = (currentImageIndex - 1 + productImages.length) % productImages.length;
+        updateLightbox();
+    }
+
+    function nextLightboxImage() {
+        if (productImages.length <= 1) return;
+        currentImageIndex = (currentImageIndex + 1) % productImages.length;
+        updateLightbox();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('product-lightbox');
+        if (modal && !modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightboxImage();
+            if (e.key === 'ArrowRight') nextLightboxImage();
+        }
+    });
 
     async function toggleWishlist(productId, btn) {
         @guest
