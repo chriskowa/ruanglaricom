@@ -297,9 +297,9 @@
                                     <span class="text-[10px] text-[#94A3B8] block mt-1">Masukkan total jarak lari yang dicapai dalam waktu tes.</span>
                                 </div>
                                 
-                                <button type="button" id="btn-vdot-calculate" class="w-full py-3 rounded-xl bg-[#B8FF00] hover:bg-[#CDFF4D] border border-[#B8FF00] text-[#0A1A0A] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#B8FF00]/20">
-                                    <svg class="w-4 h-4 text-[#0A1A0A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                    <span>Hitung VDOT & Target Pace</span>
+                                <button type="button" id="btn-vdot-calculate" class="w-full py-3 rounded-xl bg-[#B8FF00] hover:bg-[#CDFF4D] border border-[#B8FF00] text-black font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#B8FF00]/20">
+                                    <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span class="text-black font-black">Hitung VDOT & Target Pace</span>
                                 </button>
                             </div>
                             

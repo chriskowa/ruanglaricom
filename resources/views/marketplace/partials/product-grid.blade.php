@@ -39,10 +39,15 @@
                     @endif
                 </div>
 
-                <!-- Quick Wishlist Button Top Right -->
-                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" class="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center transition-transform active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-400 hover:text-white' }}" title="Wishlist">
-                    <svg class="w-4 h-4 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                </button>
+                <!-- Quick Action Buttons Top Right (Share & Wishlist) -->
+                <div class="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
+                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openShareModal('{{ e($product->title) }}', '{{ route('marketplace.show', $product->slug) }}')" class="w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center text-slate-400 hover:text-neon transition-transform active:scale-95" title="Bagikan Produk">
+                        <i class="fa-solid fa-share-nodes text-xs"></i>
+                    </button>
+                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" class="w-8 h-8 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center transition-transform active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-400 hover:text-white' }}" title="Wishlist">
+                        <svg class="w-3.5 h-3.5 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </button>
+                </div>
                 
                 <!-- Sold Out Overlay -->
                 @if($product->stock < 1)

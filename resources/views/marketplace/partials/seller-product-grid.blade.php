@@ -32,9 +32,7 @@
                     <!-- Quick Action Buttons -->
                     <div class="absolute top-2 right-2 z-20 flex items-center gap-1.5">
                         <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openShareModal('{{ e($prod->title) }}', '{{ route('marketplace.show', $prod->slug) }}')" class="w-8 h-8 rounded-full bg-[#08111F]/80 backdrop-blur border border-[#1F2D44] flex items-center justify-center text-slate-300 hover:text-[#B8FF00] transition-all hover:scale-110 active:scale-95" title="Bagikan Produk">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-                            </svg>
+                            <i class="fa-solid fa-share-nodes text-xs"></i>
                         </button>
                     </div>
                 </a>

@@ -68,8 +68,8 @@
                     @endif
 
                     <div class="absolute top-4 left-4 flex flex-col gap-2">
-                        <span class="bg-[#08111F]/90 backdrop-blur border border-[#1F2D44] text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
-                            {{ $product->condition == 'new' ? 'Baru (Brand New)' : 'Bekas (Second)' }}
+                        <span class="bg-dark/80 backdrop-blur border border-slate-700/60 text-white text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+                            {{ $product->condition == 'new' ? 'BARU' : 'BEKAS' }}
                         </span>
                         @if($product->fulfillment_mode === 'consignment')
                             <span class="bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -109,11 +109,19 @@
                         @endif
                     </div>
 
-                    <!-- Wishlist Button -->
-                    <button type="button" onclick="toggleWishlist({{ $product->id }}, this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#1F2D44] bg-[#0E1A2D] text-xs font-bold transition {{ $isWishlisted ? 'text-rose-500 border-rose-500/40 bg-rose-500/10' : 'text-slate-400 hover:text-white hover:border-slate-500' }}">
-                        <svg class="w-4 h-4 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                        <span class="wishlist-label">{{ $isWishlisted ? 'Wishlisted' : 'Wishlist' }}</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <!-- Share Button -->
+                        <button type="button" onclick="openShareModal('{{ e($product->title) }}', '{{ route('marketplace.show', $product->slug) }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#1F2D44] bg-[#0E1A2D] text-xs font-bold text-slate-300 hover:text-white hover:border-slate-500 transition cursor-pointer">
+                            <i class="fa-solid fa-share-nodes text-[#B8FF00] text-xs"></i>
+                            <span>Bagikan</span>
+                        </button>
+
+                        <!-- Wishlist Button -->
+                        <button type="button" onclick="toggleWishlist({{ $product->id }}, this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#1F2D44] bg-[#0E1A2D] text-xs font-bold transition cursor-pointer {{ $isWishlisted ? 'text-rose-500 border-rose-500/40 bg-rose-500/10' : 'text-slate-400 hover:text-white hover:border-slate-500' }}">
+                            <svg class="w-4 h-4 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            <span class="wishlist-label">{{ $isWishlisted ? 'Wishlisted' : 'Wishlist' }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Product Title -->
@@ -148,7 +156,7 @@
                     </div>
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-3">
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">Kondisi</div>
-                        <div class="text-xs font-bold text-white uppercase">{{ $product->condition == 'new' ? 'Baru' : 'Bekas' }}</div>
+                        <div class="text-xs font-bold text-white uppercase">{{ $product->condition == 'new' ? 'BARU' : 'BEKAS' }}</div>
                     </div>
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-3">
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">Lokasi Seller</div>
@@ -296,10 +304,13 @@
                                         </div>
                                     @endif
                                     <div class="absolute top-2 left-2 flex flex-col gap-1 items-start z-10">
-                                        <span class="bg-[#08111F]/80 backdrop-blur border border-[#1F2D44] text-[10px] text-white font-bold px-2 py-0.5 rounded uppercase">
-                                            {{ $relProd->condition == 'new' ? 'Baru' : 'Bekas' }}
+                                        <span class="bg-dark/80 backdrop-blur border border-slate-700/60 text-[9px] text-white font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                            {{ $relProd->condition == 'new' ? 'BARU' : 'BEKAS' }}
                                         </span>
                                     </div>
+                                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openShareModal('{{ e($relProd->title) }}', '{{ route('marketplace.show', $relProd->slug) }}')" class="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-dark/80 backdrop-blur border border-slate-700/60 flex items-center justify-center text-slate-400 hover:text-white transition-transform active:scale-95" title="Bagikan Produk">
+                                        <i class="fa-solid fa-share-nodes text-[#B8FF00] text-xs"></i>
+                                    </button>
                                 </a>
 
                                 <!-- Body -->
@@ -329,6 +340,8 @@
         @endif
     </div>
 </div>
+
+@include('marketplace.partials.share-modal')
 
 <script>
     function switchProductImage(src, btn) {

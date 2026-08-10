@@ -215,6 +215,7 @@ class BiomechanicsAnalysisService
             'elbow_angle_deg' => $num('elbow_angle_deg'),
             'vertical_oscillation' => $num('vertical_oscillation'),
             'asymmetry' => $num('asymmetry'),
+            'pelvic_drop_deg' => $num('pelvic_drop_deg'),
         ];
     }
 
@@ -626,6 +627,101 @@ class BiomechanicsAnalysisService
         $elbow = $biomech['elbow_angle_deg'] ?? null;
         $verticalOscillation = $biomech['vertical_oscillation'] ?? null;
         $asymmetry = $biomech['asymmetry'] ?? null;
+        $pelvicDrop = $biomech['pelvic_drop_deg'] ?? null;
+
+        if (is_numeric($pelvicDrop)) {
+            if ($pelvicDrop >= 6.0) {
+                $formIssues[] = $this->formIssue(
+                    'pelvic_drop_high',
+                    'posture',
+                    'pelvic_drop_deg',
+                    'Indikasi Trendelenburg Gait (Drop Pelvis)',
+                    'Terdeteksi kemiringan panggul saat tumpuan satu kaki. Kondisi ini umumnya menandakan kelemahan otot gluteus medius / penstabil panggul.',
+                    'high',
+                    round($pelvicDrop, 1),
+                    '°',
+                    'Normal <4°; indikasi Trendelenburg Gait ≥6° pada sudut tampak depan/belakang.',
+                    $confidence,
+                    $samples,
+                    86
+                );
+                $techniqueSuggestions[] = $this->techniqueSuggestion(
+                    'pelvic_stability_cue',
+                    ['pelvic_drop_high'],
+                    'posture',
+                    'high',
+                    'Jaga panggul sejajar saat mendarat',
+                    'Fokuskan perhatian agar panggul tidak terkulai ke bawah saat satu kaki menumpu beban.',
+                    'Panggul rata dan stabil.',
+                    'Easy run & drill keseimbangan satu kaki.',
+                    'Lakukan kesadaran posisi tubuh setiap 500 meter.'
+                );
+                $techniqueSuggestions[] = $this->techniqueSuggestion(
+                    'pelvic_hike_drill',
+                    ['pelvic_drop_high'],
+                    'posture',
+                    'high',
+                    'Drill Pelvic Hike (Pengangkat Panggul)',
+                    'Berdiri satu kaki di atas balok/step rendah, biarkan kaki satunya tergantung lalu angkat panggul melayang ke atas tanpa menekuk lutut tumpu.',
+                    'Angkat panggul melayang tegak lurus.',
+                    'Pemanasan dinamis sebelum berlari.',
+                    '2 set x 10–12 repetisi per sisi.'
+                );
+                $strengthPlan[] = $this->strengthExercise(
+                    'gluteus_medius_clamshell',
+                    ['pelvic_drop_high'],
+                    'high',
+                    'hip_stability',
+                    'Side-Lying Clamshell & Hip Abduction',
+                    'Menguatkan otot Gluteus Medius untuk mencegah panggul anjlok (Trendelenburg Gait) saat tumpuan.',
+                    ['Gluteus Medius', 'Hip Abductor'],
+                    'Bodyweight / Resistance Band',
+                    'beginner',
+                    3,
+                    '12–15 repetisi per sisi',
+                    '2-1-2',
+                    45,
+                    '3 kali per minggu',
+                    [
+                        'Jaga panggul tetap tegak lurus.',
+                        'Angkat lutut atas tanpa memutar pinggul ke belakang.',
+                        'Fokus pada kontraksi bokong samping.',
+                    ],
+                    ['Lakukan tanpa resistance band.'],
+                    ['Gunakan resistance band di atas lutut.']
+                );
+                $strengthPlan[] = $this->strengthExercise(
+                    'single_leg_step_down',
+                    ['pelvic_drop_high'],
+                    'high',
+                    'hip_stability',
+                    'Single-Leg Step-Down (Pelvic Control)',
+                    'Latihan fungsional di atas tangga/step rendah untuk menguji dan melatih kontrol panggul serta Gluteus Medius saat menahan beban 1 kaki.',
+                    ['Gluteus Medius', 'Quadriceps', 'Gluteus Maximus'],
+                    'Step / Tangga Rendah (10-15 cm)',
+                    'intermediate',
+                    3,
+                    '10 repetisi per sisi',
+                    '3-1-1',
+                    60,
+                    '2 kali per minggu',
+                    [
+                        'Berdiri 1 kaki di tepi step.',
+                        'Turunkan tumit kaki satunya menyentuh lantai secara perlahan.',
+                        'Jaga panggul tetap rata dan lutut tumpu tidak menekuk ke dalam (valgus).',
+                    ],
+                    ['Gunakan step lebih rendah atau berpegangan pada tiang.'],
+                    ['Gunakan step lebih tinggi (20 cm) tanpa berpegangan.']
+                );
+            } elseif ($pelvicDrop < 4.0) {
+                $positives[] = $this->positive(
+                    'pelvic_stability_good',
+                    'Stabilitas panggul baik (Normal Gait)',
+                    'Panggul terdeteksi stabil dan sejajar saat tumpuan tanpa penurunan signifikan.',
+                    'posture'
+                );
+            }
+        }
 
         if (is_numeric($heel)) {
             if ($heel >= 70) {

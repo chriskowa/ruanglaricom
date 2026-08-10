@@ -1226,6 +1226,9 @@
         // Running elbow angle accumulator
         const elbowAngles = [];
 
+        // Pelvic drop angle accumulator (for Front/Back view Trendelenburg detection)
+        const pelvicDropAngles = [];
+
         const pickSide = (lm) => {
             const lv = lm[L.leftAnkle]?.visibility ?? 0;
             const rv = lm[L.rightAnkle]?.visibility ?? 0;
@@ -1355,6 +1358,30 @@
             // Cadence: detect foot contact rising edge
             if (footContact && !prevFootContact) footStrikeTimes.push(t);
             prevFootContact = footContact;
+
+            // Pelvic Drop (Trendelenburg Gait check) for Front/Back view
+            const lHipPt = getPt(lm, L.leftHip);
+            const rHipPt = getPt(lm, L.rightHip);
+            const lShoulderPt = getPt(lm, L.leftShoulder);
+            const rShoulderPt = getPt(lm, L.rightShoulder);
+            if (lHipPt && rHipPt && lShoulderPt && rShoulderPt && (lHipPt.v ?? 0) >= 0.5 && (rHipPt.v ?? 0) >= 0.5) {
+                const hipDx = Math.abs(lHipPt.x - rHipPt.x);
+                const shoulderDx = Math.abs(lShoulderPt.x - rShoulderPt.x);
+                const avgDx = (hipDx + shoulderDx) / 2;
+                // Only evaluate if Front/Back view (avgDx > 0.15) during foot contact stance phase
+                if (avgDx > 0.15 && footContact) {
+                    const dy = rHipPt.y - lHipPt.y;
+                    const dx = rHipPt.x - lHipPt.x;
+                    if (Math.abs(dx) > 0.02) {
+                        const angleRad = Math.atan2(dy, dx);
+                        let angleDeg = Math.abs(angleRad * (180 / Math.PI));
+                        let dropDeg = Math.abs(angleDeg > 90 ? 180 - angleDeg : angleDeg);
+                        if (Number.isFinite(dropDeg)) {
+                            pelvicDropAngles.push(dropDeg);
+                        }
+                    }
+                }
+            }
 
             // Elbow angle (arm quality)
             const sideElbow = getPt(lm, side === 'left' ? L.leftElbow : L.rightElbow);
@@ -1696,6 +1723,7 @@
             elbow_angle_deg: elbowAngles.length ? Number(avg(elbowAngles).toFixed(1)) : null,
             vertical_oscillation: Number.isFinite(verticalOsc) ? Number(verticalOsc.toFixed(4)) : null,
             trunk_std_deg: Number.isFinite(trunkStd) ? Number(trunkStd.toFixed(2)) : null,
+            pelvic_drop_deg: (pelvicDropAngles.length >= 3 && Number.isFinite(avg(pelvicDropAngles))) ? Number(avg(pelvicDropAngles).toFixed(1)) : null,
             coverage: coverage,
             coverage_missing: coverageMissing,
             visualization: visualization,
