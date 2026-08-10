@@ -1501,6 +1501,24 @@
                 return Promise.all(promises);
             }
 
+            function processLoadedPoints() {
+                var promises = [];
+                for (var i = 1; i < points.length; i++) {
+                    (function(idx) {
+                        if (points[idx].mode === 'osrm' && (!points[idx].segment || points[idx].segment.length < 2)) {
+                            promises.push(osrmRoute([points[idx-1], points[idx]]).then(function(seg) {
+                                points[idx].segment = seg;
+                            }).catch(function() {
+                                points[idx].segment = [points[idx-1], points[idx]];
+                            }));
+                        } else if (!points[idx].segment || points[idx].segment.length < 2) {
+                            points[idx].segment = [points[idx-1], points[idx]];
+                        }
+                    })(i);
+                }
+                return Promise.all(promises);
+            }
+
             function togglePointMode(idx) {
                 if (idx <= 0 || idx >= points.length) return;
                 var p = points[idx];
@@ -2411,19 +2429,27 @@
                             } catch (e) {}
                         }
 
+                        // Render immediately with decoded geometry
+                        rebuildLine();
+                        rebuildMarkers();
+                        updateStats();
+                        updateElevation();
+                        setStatus('Rute dari link');
+                        map.invalidateSize();
+                        fitRoute();
+
+                        requestAnimationFrame(function() {
+                            map.invalidateSize();
+                            fitRoute();
+                        });
+
                         processLoadedPoints().then(function() {
                             rebuildLine();
                             rebuildMarkers();
                             updateStats();
                             updateElevation();
-                            setStatus('Rute dari link');
                             map.invalidateSize();
                             fitRoute();
-                            
-                            requestAnimationFrame(function() {
-                                map.invalidateSize();
-                                fitRoute();
-                            });
                             
                             setTimeout(function () {
                                 map.invalidateSize();
@@ -2435,6 +2461,12 @@
                                 fitRoute();
                             }, 800);
                             pushState();
+                        }).catch(function(e) {
+                            console.error('processLoadedPoints error:', e);
+                            rebuildLine();
+                            rebuildMarkers();
+                            map.invalidateSize();
+                            fitRoute();
                         });
                     }
                 }
