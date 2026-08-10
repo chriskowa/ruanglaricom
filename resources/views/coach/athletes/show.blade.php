@@ -613,8 +613,29 @@
             </div>
 
             <!-- Detail & Feedback Column - Mobile Sheet Style -->
-            <div class="lg:col-span-1">
-                <div v-if="selectedSession" class="lg:sticky lg:top-24 space-y-6">
+            <div class="lg:col-span-1" id="detail-feedback-column">
+                <!-- Mobile Backdrop Overlay -->
+                <div v-if="selectedSession && isMobileSheetOpen" @click="closeMobileSheet" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[90] lg:hidden transition-opacity"></div>
+
+                <div v-if="selectedSession" 
+                     :class="{
+                         'fixed inset-x-0 bottom-0 z-[100] max-h-[85vh] overflow-y-auto rounded-t-[2.5rem] bg-slate-900 border-t border-neon/40 p-5 sm:p-6 shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:border-none lg:p-0 lg:shadow-none': isMobileSheetOpen
+                     }"
+                     class="lg:sticky lg:top-24 space-y-6">
+
+                    <!-- Mobile Handle Bar & Header -->
+                    <div v-if="isMobileSheetOpen" class="lg:hidden flex flex-col items-center mb-2">
+                        <div class="w-12 h-1.5 bg-slate-700 hover:bg-slate-600 rounded-full mb-3 cursor-pointer" @click="closeMobileSheet" title="Tutup Detail"></div>
+                        <div class="w-full flex justify-between items-center pb-3 border-b border-slate-800">
+                            <span class="text-xs font-black text-neon uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-list text-xs"></i>
+                                <span>Detail & Feedback Sesi</span>
+                            </span>
+                            <button type="button" @click="closeMobileSheet" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="glass-panel rounded-[2.5rem] p-6 border-neon/20 shadow-xl shadow-neon/5">
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex-1 min-w-0">
@@ -652,10 +673,10 @@
 
                         <!-- Session Detail -->
                         <div class="space-y-3 mb-6 text-sm text-slate-300">
-                            <div v-if="selectedSession.extendedProps.distance">
-                                <span class="text-slate-500">Target Distance:</span> @{{ selectedSession.extendedProps.distance }} km
-                                <div v-if="getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance)" class="mt-2 p-2 bg-slate-800/80 border border-slate-700 rounded text-neon font-mono text-xs">
-                                    @{{ getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance) }}
+                            <div v-if="selectedSession.extendedProps.distance || getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description)">
+                                <span v-if="selectedSession.extendedProps.distance" class="text-slate-500">Target Distance: <strong class="text-white">@{{ selectedSession.extendedProps.distance }} km</strong></span>
+                                <div v-if="getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description)" class="mt-2 p-2 bg-slate-800/80 border border-slate-700 rounded text-neon font-mono text-xs">
+                                    @{{ getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description) }}
                                 </div>
                             </div>
                             <div v-if="selectedSession.extendedProps.description">
@@ -1865,6 +1886,8 @@ createApp({
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
         let calendar = null;
         const selectedSession = ref(null);
+        const isMobileSheetOpen = ref(false);
+        const closeMobileSheet = () => { isMobileSheetOpen.value = false; };
         const loading = ref(false);
         const trainingProfile = reactive(@json($trainingProfile) || {});
         if (!trainingProfile.name) {
@@ -2158,18 +2181,21 @@ createApp({
             }
 
             const isRest = ['rest', 'rest_day', 'rest day', 'libur'].includes(type);
-            const paces = trainingProfile.value?.paces || {};
+            const paces = trainingProfile.paces || trainingProfile.value?.paces || {};
             let paceGuidance = targetPaceVal;
 
             if (isRest) {
                 reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Istirahat total dan jaga pemulihan fisik dengan baik agar siap menyambut sesi berikutnya.`;
             } else {
                 if (!paceGuidance) {
-                    const combinedText = ((workoutTitle || '') + ' ' + (notes || '') + ' ' + (form.description || '')).toLowerCase();
+                    const combinedText = ((workoutTitle || '') + ' ' + (notes || '') + ' ' + (type || '')).toLowerCase();
                     const distNum = distanceVal ? parseFloat(distanceVal) : 0;
                     const isRepetition = ['repetition', 'speed', 'repeats'].some(k => type.includes(k)) ||
                                          (distNum > 0 && distNum <= 0.45) ||
-                                         /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combinedText);
+                                         /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combinedText) ||
+                                         /\b\d+x\s*(55|50|100|150|200|250|300|350|400)/i.test(combinedText) ||
+                                         combinedText.includes('repetition') ||
+                                         combinedText.includes('reps');
 
                     if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k)) && !isRepetition) {
                         if (paces.E_high && paces.E_low) {
@@ -2945,13 +2971,24 @@ createApp({
             return `${mins}:${secs.toString().padStart(2,'0')}`;
         };
 
-        const getPaceInfo = (type, distance) => {
+        const getPaceInfo = (type, distance, description = '') => {
             if (!type || !trainingProfile) return null;
 
-            const tLower = type.toLowerCase();
+            let tLower = String(type || '').toLowerCase();
+            const descLower = String(description || '').toLowerCase();
+
             if (['rest', 'rest_day', 'rest day', 'strength', 'yoga', 'cycling', 'cross_training'].includes(tLower) || tLower.includes('rest')) {
                 return null;
             }
+
+            const isShortRep = /\b\d+x\s*(55|50|100|150|200|250|300|350|400)/i.test(descLower) ||
+                               /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(descLower) ||
+                               descLower.includes('repetition') || descLower.includes('reps');
+
+            if (isShortRep) {
+                tLower = 'repetition';
+            }
+
             const map = { 
                 easy_run: 'E', recovery: 'E', run: 'E', 
                 long_run: 'M', 
@@ -2961,10 +2998,14 @@ createApp({
             };
             const typeKey = map[tLower];
 
+            let dist = distance ? parseFloat(distance) : null;
+            if (!dist && isShortRep) {
+                const matchM = descLower.match(/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i);
+                if (matchM) dist = parseFloat(matchM[1]) / 1000;
+            }
+
             // Check for track distance logic (0.1km - 2.0km)
-            if (distance && trainingProfile.track_times) {
-                const dist = parseFloat(distance);
-                
+            if (dist && trainingProfile.track_times) {
                 if (dist >= 0.1 && dist <= 2.0) {
                     const m = Math.round(dist * 1000);
                     const key = m + 'm';
@@ -2976,7 +3017,6 @@ createApp({
                         let targetInfo = '';
                         if (typeKey) {
                             let useKey = typeKey;
-                            // Logic override: If Interval (I) and distance 100-400m, use Repetition (R) pace
                             if (typeKey === 'I' && dist >= 0.1 && dist <= 0.405) {
                                 useKey = 'R';
                             }
@@ -2986,7 +3026,6 @@ createApp({
                             }
                         }
 
-                        // Return all 3 relevant paces/splits for context
                         return `Split Times (${key}): Rep=${t.R} | Int=${t.I} | Thr=${t.T}${targetInfo}`;
                     }
                 }
@@ -2997,7 +3036,10 @@ createApp({
             let val = trainingProfile.paces?.[typeKey];
             if (!val && typeKey === 'M') val = trainingProfile.paces?.['E']; // Fallback M -> E
             
-            return val ? `Target Pace: ${formatPace(val)} /km` : null;
+            const paceLabels = { E: 'Easy Pace', M: 'Marathon Pace', T: 'Tempo Pace', I: 'Interval Pace', R: 'Repetition Pace' };
+            const label = paceLabels[typeKey] || 'Target Pace';
+
+            return val ? `${label}: ${formatPace(val)} /km` : null;
         };
 
         const statusClass = (s) => {
@@ -3930,6 +3972,7 @@ createApp({
                 },
                 eventClick: (info) => {
                     selectedSession.value = info.event;
+                    isMobileSheetOpen.value = true;
                     // Pre-fill form
                     const tracking = info.event.extendedProps.tracking;
                     if (tracking) {
@@ -3940,13 +3983,13 @@ createApp({
                         feedbackForm.coach_feedback = '';
                     }
 
-                    // Scroll to detail on mobile
-                    if (window.innerWidth < 1024) {
-                        setTimeout(() => {
-                            const detailEl = document.querySelector('.lg\\:col-span-1');
-                            if (detailEl) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    }
+                    // Scroll smoothly to detail & feedback column
+                    setTimeout(() => {
+                        const detailEl = document.getElementById('detail-feedback-column');
+                        if (detailEl) {
+                            detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
                 },
                 height: 'auto',
                 listDayFormat: { month: 'short', day: 'numeric', weekday: 'short' },
