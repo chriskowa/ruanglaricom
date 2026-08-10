@@ -2435,39 +2435,13 @@
                         updateStats();
                         updateElevation();
                         setStatus('Rute dari link');
-                        map.invalidateSize();
-                        fitRoute();
+                        pushState();
 
-                        requestAnimationFrame(function() {
+                        // Auto fit rute setelah 2 detik (mapbox/tile sudah selesai load)
+                        setTimeout(function () {
                             map.invalidateSize();
                             fitRoute();
-                        });
-
-                        processLoadedPoints().then(function() {
-                            rebuildLine();
-                            rebuildMarkers();
-                            updateStats();
-                            updateElevation();
-                            map.invalidateSize();
-                            fitRoute();
-                            
-                            setTimeout(function () {
-                                map.invalidateSize();
-                                fitRoute();
-                            }, 300);
-                            
-                            setTimeout(function () {
-                                map.invalidateSize();
-                                fitRoute();
-                            }, 800);
-                            pushState();
-                        }).catch(function(e) {
-                            console.error('processLoadedPoints error:', e);
-                            rebuildLine();
-                            rebuildMarkers();
-                            map.invalidateSize();
-                            fitRoute();
-                        });
+                        }, 2000);
                     }
                 }
                 var name = qs.get('name');
