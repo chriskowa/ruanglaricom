@@ -872,11 +872,11 @@
                         marker: (data.marker && /^#[0-9a-f]{6}$/i.test(data.marker)) ? data.marker : '#60a5fa',
                         start: (data.start && /^#[0-9a-f]{6}$/i.test(data.start)) ? data.start : '#22c55e',
                         finish: (data.finish && /^#[0-9a-f]{6}$/i.test(data.finish)) ? data.finish : '#ef4444',
-                        arrow: (data.arrow && /^#[0-9a-f]{6}$/i.test(data.arrow)) ? data.arrow : '#ccff00',
-                        arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 500) ? data.arrowIntervalM : 250,
+                        arrow: (data.arrow && /^#[0-9a-f]{6}$/i.test(data.arrow)) ? data.arrow : '#ffffff',
+                        arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 500) ? data.arrowIntervalM : 500,
                     };
                 } catch (e) {
-                    return { route: '#FC4C02', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrow: '#ccff00', arrowIntervalM: 250 };
+                    return { route: '#FC4C02', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrow: '#ffffff', arrowIntervalM: 500 };
                 }
             }
 
@@ -2334,7 +2334,6 @@
             function applyFromQuery() {
                 var qs = new URLSearchParams(window.location.search || '');
                 function scrollToMap() {
-                    if (window.matchMedia && !window.matchMedia('(max-width: 1023px)').matches) return;
                     var el = document.getElementById('rl-route-map');
                     if (!el) return;
                     var y = el.getBoundingClientRect().top + window.pageYOffset - 90;
@@ -2360,7 +2359,7 @@
                 if (mc && /^[0-9a-f]{6}$/i.test(mc)) nextStyle.marker = '#' + mc;
                 if (sc && /^[0-9a-f]{6}$/i.test(sc)) nextStyle.start = '#' + sc;
                 if (fc && /^[0-9a-f]{6}$/i.test(fc)) nextStyle.finish = '#' + fc;
-                if (ai && /^\d+$/.test(ai)) nextStyle.arrowIntervalM = clamp(parseInt(ai, 10), 30, 300);
+                if (ai && /^\d+$/.test(ai)) nextStyle.arrowIntervalM = clamp(parseInt(ai, 10), 30, 500);
                 if (Object.keys(nextStyle).length > 0) {
                     setStyle(nextStyle);
                 } else {
@@ -2379,6 +2378,7 @@
                         return { lat: lat, lng: lng };
                     }).filter(Boolean);
                     if (parsed.length > 0) {
+                        scrollToMap();
                         var snap = qs.get('snap') === '1';
                         points = parsed.map(function(p, idx) {
                             var ch = modes && modes.length === parsed.length ? modes.charAt(idx) : '';
@@ -2401,12 +2401,16 @@
                             updateStats();
                             updateElevation();
                             setStatus('Rute dari link');
+                            fitRoute();
                             setTimeout(function () {
                                 fitRoute();
                             }, 250);
+                            setTimeout(function () {
+                                fitRoute();
+                            }, 600);
                             pushState();
                         });
-                }
+                    }
                 }
                 var name = qs.get('name');
                 if (name) els.name.value = name;
@@ -2424,8 +2428,8 @@
                 if (!on || routePoints.length < 2) return;
 
                 var style = getStyle();
-                var stepKm = (style.arrowIntervalM || 250) / 1000;
-                var arrowColor = style.arrow || '#ccff00';
+                var stepKm = (style.arrowIntervalM || 500) / 1000;
+                var arrowColor = style.arrow || '#ffffff';
                 var acc = 0;
                 for (var i = 1; i < routePoints.length; i++) {
                     var a = routePoints[i - 1];
