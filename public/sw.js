@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ruanglari-v3';
+const CACHE_NAME = 'ruanglari-v4';
 const urlsToCache = [
     '/css/style.css',
     '/js/custom.min.js',
@@ -66,35 +66,43 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Intercept Nominatim requests and proxy them to avoid CORS errors
-    if (request.url.includes('nominatim.openstreetmap.org')) {
-        const proxyUrl = '/image-proxy?url=' + encodeURIComponent(request.url);
-        event.respondWith(
-            fetch(proxyUrl, {
-                headers: { 'Accept': 'application/json' }
-            }).catch(() => caches.match(request))
-        );
-        return;
-    }
-
     // Bypass ServiceWorker for third-party external origins (Google Analytics, reCAPTCHA, Google CSP, Mapbox, etc.)
     if (url.origin !== self.location.origin) {
+        // Exception for Nominatim requests only
+        if (request.url.includes('nominatim.openstreetmap.org')) {
+            const proxyUrl = '/image-proxy?url=' + encodeURIComponent(request.url);
+            event.respondWith(
+                fetch(proxyUrl, {
+                    headers: { 'Accept': 'application/json' }
+                }).catch(async () => {
+                    const matched = await caches.match(request);
+                    return matched || new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json' } });
+                })
+            );
+        }
         return;
     }
 
     event.respondWith(
         fetch(request)
-            .catch(() => {
-                return caches.match(request)
-                    .then(response => {
-                        if (response) {
-                            return response;
-                        }
-                        // If request is for a page (navigation) and not in cache, show offline.html
-                        if (request.mode === 'navigate') {
-                            return caches.match('/offline.html');
-                        }
-                    });
+            .catch(async () => {
+                const cachedResponse = await caches.match(request);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                // If request is for a page (navigation) and not in cache, show offline fallback if available
+                if (request.mode === 'navigate') {
+                    const offlinePage = await caches.match('/offline.html');
+                    if (offlinePage) {
+                        return offlinePage;
+                    }
+                }
+                // Always return a valid Response instance so event.respondWith never receives undefined
+                return new Response('Network error occurred', {
+                    status: 503,
+                    statusText: 'Service Unavailable',
+                    headers: new Headers({ 'Content-Type': 'text/plain' })
+                });
             })
     );
 });

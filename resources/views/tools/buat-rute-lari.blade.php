@@ -756,6 +756,7 @@
             var STORAGE_KEY = 'rl.routeBuilder.v1.saved';
             var STYLE_KEY = 'rl.routeBuilder.v1.style';
             var timeIsValid = true;
+            var viewOnlyMode = false;
 
             var els = {
                 status: document.getElementById('rl-route-status'),
@@ -2413,6 +2414,19 @@
                     }).filter(Boolean);
                     if (parsed.length > 0) {
                         scrollToMap();
+
+                        // Aktifkan view-only mode — klik peta tidak akan menambah titik
+                        viewOnlyMode = true;
+                        freehandActive = false;
+
+                        // Tampilkan badge view-only di atas peta
+                        var viewBadge = document.createElement('div');
+                        viewBadge.id = 'rl-view-only-badge';
+                        viewBadge.style.cssText = 'position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:500;pointer-events:none;background:rgba(15,23,42,0.85);backdrop-filter:blur(8px);border:1px solid rgba(148,163,184,0.3);border-radius:999px;padding:4px 14px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:0.05em;display:flex;align-items:center;gap:6px;white-space:nowrap;';
+                        viewBadge.innerHTML = '<i class="fa-solid fa-eye" style="color:#60a5fa"></i> Pratinjau Rute &bull; <span style="color:#22c55e;font-size:10px">Zoom/geser peta aman</span>';
+                        var mapEl = document.getElementById('rl-route-map');
+                        if (mapEl) mapEl.appendChild(viewBadge);
+
                         var snap = qs.get('snap') === '1';
                         points = parsed.map(function(p, idx) {
                             var ch = modes && modes.length === parsed.length ? modes.charAt(idx) : '';
@@ -3756,6 +3770,7 @@
             }
 
             map.on('click', function (e) {
+                if (viewOnlyMode) return;
                 if (freehandActive) return;
 
                 if (customMarkerMode) {
@@ -3772,11 +3787,13 @@
             map.on('mousemove', onFreehandMove);
             map.on('mouseup', onFreehandEnd);
             map.on('touchstart', function (e) {
+                if (viewOnlyMode) return;
                 if (!freehandActive) return;
                 if (!e.latlng) return;
                 onFreehandStart(e);
             });
             map.on('touchmove', function (e) {
+                if (viewOnlyMode) return;
                 if (!freehandActive) return;
                 if (!e.latlng) return;
                 onFreehandMove(e);
