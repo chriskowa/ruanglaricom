@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ruanglari-v2';
+const CACHE_NAME = 'ruanglari-v3';
 const urlsToCache = [
     '/css/style.css',
     '/js/custom.min.js',
@@ -45,34 +45,53 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch Strategy: Network First, fallback to Cache, then Offline Page
+// Fetch Strategy: Network First for same-origin GET requests
 self.addEventListener('fetch', event => {
-    let request = event.request;
+    const request = event.request;
+    
+    // Only handle GET requests
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    let url;
+    try {
+        url = new URL(request.url);
+    } catch (e) {
+        return;
+    }
+
+    // Don't intercept non-http/https protocols
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
 
     // Intercept Nominatim requests and proxy them to avoid CORS errors
     if (request.url.includes('nominatim.openstreetmap.org')) {
         const proxyUrl = '/image-proxy?url=' + encodeURIComponent(request.url);
-        request = new Request(proxyUrl, {
-            method: request.method,
-            headers: request.headers,
-            mode: 'cors',
-            credentials: request.credentials,
-            redirect: request.redirect,
-            referrer: request.referrer,
-            body: request.body
-        });
+        event.respondWith(
+            fetch(proxyUrl, {
+                headers: { 'Accept': 'application/json' }
+            }).catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // Bypass ServiceWorker for third-party external origins (Google Analytics, reCAPTCHA, Google CSP, Mapbox, etc.)
+    if (url.origin !== self.location.origin) {
+        return;
     }
 
     event.respondWith(
         fetch(request)
             .catch(() => {
-                return caches.match(event.request)
+                return caches.match(request)
                     .then(response => {
                         if (response) {
                             return response;
                         }
                         // If request is for a page (navigation) and not in cache, show offline.html
-                        if (event.request.mode === 'navigate') {
+                        if (request.mode === 'navigate') {
                             return caches.match('/offline.html');
                         }
                     });

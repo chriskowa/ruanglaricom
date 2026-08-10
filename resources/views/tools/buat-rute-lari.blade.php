@@ -543,15 +543,15 @@
                         </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
-                        <!-- Floating Controls Overlay (Search Box + Floating Distance Summary) -->
-                        <div class="absolute top-3 left-14 right-16 z-[500] flex items-center justify-center gap-2 pointer-events-none">
-                            <!-- Floating Search Box -->
+                        <!-- Floating Top Controls Bar (Rata Kiri setelah Marker Pin dengan Jarak) -->
+                        <div class="absolute top-3 left-16 right-16 z-[500] flex items-center justify-start gap-2.5 pointer-events-none">
+                            <!-- 1. Floating Search Box (Rata Kiri) -->
                             <div class="pointer-events-auto flex-1 max-w-xs sm:max-w-sm">
-                                <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 flex items-center">
+                                <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 h-10 flex items-center">
                                     <div class="pl-3 text-slate-400 text-xs">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </div>
-                                    <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-2 pr-7 py-1.5 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
+                                    <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 pl-2.5 pr-8 py-1 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0" placeholder="Cari kota, tempat, atau landmark...">
                                     <button id="rl-search-btn" type="button" class="absolute right-2 p-1 text-slate-400 hover:text-white transition">
                                         <i class="fa-solid fa-arrow-right text-xs"></i>
                                     </button>
@@ -559,18 +559,18 @@
                                 <div id="rl-search-results" class="mt-1.5 hidden bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"></div>
                             </div>
 
-                            <!-- Floating Distance Summary Badge (Right of Search Box) -->
-                            <div id="rl-floating-summary-badge" class="pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 py-1.5 flex items-center gap-2.5 shrink-0 text-xs">
+                            <!-- 2. Floating Distance Stats Badge (Di Sebelah Kanan Search Box) -->
+                            <div id="rl-floating-summary-badge" class="pointer-events-auto h-10 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3.5 flex items-center gap-2.5 shrink-0 text-xs">
                                 <div class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-route text-neon text-xs"></i>
                                     <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-400 font-bold">KM</span></span>
                                 </div>
-                                <div class="h-3 w-px bg-slate-700/80 hidden sm:block"></div>
+                                <div class="h-3.5 w-px bg-slate-700/80 hidden sm:block"></div>
                                 <div class="hidden sm:flex items-center gap-1.5">
                                     <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
                                     <span id="rl-floating-time" class="font-bold text-slate-200">00:00:00</span>
                                 </div>
-                                <div class="h-3 w-px bg-slate-700/80 hidden md:block"></div>
+                                <div class="h-3.5 w-px bg-slate-700/80 hidden md:block"></div>
                                 <div class="hidden md:flex items-center gap-1.5">
                                     <i class="fa-solid fa-mountain text-slate-400 text-xs"></i>
                                     <span id="rl-floating-elev" class="font-bold text-slate-300">+0m</span>
@@ -578,7 +578,7 @@
                             </div>
                         </div>
 
-                        <!-- Marker Palette (Left) -->
+                        <!-- Marker Palette (Top Left) -->
                         <div class="absolute top-3 left-3 z-[500] flex flex-col gap-2">
                             <button id="rl-marker-palette-toggle" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Tambah Marker Rute">
                                 <i class="fa-solid fa-map-pin"></i>
