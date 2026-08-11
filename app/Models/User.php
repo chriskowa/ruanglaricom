@@ -487,4 +487,12 @@ class User extends Authenticatable
 
         return $daniels->calculateEquivalentRaceTimes($vdot);
     }
+
+    /**
+     * Programs coached by this user
+     */
+    public function coachedPrograms()
+    {
+        return $this->hasMany(Program::class, 'coach_id');
+    }
 }

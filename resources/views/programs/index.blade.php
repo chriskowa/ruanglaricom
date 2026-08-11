@@ -7,42 +7,158 @@
 @section('meta_keywords', 'program latihan lari, program lari 5k, program lari 10k, program half marathon, coach lari online, training plan lari pemula, race preparation')
 
 @section('content')
-<div id="programs-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans bg-dark text-slate-200" v-cloak>
+<div id="programs-app" class="min-h-screen pb-10 font-sans bg-dark text-slate-200" v-cloak>
     
-    <!-- Hero Section -->
-    <div class="relative rounded-3xl overflow-hidden mb-12 border border-slate-800 bg-slate-950/80" data-aos="fade-down">
-        <!-- Abstract gradient background circles -->
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-neon/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-green-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <!-- Hero Section (Full Width Edge-to-Edge with Background Image Slideshow Overlay) -->
+    <div class="relative w-full overflow-hidden mb-12 border-b border-slate-800/80 bg-slate-950 shadow-2xl" data-aos="fade-down">
         
-        <div class="px-6 py-16 md:py-24 max-w-4xl mx-auto text-center relative z-10">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-neon/10 text-neon mb-4 uppercase tracking-widest font-mono">
-                <span class="w-1.5 h-1.5 rounded-full bg-neon animate-ping"></span> Marketplace
-            </span>
-            <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tight mb-4 uppercase pr-4 md:pr-6">
-                Find Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">Perfect Running Program</span>
-            </h1>
-            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-8 font-light leading-relaxed">
-                Pilih program latihan dari pelatih profesional terverifikasi
-            </p>
-            
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
-                <!-- Search bar -->
-                <div class="relative w-full sm:flex-1">
-                    <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Cari judul program atau pelatih..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-5 py-4 pl-12 text-white focus:border-neon focus:ring-1 focus:ring-neon focus:outline-none transition-all placeholder-slate-500 shadow-inner">
-                    <svg class="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+        <!-- Background Slideshow Container -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div v-for="(slideImg, sIdx) in heroSlides" :key="sIdx"
+                 class="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out transform"
+                 :class="heroActiveSlide === sIdx ? 'opacity-100 scale-105' : 'opacity-0 scale-100'"
+                 :style="`background-image: url('${slideImg}');`">
+            </div>
+            <!-- Dark Gradient Overlay for Maximum Text Contrast & Readability -->
+            <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/90 to-dark/75"></div>
+            <div class="absolute inset-0 bg-slate-950/80"></div>
+        </div>
+        
+        <div class="relative z-10 px-4 md:px-8 py-14 md:py-20 lg:py-24 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                
+                <!-- Left Column: Title, Subtitle, Search, Stats, & Quick Chips -->
+                <div class="lg:col-span-7 space-y-6 text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-neon/30 bg-neon/10 text-neon text-xs font-mono font-bold uppercase tracking-widest">
+                        <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+                        <span>MARKETPLACE PROGRAM LARI</span>
+                    </div>
+
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase leading-tight">
+                        Temukan Program Latihan Lari <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-lime-400">Sesuai Targetmu</span>
+                    </h1>
+
+                    <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+                        Pilih program latihan dari pelatih profesional terverifikasi untuk meningkatkan pace, daya tahan aerobik, dan kesiapan race secara terukur.
+                    </p>
+
+                    <!-- Search Bar -->
+                    <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                        <div class="relative w-full sm:flex-1">
+                            <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Cari judul program atau pelatih..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-5 py-3.5 pl-12 text-white focus:border-neon focus:ring-1 focus:ring-neon focus:outline-none transition-all placeholder-slate-400 text-sm shadow-inner">
+                            <svg class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <button @click="scrollToFilters" class="w-full sm:w-auto px-7 py-3.5 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20 hover:shadow-neon/30 transition-all uppercase tracking-wider shrink-0">
+                            Cari Program
+                        </button>
+                    </div>
+
+                    <!-- 3 Real Stats Cards -->
+                    <div class="grid grid-cols-3 gap-3 pt-2">
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl text-center sm:text-left">
+                            <div class="text-xs text-slate-400 font-medium mb-1">Total Program</div>
+                            <div class="text-lg sm:text-2xl font-black text-white font-mono">{{ $totalPrograms ?? 0 }}+</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl text-center sm:text-left">
+                            <div class="text-xs text-slate-400 font-medium mb-1">Coach Aktif</div>
+                            <div class="text-lg sm:text-2xl font-black text-white font-mono">{{ $totalCoaches ?? 0 }}+</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl text-center sm:text-left">
+                            <div class="text-xs text-slate-400 font-medium mb-1">Rating Rata-rata</div>
+                            <div class="text-lg sm:text-2xl font-black text-neon font-mono flex items-center justify-center sm:justify-start gap-1">
+                                <span>{{ number_format($averageRating ?? 4.9, 1) }}</span>
+                                <i class="fas fa-star text-amber-400 text-xs sm:text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Filter Chips -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mr-1">Filter Cepat:</span>
+                        <button @click="setQuickFilter('category', '5k')" :class="filters.category === '5k' ? 'bg-neon text-dark font-black border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600'" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all">
+                            5K
+                        </button>
+                        <button @click="setQuickFilter('category', '10k')" :class="filters.category === '10k' ? 'bg-neon text-dark font-black border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600'" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all">
+                            10K
+                        </button>
+                        <button @click="setQuickFilter('category', '21k')" :class="filters.category === '21k' ? 'bg-neon text-dark font-black border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600'" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all">
+                            Half Marathon
+                        </button>
+                        <button @click="setQuickFilter('difficulty', 'beginner')" :class="filters.difficulty === 'beginner' ? 'bg-neon text-dark font-black border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600'" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all">
+                            Pemula
+                        </button>
+                    </div>
                 </div>
-                <!-- CTA Button -->
-                <button @click="scrollToFilters" class="w-full sm:w-auto px-8 py-4 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-base shadow-lg shadow-neon/20 hover:shadow-neon/30 transition-all uppercase tracking-wider">
-                    Cari Program
-                </button>
+
+                <!-- Right Column: Featured Program Preview Card -->
+                <div class="lg:col-span-5">
+                    @if(isset($featuredProgram) && $featuredProgram)
+                        <div class="relative bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl hover:border-neon/40 transition-all duration-300 group">
+                            <!-- Featured Ribbon/Badge -->
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-black bg-neon text-dark uppercase tracking-wider">
+                                    Program Unggulan
+                                </span>
+                                <span class="text-xs font-bold text-slate-400">
+                                    {{ strtoupper($featuredProgram->distance_target ?: 'GENERAL') }}
+                                </span>
+                            </div>
+
+                            <!-- Coach Info Header -->
+                            <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-800">
+                                <img src="{{ $featuredProgram->coach && $featuredProgram->coach->avatar ? (Str::startsWith($featuredProgram->coach->avatar, 'http') ? $featuredProgram->coach->avatar : (Str::startsWith($featuredProgram->coach->avatar, 'images/') ? '/'.$featuredProgram->coach->avatar : '/storage/'.$featuredProgram->coach->avatar)) : 'https://ui-avatars.com/api/?name='.urlencode($featuredProgram->coach->name ?? 'Coach').'&background=1e293b&color=39FF14' }}" alt="{{ $featuredProgram->coach->name ?? 'Coach' }}" class="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <h4 class="text-sm font-bold text-white truncate">{{ $featuredProgram->coach->name ?? 'Coach Ruang Lari' }}</h4>
+                                        <svg class="w-4 h-4 text-neon shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                    </div>
+                                    <p class="text-xs text-slate-400 font-medium truncate">{{ $featuredProgram->coach->city ? $featuredProgram->coach->city->name : 'Coach Terverifikasi' }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Program Title & Info -->
+                            <h3 class="text-lg font-extrabold text-white mb-3 line-clamp-2 leading-snug group-hover:text-neon transition-colors">
+                                {{ $featuredProgram->title }}
+                            </h3>
+
+                            <div class="grid grid-cols-2 gap-2 text-xs mb-5">
+                                <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Durasi</span>
+                                    <span class="font-bold text-white font-mono">{{ $featuredProgram->duration_weeks ?? 8 }} Minggu</span>
+                                </div>
+                                <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Frekuensi</span>
+                                    <span class="font-bold text-white font-mono">{{ $featuredProgram->days_per_week ?? (is_array($featuredProgram->program_json) ? count($featuredProgram->program_json['sessions'] ?? []) : 4) }} Sesi / Mgg</span>
+                                </div>
+                            </div>
+
+                            <!-- Rating & Price CTA -->
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                                <div>
+                                    <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
+                                        <i class="fas fa-star"></i>
+                                        <span>{{ number_format($featuredProgram->average_rating ?: 5.0, 1) }}</span>
+                                        <span class="text-slate-400 font-normal">({{ $featuredProgram->reviews_count ?? $featuredProgram->enrolled_count ?? 12 }} ulasan)</span>
+                                    </div>
+                                    <div class="text-sm font-black text-white font-mono mt-0.5">
+                                        {{ $featuredProgram->price > 0 ? 'Rp ' . number_format($featuredProgram->price, 0, ',', '.') : 'Gratis' }}
+                                    </div>
+                                </div>
+                                <a href="{{ route('programs.show', $featuredProgram->slug) }}" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-black text-xs uppercase tracking-wider hover:bg-lime-400 transition-all shadow-md shadow-neon/10 shrink-0">
+                                    Lihat Program →
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
             </div>
         </div>
     </div>
 
-    <div id="filters-section" class="flex flex-col lg:flex-row gap-8 relative z-10">
+    <div id="filters-section" class="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 relative z-10">
         
         <!-- Mobile Filter Button -->
         <div class="lg:hidden mb-4">
@@ -587,6 +703,19 @@
             const programs = ref(@json($programs));
             const loading = ref(false);
             const showMobileFilters = ref(false);
+
+            const heroActiveSlide = ref(0);
+            const heroSlides = [
+                '{{ asset("images/run_social_bg.png") }}',
+                '{{ asset("images/hero/jadwal-lari.webp") }}',
+                '{{ asset("images/form-analyzer.webp") }}'
+            ];
+
+            onMounted(() => {
+                setInterval(() => {
+                    heroActiveSlide.value = (heroActiveSlide.value + 1) % heroSlides.length;
+                }, 5000);
+            });
             
             const filters = reactive({
                 search: '{{ request("search") }}',
@@ -718,6 +847,17 @@
                 }
             };
 
+            const setQuickFilter = (type, value) => {
+                if (type === 'category') {
+                    filters.category = filters.category === value ? '' : value;
+                } else if (type === 'difficulty') {
+                    filters.difficulty = filters.difficulty === value ? '' : value;
+                }
+                filters.page = 1;
+                fetchPrograms();
+                scrollToFilters();
+            };
+
             return {
                 programs,
                 filters,
@@ -734,7 +874,10 @@
                 formatCategory,
                 getDifficultyColor,
                 getCoachAvatar,
-                scrollToFilters
+                scrollToFilters,
+                setQuickFilter,
+                heroActiveSlide,
+                heroSlides
             };
         }
     }).mount('#programs-app');

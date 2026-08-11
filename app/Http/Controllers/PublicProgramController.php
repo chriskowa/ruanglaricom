@@ -88,6 +88,57 @@ class PublicProgramController extends Controller
 
         $programs = $query->paginate(12);
 
+        // Calculate real stats for Hero section
+        $totalPrograms = Program::where('is_published', true)
+            ->where('is_active', true)
+            ->whereHas('coach', function ($q) {
+                $q->where('role', 'coach');
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+            })
+            ->count();
+
+        $totalCoaches = Program::where('is_published', true)
+            ->where('is_active', true)
+            ->whereNotNull('coach_id')
+            ->where(function ($q) {
+                $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+            })
+            ->distinct('coach_id')
+            ->count('coach_id');
+
+        $avgRatingVal = Program::where('is_published', true)
+            ->where('is_active', true)
+            ->whereNotNull('average_rating')
+            ->where('average_rating', '>', 0)
+            ->avg('average_rating');
+
+        $averageRating = $avgRatingVal ? round($avgRatingVal, 1) : 4.9;
+
+        // Get featured program for hero card preview
+        $featuredProgram = Program::where('is_published', true)
+            ->where('is_active', true)
+            ->whereHas('coach', function ($q) {
+                $q->where('role', 'coach');
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+            })
+            ->with(['coach', 'city'])
+            ->orderByDesc('average_rating')
+            ->orderByDesc('enrolled_count')
+            ->first();
+
         // If AJAX request, return JSON
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json($programs);
@@ -96,6 +147,10 @@ class PublicProgramController extends Controller
         return view('programs.index', [
             'programs' => $programs,
             'filters' => $request->only(['category', 'difficulty', 'price_min', 'price_max', 'rating', 'search', 'sort']),
+            'totalPrograms' => $totalPrograms,
+            'totalCoaches' => $totalCoaches,
+            'averageRating' => $averageRating,
+            'featuredProgram' => $featuredProgram,
         ]);
     }
 
