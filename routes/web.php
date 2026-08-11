@@ -143,6 +143,7 @@ Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::clas
 Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
 Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
 Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
+Route::get('/gpx/my', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->middleware('auth')->name('gpx.my');
 
 // Cart count routes (Publicly accessible for header badge, handles guest & auth gracefully)
 Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
@@ -1019,7 +1020,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Runner routes
-    Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
+    Route::middleware('role:runner|user|admin|coach|eo')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
         // Running Analysis Requests (Runner-initiated)
