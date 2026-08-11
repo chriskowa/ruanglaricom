@@ -122,7 +122,7 @@ class PublicProgramController extends Controller
 
         $averageRating = $avgRatingVal ? round($avgRatingVal, 1) : 4.9;
 
-        // Get featured program for hero card preview
+        // Get featured program for hero card preview (Utamakan is_featured dari Admin, lalu atlet terbanyak)
         $featuredProgram = Program::where('is_published', true)
             ->where('is_active', true)
             ->whereHas('coach', function ($q) {
@@ -135,8 +135,13 @@ class PublicProgramController extends Controller
                 $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
             })
             ->with(['coach', 'city'])
-            ->orderByDesc('average_rating')
+            ->withCount(['enrollments as active_athletes_count' => function ($q) {
+                $q->whereIn('status', ['active', 'purchased']);
+            }])
+            ->orderByDesc('is_featured')
             ->orderByDesc('enrolled_count')
+            ->orderByDesc('active_athletes_count')
+            ->orderByDesc('average_rating')
             ->first();
 
         // If AJAX request, return JSON

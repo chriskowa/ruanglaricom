@@ -24,7 +24,7 @@
             <div class="absolute inset-0 bg-slate-950/80"></div>
         </div>
         
-        <div class="relative z-10 px-4 md:px-8 py-14 md:py-20 lg:py-24 max-w-7xl mx-auto">
+        <div class="relative z-10 px-6 sm:px-8 md:px-12 py-14 md:py-20 lg:py-24 max-w-7xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
                 <!-- Left Column: Title, Subtitle, Search, Stats, & Quick Chips -->
@@ -50,8 +50,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <button @click="scrollToFilters" class="w-full sm:w-auto px-7 py-3.5 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20 hover:shadow-neon/30 transition-all uppercase tracking-wider shrink-0">
-                            Cari Program
+                        <button @click="scrollToFilters" class="w-full sm:w-auto px-8 sm:px-12 py-3.5 min-w-[120px] bg-neon hover:bg-lime-400 text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20 hover:shadow-neon/30 transition-all uppercase tracking-wider shrink-0 flex items-center justify-center">
+                            Cari
                         </button>
                     </div>
 
@@ -140,7 +140,7 @@
                                     <div class="flex items-center gap-1 text-xs text-amber-400 font-bold">
                                         <i class="fas fa-star"></i>
                                         <span>{{ number_format($featuredProgram->average_rating ?: 5.0, 1) }}</span>
-                                        <span class="text-slate-400 font-normal">({{ $featuredProgram->reviews_count ?? $featuredProgram->enrolled_count ?? 12 }} ulasan)</span>
+                                        <span class="text-slate-400 font-normal">({{ $featuredProgram->enrolled_count ?? $featuredProgram->active_athletes_count ?? 0 }} atlet aktif)</span>
                                     </div>
                                     <div class="text-sm font-black text-white font-mono mt-0.5">
                                         {{ $featuredProgram->price > 0 ? 'Rp ' . number_format($featuredProgram->price, 0, ',', '.') : 'Gratis' }}
@@ -158,7 +158,7 @@
         </div>
     </div>
 
-    <div id="filters-section" class="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 relative z-10">
+    <div id="filters-section" class="px-6 sm:px-8 md:px-12 max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 relative z-10">
         
         <!-- Mobile Filter Button -->
         <div class="lg:hidden mb-4">

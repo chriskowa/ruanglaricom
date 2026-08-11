@@ -59,6 +59,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.programs.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.programs.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-list-check"></i></span>
+                                    <span>Program Management</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.event-submissions.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.event-submissions.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-clipboard-check"></i></span>
                                     <span>Event Approval</span>

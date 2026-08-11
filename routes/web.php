@@ -943,6 +943,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/marketplace/consignments/{intake}/received', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markReceived'])->name('marketplace.consignments.received');
         Route::post('/marketplace/consignments/{intake}/listed', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markListed'])->name('marketplace.consignments.listed');
 
+        // Program Management (Admin)
+        Route::get('programs', [App\Http\Controllers\Admin\ProgramController::class, 'index'])->name('programs.index');
+        Route::post('programs/{program}/toggle-featured', [App\Http\Controllers\Admin\ProgramController::class, 'toggleFeatured'])->name('programs.toggle-featured');
+        Route::delete('programs/{program}', [App\Http\Controllers\Admin\ProgramController::class, 'destroy'])->name('programs.destroy');
+
         // Page Management
         Route::resource('pages', App\Http\Controllers\Admin\PageController::class);
 
