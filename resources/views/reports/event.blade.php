@@ -381,28 +381,41 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm:col-span-2 md:col-span-3 flex flex-wrap items-center gap-2 mt-2">
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark font-bold hover:bg-lime-300 transition">
-                        Terapkan
+                <div class="sm:col-span-2 md:col-span-3 flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-800">
+                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-neon text-dark font-mono text-xs font-bold hover:bg-lime-300 transition shadow-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-filter text-xs"></i>
+                        <span>Terapkan</span>
                     </button>
-                    <button id="report-reset" type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 transition">
-                        Reset
+                    <button id="report-reset" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                        <span>Reset</span>
                     </button>
-                    <button type="button" onclick="openQrScanModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-2 transition">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
-                        Scan QR
+
+                    <div class="h-4 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
+
+                    <button type="button" onclick="openQrScanModal()" class="px-3 py-1.5 rounded-lg bg-purple-600/90 hover:bg-purple-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-purple-400/30 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
+                        <span>Scan QR</span>
                     </button>
-                    <button type="button" onclick="openDoorprizeModal()" class="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold flex items-center gap-2 transition">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
-                        Doorprize
+                    <button type="button" onclick="openActivityLogModal()" class="px-3 py-1.5 rounded-lg bg-sky-600/90 hover:bg-sky-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-sky-400/30 shadow-sm relative">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                        <span>Log Aktivitas</span>
+                        <span id="activity-log-badge" class="px-1.5 py-0.2 rounded-full bg-sky-950 text-sky-200 border border-sky-400/40 text-[9px] font-black">0</span>
                     </button>
-                    <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-500 transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Export CSV
+                    <button type="button" onclick="openDoorprizeModal()" class="px-3 py-1.5 rounded-lg bg-pink-600/90 hover:bg-pink-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-pink-400/30 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
+                        <span>Doorprize</span>
+                    </button>
+
+                    <div class="h-4 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
+
+                    <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-3 py-1.5 rounded-lg bg-emerald-700/90 text-white font-mono text-xs font-bold hover:bg-emerald-600 transition flex items-center gap-1.5 border border-emerald-500/30 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>CSV</span>
                     </a>
-                    <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Export XLSX
+                    <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-3 py-1.5 rounded-lg bg-emerald-700/90 text-white font-mono text-xs font-bold hover:bg-emerald-600 transition flex items-center gap-1.5 border border-emerald-500/30 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>XLSX</span>
                     </a>
                 </div>
             </form>
@@ -1012,6 +1025,55 @@
         <!-- Footer -->
         <div class="bg-slate-900/50 px-6 py-4 flex justify-end border-t border-slate-700">
             <button type="button" onclick="closeCouponReportModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Tutup</button>
+<!-- Activity Log Modal -->
+<div id="activityLogModal" class="fixed inset-0 z-[100] hidden overflow-y-auto p-3 sm:p-4">
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeActivityLogModal()"></div>
+    <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-slate-200">
+            <!-- Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-800 bg-slate-900 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
+                            <span>Log Aktivitas Operator</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Histori scan QR, pengubahan status & approval sesi ini</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeActivityLogModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Sub-Header & Controls -->
+            <div class="p-3 sm:p-4 bg-slate-900/50 border-b border-slate-800 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0">
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                    <input type="text" id="activity-log-search" oninput="renderActivityLogs(this.value)" placeholder="Cari BIB / Nama di log..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-400 transition">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <span id="activity-log-count-summary" class="text-xs text-slate-400 font-mono">0 Log tercatat</span>
+                    <button type="button" onclick="clearActivityLogs()" class="px-2.5 py-1 text-xs rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-500/30 font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        <span>Hapus Log</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (Scrollable List) -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar" id="activity-log-list-container">
+                <!-- Log entries inserted here dynamically -->
+            </div>
+
+            <!-- Footer -->
+            <div class="p-3 border-t border-slate-800 bg-slate-900 flex justify-end shrink-0">
+                <button type="button" onclick="closeActivityLogModal()" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -1021,6 +1083,156 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
+        // Activity Log State & Helper Functions
+        const activityLogStorageKey = "report_activity_logs_{{ $event->id }}";
+
+        function getActivityLogs() {
+            try {
+                return JSON.parse(localStorage.getItem(activityLogStorageKey) || '[]');
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function updateActivityLogBadge() {
+            const logs = getActivityLogs();
+            const badge = document.getElementById('activity-log-badge');
+            const summary = document.getElementById('activity-log-count-summary');
+            if (badge) badge.textContent = logs.length;
+            if (summary) summary.textContent = `${logs.length} Log tercatat`;
+        }
+
+        function addActivityLog(type, participant, extra = '') {
+            if (!participant) return;
+            const logs = getActivityLogs();
+            
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+            const newLog = {
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                timestamp: timeStr,
+                date: dateStr,
+                type: type, // 'pickup_on', 'pickup_off', 'qr_scan', 'status_update'
+                participant_id: participant.id || participant.participant_id || '-',
+                name: participant.name || participant.participant_name || '-',
+                bib: participant.bib_number || participant.bib || '-',
+                category: participant.category_name || participant.category?.name || '-',
+                email: participant.email || '-',
+                phone: participant.phone || '-',
+                extra: extra
+            };
+
+            logs.unshift(newLog);
+            if (logs.length > 100) logs.splice(100);
+
+            try {
+                localStorage.setItem(activityLogStorageKey, JSON.stringify(logs));
+            } catch(e) {}
+
+            updateActivityLogBadge();
+        }
+
+        function clearActivityLogs() {
+            if (!confirm('Apakah Anda yakin ingin menghapus seluruh riwayat log aktivitas scan/pickup?')) return;
+            localStorage.removeItem(activityLogStorageKey);
+            updateActivityLogBadge();
+            renderActivityLogs();
+        }
+
+        function openActivityLogModal() {
+            renderActivityLogs();
+            const modal = document.getElementById('activityLogModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeActivityLogModal() {
+            const modal = document.getElementById('activityLogModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderActivityLogs(searchQuery = '') {
+            const container = document.getElementById('activity-log-list-container');
+            if (!container) return;
+
+            const logs = getActivityLogs();
+            const query = (searchQuery || '').toLowerCase().trim();
+
+            const filtered = logs.filter(log => {
+                if (!query) return true;
+                return (log.name || '').toLowerCase().includes(query) ||
+                       (log.bib || '').toLowerCase().includes(query) ||
+                       (log.type || '').toLowerCase().includes(query) ||
+                       (log.category || '').toLowerCase().includes(query);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        <i class="fa-solid fa-list-check text-3xl mb-2 text-slate-600 block"></i>
+                        <p class="text-xs font-semibold">Belum ada log aktivitas ${query ? 'yang cocok dengan pencarian' : 'tercatat'}.</p>
+                        <p class="text-[10px] text-slate-600 mt-1">Setiap kali Anda melakukan scan QR atau merubah status Picked Up, histori akan otomatis muncul di sini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(log => {
+                let badgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+                let badgeText = 'ACTIVITY';
+                let iconClass = 'fa-info-circle';
+
+                if (log.type === 'pickup_on') {
+                    badgeClass = 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30';
+                    badgeText = 'PICKED UP (Sudah Diambil)';
+                    iconClass = 'fa-circle-check';
+                } else if (log.type === 'pickup_off') {
+                    badgeClass = 'bg-amber-950/60 text-amber-400 border-amber-500/30';
+                    badgeText = 'NOT PICKED (Batal Picked)';
+                    iconClass = 'fa-rotate-left';
+                } else if (log.type === 'qr_scan') {
+                    badgeClass = 'bg-purple-950/60 text-purple-300 border-purple-500/30';
+                    badgeText = 'SCAN QR SUCCESS';
+                    iconClass = 'fa-qrcode';
+                } else if (log.type === 'status_update') {
+                    badgeClass = 'bg-sky-950/60 text-sky-300 border-sky-500/30';
+                    badgeText = 'STATUS UPDATE';
+                    iconClass = 'fa-pen-to-square';
+                }
+
+                return `
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:border-slate-700 transition">
+                        <div class="flex items-start gap-3">
+                            <div class="px-2 py-1 rounded-lg border text-[10px] font-mono font-bold uppercase ${badgeClass} shrink-0 mt-0.5 sm:mt-0 flex items-center gap-1">
+                                <i class="fa-solid ${iconClass} text-[9px]"></i>
+                                <span>${badgeText}</span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-2">
+                                    <span>${log.name}</span>
+                                    <span class="px-1.5 py-0.2 bg-slate-800 text-neon rounded text-[10px] font-mono font-bold">BIB #${log.bib}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                    <span>${log.category}</span>
+                                    <span>•</span>
+                                    <span class="text-slate-500">${log.email !== '-' ? log.email : log.phone}</span>
+                                    ${log.extra ? `<span class="text-slate-500">• ${log.extra}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-mono text-slate-500 self-end sm:self-center shrink-0">
+                            ${log.date} ${log.timestamp}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateActivityLogBadge();
+        });
+
         const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
         const csrfTokenVal = "{{ csrf_token() }}";
 
@@ -1089,7 +1301,14 @@
                     is_picked_up: true,
                     picked_up_by: 'Public Report Scanner'
                 })
-            }).then(function(r) { return r.json(); });
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                if (res && res.success && res.participant) {
+                    if (typeof addActivityLog === 'function') {
+                        addActivityLog('qr_scan', res.participant, 'Scan QR Verified');
+                    }
+                }
+                return res;
+            });
         }
 
         function ensureQrDetector() {
@@ -1454,6 +1673,9 @@
         .then(data => {
             if (data.success) {
                 callback(null, data.participant);
+                if (typeof addActivityLog === 'function') {
+                    addActivityLog(data.participant.is_picked_up ? 'pickup_on' : 'pickup_off', data.participant);
+                }
             } else {
                 callback(data.message || 'Gagal mengubah status');
             }
