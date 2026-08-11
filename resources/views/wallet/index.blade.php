@@ -20,7 +20,7 @@
     <div class="container mx-auto px-4 md:px-8">
         <div class="mb-8">
             <h1 class="text-3xl font-black text-white">Wallet</h1>
-            <p class="text-slate-400 text-sm mt-1">Kelola saldo, riwayat transaksi, dan top-up dengan aman</p>
+            <p class="text-slate-300 text-sm mt-1 font-medium">Kelola saldo, riwayat transaksi, dan top-up dengan aman</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -28,9 +28,9 @@
                 <div class="glass rounded-2xl p-6 md:p-8">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <p class="text-slate-400 text-sm">Saldo Wallet</p>
+                            <p class="text-slate-300 text-sm font-semibold">Saldo Wallet</p>
                             <p class="text-3xl sm:text-4xl md:text-5xl font-black text-white mt-1">Rp {{ number_format($wallet->balance ?? 0, 0, ',', '.') }}</p>
-                            <p class="text-slate-500 text-xs mt-2">Saldo tersedia untuk pembayaran</p>
+                            <p class="text-slate-400 text-xs mt-2 font-medium">Saldo tersedia untuk pembayaran</p>
                         </div>
                         <div class="shrink-0 w-16 h-16 rounded-2xl bg-neon/10 border border-neon/30 flex items-center justify-center self-start sm:self-auto">
                             <svg class="w-8 h-8 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h10M5 7h14a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z" /></svg>
@@ -52,14 +52,14 @@
                     <form id="topup-form" action="{{ route('wallet.topup') }}" method="POST" class="space-y-4">
                         @csrf
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nominal Top-up</label>
+                            <label class="block text-xs font-bold text-slate-300 uppercase mb-2">Nominal Top-up</label>
                             <div class="flex items-center gap-3">
-                                <span class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">Rp</span>
+                                <span class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-bold">Rp</span>
                                 <input type="number" name="amount" id="topup-amount" min="10000" max="10000000" required
                                        class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition"
                                        placeholder="Masukkan nominal (min Rp 10.000)">
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-2">Minimum: Rp 10.000, Maximum: Rp 10.000.000</p>
+                            <p class="text-[10px] text-slate-400 font-medium mt-2">Minimum: Rp 10.000, Maximum: Rp 10.000.000</p>
                         </div>
                         <button type="submit" class="w-full px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-lime-400 transition shadow-lg shadow-neon/20" id="topup-submit">
                             Top-up Sekarang
@@ -70,27 +70,27 @@
                 <div class="glass rounded-2xl p-6 md:p-8" id="withdraw-form">
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-bold text-white">Withdraw</h2>
-                        <span class="text-xs text-slate-500">Saldo akan dikunci saat permintaan dibuat</span>
+                        <span class="text-xs text-slate-400 font-medium">Saldo akan dikunci saat permintaan dibuat</span>
                     </div>
                     <form id="withdraw-form-el" action="{{ route('wallet.withdraw') }}" method="POST" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nominal Withdraw</label>
+                                <label class="block text-xs font-bold text-slate-300 uppercase mb-2">Nominal Withdraw</label>
                                 <div class="flex items-center gap-3">
-                                    <span class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">Rp</span>
+                                    <span class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-bold">Rp</span>
                                     <input type="number" name="amount" id="withdraw-amount" min="50000" required
                                            class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition"
                                            placeholder="Minimal Rp 50.000">
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="block text-xs font-bold text-slate-400 uppercase">Info Bank</label>
-                                <div class="text-sm text-slate-400">
+                                <label class="block text-xs font-bold text-slate-300 uppercase">Info Bank</label>
+                                <div class="text-sm text-slate-300 font-medium">
                                     <p>{{ auth()->user()->bank_name ?: 'Bank belum diisi' }}</p>
                                     <p>{{ auth()->user()->bank_account_name ?: '-' }} • {{ auth()->user()->bank_account_number ?: '-' }}</p>
                                 </div>
-                                <a href="{{ route('profile.show') }}" class="text-[10px] text-neon">Ubah data bank di Profile</a>
+                                <a href="{{ route('profile.show') }}" class="text-[10px] text-neon font-bold">Ubah data bank di Profile</a>
                             </div>
                         </div>
                         <button type="submit" class="w-full px-6 py-3 rounded-xl bg-slate-800 text-white font-bold hover:bg-slate-700 transition" id="withdraw-submit">

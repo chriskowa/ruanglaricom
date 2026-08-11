@@ -97,6 +97,10 @@
                     <i class="flaticon-381-notepad"></i>
                     <span class="nav-text">Marketplace</span>
                 </a></li>
+                <li><a class="ai-icon" href="{{ route('marketplace.wishlist.index') }}" aria-expanded="false">
+                    <i class="flaticon-381-heart"></i>
+                    <span class="nav-text">Wishlist Saya</span>
+                </a></li>
                 <li class="menu-title">Community</li>
                 <li><a class="ai-icon" href="{{ route('feed.index') }}" aria-expanded="false">
                     <i class="flaticon-381-home"></i>

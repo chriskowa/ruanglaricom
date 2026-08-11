@@ -1,6 +1,6 @@
 @php
     $lightMode = $lightMode ?? false;
-    $inactiveClass = $lightMode ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' : 'text-slate-400 hover:text-white hover:bg-slate-900/60';
+    $inactiveClass = $lightMode ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' : 'text-slate-300 hover:text-white hover:bg-slate-900/60';
     $activeClass = $lightMode ? 'text-slate-900 bg-slate-100 font-semibold' : 'text-primary bg-slate-900/80 font-semibold';
     $linkBaseClass = 'group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150';
 @endphp
@@ -25,7 +25,7 @@
                 <!-- SECTION: MAIN -->
                 <li>
                     <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main</li>
+                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Main</li>
                         
                         @if(auth()->user()->isAdmin())
                             <li>
@@ -150,7 +150,7 @@
                             </li>
                             <li>
                                 <a href="{{ route('admin.integration.settings') }}?tab=whatsapp" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.integration.*') && request('tab') === 'whatsapp' ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-server text-emerald-400"></i></span>
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-server"></i></span>
                                     <span>WhatsApp Gateway</span>
                                 </a>
                             </li>
@@ -243,14 +243,8 @@
                             </li>
                             <li>
                                 <a href="{{ route('runner.gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.gpx.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt text-neon"></i></span>
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
                                     <span>My GPX</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('marketplace.wishlist.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.wishlist.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-heart text-rose-500"></i></span>
-                                    <span>Wishlist Saya</span>
                                 </a>
                             </li>
                         @elseif(auth()->user()->isEventOrganizer())
@@ -304,7 +298,7 @@
                 @if(auth()->user()->isAdmin())
                     <li>
                         <ul class="space-y-1">
-                            <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Popup Management</li>
+                            <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Popup Management</li>
                             <li>
                                 <a href="{{ route('admin.popups.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.popups.index') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-window-maximize"></i></span>
@@ -342,16 +336,16 @@
                 <!-- SECTION: FINANCE -->
                 <li>
                     <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance</li>
+                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Finance</li>
                         <li>
                             <a href="{{ route('wallet.index', ['action' => 'deposit']) }}" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'deposit' ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet text-emerald-400"></i></span>
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet"></i></span>
                                 <span>Deposit</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'withdraw' ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-money-bill-transfer text-amber-400"></i></span>
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-money-bill-transfer"></i></span>
                                 <span>Withdraw</span>
                             </a>
                         </li>
@@ -361,7 +355,7 @@
                 <!-- SECTION: COMMERCE -->
                 <li>
                     <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Commerce</li>
+                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Commerce</li>
                         
                         @if(auth()->user()->isAdmin())
                             <li>
@@ -390,6 +384,12 @@
                                 <span>My Orders</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('marketplace.wishlist.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.wishlist.*') ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-heart"></i></span>
+                                <span>Wishlist Saya</span>
+                            </a>
+                        </li>
                         @if(auth()->user()->is_seller)
                             <li>
                                 <a href="{{ route('marketplace.seller.products.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.seller.*') ? $activeClass : $inactiveClass }}">
@@ -404,7 +404,7 @@
                 <!-- SECTION: COMMUNITY -->
                 <li>
                     <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Community</li>
+                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Community</li>
                         <li>
                             <a href="{{ route('feed.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('feed.index') ? $activeClass : $inactiveClass }}">
                                 <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-hashtag"></i></span>
@@ -431,7 +431,7 @@
                 <!-- GUEST VIEW -->
                 <li>
                     <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main</li>
+                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Main</li>
                         <li>
                             <a href="{{ route('home') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('home') ? $activeClass : $inactiveClass }}">
                                 <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-home"></i></span>
