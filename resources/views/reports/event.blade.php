@@ -46,6 +46,59 @@
         justify-content: center;
         min-height: 380px;
     }
+
+    /* Table View Modes (List Compact vs Stacked Cards) */
+    .view-mode-list thead {
+        display: table-header-group !important;
+    }
+    .view-mode-list tr.participant-row {
+        display: table-row !important;
+        background-color: transparent !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        border-bottom: 1px solid #1e293b !important;
+    }
+    .view-mode-list tr.participant-row td {
+        display: table-cell !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+    .view-mode-list tr.participant-row td .mobile-label {
+        display: none !important;
+    }
+    .view-mode-list tr.participant-row td .cell-value {
+        text-align: left !important;
+    }
+
+    .view-mode-stacked thead {
+        display: none !important;
+    }
+    .view-mode-stacked tr.participant-row {
+        display: block !important;
+        background-color: rgba(15, 23, 42, 0.5) !important;
+        margin-bottom: 1rem !important;
+        padding: 1rem !important;
+        border-radius: 1rem !important;
+        border: 1px solid #334155 !important;
+    }
+    .view-mode-stacked tr.participant-row td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        white-space: normal !important;
+    }
+    .view-mode-stacked tr.participant-row td .mobile-label {
+        display: inline-block !important;
+    }
+    .view-mode-stacked tr.participant-row td .cell-value {
+        text-align: right !important;
+    }
 </style>
 @endpush
 
@@ -420,9 +473,9 @@
                 </div>
             </form>
 
-            <!-- Sticky Quick-Search Bar for Mobile & Instant Search -->
-            <div class="mt-4 sticky top-2 z-20 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-700/80 shadow-xl flex items-center gap-2">
-                <div class="relative flex-1">
+            <!-- Sticky Quick-Search & View Mode Switcher Bar -->
+            <div class="mt-4 sticky top-2 z-20 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-700/80 shadow-xl flex flex-wrap sm:flex-nowrap items-center gap-2">
+                <div class="relative flex-1 min-w-[200px]">
                     <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
@@ -432,45 +485,57 @@
                         ✕
                     </button>
                 </div>
+
+                <!-- View Mode Switcher Buttons -->
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
+                    <button type="button" id="btn-view-mode-list" onclick="setTableViewMode('list')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm" title="Tampilan List Ringkas (Hemat Scroll)">
+                        <i class="fa-solid fa-list-ul text-xs"></i>
+                        <span class="text-[11px] font-mono uppercase">List</span>
+                    </button>
+                    <button type="button" id="btn-view-mode-stacked" onclick="setTableViewMode('stacked')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Tampilan Kartu Detailed">
+                        <i class="fa-solid fa-table-cells-large text-xs"></i>
+                        <span class="text-[11px] font-mono uppercase">Stacked</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-4 overflow-x-auto border border-slate-700 rounded-2xl">
+            <div id="participants-table-wrapper" class="mt-4 overflow-x-auto border border-slate-700 rounded-2xl view-mode-list">
                 <table class="min-w-full text-sm">
-                    <thead class="bg-slate-900/60 text-slate-300 hidden md:table-header-group">
+                    <thead class="bg-slate-900/60 text-slate-300">
                         <tr>
-                            <th class="text-left font-semibold px-4 py-3">Nama</th>
-                            <th class="text-left font-semibold px-4 py-3">Email</th>
-                            <th class="text-left font-semibold px-4 py-3">No Telp</th>
-                            <th class="text-left font-semibold px-4 py-3">Jersey</th>
-                            <th class="text-left font-semibold px-4 py-3">No BIB</th>
-                            <th class="text-left font-semibold px-4 py-3">Addons</th>
-                            <th class="text-left font-semibold px-4 py-3">Tanggal Registrasi</th>
-                            <th class="text-left font-semibold px-4 py-3">Status Pembayaran</th>
-                            <th class="text-left font-semibold px-4 py-3 text-center">Picked Up</th>
-                            <th class="text-left font-semibold px-4 py-3">Aksi</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Nama</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Email</th>
+                            <th class="text-left font-semibold px-3 py-2.5">No Telp</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Jersey</th>
+                            <th class="text-left font-semibold px-3 py-2.5">No BIB</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Addons</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Tanggal Registrasi</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Status Pembayaran</th>
+                            <th class="text-left font-semibold px-3 py-2.5 text-center">Picked Up</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="participants-tbody" class="divide-y divide-slate-800">
                         @foreach($participants as $p)
-                            <tr class="hover:bg-slate-900/40 cursor-pointer block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="{{ json_encode($p) }}">
-                                <td class="px-4 py-2 md:py-3 font-semibold text-white block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Nama</span>
-                                    <span class="text-right md:text-left">{{ $p->name }}</span>
+                            <tr class="participant-row hover:bg-slate-900/40 cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('select') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="{{ json_encode($p) }}">
+                                <td class="px-3 py-2 font-semibold text-white">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Nama</span>
+                                    <span class="cell-value text-right md:text-left font-bold text-white text-xs sm:text-sm">{{ $p->name }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Email</span>
-                                    <span class="text-right md:text-left break-all">{{ $p->email }}</span>
+                                <td class="px-3 py-2 text-slate-200">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Email</span>
+                                    <span class="cell-value text-right md:text-left break-all text-xs text-slate-300">{{ $p->email }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No Telp</span>
-                                    <span class="text-right md:text-left font-mono">{{ $p->phone ?? '-' }}</span>
+                                <td class="px-3 py-2 text-slate-300">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">No Telp</span>
+                                    <span class="cell-value text-right md:text-left font-mono text-xs">{{ $p->phone ?? '-' }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
-                                    <span class="text-right md:text-left font-mono">{{ $p->jersey_size ?? '-' }}</span>
+                                <td class="px-3 py-2 text-slate-300">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Jersey</span>
+                                    <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-slate-200">{{ $p->jersey_size ?? '-' }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
+                                <td class="px-3 py-2 text-slate-300">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">No BIB</span>
                                     @php
                                         $bib = $p->bib_number;
                                         if ($bib && strpos($bib, '-') !== false) {
@@ -478,32 +543,32 @@
                                             $bib = end($parts);
                                         }
                                     @endphp
-                                    <span class="text-right md:text-left font-mono">{{ $bib ?? '-' }}</span>
+                                    <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-neon">#{{ $bib ?? '-' }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
+                                <td class="px-3 py-2 text-slate-200">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Addons</span>
                                     @php $addons = is_array($p->addons) ? $p->addons : []; @endphp
-                                    <span class="text-right md:text-left">
+                                    <span class="cell-value text-right md:text-left">
                                         @if(count($addons) > 0)
                                             <span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">
                                                 @foreach($addons as $a)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-200">
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-200">
                                                         {{ is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-') }}
                                                     </span>
                                                 @endforeach
                                             </span>
                                         @else
-                                            <span class="text-slate-400">-</span>
+                                            <span class="text-slate-500">-</span>
                                         @endif
                                     </span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
-                                    <span class="text-right md:text-left">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d M Y H:i') }}</span>
+                                <td class="px-3 py-2 text-slate-300">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
+                                    <span class="cell-value text-right md:text-left text-xs font-mono text-slate-400">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d/m/y H:i') }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
-                                    <div class="text-right md:text-left">
+                                <td class="px-3 py-2 no-click">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Status</span>
+                                    <div class="cell-value text-right md:text-left">
                                         <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-900 border border-slate-700 text-xs font-bold rounded-lg px-2 py-1 text-white focus:outline-none focus:border-neon cursor-pointer">
                                             <option value="paid" @selected($p->payment_status === 'paid')>PAID</option>
                                             <option value="pending" @selected($p->payment_status === 'pending')>PENDING</option>
@@ -513,34 +578,31 @@
                                             <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
                                         </select>
                                         @if($p->coupon_code)
-                                            <div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">
+                                            <div class="mt-0.5 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">
                                                 🏷️ {{ $p->coupon_code }}
-                                            </div>
-                                            <div class="text-[10px] text-slate-400 mt-0.5">
-                                                Net: Rp {{ number_format((float) $p->final_amount, 0, ',', '.') }}
                                             </div>
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
-                                    <span class="text-right md:text-left">
+                                <td class="px-3 py-2 text-center no-click">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Picked Up</span>
+                                    <div class="cell-value text-right md:text-center">
                                         <button type="button" 
                                             onclick="togglePickup(this, {{ $p->id }}, {{ $p->is_picked_up ? 'true' : 'false' }})"
                                             class="px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 {{ $p->is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700' }}">
                                             {{ $p->is_picked_up ? 'Picked Up' : 'Not Picked' }}
                                         </button>
-                                    </span>
+                                    </div>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Aksi</span>
-                                    <span class="text-right md:text-left">
+                                <td class="px-3 py-2 no-click">
+                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Aksi</span>
+                                    <div class="cell-value text-right md:text-left">
                                         <button type="button" 
-                                            onclick="openEditModal({{ json_encode($p) }})"
-                                            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg transition">
-                                            Edit
+                                            onclick="openDetailModalFromRow(this.closest('tr'))"
+                                            class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold transition">
+                                            Detail
                                         </button>
-                                    </span>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -1229,8 +1291,55 @@
             }).join('');
         }
 
+        const viewModeStorageKey = 'report_table_view_mode';
+
+        function setTableViewMode(mode) {
+            const wrapper = document.getElementById('participants-table-wrapper');
+            const btnList = document.getElementById('btn-view-mode-list');
+            const btnStacked = document.getElementById('btn-view-mode-stacked');
+
+            if (!wrapper) return;
+
+            if (mode === 'stacked') {
+                wrapper.classList.remove('view-mode-list');
+                wrapper.classList.add('view-mode-stacked');
+
+                if (btnList) {
+                    btnList.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
+                }
+                if (btnStacked) {
+                    btnStacked.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
+                }
+            } else {
+                mode = 'list';
+                wrapper.classList.remove('view-mode-stacked');
+                wrapper.classList.add('view-mode-list');
+
+                if (btnList) {
+                    btnList.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
+                }
+                if (btnStacked) {
+                    btnStacked.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
+                }
+            }
+
+            try {
+                localStorage.setItem(viewModeStorageKey, mode);
+            } catch(e) {}
+        }
+
+        function initTableViewMode() {
+            let savedMode = 'list';
+            try {
+                savedMode = localStorage.getItem(viewModeStorageKey) || 'list';
+            } catch(e) {}
+
+            setTableViewMode(savedMode);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             updateActivityLogBadge();
+            initTableViewMode();
         });
 
         const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";

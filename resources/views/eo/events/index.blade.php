@@ -248,7 +248,7 @@
                 </div>
 
                 <!-- Modal Body -->
-                <div class="px-4 py-5 sm:p-6" x-if="activeEvent">
+                <div class="px-4 py-5 sm:p-6" x-show="activeEvent">
                     <!-- Event Info -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div>
