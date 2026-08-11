@@ -60,6 +60,7 @@
                             activeIndex: 0, 
                             total: {{ $featuredEvents->count() }}, 
                             timer: null,
+                            touchStartX: 0,
                             startTimer() {
                                 this.timer = setInterval(() => {
                                     this.activeIndex = (this.activeIndex + 1) % this.total;
@@ -72,6 +73,14 @@
                         x-init="startTimer()"
                         @mouseenter="stopTimer()"
                         @mouseleave="startTimer()"
+                        @touchstart="touchStartX = $event.touches[0].clientX"
+                        @touchend="
+                            let diffX = $event.changedTouches[0].clientX - touchStartX;
+                            if (Math.abs(diffX) > 35) {
+                                if (diffX < 0) { activeIndex = (activeIndex + 1) % total; }
+                                else { activeIndex = (activeIndex - 1 + total) % total; }
+                            }
+                        "
                     >
                         <!-- Slides Wrapper -->
                         <div class="flex transition-transform duration-700 ease-out" :style="`transform: translateX(-${activeIndex * 100}%)`">

@@ -182,6 +182,126 @@
             </div>
         </header>
 
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const track = document.getElementById('heroFeaturedTrack');
+            if (!track) return;
+
+            const prevBtn = document.getElementById('heroFeaturedPrev');
+            const nextBtn = document.getElementById('heroFeaturedNext');
+            const dotsContainer = document.getElementById('heroFeaturedDots');
+
+            const slides = track.querySelectorAll('a, div.snap-center');
+            if (slides.length <= 1) return;
+
+            let currentIndex = 0;
+            let autoPlayTimer = null;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let dragDistance = 0;
+            let isDragging = false;
+
+            if (dotsContainer) {
+                dotsContainer.innerHTML = '';
+                slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = `w-2.5 h-2.5 rounded-full transition-all duration-300 ${i === 0 ? 'bg-[#B8FF00] w-6' : 'bg-slate-600 hover:bg-slate-400'}`;
+                    dot.addEventListener('click', () => goToSlide(i));
+                    dotsContainer.appendChild(dot);
+                });
+            }
+
+            function updateDots() {
+                if (!dotsContainer) return;
+                const dots = dotsContainer.querySelectorAll('button');
+                dots.forEach((dot, i) => {
+                    if (i === currentIndex) {
+                        dot.className = 'w-6 h-2.5 rounded-full bg-[#B8FF00] transition-all duration-300';
+                    } else {
+                        dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-600 hover:bg-slate-400 transition-all duration-300';
+                    }
+                });
+            }
+
+            function goToSlide(index) {
+                currentIndex = (index + slides.length) % slides.length;
+                const targetSlide = slides[currentIndex];
+                if (targetSlide) {
+                    track.scrollTo({
+                        left: targetSlide.offsetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+                updateDots();
+            }
+
+            if (prevBtn) prevBtn.addEventListener('click', () => { goToSlide(currentIndex - 1); resetAutoPlay(); });
+            if (nextBtn) nextBtn.addEventListener('click', () => { goToSlide(currentIndex + 1); resetAutoPlay(); });
+
+            track.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isDragging = false;
+                dragDistance = 0;
+                stopAutoPlay();
+            }, { passive: true });
+
+            track.addEventListener('touchmove', (e) => {
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const diffX = touchX - touchStartX;
+                const diffY = touchY - touchStartY;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    dragDistance = diffX;
+                    isDragging = true;
+                }
+            }, { passive: true });
+
+            track.addEventListener('touchend', () => {
+                if (isDragging && Math.abs(dragDistance) > 35) {
+                    if (dragDistance < 0) {
+                        goToSlide(currentIndex + 1);
+                    } else {
+                        goToSlide(currentIndex - 1);
+                    }
+                }
+                startAutoPlay();
+            }, { passive: true });
+
+            slides.forEach(slide => {
+                slide.addEventListener('click', (e) => {
+                    if (isDragging && Math.abs(dragDistance) > 10) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
+
+            function startAutoPlay() {
+                stopAutoPlay();
+                autoPlayTimer = setInterval(() => {
+                    goToSlide(currentIndex + 1);
+                }, 5000);
+            }
+
+            function stopAutoPlay() {
+                if (autoPlayTimer) clearInterval(autoPlayTimer);
+            }
+
+            function resetAutoPlay() {
+                stopAutoPlay();
+                startAutoPlay();
+            }
+
+            track.addEventListener('mouseenter', stopAutoPlay);
+            track.addEventListener('mouseleave', startAutoPlay);
+
+            startAutoPlay();
+        });
+        </script>
+
         <!-- PROGRAM LATIHAN VDOT SECTION (NO EMOJIS, CLEAN & PROFESSIONAL) -->
         <section id="vdot-section" class="py-20 relative bg-[#0B1526] border-t border-[#1F2D44]">
             <!-- Subtle Glow Effect -->

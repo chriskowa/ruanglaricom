@@ -83,6 +83,15 @@
                         <span class="nav-text">Dashboard</span>
                     </a></li>
                 @endif
+                <li class="menu-title">Finance</li>
+                <li><a class="ai-icon" href="{{ route('wallet.index', ['action' => 'deposit']) }}" aria-expanded="false">
+                    <i class="flaticon-381-credit-card text-emerald-400"></i>
+                    <span class="nav-text">Deposit</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" aria-expanded="false">
+                    <i class="flaticon-381-send text-amber-400"></i>
+                    <span class="nav-text">Withdraw</span>
+                </a></li>
                 <li class="menu-title">Commerce</li>
                 <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
                     <i class="flaticon-381-notepad"></i>

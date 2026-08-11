@@ -339,6 +339,25 @@
                     </li>
                 @endif
 
+                <!-- SECTION: FINANCE -->
+                <li>
+                    <ul class="space-y-1">
+                        <li class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance</li>
+                        <li>
+                            <a href="{{ route('wallet.index', ['action' => 'deposit']) }}" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'deposit' ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet text-emerald-400"></i></span>
+                                <span>Deposit</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'withdraw' ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-money-bill-transfer text-amber-400"></i></span>
+                                <span>Withdraw</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- SECTION: COMMERCE -->
                 <li>
                     <ul class="space-y-1">

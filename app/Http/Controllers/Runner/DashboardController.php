@@ -16,15 +16,26 @@ class DashboardController extends Controller
         $user = auth()->user();
         $user->load('wallet');
 
+        // Fetch active enrollments once with eager loaded relationships
         $activeEnrollments = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'active')
-            ->with('program')
+            ->with(['program.coach'])
             ->get();
 
-        $weeklyReports = \App\Models\ProgramWeeklyReport::whereIn('enrollment_id', $activeEnrollments->pluck('id'))
-            ->where('status', 'published')
-            ->orderBy('week_number', 'desc')
-            ->get();
+        $enrollmentIds = $activeEnrollments->pluck('id')->toArray();
+
+        // 1. Single batch query for Session Trackings across all active enrollments (eliminating N+1 query loops)
+        $allTrackings = !empty($enrollmentIds)
+            ? ProgramSessionTracking::whereIn('enrollment_id', $enrollmentIds)->get()->groupBy('enrollment_id')
+            : collect();
+
+        // 2. Fetch Weekly Reports only if user has active enrollments
+        $weeklyReports = !empty($enrollmentIds)
+            ? \App\Models\ProgramWeeklyReport::whereIn('enrollment_id', $enrollmentIds)
+                ->where('status', 'published')
+                ->orderBy('week_number', 'desc')
+                ->get()
+            : collect();
 
         $totalEarnings = 0;
         if ($user->wallet) {
@@ -52,7 +63,8 @@ class DashboardController extends Controller
                 continue;
             }
 
-            $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+            // In-memory keyBy from pre-fetched session trackings
+            $trackings = $allTrackings->get($enrollment->id, collect())->keyBy('session_day');
 
             foreach ($sessions as $session) {
                 $day = (int) ($session['day'] ?? 0);
@@ -100,44 +112,45 @@ class DashboardController extends Controller
         }
 
         $stravaConnected = (bool) $user->strava_access_token;
-        $lastStravaSyncAt = StravaActivity::where('user_id', $user->id)
-            ->orderByDesc('updated_at')
-            ->first();
-        $lastStravaSyncAt = $lastStravaSyncAt ? $lastStravaSyncAt->updated_at : null;
-        $lastStravaActivity = StravaActivity::where('user_id', $user->id)->orderByDesc('start_date')->first();
+
+        // 3. Optimize Strava Queries into a single collection retrieval
+        $recentStravaActivities = StravaActivity::where('user_id', $user->id)
+            ->orderByDesc('start_date')
+            ->take(5)
+            ->get();
+
+        $lastStravaActivity = $recentStravaActivities->first();
+        $lastStravaSyncAt = $lastStravaActivity ? $lastStravaActivity->updated_at : null;
+
         $stravaWeekDistanceKm = (float) (StravaActivity::query()
             ->where('user_id', $user->id)
             ->whereBetween('start_date', [$startOfWeek, $endOfWeek])
             ->sum('distance_m') / 1000);
 
-        $recentStravaActivities = StravaActivity::where('user_id', $user->id)
-            ->orderByDesc('start_date')
-            ->take(5)
-            ->get()
-            ->map(function ($act) {
-                $act->distance_km = $act->distance_m ? round($act->distance_m / 1000, 2) : 0;
-                $act->pace_min_km = ($act->distance_m > 0) ? gmdate('i:s', (int) ($act->moving_time_s / ($act->distance_m / 1000))) : '-';
-                $act->formatted_duration = gmdate('H:i:s', $act->moving_time_s);
+        $recentStravaActivities = $recentStravaActivities->map(function ($act) {
+            $act->distance_km = $act->distance_m ? round($act->distance_m / 1000, 2) : 0;
+            $act->pace_min_km = ($act->distance_m > 0) ? gmdate('i:s', (int) ($act->moving_time_s / ($act->distance_m / 1000))) : '-';
+            $act->formatted_duration = gmdate('H:i:s', $act->moving_time_s);
 
-                $type = strtolower($act->type ?? '');
-                $act->border_color = match (true) {
-                    in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '#4CAF50',
-                    in_array($type, ['ride', 'virtualride', 'ebikeride']) => '#2196F3',
-                    $type === 'swim' => '#00BCD4',
-                    in_array($type, ['walk', 'hike']) => '#FF9800',
-                    default => '#9E9E9E'
-                };
+            $type = strtolower($act->type ?? '');
+            $act->border_color = match (true) {
+                in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '#4CAF50',
+                in_array($type, ['ride', 'virtualride', 'ebikeride']) => '#2196F3',
+                $type === 'swim' => '#00BCD4',
+                in_array($type, ['walk', 'hike']) => '#FF9800',
+                default => '#9E9E9E'
+            };
 
-                $act->icon = match (true) {
-                    in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '🏃',
-                    in_array($type, ['ride', 'virtualride', 'ebikeride']) => '🚴',
-                    $type === 'swim' => '🏊',
-                    in_array($type, ['walk', 'hike']) => '🚶',
-                    default => '🏋️'
-                };
+            $act->icon = match (true) {
+                in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '🏃',
+                in_array($type, ['ride', 'virtualride', 'ebikeride']) => '🚴',
+                $type === 'swim' => '🏊',
+                in_array($type, ['walk', 'hike']) => '🚶',
+                default => '🏋️'
+            };
 
-                return $act;
-            });
+            return $act;
+        });
 
         $today = Carbon::now()->startOfDay();
         $next7 = Carbon::now()->addDays(6)->endOfDay();
@@ -161,7 +174,10 @@ class DashboardController extends Controller
             if (! is_array($sessions) || empty($sessions)) {
                 continue;
             }
-            $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+
+            // In-memory keyBy from pre-fetched session trackings
+            $trackings = $allTrackings->get($enrollment->id, collect())->keyBy('session_day');
+
             foreach ($sessions as $session) {
                 $day = (int) ($session['day'] ?? 0);
                 if ($day <= 0) {
@@ -324,14 +340,10 @@ class DashboardController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(5, ['*'], 'events_page');
 
-        // Get active enrollments with program.coach for calendar
-        $enrollments = ProgramEnrollment::where('runner_id', $user->id)
-            ->where('status', 'active')
-            ->whereHas('program', function ($query) {
-                $query->where('is_active', true);
-            })
-            ->with(['program.coach'])
-            ->get();
+        // 4. Re-use $activeEnrollments instead of executing a duplicate query!
+        $enrollments = $activeEnrollments->filter(function ($e) {
+            return $e->program && $e->program->is_active;
+        })->values();
 
         // Get Program Bag (Purchased)
         $programBag = ProgramEnrollment::where('runner_id', $user->id)
@@ -377,14 +389,17 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'desc')
             ->get();
 
+        // 5. Limit Marketplace Queries on Dashboard to latest items instead of fetching unlimited rows
         $marketplacePurchases = \App\Models\Marketplace\MarketplaceOrder::where('buyer_id', $user->id)
             ->with(['items.product.primaryImage', 'seller'])
             ->latest()
+            ->take(5)
             ->get();
 
         $wishlistedProducts = \App\Models\Marketplace\MarketplaceWishlist::where('user_id', $user->id)
             ->with(['product.primaryImage', 'product.seller.city', 'product.brand'])
             ->latest()
+            ->take(6)
             ->get();
 
         return view('runner.dashboard', [
