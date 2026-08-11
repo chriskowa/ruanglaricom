@@ -1372,7 +1372,12 @@
                     .catch(function () {
                         showAlert('error', 'Terjadi kesalahan saat submit.');
                     })
-        if (openBtn) openBtn.addEventListener('click', openModal);
+                    .finally(function () {
+                        setBusy(submitBtn, false, 'Submit Event');
+                    });
+                });
+            });
+        }
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
         if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
