@@ -305,13 +305,7 @@
                 const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
                 if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
                     try {
-                        const token = await new Promise((resolve, reject) => {
-                            grecaptcha.ready(() => {
-                                grecaptcha.execute(recaptchaKeyV3, {action: 'login'})
-                                    .then(resolve)
-                                    .catch(reject);
-                            });
-                        });
+                        const token = await grecaptcha.execute(recaptchaKeyV3, {action: 'login'});
                         const input = form.querySelector('input[name="g-recaptcha-response"]');
                         if (input) input.value = token;
                     } catch (err) {
@@ -356,13 +350,7 @@
                 const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
                 if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
                     try {
-                        const token = await new Promise((resolve, reject) => {
-                            grecaptcha.ready(() => {
-                                grecaptcha.execute(recaptchaKeyV3, {action: 'register'})
-                                    .then(resolve)
-                                    .catch(reject);
-                            });
-                        });
+                        const token = await grecaptcha.execute(recaptchaKeyV3, {action: 'register'});
                         const input = form.querySelector('input[name="g-recaptcha-response"]');
                         if (input) input.value = token;
                     } catch (err) {

@@ -110,7 +110,7 @@ class CalendarController extends Controller
             'redirect_uri' => route('calendar.strava.callback'),
             'response_type' => 'code',
             'scope' => 'activity:read_all,profile:read_all,activity:write',
-            'approval_prompt' => 'auto',
+            'approval_prompt' => 'force',
         ]);
 
         return redirect('https://www.strava.com/oauth/authorize?'.$query);
