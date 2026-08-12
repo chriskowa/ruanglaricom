@@ -60,12 +60,16 @@
                     </button>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-2 w-full md:w-auto md:flex">
-                <button onclick="switchTab('calendar')" id="dashboard-calendar-btn" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
+            <div class="grid grid-cols-3 gap-2 w-full md:w-auto md:flex">
+                <a href="{{ route('runner.strava.connect') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition-all shadow-md shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs">
+                    <i class="fab fa-strava text-sm"></i>
+                    <span>{{ auth()->user()->strava_access_token ? 'Re-sync Strava' : 'Connect Strava' }}</span>
+                </a>
+                <button onclick="switchTab('calendar')" id="dashboard-calendar-btn" class="px-3.5 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5 text-xs">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     Calendar
                 </button>
-                <a href="{{ route('runner.programs') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center gap-2">
+                <a href="{{ route('runner.programs') }}" class="px-3.5 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-xs flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                     Programs
                 </a>
@@ -115,6 +119,27 @@
         @if (session('error'))
             <div class="mt-6 p-4 rounded-2xl bg-red-900/30 border border-red-500/30 text-red-200">
                 <div class="font-bold text-sm">{{ session('error') }}</div>
+            </div>
+        @endif
+
+        @if(!auth()->user()->strava_access_token)
+            <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-[#FC4C02]/20 via-[#0d162d] to-slate-900 border border-[#FC4C02]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#FC4C02] text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+                        <i class="fab fa-strava"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-black text-white flex items-center gap-2">
+                            Hubungkan Akun Strava Anda
+                            <span class="text-[10px] bg-[#FC4C02]/30 text-[#FC4C02] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Rekomendasi</span>
+                        </div>
+                        <div class="text-xs text-slate-300 mt-0.5">Otomatis sinkronkan latihan harian, sync statistik rute, dan klaim Run Points.</div>
+                    </div>
+                </div>
+                <a href="{{ route('runner.strava.connect') }}" class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-[#FC4C02] hover:bg-[#FC4C02]/90 text-white font-bold text-xs transition shadow-md shadow-[#FC4C02]/30 flex items-center gap-2 self-stretch sm:self-auto justify-center">
+                    <i class="fab fa-strava text-sm"></i>
+                    <span>Connect Strava Now</span>
+                </a>
             </div>
         @endif
 

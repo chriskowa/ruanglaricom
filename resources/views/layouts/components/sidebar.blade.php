@@ -64,6 +64,10 @@
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
+                    <li><a class="ai-icon text-[#FC4C02]" href="{{ route('runner.strava.connect') }}" aria-expanded="false">
+                        <i class="fab fa-strava text-[#FC4C02]"></i>
+                        <span class="nav-text">Koneksi Strava</span>
+                    </a></li>
                     <li><a class="ai-icon" href="{{ route('runner.calendar') }}" aria-expanded="false">
                         <i class="flaticon-381-calendar"></i>
                         <span class="nav-text">Calendar</span>
