@@ -1,8 +1,8 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'RuangLari | Kalender Event Lari, Komunitas, dan Tools Pelari Indonesia')
-@section('meta_title', 'RuangLari | Kalender Event Lari, Komunitas, dan Tools Pelari Indonesia')
-@section('meta_description', 'Temukan event lari terbaru, kalender race, komunitas pelari, leaderboard, dan tools latihan dalam satu platform RuangLari.')
+@section('title', 'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia')
+@section('meta_title', 'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia')
+@section('meta_description', 'RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.')
 @section('canonical_url', url('/'))
 
 @section('content')

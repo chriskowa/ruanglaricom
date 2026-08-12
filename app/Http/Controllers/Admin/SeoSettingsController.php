@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSettings;
 use Illuminate\Http\Request;
 
 class SeoSettingsController extends Controller
@@ -10,12 +11,21 @@ class SeoSettingsController extends Controller
     public function index()
     {
         $settings = [
-            'seo_meta_title_default' => \App\Models\AppSettings::get('seo_meta_title_default', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'),
-            'seo_meta_description_default' => \App\Models\AppSettings::get('seo_meta_description_default', 'Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda.'),
-            'seo_meta_keywords_default' => \App\Models\AppSettings::get('seo_meta_keywords_default', 'ruang lari, komunitas lari, event lari, pacer indonesia, training plan'),
-            'seo_og_image_default' => \App\Models\AppSettings::get('seo_og_image_default', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'),
-            'seo_twitter_card_default' => \App\Models\AppSettings::get('seo_twitter_card_default', 'summary_large_image'),
-            'seo_json_ld_schema_default' => \App\Models\AppSettings::get('seo_json_ld_schema_default', '{}'),
+            'seo_meta_title_default' => AppSettings::get(
+                'seo_meta_title_default',
+                'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia'
+            ),
+            'seo_meta_description_default' => AppSettings::get(
+                'seo_meta_description_default',
+                'RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.'
+            ),
+            'seo_meta_keywords_default' => AppSettings::get(
+                'seo_meta_keywords_default',
+                'ruang lari, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari'
+            ),
+            'seo_og_image_default' => AppSettings::get('seo_og_image_default', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'),
+            'seo_twitter_card_default' => AppSettings::get('seo_twitter_card_default', 'summary_large_image'),
+            'seo_json_ld_schema_default' => AppSettings::get('seo_json_ld_schema_default', '{}'),
         ];
 
         return view('admin.settings.seo', compact('settings'));
@@ -33,7 +43,7 @@ class SeoSettingsController extends Controller
         ]);
 
         foreach ($data as $key => $value) {
-            \App\Models\AppSettings::set($key, $value);
+            AppSettings::set($key, $value);
         }
 
         return back()->with('success', 'SEO settings updated successfully.');

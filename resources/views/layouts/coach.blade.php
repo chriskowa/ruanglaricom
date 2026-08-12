@@ -18,12 +18,11 @@
     <title>@yield('title', 'Coach Dashboard - RuangLari')</title>
 
      <!-- Primary Meta Tags -->
-    <title>Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans</title>
-    <meta name="title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
-    <meta name="description" content="Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.">
+    <meta name="title" content="RuangLari - Info Lari, Tips Latihan & Event Running Indonesia">
+    <meta name="description" content="RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.">
 
     <!-- Keywords -->
-    <meta name="keywords" content="ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon">
+    <meta name="keywords" content="ruang lari, berita lari, running news indonesia, program lari, jadwal event lari, kalender marathon, training plan marathon, 5k, 10k, half marathon, full marathon, marketplace lari">
 
     <!-- Author -->
     <meta name="author" content="Ruang Lari Indonesia">
@@ -31,14 +30,14 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ruanglari.id/">
-    <meta property="og:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
-    <meta property="og:description" content="Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.">
+    <meta property="og:title" content="RuangLari - Berita Lari, Program Latihan & Jadwal Event Marathon">
+    <meta property="og:description" content="Portal lari terdepan di Indonesia. Temukan berita & artikel lari terbaru, program latihan lari profesional, serta jadwal event lari terlengkap.">
     <meta property="og:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://ruanglari.id/">
-    <meta name="twitter:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
+    <meta name="twitter:title" content="RuangLari - Berita Lari, Program Latihan & Jadwal Event Marathon">
     <meta name="twitter:description" content="Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.">
     <meta name="twitter:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
 

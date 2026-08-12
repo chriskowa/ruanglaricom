@@ -370,7 +370,14 @@ class CalendarController extends Controller
             $status = $res->status();
             $message = 'Gagal upload ke Strava.';
             if ($status === 401 || $status === 403) {
-                $message = 'Strava token tidak valid / belum punya izin write. Silakan connect ulang Strava.';
+                if ($user) {
+                    $user->update([
+                        'strava_access_token' => null,
+                        'strava_refresh_token' => null,
+                        'strava_expires_at' => null,
+                    ]);
+                }
+                $message = 'Token Strava tidak valid atau belum memiliki izin penulisan (activity:write). Token telah di-reset, silakan klik button "Re-sync / Hubungkan Ulang Strava".';
             }
 
             return [

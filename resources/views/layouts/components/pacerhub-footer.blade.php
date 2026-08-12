@@ -1,6 +1,6 @@
 @php
     $siteTitle = \App\Models\AppSettings::get('site_title', 'RuangLari Indonesia');
-    $siteTagline = \App\Models\AppSettings::get('site_tagline', 'RuangLari adalah ekosistem pelari & race event No.1 di Indonesia. Kami menyediakan program latihan Daniels VDOT, fitur Cari Teman Lari (Running Connect), AI Biomechanics Analysis, kalender event marathon, serta direktori komunitas lari se-Indonesia.');
+    $siteTagline = \App\Models\AppSettings::get('site_tagline', 'RuangLari adalah portal lari & media race event No.1 di Indonesia. Kami menyajikan berita lari terkini, program latihan lari terstruktur (Daniels VDOT), kalender event marathon terlengkap, serta marketplace gear lari.');
     $socialInsta = \App\Models\AppSettings::get('social_instagram', 'https://www.instagram.com/ruanglaricom/');
     $socialTiktok = \App\Models\AppSettings::get('social_tiktok', 'https://www.tiktok.com/@ruanglaricom');
     $socialFb = \App\Models\AppSettings::get('social_facebook', 'https://www.facebook.com/ruanglari');

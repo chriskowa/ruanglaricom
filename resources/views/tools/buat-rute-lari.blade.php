@@ -497,7 +497,30 @@
                                 </div>
 
                                 @auth
+                                    @if(session('error') && (str_contains(strtolower(session('error')), 'strava') || str_contains(strtolower(session('error')), 'token')))
+                                        <div class="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-exclamation-circle text-amber-400 shrink-0 text-sm"></i>
+                                                <span>{{ session('error') }}</span>
+                                            </div>
+                                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
+                                               class="px-3 py-1.5 rounded-lg bg-[#FC4C02] text-white font-bold text-[11px] hover:bg-[#FC4C02]/90 transition whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-md">
+                                                <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                                <span>Re-sync Strava Now</span>
+                                            </a>
+                                        </div>
+                                    @endif
+
                                     @if($hasStrava)
+                                        <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 py-0.5">
+                                            <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Strava Terhubung
+                                            </span>
+                                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
+                                               class="text-amber-400 hover:text-amber-300 font-semibold transition flex items-center gap-1 text-[11px]">
+                                                <i class="fas fa-arrows-rotate text-[10px]"></i> Re-sync / Hubungkan Ulang Strava
+                                            </a>
+                                        </div>
                                         <form id="rl-strava-direct-form" method="POST" action="{{ route('tools.buat-rute-lari.strava-upload') }}">
                                             @csrf
                                             <input type="hidden" name="points_json" id="rl-strava-points-json-direct">
@@ -3203,6 +3226,12 @@
                         els.stravaToggle.textContent = 'Buka';
                     }
                 });
+
+                if (window.location.hash === '#strava-form-panel' || document.querySelector('#strava-form-panel .bg-amber-500\\/15')) {
+                    els.stravaBody.classList.remove('hidden');
+                    els.stravaToggle.textContent = 'Tutup';
+                    syncStravaDefaults();
+                }
             }
 
             if (els.stravaDirectForm) {
