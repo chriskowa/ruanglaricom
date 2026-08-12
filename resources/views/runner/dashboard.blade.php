@@ -61,10 +61,17 @@
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2 w-full md:w-auto md:flex">
-                <a href="{{ route('runner.strava.connect') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition-all shadow-md shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fab fa-strava text-sm"></i>
-                    <span>{{ auth()->user()->strava_access_token ? 'Re-sync Strava' : 'Connect Strava' }}</span>
-                </a>
+                @if(auth()->user()->strava_access_token)
+                    <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan otorisasi (Unauthorize) Strava?');" class="px-3.5 py-3 rounded-xl bg-rose-600/90 text-white font-bold hover:bg-rose-600 transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 text-xs" title="Klik untuk melepaskan koneksi Strava">
+                        <i class="fab fa-strava text-sm"></i>
+                        <span>Unauthorize</span>
+                    </a>
+                @else
+                    <a href="{{ route('runner.strava.connect') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition-all shadow-md shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs">
+                        <i class="fab fa-strava text-sm"></i>
+                        <span>Connect Strava</span>
+                    </a>
+                @endif
                 <button onclick="switchTab('calendar')" id="dashboard-calendar-btn" class="px-3.5 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5 text-xs">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     Calendar

@@ -95,6 +95,38 @@ class StravaController extends Controller
         }
     }
 
+    public function disconnect(Request $request)
+    {
+        $user = auth()->user();
+        if ($user) {
+            if ($user->strava_access_token) {
+                try {
+                    Http::withoutVerifying()->post('https://www.strava.com/oauth/deauthorize', [
+                        'access_token' => $user->strava_access_token,
+                    ]);
+                } catch (\Throwable $e) {
+                    // Ignore upstream network issues when revoking token on Strava end
+                }
+            }
+
+            $user->update([
+                'strava_id' => null,
+                'strava_access_token' => null,
+                'strava_refresh_token' => null,
+                'strava_expires_at' => null,
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Koneksi Strava berhasil dilepas (unauthorized).',
+            ]);
+        }
+
+        return redirect()->route('runner.dashboard')->with('success', 'Akun Strava Anda berhasil dilepas (unauthorized).');
+    }
+
     public function sync(Request $request)
     {
         $user = auth()->user();

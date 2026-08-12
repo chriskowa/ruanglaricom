@@ -1058,6 +1058,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');
         Route::get('/strava/callback', [App\Http\Controllers\Runner\StravaController::class, 'callback'])->name('strava.callback');
+        Route::match(['get', 'post'], '/strava/disconnect', [App\Http\Controllers\Runner\StravaController::class, 'disconnect'])->name('strava.disconnect');
         Route::post('/strava/sync', [App\Http\Controllers\Runner\StravaController::class, 'sync'])->name('strava.sync');
         Route::get('/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Runner\StravaController::class, 'activityDetails'])->name('strava.activities.details');
         Route::get('/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Runner\StravaController::class, 'activityStreams'])->name('strava.activities.streams');

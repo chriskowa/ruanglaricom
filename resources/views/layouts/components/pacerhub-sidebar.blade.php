@@ -261,17 +261,23 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('runner.strava.connect') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
-                                    <span class="flex items-center justify-between w-full">
-                                        <span>Koneksi Strava</span>
-                                        @if(auth()->user()->strava_access_token)
-                                            <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-bold">Terhubung</span>
-                                        @else
+                                @if(auth()->user()->strava_access_token)
+                                    <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan koneksi (Unauthorize) Strava?');" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}" title="Klik untuk melepaskan otorisasi Strava">
+                                        <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
+                                        <span class="flex items-center justify-between w-full">
+                                            <span>Strava Connected</span>
+                                            <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-bold group-hover:bg-rose-500/20 group-hover:text-rose-400 group-hover:border-rose-500/30 transition">Disconnect</span>
+                                        </span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('runner.strava.connect') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}">
+                                        <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
+                                        <span class="flex items-center justify-between w-full">
+                                            <span>Koneksi Strava</span>
                                             <span class="text-[9px] bg-[#FC4C02]/20 text-[#FC4C02] border border-[#FC4C02]/40 px-1.5 py-0.5 rounded-full font-bold">Connect</span>
-                                        @endif
-                                    </span>
-                                </a>
+                                        </span>
+                                    </a>
+                                @endif
                             </li>
                             <li>
                                 <a href="{{ route('runner.calendar') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.calendar.*') ? $activeClass : $inactiveClass }}">
