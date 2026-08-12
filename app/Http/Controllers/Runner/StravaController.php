@@ -46,6 +46,11 @@ class StravaController extends Controller
 
     public function callback(Request $request)
     {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
         if (! $request->filled('code')) {
             return redirect()->route('runner.dashboard')->with('error', 'Koneksi Strava gagal.');
         }
