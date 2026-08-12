@@ -12,6 +12,10 @@ class MarketplaceProduct extends Model
     protected $casts = [
         'meta_data' => 'array',
         'is_active' => 'boolean',
+        'is_sold' => 'boolean',
+        'is_archived' => 'boolean',
+        'sold_at' => 'datetime',
+        'archived_at' => 'datetime',
         'auction_start_at' => 'datetime',
         'auction_end_at' => 'datetime',
     ];
@@ -19,6 +23,11 @@ class MarketplaceProduct extends Model
     public function seller()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function soldToUser()
+    {
+        return $this->belongsTo(User::class, 'sold_to_user_id');
     }
 
     public function category()

@@ -1101,6 +1101,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:runner,coach,eo,admin'])->prefix('marketplace')->name('marketplace.')->group(function () {
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
+        Route::post('seller/products/{product}/mark-sold', [App\Http\Controllers\Marketplace\ProductController::class, 'markSold'])->name('seller.products.mark-sold');
+        Route::post('seller/products/{product}/mark-unsold', [App\Http\Controllers\Marketplace\ProductController::class, 'markUnsold'])->name('seller.products.mark-unsold');
+        Route::post('seller/products/{product}/toggle-archive', [App\Http\Controllers\Marketplace\ProductController::class, 'toggleArchive'])->name('seller.products.toggle-archive');
         Route::post('seller/orders/{order}/process', [App\Http\Controllers\Marketplace\ProductController::class, 'processOrder'])->name('seller.orders.process');
         Route::post('seller/orders/{order}/cancel', [App\Http\Controllers\Marketplace\ProductController::class, 'cancelOrder'])->name('seller.orders.cancel');
 

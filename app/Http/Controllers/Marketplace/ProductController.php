@@ -15,26 +15,59 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = MarketplaceProduct::where('user_id', Auth::id())->with('primaryImage')->latest()->paginate(10);
+        $userId = Auth::id();
+
+        // Product counts
+        $totalProductsCount = MarketplaceProduct::where('user_id', $userId)->count();
+        $activeProductsCount = MarketplaceProduct::where('user_id', $userId)
+            ->where(fn($q) => $q->whereNull('is_archived')->orWhere('is_archived', false))
+            ->where(fn($q) => $q->whereNull('is_sold')->orWhere('is_sold', false))
+            ->count();
+        $soldProductsCount = MarketplaceProduct::where('user_id', $userId)->where('is_sold', true)->count();
+        $archivedProductsCount = MarketplaceProduct::where('user_id', $userId)->where('is_archived', true)->count();
+
+        $query = MarketplaceProduct::where('user_id', $userId)->with(['primaryImage', 'soldToUser'])->latest();
+
+        $productFilter = $request->get('product_filter', 'all');
+        if ($productFilter === 'active') {
+            $query->where(fn($q) => $q->whereNull('is_archived')->orWhere('is_archived', false))
+                ->where(fn($q) => $q->whereNull('is_sold')->orWhere('is_sold', false));
+        } elseif ($productFilter === 'sold') {
+            $query->where('is_sold', true);
+        } elseif ($productFilter === 'archived') {
+            $query->where('is_archived', true);
+        }
+
+        $products = $query->paginate(10)->withQueryString();
         $withSidebar = true;
 
         // Fetch active orders (pending, paid, shipped, disputed)
-        $activeOrders = MarketplaceOrder::where('seller_id', Auth::id())
+        $activeOrders = MarketplaceOrder::where('seller_id', $userId)
             ->whereIn('status', ['pending', 'paid', 'shipped', 'disputed'])
             ->with(['items.product.primaryImage', 'buyer'])
             ->latest()
             ->get();
 
         // Fetch sales history (completed, cancelled)
-        $salesHistory = MarketplaceOrder::where('seller_id', Auth::id())
+        $salesHistory = MarketplaceOrder::where('seller_id', $userId)
             ->whereIn('status', ['completed', 'cancelled'])
             ->with(['items.product.primaryImage', 'buyer'])
             ->latest()
             ->get();
 
-        return view('marketplace.seller.products.index', compact('products', 'activeOrders', 'salesHistory', 'withSidebar'));
+        return view('marketplace.seller.products.index', compact(
+            'products',
+            'activeOrders',
+            'salesHistory',
+            'withSidebar',
+            'totalProductsCount',
+            'activeProductsCount',
+            'soldProductsCount',
+            'archivedProductsCount',
+            'productFilter'
+        ));
     }
 
     public function create()
@@ -268,5 +301,102 @@ class ProductController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan.']);
+    }
+
+    /**
+     * Mark a product as SOLD (with sold channel, location/note, and buyer details)
+     */
+    public function markSold(Request $request, MarketplaceProduct $product)
+    {
+        if ((int) $product->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'sold_channel' => 'required|string|in:ruanglari,tokopedia,shopee,instagram_wa,cod_offline,other',
+            'sold_channel_note' => 'nullable|string|max:255',
+            'sold_to_buyer_name' => 'nullable|string|max:255',
+            'sold_to_user_id' => 'nullable|exists:users,id',
+        ]);
+
+        $product->update([
+            'is_sold' => true,
+            'is_active' => false,
+            'sold_channel' => $request->sold_channel,
+            'sold_channel_note' => $request->sold_channel_note,
+            'sold_to_buyer_name' => $request->sold_to_buyer_name,
+            'sold_to_user_id' => $request->sold_to_user_id,
+            'sold_at' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil ditandai sebagai TERJUAL (SOLD)!',
+            ]);
+        }
+
+        return back()->with('success', 'Produk berhasil ditandai sebagai TERJUAL (SOLD)!');
+    }
+
+    /**
+     * Mark a product as UNSOLD (re-activate)
+     */
+    public function markUnsold(MarketplaceProduct $product)
+    {
+        if ((int) $product->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $product->update([
+            'is_sold' => false,
+            'is_active' => true,
+            'sold_channel' => null,
+            'sold_channel_note' => null,
+            'sold_to_buyer_name' => null,
+            'sold_to_user_id' => null,
+            'sold_at' => null,
+        ]);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status Terjual dibatalkan. Produk kembali aktif.',
+            ]);
+        }
+
+        return back()->with('success', 'Status Terjual dibatalkan. Produk kembali aktif.');
+    }
+
+    /**
+     * Archive or Unarchive a product
+     */
+    public function toggleArchive(MarketplaceProduct $product)
+    {
+        if ((int) $product->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $newArchivedStatus = ! $product->is_archived;
+
+        $product->update([
+            'is_archived' => $newArchivedStatus,
+            'archived_at' => $newArchivedStatus ? now() : null,
+            'is_active' => $newArchivedStatus ? false : (! $product->is_sold),
+        ]);
+
+        $message = $newArchivedStatus
+            ? 'Produk berhasil diarsipkan. Produk tidak akan tampil di Marketplace publik.'
+            : 'Produk berhasil dikeluarkan dari arsip.';
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_archived' => $newArchivedStatus,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 }

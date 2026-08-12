@@ -16,6 +16,9 @@ class MarketplaceController extends Controller
         $query = MarketplaceProduct::with(['category', 'primaryImage', 'seller.city', 'brand'])
             ->where('is_active', true)
             ->where(function ($q) {
+                $q->whereNull('is_archived')->orWhere('is_archived', false);
+            })
+            ->where(function ($q) {
                 $q->where('sale_type', 'fixed')
                     ->orWhere(function ($q2) {
                         $q2->where('sale_type', 'auction')

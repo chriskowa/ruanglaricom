@@ -49,10 +49,17 @@
                     </button>
                 </div>
                 
-                <!-- Sold Out Overlay -->
-                @if($product->stock < 1)
-                <div class="absolute inset-0 bg-dark/80 flex items-center justify-center backdrop-blur-[2px]">
-                    <span class="text-red-500 font-black text-sm tracking-widest border-2 border-red-550 px-3 py-1.5 rounded-lg rotate-[-12deg] uppercase">SOLD OUT</span>
+                <!-- Sold Out / Terjual Overlay -->
+                @if($product->is_sold || $product->stock < 1)
+                <div class="absolute inset-0 bg-dark/80 flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
+                    <span class="text-rose-500 font-black text-sm tracking-widest border-2 border-rose-500 px-3 py-1.5 rounded-lg rotate-[-12deg] uppercase shadow-lg shadow-rose-500/20">
+                        {{ $product->is_sold ? 'TERJUAL (SOLD)' : 'SOLD OUT' }}
+                    </span>
+                    @if($product->is_sold && $product->sold_channel)
+                        <span class="text-[9px] text-slate-300 font-mono font-bold mt-2 uppercase bg-dark/90 px-2 py-0.5 rounded border border-slate-700">
+                            via {{ strtoupper($product->sold_channel) }}
+                        </span>
+                    @endif
                 </div>
                 @endif
             </a>
