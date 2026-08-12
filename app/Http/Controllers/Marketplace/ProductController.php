@@ -27,6 +27,7 @@ class ProductController extends Controller
             ->count();
         $soldProductsCount = MarketplaceProduct::where('user_id', $userId)->where('is_sold', true)->count();
         $archivedProductsCount = MarketplaceProduct::where('user_id', $userId)->where('is_archived', true)->count();
+        $totalViewsCount = MarketplaceProduct::where('user_id', $userId)->sum('views_count');
 
         $query = MarketplaceProduct::where('user_id', $userId)->with(['primaryImage', 'soldToUser'])->latest();
 
@@ -66,6 +67,7 @@ class ProductController extends Controller
             'activeProductsCount',
             'soldProductsCount',
             'archivedProductsCount',
+            'totalViewsCount',
             'productFilter'
         ));
     }

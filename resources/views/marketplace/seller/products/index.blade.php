@@ -180,6 +180,32 @@
         </div>
     @endif
 
+    <!-- Summary Stats Banner -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="text-xs text-slate-400 font-medium mb-1">Total Produk</div>
+            <div class="text-xl md:text-2xl font-black text-white font-mono">{{ number_format($totalProductsCount ?? 0) }}</div>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="text-xs text-slate-400 font-medium mb-1">Produk Aktif</div>
+            <div class="text-xl md:text-2xl font-black text-neon font-mono">{{ number_format($activeProductsCount ?? 0) }}</div>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="text-xs text-slate-400 font-medium mb-1">Produk Terjual</div>
+            <div class="text-xl md:text-2xl font-black text-emerald-400 font-mono">{{ number_format($soldProductsCount ?? 0) }}</div>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+            <div class="text-xs text-slate-400 font-medium mb-1 flex items-center gap-1.5">
+                <i class="fas fa-eye text-neon text-xs"></i>
+                <span>Total Dilihat (Views)</span>
+            </div>
+            <div class="text-xl md:text-2xl font-black text-white font-mono flex items-center gap-1.5">
+                <span>{{ number_format($totalViewsCount ?? 0) }}</span>
+                <span class="text-xs font-sans font-bold text-slate-400">kali</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Cyberpunk Tab Switchers -->
     <div class="flex border-b border-slate-800 mb-6 gap-2 md:gap-4 overflow-x-auto scrollbar-none">
         <button @click="activeTab = 'products'" 
@@ -275,6 +301,9 @@
                                                 @if(!$product->is_active && !$product->is_sold && !$product->is_archived)
                                                     <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400">Hidden</span>
                                                 @endif
+                                                <span class="inline-flex items-center gap-1 text-[9px] font-mono text-slate-300 font-bold bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md" title="Total Dilihat Calon Pembeli">
+                                                    <i class="fas fa-eye text-neon text-[8px]"></i> {{ number_format($product->views_count ?? 0) }} Views
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -400,9 +429,12 @@
                                 </span>
                             </div>
                             <div>
-                                <span class="text-[10px] text-slate-500 block font-mono text-right">STOK</span>
-                                <span class="text-xs font-bold text-slate-300">
+                                <span class="text-[10px] text-slate-500 block font-mono text-right">STOK & VIEWS</span>
+                                <span class="text-xs font-bold text-slate-300 block text-right">
                                     {{ $product->stock }} Stock
+                                </span>
+                                <span class="text-[10px] font-mono text-neon font-bold flex items-center justify-end gap-1 mt-0.5">
+                                    <i class="fas fa-eye text-[9px]"></i> {{ number_format($product->views_count ?? 0) }} Views
                                 </span>
                             </div>
                         </div>
