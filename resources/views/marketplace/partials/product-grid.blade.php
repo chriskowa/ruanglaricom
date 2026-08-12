@@ -173,9 +173,11 @@
     </div>
     
     <!-- Pagination -->
-    <div class="mt-10 pagination-container">
-        {{ $products->appends(request()->query())->links() }}
-    </div>
+    @if(method_exists($products, 'hasPages') && $products->hasPages())
+        <div class="mt-10 pagination-container">
+            {{ $products->appends(request()->query())->links() }}
+        </div>
+    @endif
 @else
     <div class="bg-slate-900/20 backdrop-blur-sm border border-slate-800 rounded-2xl p-12 text-center">
         <div class="w-16 h-16 bg-slate-850 border border-slate-800 rounded-full flex items-center justify-center mx-auto mb-5 text-2xl">🛍️</div>
