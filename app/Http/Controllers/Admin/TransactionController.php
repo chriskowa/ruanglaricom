@@ -205,8 +205,15 @@ class TransactionController extends Controller
                     });
             });
 
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Withdrawal berhasil disetujui.']);
+            }
+
             return back()->with('success', 'Withdraw berhasil disetujui.');
         } catch (\Throwable $e) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
             return back()->with('error', $e->getMessage());
         }
     }
@@ -306,8 +313,15 @@ class TransactionController extends Controller
                     });
             });
 
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Withdrawal ditolak & dana berhasil di-refund.']);
+            }
+
             return back()->with('success', 'Withdraw berhasil ditolak dan dana direfund.');
         } catch (\Throwable $e) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
             return back()->with('error', $e->getMessage());
         }
     }

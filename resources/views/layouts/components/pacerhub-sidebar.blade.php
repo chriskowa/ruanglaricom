@@ -58,6 +58,44 @@
                                     <span>Event Management</span>
                                 </a>
                             </li>
+
+                            <!-- SECTION: MARKETPLACE MANAGEMENT -->
+                            <li class="pt-2 pb-1">
+                                <div class="px-3 mb-1.5 text-[10px] font-extrabold text-neon uppercase tracking-widest flex items-center justify-between">
+                                    <span>Marketplace Admin</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.marketplace.orders.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.marketplace.orders.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-shopping-bag"></i></span>
+                                    <span>Orders & Dispute</span>
+                                    @php
+                                        $disputedCount = \App\Models\Marketplace\MarketplaceOrder::where('status', 'disputed')->count();
+                                    @endphp
+                                    @if($disputedCount > 0)
+                                        <span class="ml-auto text-[10px] font-black bg-rose-500 text-white rounded-full px-1.5 py-0.5 animate-pulse">{{ $disputedCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.transactions.index', ['tab' => 'withdrawals']) }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.transactions.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet"></i></span>
+                                    <span>Penarikan Dana (WD)</span>
+                                    @php
+                                        $pendingWdCount = \App\Models\WalletWithdrawal::where('status', 'pending')->count();
+                                    @endphp
+                                    @if($pendingWdCount > 0)
+                                        <span class="ml-auto text-[10px] font-black bg-neon text-dark rounded-full px-1.5 py-0.5">{{ $pendingWdCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.marketplace.products.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.marketplace.products.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-boxes"></i></span>
+                                    <span>Moderasi Produk</span>
+                                </a>
+                            </li>
                             <li>
                                 <a href="{{ route('admin.programs.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.programs.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-list-check"></i></span>

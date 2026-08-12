@@ -23,4 +23,14 @@ class MarketplaceOrder extends Model
     {
         return $this->hasMany(MarketplaceOrderItem::class, 'order_id');
     }
+
+    public function getGrandTotalAttribute()
+    {
+        return (float) ($this->attributes['total_amount'] ?? 0);
+    }
+
+    public function getSubtotalAttribute()
+    {
+        return max(0, (float) ($this->attributes['total_amount'] ?? 0) - (float) ($this->attributes['shipping_cost'] ?? 0));
+    }
 }

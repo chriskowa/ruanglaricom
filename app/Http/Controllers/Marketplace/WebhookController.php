@@ -60,6 +60,31 @@ class WebhookController extends Controller
                                 . "Silakan cek dashboard seller Anda untuk memproses pengiriman.";
                             \App\Helpers\WhatsApp::send($marketplaceOrder->seller->phone, $waMsg, 'seller_order');
                         }
+
+                        // Send in-app notification to Seller
+                        if ($marketplaceOrder->seller) {
+                            Notification::create([
+                                'user_id' => $marketplaceOrder->seller_id,
+                                'type' => 'marketplace_sale',
+                                'title' => 'Pesanan Baru Masuk',
+                                'message' => 'Pesanan #' . $marketplaceOrder->invoice_number . ' (' . ($marketplaceOrder->buyer->name ?? 'Pembeli') . ') telah dibayar. Silakan proses pengiriman.',
+                                'reference_type' => MarketplaceOrder::class,
+                                'reference_id' => $marketplaceOrder->id,
+                            ]);
+                        }
+
+                        // Send in-app notification to Admin users
+                        $adminUsers = \App\Models\User::where('role', 'admin')->get();
+                        foreach ($adminUsers as $adminUser) {
+                            Notification::create([
+                                'user_id' => $adminUser->id,
+                                'type' => 'marketplace_order_paid',
+                                'title' => 'Penjualan Marketplace Baru',
+                                'message' => 'Pesanan #' . $marketplaceOrder->invoice_number . ' senilai Rp ' . number_format($marketplaceOrder->total_amount, 0, ',', '.') . ' telah dibayar oleh ' . ($marketplaceOrder->buyer->name ?? 'Pembeli'),
+                                'reference_type' => MarketplaceOrder::class,
+                                'reference_id' => $marketplaceOrder->id,
+                            ]);
+                        }
                     } catch (\Exception $e) {
                         Log::error('Failed to dispatch webhook marketplace notifications: ' . $e->getMessage());
                     }

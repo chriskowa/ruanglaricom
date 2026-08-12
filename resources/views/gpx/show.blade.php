@@ -63,10 +63,7 @@
                                 <span>{{ $item->event->title ?? $item->event->name ?? 'Event' }}</span>
                             </span>
                         @endif
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700/60 text-xs font-mono text-sky-400" title="Slug URL Otomatis">
-                            <i class="fa-solid fa-link text-[10px]"></i>
-                            <span>slug: {{ $item->slug }}</span>
-                        </span>
+                        
                     </div>
 
                     <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white italic">

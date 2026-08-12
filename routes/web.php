@@ -943,6 +943,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/marketplace/consignments/{intake}/received', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markReceived'])->name('marketplace.consignments.received');
         Route::post('/marketplace/consignments/{intake}/listed', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markListed'])->name('marketplace.consignments.listed');
 
+        // Marketplace Admin Order & Dispute Resolution Management
+        Route::get('/marketplace/orders', [App\Http\Controllers\Admin\MarketplaceOrderController::class, 'index'])->name('marketplace.orders.index');
+        Route::get('/marketplace/orders/{order}', [App\Http\Controllers\Admin\MarketplaceOrderController::class, 'show'])->name('marketplace.orders.show');
+        Route::post('/marketplace/orders/{order}/tracking', [App\Http\Controllers\Admin\MarketplaceOrderController::class, 'updateTracking'])->name('marketplace.orders.tracking');
+        Route::post('/marketplace/orders/{order}/resolve-release', [App\Http\Controllers\Admin\MarketplaceOrderController::class, 'resolveReleaseToSeller'])->name('marketplace.orders.resolve-release');
+        Route::post('/marketplace/orders/{order}/resolve-refund', [App\Http\Controllers\Admin\MarketplaceOrderController::class, 'resolveRefundToBuyer'])->name('marketplace.orders.resolve-refund');
+
+        // Marketplace Admin Product Oversight & Moderation
+        Route::get('/marketplace/products', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'index'])->name('marketplace.products.index');
+        Route::post('/marketplace/products/{product}/toggle-featured', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'toggleFeatured'])->name('marketplace.products.toggle-featured');
+        Route::post('/marketplace/products/{product}/toggle-active', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'toggleActive'])->name('marketplace.products.toggle-active');
+        Route::delete('/marketplace/products/{product}', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'destroy'])->name('marketplace.products.destroy');
+
         // Program Management (Admin)
         Route::get('programs', [App\Http\Controllers\Admin\ProgramController::class, 'index'])->name('programs.index');
         Route::post('programs/{program}/toggle-featured', [App\Http\Controllers\Admin\ProgramController::class, 'toggleFeatured'])->name('programs.toggle-featured');
