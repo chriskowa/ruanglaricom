@@ -218,7 +218,7 @@ class CalendarController extends Controller
         unset($payload['start_at']);
 
         $user = $request->user();
-        $hasToken = (bool) $strava->getValidAccessToken($user);
+        $hasToken = (bool) $strava->getValidAccessToken($user) || !empty($user->strava_access_token) || !empty($user->strava_id);
         if ($hasToken) {
             $result = $this->uploadPointsToStrava($user, $payload, $startAt);
             if ($result['ok'] ?? false) {

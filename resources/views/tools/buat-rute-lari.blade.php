@@ -419,7 +419,13 @@
                             </div>
 
                             <section class="mt-3 bg-slate-950/40 border border-slate-800 rounded-2xl p-4" id="strava-form-panel">
-                                @php($hasStrava = auth()->check() && auth()->user() && auth()->user()->strava_access_token && auth()->user()->strava_refresh_token)
+                                @php
+                                    $hasStrava = auth()->check() && auth()->user() && (
+                                        !empty(auth()->user()->strava_access_token) || 
+                                        !empty(auth()->user()->strava_refresh_token) || 
+                                        !empty(auth()->user()->strava_id)
+                                    );
+                                @endphp
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="flex items-center gap-2.5">
                                         <div class="w-8 h-8 rounded-xl bg-[#FC4C02]/15 border border-[#FC4C02]/40 flex items-center justify-center shrink-0">
@@ -519,20 +525,19 @@
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-auth">
                                             <input type="hidden" name="power" id="rl-strava-power-auth">
                                             <input type="hidden" name="private" id="rl-strava-private-auth" value="0">
-                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs">
-                                                Authorize & Post
+                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2">
+                                                <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                                <span>Hubungkan Strava & Export</span>
                                             </button>
                                         </form>
                                     @endif
                                 @else
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <a href="{{ route('login') }}" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs inline-flex items-center justify-center">
-                                            Login untuk Post
-                                        </a>
-                                        <a href="{{ route('register') }}" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs inline-flex items-center justify-center">
-                                            Daftar Akun
-                                        </a>
-                                    </div>
+                                    <button type="button" 
+                                            onclick="if (typeof window.openLoginModal === 'function') { window.openLoginModal(); } else { window.location.href='{{ route('login') }}'; }" 
+                                            class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FC4C02]/20">
+                                        <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                        <span>Login untuk Export ke Strava</span>
+                                    </button>
                                 @endauth
                             </div>
                         </section>
