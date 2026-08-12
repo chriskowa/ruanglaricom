@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Models\Admin\StravaConfig;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class StravaApiService
 {
     public function getValidAccessToken(User $user): ?string
     {
         if (! $user->strava_access_token || ! $user->strava_refresh_token) {
+            Log::debug('Strava: No token/refresh for user', ['user_id' => $user->id]);
             return null;
         }
 
@@ -18,11 +20,14 @@ class StravaApiService
         $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
         $clientSecret = $config->client_secret ?? env('STRAVA_CLIENT_SECRET');
         if (! $clientId || ! $clientSecret) {
+            Log::error('Strava: Missing client_id or client_secret config');
             return null;
         }
 
         $accessToken = $user->strava_access_token;
         if ($user->strava_expires_at && $user->strava_expires_at->lte(now()->addMinute())) {
+            Log::info('Strava: Token expired, refreshing...', ['user_id' => $user->id]);
+
             $refresh = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
                 'client_id' => $clientId,
                 'client_secret' => $clientSecret,
@@ -31,14 +36,25 @@ class StravaApiService
             ]);
 
             if (! $refresh->successful()) {
+                Log::error('Strava: Token refresh failed', [
+                    'user_id' => $user->id,
+                    'status' => $refresh->status(),
+                    'body' => $refresh->json() ?? $refresh->body(),
+                ]);
                 return null;
             }
 
             $tokenData = $refresh->json();
             $accessToken = data_get($tokenData, 'access_token');
             if (! $accessToken) {
+                Log::error('Strava: Refresh response missing access_token', [
+                    'user_id' => $user->id,
+                    'response' => $tokenData,
+                ]);
                 return null;
             }
+
+            Log::info('Strava: Token refreshed successfully', ['user_id' => $user->id]);
 
             $user->update([
                 'strava_access_token' => $accessToken,

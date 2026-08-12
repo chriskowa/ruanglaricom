@@ -368,23 +368,41 @@ class CalendarController extends Controller
 
         if (! $res->successful()) {
             $status = $res->status();
-            $message = 'Gagal upload ke Strava.';
+            $upstreamBody = $res->json() ?? $res->body();
+
+            Log::error('Strava Upload Failed', [
+                'user_id' => $user->id,
+                'http_status' => $status,
+                'upstream_body' => $upstreamBody,
+                'token_prefix' => substr($accessToken, 0, 8) . '...',
+                'gpx_length' => strlen($gpx),
+                'points_count' => count($points),
+            ]);
+
+            $message = 'Gagal upload ke Strava (HTTP ' . $status . ').';
+
             if ($status === 401 || $status === 403) {
-                if ($user) {
-                    $user->update([
-                        'strava_access_token' => null,
-                        'strava_refresh_token' => null,
-                        'strava_expires_at' => null,
-                    ]);
-                }
-                $message = 'Token Strava tidak valid atau belum memiliki izin penulisan (activity:write). Token telah di-reset, silakan klik button "Re-sync / Hubungkan Ulang Strava".';
+                $user->update([
+                    'strava_access_token' => null,
+                    'strava_refresh_token' => null,
+                    'strava_expires_at' => null,
+                ]);
+                $message = 'Token Strava tidak valid / belum punya izin write. Token telah di-reset, silakan connect ulang Strava.';
+            } elseif ($status === 409) {
+                $message = 'Aktivitas duplikat. Rute ini sudah pernah diupload ke Strava sebelumnya.';
+            } elseif ($status === 429) {
+                $message = 'Terlalu banyak request ke Strava. Coba lagi beberapa menit.';
+            } else {
+                // Include upstream error detail for debugging
+                $upstreamMsg = is_array($upstreamBody) ? ($upstreamBody['message'] ?? json_encode($upstreamBody)) : (string) $upstreamBody;
+                $message .= ' Detail: ' . mb_substr($upstreamMsg, 0, 200);
             }
 
             return [
                 'ok' => false,
                 'message' => $message,
                 'upstream_status' => $status,
-                'upstream' => $res->json() ?? $res->body(),
+                'upstream' => $upstreamBody,
             ];
         }
 
