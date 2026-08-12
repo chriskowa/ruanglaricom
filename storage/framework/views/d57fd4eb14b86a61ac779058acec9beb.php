@@ -50,13 +50,19 @@
     </script>
     <?php endif; ?>
 
+    <?php
+        $defaultTitle = \App\Models\AppSettings::get('seo_meta_title_default', 'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia');
+        $defaultDesc = \App\Models\AppSettings::get('seo_meta_description_default', 'RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.');
+        $defaultKeywords = \App\Models\AppSettings::get('seo_meta_keywords_default', 'ruang lari, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari');
+    ?>
+
     <!-- Primary Meta Tags -->
-    <title><?php echo $__env->yieldContent('title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?></title>
-    <meta name="title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
-    <meta name="description" content="<?php echo $__env->yieldContent('meta_description', 'Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.'); ?>">
+    <title><?php echo $__env->yieldContent('title', $defaultTitle); ?></title>
+    <meta name="title" content="<?php echo $__env->yieldContent('meta_title', $defaultTitle); ?>">
+    <meta name="description" content="<?php echo $__env->yieldContent('meta_description', $defaultDesc); ?>">
 
     <!-- Keywords -->
-    <meta name="keywords" content="<?php echo $__env->yieldContent('meta_keywords', 'ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon'); ?>">
+    <meta name="keywords" content="<?php echo $__env->yieldContent('meta_keywords', $defaultKeywords); ?>">
 
     <!-- Author -->
     <meta name="author" content="Ruang Lari Indonesia">
@@ -65,8 +71,8 @@
     <meta property="og:type" content="<?php echo $__env->yieldContent('og_type', 'website'); ?>">
     <meta property="og:url" content="<?php echo $__env->yieldContent('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current()); ?>">
     <meta property="og:site_name" content="Ruang Lari">
-    <meta property="og:title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
-    <meta property="og:description" content="<?php echo $__env->yieldContent('meta_description', 'Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.'); ?>">
+    <meta property="og:title" content="<?php echo $__env->yieldContent('meta_title', $defaultTitle); ?>">
+    <meta property="og:description" content="<?php echo $__env->yieldContent('meta_description', $defaultDesc); ?>">
     <meta property="og:image" content="<?php echo $__env->yieldContent('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'); ?>">
     <?php if(trim($__env->yieldContent('article_published_time'))): ?>
     <meta property="article:published_time" content="<?php echo $__env->yieldContent('article_published_time'); ?>">
