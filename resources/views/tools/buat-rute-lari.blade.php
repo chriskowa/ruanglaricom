@@ -24,24 +24,26 @@
                 bottom: 0 !important;
                 left: 0 !important;
                 right: 0 !important;
+                margin-bottom: 0 !important;
                 z-index: 9999 !important;
                 border-top: 1px solid rgba(51, 65, 85, 0.5) !important;
-                border-radius: 24px 24px 0 0 !important;
+                border-radius: 20px 20px 0 0 !important;
                 background-color: rgba(15, 23, 42, 0.98) !important;
                 backdrop-filter: blur(12px) !important;
                 box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3), 0 -8px 10px -6px rgba(0, 0, 0, 0.3) !important;
-                padding: 12px 16px !important;
-                padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+                padding: 10px 12px !important;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
                 max-height: 85vh !important;
                 overflow-y: auto !important;
                 transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             .rl-mobile-sticky-ringkasan.rl-minimized {
-                max-height: 60px !important;
-                padding-top: 6px !important;
-                padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+                max-height: 52px !important;
+                padding-top: 4px !important;
+                padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+                margin-bottom: 0 !important;
                 overflow: hidden !important;
-                border-radius: 16px 16px 0 0 !important;
+                border-radius: 14px 14px 0 0 !important;
             }
             #chatbox-toggle {
                 display: none !important;
@@ -63,18 +65,18 @@
                             Tap peta untuk bikin rute. Simpan, share link, atau export GPX buat dipakai di jam/aplikasi favoritmu.
                         </p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('gpx.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-database text-xs text-slate-400"></i>
-                            <span>Database GPX</span>
+                    <div class="w-full sm:w-auto grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2">
+                        <a href="{{ route('gpx.index') }}" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-[10px] xs:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm text-center">
+                            <i class="fa-solid fa-database text-[10px] sm:text-xs text-slate-400 shrink-0"></i>
+                            <span class="truncate">Database GPX</span>
                         </a>
-                        <button id="btn-open-submit-gpx-modal" type="button" class="px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-xs font-black flex items-center gap-1.5 shadow-md shadow-neon/10">
-                            <i class="fa-solid fa-cloud-arrow-up text-xs text-dark"></i>
-                            <span>Submit GPX</span>
+                        <button id="btn-open-submit-gpx-modal" type="button" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-[10px] xs:text-[11px] sm:text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-neon/10 text-center">
+                            <i class="fa-solid fa-cloud-arrow-up text-[10px] sm:text-xs text-dark shrink-0"></i>
+                            <span class="truncate">Submit GPX</span>
                         </button>
-                        <a href="{{ route('calculator') }}" class="px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-calculator text-xs text-slate-400"></i>
-                            <span>Tools Lain</span>
+                        <a href="{{ route('calculator') }}" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-[10px] xs:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm text-center">
+                            <i class="fa-solid fa-calculator text-[10px] sm:text-xs text-slate-400 shrink-0"></i>
+                            <span class="truncate">Tools Lain</span>
                         </a>
                     </div>
                 </div>
@@ -368,22 +370,22 @@
                                 <i class="fa-solid fa-chart-simple text-slate-400 text-xs"></i>
                                 Ringkasan Rute
                             </div>
-                            <div class="grid grid-cols-4 gap-1.5 md:gap-3">
-                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
-                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jarak</div>
-                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km</span></div>
+                            <div class="grid grid-cols-4 gap-1 sm:gap-2 md:gap-3">
+                                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-1 sm:p-2 md:p-3 text-center md:text-left min-w-0">
+                                    <div class="text-[8px] sm:text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">Jarak</div>
+                                    <div class="mt-0.5 md:mt-1 text-[11px] sm:text-sm md:text-2xl font-black text-white truncate leading-tight"><span id="rl-distance-km">0.00</span><span class="text-[8px] sm:text-xs md:text-sm text-slate-400 font-bold ml-0.5">km</span></div>
                                 </div>
-                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
-                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimasi</div>
-                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
+                                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-1 sm:p-2 md:p-3 text-center md:text-left min-w-0">
+                                    <div class="text-[8px] sm:text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">Estimasi</div>
+                                    <div class="mt-0.5 md:mt-1 text-[10px] sm:text-sm md:text-2xl font-black text-white truncate leading-tight"><span id="rl-est-time">00:00:00</span></div>
                                 </div>
-                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
-                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Titik</div>
-                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
+                                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-1 sm:p-2 md:p-3 text-center md:text-left min-w-0">
+                                    <div class="text-[8px] sm:text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">Titik</div>
+                                    <div class="mt-0.5 md:mt-1 text-[11px] sm:text-sm md:text-2xl font-black text-white truncate leading-tight"><span id="rl-points-count">0</span></div>
                                 </div>
-                                <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-2 md:p-3 text-center md:text-left">
-                                    <div class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Rata-rata</div>
-                                    <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km/seg</span></div>
+                                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-1 sm:p-2 md:p-3 text-center md:text-left min-w-0">
+                                    <div class="text-[8px] sm:text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight truncate">Rata-rata</div>
+                                    <div class="mt-0.5 md:mt-1 text-[9px] sm:text-xs md:text-2xl font-black text-white truncate leading-tight"><span id="rl-avg-seg">0.00</span><span class="text-[7px] sm:text-xs md:text-sm text-slate-400 font-bold ml-0.5">km/seg</span></div>
                                 </div>
                             </div>
 
@@ -641,7 +643,7 @@
                         </div>
 
                         <!-- Drawing Controls (Right) -->
-                        <div class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
+                        <div class="absolute top-20 sm:top-3 right-3 z-[500] flex flex-col gap-2">
                             <button id="rl-mode-toggle" type="button" class="w-10 h-10 rounded-xl bg-blue-600/90 border border-blue-500 text-white transition flex items-center justify-center shadow-lg" title="Mode: Tap (Ubah ke Freehand)">
                                 <i class="fa-solid fa-hand-pointer"></i>
                             </button>
@@ -1144,7 +1146,8 @@
                         return {
                             lat: p.lat,
                             lng: p.lng,
-                            mode: p.mode || 'osrm'
+                            mode: p.mode || 'osrm',
+                            iconType: p.iconType || ''
                         };
                     }),
                     customMarkers: customMarkers.map(function(cm) {
@@ -1168,7 +1171,11 @@
 
                 // AUTO-SAVE DRAFT TO LOCALSTORAGE
                 try {
-                    localStorage.setItem('rl.routeBuilder.v1.draft', state);
+                    if (points.length > 0 || customMarkers.length > 0) {
+                        localStorage.setItem('rl.routeBuilder.v1.draft', state);
+                    } else {
+                        localStorage.removeItem('rl.routeBuilder.v1.draft');
+                    }
                 } catch(e) {
                     console.error('Failed to auto-save draft:', e);
                 }
@@ -1717,11 +1724,15 @@
                 });
                 customMarkers = [];
                 
+                try {
+                    localStorage.removeItem('rl.routeBuilder.v1.draft');
+                } catch(e) {}
+
                 rebuildLine();
                 rebuildMarkers();
                 updateStats();
                 updateElevation();
-                setStatus('Reset');
+                setStatus('Reset (Draft dibersihkan)');
                 pushState();
             }
             
