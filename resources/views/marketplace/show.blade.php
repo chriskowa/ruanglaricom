@@ -129,12 +129,12 @@
                 <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 shrink-0">
-                            <img src="{{ $product->seller->avatar ? (Str::startsWith($product->seller->avatar, 'http') ? $product->seller->avatar : '/storage/'.$product->seller->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($product->seller->name ?? 'Seller').'&background=111F35&color=B8FF00' }}" class="w-full h-full object-cover">
+                            <img src="{{ optional($product->seller)->avatar ? (Str::startsWith($product->seller->avatar, 'http') ? $product->seller->avatar : '/storage/'.$product->seller->avatar) : 'https://ui-avatars.com/api/?name='.urlencode(optional($product->seller)->name ?? 'Seller').'&background=111F35&color=B8FF00' }}" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <p class="text-xs text-slate-400 font-mono uppercase tracking-wider">Penjual / Runner</p>
-                            <p class="text-sm font-bold text-white">{{ $product->seller->name ?? 'Seller' }}</p>
-                            @if($product->seller && $product->seller->city)
+                            <p class="text-sm font-bold text-white">{{ optional($product->seller)->name ?? 'Seller' }}</p>
+                            @if(optional($product->seller)->city)
                                 <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                                     <i class="fas fa-map-marker-alt text-rose-400 text-[10px]"></i>
                                     <span>{{ $product->seller->city->name }}</span>
@@ -142,9 +142,11 @@
                             @endif
                         </div>
                     </div>
-                    <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition">
-                        Kunjungi Toko
-                    </a>
+                    @if($product->seller)
+                        <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition">
+                            Kunjungi Toko
+                        </a>
+                    @endif
                 </div>
 
                 <!-- Actions: Buy Now / Add to Cart -->

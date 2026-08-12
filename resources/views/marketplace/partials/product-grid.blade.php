@@ -89,14 +89,20 @@
                 
                 <!-- Seller Meta -->
                 <div class="pt-2 mt-1.5 border-t border-slate-850/40 flex items-center justify-between gap-1.5 min-w-0">
-                    <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-neon transition">
-                        <div class="w-4 h-4 rounded-full bg-slate-850 border border-slate-700/60 overflow-hidden shrink-0">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($product->seller->name ?? 'Seller') }}&background=111F35&color=B8FF00" class="w-full h-full object-cover" alt="{{ $product->seller->name ?? 'Seller' }}">
+                    @if($product->seller)
+                        <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-neon transition">
+                            <div class="w-4 h-4 rounded-full bg-slate-850 border border-slate-700/60 overflow-hidden shrink-0">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($product->seller->name ?? 'Seller') }}&background=111F35&color=B8FF00" class="w-full h-full object-cover" alt="{{ $product->seller->name ?? 'Seller' }}">
+                            </div>
+                            <span class="text-[9px] text-slate-400 font-medium truncate group-hover:text-neon">
+                                {{ $product->seller->name ?? 'Seller' }}
+                            </span>
+                        </a>
+                    @else
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-[9px] text-slate-500 font-medium italic truncate">Seller</span>
                         </div>
-                        <span class="text-[9px] text-slate-400 font-medium truncate group-hover:text-neon">
-                            {{ $product->seller->name ?? 'Seller' }}
-                        </span>
-                    </a>
+                    @endif
                     @if($product->seller && $product->seller->city)
                     <span class="text-[9px] text-slate-500 flex items-center gap-0.5 shrink-0 max-w-[45%] truncate" title="{{ $product->seller->city->name }}">
                         <svg class="w-2.5 h-2.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
