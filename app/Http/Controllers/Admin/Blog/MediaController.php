@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Blog;
 
 use App\Http\Controllers\Controller;
 use App\Models\BlogMedia;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -119,24 +120,34 @@ class MediaController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageUploadService $imageService)
     {
         $request->validate([
             'file' => 'required|file|max:10240', // Max 10MB
         ]);
 
         $file = $request->file('file');
-        $filename = $file->getClientOriginalName();
-        $path = $file->store('blog/media', 'public');
+        $originalName = $file->getClientOriginalName();
+        $isImage = str_starts_with($file->getMimeType() ?? '', 'image/');
+
+        if ($isImage) {
+            $path = $imageService->uploadSingle($file, 'blog/media', 1200, 80);
+            $mimeType = 'image/webp';
+            $size = \Illuminate\Support\Facades\Storage::disk('public')->size($path);
+        } else {
+            $path = $file->store('blog/media', 'public');
+            $mimeType = $file->getMimeType();
+            $size = $file->getSize();
+        }
 
         $media = BlogMedia::create([
             'user_id' => auth()->id(),
-            'filename' => $filename,
+            'filename' => $originalName,
             'path' => $path,
             'disk' => 'public',
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'alt_text' => pathinfo($filename, PATHINFO_FILENAME),
+            'mime_type' => $mimeType,
+            'size' => $size,
+            'alt_text' => pathinfo($originalName, PATHINFO_FILENAME),
         ]);
 
         return response()->json([

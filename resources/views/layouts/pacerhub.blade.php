@@ -134,11 +134,66 @@
     @endif
 
     @php($recaptchaSiteKeyV3 = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')))
-    @if($recaptchaSiteKeyV3 && !Str::contains($recaptchaSiteKeyV3, ['your_', 'placeholder', 'dummy']))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKeyV3 }}"></script>
-    @elseif(empty($skipHeavyAssets) && empty($recaptchaSiteKeyV3))
-        {{-- Only load default recaptcha if no specific v3 key configured --}}
-    @endif
+    <script>
+        window.recaptchaSiteKey = @json($recaptchaSiteKeyV3);
+        window.loadRecaptcha = function(action) {
+            return new Promise(function(resolve) {
+                var siteKey = window.recaptchaSiteKey;
+                if (!siteKey || siteKey.indexOf('your_') !== -1 || siteKey.indexOf('placeholder') !== -1 || siteKey.indexOf('dummy') !== -1) {
+                    return resolve('');
+                }
+
+                function executeAction() {
+                    if (typeof grecaptcha === 'undefined' || !grecaptcha.ready) {
+                        return resolve('');
+                    }
+                    grecaptcha.ready(function() {
+                        if (!action) {
+                            return resolve(true);
+                        }
+                        grecaptcha.execute(siteKey, { action: action }).then(function(token) {
+                            resolve(token || '');
+                        }).catch(function(err) {
+                            console.error('reCAPTCHA error:', err);
+                            resolve('');
+                        });
+                    });
+                }
+
+                if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
+                    return executeAction();
+                }
+
+                var existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+                if (existingScript) {
+                    var attempts = 0;
+                    var interval = setInterval(function() {
+                        attempts++;
+                        if (typeof grecaptcha !== 'undefined' && grecaptcha.ready) {
+                            clearInterval(interval);
+                            executeAction();
+                        } else if (attempts > 60) {
+                            clearInterval(interval);
+                            resolve('');
+                        }
+                    }, 100);
+                    return;
+                }
+
+                var script = document.createElement('script');
+                script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(siteKey);
+                script.async = true;
+                script.onload = function() {
+                    executeAction();
+                };
+                script.onerror = function() {
+                    console.error('Failed to load reCAPTCHA script');
+                    resolve('');
+                };
+                document.head.appendChild(script);
+            });
+        };
+    </script>
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     

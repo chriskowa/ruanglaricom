@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+use App\Services\ImageUploadService;
+
 class MarketplaceBrandController extends Controller
 {
     public function index()
@@ -19,7 +21,7 @@ class MarketplaceBrandController extends Controller
         return view('admin.marketplace.brands.index', compact('brands', 'categories'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageUploadService $imageService)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -31,7 +33,7 @@ class MarketplaceBrandController extends Controller
 
         $logoPath = null;
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('marketplace/brands', 'public');
+            $logoPath = $imageService->uploadSingle($request->file('logo'), 'marketplace/brands', 600, 80);
         }
 
         $brand = MarketplaceBrand::create([
@@ -48,7 +50,7 @@ class MarketplaceBrandController extends Controller
         return redirect()->route('admin.marketplace.brands.index')->with('success', 'Brand created successfully.');
     }
 
-    public function update(Request $request, MarketplaceBrand $brand)
+    public function update(Request $request, MarketplaceBrand $brand, ImageUploadService $imageService)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -65,11 +67,10 @@ class MarketplaceBrandController extends Controller
         ];
 
         if ($request->hasFile('logo')) {
-            // Delete old logo if exists
             if ($brand->logo) {
-                Storage::disk('public')->delete($brand->logo);
+                $imageService->delete($brand->logo);
             }
-            $data['logo'] = $request->file('logo')->store('marketplace/brands', 'public');
+            $data['logo'] = $imageService->uploadSingle($request->file('logo'), 'marketplace/brands', 600, 80);
         }
 
         $brand->update($data);

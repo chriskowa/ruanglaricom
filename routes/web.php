@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
+Route::post('/upload-image', [App\Http\Controllers\ImageUploadController::class, 'upload'])->name('image.upload');
 
 // Homepage with template support
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');

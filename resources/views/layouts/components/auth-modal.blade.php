@@ -209,17 +209,25 @@
             role: 'runner',
             
             init() {
+                this.$watch('open', (value) => {
+                    if (value && window.loadRecaptcha) {
+                        window.loadRecaptcha();
+                    }
+                });
+
                 window.openLoginModal = () => { 
                     this.tab = 'login'; 
                     this.open = true; 
                     this.errorMessage = ''; 
                     this.successMessage = '';
+                    if (window.loadRecaptcha) window.loadRecaptcha();
                 };
                 window.openRegisterModal = () => { 
                     this.tab = 'register'; 
                     this.open = true; 
                     this.errorMessage = ''; 
                     this.successMessage = '';
+                    if (window.loadRecaptcha) window.loadRecaptcha();
                 };
             },
 
@@ -302,14 +310,13 @@
                 this.errorMessage = '';
                 const form = e.target;
 
-                const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
-                if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
+                if (window.loadRecaptcha) {
                     try {
-                        const token = await grecaptcha.execute(recaptchaKeyV3, {action: 'login'});
+                        const token = await window.loadRecaptcha('login');
                         const input = form.querySelector('input[name="g-recaptcha-response"]');
-                        if (input) input.value = token;
+                        if (input && token) input.value = token;
                     } catch (err) {
-                        console.error('reCAPTCHA v3 error:', err);
+                        console.error('reCAPTCHA error:', err);
                     }
                 }
 
@@ -347,14 +354,13 @@
                 this.errorMessage = '';
                 const form = e.target;
 
-                const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
-                if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
+                if (window.loadRecaptcha) {
                     try {
-                        const token = await grecaptcha.execute(recaptchaKeyV3, {action: 'register'});
+                        const token = await window.loadRecaptcha('register');
                         const input = form.querySelector('input[name="g-recaptcha-response"]');
-                        if (input) input.value = token;
+                        if (input && token) input.value = token;
                     } catch (err) {
-                        console.error('reCAPTCHA v3 error:', err);
+                        console.error('reCAPTCHA error:', err);
                     }
                 }
 

@@ -8,6 +8,7 @@ use App\Models\Marketplace\MarketplaceCategory;
 use App\Models\Marketplace\MarketplaceConsignmentIntake;
 use App\Models\Marketplace\MarketplaceProduct;
 use App\Models\Marketplace\MarketplaceOrder;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -147,7 +148,9 @@ class ProductController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('marketplace/products', 'public');
+            /** @var ImageUploadService $imageService */
+            $imageService = app(ImageUploadService::class);
+            $path = $imageService->uploadSingle($request->file('image'), 'marketplace/products', 1200, 80);
             $product->images()->create([
                 'image_path' => $path,
                 'is_primary' => true,
@@ -235,7 +238,9 @@ class ProductController extends Controller
         $product->update($data);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('marketplace/products', 'public');
+            /** @var ImageUploadService $imageService */
+            $imageService = app(ImageUploadService::class);
+            $path = $imageService->uploadSingle($request->file('image'), 'marketplace/products', 1200, 80);
             // Unset old primary
             $product->images()->update(['is_primary' => false]);
             $product->images()->create([

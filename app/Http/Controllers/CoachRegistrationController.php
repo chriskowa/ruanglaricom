@@ -6,6 +6,7 @@ use App\Helpers\WhatsApp;
 use App\Models\Coach;
 use App\Models\OtpToken;
 use App\Models\User;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -53,34 +54,13 @@ class CoachRegistrationController extends Controller
             'city' => $data['city'],
         ]);
 
-        // Handle image upload and convert to webp
+        // Handle image upload and convert to webp using ImageUploadService
         $imageUrl = null;
-        if (isset($data['image'])) {
-            $path = $request->file('image')->getRealPath();
-            $imgInfo = getimagesize($path);
-            if ($imgInfo) {
-                $dstPath = storage_path('app/public/coaches/'.uniqid('coach_').'.webp');
-                if (! is_dir(dirname($dstPath))) {
-                    mkdir(dirname($dstPath), 0775, true);
-                }
-                $src = null;
-                switch ($imgInfo['mime']) {
-                    case 'image/jpeg': $src = imagecreatefromjpeg($path);
-                        break;
-                    case 'image/png': $src = imagecreatefrompng($path);
-                        break;
-                    case 'image/webp': $src = imagecreatefromwebp($path);
-                        break;
-                }
-                if ($src) {
-                    imagepalettetotruecolor($src);
-                    imagealphablending($src, true);
-                    imagesavealpha($src, true);
-                    imagewebp($src, $dstPath, 70);
-                    imagedestroy($src);
-                    $imageUrl = '/storage/coaches/'.basename($dstPath);
-                }
-            }
+        if ($request->hasFile('image')) {
+            /** @var ImageUploadService $imageService */
+            $imageService = app(ImageUploadService::class);
+            $relativePath = $imageService->uploadSingle($request->file('image'), 'coaches', 800, 80);
+            $imageUrl = '/storage/' . $relativePath;
         }
 
         // Create coach record

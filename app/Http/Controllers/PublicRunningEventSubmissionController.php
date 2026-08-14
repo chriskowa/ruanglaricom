@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\ImageUploadService;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
@@ -251,25 +252,10 @@ class PublicRunningEventSubmissionController extends Controller
         $bannerPath = null;
         if ($request->hasFile('banner')) {
             try {
-                $file = $request->file('banner');
-                $filename = Str::uuid().'.webp';
-
-                $manager = new ImageManager(new Driver);
-                $image = $manager->read($file);
-
-                // Resize if too large (max width 1000px)
-                if ($image->width() > 1000) {
-                    $image->scale(width: 1000);
-                }
-
-                $encoded = $image->toWebp(quality: 80);
-
-                Storage::disk('public')->put('event-submissions/'.$filename, (string) $encoded);
-                $bannerPath = 'event-submissions/'.$filename;
+                /** @var ImageUploadService $imageService */
+                $imageService = app(ImageUploadService::class);
+                $bannerPath = $imageService->uploadSingle($request->file('banner'), 'event-submissions', 1000, 80);
             } catch (\Exception $e) {
-                // Fail silently for image processing, or log it
-                // We don't want to block submission if image fails?
-                // Better to nullify path
                 $bannerPath = null;
             }
         }

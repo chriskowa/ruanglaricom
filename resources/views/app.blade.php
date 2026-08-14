@@ -53,10 +53,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
-    <!-- ReCAPTCHA v3 -->
+    <!-- ReCAPTCHA v3 Config -->
     @php($recaptchaSiteKey = config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')))
     @if($recaptchaSiteKey)
-        <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}"></script>
         <script>
             window.recaptchaSiteKey = "{{ $recaptchaSiteKey }}";
         </script>

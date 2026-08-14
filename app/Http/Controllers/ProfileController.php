@@ -12,46 +12,26 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
+use App\Services\ImageUploadService;
+
 class ProfileController extends Controller
 {
+    protected ImageUploadService $imageService;
+
+    public function __construct(ImageUploadService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     private function processImage($file, $folder = 'avatars', $quality = 75)
     {
-        $manager = new ImageManager(new Driver);
-
-        // Generate unique filename dengan timestamp
-        $filename = uniqid().'_'.time().'.webp';
-        $path = $folder.'/'.$filename;
-
-        // Process image: resize jika terlalu besar, compress, dan convert ke WebP
-        $image = $manager->read($file);
-
-        // Resize jika dimensi lebih besar dari 1920px (untuk banner) atau 800px (untuk profile)
         $maxWidth = $folder === 'banners' ? 1920 : 800;
-        if ($image->width() > $maxWidth) {
-            $image->scale(width: $maxWidth);
-        }
-
-        // Convert ke WebP dengan quality 75% dan dapatkan encoded data
-        $webpImage = $image->toWebp($quality);
-
-        // Pastikan directory ada
-        $directory = Storage::disk('public')->path($folder);
-        if (! is_dir($directory)) {
-            Storage::disk('public')->makeDirectory($folder);
-        }
-
-        // Simpan ke storage menggunakan save() method
-        $fullPath = Storage::disk('public')->path($path);
-        $webpImage->save($fullPath);
-
-        return $path;
+        return $this->imageService->uploadSingle($file, $folder, $maxWidth, $quality);
     }
 
     private function deleteImage($path)
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
+        $this->imageService->delete($path);
     }
 
     public function show()

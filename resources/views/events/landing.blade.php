@@ -829,14 +829,17 @@
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-@php
-    $siteKeyV3 = env('RECAPTCHA_SITE_KEY_v3');
-@endphp
-@if($siteKeyV3)
-    <script src="https://www.google.com/recaptcha/api.js?render={{ $siteKeyV3 }}"></script>
-@endif
 <script>
     function getV3Token(action, callback) {
+        if (window.loadRecaptcha) {
+            window.loadRecaptcha(action).then(function(token) {
+                callback(token || '');
+            }).catch(function() {
+                callback('');
+            });
+            return;
+        }
+
         const siteKey = "{{ env('RECAPTCHA_SITE_KEY_v3') }}";
         if (!siteKey || typeof grecaptcha === 'undefined') {
             callback('');
@@ -1232,6 +1235,9 @@
 
         function openModal() {
             if (!modal) return;
+            if (window.loadRecaptcha) {
+                window.loadRecaptcha();
+            }
             clearAlert();
             otpIdEl.value = '';
             otpCodeEl.value = '';

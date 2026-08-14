@@ -8,6 +8,7 @@ use App\Models\OtpToken;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\User;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -141,7 +142,9 @@ class ChallengeController extends Controller
             ], 422);
         }
 
-        $imagePath = $request->file('image')->store('activity_proofs', 'public');
+        /** @var ImageUploadService $imageService */
+        $imageService = app(ImageUploadService::class);
+        $imagePath = $imageService->uploadSingle($request->file('image'), 'activity_proofs', 1200, 80);
 
         $advancedConfig = null;
         if ($request->filled('advanced_config')) {
@@ -207,14 +210,14 @@ class ChallengeController extends Controller
             return response()->json(['success' => false, 'message' => 'Nomor WhatsApp sudah terdaftar.'], 422);
         }
 
-        // Upload Avatar
+        // Upload Avatar & Proof using ImageUploadService
         $avatarPath = null;
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $avatarPath = $imageService->uploadSingle($request->file('avatar'), 'avatars', 800, 80);
         }
 
         // Upload Proof
-        $proofPath = $request->file('valid_proof')->store('challenge_proofs', 'public');
+        $proofPath = $imageService->uploadSingle($request->file('valid_proof'), 'challenge_proofs', 1200, 80);
 
         // Normalize PB 5K (accept MM:SS or HH:MM:SS)
         $pb5k = null;

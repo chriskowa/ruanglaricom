@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Jobs\SendPendingPaymentReminder;
 use App\Services\EventCacheService;
 use App\Services\EventReportService;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -3455,34 +3456,9 @@ class EventController extends Controller
      */
     private function processImage($file, $folder = 'events', $maxWidth = 1920, $quality = 85)
     {
-        $manager = new ImageManager(new Driver);
-
-        // Generate unique filename
-        $filename = uniqid().'_'.time().'.webp';
-        $path = $folder.'/'.$filename;
-
-        // Process image
-        $image = $manager->read($file);
-
-        // Resize if too large
-        if ($image->width() > $maxWidth) {
-            $image->scale(width: $maxWidth);
-        }
-
-        // Convert to WebP
-        $webpImage = $image->toWebp($quality);
-
-        // Ensure directory exists
-        $directory = Storage::disk('public')->path($folder);
-        if (! is_dir($directory)) {
-            Storage::disk('public')->makeDirectory($folder);
-        }
-
-        // Save image
-        $fullPath = Storage::disk('public')->path($path);
-        $webpImage->save($fullPath);
-
-        return $path;
+        /** @var ImageUploadService $imageService */
+        $imageService = app(ImageUploadService::class);
+        return $imageService->uploadSingle($file, $folder, $maxWidth, $quality);
     }
 
     /**
