@@ -101,20 +101,38 @@
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/apple-touch-icon.png') }}">
 
-    <!-- Google Analytics (Lite) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>
+    <!-- Google Analytics (Lazy Loaded) -->
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
+        (function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+
+            let gaLoaded = false;
+            function loadGA() {
+                if (gaLoaded) return;
+                gaLoaded = true;
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = "https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ";
+                document.head.appendChild(script);
+                gtag('js', new Date());
+                gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
+            }
+
+            ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function(e) {
+                window.addEventListener(e, loadGA, { passive: true, once: true });
+            });
+            setTimeout(loadGA, 3500);
+        })();
     </script>
 
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/paolo/apple-touch-icon.png') }}">
 
-
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </noscript>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="app-url" content="{{ url('/') }}" />
     <script>
