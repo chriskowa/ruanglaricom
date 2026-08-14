@@ -107,7 +107,7 @@
 
                     <!-- Info -->
                     <h3 class="text-lg font-bold text-white mb-1 truncate">
-                        <a :href="user.username ? ('/runner/' + user.username) : '#'" :class="[ 'hover:text-neon transition-colors', !user.username ? 'pointer-events-none opacity-50' : '' ]">@{{ user.name }}</a>
+                        <a :href="'/runner/' + (user.username || user.id)" class="hover:text-neon transition-colors">@{{ user.name }}</a>
                     </h3>
                     
                     <p v-if="user.city" class="text-xs text-slate-400 mb-3 flex items-center justify-center gap-1">
