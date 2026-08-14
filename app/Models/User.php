@@ -17,12 +17,13 @@ class User extends Authenticatable
         static::creating(function ($user) {
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'username')) {
                 if (empty($user->username) && !empty($user->name)) {
-                    $username = \Illuminate\Support\Str::slug($user->name);
-                    $count = 1;
-                    while (static::where('username', $username)->exists()) {
-                        $username = \Illuminate\Support\Str::slug($user->name) . $count++;
+                    $baseSlug = \Illuminate\Support\Str::slug($user->name);
+                    $slug = $baseSlug;
+                    $count = 2;
+                    while (static::where('username', $slug)->exists()) {
+                        $slug = $baseSlug . '-' . $count++;
                     }
-                    $user->username = $username;
+                    $user->username = $slug;
                 }
             }
         });
@@ -119,38 +120,32 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
-        if (! $this->avatar) {
-            return $this->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg');
+        if (!empty($this->avatar)) {
+            $avatar = trim($this->avatar);
+
+            if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+                return $avatar;
+            }
+
+            if (str_starts_with($avatar, 'images/')) {
+                return asset($avatar);
+            }
+
+            // Strip out existing storage prefix if stored in DB to prevent duplicates
+            $path = preg_replace('/^\/?(storage\/)?/', '', $avatar);
+            if ($path !== '') {
+                return asset('storage/' . $path);
+            }
         }
 
-        if (str_starts_with($this->avatar, 'http')) {
-            return $this->avatar;
+        // Check strava_url / strava avatar if available
+        if (!empty($this->strava_url) && (str_starts_with($this->strava_url, 'http://') || str_starts_with($this->strava_url, 'https://'))) {
+            return $this->strava_url;
         }
 
-        if (str_starts_with($this->avatar, 'images/')) {
-            return asset($this->avatar);
-        }
-
-        // Normalize path: trim spaces and trim leading/trailing slashes
-        $path = trim($this->avatar);
-        
-        // Strip out existing storage prefix if stored in DB to prevent duplicates
-        if (str_starts_with($path, '/storage/')) {
-            $path = substr($path, 9);
-        } elseif (str_starts_with($path, 'storage/')) {
-            $path = substr($path, 8);
-        } elseif ($path === 'storage' || $path === '/storage') {
-            $path = '';
-        }
-
-        // Strip leading slash
-        $path = ltrim($path, '/');
-
-        if ($path === '') {
-            return $this->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg');
-        }
-
-        return asset('storage/' . $path);
+        // High quality sporty fallback avatar based on name
+        $name = urlencode($this->name ?: 'Runner');
+        return "https://ui-avatars.com/api/?name={$name}&background=1e293b&color=ccff00&bold=true&size=256";
     }
 
     public function pacer()

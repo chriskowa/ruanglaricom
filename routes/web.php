@@ -774,6 +774,29 @@ Route::middleware('guest')->group(function () {
 
     // Public Pages
     Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
+
+    // User directory routes (Public)
+    Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    Route::get('/runners', function (Illuminate\Http\Request $request) {
+        $request->merge(['role' => 'runner']);
+
+        return app(App\Http\Controllers\UserController::class)->index($request);
+    })->name('runners.index');
+    Route::get('/users/runners', function (Illuminate\Http\Request $request) {
+        $request->merge(['role' => 'runner']);
+
+        return app(App\Http\Controllers\UserController::class)->index($request);
+    })->name('users.runners');
+    Route::get('/coaches', function (Illuminate\Http\Request $request) {
+        $request->merge(['role' => 'coach']);
+
+        return app(App\Http\Controllers\UserController::class)->index($request);
+    })->name('coaches.index');
+    Route::get('/users/coaches', function (Illuminate\Http\Request $request) {
+        $request->merge(['role' => 'coach']);
+
+        return app(App\Http\Controllers\UserController::class)->index($request);
+    })->name('users.coaches');
 });
 
 Route::get('/login/token/{user}', [App\Http\Controllers\Auth\AuthController::class, 'autoLogin'])
@@ -795,19 +818,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/upload-gallery', [App\Http\Controllers\ProfileController::class, 'uploadGallery'])->name('profile.upload-gallery');
     Route::post('/profile/delete-gallery', [App\Http\Controllers\ProfileController::class, 'deleteGalleryImage'])->name('profile.delete-gallery');
     Route::post('/profile/update-phone', [App\Http\Controllers\ProfileController::class, 'updatePhone'])->name('profile.update-phone');
-
-    // User list routes (accessible by all authenticated users)
-    Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
-    Route::get('/users/runners', function (Request $request) {
-        $request->merge(['role' => 'runner']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('users.runners');
-    Route::get('/users/coaches', function (Request $request) {
-        $request->merge(['role' => 'coach']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('users.coaches');
 
     // Follow routes
     Route::post('/follow/{user}', [App\Http\Controllers\FollowController::class, 'follow'])->name('follow');

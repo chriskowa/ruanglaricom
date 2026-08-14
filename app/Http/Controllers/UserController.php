@@ -61,8 +61,28 @@ class UserController extends Controller
         $cities = City::with('province')->get();
         $title = $role === 'coach' ? 'Daftar Coach' : ($role === 'runner' ? 'Daftar Runner' : 'Daftar User');
 
+        $topRunnersQuery = User::query()
+            ->when($role, function ($q) use ($role) {
+                $q->where('role', $role);
+            }, function ($q) {
+                $q->whereIn('role', ['runner', 'coach']);
+            });
+
+        if (auth()->check()) {
+            $topRunnersQuery->withExists(['followers as is_following' => function ($q) {
+                $q->where('follower_id', auth()->id());
+            }]);
+        }
+
+        $topRunners = $topRunnersQuery->with('city.province')
+            ->orderByDesc('weekly_volume')
+            ->orderByDesc('run_points')
+            ->take(2)
+            ->get();
+
         return view('users.index', [
             'users' => $users,
+            'topRunners' => $topRunners,
             'cities' => $cities,
             'title' => $title,
             'role' => $role,

@@ -431,29 +431,33 @@
     </div>
 </main>
 
-@if($user->role === 'coach')
 @push('scripts')
 <script type="application/ld+json">
 {
-  "@@context": "https://schema.org",
-  "@@graph": [
+  "@context": "https://schema.org",
+  "@graph": [
     {
-      "@@type": "ProfilePage",
-      "@@id": "{{ Request::url() }}#webpage",
-      "url": "{{ Request::url() }}",
-      "name": {!! json_encode($user->name . ' - Coach Lari Profesional | Ruang Lari') !!},
-      "description": {!! json_encode($user->name . ' adalah coach lari terverifikasi di Ruang Lari. Temukan program latihan lari, pengalaman, dan ulasan peserta.') !!},
+      "@type": "ProfilePage",
+      "@id": "{{ route('runner.profile.show', $user->username ?: $user->id) }}#webpage",
+      "url": "{{ route('runner.profile.show', $user->username ?: $user->id) }}",
+      "name": {!! json_encode($user->name . ' - Profil Pelari & Atlet | Ruang Lari') !!},
+      "description": {!! json_encode($user->bio ?: ('Profil performa lari ' . $user->name . ' di platform Ruang Lari.')) !!},
       "mainEntity": {
-        "@@type": "Person",
+        "@type": "Person",
         "name": {!! json_encode($user->name) !!},
+        "identifier": {!! json_encode($user->username ?: (string)$user->id) !!},
         "image": "{{ $user->avatar_url }}",
-        "description": {!! json_encode($user->bio ?? 'Coach Lari Profesional di Ruang Lari') !!},
-        "jobTitle": "Running Coach"
+        "description": {!! json_encode($user->bio ?: ($user->role === 'coach' ? 'Coach Lari Komunitas Ruang Lari' : 'Pelari Komunitas Ruang Lari')) !!},
+        "jobTitle": "{{ $user->role === 'coach' ? 'Running Coach' : 'Athlete / Runner' }}"@if($user->city),
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": {!! json_encode($user->city->name) !!},
+          "addressCountry": "ID"
+        }@endif
       }
     }
   ]
 }
 </script>
 @endpush
-@endif
 @endsection

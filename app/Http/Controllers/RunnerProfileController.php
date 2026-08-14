@@ -10,12 +10,12 @@ class RunnerProfileController extends Controller
     {
         $user = null;
 
-        // 1. Check if input is numeric (ID)
+        // 1. Check if input is numeric (ID) -> 301 redirect to canonical slug
         if (is_numeric($username)) {
             $user = User::find($username);
 
             if ($user && $user->username) {
-                return redirect()->route('runner.profile.show', $user->username);
+                return redirect()->route('runner.profile.show', $user->username, 301);
             }
         }
 
@@ -31,20 +31,26 @@ class RunnerProfileController extends Controller
                 ->orWhereRaw('LOWER(name) = ?', [strtolower($username)])
                 ->first();
 
-            // If found and user has no username set, generate and assign slug
+            // If found and user has no username set, generate and assign clean hyphenated slug
             if ($user && empty($user->username)) {
-                $slug = \Illuminate\Support\Str::slug($user->name);
-                $count = 1;
+                $baseSlug = \Illuminate\Support\Str::slug($user->name);
+                $slug = $baseSlug;
+                $count = 2;
                 while (User::where('username', $slug)->where('id', '!=', $user->id)->exists()) {
-                    $slug = \Illuminate\Support\Str::slug($user->name) . $count++;
+                    $slug = $baseSlug . '-' . $count++;
                 }
                 $user->username = $slug;
-                $user->save();
+                $user->saveQuietly();
             }
         }
 
         if (! $user) {
             abort(404, 'Profil runner tidak ditemukan.');
+        }
+
+        // 4. Canonical 301 redirect if requested URL differs from lowercase canonical slug
+        if ($user->username && $username !== $user->username) {
+            return redirect()->route('runner.profile.show', $user->username, 301);
         }
 
         return view('runner.profile', compact('user'));

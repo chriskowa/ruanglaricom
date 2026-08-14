@@ -12,34 +12,32 @@
     }
 </script>
 <style>
-    .glass-frosted {
-        background: rgba(15, 23, 42, 0.72);
+    .runner-card {
+        background: rgba(30, 41, 59, 0.75);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 16px 32px -10px rgba(0, 0, 0, 0.5);
     }
-    .solid-sharp {
-        background: #1e293b;
-        border: 1px solid #334155;
-        box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.5);
+    .runner-card:hover {
+        border-color: rgba(204, 255, 0, 0.35);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(204, 255, 0, 0.08);
     }
-    .glass-btn {
-        background: rgba(204, 255, 0, 0.12);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(204, 255, 0, 0.4);
-        color: #ffffff;
+    .top-runner-card {
+        background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
     }
-    .glass-btn:hover {
-        background: rgba(204, 255, 0, 0.25);
-        border-color: #ccff00;
-        box-shadow: 0 0 20px rgba(204, 255, 0, 0.3);
+    .top-runner-card:hover {
+        border-color: rgba(204, 255, 0, 0.45);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(204, 255, 0, 0.12);
     }
-    .solid-neon-btn {
+    .btn-neon-follow {
         background: #ccff00;
         color: #0f172a;
+        font-weight: 900;
     }
-    .solid-neon-btn:hover {
+    .btn-neon-follow:hover {
         background: #b8e600;
         box-shadow: 0 0 20px rgba(204, 255, 0, 0.4);
     }
@@ -51,115 +49,117 @@
 <div id="users-app" class="min-h-screen pt-24 pb-20 px-4 md:px-8 font-sans bg-[#0b1220] text-slate-200" v-cloak>
     <div class="max-w-7xl mx-auto space-y-10">
         
-        <!-- Header & Style Controls -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-4 border-b border-slate-800/80">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pb-4 border-b border-slate-800/80">
             <div>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="inline-block w-2 h-2 rounded-full bg-neon animate-pulse"></span>
-                    <p class="text-neon font-mono text-xs tracking-widest uppercase font-bold">RuangLari Athletes Network</p>
+                    <p class="text-neon font-mono text-xs tracking-widest uppercase font-bold">Komunitas Lari Indonesia</p>
                 </div>
                 <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tight">
-                    FIND <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon via-lime-300 to-emerald-400">{{ strtoupper(str_replace('Daftar ', '', $title)) }}</span>
+                    EKSPLORASI <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon via-lime-300 to-emerald-400">{{ strtoupper(str_replace('Daftar ', '', $title)) }}</span>
                 </h1>
                 <p class="text-slate-400 text-sm mt-1 max-w-xl">
-                    Jelajahi profil pelari dan pelatih lari berprestasi dengan statistik performa, sepatu lari, dan program latihan.
+                    Temukan rekan lari, pelajari jarak tempuh mingguan (mileage), dan terhubung dengan pelari serta coach di kotamu.
                 </p>
             </div>
             
-            <!-- Controls Toolbar -->
-            <div class="flex flex-wrap items-center gap-3">
-                <!-- Theme Mode Switcher -->
-                <div class="inline-flex p-1 bg-slate-900/90 border border-slate-800 rounded-xl">
-                    <button @click="cardTheme = 'contrast'" 
-                            :class="cardTheme === 'contrast' ? 'bg-slate-800 text-neon font-bold border border-slate-700' : 'text-slate-400 hover:text-white'" 
-                            class="px-3 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5"
-                            title="Bandingkan Desain Sharp Solid & Frosted Glass">
-                        <span>Side-by-Side</span>
-                    </button>
-                    <button @click="cardTheme = 'solid'" 
-                            :class="cardTheme === 'solid' ? 'bg-slate-800 text-neon font-bold border border-slate-700' : 'text-slate-400 hover:text-white'" 
-                            class="px-3 py-1.5 rounded-lg text-xs transition-all"
-                            title="Tampilan Sharp Solid Card">
-                        <span>Sharp Solid</span>
-                    </button>
-                    <button @click="cardTheme = 'glass'" 
-                            :class="cardTheme === 'glass' ? 'bg-slate-800 text-neon font-bold border border-slate-700' : 'text-slate-400 hover:text-white'" 
-                            class="px-3 py-1.5 rounded-lg text-xs transition-all"
-                            title="Tampilan Frosted Glassmorphism Card">
-                        <span>Frosted Glass</span>
-                    </button>
-                </div>
-
-                <!-- Filter Toggle (Mobile) -->
-                <button class="md:hidden px-4 py-2 bg-slate-800 rounded-xl text-white text-xs font-bold border border-slate-700 flex items-center gap-2" 
-                        @click="showFilters = !showFilters">
-                    <svg class="w-4 h-4 text-neon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                    </svg>
-                    <span>Filter</span>
-                </button>
-            </div>
+            <!-- Mobile Filter Toggle -->
+            <button class="md:hidden px-4 py-2 bg-slate-800 rounded-xl text-white text-xs font-bold border border-slate-700 flex items-center gap-2" 
+                    @click="showFilters = !showFilters">
+                <svg class="w-4 h-4 text-neon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                <span>Filter Pencarian</span>
+            </button>
         </div>
 
-        <!-- Featured Runner Card Comparison Showcase (Side-by-Side) -->
-        <div v-if="cardTheme === 'contrast' && !filters.q && filters.page === 1" class="relative rounded-3xl p-6 md:p-8 bg-gradient-to-b from-slate-900/80 to-[#0f172a] border border-slate-800/80 overflow-hidden shadow-2xl">
+        <!-- Section: Runner Paling Aktif (Featured Side-by-Side Cards) -->
+        <div v-if="topRunners.length > 0 && !filters.q && filters.page === 1" class="relative rounded-3xl p-6 md:p-8 bg-gradient-to-b from-slate-900/90 to-[#0f172a] border border-slate-800 overflow-hidden shadow-2xl">
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-neon/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="relative z-10 max-w-4xl mx-auto">
-                <div class="text-center mb-8">
-                    <span class="px-3 py-1 bg-neon/10 border border-neon/30 text-neon rounded-full text-xs font-mono font-bold tracking-wide uppercase">
-                        Design Showcase Contrast
-                    </span>
-                    <h2 class="text-2xl md:text-3xl font-black text-white mt-2">
-                        Sharp Solid vs Frosted Glassmorphism
-                    </h2>
-                    <p class="text-slate-400 text-xs md:text-sm mt-1">
-                        Dua variasi desain kartu profil atlet lari dengan portrait lintasan lari dan rincian statistik minimalis.
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-6">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-neon/10 border border-neon/30 text-neon rounded-full text-xs font-mono font-bold uppercase tracking-wider mb-1">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            <span>Top Performance</span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+                            Runner Paling Aktif Minggu Ini
+                        </h2>
+                    </div>
+                    <p class="text-slate-400 text-xs md:text-sm max-w-sm">
+                        Pelari dengan akumulasi mileage dan aktivitas lari tertinggi di platform RuangLari.
                     </p>
                 </div>
 
-                <!-- Side by Side Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 justify-center">
-                    
-                    <!-- Left: Sharp Solid Card -->
-                    <div class="solid-sharp rounded-2xl p-5 flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
+                <!-- 2 Side-by-Side Featured Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <div v-for="(runner, idx) in topRunners.slice(0, 2)" 
+                         :key="'top-' + runner.id" 
+                         class="top-runner-card rounded-2xl p-5 md:p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 relative group">
+                        
                         <div>
-                            <!-- Header Style Label -->
-                            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-3 pb-2 border-b border-slate-700/60">
-                                <span>CARD A: SOLID DESIGN</span>
-                                <span class="text-slate-500">#1e293b</span>
+                            <!-- Header Label -->
+                            <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-3 pb-2 border-b border-slate-800">
+                                <span class="flex items-center gap-1 text-neon font-bold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-neon"></span>
+                                    RUNNER TERAKTIF #@{{ idx + 1 }}
+                                </span>
+                                <span v-if="runner.city" class="text-slate-400">@{{ runner.city.name }}</span>
                             </div>
 
                             <!-- Portrait / Photo Section -->
-                            <div class="relative w-full h-52 rounded-xl overflow-hidden mb-4 bg-slate-800 border border-slate-700">
-                                <img src="{{ asset('images/paolo/bg-hero.webp') }}" 
-                                     onerror="this.src='https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80'"
-                                     class="w-full h-full object-cover object-center" 
-                                     alt="Muhammad Emon">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent"></div>
-                                <div class="absolute top-3 right-3 bg-slate-900/90 text-white text-[10px] font-black px-2.5 py-1 rounded-full border border-slate-700 shadow-md">
-                                    RUNNER
+                            <div class="relative w-full h-56 rounded-xl overflow-hidden mb-4 bg-slate-800 border border-slate-700/80">
+                                <img :src="getAvatarUrl(runner)" 
+                                     @error="handleAvatarError($event, runner)"
+                                     loading="lazy"
+                                     decoding="async"
+                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
+                                     :alt="runner.name">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none"></div>
+                                
+                                <!-- Top-Right Role Badge -->
+                                <div class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur-md text-neon text-[10px] font-black px-3 py-1 rounded-full border border-neon/40 shadow-lg">
+                                    @{{ runner.role === 'coach' ? 'COACH' : 'RUNNER' }}
+                                </div>
+
+                                <!-- Rank Badge (Bottom Left) -->
+                                <div class="absolute bottom-3 left-3 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-700">
+                                    <svg class="w-3.5 h-3.5 text-neon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                                        <polyline points="17 6 23 6 23 12"/>
+                                    </svg>
+                                    <span>High Activity</span>
                                 </div>
                             </div>
 
-                            <!-- Name -->
-                            <h3 class="text-xl font-black text-white tracking-tight mb-3">Muhammad Emon</h3>
+                            <!-- Runner Name -->
+                            <h3 class="text-xl font-black text-white tracking-tight mb-3">
+                                <a :href="'/runner/' + (runner.username || runner.id)" class="hover:text-neon transition-colors">
+                                    @{{ runner.name }}
+                                </a>
+                            </h3>
 
-                            <!-- Stats (Minimalist SVG Icons) -->
-                            <div class="space-y-2 mb-5">
-                                <div class="flex items-center gap-2.5 text-slate-300 text-xs font-medium">
-                                    <!-- Running Shoe Minimalist SVG -->
+                            <!-- Statistics (Minimalist SVG Icons) -->
+                            <div class="space-y-2 mb-6">
+                                <!-- Running Shoe Icon for Mileage -->
+                                <div class="flex items-center gap-2.5 text-slate-300 text-sm font-medium">
                                     <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M4 17l6-6 4 2 6-4v5l-5 4H4v-1z"/>
                                         <path d="M7 11l3-3"/>
                                         <path d="M11 9l2-2"/>
                                         <path d="M2 20h20"/>
                                     </svg>
-                                    <span>Sepatu Lari: <strong class="text-white font-mono">145 km</strong></span>
+                                    <span>Mileage: <strong class="text-white font-mono">@{{ formatShoeKm(runner) }}</strong></span>
                                 </div>
-                                <div class="flex items-center gap-2.5 text-slate-300 text-xs font-medium">
-                                    <!-- Stopwatch Minimalist SVG -->
+
+                                <!-- Stopwatch Icon for Waktu -->
+                                <div class="flex items-center gap-2.5 text-slate-300 text-sm font-medium">
                                     <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="14" r="8"/>
                                         <line x1="12" y1="14" x2="12" y2="10"/>
@@ -168,101 +168,65 @@
                                         <path d="M10 2h4"/>
                                         <path d="M19 7l1.5-1.5"/>
                                     </svg>
-                                    <span>Waktu: <strong class="text-white font-mono">12h</strong></span>
+                                    <span>Waktu: <strong class="text-white font-mono">@{{ formatTimeHours(runner) }}</strong></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Solid Neon Action Button -->
-                        <button class="solid-neon-btn w-full py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 shadow-lg">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            <span>Ikuti +</span>
-                        </button>
-                    </div>
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 pt-2">
+                            <template v-if="currentUserId !== runner.id">
+                                <button v-if="runner.is_following" 
+                                        @click="toggleFollow(runner)" 
+                                        :disabled="actionLoading === runner.id" 
+                                        class="flex-grow py-3 px-4 rounded-xl bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-300 text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2">
+                                    <i v-if="actionLoading === runner.id" class="fas fa-spinner fa-spin"></i>
+                                    <span v-else>Mengikuti ✓</span>
+                                </button>
+                                
+                                <button v-else 
+                                        @click="toggleFollow(runner)" 
+                                        :disabled="actionLoading === runner.id" 
+                                        class="btn-neon-follow flex-grow py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg">
+                                    <i v-if="actionLoading === runner.id" class="fas fa-spinner fa-spin"></i>
+                                    <template v-else>
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="12" y1="5" x2="12" y2="19"/>
+                                            <line x1="5" y1="12" x2="19" y2="12"/>
+                                        </svg>
+                                        <span>Ikuti +</span>
+                                    </template>
+                                </button>
 
-                    <!-- Right: Frosted Glassmorphism Card -->
-                    <div class="glass-frosted rounded-2xl p-5 flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1 relative">
-                        <!-- Glow highlight -->
-                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/15 rounded-full blur-2xl pointer-events-none"></div>
-
-                        <div class="relative z-10">
-                            <!-- Header Style Label -->
-                            <div class="flex items-center justify-between text-[11px] font-mono text-neon/80 mb-3 pb-2 border-b border-white/10">
-                                <span>CARD B: FROSTED GLASS</span>
-                                <span class="text-slate-400">Glassmorphism</span>
-                            </div>
-
-                            <!-- Portrait / Photo Section -->
-                            <div class="relative w-full h-52 rounded-xl overflow-hidden mb-4 bg-slate-800/60 border border-white/15">
-                                <img src="{{ asset('images/paolo/bg-hero.webp') }}" 
-                                     onerror="this.src='https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=800&q=80'"
-                                     class="w-full h-full object-cover object-center" 
-                                     alt="Muhammad Emon">
-                                <div class="absolute inset-0 bg-gradient-to-t from-dark/95 via-dark/40 to-transparent"></div>
-                                <div class="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-md text-neon text-[10px] font-black px-2.5 py-1 rounded-full border border-neon/30 shadow-md">
-                                    RUNNER
-                                </div>
-                            </div>
-
-                            <!-- Name -->
-                            <h3 class="text-xl font-black text-white tracking-tight mb-3">Muhammad Emon</h3>
-
-                            <!-- Stats (Minimalist SVG Icons) -->
-                            <div class="space-y-2 mb-5">
-                                <div class="flex items-center gap-2.5 text-slate-300 text-xs font-medium">
-                                    <!-- Running Shoe Minimalist SVG -->
-                                    <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M4 17l6-6 4 2 6-4v5l-5 4H4v-1z"/>
-                                        <path d="M7 11l3-3"/>
-                                        <path d="M11 9l2-2"/>
-                                        <path d="M2 20h20"/>
+                                <a :href="'/chat/' + runner.id" 
+                                   class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-cyan-500/20 hover:text-cyan-400 text-slate-400 border border-slate-700 flex items-center justify-center transition-all flex-shrink-0" 
+                                   title="Kirim Pesan">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                     </svg>
-                                    <span>Sepatu Lari: <strong class="text-white font-mono">145 km</strong></span>
-                                </div>
-                                <div class="flex items-center gap-2.5 text-slate-300 text-xs font-medium">
-                                    <!-- Stopwatch Minimalist SVG -->
-                                    <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="14" r="8"/>
-                                        <line x1="12" y1="14" x2="12" y2="10"/>
-                                        <line x1="12" y1="14" x2="15" y2="14"/>
-                                        <path d="M12 2v4"/>
-                                        <path d="M10 2h4"/>
-                                        <path d="M19 7l1.5-1.5"/>
-                                    </svg>
-                                    <span>Waktu: <strong class="text-white font-mono">12h</strong></span>
-                                </div>
-                            </div>
+                                </a>
+                            </template>
+                            <a v-else 
+                               :href="'/runner/' + (runner.username || runner.id)" 
+                               class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold text-center border border-slate-700 transition-all">
+                                Lihat Profil Saya
+                            </a>
                         </div>
-
-                        <!-- Frosted Glass Action Button -->
-                        <button class="glass-btn w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg relative z-10">
-                            <svg class="w-4 h-4 text-neon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            <span>Ikuti +</span>
-                        </button>
                     </div>
-
                 </div>
             </div>
         </div>
 
         <!-- Filter Bar -->
-        <div v-show="showFilters" class="glass-frosted rounded-2xl p-5 md:p-6 transition-all" data-aos="fade-up">
+        <div v-show="showFilters" class="runner-card rounded-2xl p-5 md:p-6 transition-all" data-aos="fade-up">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Cari Nama / Email</label>
-                    <div class="relative">
-                        <input v-model="filters.q" 
-                               @input="debouncedFetch" 
-                               type="text" 
-                               placeholder="Ketik nama runner..." 
-                               class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-500">
-                    </div>
+                    <input v-model="filters.q" 
+                           @input="debouncedFetch" 
+                           type="text" 
+                           placeholder="Ketik nama runner..." 
+                           class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-white text-sm focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
@@ -300,9 +264,19 @@
             </div>
         </div>
 
+        <!-- Section Title: Daftar Runner -->
+        <div class="flex items-center justify-between pt-2">
+            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight flex items-center gap-2">
+                <span>Daftar Pelari Komunitas</span>
+                <span class="text-xs font-mono text-slate-400 font-normal not-italic px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700">
+                    Total: @{{ users.total || users.data.length }}
+                </span>
+            </h2>
+        </div>
+
         <!-- Loading State Skeleton -->
         <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <div v-for="n in 8" :key="n" class="solid-sharp rounded-2xl p-5 animate-pulse flex flex-col justify-between h-[420px]">
+            <div v-for="n in 8" :key="n" class="runner-card rounded-2xl p-5 animate-pulse flex flex-col justify-between h-[400px]">
                 <div>
                     <div class="w-full h-48 bg-slate-800 rounded-xl mb-4"></div>
                     <div class="h-5 bg-slate-800 rounded w-3/4 mb-3"></div>
@@ -315,23 +289,20 @@
 
         <!-- Runner Grid -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <div v-for="(user, index) in users.data" 
+            <div v-for="user in users.data" 
                  :key="user.id" 
-                 :class="getCardClass(index)"
-                 class="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 relative group overflow-hidden">
+                 class="runner-card rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 relative group overflow-hidden">
                 
-                <!-- Glow highlight for glass cards -->
-                <div v-if="isGlassCard(index)" class="absolute -top-12 -right-12 w-32 h-32 bg-neon/10 rounded-full blur-2xl pointer-events-none group-hover:bg-neon/20 transition-colors"></div>
-
-                <div class="relative z-10">
+                <div>
                     <!-- Top Section: Photo & Badge -->
                     <div class="relative w-full h-52 rounded-xl overflow-hidden mb-4 bg-slate-800 border border-slate-700/60">
-                        <img :src="user.avatar ? (APP_URL + '/storage/' + user.avatar) : (user.gender === 'female' ? defaultFemale : defaultMale)" 
+                        <img :src="getAvatarUrl(user)" 
+                             @error="handleAvatarError($event, user)"
                              loading="lazy"
                              decoding="async"
                              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
                              :alt="user.name">
-                        <div class="absolute inset-0 bg-gradient-to-t from-dark/95 via-dark/30 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-transparent pointer-events-none"></div>
                         
                         <!-- Role Badge -->
                         <div class="absolute top-3 right-3">
@@ -361,9 +332,9 @@
                         <a :href="'/runner/' + (user.username || user.id)">@{{ user.name }}</a>
                     </h3>
 
-                    <!-- Statistics: Minimalist SVG Icons (Shoe & Stopwatch) -->
+                    <!-- Statistics: Minimalist SVG Icons (Shoe for Mileage & Stopwatch for Waktu) -->
                     <div class="space-y-1.5 mb-5 text-xs text-slate-300">
-                        <!-- Running Shoe Mileage -->
+                        <!-- Mileage -->
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 17l6-6 4 2 6-4v5l-5 4H4v-1z"/>
@@ -371,10 +342,10 @@
                                 <path d="M11 9l2-2"/>
                                 <path d="M2 20h20"/>
                             </svg>
-                            <span>Sepatu Lari: <strong class="text-white font-mono">@{{ formatShoeKm(user) }}</strong></span>
+                            <span>Mileage: <strong class="text-white font-mono">@{{ formatShoeKm(user) }}</strong></span>
                         </div>
 
-                        <!-- Running Time / Activity -->
+                        <!-- Waktu -->
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-neon flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="14" r="8"/>
@@ -389,10 +360,9 @@
                     </div>
                 </div>
 
-                <!-- Action Button: "Ikuti +" & Quick Profile -->
-                <div class="relative z-10 flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                <!-- Action Button: "Ikuti +" & Quick Chat -->
+                <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
                     <template v-if="currentUserId !== user.id">
-                        <!-- Follow / Unfollow Button with Plus icon -->
                         <button v-if="user.is_following" 
                                 @click="toggleFollow(user)" 
                                 :disabled="actionLoading === user.id" 
@@ -404,8 +374,7 @@
                         <button v-else 
                                 @click="toggleFollow(user)" 
                                 :disabled="actionLoading === user.id" 
-                                :class="isGlassCard(index) ? 'glass-btn' : 'solid-neon-btn'"
-                                class="flex-grow py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-md">
+                                class="btn-neon-follow flex-grow py-2.5 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-md">
                             <i v-if="actionLoading === user.id" class="fas fa-spinner fa-spin"></i>
                             <template v-else>
                                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -418,7 +387,7 @@
 
                         <!-- Message Button -->
                         <a :href="'/chat/' + user.id" 
-                           class="w-10 h-10 rounded-xl bg-slate-800/90 hover:bg-cyan-500/20 hover:text-cyan-400 text-slate-400 border border-slate-700/80 flex items-center justify-center transition-all flex-shrink-0" 
+                           class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-cyan-500/20 hover:text-cyan-400 text-slate-400 border border-slate-700 flex items-center justify-center transition-all flex-shrink-0" 
                            title="Kirim Pesan">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -437,7 +406,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-if="!loading && users.data.length === 0" class="col-span-full py-20 text-center glass-frosted rounded-3xl p-8">
+        <div v-if="!loading && users.data.length === 0" class="col-span-full py-20 text-center runner-card rounded-3xl p-8">
             <div class="w-16 h-16 bg-slate-800/80 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-500 border border-slate-700">
                 <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <circle cx="11" cy="11" r="8"/>
@@ -487,13 +456,13 @@
     createApp({
         setup() {
             const users = ref(@json($users));
+            const topRunners = ref(@json($topRunners ?? []));
             const cities = ref(@json($cities));
             const role = ref('{{ $role }}');
             const currentUserId = {{ auth()->id() ?? 'null' }};
             const loading = ref(false);
             const showFilters = ref(window.innerWidth >= 768);
             const actionLoading = ref(null);
-            const cardTheme = ref('contrast'); // 'contrast', 'solid', or 'glass'
             const APP_URL = "{{ url('/') }}";
             
             const defaultMale = "{{ asset('images/default-male.svg') }}";
@@ -506,15 +475,31 @@
                 page: 1
             });
 
-            const isGlassCard = (index) => {
-                if (cardTheme.value === 'glass') return true;
-                if (cardTheme.value === 'solid') return false;
-                // In contrast mode, alternate between solid and glass
-                return index % 2 === 1;
+            const getAvatarUrl = (user) => {
+                if (!user) return defaultMale;
+                if (user.avatar_url && !user.avatar_url.includes('images/default-')) {
+                    return user.avatar_url;
+                }
+                if (user.avatar) {
+                    const av = String(user.avatar).trim();
+                    if (av.startsWith('http://') || av.startsWith('https://')) {
+                        return av;
+                    }
+                    if (av.startsWith('images/')) {
+                        return APP_URL + '/' + av;
+                    }
+                    return APP_URL + '/storage/' + av.replace(/^\/?(storage\/)?/, '');
+                }
+                if (user.avatar_url) {
+                    return user.avatar_url;
+                }
+                const name = encodeURIComponent(user.name || 'Runner');
+                return `https://ui-avatars.com/api/?name=${name}&background=1e293b&color=ccff00&bold=true&size=256`;
             };
 
-            const getCardClass = (index) => {
-                return isGlassCard(index) ? 'glass-frosted' : 'solid-sharp';
+            const handleAvatarError = (event, user) => {
+                const name = encodeURIComponent((user && user.name) ? user.name : 'Runner');
+                event.target.src = `https://ui-avatars.com/api/?name=${name}&background=1e293b&color=ccff00&bold=true&size=256`;
             };
 
             const formatShoeKm = (user) => {
@@ -609,6 +594,8 @@
                     
                     if (response.ok) {
                         user.is_following = !isFollowing;
+                        const topMatch = topRunners.value.find(u => u.id === user.id);
+                        if (topMatch) topMatch.is_following = !isFollowing;
                     } else {
                         console.error('Action failed');
                     }
@@ -621,6 +608,7 @@
 
             return {
                 users,
+                topRunners,
                 cities,
                 role,
                 currentUserId,
@@ -628,9 +616,8 @@
                 loading,
                 showFilters,
                 actionLoading,
-                cardTheme,
-                isGlassCard,
-                getCardClass,
+                getAvatarUrl,
+                handleAvatarError,
                 formatShoeKm,
                 formatTimeHours,
                 debouncedFetch,
