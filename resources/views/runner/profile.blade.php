@@ -91,7 +91,7 @@
 
                         <div class="flex items-center gap-3">
                             @if(auth()->id() !== $user->id)
-                                @auth
+                                @if(auth()->check())
                                     @if(auth()->user()->isFollowing($user))
                                         <form action="{{ route('unfollow', $user) }}" method="POST">
                                             @csrf
@@ -119,7 +119,7 @@
                                     <a href="{{ route('login') }}" class="px-5 py-2.5 bg-neon hover:bg-white hover:text-dark text-dark rounded-xl text-sm font-black transition-all shadow-lg shadow-neon/20">
                                         Login to Follow
                                     </a>
-                                @endauth
+                                @endif
                             @else
                                 <a href="{{ route('profile.show') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
                                     Edit Profile
@@ -433,34 +433,37 @@
 @endsection
 
 @push('scripts')
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "ProfilePage",
-      "@id": "{{ route('runner.profile.show', $user->username ?: $user->id) }}#webpage",
-      "url": "{{ route('runner.profile.show', $user->username ?: $user->id) }}",
-      "name": {!! json_encode($user->name . ' - Profil Pelari & Atlet | Ruang Lari') !!},
-      "description": {!! json_encode($user->bio ?: ('Profil performa lari ' . $user->name . ' di platform Ruang Lari.')) !!},
-      "mainEntity": {
-        "@type": "Person",
-        "name": {!! json_encode($user->name) !!},
-        "identifier": {!! json_encode($user->username ?: (string)$user->id) !!},
-        "image": "{{ $user->avatar_url }}",
-        "description": {!! json_encode($user->bio ?: ($user->role === 'coach' ? 'Coach Lari Komunitas Ruang Lari' : 'Pelari Komunitas Ruang Lari')) !!},
-        "jobTitle": "{{ $user->role === 'coach' ? 'Running Coach' : 'Athlete / Runner' }}"
-        @if($user->city)
-        ,
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": {!! json_encode($user->city->name) !!},
-          "addressCountry": "ID"
-        }
-        @endif
-      }
+@php
+    $schemaPerson = [
+        "@type" => "Person",
+        "name" => $user->name,
+        "identifier" => (string)($user->username ?: $user->id),
+        "image" => $user->avatar_url,
+        "description" => $user->bio ?: ($user->role === 'coach' ? 'Coach Lari Komunitas Ruang Lari' : 'Pelari Komunitas Ruang Lari'),
+        "jobTitle" => ($user->role === 'coach' ? 'Running Coach' : 'Athlete / Runner'),
+    ];
+    if ($user->city) {
+        $schemaPerson["address"] = [
+            "@type" => "PostalAddress",
+            "addressLocality" => $user->city->name,
+            "addressCountry" => "ID"
+        ];
     }
-  ]
-}
+    $schema = [
+        "@context" => "https://schema.org",
+        "@graph" => [
+            [
+                "@type" => "ProfilePage",
+                "@id" => route('runner.profile.show', $user->username ?: $user->id) . '#webpage',
+                "url" => route('runner.profile.show', $user->username ?: $user->id),
+                "name" => $user->name . ' - Profil Pelari & Atlet | Ruang Lari',
+                "description" => $user->bio ?: ('Profil performa lari ' . $user->name . ' di platform Ruang Lari.'),
+                "mainEntity" => $schemaPerson
+            ]
+        ]
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 @endpush
