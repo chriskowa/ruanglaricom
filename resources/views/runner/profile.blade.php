@@ -430,6 +430,7 @@
 
     </div>
 </main>
+@endsection
 
 @push('scripts')
 <script type="application/ld+json">
@@ -448,16 +449,18 @@
         "identifier": {!! json_encode($user->username ?: (string)$user->id) !!},
         "image": "{{ $user->avatar_url }}",
         "description": {!! json_encode($user->bio ?: ($user->role === 'coach' ? 'Coach Lari Komunitas Ruang Lari' : 'Pelari Komunitas Ruang Lari')) !!},
-        "jobTitle": "{{ $user->role === 'coach' ? 'Running Coach' : 'Athlete / Runner' }}"@if($user->city),
+        "jobTitle": "{{ $user->role === 'coach' ? 'Running Coach' : 'Athlete / Runner' }}"
+        @if($user->city)
+        ,
         "address": {
           "@type": "PostalAddress",
           "addressLocality": {!! json_encode($user->city->name) !!},
           "addressCountry": "ID"
-        }@endif
+        }
+        @endif
       }
     }
   ]
 }
 </script>
 @endpush
-@endsection

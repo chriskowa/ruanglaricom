@@ -34,19 +34,43 @@
     <?php endif; ?>
 
     <?php if($ga || $gads): ?>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo e($ga ?: $gads); ?>"></script>
+    <!-- Google tag (gtag.js) - Lazy Loaded for PageSpeed Optimization -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        (function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
 
-      <?php if($ga): ?>
-      gtag('config', '<?php echo e($ga); ?>');
-      <?php endif; ?>
-      <?php if($gads): ?>
-      gtag('config', '<?php echo e($gads); ?>');
-      <?php endif; ?>
+            let gtmLoaded = false;
+            function loadGTM() {
+                if (gtmLoaded) return;
+                gtmLoaded = true;
+
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = "https://www.googletagmanager.com/gtag/js?id=<?php echo e($ga ?: $gads); ?>";
+                document.head.appendChild(script);
+
+                gtag('js', new Date());
+                <?php if($ga): ?>
+                gtag('config', '<?php echo e($ga); ?>');
+                <?php endif; ?>
+                <?php if($gads): ?>
+                gtag('config', '<?php echo e($gads); ?>');
+                <?php endif; ?>
+
+                ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(function(e) {
+                    window.removeEventListener(e, loadGTM);
+                });
+            }
+
+            ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(function(e) {
+                window.addEventListener(e, loadGTM, { passive: true, once: true });
+            });
+
+            // Fallback load after 3.5s if no interaction occurs
+            setTimeout(loadGTM, 3500);
+        })();
     </script>
     <?php endif; ?>
 
@@ -209,7 +233,10 @@
     </script>
     <?php endif; ?>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </noscript>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     
     <style>

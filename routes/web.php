@@ -475,9 +475,6 @@ Route::get('/api/notifications', [RunConnectController::class, 'getNotifications
 Route::post('/api/notifications/read-all', [RunConnectController::class, 'readAllNotifications'])->name('api.notifications.read-all');
 Route::post('/api/notifications/{id}/read', [RunConnectController::class, 'readNotification'])->name('api.notifications.read');
 
-// Public Coach Listing
-Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
-
 // Public Marketplace
 Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
@@ -787,16 +784,8 @@ Route::middleware('guest')->group(function () {
 
         return app(App\Http\Controllers\UserController::class)->index($request);
     })->name('users.runners');
-    Route::get('/coaches', function (Illuminate\Http\Request $request) {
-        $request->merge(['role' => 'coach']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('coaches.index');
-    Route::get('/users/coaches', function (Illuminate\Http\Request $request) {
-        $request->merge(['role' => 'coach']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('users.coaches');
+    Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
+    Route::get('/users/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('users.coaches');
 });
 
 Route::get('/login/token/{user}', [App\Http\Controllers\Auth\AuthController::class, 'autoLogin'])

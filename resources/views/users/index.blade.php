@@ -116,7 +116,7 @@
                             <!-- Portrait / Photo Section -->
                             <div class="relative w-full h-56 rounded-xl overflow-hidden mb-4 bg-slate-800 border border-slate-700/80">
                                 <img :src="getAvatarUrl(runner)" 
-                                     @error="handleAvatarError($event, runner)"
+                                     v-on:error="handleAvatarError($event, runner)"
                                      loading="lazy"
                                      decoding="async"
                                      class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
@@ -297,7 +297,7 @@
                     <!-- Top Section: Photo & Badge -->
                     <div class="relative w-full h-52 rounded-xl overflow-hidden mb-4 bg-slate-800 border border-slate-700/60">
                         <img :src="getAvatarUrl(user)" 
-                             @error="handleAvatarError($event, user)"
+                             v-on:error="handleAvatarError($event, user)"
                              loading="lazy"
                              decoding="async"
                              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 

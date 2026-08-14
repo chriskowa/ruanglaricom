@@ -47,6 +47,39 @@
                         Filters
                     </h3>
 
+                    <!-- Program Distance Filter -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Target Jarak Program</label>
+                        <select id="distanceFilter" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-neon outline-none">
+                            <option value="">Semua Jarak</option>
+                            <option value="5k" {{ request('distance') == '5k' ? 'selected' : '' }}>5K / Fun Run</option>
+                            <option value="10k" {{ request('distance') == '10k' ? 'selected' : '' }}>10K Run</option>
+                            <option value="21k" {{ request('distance') == '21k' ? 'selected' : '' }}>Half Marathon (21K)</option>
+                            <option value="42k" {{ request('distance') == '42k' ? 'selected' : '' }}>Full Marathon (42K)</option>
+                        </select>
+                    </div>
+
+                    <!-- Program Difficulty Filter -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tingkat Kemampuan</label>
+                        <select id="difficultyFilter" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-neon outline-none">
+                            <option value="">Semua Level</option>
+                            <option value="beginner" {{ request('difficulty') == 'beginner' ? 'selected' : '' }}>Beginner (Pemula)</option>
+                            <option value="intermediate" {{ request('difficulty') == 'intermediate' ? 'selected' : '' }}>Intermediate (Menengah)</option>
+                            <option value="advanced" {{ request('difficulty') == 'advanced' ? 'selected' : '' }}>Advanced (Mahir)</option>
+                        </select>
+                    </div>
+
+                    <!-- Program Pricing Filter -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tipe Program</label>
+                        <select id="pricingFilter" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-neon outline-none">
+                            <option value="">Semua Tipe</option>
+                            <option value="free" {{ request('pricing') == 'free' ? 'selected' : '' }}>Memiliki Program Gratis</option>
+                            <option value="paid" {{ request('pricing') == 'paid' ? 'selected' : '' }}>Program Premium</option>
+                        </select>
+                    </div>
+
                     <!-- Location Filter -->
                     <div class="mb-6">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Lokasi</label>
@@ -116,6 +149,9 @@
         // Gather Params
         const search = document.getElementById('searchInput').value;
         const city_id = document.getElementById('cityFilter').value;
+        const distance = document.getElementById('distanceFilter')?.value || '';
+        const difficulty = document.getElementById('difficultyFilter')?.value || '';
+        const pricing = document.getElementById('pricingFilter')?.value || '';
         const rating = document.querySelector('input[name="rating"]:checked')?.value || '';
 
         // Build URL
@@ -123,15 +159,10 @@
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (city_id) params.append('city_id', city_id);
+        if (distance) params.append('distance', distance);
+        if (difficulty) params.append('difficulty', difficulty);
+        if (pricing) params.append('pricing', pricing);
         if (rating) params.append('rating', rating);
-        
-        // If url already has params (pagination), merge them? 
-        // Actually, pagination links usually include all current params if we use withQueryString().
-        // But here we are building params from current state.
-        // If 'url' is provided (from pagination click), use it directly but make sure it preserves other filters?
-        // Laravel's withQueryString() handles this in the link generation.
-        // So if url is provided, we just use it.
-        // EXCEPT if the user changed a filter AND clicked page 2 (unlikely).
         
         if (!url) {
             fetchUrl = `${fetchUrl}?${params.toString()}`;
@@ -150,7 +181,7 @@
             container.innerHTML = html;
             container.style.opacity = '1';
             updateRatingUI(rating);
-            AOS.refresh(); // Refresh animations
+            if (typeof AOS !== 'undefined') AOS.refresh();
         })
         .catch(err => {
             console.error('Error:', err);
@@ -161,13 +192,16 @@
     function resetFilters() {
         document.getElementById('searchInput').value = '';
         document.getElementById('cityFilter').value = '';
+        if (document.getElementById('distanceFilter')) document.getElementById('distanceFilter').value = '';
+        if (document.getElementById('difficultyFilter')) document.getElementById('difficultyFilter').value = '';
+        if (document.getElementById('pricingFilter')) document.getElementById('pricingFilter').value = '';
         const ratingRadios = document.querySelectorAll('input[name="rating"]');
         ratingRadios.forEach(r => r.checked = false);
+        updateRatingUI('');
         applyFilters();
     }
 
     function updateRatingUI(selectedRating) {
-        // Update the visual radio boxes
         document.querySelectorAll('.rating-box').forEach(box => {
             const val = box.getAttribute('data-value');
             if (val == selectedRating) {
@@ -187,6 +221,7 @@
             e.preventDefault();
             const url = link.getAttribute('href');
             applyFilters(url);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 </script>
