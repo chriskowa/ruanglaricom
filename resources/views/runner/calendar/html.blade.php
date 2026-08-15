@@ -590,10 +590,11 @@
 
                             <!-- Card Body (Activity Content) -->
                             <div class="space-y-1">
-                                <h4 class="font-bold text-xs md:text-sm leading-tight transition" 
+                                <h4 class="font-bold text-xs md:text-sm leading-tight transition line-clamp-1 truncate" 
                                     :class="plan.is_locked ? 'text-slate-600' : 'text-white cursor-pointer hover:text-neon'"
+                                    :title="plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session')"
                                     @click="showPlanDetail(plan)">
-                                    @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
+                                    @{{ plan.description ? truncatePlanDesc(plan.description, 45) : (plan.program_title || 'Workout Session') }}
                                 </h4>
 
                                 <div class="flex items-center gap-2">
@@ -610,7 +611,7 @@
                                 UNLOCK
                             </button>
                             <button v-else-if="plan.status==='pending'" class="w-full mt-1 py-1.5 rounded-[4px] bg-neon text-dark text-[10px] font-bold hover:bg-neon/90 transition shadow shadow-neon/10 flex items-center justify-center gap-1.5" @click.stop="updateSessionStatus(plan,'started')">
-                                ▶ START
+                                START
                             </button>
                         </div>
                         

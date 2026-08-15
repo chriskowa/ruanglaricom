@@ -43,6 +43,13 @@ const runnerCalendarApp = createApp({
             visibleCount.value = Math.min(visibleCount.value + pageSize, plans.value.length);
         };
 
+        const truncatePlanDesc = (desc, maxLength = 42) => {
+            if (!desc) return '';
+            const firstLine = String(desc).split('\n')[0].trim();
+            if (firstLine.length <= maxLength) return firstLine;
+            return firstLine.substring(0, maxLength).trim() + '...';
+        };
+
         const openMobileAddSheet = () => {
             showHeaderActions.value = false;
             showMobileAddSheet.value = true;
@@ -3199,7 +3206,7 @@ const runnerCalendarApp = createApp({
             showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,
             stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
             openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown,
-            ttsSupported, speakDetailDescription
+            ttsSupported, speakDetailDescription, truncatePlanDesc
         };
     }
 });
