@@ -143,46 +143,13 @@
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/apple-touch-icon.png') }}">
 
-    <!-- Google Analytics (Optimized for PageSpeed & Zero Unused JS) -->
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>
     <script>
-        (function() {
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){ dataLayer.push(arguments); }
-            window.gtag = gtag;
-
-            gtag('js', new Date());
-            gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
-
-            let gaLoaded = false;
-            function loadGA() {
-                if (gaLoaded) return;
-                gaLoaded = true;
-
-                ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
-                    window.removeEventListener(evt, loadGA, { passive: true });
-                });
-
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = "https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ";
-                document.head.appendChild(script);
-            }
-
-            ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
-                window.addEventListener(evt, loadGA, { passive: true, once: true });
-            });
-
-            const isSyntheticBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|pagespeed|inspection/i.test(navigator.userAgent);
-            if (!isSyntheticBot) {
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(function() { setTimeout(loadGA, 7500); });
-                } else {
-                    setTimeout(loadGA, 7500);
-                }
-            }
-        })();
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
     </script>
 
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" onload="this.onload=null;this.rel='stylesheet'">
@@ -204,18 +171,9 @@
         <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-
-    <!-- Google Fonts Asynchronous & Non-Render-Blocking -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
-    </noscript>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     @php
         $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
