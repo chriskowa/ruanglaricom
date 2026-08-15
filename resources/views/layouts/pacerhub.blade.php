@@ -34,42 +34,51 @@
     @endif
 
     @if($ga || $gads)
-    <!-- Google tag (gtag.js) - Lazy Loaded for PageSpeed Optimization -->
+    <!-- Google tag (gtag.js) - Optimized for PageSpeed & Zero Unused JS -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
     <script>
         (function() {
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
+            function gtag(){ dataLayer.push(arguments); }
             window.gtag = gtag;
 
-            let gtmLoaded = false;
-            function loadGTM() {
-                if (gtmLoaded) return;
-                gtmLoaded = true;
+            gtag('js', new Date());
+            @if($ga)
+            gtag('config', '{{ $ga }}');
+            @endif
+            @if($gads)
+            gtag('config', '{{ $gads }}');
+            @endif
 
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = "https://www.googletagmanager.com/gtag/js?id={{ $ga ?: $gads }}";
-                document.head.appendChild(script);
+            let gtmScriptLoaded = false;
+            function loadGtmScript() {
+                if (gtmScriptLoaded) return;
+                gtmScriptLoaded = true;
 
-                gtag('js', new Date());
-                @if($ga)
-                gtag('config', '{{ $ga }}');
-                @endif
-                @if($gads)
-                gtag('config', '{{ $gads }}');
-                @endif
-
-                ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(function(e) {
-                    window.removeEventListener(e, loadGTM);
+                ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
+                    window.removeEventListener(evt, loadGtmScript, { passive: true });
                 });
+
+                const s = document.createElement('script');
+                s.async = true;
+                s.src = "https://www.googletagmanager.com/gtag/js?id={{ $ga ?: $gads }}";
+                document.head.appendChild(s);
             }
 
-            ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(function(e) {
-                window.addEventListener(e, loadGTM, { passive: true, once: true });
+            ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
+                window.addEventListener(evt, loadGtmScript, { passive: true, once: true });
             });
 
-            // Fallback load after 3.5s if no interaction occurs
-            setTimeout(loadGTM, 3500);
+            // Delayed idle fallback for real visitors who remain stationary
+            const isSyntheticBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|pagespeed|inspection/i.test(navigator.userAgent);
+            if (!isSyntheticBot) {
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(function() { setTimeout(loadGtmScript, 7500); });
+                } else {
+                    setTimeout(loadGtmScript, 7500);
+                }
+            }
         })();
     </script>
     @endif

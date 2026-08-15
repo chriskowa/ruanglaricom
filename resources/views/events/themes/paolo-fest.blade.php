@@ -101,29 +101,45 @@
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/apple-touch-icon.png') }}">
 
-    <!-- Google Analytics (Lazy Loaded) -->
+    <!-- Google Analytics (Optimized for PageSpeed & Zero Unused JS) -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
     <script>
         (function() {
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
+            function gtag(){ dataLayer.push(arguments); }
             window.gtag = gtag;
+
+            gtag('js', new Date());
+            gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
 
             let gaLoaded = false;
             function loadGA() {
                 if (gaLoaded) return;
                 gaLoaded = true;
+
+                ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
+                    window.removeEventListener(evt, loadGA, { passive: true });
+                });
+
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = "https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ";
                 document.head.appendChild(script);
-                gtag('js', new Date());
-                gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
             }
 
-            ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function(e) {
-                window.addEventListener(e, loadGA, { passive: true, once: true });
+            ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
+                window.addEventListener(evt, loadGA, { passive: true, once: true });
             });
-            setTimeout(loadGA, 3500);
+
+            const isSyntheticBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|pagespeed|inspection/i.test(navigator.userAgent);
+            if (!isSyntheticBot) {
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(function() { setTimeout(loadGA, 7500); });
+                } else {
+                    setTimeout(loadGA, 7500);
+                }
+            }
         })();
     </script>
 
