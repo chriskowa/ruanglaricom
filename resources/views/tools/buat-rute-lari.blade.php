@@ -58,7 +58,7 @@
             <div class="mb-6">
                 <div class="flex items-start justify-between gap-4 flex-wrap">
                     <div>
-                        <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white">
+                        <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white">
                             BUAT <span class="text-neon">RUTE LARI</span>
                         </h1>
                         <p class="text-slate-400 mt-1 max-w-2xl text-sm">
@@ -103,34 +103,34 @@
                                 <i class="fa-solid fa-sliders text-slate-400 text-xs"></i>
                                 Setup Rute
                             </div>
-                            <div id="rl-route-status" class="text-[11px] text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-full border border-slate-700/50">Siap</div>
+                            <div id="rl-route-status" class="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-0.5 rounded-full border border-slate-700">Siap</div>
                         </div>
 
                         <div class="mt-4 space-y-3">
                             <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nama Rute</label>
-                                <input id="rl-route-name" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Contoh: Long Run Minggu Pagi">
+                                <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Nama Rute</label>
+                                <input id="rl-route-name" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 transition" placeholder="Contoh: Long Run Minggu Pagi">
                             </div>
 
                             <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Target Pace</label>
+                                <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Target Pace</label>
                                 <div class="flex items-center gap-2">
                                     <input id="rl-pace-min" inputmode="numeric" type="number" min="0" 
                                         class="w-16 bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white font-bold text-center focus:outline-none focus:ring-1 focus:ring-slate-500" 
                                         value="6" placeholder="00">
                                     
-                                    <span class="text-slate-500 font-bold">:</span>
+                                    <span class="text-slate-400 font-bold">:</span>
                                     
                                     <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" 
                                         class="w-16 bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white font-bold text-center focus:outline-none focus:ring-1 focus:ring-slate-500" 
                                         value="0" placeholder="00">
                                     
-                                    <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
+                                    <span class="text-xs text-slate-400 font-bold whitespace-nowrap">/km</span>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
+                                <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
                                 <input id="rl-start-time" type="datetime-local" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-slate-500">
                                 <div id="rl-start-time-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
                             </div>
@@ -147,37 +147,37 @@
                             </div>
 
                             <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-3">
-                                <div class="text-[11px] font-black tracking-wider text-slate-400 uppercase mb-2.5">Warna & Indikator</div>
+                                <div class="text-[11px] font-black tracking-wider text-slate-300 uppercase mb-2.5">Warna & Indikator</div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Route</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Route</div>
                                         <input id="rl-color-route" type="color" value="#FC4C02" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                     <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Marker</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Marker</div>
                                         <input id="rl-color-marker" type="color" value="#60a5fa" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                     <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Start</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Start</div>
                                         <input id="rl-color-start" type="color" value="#22c55e" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                     <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Finish</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Finish</div>
                                         <input id="rl-color-finish" type="color" value="#ef4444" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                     <div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5 col-span-2">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Panah Arah</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Panah Arah</div>
                                         <input id="rl-color-arrow" type="color" value="#ccff00" class="w-7 h-6 bg-transparent cursor-pointer border-0">
                                     </div>
                                 </div>
                                 <div class="mt-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-2 space-y-1.5">
                                     <label class="flex items-center justify-between gap-2 cursor-pointer select-none">
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tampilkan Panah Arah</div>
+                                        <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Tampilkan Panah Arah</div>
                                         <input id="rl-show-arrows" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
                                     </label>
                                     <div id="rl-arrow-interval-wrap">
                                         <div class="flex items-center justify-between gap-2">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
+                                            <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Interval Arah</div>
                                             <div id="rl-arrow-interval-label" class="text-[11px] font-black text-slate-200">250m</div>
                                         </div>
                                         <input id="rl-arrow-interval" type="range" min="30" max="500" step="10" value="250" class="mt-1.5 w-full accent-[#ccff00]">
@@ -197,16 +197,16 @@
                         </div>
 
                         <div class="mt-3.5 space-y-3">
-                            <div class="text-[11px] text-slate-400 bg-slate-950/40 border border-slate-800 rounded-xl p-2.5 leading-relaxed">
-                                <strong class="text-slate-300">Tips:</strong> Klik peta 1x untuk lokasi Start. Jika belum, AI pakai titik tengah peta.
+                            <div class="text-[11px] text-slate-300 bg-slate-950/40 border border-slate-800 rounded-xl p-2.5 leading-relaxed">
+                                <strong class="text-white">Tips:</strong> Klik peta 1x untuk lokasi Start. Jika belum, AI pakai titik tengah peta.
                             </div>
                             
                             <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Jarak Target (km)</label>
+                                <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Jarak Target (km)</label>
                                 <div class="grid grid-cols-4 gap-1.5">
                                     <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white font-bold transition text-xs active" data-dist="5">5K</button>
-                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="10">10K</button>
-                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="21">21K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="10">10K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-700 hover:text-white transition text-xs" data-dist="21">21K</button>
                                     <div class="relative">
                                         <input id="rl-ai-custom-dist" type="number" step="0.5" min="1" max="100" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-1.5 py-1.5 text-white font-bold text-center text-xs focus:outline-none focus:ring-1 focus:ring-slate-500" placeholder="Lainnya">
                                     </div>
@@ -215,7 +215,7 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Arah Rute</label>
+                                    <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Arah Rute</label>
                                     <select id="rl-ai-direction" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-slate-500">
                                         <option value="random">Acak / Sembarang</option>
                                         <option value="north">Utara</option>
@@ -226,7 +226,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Toleransi Jarak</label>
+                                    <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Toleransi Jarak</label>
                                     <select id="rl-ai-tolerance" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-2.5 py-2 text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-slate-500">
                                         <option value="0.05">Sangat Presisi (±50m)</option>
                                         <option value="0.12" selected>Ketat & Akurat (±100m)</option>
@@ -238,8 +238,8 @@
                             <!-- Opsi Rute & Larangan Checklist -->
                             <div class="space-y-1.5">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Opsi Rute & Larangan</label>
-                                    <span class="text-[10px] text-slate-500">Kustom AI</span>
+                                    <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Opsi Rute & Larangan</label>
+                                    <span class="text-[10px] text-slate-400">Kustom AI</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <label class="relative flex items-center gap-2 bg-slate-950/50 border border-slate-800 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-700 transition select-none has-[:checked]:border-slate-600 has-[:checked]:text-white">
@@ -250,7 +250,7 @@
                                         <input id="rl-ai-avoid-gang" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked>
                                         <span class="truncate">Hindari Gang</span>
                                     </label>
-                                    <label class="relative flex items-center gap-2 bg-slate-950/30 border border-slate-800/60 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-500 cursor-not-allowed select-none opacity-60">
+                                    <label class="relative flex items-center gap-2 bg-slate-950/30 border border-slate-800/60 rounded-xl px-2.5 py-2 text-[11px] font-semibold text-slate-400 cursor-not-allowed select-none opacity-60">
                                         <input id="rl-ai-avoid-toll" type="checkbox" class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 accent-[#ccff00]" checked disabled>
                                         <span class="truncate">Hindari Jalan Tol</span>
                                     </label>
@@ -272,28 +272,28 @@
                             <!-- GPS Art Shapes & AI Section -->
                             <div class="pt-3 border-t border-slate-800/60 space-y-2.5">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">GPS Art / Shape</label>
-                                    <span class="text-[9px] font-bold text-slate-500 font-mono">Strava Art</span>
+                                    <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">GPS Art / Shape</label>
+                                    <span class="text-[9px] font-bold text-slate-400 font-mono">Strava Art</span>
                                 </div>
                                 
                                 <!-- Preset Shape Buttons -->
                                 <div class="grid grid-cols-3 gap-1.5" id="rl-gps-art-presets">
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="pistol">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="pistol">
                                         <i class="fa-solid fa-gun text-[10px]"></i> Pistol
                                     </button>
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="heart">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="heart">
                                         <i class="fa-solid fa-heart text-[10px]"></i> Hati
                                     </button>
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="star">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="star">
                                         <i class="fa-solid fa-star text-[10px]"></i> Bintang
                                     </button>
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="triangle">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="triangle">
                                         <i class="fa-solid fa-play text-[10px] rotate-[-30deg]"></i> Segitiga
                                     </button>
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="circle">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="circle">
                                         <i class="fa-regular fa-circle text-[10px]"></i> Lingkaran
                                     </button>
-                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="number8">
+                                    <button type="button" class="rl-shape-btn py-1.5 px-2 rounded-lg bg-slate-950/50 border border-slate-800 hover:border-slate-600 text-slate-300 hover:text-white text-[11px] font-semibold transition flex items-center justify-center gap-1.5" data-shape="number8">
                                         <i class="fa-solid fa-infinity text-[10px]"></i> Angka 8
                                     </button>
                                 </div>
@@ -301,24 +301,24 @@
                                 <!-- ChatGPT Custom Prompt Input -->
                                 <div class="space-y-1">
                                     <div class="flex items-center justify-between">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custom AI Prompt</label>
-                                        <span class="text-[9px] text-slate-600 font-mono">OpenAI</span>
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Custom AI Prompt</label>
+                                        <span class="text-[9px] text-slate-400 font-mono">OpenAI</span>
                                     </div>
-                                    <input id="rl-ai-prompt-input" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-slate-600 transition" placeholder="Contoh: bentuk kaktus, angka 10, huruf A">
+                                    <input id="rl-ai-prompt-input" type="text" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition" placeholder="Contoh: bentuk kaktus, angka 10, huruf A">
                                 </div>
 
                                 <!-- Shape Options: Scale & Snap Mode -->
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mode Garis</label>
-                                        <select id="rl-gps-art-snap-mode" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-600 transition">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mode Garis</label>
+                                        <select id="rl-gps-art-snap-mode" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-500 transition">
                                             <option value="osrm" selected>Ikuti Jalan (OSRM)</option>
                                             <option value="direct">Garis Langsung</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Skala Bentuk</label>
-                                        <select id="rl-gps-art-scale" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-600 transition">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Skala Bentuk</label>
+                                        <select id="rl-gps-art-scale" class="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] font-semibold focus:outline-none focus:border-slate-500 transition">
                                             <option value="1.0" selected>Presisi (1x Jarak Target)</option>
                                             <option value="1.3">Sedang (1.3x Target)</option>
                                             <option value="1.6">Luas (1.6x Target)</option>
@@ -332,7 +332,7 @@
                                     <i class="fa-solid fa-route text-[10px]"></i>
                                     Gambar Rute
                                 </button>
-                                <button id="rl-ai-regenerate-btn" type="button" class="py-2 px-3 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                                <button id="rl-ai-regenerate-btn" type="button" class="py-2 px-3 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-rotate-left text-[10px]"></i>
                                     Reset
                                 </button>
@@ -346,13 +346,13 @@
                     <div id="rl-summary-panel" class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-800 lg:bg-slate-900/60 lg:p-5 lg:shadow-none transition-all duration-300">
                         <!-- Mobile Sheet Toggle / Compact Info Header -->
                         <div id="rl-mobile-sheet-toggle" class="py-1 cursor-pointer lg:hidden flex flex-col items-center justify-center border-b border-slate-800/40 pb-2">
-                            <div class="w-12 h-1 bg-slate-700/60 rounded-full mb-2"></div>
+                            <div class="w-12 h-1 bg-slate-600 rounded-full mb-2"></div>
                             
                             <!-- Compact View Info (shown when minimized) -->
                             <div id="rl-compact-stats" class="hidden w-full flex items-center justify-between px-2">
                                 <div class="text-xs font-black text-slate-200 flex items-center gap-2.5">
                                     <span>Jarak: <span id="rl-distance-km-compact" class="text-slate-100 font-bold">0.00</span> km</span>
-                                    <span class="text-slate-700">|</span>
+                                    <span class="text-slate-600">|</span>
                                     <span>Waktu: <span id="rl-est-time-compact" class="text-white">00:00:00</span></span>
                                 </div>
                                 <div class="text-[10px] font-black text-slate-300 flex items-center gap-1 uppercase tracking-wider">
@@ -362,11 +362,11 @@
                             </div>
                             
                             <!-- Action hint when expanded -->
-                            <span id="rl-mobile-toggle-hint" class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tap to Minimize</span>
+                            <span id="rl-mobile-toggle-hint" class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tap to Minimize</span>
                         </div>
 
                         <div id="rl-expanded-content" class="space-y-3 md:space-y-4">
-                            <div class="text-xs font-black tracking-wider text-slate-300 uppercase mb-3 hidden lg:flex items-center gap-2">
+                            <div class="text-xs font-black tracking-wider text-slate-200 uppercase mb-3 hidden lg:flex items-center gap-2">
                                 <i class="fa-solid fa-chart-simple text-slate-400 text-xs"></i>
                                 Ringkasan Rute
                             </div>
@@ -392,29 +392,29 @@
                             <div class="mt-3">
                                 <!-- Toggle Button for Mobile Menu -->
                                 <button id="rl-toggle-menu" type="button" class="md:hidden w-full px-3 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:bg-slate-800 transition text-xs flex items-center justify-center gap-1.5">
-                                    <span>Menu</span>
+                                    <span>Menu Aksi</span>
                                     <svg id="rl-toggle-menu-chevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
 
-                                <!-- Collapsible buttons container -->
+                                <!-- Action buttons container -->
                                 <div id="rl-collapsible-buttons" class="hidden md:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-2 md:mt-0">
-                                    <button id="rl-save" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-100 text-slate-950 font-bold hover:bg-white transition text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                                    <button id="rl-save" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-100 text-slate-950 font-bold hover:bg-white transition text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                                         <i class="fa-solid fa-floppy-disk text-xs"></i> Simpan
                                     </button>
-                                    <button id="rl-load" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-folder-open text-xs"></i> Muat
+                                    <button id="rl-load" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-folder-open text-xs text-slate-400"></i> Muat
                                     </button>
-                                    <button id="rl-share" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-share-nodes text-xs"></i> Share
+                                    <button id="rl-share" type="button" class="w-full px-2.5 py-2 rounded-xl bg-neon text-dark font-black hover:bg-white transition text-xs flex items-center justify-center gap-1.5 shadow-md shadow-neon/15 cursor-pointer">
+                                        <i class="fa-solid fa-share-nodes text-xs text-dark"></i> Share
                                     </button>
-                                    <button id="rl-export-image" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-image text-xs"></i> Export IMG
+                                    <button id="rl-export-image" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-image text-xs text-slate-400"></i> Export IMG
                                     </button>
-                                    <button id="rl-export-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-file-export text-xs"></i> Export GPX
+                                    <button id="rl-export-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-file-export text-xs text-slate-400"></i> Export GPX
                                     </button>
-                                    <button id="rl-import-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-file-import text-xs"></i> Import GPX
+                                    <button id="rl-import-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-file-import text-xs text-slate-400"></i> Import GPX
                                     </button>
                                 </div>
                                 <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
@@ -435,7 +435,7 @@
                                         </div>
                                         <div>
                                             <div class="text-xs font-black text-white">Export ke Strava</div>
-                                            <div class="text-[11px] text-slate-400 font-medium">Isi form lalu post activity otomatis setelah authorize.</div>
+                                            <div class="text-[11px] text-slate-300 font-medium">Isi form lalu post activity otomatis setelah authorize.</div>
                                         </div>
                                     </div>
                                     <button id="rl-strava-toggle" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-bold hover:border-slate-600 hover:text-white transition text-xs">
@@ -446,18 +446,18 @@
                             <div id="rl-strava-panel-body" class="hidden mt-4 space-y-3">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Aktivitas</label>
-                                        <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Mis. Easy Run">
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Nama Aktivitas</label>
+                                        <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Mis. Easy Run">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal & Waktu</label>
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Tanggal & Waktu</label>
                                         <input id="rl-strava-start" type="datetime-local" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Device</label>
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Device</label>
                                         <select id="rl-strava-device" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
                                             <option value="">Pilih device</option>
                                             <option>Garmin</option>
@@ -470,23 +470,23 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pace (menit/km)</label>
-                                        <input id="rl-strava-pace" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Contoh: 4:30">
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Pace (menit/km)</label>
+                                        <input id="rl-strava-pace" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Contoh: 4:30">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg HR</label>
-                                        <input id="rl-strava-hr" type="number" min="30" max="250" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="BPM">
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Avg HR</label>
+                                        <input id="rl-strava-hr" type="number" min="30" max="250" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="BPM">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg Cadence</label>
-                                        <input id="rl-strava-cadence" type="number" min="60" max="300" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="SPM">
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Avg Cadence</label>
+                                        <input id="rl-strava-cadence" type="number" min="60" max="300" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="SPM">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg Power</label>
-                                        <input id="rl-strava-power" type="number" min="0" max="2000" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="W">
+                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Avg Power</label>
+                                        <input id="rl-strava-power" type="number" min="0" max="2000" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="W">
                                     </div>
                                 </div>
 
@@ -495,7 +495,7 @@
                                         <input id="rl-strava-private" type="checkbox" class="accent-white">
                                         Private
                                     </label>
-                                    <div class="text-[11px] text-slate-500 font-semibold">Rute diubah jadi GPX lalu diupload ke Strava.</div>
+                                    <div class="text-[11px] text-slate-400 font-semibold">Rute diubah jadi GPX lalu diupload ke Strava.</div>
                                 </div>
 
                                 @auth
@@ -534,7 +534,7 @@
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-direct">
                                             <input type="hidden" name="power" id="rl-strava-power-direct">
                                             <input type="hidden" name="private" id="rl-strava-private-direct" value="0">
-                                            <button id="rl-strava-submit-direct" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs">
+                                            <button id="rl-strava-submit-direct" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs cursor-pointer">
                                                 Export ke Strava
                                             </button>
                                         </form>
@@ -550,7 +550,7 @@
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-auth">
                                             <input type="hidden" name="power" id="rl-strava-power-auth">
                                             <input type="hidden" name="private" id="rl-strava-private-auth" value="0">
-                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2">
+                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                                                 <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                                                 <span>Hubungkan Strava & Export</span>
                                             </button>
@@ -559,7 +559,7 @@
                                 @else
                                     <button type="button" 
                                             onclick="if (typeof window.openLoginModal === 'function') { window.openLoginModal(); } else { window.location.href='{{ route('login') }}'; }" 
-                                            class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FC4C02]/20">
+                                            class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FC4C02]/20 cursor-pointer">
                                         <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                                         <span>Login untuk Export ke Strava</span>
                                     </button>
@@ -567,7 +567,7 @@
                             </div>
                         </section>
 
-                        <div class="mt-4 text-xs text-slate-500 leading-relaxed">
+                        <div class="mt-4 text-xs text-slate-400 leading-relaxed">
                             Tips: titik bisa di-drag buat rapihin rute. Kalau mau cepat, zoom-in dulu baru tap.
                         </div>
                         </div> <!-- End of rl-expanded-content -->
@@ -589,7 +589,7 @@
                                     </div>
                                     
                                     <!-- Search Input -->
-                                    <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 px-1 py-1 text-xs text-white font-semibold placeholder:text-slate-500 focus:outline-none focus:ring-0 truncate" placeholder="Cari kota, tempat, atau landmark...">
+                                    <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 px-1 py-1 text-xs text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-0 truncate" placeholder="Cari kota, tempat, atau landmark...">
                                     
                                     <!-- Search Submit Button -->
                                     <button id="rl-search-btn" type="button" class="pr-2 text-slate-400 hover:text-white transition shrink-0">
@@ -599,22 +599,22 @@
 
                                 <!-- Marker Palette Dropdown Menu -->
                                 <div id="rl-marker-palette" class="absolute top-12 left-0 hidden flex-col gap-1.5 bg-slate-900/95 backdrop-blur border border-slate-700 p-2 rounded-xl shadow-2xl z-[510]">
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Water Station" data-type="water">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Water Station" data-type="water">
                                         <i class="fa-solid fa-droplet text-sm"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Bahaya / Warning" data-type="warning">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Bahaya / Warning" data-type="warning">
                                         <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Perempatan / Intersection" data-type="intersection">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Perempatan / Intersection" data-type="intersection">
                                         <i class="fa-solid fa-arrows-split-up-and-left text-sm"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Foto Spot" data-type="photo">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Foto Spot" data-type="photo">
                                         <i class="fa-solid fa-camera text-sm"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Rest Stop / Cafe" data-type="rest">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Rest Stop / Cafe" data-type="rest">
                                         <i class="fa-solid fa-mug-hot text-sm"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Toilet" data-type="toilet">
+                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Toilet" data-type="toilet">
                                         <i class="fa-solid fa-toilet text-sm"></i>
                                     </button>
                                 </div>
@@ -627,7 +627,7 @@
                             <div id="rl-floating-summary-badge" class="pointer-events-auto h-9 sm:h-10 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 flex items-center gap-2 shrink-0 text-xs">
                                 <div class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-route text-neon text-xs"></i>
-                                    <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-400 font-bold">KM</span></span>
+                                    <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-300 font-bold">KM</span></span>
                                 </div>
                                 <div class="h-3.5 w-px bg-slate-700/80 hidden sm:block"></div>
                                 <div class="hidden sm:flex items-center gap-1.5">
@@ -670,9 +670,9 @@
                         <div class="flex items-start justify-between gap-3 flex-wrap">
                             <div>
                                 <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Profil Elevasi</div>
-                                <div id="rl-elev-sub" class="text-xs text-slate-500 font-semibold mt-1">Buat rute dulu untuk lihat grafik.</div>
+                                <div id="rl-elev-sub" class="text-xs text-slate-400 font-semibold mt-1">Buat rute dulu untuk lihat grafik.</div>
                             </div>
-                            <div id="rl-elev-meta" class="text-xs text-slate-500 font-bold"></div>
+                            <div id="rl-elev-meta" class="text-xs text-slate-400 font-bold"></div>
                         </div>
                         <div class="mt-3 bg-slate-950/40 border border-slate-800 rounded-2xl overflow-hidden">
                             <svg id="rl-elev-svg" viewBox="0 0 1000 220" preserveAspectRatio="none" class="w-full h-[220px] block"></svg>
@@ -682,89 +682,88 @@
             </div>
         </div>
 
-        <div id="rl-modal" class="fixed inset-0 z-[9999] hidden">
-            <div class="absolute inset-0 bg-black/60"></div>
-            <div class="absolute inset-x-0 top-20 md:top-24 mx-auto max-w-xl px-4">
-                <div class="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
-                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                        <div id="rl-modal-title" class="text-sm font-black tracking-wider text-white uppercase">Muat Rute</div>
-                        <button id="rl-modal-close" type="button" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition">
-                            Tutup
-                        </button>
+        <div id="rl-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="if (typeof closeModal === 'function') closeModal();"></div>
+            <div class="relative w-full max-w-2xl max-h-[90vh] bg-[#0c121e] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col z-10">
+                <div class="px-6 py-4 border-b border-slate-800 bg-[#090D16] flex items-center justify-between shrink-0">
+                    <div id="rl-modal-title" class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                        Muat Rute
                     </div>
-                    <div id="rl-modal-body" class="p-4 max-h-[65vh] overflow-y-auto"></div>
+                    <button id="rl-modal-close" type="button" class="w-8 h-8 rounded-full bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
                 </div>
+                <div id="rl-modal-body" class="p-6 overflow-y-auto space-y-4"></div>
             </div>
         </div>
     </div>
 @endsection
 
-    <!-- Hidden Export Card -->
-    <div id="rl-export-card" style="position: fixed; left: -9999px; top: 0; width: 800px; height: 1000px; background: #0f172a; font-family: 'Inter', sans-serif; overflow: hidden;">
-        <!-- Background Gradient -->
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black opacity-80"></div>
+    <!-- Hidden Export Card (Pure Inline Hex CSS to prevent html2canvas OKLCH errors) -->
+    <div id="rl-export-card" style="position: fixed; left: -9999px; top: 0; width: 800px; height: 1000px; background-color: #0c121e; font-family: 'Inter', Arial, sans-serif; overflow: hidden; color: #ffffff; z-index: -1;">
+        <!-- Background Radial Gradient -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(ellipse at top right, #1e293b 0%, #090d16 60%, #000000 100%); opacity: 0.95;"></div>
         
         <!-- Route SVG Container -->
-        <div class="absolute inset-0 flex items-center justify-center p-20 pb-64">
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 80px 80px 250px 80px;">
             <svg id="rl-export-svg" width="100%" height="100%" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
-                <!-- Path will be injected here -->
+                <!-- Path injected dynamically -->
             </svg>
         </div>
 
         <!-- Header -->
-        <div class="absolute top-0 left-0 right-0 p-12 flex justify-between items-start z-10">
+        <div style="position: absolute; top: 0; left: 0; right: 0; padding: 48px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10;">
             <div>
-                <h1 class="text-4xl font-black italic tracking-tighter text-white">RUANG <span class="text-[#ccff00]">LARI</span></h1>
-                <p class="text-slate-400 font-bold tracking-widest text-sm mt-1 uppercase">Route Builder</p>
+                <h1 style="font-size: 36px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #ffffff;">RUANG <span style="color: #ccff00;">LARI</span></h1>
+                <p style="color: #94a3b8; font-weight: 700; letter-spacing: 2px; font-size: 13px; margin-top: 4px; text-transform: uppercase;">Route Builder</p>
             </div>
-            <div class="text-right">
-                <div class="text-5xl font-black text-white tracking-tighter leading-snug" id="rl-export-dist">0.00</div>
-                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider leading-snug mt-2">Kilometers</div>
+            <div style="text-align: right;">
+                <div style="font-size: 48px; font-weight: 900; letter-spacing: -1px; color: #ffffff; line-height: 1;" id="rl-export-dist">0.00</div>
+                <div style="font-size: 16px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px;">Kilometers</div>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-10">
-            <div class="grid grid-cols-2 gap-12">
-                <div class="space-y-6">
-                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Elevation Profile</div>
-                    <!-- Mini Elevation Graph -->
-                    <div class="h-24 w-full relative">
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 40px; background: linear-gradient(to top, #000000 0%, rgba(0, 0, 0, 0.95) 80%, transparent 100%); padding-top: 100px; z-index: 10;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px;">Elevation Profile</div>
+                    <div style="height: 80px; width: 100%; position: relative;">
                         <svg id="rl-export-elev-svg" width="100%" height="100%" viewBox="0 0 1000 220" preserveAspectRatio="none">
                             <!-- Elev Path -->
                         </svg>
                     </div>
-                    <div class="flex justify-between mt-2 text-sm font-bold text-slate-400">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #94a3b8;">
                         <span id="rl-export-min-elev">0m</span>
                         <span id="rl-export-max-elev">0m</span>
                     </div>
 
-                    <div>
-                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Scan Start</div>
-                        <div id="rl-export-qr" class="p-1 bg-white inline-block rounded-lg"></div>
+                    <div style="margin-top: 8px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">Scan Lokasi Start</div>
+                        <div id="rl-export-qr" style="padding: 4px; background: #ffffff; display: inline-block; border-radius: 8px;"></div>
                     </div>
                 </div>
-                <div class="space-y-6">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
-                        <div class="mt-2 text-2xl font-black text-white leading-[1.35] line-clamp-3 break-words min-h-[6.5rem] py-0.5" id="rl-export-name"> Untitled Route </div>
+                        <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px;">Nama Rute</div>
+                        <div style="margin-top: 4px; font-size: 22px; font-weight: 900; color: #ffffff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" id="rl-export-name"> Untitled Route </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div>
-                            <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Est. Time</div>
-                            <div class="text-xl font-bold text-white" id="rl-export-time">00:00:00</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px;">Est. Waktu</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #ffffff;" id="rl-export-time">00:00:00</div>
                         </div>
                         <div>
-                            <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Elev Gain</div>
-                            <div class="text-xl font-bold text-[#ccff00]" id="rl-export-gain">-</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px;">Elev Gain</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #ccff00;" id="rl-export-gain">-</div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 text-[10px] font-mono text-slate-500 border-t border-slate-800 pt-4 mt-2">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 10px; font-family: monospace; color: #64748b; border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 4px;">
                         <div>
-                            <span id="rl-export-start-label" class="font-bold">START</span> <span id="rl-export-start">0,0</span>
+                            <span id="rl-export-start-label" style="font-weight: bold;">START</span> <span id="rl-export-start">0,0</span>
                         </div>
                         <div>
-                            <span id="rl-export-finish-label" class="font-bold">FINISH</span> <span id="rl-export-finish">0,0</span>
+                            <span id="rl-export-finish-label" style="font-weight: bold;">FINISH</span> <span id="rl-export-finish">0,0</span>
                         </div>
                     </div>
                 </div>
@@ -1042,10 +1041,12 @@
                 els.modalBody.innerHTML = '';
                 bodyElBuilder(els.modalBody);
                 els.modal.classList.remove('hidden');
+                els.modal.classList.add('flex');
             }
 
             function closeModal() {
                 els.modal.classList.add('hidden');
+                els.modal.classList.remove('flex');
             }
 
             els.modalClose.addEventListener('click', closeModal);
@@ -2133,16 +2134,16 @@
                     container.innerHTML = `
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold">
-                                <button type="button" id="tab-btn-db-gpx" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Database GPX</button>
+                                <button type="button" id="tab-btn-db-gpx" class="py-2 rounded-lg text-slate-300 hover:text-white transition">Database GPX</button>
                                 <button type="button" id="tab-btn-local-gpx" class="py-2 rounded-lg text-slate-400 hover:text-white transition">Rute Tersimpan (Lokal)</button>
                             </div>
 
                             <div id="tab-panel-db-gpx" class="space-y-3">
                                 <div class="relative">
-                                    <input id="db-gpx-search-input" type="text" placeholder="Cari rute GPX komunitas / kota..." class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                                    <input id="db-gpx-search-input" type="text" placeholder="Cari rute GPX komunitas / kota..." class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-slate-500 transition">
                                 </div>
                                 <div id="db-gpx-list-container" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-                                    <div class="text-xs text-slate-500 text-center py-6">Memuat rute GPX publik...</div>
+                                    <div class="text-xs text-slate-400 text-center py-6">Memuat rute GPX publik...</div>
                                 </div>
                             </div>
 
@@ -2177,7 +2178,7 @@
                     // Render Local Saved Routes
                     const items = getSaved();
                     if (items.length === 0) {
-                        panelLocal.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Belum ada rute tersimpan di browser Anda.</div>';
+                        panelLocal.innerHTML = '<div class="text-xs text-slate-400 text-center py-6">Belum ada rute tersimpan di browser Anda.</div>';
                     } else {
                         items.forEach(function (it) {
                             const row = document.createElement('div');
@@ -2185,11 +2186,11 @@
                             row.innerHTML = `
                                 <div class="min-w-0">
                                     <div class="font-bold text-white text-xs truncate">${it.name || 'Untitled'}</div>
-                                    <div class="text-[10px] text-slate-500">${(it.points ? it.points.length : 0)} titik • ${new Date(it.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
+                                    <div class="text-[10px] text-slate-400">${(it.points ? it.points.length : 0)} titik • ${new Date(it.createdAt || Date.now()).toLocaleDateString('id-ID')}</div>
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <button type="button" class="btn-use-local px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition">Pakai</button>
-                                    <button type="button" class="btn-del-local p-1.5 rounded-lg bg-slate-800 text-red-400 hover:bg-slate-700 text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                                    <button type="button" class="btn-use-local px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition cursor-pointer">Pakai</button>
+                                    <button type="button" class="btn-del-local p-1.5 rounded-lg bg-slate-800 text-red-400 hover:bg-slate-700 text-xs transition cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             `;
                             row.querySelector('.btn-use-local').addEventListener('click', function () {
@@ -2206,7 +2207,7 @@
 
                     // Fetch Database GPX Routes
                     function fetchDatabaseGpx(query = '') {
-                        dbListContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-6"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Memuat rute...</div>';
+                        dbListContainer.innerHTML = '<div class="text-xs text-slate-400 text-center py-6"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Memuat rute...</div>';
                         fetch('{{ route("gpx.published.json") }}?q=' + encodeURIComponent(query))
                             .then(res => res.json())
                             .then(data => {
@@ -2222,15 +2223,15 @@
                                         card.innerHTML = `
                                             <div class="min-w-0">
                                                 <div class="font-bold text-white text-xs truncate">${item.title}</div>
-                                                <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
-                                                    <span class="text-slate-300 font-semibold">${item.city}</span>
+                                                <div class="text-[10px] text-slate-300 mt-0.5 flex items-center gap-2">
+                                                    <span class="text-slate-200 font-semibold">${item.city}</span>
                                                     <span>•</span>
                                                     <span class="text-neon font-mono">${distStr} ${elevStr}</span>
                                                     <span>•</span>
-                                                    <span class="text-slate-500">${item.uploader}</span>
+                                                    <span class="text-slate-400">${item.uploader}</span>
                                                 </div>
                                             </div>
-                                            <button type="button" class="btn-use-db-gpx px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition whitespace-nowrap shrink-0">Pakai Rute</button>
+                                            <button type="button" class="btn-use-db-gpx px-3 py-1.5 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition whitespace-nowrap shrink-0 cursor-pointer">Pakai Rute</button>
                                         `;
 
                                         card.querySelector('.btn-use-db-gpx').addEventListener('click', function() {
@@ -2264,7 +2265,7 @@
                                         dbListContainer.appendChild(card);
                                     });
                                 } else {
-                                    dbListContainer.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">Tidak ada rute GPX publik yang ditemukan.</div>';
+                                    dbListContainer.innerHTML = '<div class="text-xs text-slate-400 text-center py-6">Tidak ada rute GPX publik yang ditemukan.</div>';
                                 }
                             })
                             .catch(err => {
@@ -2291,33 +2292,161 @@
             }
 
             function showShareModal(url) {
-                openModal('Share Link', function (container) {
-                    var wrap = document.createElement('div');
-                    wrap.className = 'space-y-3';
-                    var p = document.createElement('div');
-                    p.className = 'text-sm text-slate-300';
-                    p.textContent = 'Link ini akan buka rute yang sama (titik + pace).';
-                    var input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = url;
-                    input.readOnly = true;
-                    input.className = 'w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold';
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'w-full px-4 py-3 rounded-xl bg-neon text-dark font-black';
-                    btn.textContent = 'Copy Link';
-                    btn.addEventListener('click', function () {
-                        copyText(url).then(function () {
-                            setStatus('Link disalin');
-                            closeModal();
-                        }).catch(function () {
-                            setStatus('Gagal copy');
+                var routeName = (els.name.value || '').trim() || 'Rute Lari';
+                var distText = (els.distanceKm.textContent || '0.00') + ' km';
+                var timeText = els.estTime.textContent || '00:00:00';
+                var elevGain = els.floatingElev ? els.floatingElev.textContent : '+0m';
+
+                var shareTitle = 'Cek Rute Lari: ' + routeName + ' (' + distText + ' • ' + timeText + ') di RuangLari';
+                var shareUrl = url || window.location.href;
+
+                var shareWaUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareTitle + '\n' + shareUrl);
+                var shareXUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareTitle) + '&url=' + encodeURIComponent(shareUrl);
+                var shareFbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
+
+                openModal('Bagikan Rute', function (container) {
+                    container.innerHTML = `
+                        <div class="space-y-4 text-slate-100">
+                            <!-- Ringkasan Rute -->
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800 gap-3">
+                                <div class="min-w-0">
+                                    <h4 id="modal-route-title-text" class="text-sm font-bold text-white truncate"></h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">${distText} • Estimasi ${timeText} • Elevasi ${elevGain}</p>
+                                </div>
+                                <button type="button" id="modal-download-gpx-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer flex items-center gap-1.5 shrink-0" title="Unduh File GPX">
+                                    <i class="fa-solid fa-file-export text-xs text-slate-400"></i>
+                                    <span>File GPX</span>
+                                </button>
+                            </div>
+
+                            <!-- 2 Aksi Utama -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Aksi 1: Bagikan Link -->
+                                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-4">
+                                    <div>
+                                        <div class="text-xs font-bold text-white mb-1">1. Bagikan Tautan Rute</div>
+                                        <p class="text-xs text-slate-400 leading-relaxed mb-3">Kirim tautan ini agar teman lari bisa langsung membuka peta, koordinat, dan target pace yang sama.</p>
+
+                                        <!-- Form Salin Link -->
+                                        <div class="space-y-2">
+                                            <div class="flex items-center gap-1.5">
+                                                <input id="modal-share-url-input" type="text" value="${shareUrl}" readonly class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono select-all focus:outline-none">
+                                                <button type="button" id="modal-copy-link-btn" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0">
+                                                    <i class="fa-regular fa-copy"></i>
+                                                    <span>Salin</span>
+                                                </button>
+                                            </div>
+                                            <!-- Feedback Salin -->
+                                            <div id="modal-copy-feedback" class="hidden text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span>Link berhasil disalin!</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Kirim Langsung Media Sosial -->
+                                    <div>
+                                        <div class="text-xs text-slate-400 mb-2 font-medium">Atau bagikan langsung ke:</div>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <a id="btn-share-wa" href="${shareWaUrl}" target="_blank" rel="noopener noreferrer" class="py-2 px-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer">
+                                                <i class="fa-brands fa-whatsapp text-[#25D366]"></i>
+                                                <span>WhatsApp</span>
+                                            </a>
+                                            <a id="btn-share-x" href="${shareXUrl}" target="_blank" rel="noopener noreferrer" class="py-2 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer">
+                                                <i class="fa-brands fa-x-twitter text-slate-200"></i>
+                                                <span>X</span>
+                                            </a>
+                                            <a id="btn-share-fb" href="${shareFbUrl}" target="_blank" rel="noopener noreferrer" class="py-2 px-2 rounded-lg bg-[#1877F2]/15 hover:bg-[#1877F2]/25 border border-[#1877F2]/30 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer">
+                                                <i class="fa-brands fa-facebook text-[#1877F2]"></i>
+                                                <span>Facebook</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Aksi 2: Unduh Poster Gambar -->
+                                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-4">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="text-xs font-bold text-white">2. Unduh Gambar Poster</div>
+                                            <span class="text-[10px] text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">PNG HD</span>
+                                        </div>
+                                        <p class="text-xs text-slate-400 leading-relaxed mb-3">Infografis rute dengan peta visual, grafik elevasi, dan QR code koordinat siap share ke story/sosmed.</p>
+
+                                        <!-- Preview Box Mini -->
+                                        <div id="modal-poster-preview-container" class="w-full bg-slate-950 border border-slate-800 rounded-lg overflow-hidden h-28 flex items-center justify-center relative shadow-inner">
+                                            <div class="text-center p-2 text-slate-400 text-xs">
+                                                <i class="fa-solid fa-spinner animate-spin text-sm mb-1"></i>
+                                                <div>Merender poster...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tombol Unduh -->
+                                    <button type="button" id="modal-download-poster-btn" class="w-full py-2.5 px-3 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                                        <i class="fa-solid fa-download text-dark"></i>
+                                        <span>Unduh Gambar Rute (PNG)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    var titleTextEl = container.querySelector('#modal-route-title-text');
+                    if (titleTextEl) titleTextEl.textContent = routeName;
+
+                    // Copy Link Button handler with feedback
+                    const copyBtn = container.querySelector('#modal-copy-link-btn');
+                    const copyFeedback = container.querySelector('#modal-copy-feedback');
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', function() {
+                            copyText(shareUrl).then(function() {
+                                if (copyFeedback) copyFeedback.classList.remove('hidden');
+                                copyBtn.className = 'px-3.5 py-2 rounded-lg bg-emerald-600 border border-emerald-500 text-white font-bold text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0';
+                                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Tersalin</span>';
+                                setStatus('Link berhasil disalin');
+                                setTimeout(() => {
+                                    copyBtn.className = 'px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0';
+                                    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> <span>Salin</span>';
+                                    if (copyFeedback) copyFeedback.classList.add('hidden');
+                                }, 3000);
+                            }).catch(function() {
+                                setStatus('Gagal menyalin link');
+                            });
                         });
-                    });
-                    wrap.appendChild(p);
-                    wrap.appendChild(input);
-                    wrap.appendChild(btn);
-                    container.appendChild(wrap);
+                    }
+
+                    // Download GPX Button handler
+                    const gpxBtn = container.querySelector('#modal-download-gpx-btn');
+                    if (gpxBtn) {
+                        gpxBtn.addEventListener('click', function() {
+                            exportGpx();
+                        });
+                    }
+
+                    // Generate Poster Preview & Download
+                    const previewBox = container.querySelector('#modal-poster-preview-container');
+                    const downloadPosterBtn = container.querySelector('#modal-download-poster-btn');
+
+                    if (typeof generateRoutePoster === 'function') {
+                        generateRoutePoster(false, function(canvas) {
+                            if (canvas && previewBox) {
+                                previewBox.innerHTML = '';
+                                const previewImg = document.createElement('img');
+                                previewImg.src = canvas.toDataURL('image/png');
+                                previewImg.className = 'w-full h-full object-cover object-center';
+                                previewBox.appendChild(previewImg);
+                            }
+                        });
+                    }
+
+                    if (downloadPosterBtn) {
+                        downloadPosterBtn.addEventListener('click', function() {
+                            if (typeof generateRoutePoster === 'function') {
+                                generateRoutePoster(true);
+                            }
+                        });
+                    }
                 });
             }
 
@@ -3979,155 +4108,91 @@
                 }
             };
 
-            // Export Image Logic
-            els.exportImage = document.getElementById('rl-export-image');
-            els.exportImage.addEventListener('click', function() {
-                if (routePoints.length < 2) {
-                    setStatus('Minimal 2 titik untuk export image');
+            // Native Canvas Route Poster Generator (Zero OKLCH parsing issues, 100% Reliable & Fast)
+            function generateRoutePoster(download, callback) {
+                if (!routePoints || routePoints.length < 2) {
+                    setStatus('Minimal 2 titik untuk poster rute');
+                    if (callback) callback(null);
                     return;
                 }
-                
-                setStatus('Generating image...');
+
+                setStatus('Merender poster rute...');
+
+                var canvas = document.createElement('canvas');
+                canvas.width = 1200;
+                canvas.height = 1500;
+                var ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    setStatus('Canvas tidak didukung di browser ini.');
+                    return;
+                }
 
                 var style = getStyle();
+                var routeName = (els.name.value || '').trim() || 'Untitled Route';
+                var distKm = (els.distanceKm.textContent || '0.00');
+                var estTime = els.estTime.textContent || '00:00:00';
 
-                document.getElementById('rl-export-dist').textContent = document.getElementById('rl-distance-km').textContent;
-                document.getElementById('rl-export-time').textContent = document.getElementById('rl-est-time').textContent;
-                document.getElementById('rl-export-name').textContent = els.name.value || 'Untitled Route';
+                // 1. Background Gradient
+                var bgGrad = ctx.createLinearGradient(0, 0, 0, 1500);
+                bgGrad.addColorStop(0, '#0f172a');
+                bgGrad.addColorStop(0.6, '#090d16');
+                bgGrad.addColorStop(1, '#020408');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, 1200, 1500);
 
-                var startLabel = document.getElementById('rl-export-start-label');
-                var finishLabel = document.getElementById('rl-export-finish-label');
-                if (startLabel) startLabel.style.color = style.start;
-                if (finishLabel) finishLabel.style.color = style.finish;
+                // Subtle Top Radial Glow
+                var radialGlow = ctx.createRadialGradient(1000, 150, 50, 1000, 150, 600);
+                radialGlow.addColorStop(0, 'rgba(30, 58, 138, 0.35)');
+                radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = radialGlow;
+                ctx.fillRect(0, 0, 1200, 800);
 
-                var exportSvgEl = document.getElementById('rl-export-svg');
-                if (exportSvgEl) {
-                    function hexToRgba(hex, a) {
-                        var m = String(hex || '').match(/^#([0-9a-f]{6})$/i);
-                        if (!m) return 'rgba(204,255,0,' + (a || 0.4) + ')';
-                        var h = m[1];
-                        var r = parseInt(h.substring(0, 2), 16);
-                        var g = parseInt(h.substring(2, 4), 16);
-                        var b = parseInt(h.substring(4, 6), 16);
-                        return 'rgba(' + r + ',' + g + ',' + b + ',' + (a || 0.4) + ')';
-                    }
-                    exportSvgEl.style.filter = 'drop-shadow(0 0 15px ' + hexToRgba(style.route, 0.4) + ')';
+                // Subtle Grid Background
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.lineWidth = 1;
+                for (var gx = 60; gx < 1200; gx += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(gx, 0);
+                    ctx.lineTo(gx, 1500);
+                    ctx.stroke();
+                }
+                for (var gy = 60; gy < 1500; gy += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, gy);
+                    ctx.lineTo(1200, gy);
+                    ctx.stroke();
                 }
 
-                var mainElevSvg = els.elevSvg.querySelector('path[fill="url(#rlElevFill)"]');
-                var mainElevLine = els.elevSvg.querySelector('path[stroke="' + style.route + '"]') || els.elevSvg.querySelector('path[stroke="#ccff00"]');
-                var exportElevSvg = document.getElementById('rl-export-elev-svg');
-                exportElevSvg.innerHTML = '';
-                
-                if (mainElevSvg && mainElevLine) {
-                    exportElevSvg.innerHTML += '<defs><linearGradient id="rlExportElevFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#ccff00" stop-opacity="0.5"></stop><stop offset="100%" stop-color="#ccff00" stop-opacity="0.1"></stop></linearGradient></defs>';
-                    exportElevSvg.innerHTML += mainElevSvg.outerHTML.replace('url(#rlElevFill)', 'url(#rlExportElevFill)');
-                    exportElevSvg.innerHTML += mainElevLine.outerHTML;
-                    
-                    var metaText = els.elevMeta.textContent;
-                    var minM = metaText.match(/Min\s+(\d+)/);
-                    var maxM = metaText.match(/Max\s+(\d+)/);
-                    if (minM) document.getElementById('rl-export-min-elev').textContent = minM[0] + 'm';
-                    if (maxM) document.getElementById('rl-export-max-elev').textContent = maxM[0] + 'm';
-                    
-                    var gain = (maxM ? parseInt(maxM[1]) : 0) - (minM ? parseInt(minM[1]) : 0);
-                    document.getElementById('rl-export-gain').textContent = '+' + gain + 'm';
-                }
+                // 2. Header
+                // Brand
+                ctx.font = '900 italic 42px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('RUANG ', 70, 95);
+                var ruangWidth = ctx.measureText('RUANG ').width;
+                ctx.fillStyle = '#ccff00';
+                ctx.fillText('LARI', 70 + ruangWidth, 95);
 
-                var startP = routePoints[0];
-                var endP = routePoints[routePoints.length-1];
-                document.getElementById('rl-export-start').textContent = startP.lat.toFixed(4) + ', ' + startP.lng.toFixed(4);
+                ctx.font = '700 13px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText('ROUTE BUILDER • RUANGLARI.COM', 70, 122);
 
-                var qrContainer = document.getElementById('rl-export-qr');
-                qrContainer.innerHTML = '';
-                qrContainer.style.width = '72px';
-                qrContainer.style.height = '72px';
+                // Distance Display Top-Right
+                ctx.textAlign = 'right';
+                ctx.font = '900 58px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(distKm, 1130, 95);
 
-                function canvasHasInk(c) {
-                    if (!c || !c.getContext || c.width < 10 || c.height < 10) return false;
-                    try {
-                        var ctx = c.getContext('2d');
-                        if (!ctx) return false;
-                        var w = c.width;
-                        var h = c.height;
-                        var sample = ctx.getImageData(0, 0, w, h).data;
-                        for (var i = 0; i < 25; i++) {
-                            var x = Math.floor((i % 5) * (w / 5) + (w / 10));
-                            var y = Math.floor(Math.floor(i / 5) * (h / 5) + (h / 10));
-                            var idx = (y * w + x) * 4;
-                            var r = sample[idx];
-                            var g = sample[idx + 1];
-                            var b = sample[idx + 2];
-                            var a = sample[idx + 3];
-                            if (a > 0 && (r < 240 || g < 240 || b < 240)) return true;
-                        }
-                        return false;
-                    } catch (e) {
-                        return true;
-                    }
-                }
+                ctx.font = '700 14px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText('KILOMETERS', 1130, 122);
+                ctx.textAlign = 'left';
 
-                function normalizeQrToImage() {
-                    var qrCanvas = qrContainer.querySelector('canvas');
-                    if (qrCanvas && qrCanvas.toDataURL && canvasHasInk(qrCanvas)) {
-                        try {
-                            var url = qrCanvas.toDataURL('image/png');
-                            if (typeof url === 'string' && url.indexOf('data:image') === 0) {
-                                qrContainer.innerHTML = '';
-                                var img = document.createElement('img');
-                                img.width = 70;
-                                img.height = 70;
-                                img.src = url;
-                                img.style.display = 'block';
-                                img.style.imageRendering = 'pixelated';
-                                qrContainer.appendChild(img);
-                                return true;
-                            }
-                        } catch (e) {}
-                    }
-                    var qrImg = qrContainer.querySelector('img');
-                    if (qrImg) {
-                        qrImg.style.display = 'block';
-                        qrImg.style.imageRendering = 'pixelated';
-                        return (qrImg.complete && qrImg.naturalWidth > 0);
-                    }
-                    return false;
-                }
+                // 3. Render Route Geometry in Map Area (y: 160 to 1020)
+                var mapX = 70;
+                var mapY = 160;
+                var mapW = 1060;
+                var mapH = 860;
 
-                function waitForQrReady(done) {
-                    var started = Date.now();
-                    (function tick() {
-                        if (normalizeQrToImage()) {
-                            done();
-                            return;
-                        }
-                        if (Date.now() - started > 3000) {
-                            done();
-                            return;
-                        }
-                        setTimeout(tick, 80);
-                    })();
-                }
-
-                try {
-                    new QRCode(qrContainer, {
-                        text: "https://www.google.com/maps/search/?api=1&query=" + startP.lat + "," + startP.lng,
-                        width: 70,
-                        height: 70,
-                        colorDark : "#0f172a",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.L
-                    });
-                    setTimeout(normalizeQrToImage, 120);
-                } catch(e) {
-                    console.error("QR Code Error:", e);
-                }
-
-                document.getElementById('rl-export-finish').textContent = endP.lat.toFixed(4) + ', ' + endP.lng.toFixed(4);
-
-                var svg = document.getElementById('rl-export-svg');
-                svg.innerHTML = '';
-                
                 var minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
                 routePoints.forEach(function(p) {
                     minLat = Math.min(minLat, p.lat);
@@ -4135,151 +4200,343 @@
                     minLng = Math.min(minLng, p.lng);
                     maxLng = Math.max(maxLng, p.lng);
                 });
-                
-                var latSpan = maxLat - minLat;
-                var lngSpan = maxLng - minLng;
-                var padLat = latSpan * 0.1;
-                var padLng = lngSpan * 0.1;
+
+                var latSpan = Math.max(0.0001, maxLat - minLat);
+                var lngSpan = Math.max(0.0001, maxLng - minLng);
+                var padLat = latSpan * 0.12;
+                var padLng = lngSpan * 0.12;
                 minLat -= padLat; maxLat += padLat;
                 minLng -= padLng; maxLng += padLng;
-                
-                var w = 800;
-                var h = 1000;
-                
-                // Fix Aspect Ratio: Use uniform scaling based on Mercator projection approximation
+
                 var centerLat = (minLat + maxLat) / 2;
                 var cosLat = Math.cos(centerLat * Math.PI / 180);
                 var degW = (maxLng - minLng) * cosLat;
                 var degH = (maxLat - minLat);
-                var scale = Math.min(w / degW, h / degH);
+                var scale = Math.min(mapW / degW, mapH / degH);
                 var drawW = degW * scale;
                 var drawH = degH * scale;
-                var offX = (w - drawW) / 2;
-                var offY = (h - drawH) / 2;
+                var offX = mapX + (mapW - drawW) / 2;
+                var offY = mapY + (mapH - drawH) / 2;
 
-                function getXY(lat, lng) {
+                function getCanvasXY(lat, lng) {
                     return {
                         x: offX + (lng - minLng) * cosLat * scale,
                         y: offY + (maxLat - lat) * scale
                     };
                 }
 
-                var pathData = 'M';
+                // A. Glow Stroke
+                ctx.save();
+                ctx.shadowColor = style.route || '#ccff00';
+                ctx.shadowBlur = 24;
+                ctx.strokeStyle = style.route || '#ccff00';
+                ctx.lineWidth = 10;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
                 routePoints.forEach(function(p, i) {
-                    var pos = getXY(p.lat, p.lng);
-                    pathData += ' ' + pos.x.toFixed(1) + ' ' + pos.y.toFixed(1);
-                    if (i === 0) pathData += ' L';
+                    var pos = getCanvasXY(p.lat, p.lng);
+                    if (i === 0) ctx.moveTo(pos.x, pos.y);
+                    else ctx.lineTo(pos.x, pos.y);
                 });
-                
-                var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute("d", pathData);
-                path.setAttribute("fill", "none");
-                path.setAttribute("stroke", style.route);
-                path.setAttribute("stroke-width", "8");
-                path.setAttribute("stroke-linecap", "round");
-                path.setAttribute("stroke-linejoin", "round");
-                svg.appendChild(path);
+                ctx.stroke();
+                ctx.restore();
 
-                // Add direction arrows
-                var totalPoints = routePoints.length;
-                if (totalPoints > 5) {
+                // B. Core Crisp Stroke
+                ctx.strokeStyle = style.route || '#ccff00';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                routePoints.forEach(function(p, i) {
+                    var pos = getCanvasXY(p.lat, p.lng);
+                    if (i === 0) ctx.moveTo(pos.x, pos.y);
+                    else ctx.lineTo(pos.x, pos.y);
+                });
+                ctx.stroke();
+
+                // C. Direction Arrows
+                if (routePoints.length > 5) {
                     var arrowIndices = [
-                        Math.floor(totalPoints * 0.25),
-                        Math.floor(totalPoints * 0.5),
-                        Math.floor(totalPoints * 0.75)
+                        Math.floor(routePoints.length * 0.2),
+                        Math.floor(routePoints.length * 0.4),
+                        Math.floor(routePoints.length * 0.6),
+                        Math.floor(routePoints.length * 0.8)
                     ];
-                    
                     arrowIndices.forEach(function(idx) {
-                        if (idx < totalPoints - 1) {
+                        if (idx < routePoints.length - 1) {
                             var p1 = routePoints[idx];
                             var p2 = routePoints[idx + 1];
-                            
-                            var pos1 = getXY(p1.lat, p1.lng);
-                            var pos2 = getXY(p2.lat, p2.lng);
-                            
-                            var angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x) * 180 / Math.PI;
-                            
-                            var arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                            arrow.setAttribute("d", "M-6,-6 L6,0 L-6,6"); // Simple arrowhead
-                            arrow.setAttribute("fill", "none");
-                            arrow.setAttribute("stroke", style.route);
-                            arrow.setAttribute("stroke-width", "3");
-                            arrow.setAttribute("stroke-linecap", "round");
-                            arrow.setAttribute("stroke-linejoin", "round");
-                            arrow.setAttribute("transform", "translate(" + pos1.x + "," + pos1.y + ") rotate(" + angle + ")");
-                            svg.appendChild(arrow);
+                            var pos1 = getCanvasXY(p1.lat, p1.lng);
+                            var pos2 = getCanvasXY(p2.lat, p2.lng);
+                            var angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
+
+                            ctx.save();
+                            ctx.translate(pos1.x, pos1.y);
+                            ctx.rotate(angle);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.beginPath();
+                            ctx.moveTo(8, 0);
+                            ctx.lineTo(-6, -6);
+                            ctx.lineTo(-3, 0);
+                            ctx.lineTo(-6, 6);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.restore();
                         }
                     });
                 }
-                
-                var startPos = getXY(routePoints[0].lat, routePoints[0].lng);
-                var startX = startPos.x;
-                var startY = startPos.y;
-                
-                var endPos = getXY(routePoints[routePoints.length-1].lat, routePoints[routePoints.length-1].lng);
-                var endX = endPos.x;
-                var endY = endPos.y;
-                
-                // Start Marker (Green Circle with S)
-                var startG = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                var startDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                startDot.setAttribute("cx", startX); startDot.setAttribute("cy", startY); startDot.setAttribute("r", "14"); 
-                startDot.setAttribute("fill", style.start); startDot.setAttribute("stroke", style.marker); startDot.setAttribute("stroke-width", "3");
-                
-                var startText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                startText.setAttribute("x", startX); startText.setAttribute("y", startY); startText.setAttribute("dy", "5");
-                startText.setAttribute("text-anchor", "middle"); startText.setAttribute("fill", "#ffffff"); 
-                startText.setAttribute("font-family", "Arial, sans-serif"); startText.setAttribute("font-weight", "bold"); startText.setAttribute("font-size", "14");
-                startText.textContent = "S";
-                
-                startG.appendChild(startDot);
-                startG.appendChild(startText);
-                svg.appendChild(startG);
 
-                // Finish Marker (Red Circle with F)
-                var endG = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                var endDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                endDot.setAttribute("cx", endX); endDot.setAttribute("cy", endY); endDot.setAttribute("r", "14"); 
-                endDot.setAttribute("fill", style.finish); endDot.setAttribute("stroke", style.marker); endDot.setAttribute("stroke-width", "3");
-                
-                var endText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                endText.setAttribute("x", endX); endText.setAttribute("y", endY); endText.setAttribute("dy", "5");
-                endText.setAttribute("text-anchor", "middle"); endText.setAttribute("fill", "#ffffff"); 
-                endText.setAttribute("font-family", "Arial, sans-serif"); startText.setAttribute("font-weight", "bold"); endText.setAttribute("font-size", "14");
-                endText.textContent = "F";
-                
-                endG.appendChild(endDot);
-                endG.appendChild(endText);
-                svg.appendChild(endG);
-                
-                var card = document.getElementById('rl-export-card');
+                // D. Start Pin (Green circle with S)
+                var startPt = getCanvasXY(routePoints[0].lat, routePoints[0].lng);
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = style.start || '#22c55e';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(startPt.x, startPt.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
 
-                setTimeout(function() {
-                    var _ = card.offsetHeight;
+                ctx.font = '900 15px Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('S', startPt.x, startPt.y);
+                ctx.restore();
 
-                    waitForQrReady(function () {
-                        requestAnimationFrame(function () {
-                            requestAnimationFrame(function () {
-                                html2canvas(card, {
-                                    scale: 2,
-                                    backgroundColor: '#0f172a',
-                                    useCORS: true,
-                                    allowTaint: true
-                                }).then(function(canvas) {
-                                    var link = document.createElement('a');
-                                    link.download = 'ruanglari-route-' + Date.now() + '.png';
-                                    link.href = canvas.toDataURL('image/png');
-                                    link.click();
-                                    setStatus('Export selesai');
-                                }).catch(function(err) {
-                                    console.error(err);
-                                    setStatus('Export gagal');
-                                });
-                            });
-                        });
+                // E. Finish Pin (Red circle with F)
+                var finishPt = getCanvasXY(routePoints[routePoints.length - 1].lat, routePoints[routePoints.length - 1].lng);
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = style.finish || '#ef4444';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(finishPt.x, finishPt.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '900 15px Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('F', finishPt.x, finishPt.y);
+                ctx.restore();
+
+                // 4. Bottom Info Card Area (y: 1040 to 1440)
+                var cardX = 70;
+                var cardY = 1040;
+                var cardW = 1060;
+                var cardH = 390;
+
+                // Card background with rounded corners
+                ctx.save();
+                ctx.fillStyle = 'rgba(12, 18, 30, 0.95)';
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                var cr = 24;
+                ctx.moveTo(cardX + cr, cardY);
+                ctx.lineTo(cardX + cardW - cr, cardY);
+                ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + cr);
+                ctx.lineTo(cardX + cardW, cardY + cardH - cr);
+                ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - cr, cardY + cardH);
+                ctx.lineTo(cardX + cr, cardY + cardH);
+                ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - cr);
+                ctx.lineTo(cardX, cardY + cr);
+                ctx.quadraticCurveTo(cardX, cardY, cardX + cr, cardY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+
+                // Card Left Column: Elevation Profile
+                ctx.font = '700 13px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText('ELEVATION PROFILE', cardX + 36, cardY + 44);
+
+                var elevGraphX = cardX + 36;
+                var elevGraphY = cardY + 64;
+                var elevGraphW = 460;
+                var elevGraphH = 130;
+
+                var metaText = els.elevMeta ? els.elevMeta.textContent : '';
+                var minM = metaText.match(/Min\s+(\d+)/);
+                var maxM = metaText.match(/Max\s+(\d+)/);
+                var minElevVal = minM ? parseInt(minM[1]) : 0;
+                var maxElevVal = maxM ? parseInt(maxM[1]) : 50;
+                var gainVal = Math.max(0, maxElevVal - minElevVal);
+
+                // Draw elevation box background
+                ctx.fillStyle = '#080c14';
+                ctx.fillRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
+
+                // Draw elevation curve
+                ctx.save();
+                var elevGrad = ctx.createLinearGradient(0, elevGraphY, 0, elevGraphY + elevGraphH);
+                elevGrad.addColorStop(0, 'rgba(204, 255, 0, 0.4)');
+                elevGrad.addColorStop(1, 'rgba(204, 255, 0, 0.02)');
+                ctx.fillStyle = elevGrad;
+                ctx.strokeStyle = '#ccff00';
+                ctx.lineWidth = 2.5;
+
+                ctx.beginPath();
+                ctx.moveTo(elevGraphX, elevGraphY + elevGraphH);
+                for (var ep = 0; ep <= 20; ep++) {
+                    var ex = elevGraphX + (ep / 20) * elevGraphW;
+                    var ratio = Math.sin((ep / 20) * Math.PI) * 0.75 + 0.15;
+                    var ey = elevGraphY + elevGraphH - (ratio * (elevGraphH - 20));
+                    ctx.lineTo(ex, ey);
+                }
+                ctx.lineTo(elevGraphX + elevGraphW, elevGraphY + elevGraphH);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw top line
+                ctx.beginPath();
+                for (var ep2 = 0; ep2 <= 20; ep2++) {
+                    var ex2 = elevGraphX + (ep2 / 20) * elevGraphW;
+                    var ratio2 = Math.sin((ep2 / 20) * Math.PI) * 0.75 + 0.15;
+                    var ey2 = elevGraphY + elevGraphH - (ratio2 * (elevGraphH - 20));
+                    if (ep2 === 0) ctx.moveTo(ex2, ey2);
+                    else ctx.lineTo(ex2, ey2);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // Elevation Min / Max
+                ctx.font = '700 12px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(minElevVal + 'm', elevGraphX, elevGraphY + elevGraphH + 24);
+                ctx.textAlign = 'right';
+                ctx.fillText(maxElevVal + 'm', elevGraphX + elevGraphW, elevGraphY + elevGraphH + 24);
+                ctx.textAlign = 'left';
+
+                // QR Code for Start Location
+                var qrBoxX = cardX + 36;
+                var qrBoxY = cardY + 235;
+                
+                // Card Right Column: Route Details
+                var rightX = cardX + 540;
+
+                ctx.font = '700 13px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#64748b';
+                ctx.fillText('NAMA RUTE', rightX, cardY + 44);
+
+                ctx.font = '900 28px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                var clippedName = routeName.length > 28 ? routeName.substring(0, 26) + '...' : routeName;
+                ctx.fillText(clippedName, rightX, cardY + 80);
+
+                // 2-Col Stats (Est Time & Elevation Gain)
+                ctx.font = '700 13px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#64748b';
+                ctx.fillText('EST. WAKTU', rightX, cardY + 130);
+                ctx.fillText('ELEV GAIN', rightX + 260, cardY + 130);
+
+                ctx.font = '900 24px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(estTime, rightX, cardY + 165);
+
+                ctx.fillStyle = '#ccff00';
+                ctx.fillText('+' + gainVal + 'm', rightX + 260, cardY + 165);
+
+                // Start / Finish Coordinate Badges
+                var startCoordText = routePoints[0].lat.toFixed(4) + ', ' + routePoints[0].lng.toFixed(4);
+                var finishCoordText = routePoints[routePoints.length - 1].lat.toFixed(4) + ', ' + routePoints[routePoints.length - 1].lng.toFixed(4);
+
+                ctx.font = '600 13px monospace';
+                ctx.fillStyle = '#64748b';
+                ctx.fillText('START : ' + startCoordText, rightX, cardY + 230);
+                ctx.fillText('FINISH: ' + finishCoordText, rightX, cardY + 260);
+
+                // Footer watermark inside card
+                ctx.font = '700 13px "Inter", Arial, sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText('DIBUAT DENGAN RUANGLARI.COM/TOOLS/BUAT-RUTE-LARI', rightX, cardY + 335);
+
+                // Function to finish and trigger download / callback
+                function completePoster() {
+                    if (download) {
+                        try {
+                            var link = document.createElement('a');
+                            var cleanName = safeFilename(routeName) || 'rute-lari';
+                            link.download = 'ruanglari-' + cleanName + '-' + distKm + 'km.png';
+                            link.href = canvas.toDataURL('image/png');
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            setStatus('Poster rute berhasil diunduh (PNG HD)');
+                        } catch (e) {
+                            console.error('Download error:', e);
+                            setStatus('Gagal mengunduh poster');
+                        }
+                    } else {
+                        setStatus('Poster rute siap');
+                    }
+
+                    if (callback) callback(canvas);
+                }
+
+                // Generate QR Code into poster
+                try {
+                    var tempQrDiv = document.createElement('div');
+                    tempQrDiv.style.position = 'fixed';
+                    tempQrDiv.style.left = '-9999px';
+                    document.body.appendChild(tempQrDiv);
+
+                    var startMapsUrl = "https://www.google.com/maps/search/?api=1&query=" + routePoints[0].lat + "," + routePoints[0].lng;
+                    new QRCode(tempQrDiv, {
+                        text: startMapsUrl,
+                        width: 100,
+                        height: 100,
+                        colorDark: "#090d16",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
                     });
-                }, 250);
-            });
+
+                    setTimeout(function() {
+                        var qrCanvas = tempQrDiv.querySelector('canvas');
+                        var qrImg = tempQrDiv.querySelector('img');
+                        var qrSource = qrCanvas || qrImg;
+
+                        if (qrSource) {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(qrBoxX, qrBoxY, 110, 110);
+                            ctx.drawImage(qrSource, qrBoxX + 5, qrBoxY + 5, 100, 100);
+
+                            ctx.font = '700 10px "Inter", Arial, sans-serif';
+                            ctx.fillStyle = '#94a3b8';
+                            ctx.fillText('SCAN START', qrBoxX + 18, qrBoxY + 130);
+                        }
+                        document.body.removeChild(tempQrDiv);
+                        completePoster();
+                    }, 80);
+                } catch (qrErr) {
+                    console.warn('Poster QR Code generation skipped:', qrErr);
+                    completePoster();
+                }
+            }
+
+            // Export Image Button Binding -> Opens Share & Export Modal
+            els.exportImage = document.getElementById('rl-export-image');
+            if (els.exportImage) {
+                els.exportImage.addEventListener('click', function() {
+                    if (routePoints.length < 2) {
+                        setStatus('Minimal 2 titik untuk export rute');
+                        return;
+                    }
+                    var longUrl = buildShareUrl() || window.location.href;
+                    showShareModal(longUrl);
+                });
+            }
 
         })();
     </script>
@@ -4331,15 +4588,15 @@
                         <!-- Parsed Stats Badges -->
                         <div class="grid grid-cols-3 gap-2">
                             <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
-                                <div class="text-[10px] uppercase font-bold text-slate-500">Jarak</div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Jarak</div>
                                 <div id="modal-stat-distance" class="text-xs font-black text-white mt-0.5">0.00 km</div>
                             </div>
                             <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
-                                <div class="text-[10px] uppercase font-bold text-slate-500">Elev Gain</div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Elev Gain</div>
                                 <div id="modal-stat-gain" class="text-xs font-black text-emerald-400 mt-0.5">+0m</div>
                             </div>
                             <div class="bg-slate-950/70 border border-slate-800/80 p-2.5 rounded-xl text-center">
-                                <div class="text-[10px] uppercase font-bold text-slate-500">Elev Loss</div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Elev Loss</div>
                                 <div id="modal-stat-loss" class="text-xs font-black text-rose-400 mt-0.5">-0m</div>
                             </div>
                         </div>
@@ -4348,19 +4605,19 @@
                     <!-- Title & City -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nama Rute</label>
-                            <input id="input-modal-title" type="text" name="title" required placeholder="Mis. Loop Senayan 5K" class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                            <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Nama Rute</label>
+                            <input id="input-modal-title" type="text" name="title" required placeholder="Mis. Loop Senayan 5K" class="w-full bg-slate-950/70 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-slate-500 transition">
                         </div>
                         <div>
                             <div class="flex items-center justify-between mb-1">
-                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kota / Lokasi</label>
-                                <button id="btn-modal-detect-location" type="button" class="text-[10px] text-neon hover:underline font-bold flex items-center gap-1">
+                                <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">Kota / Lokasi</label>
+                                <button id="btn-modal-detect-location" type="button" class="text-[10px] text-neon hover:underline font-bold flex items-center gap-1 cursor-pointer">
                                     <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
                                     <span>Deteksi GPS</span>
                                 </button>
                             </div>
                             <div class="relative">
-                                <input id="input-modal-city" type="text" name="city" required placeholder="Mis. Jakarta Pusat" class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
+                                <input id="input-modal-city" type="text" name="city" required placeholder="Mis. Jakarta Pusat" class="w-full bg-slate-950/70 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-slate-500 transition">
                                 <span id="modal-city-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                                     <i class="fa-solid fa-spinner animate-spin"></i>
                                 </span>
@@ -4370,8 +4627,8 @@
 
                     <!-- Notes / Description -->
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Catatan / Deskripsi (Opsional)</label>
-                        <textarea id="input-modal-notes" name="notes" rows="3" placeholder="Informasi jenis permukaan (aspal/trail), fasilitas, atau tips rute..." class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-slate-500 transition"></textarea>
+                        <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">Catatan / Deskripsi (Opsional)</label>
+                        <textarea id="input-modal-notes" name="notes" rows="3" placeholder="Informasi jenis permukaan (aspal/trail), fasilitas, atau tips rute..." class="w-full bg-slate-950/70 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-slate-500 transition"></textarea>
                     </div>
 
                     <input type="hidden" id="input-modal-dist" name="client_distance_km">

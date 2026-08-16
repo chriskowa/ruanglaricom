@@ -30,14 +30,12 @@
                         </div>
 
                         <!-- Mobile Quick Action Buttons -->
-                        <div class="flex md:hidden items-center justify-center gap-2 mb-6 flex-wrap">
-                            <a href="#vdot-section" onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});" class="px-4 py-2 rounded-full bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#B8FF00]/20 flex items-center gap-1.5 active:scale-95 transition-all">
-                                <i class="fa-solid fa-calculator text-xs"></i>
+                        <div class="flex md:hidden items-center justify-center gap-2.5 mb-6 flex-wrap">
+                            <a href="#vdot-section" onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});" class="px-5 py-2.5 rounded-full bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider shadow-lg shadow-[#B8FF00]/20 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer">
                                 <span>Buat Program Lari</span>
                             </a>
-                            <a href="{{ url('/jadwal-lari?submit=1') }}" class="px-4 py-2 rounded-full bg-[#0E1A2D] border border-[#1F2D44] text-[#B8FF00] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
-                                <i class="fa-solid fa-plus-circle text-xs"></i>
-                                <span>Submit Event Lari</span>
+                            <a href="#events" class="px-5 py-2.5 rounded-full bg-[#0E1A2D] border border-[#1F2D44] text-[#B8FF00] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer">
+                                <span>Jelajahi Event</span>
                             </a>
                         </div>
                         
@@ -46,16 +44,16 @@
                             <span class="text-[#B8FF00]">BATAS.</span>
                         </h1>
                         
-                        <p class="text-[#94A3B8] text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
-                            Buat Program Lari, Temukan event lari terbaru, kelola progres latihan, dan terhubung dengan komunitas pelari di Indonesia. Untuk event organizer, RuangLari membantu publikasi, ticketing, dan manajemen peserta dalam satu sistem.
+                        <p class="text-[#94A3B8] text-base md:text-lg mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
+                            Rancang program lari terukur berbasis VDOT, temukan jadwal event lari di seluruh Indonesia, kelola progres latihan, dan raih target finish terbaikmu bersama RuangLari.
                         </p>
                         
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <a href="#events" class="px-8 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform text-center shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm">
-                                Lihat Event
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 justify-center md:justify-start">
+                            <a href="#vdot-section" onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});" class="px-8 sm:px-9 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform text-center shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm flex items-center justify-center cursor-pointer">
+                                <span>Buat Program Lari</span>
                             </a>
-                            <a href="{{ route('eo.landing') }}" class="px-8 py-4 border border-[#1F2D44] bg-[#0E1A2D]/50 text-[#F8FAFC] font-black rounded-xl hover:bg-[#111F35] hover:border-[#94A3B8] hover:scale-105 transition transform text-center uppercase tracking-wider text-sm">
-                                Untuk Event Organizer
+                            <a href="#events" class="px-8 sm:px-9 py-4 border border-[#1F2D44] bg-[#0E1A2D]/80 text-[#F8FAFC] font-black rounded-xl hover:bg-[#111F35] hover:border-[#94A3B8] hover:scale-105 transition transform text-center uppercase tracking-wider text-sm flex items-center justify-center cursor-pointer">
+                                <span>Jelajahi Event</span>
                             </a>
                         </div>
 
