@@ -205,6 +205,9 @@
                 <!-- Email / Username Login Form -->
                 <form id="email-login-form" method="POST" action="{{ route('login') }}" class="space-y-4" x-show="loginMethod === 'email'">
                     @csrf
+                    @if(request()->filled('redirect'))
+                        <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+                    @endif
                     
                     <div>
                         <label class="block text-xs font-medium text-zinc-300 mb-1.5">Email atau Username</label>
@@ -247,7 +250,7 @@
 
                     <!-- Social Login Buttons -->
                     <div class="grid grid-cols-2 gap-3">
-                        <a href="{{ route('auth.google') }}" class="py-2.5 px-4 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-200 font-medium text-xs transition-all flex items-center justify-center gap-2">
+                        <a href="{{ route('auth.google', request()->filled('redirect') ? ['redirect' => request('redirect')] : []) }}" class="py-2.5 px-4 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-200 font-medium text-xs transition-all flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -257,7 +260,7 @@
                             Google
                         </a>
 
-                        <a href="{{ route('auth.strava') }}" class="py-2.5 px-4 rounded-lg border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-medium text-xs transition-all flex items-center justify-center gap-2">
+                        <a href="{{ route('auth.strava', request()->filled('redirect') ? ['redirect' => request('redirect')] : []) }}" class="py-2.5 px-4 rounded-lg border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-medium text-xs transition-all flex items-center justify-center gap-2">
                             <svg class="w-4 h-4 fill-current text-[#FC4C02]" viewBox="0 0 24 24">
                                 <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.92 15.6h4.172"/>
                             </svg>
@@ -404,7 +407,8 @@
                             },
                             body: JSON.stringify({
                                 user_id: this.userId,
-                                code: this.otpCode
+                                code: this.otpCode,
+                                redirect: '{{ request('redirect') }}'
                             })
                         });
                         const data = await response.json();

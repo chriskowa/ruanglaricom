@@ -56,7 +56,7 @@
                     <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-dark text-[10px] font-black rounded-full flex items-center justify-center hidden">0</span>
                 </a>
 
-                <a href="{{ route('marketplace.seller.products.index') }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-white/5">
+                <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-white/5">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                     </svg>
@@ -83,6 +83,39 @@
             </button>
             @endforeach
         </div>
+
+        <!-- Featured Gear Highlight Strip (if any active featured products) -->
+        @if(isset($featuredProducts) && $featuredProducts->count() > 0)
+        <div class="mt-8 pt-6 border-t border-slate-800/60">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
+                    <h2 class="text-xs font-mono font-black uppercase tracking-widest text-white">FEATURED GEAR</h2>
+                </div>
+                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Pilihan Unggulan Komunitas</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                @foreach($featuredProducts as $fProd)
+                <a href="{{ route('marketplace.show', $fProd->slug) }}" class="group block p-2.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition shadow-lg">
+                    <div class="aspect-square rounded-xl overflow-hidden bg-[#131b2c] mb-2.5 relative">
+                        <img src="{{ $fProd->primaryImage ? asset('storage/'.$fProd->primaryImage->image_path) : ($fProd->images->first() ? asset('storage/'.$fProd->images->first()->image_path) : '') }}" 
+                             alt="{{ $fProd->title }}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase tracking-widest font-mono shadow">
+                            FEATURED
+                        </span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <p class="text-[9px] font-mono text-slate-500 uppercase truncate">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
+                        <h3 class="text-xs font-bold text-white truncate group-hover:text-neon transition">{{ $fProd->title }}</h3>
+                        <p class="text-xs font-black text-white font-mono">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Minimalist Sticky Filter Bar -->

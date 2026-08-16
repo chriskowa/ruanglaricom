@@ -26,8 +26,14 @@ class MarketplaceProductManagementController extends Controller
             ]);
 
         // Status Filter
-        if ($status === 'active') {
-            $query->where('is_active', true)->where('is_sold', false)->where('is_archived', false);
+        if ($status === 'pending') {
+            $query->where('approval_status', 'pending');
+        } elseif ($status === 'rejected') {
+            $query->where('approval_status', 'rejected');
+        } elseif ($status === 'active') {
+            $query->where('is_active', true)->where('is_sold', false)->where('is_archived', false)->where(function($q) {
+                $q->whereNull('is_approved')->orWhere('is_approved', true);
+            });
         } elseif ($status === 'sold') {
             $query->where('is_sold', true);
         } elseif ($status === 'archived') {
@@ -57,17 +63,76 @@ class MarketplaceProductManagementController extends Controller
         }
 
         $products = $query->latest()->paginate(15)->withQueryString();
+        $requireApproval = (bool) \App\Models\AppSettings::get('marketplace_require_approval', false);
+        $pendingCount = MarketplaceProduct::where('approval_status', 'pending')->count();
 
         if ($request->ajax()) {
             return response()->json([
                 'status' => 'success',
                 'html' => view('admin.marketplace.products.partials.product-rows', compact('products'))->render(),
                 'pagination' => view('admin.marketplace.products.partials.pagination', compact('products'))->render(),
-                'total' => $products->total()
+                'total' => $products->total(),
+                'pending_count' => $pendingCount
             ]);
         }
 
-        return view('admin.marketplace.products.index', compact('products', 'status', 'q', 'isFeatured'));
+        return view('admin.marketplace.products.index', compact('products', 'status', 'q', 'isFeatured', 'requireApproval', 'pendingCount'));
+    }
+
+    /**
+     * AJAX Toggle Global Require Approval Setting
+     */
+    public function toggleRequireApproval(Request $request)
+    {
+        $current = (bool) \App\Models\AppSettings::get('marketplace_require_approval', false);
+        $newSetting = ! $current;
+        \App\Models\AppSettings::set('marketplace_require_approval', $newSetting);
+
+        return response()->json([
+            'status' => 'success',
+            'require_approval' => $newSetting,
+            'message' => $newSetting 
+                ? 'Kurasi Produk Diaktifkan: Produk baru dari seller harus disetujui Admin sebelum tayang.' 
+                : 'Kurasi Produk Dinonaktifkan: Produk baru dari seller akan langsung otomatis tayang.'
+        ]);
+    }
+
+    /**
+     * Approve Product
+     */
+    public function approve(MarketplaceProduct $product)
+    {
+        $product->update([
+            'is_approved' => true,
+            'approval_status' => 'approved',
+            'rejection_reason' => null,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Produk berhasil disetujui (Approved) dan sudah tayang di Marketplace.'
+        ]);
+    }
+
+    /**
+     * Reject Product
+     */
+    public function reject(Request $request, MarketplaceProduct $product)
+    {
+        $reason = $request->input('reason', 'Produk tidak memenuhi syarat & ketentuan listing.');
+
+        $product->update([
+            'is_approved' => false,
+            'approval_status' => 'rejected',
+            'rejection_reason' => $reason,
+            'is_active' => false,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Produk ditolak (Rejected).'
+        ]);
     }
 
     /**
@@ -75,12 +140,16 @@ class MarketplaceProductManagementController extends Controller
      */
     public function toggleFeatured(MarketplaceProduct $product)
     {
-        $product->update(['is_featured' => ! $product->is_featured]);
+        $isFeatured = ! $product->is_featured;
+        $product->update([
+            'is_featured' => $isFeatured,
+            'featured_until' => $isFeatured ? now()->addDays(3) : null,
+        ]);
 
         return response()->json([
             'status' => 'success',
             'is_featured' => (bool) $product->is_featured,
-            'message' => $product->is_featured ? 'Produk berhasil ditandai sebagai Featured.' : 'Status Featured produk telah dilepas.'
+            'message' => $product->is_featured ? 'Produk berhasil ditandai sebagai Featured (3 Hari).' : 'Status Featured produk telah dilepas.'
         ]);
     }
 

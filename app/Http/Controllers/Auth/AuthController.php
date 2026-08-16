@@ -138,22 +138,28 @@ class AuthController extends Controller
                 default => route('runner.dashboard'),
             };
 
+            $redirectTarget = null;
+            if ($request->filled('redirect')) {
+                $target = $request->input('redirect');
+                if (\Illuminate\Support\Str::startsWith($target, '/') || \Illuminate\Support\Str::startsWith($target, url('/'))) {
+                    $redirectTarget = $target;
+                }
+            }
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Login berhasil',
                     'user' => $user,
-                    'redirect_url' => $dashboard,
+                    'redirect_url' => $redirectTarget ?: $dashboard,
                 ]);
             }
 
-            return redirect()->route(match ($user->role) {
-                'admin' => 'admin.dashboard',
-                'coach' => 'coach.dashboard',
-                'runner' => 'runner.dashboard',
-                'eo' => 'eo.dashboard',
-                default => 'runner.dashboard',
-            });
+            if ($redirectTarget) {
+                return redirect()->to($redirectTarget);
+            }
+
+            return redirect()->intended($dashboard);
         }
 
         if ($request->wantsJson()) {
@@ -250,10 +256,18 @@ class AuthController extends Controller
             default => route('runner.dashboard'),
         };
 
+        $redirectTarget = null;
+        if ($request->filled('redirect')) {
+            $target = $request->input('redirect');
+            if (\Illuminate\Support\Str::startsWith($target, '/') || \Illuminate\Support\Str::startsWith($target, url('/'))) {
+                $redirectTarget = $target;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil.',
-            'redirect_url' => $dashboard,
+            'redirect_url' => $redirectTarget ?: $dashboard,
         ]);
     }
 

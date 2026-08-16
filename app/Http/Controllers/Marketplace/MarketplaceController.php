@@ -13,10 +13,15 @@ class MarketplaceController extends Controller
 {
     public function index(Request $request)
     {
+        $requireApproval = \App\Models\AppSettings::get('marketplace_require_approval', false);
+
         $query = MarketplaceProduct::with(['category', 'primaryImage', 'seller.city', 'brand'])
             ->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('is_archived')->orWhere('is_archived', false);
+            })
+            ->when($requireApproval, function ($q) {
+                $q->where('is_approved', true);
             })
             ->where(function ($q) {
                 $q->where('sale_type', 'fixed')
@@ -78,7 +83,7 @@ class MarketplaceController extends Controller
             $query->where('price', '<=', $request->price_max);
         }
 
-        // Sorting
+        // Sorting (with Boosted priority)
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'price_asc':
@@ -88,11 +93,15 @@ class MarketplaceController extends Controller
                     $query->orderBy('price', 'desc');
                     break;
                 default:
-                    $query->latest();
+                    $query->orderByRaw('CASE WHEN boosted_at IS NOT NULL THEN 0 ELSE 1 END')
+                          ->orderBy('boosted_at', 'desc')
+                          ->latest();
                     break;
             }
         } else {
-            $query->latest();
+            $query->orderByRaw('CASE WHEN boosted_at IS NOT NULL THEN 0 ELSE 1 END')
+                  ->orderBy('boosted_at', 'desc')
+                  ->latest();
         }
 
         $products = $query->paginate(12);
@@ -103,17 +112,34 @@ class MarketplaceController extends Controller
 
         $categories = MarketplaceCategory::whereNull('parent_id')->with('children')->withCount('products')->get();
         $brands = MarketplaceBrand::with('categories:id')->orderBy('name')->get();
-        // Fetch cities that have sellers? Or just all cities. All cities might be too many.
-        // Optimization: Only fetch cities that have active listings.
-        $cities = City::whereHas('users.marketplaceProducts', function ($q) {
-            $q->where('is_active', true);
+        
+        $cities = City::whereHas('users.marketplaceProducts', function ($q) use ($requireApproval) {
+            $q->where('is_active', true)
+              ->when($requireApproval, fn($sub) => $sub->where('is_approved', true));
         })->orderBy('name')->get();
+
+        // Featured Products (active featured products within valid expiry)
+        $featuredProducts = MarketplaceProduct::with(['category', 'primaryImage', 'seller.city', 'brand'])
+            ->where('is_active', true)
+            ->where('is_featured', true)
+            ->where(function ($q) {
+                $q->whereNull('featured_until')->orWhere('featured_until', '>=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_archived')->orWhere('is_archived', false);
+            })
+            ->when($requireApproval, function ($q) {
+                $q->where('is_approved', true);
+            })
+            ->inRandomOrder()
+            ->take(6)
+            ->get();
 
         // Min/Max price for slider
         $minPrice = MarketplaceProduct::min('price') ?? 0;
         $maxPrice = MarketplaceProduct::max('price') ?? 1000000;
 
-        return view('marketplace.index', compact('products', 'categories', 'brands', 'cities', 'minPrice', 'maxPrice'));
+        return view('marketplace.index', compact('products', 'categories', 'brands', 'cities', 'minPrice', 'maxPrice', 'featuredProducts'));
     }
 
     public function show(Request $request, $slug)

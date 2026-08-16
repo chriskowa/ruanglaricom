@@ -952,6 +952,9 @@ Route::middleware('auth')->group(function () {
 
         // Marketplace Admin Product Oversight & Moderation
         Route::get('/marketplace/products', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'index'])->name('marketplace.products.index');
+        Route::post('/marketplace/products/toggle-require-approval', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'toggleRequireApproval'])->name('marketplace.products.toggle-require-approval');
+        Route::post('/marketplace/products/{product}/approve', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'approve'])->name('marketplace.products.approve');
+        Route::post('/marketplace/products/{product}/reject', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'reject'])->name('marketplace.products.reject');
         Route::post('/marketplace/products/{product}/toggle-featured', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'toggleFeatured'])->name('marketplace.products.toggle-featured');
         Route::post('/marketplace/products/{product}/toggle-active', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'toggleActive'])->name('marketplace.products.toggle-active');
         Route::delete('/marketplace/products/{product}', [App\Http\Controllers\Admin\MarketplaceProductManagementController::class, 'destroy'])->name('marketplace.products.destroy');
@@ -1118,6 +1121,8 @@ Route::middleware('auth')->group(function () {
         Route::post('seller/products/{product}/mark-sold', [App\Http\Controllers\Marketplace\ProductController::class, 'markSold'])->name('seller.products.mark-sold');
         Route::post('seller/products/{product}/mark-unsold', [App\Http\Controllers\Marketplace\ProductController::class, 'markUnsold'])->name('seller.products.mark-unsold');
         Route::post('seller/products/{product}/toggle-archive', [App\Http\Controllers\Marketplace\ProductController::class, 'toggleArchive'])->name('seller.products.toggle-archive');
+        Route::post('seller/products/{product}/boost', [App\Http\Controllers\Marketplace\ProductController::class, 'boost'])->name('seller.products.boost');
+        Route::post('seller/products/{product}/featured', [App\Http\Controllers\Marketplace\ProductController::class, 'requestFeatured'])->name('seller.products.featured');
         Route::post('seller/orders/{order}/process', [App\Http\Controllers\Marketplace\ProductController::class, 'processOrder'])->name('seller.orders.process');
         Route::post('seller/orders/{order}/cancel', [App\Http\Controllers\Marketplace\ProductController::class, 'cancelOrder'])->name('seller.orders.cancel');
 

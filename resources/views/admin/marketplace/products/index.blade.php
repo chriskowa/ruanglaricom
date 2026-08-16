@@ -1,6 +1,6 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Moderasi Catalog Produk Marketplace - Admin')
+@section('title', 'Moderasi Katalog Produk Marketplace - Admin')
 
 @section('content')
 <div class="min-h-screen pt-24 pb-16 px-4 md:px-8 font-sans bg-dark text-slate-200"
@@ -8,6 +8,8 @@
         status: '{{ $status }}',
         q: '{{ $q }}',
         isFeatured: '{{ $isFeatured }}',
+        requireApproval: {{ $requireApproval ? 'true' : 'false' }},
+        pendingCount: {{ $pendingCount ?? 0 }},
         loading: false,
         toast: { show: false, message: '', type: 'success' },
 
@@ -38,6 +40,9 @@
                 if(data.status === 'success') {
                     document.getElementById('product-rows-container').innerHTML = data.html;
                     document.getElementById('pagination-container').innerHTML = data.pagination;
+                    if(data.pending_count !== undefined) {
+                        this.pendingCount = data.pending_count;
+                    }
                 }
             })
             .catch(err => this.showToast('Gagal memuat produk.', 'error'))
@@ -46,6 +51,68 @@
 
         loadPage(url) {
             this.fetchProducts(url);
+        },
+
+        toggleRequireApproval() {
+            fetch('{{ route('admin.marketplace.products.toggle-require-approval') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    this.requireApproval = data.require_approval;
+                    this.showToast(data.message, 'success');
+                }
+            })
+            .catch(err => this.showToast('Gagal mengubah pengaturan approval.', 'error'));
+        },
+
+        approveProduct(id) {
+            fetch(`/admin/marketplace/products/${id}/approve`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    this.showToast(data.message, 'success');
+                    this.fetchProducts();
+                }
+            })
+            .catch(err => this.showToast('Gagal menyetujui produk.', 'error'));
+        },
+
+        rejectProduct(id) {
+            const reason = prompt('Masukkan alasan penolakan produk (opsional):', 'Deskripsi atau foto produk tidak memenuhi standar komunitas.');
+            if (reason === null) return;
+
+            fetch(`/admin/marketplace/products/${id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    this.showToast(data.message, 'success');
+                    this.fetchProducts();
+                }
+            })
+            .catch(err => this.showToast('Gagal menolak produk.', 'error'));
         },
 
         toggleFeatured(id) {
@@ -141,7 +208,7 @@
             <div>
                 <p class="text-neon font-mono text-[10px] tracking-widest uppercase mb-1 font-bold">Admin Control Center</p>
                 <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">
-                    Moderasi <span class="text-neon">Catalog Produk</span>
+                    Moderasi <span class="text-neon">Katalog Produk</span>
                 </h1>
             </div>
             <div class="flex items-center gap-3">
@@ -149,6 +216,31 @@
                     <i class="fas fa-shopping-bag mr-1.5"></i> Pesanan & Dispute
                 </a>
             </div>
+        </div>
+
+        <!-- Approval Setting Toggle Banner -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 md:p-5 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-750 flex items-center justify-center text-neon shrink-0">
+                    <i class="fas fa-user-shield text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Wajibkan Approval Admin Sebelum Tayang</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Jika diaktifkan, produk baru dari seller harus diverifikasi dan disetujui admin terlebih dahulu sebelum muncul di publik.
+                    </p>
+                </div>
+            </div>
+            
+            <button type="button" 
+                    @click="toggleRequireApproval()" 
+                    class="relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    :class="requireApproval ? 'bg-neon' : 'bg-slate-800'">
+                <span class="sr-only">Toggle Kurasi Produk</span>
+                <span aria-hidden="true" 
+                      class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-slate-950 shadow-lg ring-0 transition duration-200 ease-in-out"
+                      :class="requireApproval ? 'translate-x-7' : 'translate-x-0'"></span>
+            </button>
         </div>
 
         <!-- Filter Controls (AJAX) -->
@@ -160,6 +252,14 @@
                         :class="status === '' ? 'bg-neon text-dark border-neon shadow-lg shadow-neon/15' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
                     Semua Produk
                 </button>
+                <button @click="status = 'pending'; fetchProducts()" 
+                        class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all border whitespace-nowrap flex items-center gap-1.5"
+                        :class="status === 'pending' ? 'bg-amber-400 text-dark border-amber-300' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
+                    <span>Menunggu Review</span>
+                    <span x-show="pendingCount > 0" 
+                          x-text="pendingCount" 
+                          class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-dark text-white"></span>
+                </button>
                 <button @click="status = 'active'; fetchProducts()" 
                         class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all border whitespace-nowrap"
                         :class="status === 'active' ? 'bg-emerald-500 text-dark border-emerald-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
@@ -170,9 +270,14 @@
                         :class="status === 'sold' ? 'bg-cyan-500 text-dark border-cyan-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
                     Terjual (Sold)
                 </button>
+                <button @click="status = 'rejected'; fetchProducts()" 
+                        class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all border whitespace-nowrap"
+                        :class="status === 'rejected' ? 'bg-rose-500 text-white border-rose-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
+                    Ditolak
+                </button>
                 <button @click="status = 'hidden'; fetchProducts()" 
                         class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all border whitespace-nowrap"
-                        :class="status === 'hidden' ? 'bg-rose-500 text-white border-rose-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
+                        :class="status === 'hidden' ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'">
                     Disembunyikan (Hidden)
                 </button>
             </div>
@@ -217,7 +322,7 @@
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Produk / Kategori</th>
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Penjual (Seller)</th>
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Harga & Stok</th>
-                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Views Stats</th>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Approval Status</th>
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Status Moderasi</th>
                             <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Aksi</th>
                         </tr>

@@ -133,8 +133,49 @@
             if (data.success) {
                 this.showToast(data.message, 'success');
                 setTimeout(() => location.reload(), 1200);
+            }
+        } catch (e) {
+            this.showToast('Koneksi bermasalah', 'error');
+        }
+    },
+    async boostProduct(productId) {
+        try {
+            let res = await fetch(`/marketplace/seller/products/${productId}/boost`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+            let data = await res.json();
+            if (data.success) {
+                this.showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 900);
             } else {
-                this.showToast(data.message || 'Gagal membatalkan order', 'error');
+                this.showToast(data.message || 'Gagal melakukan boost', 'error');
+            }
+        } catch (e) {
+            this.showToast('Koneksi bermasalah', 'error');
+        }
+    },
+    async requestFeatured(productId) {
+        if (!confirm('Jadikan produk ini sebagai Featured Product selama 3 hari (Rp 25.000)?')) return;
+        try {
+            let res = await fetch(`/marketplace/seller/products/${productId}/featured`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+            let data = await res.json();
+            if (data.success) {
+                this.showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 900);
+            } else {
+                this.showToast(data.message || 'Gagal mengaktifkan featured', 'error');
             }
         } catch (e) {
             this.showToast('Koneksi bermasalah', 'error');
@@ -165,11 +206,11 @@
             </h1>
         </div>
         <a href="{{ route('marketplace.seller.products.create') }}" 
-           class="w-full sm:w-auto px-5 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white hover:text-dark transition-all duration-300 shadow-lg shadow-neon/15 flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-            <svg class="w-4 h-4 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+           class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-white/5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
             </svg>
-            Add New Product
+            <span>Add Product</span>
         </a>
     </div>
 
@@ -282,6 +323,15 @@
                                             <p class="text-white font-bold text-sm tracking-tight leading-snug">{{ $product->title }}</p>
                                             <p class="text-slate-500 text-[10px] mt-0.5 uppercase tracking-wider font-mono font-semibold">{{ $product->type }}</p>
                                             <div class="mt-2 flex flex-wrap gap-1.5">
+                                                @if($product->approval_status === 'pending')
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                                                        <i class="fas fa-clock text-[8px]"></i> Menunggu Review
+                                                    </span>
+                                                @elseif($product->approval_status === 'rejected')
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300" title="{{ $product->rejection_reason }}">
+                                                        Ditolak Admin
+                                                    </span>
+                                                @endif
                                                 @if($product->is_sold)
                                                     <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400">
                                                         ✓ SOLD (TERJUAL)
@@ -289,7 +339,12 @@
                                                 @endif
                                                 @if($product->is_archived)
                                                     <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400">
-                                                        📁 D I A R S I P K A N
+                                                        📁 DIARSIPKAN
+                                                    </span>
+                                                @endif
+                                                @if($product->isFeaturedActive())
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-neon/20 border border-neon/40 text-neon flex items-center gap-1">
+                                                        <i class="fas fa-bolt text-[8px]"></i> Featured s/d {{ $product->featured_until->format('d M') }}
                                                     </span>
                                                 @endif
                                                 @if($product->sale_type === 'auction')
@@ -340,8 +395,21 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex items-center justify-end gap-1.5">
                                         
+                                        <!-- Boost & Featured Promotions -->
+                                        @if(!$product->is_sold && !$product->is_archived && $product->is_active)
+                                            <button @click="boostProduct({{ $product->id }})" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-neon hover:border-neon/40 text-xs font-bold transition-all flex items-center gap-1" title="Boost ke Peringkat Teratas">
+                                                <i class="fas fa-rocket text-[10px] text-neon"></i>
+                                                <span class="text-[10px] font-mono">Boost</span>
+                                            </button>
+
+                                            <button @click="requestFeatured({{ $product->id }})" class="p-2 rounded-xl {{ $product->isFeaturedActive() ? 'bg-neon/20 border-neon/40 text-neon' : 'bg-slate-950 border-slate-800 text-slate-300 hover:text-amber-400 hover:border-amber-400/40' }} text-xs font-bold transition-all flex items-center gap-1 border" title="Pasang Featured Product 3 Hari (Rp 25.000)">
+                                                <i class="fas fa-star text-[10px] text-amber-400"></i>
+                                                <span class="text-[10px] font-mono">{{ $product->isFeaturedActive() ? 'Featured' : '+Featured' }}</span>
+                                            </button>
+                                        @endif
+
                                         <!-- Mark Sold / Unsold -->
                                         @if($product->is_sold)
                                             <button @click="markUnsold({{ $product->id }})" class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition-all flex items-center gap-1" title="Batalkan Status Terjual">
@@ -384,7 +452,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-12 text-center text-slate-500 text-xs uppercase tracking-wider">
+                                <td colspan="4" class="px-6 py-12 text-center text-slate-500 text-xs uppercase tracking-wider font-mono">
                                     Belum ada produk ditemukan.
                                 </td>
                             </tr>
@@ -409,14 +477,19 @@
                                 <h3 class="text-white font-bold text-sm truncate leading-snug">{{ $product->title }}</h3>
                                 <p class="text-slate-500 text-[10px] uppercase font-mono font-semibold mt-0.5">{{ $product->type }}</p>
                                 <div class="mt-1.5 flex flex-wrap gap-1">
+                                    @if($product->approval_status === 'pending')
+                                        <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300">Menunggu Review</span>
+                                    @elseif($product->approval_status === 'rejected')
+                                        <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/30 text-rose-300">Ditolak</span>
+                                    @endif
                                     @if($product->is_sold)
                                         <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">SOLD</span>
                                     @endif
                                     @if($product->is_archived)
                                         <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-400">ARCHIVED</span>
                                     @endif
-                                    @if($product->sale_type === 'auction')
-                                        <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">Lelang</span>
+                                    @if($product->isFeaturedActive())
+                                        <span class="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-neon/20 border border-neon/30 text-neon">FEATURED</span>
                                     @endif
                                 </div>
                             </div>
@@ -439,17 +512,21 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 pt-1">
+                            @if(!$product->is_sold && !$product->is_archived && $product->is_active)
+                                <button @click="boostProduct({{ $product->id }})" class="flex-1 bg-slate-950 border border-slate-800 text-neon font-bold py-2 rounded-xl text-xs hover:bg-neon hover:text-dark transition-all">Boost</button>
+                                <button @click="requestFeatured({{ $product->id }})" class="flex-1 bg-slate-950 border border-slate-800 text-amber-400 font-bold py-2 rounded-xl text-xs hover:bg-amber-400 hover:text-dark transition-all">Featured</button>
+                            @endif
                             @if($product->is_sold)
                                 <button @click="markUnsold({{ $product->id }})" class="flex-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 hover:text-dark transition-all">Batal Sold</button>
                             @else
                                 <button @click="openSoldModal({{ json_encode($product) }})" class="flex-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold py-2 rounded-xl text-xs hover:bg-emerald-500 hover:text-dark transition-all">Mark Sold</button>
                             @endif
                             <button @click="toggleArchive({{ $product->id }})" class="flex-1 bg-slate-950 border border-slate-800 text-amber-400 font-bold py-2 rounded-xl text-xs hover:bg-amber-500 hover:text-dark transition-all">{{ $product->is_archived ? 'Unarchive' : 'Arsip' }}</button>
-                            <a href="{{ route('marketplace.seller.products.edit', $product->id) }}" class="flex-1 text-center bg-slate-950 border border-slate-850 text-neon font-bold py-2 rounded-xl text-xs hover:bg-neon hover:text-dark transition-all">Edit</a>
+                            <a href="{{ route('marketplace.seller.products.edit', $product->id) }}" class="flex-1 text-center bg-slate-950 border border-slate-850 text-white font-bold py-2 rounded-xl text-xs hover:bg-slate-800 transition-all">Edit</a>
                         </div>
                     </div>
                     @empty
-                    <div class="p-8 text-center text-slate-500 text-xs uppercase tracking-wider">
+                    <div class="p-8 text-center text-slate-500 text-xs uppercase tracking-wider font-mono">
                         Belum ada produk ditemukan.
                     </div>
                     @endforelse

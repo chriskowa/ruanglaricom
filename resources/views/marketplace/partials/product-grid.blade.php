@@ -188,7 +188,7 @@
         </div>
         <h3 class="text-base font-bold text-white uppercase tracking-wider mb-1.5">Belum Ada Produk</h3>
         <p class="text-slate-400 text-xs mb-6 leading-relaxed">Produk dengan filter yang Anda pilih belum tersedia. Coba ubah pencarian atau pasang iklan gear Anda sekarang.</p>
-        <a href="{{ route('marketplace.seller.products.create') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md">
+        <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
             <span>Jual Gear Anda</span>
         </a>

@@ -12,13 +12,39 @@ class MarketplaceProduct extends Model
     protected $casts = [
         'meta_data' => 'array',
         'is_active' => 'boolean',
+        'is_approved' => 'boolean',
+        'is_featured' => 'boolean',
         'is_sold' => 'boolean',
         'is_archived' => 'boolean',
         'sold_at' => 'datetime',
         'archived_at' => 'datetime',
+        'featured_until' => 'datetime',
+        'boosted_at' => 'datetime',
         'auction_start_at' => 'datetime',
         'auction_end_at' => 'datetime',
     ];
+
+    public function isFeaturedActive(): bool
+    {
+        if (!$this->is_featured) {
+            return false;
+        }
+        if ($this->featured_until && now()->gt($this->featured_until)) {
+            return false;
+        }
+        return true;
+    }
+
+    public function scopePublicListing($query)
+    {
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('is_archived')->orWhere('is_archived', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_approved')->orWhere('is_approved', true);
+            });
+    }
 
     public function seller()
     {

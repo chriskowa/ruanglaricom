@@ -88,6 +88,7 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:marketplace_categories,id',
             'brand_id' => 'nullable|exists:marketplace_brands,id',
+            'size' => 'nullable|string|max:50',
             'condition' => 'required|in:new,used',
             'type' => 'required|in:physical,digital_slot',
             'description' => 'required|string',
@@ -111,10 +112,15 @@ class ProductController extends Controller
         $basePrice = $saleType === 'auction' ? (float) $request->starting_price : (float) $request->price;
         $stock = $saleType === 'auction' ? 1 : (int) $request->stock;
 
+        $requireApproval = \App\Models\AppSettings::get('marketplace_require_approval', false);
+        $isApproved = ! $requireApproval;
+        $approvalStatus = $requireApproval ? 'pending' : 'approved';
+
         $product = MarketplaceProduct::create([
             'user_id' => Auth::id(),
             'category_id' => $request->category_id,
             'brand_id' => $request->brand_id,
+            'size' => $request->size,
             'title' => $request->title,
             'slug' => Str::slug($request->title).'-'.Str::random(6),
             'description' => $request->description,
@@ -134,6 +140,8 @@ class ProductController extends Controller
             'buy_now_price' => $saleType === 'auction' ? ($request->buy_now_price !== null ? (float) $request->buy_now_price : null) : null,
             'auction_status' => $saleType === 'auction' ? 'running' : 'draft',
             'is_active' => $fulfillment !== 'consignment',
+            'is_approved' => $isApproved,
+            'approval_status' => $approvalStatus,
             'meta_data' => $request->meta_data ?? [],
         ]);
 
@@ -184,6 +192,7 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:marketplace_categories,id',
             'brand_id' => 'nullable|exists:marketplace_brands,id',
+            'size' => 'nullable|string|max:50',
             'price' => $product->sale_type === 'fixed' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
             'stock' => $product->sale_type === 'fixed' ? 'required|integer|min:0' : 'nullable|integer|min:0',
             'auction_end_at' => $product->sale_type === 'auction' && ! $hasBids ? 'nullable|date|after:now' : 'nullable',
@@ -194,7 +203,7 @@ class ProductController extends Controller
             'dropoff_location' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->only(['title', 'category_id', 'brand_id', 'description', 'condition']);
+        $data = $request->only(['title', 'category_id', 'brand_id', 'size', 'description', 'condition']);
 
         if ($product->sale_type === 'fixed') {
             $data['price'] = (float) $request->price;
@@ -405,5 +414,68 @@ class ProductController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Boost a product to the top of the marketplace listing
+     */
+    public function boost(MarketplaceProduct $product)
+    {
+        if ((int) $product->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($product->is_sold || $product->is_archived || ! $product->is_active) {
+            $msg = 'Produk tidak aktif atau sudah terjual sehingga tidak dapat di-boost.';
+            return request()->wantsJson() ? response()->json(['success' => false, 'message' => $msg], 422) : back()->with('error', $msg);
+        }
+
+        // Cooldown check (e.g. 1 boost per 6 hours)
+        if ($product->boosted_at && $product->boosted_at->diffInHours(now()) < 6) {
+            $remainingHours = 6 - $product->boosted_at->diffInHours(now());
+            $msg = "Produk baru saja di-boost. Silakan tunggu {$remainingHours} jam lagi untuk melakukan boost berikutnya.";
+            return request()->wantsJson() ? response()->json(['success' => false, 'message' => $msg], 422) : back()->with('error', $msg);
+        }
+
+        $product->update([
+            'boosted_at' => now(),
+        ]);
+
+        $msg = 'Produk berhasil di-boost ke urutan teratas marketplace!';
+
+        return request()->wantsJson()
+            ? response()->json(['success' => true, 'message' => $msg, 'boosted_at' => $product->boosted_at->toISOString()])
+            : back()->with('success', $msg);
+    }
+
+    /**
+     * Request or Activate Featured Product (Rp 25.000 / 3 hari)
+     */
+    public function requestFeatured(MarketplaceProduct $product)
+    {
+        if ((int) $product->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($product->is_sold || $product->is_archived || ! $product->is_active) {
+            $msg = 'Produk tidak aktif sehingga tidak dapat dijadikan Featured.';
+            return request()->wantsJson() ? response()->json(['success' => false, 'message' => $msg], 422) : back()->with('error', $msg);
+        }
+
+        $featuredDays = 3;
+        $currentExpiry = ($product->is_featured && $product->featured_until && $product->featured_until->gt(now()))
+            ? $product->featured_until
+            : now();
+
+        $product->update([
+            'is_featured' => true,
+            'featured_until' => $currentExpiry->addDays($featuredDays),
+        ]);
+
+        $msg = 'Produk berhasil dijadikan Featured Product selama 3 hari!';
+
+        return request()->wantsJson()
+            ? response()->json(['success' => true, 'message' => $msg, 'featured_until' => $product->featured_until->format('d M Y H:i')])
+            : back()->with('success', $msg);
     }
 }
