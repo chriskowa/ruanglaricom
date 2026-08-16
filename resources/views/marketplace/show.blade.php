@@ -9,8 +9,38 @@
      x-data="{
          activeImage: '{{ $product->primaryImage ? asset('storage/' . $product->primaryImage->image_path) : ($product->images->first() ? asset('storage/' . $product->images->first()->image_path) : '') }}',
          qty: 1,
-         wishlisted: false
-     }">
+         wishlisted: false,
+         lightboxOpen: false,
+         lightboxIndex: 0,
+         imagesList: [
+             @foreach($product->images as $img)
+                 '{{ asset('storage/' . $img->image_path) }}',
+             @endforeach
+         ],
+         openLightbox(src) {
+             const foundIdx = this.imagesList.indexOf(src);
+             this.lightboxIndex = foundIdx !== -1 ? foundIdx : 0;
+             this.lightboxOpen = true;
+         },
+         closeLightbox() {
+             this.lightboxOpen = false;
+         },
+         nextImage() {
+             if (this.imagesList.length > 0) {
+                 this.lightboxIndex = (this.lightboxIndex + 1) % this.imagesList.length;
+                 this.activeImage = this.imagesList[this.lightboxIndex];
+             }
+         },
+         prevImage() {
+             if (this.imagesList.length > 0) {
+                 this.lightboxIndex = (this.lightboxIndex - 1 + this.imagesList.length) % this.imagesList.length;
+                 this.activeImage = this.imagesList[this.lightboxIndex];
+             }
+         }
+     }"
+     @keydown.escape.window="closeLightbox()"
+     @keydown.arrow-right.window="lightboxOpen && nextImage()"
+     @keydown.arrow-left.window="lightboxOpen && prevImage()">
 
     <div class="max-w-7xl mx-auto">
         
@@ -39,8 +69,9 @@
             <div class="lg:col-span-6 space-y-4">
                 <div class="sticky top-28 space-y-4">
                     
-                    <!-- Main Frame -->
-                    <div class="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#131b2c] border border-slate-800 shadow-2xl group flex items-center justify-center">
+                    <!-- Main Frame (Clickable for Lightbox) -->
+                    <div class="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#131b2c] border border-slate-800 shadow-2xl group flex items-center justify-center cursor-zoom-in"
+                         @click="openLightbox(activeImage)">
                         @if($product->primaryImage || $product->images->count() > 0)
                             <img :src="activeImage" 
                                  alt="{{ $product->title }}" 
@@ -84,13 +115,21 @@
                         </div>
 
                         <!-- Top Right Floating Action Buttons -->
-                        <div class="absolute top-4 right-4 flex items-center gap-2 z-10">
+                        <div class="absolute top-4 right-4 flex items-center gap-2 z-10" @click.stop>
                             <button type="button" 
                                     @click="window.openShareModal ? window.openShareModal('{{ route('marketplace.show', $product->slug) }}', '{{ addslashes($product->title) }}') : (navigator.clipboard.writeText(window.location.href) && alert('Link produk disalin!'))" 
                                     class="w-10 h-10 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700/80 text-slate-300 hover:text-white hover:bg-slate-800 flex items-center justify-center transition shadow-lg"
                                     title="Bagikan Produk">
                                 <i class="fas fa-share-alt text-xs"></i>
                             </button>
+                        </div>
+
+                        <!-- Bottom Right Zoom Badge -->
+                        <div class="absolute bottom-4 right-4 z-10 pointer-events-none">
+                            <span class="px-3 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-slate-700 text-white text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5 shadow-lg group-hover:border-neon group-hover:text-neon transition">
+                                <i class="fas fa-expand text-[10px]"></i>
+                                <span>Perbesar Foto</span>
+                            </span>
                         </div>
                     </div>
 
@@ -331,6 +370,79 @@
                 @include('marketplace.partials.product-grid', ['products' => $relatedProducts, 'sidebarOpen' => false])
             </div>
         @endif
+
+    </div>
+
+    <!-- Fullscreen Product Image Lightbox Modal -->
+    <div x-show="lightboxOpen" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 sm:p-6 select-none"
+         @click.self="closeLightbox()">
+        
+        <!-- Top Lightbox Header -->
+        <div class="flex items-center justify-between z-10">
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs font-bold">
+                    <span x-text="lightboxIndex + 1"></span> / <span x-text="imagesList.length || 1"></span>
+                </span>
+                <span class="text-xs font-mono font-bold text-slate-400 uppercase truncate max-w-[200px] sm:max-w-md">
+                    {{ $product->title }}
+                </span>
+            </div>
+
+            <!-- Close Lightbox Button -->
+            <button type="button" @click="closeLightbox()"
+                    class="w-10 h-10 rounded-full bg-slate-900/90 border border-slate-700 hover:border-white text-slate-300 hover:text-white flex items-center justify-center transition shadow-lg"
+                    title="Tutup (ESC)">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Center Main Image Stage with Prev/Next Controls -->
+        <div class="relative my-auto flex items-center justify-center max-h-[75vh] w-full">
+            
+            <!-- Prev Button -->
+            <button type="button" 
+                    x-show="imagesList.length > 1" 
+                    @click.stop="prevImage()"
+                    class="absolute left-2 sm:left-6 z-20 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-white hover:text-dark text-white border border-slate-700 flex items-center justify-center transition shadow-2xl"
+                    title="Foto Sebelumnya">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </button>
+
+            <!-- Active Large Image -->
+            <div class="max-w-4xl max-h-[72vh] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center p-2">
+                <img :src="imagesList[lightboxIndex] || activeImage" 
+                     alt="{{ $product->title }}" 
+                     class="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl transition-all duration-300">
+            </div>
+
+            <!-- Next Button -->
+            <button type="button" 
+                    x-show="imagesList.length > 1" 
+                    @click.stop="nextImage()"
+                    class="absolute right-2 sm:right-6 z-20 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-white hover:text-dark text-white border border-slate-700 flex items-center justify-center transition shadow-2xl"
+                    title="Foto Selanjutnya">
+                <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Bottom Lightbox Thumbnails Strip -->
+        <div class="flex items-center justify-center gap-2.5 overflow-x-auto py-2 z-10" x-show="imagesList.length > 1">
+            <template x-for="(imgSrc, idx) in imagesList" :key="idx">
+                <button type="button" @click="lightboxIndex = idx; activeImage = imgSrc"
+                        class="w-14 h-14 rounded-xl overflow-hidden border-2 transition shrink-0 bg-slate-900"
+                        :class="lightboxIndex === idx ? 'border-neon ring-2 ring-neon/20 opacity-100 scale-105' : 'border-slate-800 opacity-50 hover:opacity-100'">
+                    <img :src="imgSrc" class="w-full h-full object-cover">
+                </button>
+            </template>
+        </div>
 
     </div>
 </div>

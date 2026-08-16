@@ -103,7 +103,9 @@ class ProductController extends Controller
             'buy_now_price' => 'nullable|numeric|min:0',
             'dropoff_method' => 'nullable|string|max:255',
             'dropoff_location' => 'nullable|string|max:255',
-            'image' => 'required|image|max:2048', // Primary image
+            'images' => 'required_without:image|array|max:4',
+            'images.*' => 'image|max:3072',
+            'image' => 'nullable|image|max:3072',
         ]);
 
         $saleType = $request->sale_type;
@@ -155,17 +157,29 @@ class ProductController extends Controller
             ]);
         }
 
-        if ($request->hasFile('image')) {
-            /** @var ImageUploadService $imageService */
-            $imageService = app(ImageUploadService::class);
-            $path = $imageService->uploadSingle($request->file('image'), 'marketplace/products', 1200, 80);
-            $product->images()->create([
-                'image_path' => $path,
-                'is_primary' => true,
-            ]);
+        $uploadedFiles = [];
+        if ($request->hasFile('images')) {
+            $uploadedFiles = array_slice($request->file('images'), 0, 4);
+        } elseif ($request->hasFile('image')) {
+            $uploadedFiles = [$request->file('image')];
         }
 
-        return redirect()->route('marketplace.seller.products.index')->with('success', 'Product listed successfully!');
+        if (!empty($uploadedFiles)) {
+            /** @var ImageUploadService $imageService */
+            $imageService = app(ImageUploadService::class);
+            foreach ($uploadedFiles as $index => $file) {
+                if ($file && $file->isValid()) {
+                    $sizes = $imageService->upload($file, 'marketplace/products', [], 80);
+                    $path = $sizes['large'] ?? ($sizes['medium'] ?? reset($sizes));
+                    $product->images()->create([
+                        'image_path' => $path,
+                        'is_primary' => ($index === 0),
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('marketplace.seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
     public function edit(MarketplaceProduct $product)
@@ -246,19 +260,50 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        if ($request->hasFile('image')) {
-            /** @var ImageUploadService $imageService */
-            $imageService = app(ImageUploadService::class);
-            $path = $imageService->uploadSingle($request->file('image'), 'marketplace/products', 1200, 80);
-            // Unset old primary
-            $product->images()->update(['is_primary' => false]);
-            $product->images()->create([
-                'image_path' => $path,
-                'is_primary' => true,
-            ]);
+        /** @var ImageUploadService $imageService */
+        $imageService = app(ImageUploadService::class);
+
+        // Hapus foto lama yang ditandai seller
+        if ($request->filled('delete_images') && is_array($request->delete_images)) {
+            foreach ($request->delete_images as $imageId) {
+                $img = $product->images()->find($imageId);
+                if ($img) {
+                    $imageService->delete($img->image_path);
+                    $img->delete();
+                }
+            }
         }
 
-        return redirect()->route('marketplace.seller.products.index')->with('success', 'Product updated.');
+        // Upload foto baru jika ada (maksimal 4 foto total)
+        $currentCount = $product->images()->count();
+        $allowedNew = max(0, 4 - $currentCount);
+
+        $newFiles = [];
+        if ($request->hasFile('images')) {
+            $newFiles = array_slice($request->file('images'), 0, $allowedNew);
+        } elseif ($request->hasFile('image') && $allowedNew > 0) {
+            $newFiles = [$request->file('image')];
+        }
+
+        if (!empty($newFiles)) {
+            foreach ($newFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $sizes = $imageService->upload($file, 'marketplace/products', [], 80);
+                    $path = $sizes['large'] ?? ($sizes['medium'] ?? reset($sizes));
+                    $product->images()->create([
+                        'image_path' => $path,
+                        'is_primary' => false,
+                    ]);
+                }
+            }
+        }
+
+        // Pastikan selalu ada 1 foto primary
+        if (!$product->images()->where('is_primary', true)->exists()) {
+            $product->images()->first()?->update(['is_primary' => true]);
+        }
+
+        return redirect()->route('marketplace.seller.products.index')->with('success', 'Produk berhasil diperbarui!');
     }
 
     public function destroy(MarketplaceProduct $product)

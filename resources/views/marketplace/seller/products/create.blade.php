@@ -3,10 +3,11 @@
 @section('title', 'Add Product - RuangLari Market')
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark">
-    <div class="max-w-4xl mx-auto">
+<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
+     x-data="productCreateForm()">
+    <div class="max-w-7xl mx-auto">
         
-        <!-- Breadcrumb & Top Action -->
+        <!-- Breadcrumb & Top Bar -->
         <nav class="flex items-center justify-between gap-3 mb-8 border-b border-slate-800/80 pb-4 text-xs font-mono">
             <div class="flex items-center gap-2 text-slate-400">
                 <a href="{{ route('marketplace.index') }}" class="hover:text-white transition">Marketplace</a>
@@ -21,450 +22,626 @@
             </a>
         </nav>
 
-        <!-- Main Form Card -->
-        <div class="rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl overflow-hidden">
+        <!-- 2-Column Main Layout: Form (Left) + Live Preview (Right) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
             
-            <!-- Card Header -->
-            <div class="p-6 md:p-8 border-b border-slate-800 bg-[#0c121e]">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="w-2 h-2 rounded-full bg-neon"></span>
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neon">SELLER DASHBOARD</span>
+            <!-- Left Column: Form (7 Columns) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <div class="rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl overflow-hidden">
+                    
+                    <!-- Card Header -->
+                    <div class="p-6 md:p-8 border-b border-slate-800 bg-[#0c121e]">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-neon"></span>
+                            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neon">SELLER DASHBOARD</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight font-sans">
+                            ADD NEW <span class="text-neon">PRODUCT</span>
+                        </h1>
+                        <p class="text-slate-300 text-xs md:text-sm mt-1">
+                            Lengkapi informasi produk running gear atau tiket race slot Anda di bawah ini.
+                        </p>
+                    </div>
+
+                    <div class="p-6 md:p-8">
+                        
+                        <!-- Error Validation Box -->
+                        @if ($errors->any())
+                            <div class="mb-8 p-4 bg-rose-950/60 border border-rose-700/80 rounded-xl text-rose-200 text-xs">
+                                <div class="flex items-center gap-2 font-bold mb-2 text-rose-300">
+                                    <i class="fas fa-exclamation-circle text-sm"></i>
+                                    <span>Mohon periksa kembali input berikut:</span>
+                                </div>
+                                <ul class="list-disc list-inside space-y-1 text-rose-200/90 font-mono">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" id="product-create-form">
+                            @csrf
+
+                            <!-- 01. Informasi Dasar Produk -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                    <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">01.</span>
+                                    <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Informasi Dasar Gear</h2>
+                                </div>
+
+                                <!-- Product Title -->
+                                <div>
+                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                        Judul Produk <span class="text-rose-400">*</span>
+                                    </label>
+                                    <input type="text" name="title" x-model="title" required
+                                        class="w-full bg-[#0a0e17] border @error('title') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                        placeholder="Contoh: Nike Vaporfly 3 Ekiden Edition 2024">
+                                    @error('title') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <!-- Category -->
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Kategori <span class="text-rose-400">*</span>
+                                        </label>
+                                        <div class="relative">
+                                            <select name="category_id" id="category-select" x-model="categoryId" @change="updateCategoryText($event)" required 
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                <option value="" disabled selected class="bg-[#0f172a] text-slate-400">Pilih Kategori</option>
+                                                @foreach($categories as $category)
+                                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }} data-slug="{{ $category->slug }}" data-name="{{ $category->name }}" class="bg-[#0f172a] text-white">{{ $category->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                                <i class="fas fa-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Brand -->
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Brand / Merek
+                                        </label>
+                                        <div class="relative">
+                                            <select name="brand_id" id="brand-select" x-model="brandId" @change="updateBrandText($event)"
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                <option value="" selected class="bg-[#0f172a] text-slate-400">Pilih Brand (Opsional)</option>
+                                                @foreach($brands as $brand)
+                                                    <option value="{{ $brand->id }}" data-name="{{ $brand->name }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                                <i class="fas fa-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Size / Ukuran -->
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Ukuran / Size
+                                        </label>
+                                        <input type="text" name="size" x-model="size"
+                                            class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                            placeholder="Contoh: US 9 / EU 42.5 / Size M">
+                                    </div>
+                                </div>
+
+                                <!-- Type & Condition Row -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Type -->
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Tipe Produk <span class="text-rose-400">*</span>
+                                        </label>
+                                        <div class="relative">
+                                            <select name="type" id="type-select" x-model="productType" 
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                <option value="physical" class="bg-[#0f172a] text-white">Barang Fisik (Sepatu / Apparel / Aksesoris)</option>
+                                                <option value="digital_slot" class="bg-[#0f172a] text-white">Slot Race / Tiket Lari</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                                                <i class="fas fa-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Condition -->
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Kondisi Barang <span class="text-rose-400">*</span>
+                                        </label>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
+                                                <input type="radio" name="condition" value="new" x-model="condition" class="sr-only">
+                                                <span class="text-xs font-mono font-bold text-white uppercase tracking-wider">BARU (BNIB)</span>
+                                            </label>
+                                            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
+                                                <input type="radio" name="condition" value="used" x-model="condition" class="sr-only">
+                                                <span class="text-xs font-mono font-bold text-white uppercase tracking-wider">BEKAS (USED)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 02. Skema Jual & Harga -->
+                            <div class="space-y-4 pt-4 border-t border-slate-800">
+                                <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                    <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">02.</span>
+                                    <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Skema Jual & Harga</h2>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Sale Mode Card -->
+                                    <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-2.5">
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                                            Mode Penjualan
+                                        </label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                                <input type="radio" name="sale_type" value="fixed" x-model="saleType" class="sr-only">
+                                                <span class="text-xs font-bold text-white font-mono">Jual Langsung</span>
+                                            </label>
+                                            <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                                <input type="radio" name="sale_type" value="auction" x-model="saleType" class="sr-only">
+                                                <span class="text-xs font-bold text-white font-mono">Lelang (Bid)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Fulfillment Mode Card -->
+                                    <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-2.5">
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                                            Metode Pengiriman
+                                        </label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                                <input type="radio" name="fulfillment_mode" value="self_ship" x-model="fulfillmentMode" class="sr-only">
+                                                <span class="text-xs font-bold text-white font-mono">Kirim Sendiri</span>
+                                            </label>
+                                            <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                                <input type="radio" name="fulfillment_mode" value="consignment" x-model="fulfillmentMode" class="sr-only">
+                                                <span class="text-xs font-bold text-white font-mono">Titip Jual</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Fixed Price Fields -->
+                                <div x-show="saleType === 'fixed'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Harga (Rp) <span class="text-rose-400">*</span>
+                                        </label>
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
+                                            <input type="number" name="price" min="0" x-model="price"
+                                                class="w-full bg-[#0a0e17] border @error('price') border-rose-500 @else border-slate-700 @enderror rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                                placeholder="0">
+                                        </div>
+                                        @error('price') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                            Jumlah Stok <span class="text-rose-400">*</span>
+                                        </label>
+                                        <input type="number" name="stock" min="1" x-model="stock"
+                                            class="w-full bg-[#0a0e17] border @error('stock') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                        @error('stock') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Auction Fields -->
+                                <div x-show="saleType === 'auction'" x-cloak class="p-5 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                                Harga Awal Lelang (Starting) <span class="text-rose-400">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
+                                                <input type="number" name="starting_price" min="0" x-model="startingPrice"
+                                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                    placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                                Kelipatan Bid (Increment) <span class="text-rose-400">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
+                                                <input type="number" name="min_increment" min="0"
+                                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                    placeholder="Contoh: 25000">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                                Lelang Berakhir Pada
+                                            </label>
+                                            <input type="datetime-local" name="auction_end_at"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs text-white focus:outline-none focus:border-white transition">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                                Reserve Price (Opsional)
+                                            </label>
+                                            <input type="number" name="reserve_price" min="0"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                placeholder="Harga minimal deal">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                                Buy Now Price (Opsional)
+                                            </label>
+                                            <input type="number" name="buy_now_price" min="0"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                placeholder="Beli langsung">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Titip Jual Dropoff Fields -->
+                                <div x-show="fulfillmentMode === 'consignment'" x-cloak class="p-5 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">Metode Serah Terima</label>
+                                            <input type="text" name="dropoff_method"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                placeholder="Kirim Ekspedisi / Dropoff Langsung">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">Lokasi Seller / Titik Temu</label>
+                                            <input type="text" name="dropoff_location"
+                                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                                placeholder="Kota / Daerah Seller">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 03. Foto Produk (Maksimal 4 Foto) -->
+                            <div class="space-y-4 pt-4 border-t border-slate-800">
+                                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">03.</span>
+                                        <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Foto Produk (Maksimal 4 Foto)</h2>
+                                    </div>
+                                    <span class="text-[10px] font-mono text-slate-400 uppercase">
+                                        <span x-text="images.filter(img => img !== null).length">0</span> / 4 Foto
+                                    </span>
+                                </div>
+
+                                <p class="text-xs text-slate-300">
+                                    Upload hingga 4 foto jelas (tampak depan, samping, outsole, insole/tag size). Foto otomatis dikonversi ke WebP multi-resolusi.
+                                </p>
+
+                                <!-- 4 Photo Slots Grid -->
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                    <template x-for="(imgSlot, idx) in 4" :key="idx">
+                                        <div class="relative aspect-square rounded-xl border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center text-center group"
+                                             :class="images[idx] ? 'border-neon/60 bg-slate-950' : 'border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900'">
+                                            
+                                            <!-- If image uploaded in this slot -->
+                                            <template x-if="images[idx]">
+                                                <div class="w-full h-full relative">
+                                                    <img :src="images[idx]" class="w-full h-full object-cover">
+                                                    
+                                                    <!-- Slot Badge -->
+                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/80 backdrop-blur border border-slate-700 text-[9px] font-mono font-bold text-white uppercase"
+                                                          x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
+                                                    
+                                                    <!-- Remove Button -->
+                                                    <button type="button" @click.stop="removeImage(idx)" 
+                                                            class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition">
+                                                        <i class="fas fa-times text-[10px]"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+
+                                            <!-- If slot is empty -->
+                                            <template x-if="!images[idx]">
+                                                <label :for="'file-input-' + idx" class="w-full h-full flex flex-col items-center justify-center p-3 cursor-pointer">
+                                                    <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-2 transition">
+                                                        <i class="fas fa-plus text-xs"></i>
+                                                    </div>
+                                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300"
+                                                          x-text="idx === 0 ? 'Foto Utama *' : 'Foto ' + (idx + 1)"></span>
+                                                    <span class="text-[9px] text-slate-500 font-mono mt-0.5"
+                                                          x-text="idx === 0 ? 'Sampul' : (idx === 1 ? 'Outsole' : (idx === 2 ? 'Insole/Tag' : 'Detail'))"></span>
+                                                    
+                                                    <input :id="'file-input-' + idx" type="file" name="images[]" accept="image/*" class="hidden" @change="handleFileSelect($event, idx)">
+                                                </label>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                @error('images') <p class="text-rose-400 text-xs font-mono">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- 04. Deskripsi Lengkap Produk -->
+                            <div class="space-y-4 pt-4 border-t border-slate-800">
+                                <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                    <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">04.</span>
+                                    <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Deskripsi Lengkap Gear</h2>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                        Deskripsi & Riwayat Penggunaan <span class="text-rose-400">*</span>
+                                    </label>
+                                    <textarea name="description" rows="5" required x-model="description"
+                                        class="w-full bg-[#0a0e17] border @error('description') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                        placeholder="Jelaskan kondisi detail, perkiraan mileage (km pemakaian), kelengkapan box/tag, serta alasan jual..."></textarea>
+                                    @error('description') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+
+                            <!-- 05. Detail Race Slot (Otomatis muncul jika type digital_slot) -->
+                            <div x-show="productType === 'digital_slot'" x-cloak class="p-6 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
+                                <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                                    <i class="fas fa-ticket-alt text-neon"></i>
+                                    <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Detail Race Slot & BIB</h3>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Nama Race / Event</label>
+                                        <input type="text" name="meta_data[race_name]" placeholder="Contoh: Borobudur Marathon 2024" 
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Tanggal Race</label>
+                                        <input type="date" name="meta_data[race_date]" 
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white transition">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Kebijakan Transfer BIB / Nama</label>
+                                    <input type="text" name="meta_data[transfer_policy]" placeholder="Contoh: Bisa ganti nama resmi sampai H-14 race" 
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
+                                </div>
+                            </div>
+
+                            <!-- Submit Area -->
+                            <div class="flex items-center justify-between pt-6 border-t border-slate-800">
+                                <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-bold font-mono transition">
+                                    Batal
+                                </a>
+
+                                <button type="submit" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-white/5">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span>Add Product</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight font-sans">
-                    ADD NEW <span class="text-neon">PRODUCT</span>
-                </h1>
-                <p class="text-slate-300 text-xs md:text-sm mt-1">
-                    Pasang iklan gear original atau tiket race slot Anda untuk menjangkau ribuan pelari di komunitas.
-                </p>
             </div>
 
-            <div class="p-6 md:p-8">
+            <!-- Right Column: Sticky Live Product Preview (5 Columns) -->
+            <div class="lg:col-span-5 sticky top-28 space-y-4">
                 
-                <!-- Error Validation Box -->
-                @if ($errors->any())
-                    <div class="mb-8 p-4 bg-rose-950/60 border border-rose-700/80 rounded-xl text-rose-200 text-xs">
-                        <div class="flex items-center gap-2 font-bold mb-2 text-rose-300">
-                            <i class="fas fa-exclamation-circle text-sm"></i>
-                            <span>Mohon periksa kembali form berikut:</span>
-                        </div>
-                        <ul class="list-disc list-inside space-y-1 text-rose-200/90 font-mono">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                <div class="flex items-center justify-between px-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-mono font-black uppercase tracking-widest text-white">LIVE PREVIEW</span>
                     </div>
-                @endif
+                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Tampilan Katalog & Detail</span>
+                </div>
 
-                <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
-                    @csrf
-
-                    <!-- 1. Informasi Dasar Produk -->
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">01.</span>
-                            <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Informasi Dasar Gear</h2>
-                        </div>
-
-                        <!-- Product Title -->
-                        <div>
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                Judul Produk <span class="text-rose-400">*</span>
-                            </label>
-                            <input type="text" name="title" required value="{{ old('title') }}"
-                                class="w-full bg-[#0a0e17] border @error('title') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                placeholder="Contoh: Nike Vaporfly 3 Ekiden Edition 2024">
-                            @error('title') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Category -->
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Kategori <span class="text-rose-400">*</span>
-                                </label>
-                                <div class="relative">
-                                    <select name="category_id" id="category-select" required 
-                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer">
-                                        <option value="" disabled selected>Pilih Kategori</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }} data-slug="{{ $category->slug }}">{{ $category->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-                                        <i class="fas fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                                @error('category_id') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
+                <!-- Preview Card Shell -->
+                <div class="rounded-2xl bg-slate-900 border border-slate-700/80 shadow-2xl p-4 md:p-5 space-y-4">
+                    
+                    <!-- Main Image Preview Frame -->
+                    <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-[#131b2c] border border-slate-800 flex items-center justify-center group">
+                        <template x-if="primaryPreviewImage">
+                            <img :src="primaryPreviewImage" class="w-full h-full object-cover transition-transform duration-300">
+                        </template>
+                        <template x-if="!primaryPreviewImage">
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-950/60 p-6 text-center">
+                                <i class="fas fa-running text-4xl mb-2 text-slate-700"></i>
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-slate-500">Preview Foto Utama</span>
                             </div>
+                        </template>
 
-                            <!-- Brand -->
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Brand / Merek
-                                </label>
-                                <div class="relative">
-                                    <select name="brand_id" id="brand-select"
-                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer">
-                                        <option value="" selected>Pilih Brand (Opsional)</option>
-                                        @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}">{{ $brand->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-                                        <i class="fas fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Size / Ukuran -->
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Ukuran / Size
-                                </label>
-                                <input type="text" name="size" value="{{ old('size') }}"
-                                    class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                    placeholder="Contoh: US 9 / EU 42.5 / Size M">
-                            </div>
-                        </div>
-
-                        <!-- Type & Condition Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Type -->
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Tipe Produk <span class="text-rose-400">*</span>
-                                </label>
-                                <div class="relative">
-                                    <select name="type" id="type-select" onchange="toggleType(this.value)" 
-                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer">
-                                        <option value="physical">Barang Fisik (Sepatu / Apparel / Gear)</option>
-                                        <option value="digital_slot">Slot Race / Tiket Lari</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-                                        <i class="fas fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Condition -->
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Kondisi Barang <span class="text-rose-400">*</span>
-                                </label>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
-                                        <input type="radio" name="condition" value="new" class="sr-only" checked>
-                                        <span class="text-xs font-mono font-bold text-white uppercase tracking-wider">BARU (BNIB / BNWT)</span>
-                                    </label>
-                                    <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
-                                        <input type="radio" name="condition" value="used" class="sr-only">
-                                        <span class="text-xs font-mono font-bold text-white uppercase tracking-wider">BEKAS (PRE-LOVED)</span>
-                                    </label>
-                                </div>
-                            </div>
+                        <!-- Micro Badges -->
+                        <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                            <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest font-mono shadow"
+                                  :class="condition === 'new' ? 'bg-white text-dark' : 'bg-slate-950/90 text-slate-200 border border-slate-700'"
+                                  x-text="condition === 'new' ? 'BARU' : 'BEKAS'">
+                            </span>
+                            <template x-if="saleType === 'auction'">
+                                <span class="px-2.5 py-0.5 rounded bg-amber-500 text-dark text-[9px] font-black uppercase tracking-widest font-mono shadow">
+                                    LELANG
+                                </span>
+                            </template>
                         </div>
                     </div>
 
-                    <!-- 2. Skema Jual & Harga -->
-                    <div class="space-y-4 pt-4 border-t border-slate-800">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">02.</span>
-                            <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Skema Jual & Harga</h2>
+                    <!-- Mini Gallery Thumbnail Selector -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1" x-show="images.filter(img => img !== null).length > 1">
+                        <template x-for="(imgSrc, i) in images" :key="i">
+                            <template x-if="imgSrc">
+                                <button type="button" @click="activePreviewIndex = i"
+                                        class="w-12 h-12 rounded-lg overflow-hidden border transition shrink-0"
+                                        :class="activePreviewIndex === i ? 'border-white ring-1 ring-white' : 'border-slate-800 opacity-60 hover:opacity-100'">
+                                    <img :src="imgSrc" class="w-full h-full object-cover">
+                                </button>
+                            </template>
+                        </template>
+                    </div>
+
+                    <!-- Meta Tags -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                            <span class="text-neon" x-text="brandText || 'BRAND'"></span>
+                            <span>•</span>
+                            <span x-text="categoryText || 'KATEGORI'"></span>
+                            <template x-if="size">
+                                <span class="text-slate-300">• SIZE <span x-text="size"></span></span>
+                            </template>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Sale Mode Card -->
-                            <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-2.5">
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
-                                    Mode Penjualan
-                                </label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
-                                        <input type="radio" name="sale_type" value="fixed" class="sr-only" checked onchange="toggleSaleType(this.value)">
-                                        <span class="text-xs font-bold text-white font-mono">Jual Langsung</span>
-                                    </label>
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
-                                        <input type="radio" name="sale_type" value="auction" class="sr-only" onchange="toggleSaleType(this.value)">
-                                        <span class="text-xs font-bold text-white font-mono">Lelang (Bidding)</span>
-                                    </label>
-                                </div>
-                            </div>
+                        <!-- Title -->
+                        <h3 class="text-base font-black text-white leading-snug line-clamp-2"
+                            x-text="title || 'Judul Running Gear Anda'">
+                        </h3>
 
-                            <!-- Fulfillment Mode Card -->
-                            <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-2.5">
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
-                                    Metode Pengiriman (Fulfillment)
-                                </label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
-                                        <input type="radio" name="fulfillment_mode" value="self_ship" class="sr-only" checked onchange="toggleFulfillment(this.value)">
-                                        <span class="text-xs font-bold text-white font-mono">Kirim Sendiri</span>
-                                    </label>
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
-                                        <input type="radio" name="fulfillment_mode" value="consignment" class="sr-only" onchange="toggleFulfillment(this.value)">
-                                        <span class="text-xs font-bold text-white font-mono">Titip Jual</span>
-                                    </label>
+                        <!-- Price -->
+                        <div class="pt-1">
+                            <template x-if="saleType === 'fixed'">
+                                <p class="text-lg font-black text-white font-mono"
+                                   x-text="formattedPrice">
+                                </p>
+                            </template>
+                            <template x-if="saleType === 'auction'">
+                                <div class="space-y-0.5">
+                                    <span class="text-[9px] font-mono text-amber-400 uppercase tracking-widest">STARTING BID</span>
+                                    <p class="text-lg font-black text-white font-mono" x-text="formattedStartingPrice"></p>
                                 </div>
-                                <div id="consignment-hint" class="text-[11px] text-slate-400 hidden pt-1">
-                                    *Barang titip jual akan diverifikasi tim RuangLari sebelum dikirim ke pembeli.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fixed Price Fields -->
-                        <div id="fixed-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Harga (Rp) <span class="text-rose-400">*</span>
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
-                                    <input type="number" name="price" min="0" value="{{ old('price') }}"
-                                        class="w-full bg-[#0a0e17] border @error('price') border-rose-500 @else border-slate-700 @enderror rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                        placeholder="0">
-                                </div>
-                                @error('price') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Jumlah Stok <span class="text-rose-400">*</span>
-                                </label>
-                                <input type="number" name="stock" min="1" value="{{ old('stock', 1) }}"
-                                    class="w-full bg-[#0a0e17] border @error('stock') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
-                                @error('stock') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
-                            </div>
-                        </div>
-
-                        <!-- Auction Fields (Hidden by default) -->
-                        <div id="auction-fields" class="hidden p-5 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                        Harga Awal Lelang (Starting Price) <span class="text-rose-400">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
-                                        <input type="number" name="starting_price" min="0" value="{{ old('starting_price') }}"
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                            placeholder="0">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                        Kelipatan Bid (Min Increment) <span class="text-rose-400">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-mono font-bold text-slate-400">Rp</span>
-                                        <input type="number" name="min_increment" min="0" value="{{ old('min_increment') }}"
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                            placeholder="Contoh: 25000">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                        Lelang Berakhir Pada <span class="text-rose-400">*</span>
-                                    </label>
-                                    <input type="datetime-local" name="auction_end_at" value="{{ old('auction_end_at') }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs text-white focus:outline-none focus:border-white transition">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                        Reserve Price (Opsional)
-                                    </label>
-                                    <input type="number" name="reserve_price" min="0" value="{{ old('reserve_price') }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                        placeholder="Harga minimal deal">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                        Buy Now Price (Opsional)
-                                    </label>
-                                    <input type="number" name="buy_now_price" min="0" value="{{ old('buy_now_price') }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                        placeholder="Beli langsung seketika">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Titip Jual Dropoff Fields -->
-                        <div id="consignment-fields" class="hidden p-5 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">Metode Serah Terima</label>
-                                    <input type="text" name="dropoff_method"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                        placeholder="Kirim Ekspedisi / Dropoff Langsung">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">Lokasi Pengirim / Titik Temu</label>
-                                    <input type="text" name="dropoff_location"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
-                                        placeholder="Kota / Daerah Seller">
-                                </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
 
-                    <!-- 3. Deskripsi & Foto Produk -->
-                    <div class="space-y-4 pt-4 border-t border-slate-800">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">03.</span>
-                            <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Deskripsi & Foto Gear</h2>
-                        </div>
-
-                        <!-- Description -->
-                        <div>
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                Deskripsi Lengkap Produk <span class="text-rose-400">*</span>
-                            </label>
-                            <textarea name="description" rows="5" required 
-                                class="w-full bg-[#0a0e17] border @error('description') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                placeholder="Jelaskan kondisi detail, riwayat pemakaian (mileage km), kelengkapan box, dan alasan jual...">{{ old('description') }}</textarea>
-                            @error('description') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
-                        </div>
-
-                        <!-- Primary Image Dropzone -->
-                        <div>
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                Foto Utama Produk <span class="text-rose-400">*</span>
-                            </label>
-                            <div class="w-full">
-                                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full min-h-[140px] border-2 @error('image') border-rose-500 @else border-slate-700 @enderror border-dashed rounded-xl cursor-pointer bg-[#0a0e17] hover:bg-slate-850 hover:border-white/40 transition group p-6">
-                                    <div class="flex flex-col items-center justify-center text-center">
-                                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-white mb-2 transition">
-                                            <i class="fas fa-cloud-upload-alt text-base"></i>
-                                        </div>
-                                        <p class="text-xs text-slate-300 mb-1">
-                                            <span class="font-bold text-white group-hover:underline">Klik untuk upload foto</span> atau drag & drop
-                                        </p>
-                                        <p class="text-[11px] font-mono text-slate-500">JPG, PNG, WEBP (Maks. 2MB)</p>
-                                    </div>
-                                    <input id="dropzone-file" name="image" type="file" required accept="image/*" class="hidden" onchange="previewImage(this)" />
-                                </label>
+                    <!-- Seller Card Preview -->
+                    <div class="p-3 rounded-xl bg-[#0a0e17] border border-slate-800/80 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold shrink-0">
+                                {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
                             </div>
-                            @error('image') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
-                            
-                            <!-- Image Preview Box -->
-                            <div id="image-preview" class="mt-4 hidden">
-                                <div class="inline-block relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1">
-                                    <img src="" class="h-36 w-36 object-cover rounded-lg">
-                                </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-white truncate">{{ auth()->user()->name ?? 'Seller Anda' }}</p>
+                                <p class="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                                    <i class="fas fa-check-circle text-[9px]"></i>
+                                    <span>Verified Community Seller</span>
+                                </p>
                             </div>
                         </div>
+                        <span class="px-2 py-1 rounded bg-slate-800 text-slate-400 text-[10px] font-mono">
+                            {{ auth()->user()->city ?? 'Indonesia' }}
+                        </span>
                     </div>
 
-                    <!-- 4. Detail Khusus Tiket / Race Slot (Hidden if not digital_slot) -->
-                    <div id="slot-fields" style="display: none;" class="p-6 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <i class="fas fa-ticket-alt text-neon"></i>
-                            <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Detail Race Slot & BIB</h3>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Nama Race / Event</label>
-                                <input type="text" name="meta_data[race_name]" placeholder="Contoh: Borobudur Marathon 2024" 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Tanggal Race</label>
-                                <input type="date" name="meta_data[race_date]" 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white transition">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">Kebijakan Transfer BIB / Nama</label>
-                            <input type="text" name="meta_data[transfer_policy]" placeholder="Contoh: Bisa ganti nama resmi sampai H-14 race" 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
-                        </div>
-                    </div>
-
-                    <!-- Submit Button Area (Well-proportioned Add Product CTA) -->
-                    <div class="flex items-center justify-between pt-6 border-t border-slate-800">
-                        <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-bold font-mono transition">
-                            Batal
-                        </a>
-
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-white/5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span>Add Product</span>
+                    <!-- Simulated Buy Button -->
+                    <div class="pt-1">
+                        <button type="button" disabled class="w-full py-3 rounded-xl bg-white/20 text-slate-400 font-black text-xs uppercase tracking-widest cursor-not-allowed">
+                            Simulasi Beli Sekarang
                         </button>
                     </div>
-                </form>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800/60 text-slate-400 text-[11px] leading-relaxed">
+                    <i class="fas fa-info-circle text-neon mr-1"></i>
+                    Foto akan otomatis diproses dalam format WebP resolusi tinggi dan cepat dimuat di seluruh perangkat.
+                </div>
             </div>
+
         </div>
     </div>
 </div>
 
 <script>
-function toggleType(val) {
-    const slotFields = document.getElementById('slot-fields');
-    if (slotFields) slotFields.style.display = val === 'digital_slot' ? 'block' : 'none';
-}
-
-function toggleSaleType(val) {
-    const fixed = document.getElementById('fixed-fields');
-    const auction = document.getElementById('auction-fields');
-    const isAuction = val === 'auction';
-    if (fixed) fixed.classList.toggle('hidden', isAuction);
-    if (auction) auction.classList.toggle('hidden', !isAuction);
-}
-
-function toggleFulfillment(val) {
-    const consignmentHint = document.getElementById('consignment-hint');
-    const consignmentFields = document.getElementById('consignment-fields');
-    const isConsignment = val === 'consignment';
-    if (consignmentHint) consignmentHint.classList.toggle('hidden', !isConsignment);
-    if (consignmentFields) consignmentFields.classList.toggle('hidden', !isConsignment);
-}
-
-function previewImage(input) {
-    const preview = document.getElementById('image-preview');
-    const img = preview ? preview.querySelector('img') : null;
-    
-    if (input.files && input.files[0] && img && preview) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            img.src = e.target.result;
-            preview.classList.remove('hidden');
-        }
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const saleTypeInput = document.querySelector('input[name="sale_type"]:checked');
-    const fulfillmentModeInput = document.querySelector('input[name="fulfillment_mode"]:checked');
-    
-    if (saleTypeInput) toggleSaleType(saleTypeInput.value);
-    if (fulfillmentModeInput) toggleFulfillment(fulfillmentModeInput.value);
-
-    // Dynamic brand filter based on category
-    const categorySelect = document.getElementById('category-select');
-    const brandSelect = document.getElementById('brand-select');
-    const brandOptions = brandSelect ? Array.from(brandSelect.querySelectorAll('option')) : [];
-
-    function filterBrands() {
-        if (!categorySelect || !brandSelect) return;
-        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-        const selectedCategorySlug = selectedOption ? selectedOption.dataset.slug : null;
+function productCreateForm() {
+    return {
+        title: '{{ old('title', '') }}',
+        categoryId: '{{ old('category_id', '') }}',
+        categoryText: '',
+        brandId: '{{ old('brand_id', '') }}',
+        brandText: '',
+        size: '{{ old('size', '') }}',
+        productType: '{{ old('type', 'physical') }}',
+        condition: '{{ old('condition', 'new') }}',
+        saleType: '{{ old('sale_type', 'fixed') }}',
+        fulfillmentMode: '{{ old('fulfillment_mode', 'self_ship') }}',
+        price: '{{ old('price', '') }}',
+        stock: '{{ old('stock', 1) }}',
+        startingPrice: '{{ old('starting_price', '') }}',
+        description: '{{ old('description', '') }}',
         
-        brandOptions.forEach(option => {
-            if (option.value === "") return;
-            const categories = JSON.parse(option.dataset.categories || '[]');
-            const isMatch = !selectedCategorySlug || categories.includes(selectedCategorySlug);
-            option.hidden = !isMatch;
-            option.disabled = !isMatch;
-        });
-    }
+        images: [null, null, null, null],
+        activePreviewIndex: 0,
 
-    if (categorySelect) categorySelect.addEventListener('change', filterBrands);
-    filterBrands();
-});
+        get primaryPreviewImage() {
+            if (this.images[this.activePreviewIndex]) {
+                return this.images[this.activePreviewIndex];
+            }
+            const firstAvailable = this.images.find(img => img !== null);
+            return firstAvailable || null;
+        },
+
+        get formattedPrice() {
+            if (!this.price) return 'Rp 0';
+            return 'Rp ' + Number(this.price).toLocaleString('id-ID');
+        },
+
+        get formattedStartingPrice() {
+            if (!this.startingPrice) return 'Rp 0';
+            return 'Rp ' + Number(this.startingPrice).toLocaleString('id-ID');
+        },
+
+        updateCategoryText(e) {
+            const opt = e.target.options[e.target.selectedIndex];
+            this.categoryText = opt ? (opt.dataset.name || opt.text) : '';
+            this.filterBrands();
+        },
+
+        updateBrandText(e) {
+            const opt = e.target.options[e.target.selectedIndex];
+            this.brandText = opt && opt.value !== "" ? (opt.dataset.name || opt.text) : '';
+        },
+
+        handleFileSelect(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.images[index] = e.target.result;
+                    this.activePreviewIndex = index;
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+
+        removeImage(index) {
+            this.images[index] = null;
+            const input = document.getElementById('file-input-' + index);
+            if (input) input.value = '';
+            if (this.activePreviewIndex === index) {
+                this.activePreviewIndex = 0;
+            }
+        },
+
+        filterBrands() {
+            const categorySelect = document.getElementById('category-select');
+            const brandSelect = document.getElementById('brand-select');
+            if (!categorySelect || !brandSelect) return;
+            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+            const selectedCategorySlug = selectedOption ? selectedOption.dataset.slug : null;
+            const brandOptions = Array.from(brandSelect.querySelectorAll('option'));
+            
+            brandOptions.forEach(option => {
+                if (option.value === "") return;
+                const categories = JSON.parse(option.dataset.categories || '[]');
+                const isMatch = !selectedCategorySlug || categories.includes(selectedCategorySlug);
+                option.hidden = !isMatch;
+                option.disabled = !isMatch;
+            });
+        }
+    }
+}
 </script>
 @endsection

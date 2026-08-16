@@ -84,10 +84,10 @@
                                 </label>
                                 <div class="relative">
                                     <select name="category_id" id="category-select" required 
-                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer">
-                                        <option value="" disabled>Pilih Kategori</option>
+                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                        <option value="" disabled class="bg-[#0f172a] text-slate-400">Pilih Kategori</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -104,10 +104,10 @@
                                 </label>
                                 <div class="relative">
                                     <select name="brand_id" id="brand-select"
-                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer">
-                                        <option value="" selected>Pilih Brand (Opsional)</option>
+                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                        <option value="" selected class="bg-[#0f172a] text-slate-400">Pilih Brand (Opsional)</option>
                                         @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
+                                            <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -294,36 +294,57 @@
                             @error('description') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
                         </div>
 
-                        <!-- Image Upload / Preview -->
-                        <div>
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                Update Foto Utama (Opsional)
+                        <!-- Multi-Image Management (Max 4 Photos) -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+                                Galeri Foto Produk (Maksimal 4 Foto)
                             </label>
-                            <div class="w-full">
-                                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full min-h-[140px] border-2 @error('image') border-rose-500 @else border-slate-700 @enderror border-dashed rounded-xl cursor-pointer bg-[#0a0e17] hover:bg-slate-850 hover:border-white/40 transition group p-6">
-                                    <div class="flex flex-col items-center justify-center text-center">
-                                        <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-white mb-2 transition">
-                                            <i class="fas fa-cloud-upload-alt text-base"></i>
-                                        </div>
-                                        <p class="text-xs text-slate-300 mb-1">
-                                            <span class="font-bold text-white group-hover:underline">Pilih foto baru</span> untuk mengganti foto saat ini
-                                        </p>
-                                        <p class="text-[11px] font-mono text-slate-500">JPG, PNG, WEBP (Maks. 2MB)</p>
-                                    </div>
-                                    <input id="dropzone-file" name="image" type="file" accept="image/*" class="hidden" onchange="previewImage(this)" />
-                                </label>
-                            </div>
                             
-                            <!-- Image Preview Box -->
-                            <div id="image-preview" class="mt-4 {{ $product->primaryImage ? '' : 'hidden' }}">
-                                <div class="inline-block relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1">
-                                    @if($product->primaryImage)
-                                        <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" class="h-36 w-36 object-cover rounded-lg">
-                                    @else
-                                        <img src="" class="h-36 w-36 object-cover rounded-lg hidden">
-                                    @endif
+                            <!-- Existing Photos -->
+                            @if($product->images->count() > 0)
+                                <div class="space-y-2 mb-4">
+                                    <span class="text-[11px] font-mono text-slate-400 uppercase">Foto Saat Ini:</span>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                        @foreach($product->images as $img)
+                                            <div class="relative aspect-square rounded-xl border border-slate-700 bg-slate-950 overflow-hidden group">
+                                                <img src="{{ asset('storage/' . $img->image_path) }}" class="w-full h-full object-cover">
+                                                
+                                                @if($img->is_primary)
+                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase font-mono shadow">
+                                                        UTAMA
+                                                    </span>
+                                                @endif
+
+                                                <label class="absolute inset-0 bg-rose-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center cursor-pointer">
+                                                    <input type="checkbox" name="delete_images[]" value="{{ $img->id }}" class="w-4 h-4 rounded border-rose-500 text-rose-600 focus:ring-rose-500 mb-1">
+                                                    <span class="text-[10px] font-bold text-rose-200 uppercase font-mono">Hapus Foto</span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 font-mono">*Centang foto yang ingin dihapus saat klik Update Product.</p>
                                 </div>
-                            </div>
+                            @endif
+
+                            @php($availableSlots = max(0, 4 - $product->images->count()))
+                            @if($availableSlots > 0)
+                                <div class="space-y-2">
+                                    <span class="text-[11px] font-mono text-slate-300 uppercase font-bold">Tambah Foto Baru (Tersisa {{ $availableSlots }} Slot):</span>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                        @for($i = 0; $i < $availableSlots; $i++)
+                                            <div class="relative aspect-square rounded-xl border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900 transition overflow-hidden flex flex-col items-center justify-center text-center group">
+                                                <label for="new-file-{{ $i }}" class="w-full h-full flex flex-col items-center justify-center p-3 cursor-pointer">
+                                                    <div class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
+                                                        <i class="fas fa-plus text-xs"></i>
+                                                    </div>
+                                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
+                                                    <input id="new-file-{{ $i }}" type="file" name="images[]" accept="image/*" class="hidden">
+                                                </label>
+                                            </div>
+                                        @endfor
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
