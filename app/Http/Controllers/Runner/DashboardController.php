@@ -98,6 +98,17 @@ class DashboardController extends Controller
             }
         }
 
+        // Add UserActivity completed in current week
+        $weeklyUserActivitiesKm = \App\Models\UserActivity::where('user_id', $user->id)
+            ->where(function ($q) use ($startOfWeek, $endOfWeek) {
+                $q->whereBetween('start_time', [$startOfWeek, $endOfWeek])
+                  ->orWhere(function ($q2) use ($startOfWeek, $endOfWeek) {
+                      $q2->whereNull('start_time')->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+                  });
+            })
+            ->sum('distance_km');
+        $weeklyCompletedKm += (float) $weeklyUserActivitiesKm;
+
         $customWorkouts = CustomWorkout::where('runner_id', $user->id)
             ->whereBetween('workout_date', [$startOfWeek, $endOfWeek])
             ->get();
@@ -257,6 +268,46 @@ class DashboardController extends Controller
             $dateKey = $item['date'];
             if (isset($workoutsByDate[$dateKey])) {
                 $workoutsByDate[$dateKey][] = $item;
+            }
+        }
+
+        $userActivities = \App\Models\UserActivity::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        foreach ($userActivities as $act) {
+            $actDate = $act->start_time ? $act->start_time->format('Y-m-d') : $act->created_at->format('Y-m-d');
+            $key = 'activity:'.$act->id;
+            if (isset($seenWorkoutKeys[$key])) {
+                continue;
+            }
+            $seenWorkoutKeys[$key] = true;
+
+            $item = [
+                'id' => $act->id,
+                'date' => $actDate,
+                'date_label' => $act->start_time ? $act->start_time->format('D, d M') : $act->created_at->format('D, d M'),
+                'type' => 'Activity',
+                'title' => $act->title,
+                'distance' => (float) $act->distance_km,
+                'duration' => $act->moving_time_s ? round($act->moving_time_s / 60) : 0,
+                'formatted_duration' => $act->formatted_moving_time,
+                'pace' => $act->formatted_avg_pace,
+                'gain' => $act->elevation_gain_m,
+                'calories' => $act->calories,
+                'status' => 'completed',
+                'program_title' => 'RuangLari Activity',
+                'source' => 'activity',
+                'activity_id' => $act->id,
+                'coordinates' => $act->coordinates_json,
+                'splits' => $act->splits_json,
+                'notes' => $act->notes,
+                'url' => route('activities.show', $act->id),
+            ];
+
+            if (isset($workoutsByDate[$actDate])) {
+                $workoutsByDate[$actDate][] = $item;
             }
         }
 
@@ -433,6 +484,7 @@ class DashboardController extends Controller
             'isEnrolled40Days' => $isEnrolled40Days,
             'runConnectHistory' => $runConnectHistoryOriginal,
             'publishedTrials' => $runConnectHistory,
+            'userActivities' => $userActivities,
         ]);
     }
 

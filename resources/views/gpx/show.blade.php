@@ -9,6 +9,7 @@
     $distKm = (float)($item->distance_km ?? 0);
     $gainM = (float)($item->elevation_gain_m ?? 0);
     $lossM = (float)($item->elevation_loss_m ?? 0);
+    $masterGpxId = $item->id;
 @endphp
 
 @section('title', $pageTitle)
@@ -42,6 +43,46 @@
         .pacepro-table-wrap::-webkit-scrollbar-thumb {
             background: #1e2638;
             border-radius: 2px;
+        }
+        #gpx-nav-hud {
+            background-color: #070B12 !important;
+            background: #070B12 !important;
+            z-index: 99999 !important;
+        }
+        .nav-solid-header {
+            background-color: #070B12 !important;
+            background: #070B12 !important;
+            border-bottom: 1px solid #1E293B !important;
+            z-index: 30 !important;
+        }
+        .nav-solid-bottom {
+            background-color: #0B0F17 !important;
+            background: #0B0F17 !important;
+            border-top: 1px solid #1E293B !important;
+            z-index: 30 !important;
+            opacity: 1 !important;
+        }
+        .nav-metrics-box {
+            background-color: #111724 !important;
+            background: #111724 !important;
+            border: 1px solid #1E293B !important;
+            opacity: 1 !important;
+        }
+        #post-run-modal {
+            background-color: rgba(0, 0, 0, 0.88) !important;
+            background: rgba(0, 0, 0, 0.88) !important;
+            z-index: 999999 !important;
+        }
+        .post-run-card {
+            background-color: #0F172A !important;
+            background: #0F172A !important;
+            border: 1px solid #334155 !important;
+        }
+        body.gpx-nav-active #chatbox-toggle,
+        body.gpx-nav-active #ph-chatbox,
+        body.gpx-nav-active .crisp-client,
+        body.gpx-nav-active #crisp-chatbox {
+            display: none !important;
         }
     </style>
 
@@ -103,18 +144,18 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 md:px-8 bg-[#0B0F17] text-slate-200 font-sans">
-    <div class="max-w-6xl mx-auto space-y-6">
+<div class="min-h-screen pt-20 sm:pt-24 pb-20 px-3 sm:px-4 md:px-8 bg-[#0B0F17] text-slate-200 font-sans overflow-x-hidden w-full max-w-full">
+    <div class="max-w-6xl mx-auto space-y-5 sm:space-y-6">
         
         <!-- Breadcrumb & Top Utility Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-            <nav class="flex items-center gap-1.5 font-medium">
-                <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition">Database GPX</a>
+        <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-400">
+            <nav class="flex items-center gap-1.5 font-medium truncate max-w-[240px] sm:max-w-none">
+                <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition shrink-0">Database GPX</a>
                 <span class="text-slate-600">/</span>
-                <span class="text-slate-300 truncate max-w-[200px] sm:max-w-sm">{{ $item->title }}</span>
+                <span class="text-slate-300 truncate">{{ $item->title }}</span>
             </nav>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
                 <button type="button" onclick="shareGpxRoute()" class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-slate-600 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-share-nodes text-[11px] text-slate-400"></i>
                     <span>Bagikan</span>
@@ -123,18 +164,18 @@
         </div>
 
         <!-- Route Header & Primary Action Bar -->
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-2 border-b border-slate-800/80">
-            <div class="space-y-2.5 max-w-3xl">
-                <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6 pb-3 border-b border-slate-800/80">
+            <div class="space-y-2 max-w-3xl">
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">
                         <i class="fa-solid fa-location-dot text-[#FC4C02] text-[10px]"></i>
                         <span>{{ $cityName }}</span>
                     </span>
                     
                     @if($item->event)
-                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">
                             <i class="fa-solid fa-trophy text-slate-400 text-[10px]"></i>
-                            <span>{{ $item->event->title ?? $item->event->name ?? 'Event Lari' }}</span>
+                            <span class="truncate max-w-[150px]">{{ $item->event->title ?? $item->event->name ?? 'Event Lari' }}</span>
                         </span>
                     @endif
 
@@ -144,68 +185,70 @@
                     </span>
                 </div>
 
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
                     {{ $item->title }}
                 </h1>
 
-                <p class="text-slate-400 text-sm leading-relaxed max-w-2xl font-normal">
+                <p class="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
                     {{ $item->description ?? $item->notes ?? 'File rute GPX lari terverifikasi untuk Garmin, Coros, Suunto, dan Strava dengan profil elevasi dan panduan strategi pacing.' }}
                 </p>
             </div>
 
-            <!-- Clear Action Hierarchy -->
-            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+            <!-- Clear Action Hierarchy (Optimized for 360px mobile) -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0">
                 <!-- Primary CTA: Download GPX -->
-                <a href="{{ route('gpx.download', $item->id) }}" class="px-4 py-2.5 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                <a href="{{ route('gpx.download', $item->id) }}" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-2 shadow-sm cursor-pointer text-center">
                     <i class="fa-solid fa-download text-xs"></i>
                     <span>Download GPX</span>
                 </a>
 
-                <!-- Secondary CTA: Live Navigation -->
-                <button type="button" onclick="startLiveNavigation()" class="px-4 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-location-arrow text-xs text-[#FC4C02]"></i>
-                    <span>Mulai Navigasi</span>
-                </button>
+                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                    <!-- Secondary CTA: Live Navigation -->
+                    <button type="button" onclick="startLiveNavigation()" class="px-3 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                        <i class="fa-solid fa-location-arrow text-xs text-[#FC4C02]"></i>
+                        <span>Navigasi</span>
+                    </button>
 
-                <!-- Minor/Utility Action -->
-                <a href="{{ route('tools.buat-rute-lari') }}" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5" title="Buka di Route Builder">
-                    <i class="fa-solid fa-draw-polygon text-[11px]"></i>
-                    <span>Editor</span>
-                </a>
+                    <!-- Minor Action: Route Editor -->
+                    <a href="{{ route('tools.buat-rute-lari') }}" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5 text-center" title="Buka di Route Builder">
+                        <i class="fa-solid fa-draw-polygon text-[11px]"></i>
+                        <span>Editor</span>
+                    </a>
+                </div>
             </div>
         </div>
 
-        <!-- Consolidated Statistics Strip -->
+        <!-- Consolidated Statistics Strip (Optimized for 360px mobile) -->
         <div class="bg-[#111724] border border-slate-800/80 rounded-lg grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Jarak Total</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">{{ $formattedDist }}</span>
+            <div class="p-3 sm:p-4">
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Jarak Total</span>
+                <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">{{ $formattedDist }}</span>
                     <span class="text-xs text-slate-400 font-medium">km</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Elevasi Naik</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">+{{ number_format($gainM) }}</span>
+            <div class="p-3 sm:p-4">
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Naik</span>
+                <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">+{{ number_format($gainM) }}</span>
                     <span class="text-xs text-slate-400 font-medium">m</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Elevasi Turun</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">-{{ number_format($lossM) }}</span>
+            <div class="p-3 sm:p-4">
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Turun</span>
+                <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">-{{ number_format($lossM) }}</span>
                     <span class="text-xs text-slate-400 font-medium">m</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Kontributor</span>
-                <div class="mt-1 truncate">
-                    <span class="text-sm font-semibold text-white block truncate">{{ $item->user?->name ?? 'RuangLari' }}</span>
-                    <span class="text-[11px] text-slate-500 block">{{ $item->created_at ? $item->created_at->format('d M Y') : 'Terverifikasi' }}</span>
+            <div class="p-3 sm:p-4">
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Kontributor</span>
+                <div class="mt-0.5 sm:mt-1 truncate">
+                    <span class="text-xs sm:text-sm font-semibold text-white block truncate">{{ $item->user?->name ?? 'RuangLari' }}</span>
+                    <span class="text-[10px] sm:text-[11px] text-slate-500 block">{{ $item->created_at ? $item->created_at->format('d M Y') : 'Terverifikasi' }}</span>
                 </div>
             </div>
         </div>
@@ -279,13 +322,13 @@
         </div>
 
         <!-- PACEPRO RACE STRATEGY PLANNER (Data-Focused Running Tool) -->
-        <section id="gpx-pacepro-section" class="bg-[#111724] border border-slate-800/80 rounded-lg p-5 md:p-6 space-y-5">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <section id="gpx-pacepro-section" class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 md:p-6 space-y-4 sm:space-y-5 overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800 pb-3 sm:pb-4">
                 <div>
-                    <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">
+                    <h2 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight">
                         PacePro™ Strategy Planner
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">
+                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
                         Rencana target split per kilometer berdasarkan profil tanjakan rute dan tipe pacing yang dipilih.
                     </p>
                 </div>
@@ -296,16 +339,16 @@
                 </div>
             </div>
 
-            <div class="grid lg:grid-cols-12 gap-5">
+            <div class="grid lg:grid-cols-12 gap-4 sm:gap-5">
                 <!-- Left: Analytical Form Inputs -->
                 <div class="lg:col-span-5 space-y-4">
-                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-4 space-y-4">
+                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-3 sm:p-4 space-y-3.5 sm:space-y-4">
                         <!-- Target Time -->
                         <div>
                             <label class="block text-xs font-semibold text-slate-300 mb-1.5">
                                 Target Waktu Selesai
                             </label>
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
                                 <div>
                                     <input type="number" id="pp-time-h" min="0" max="23" value="0" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
                                     <span class="text-[10px] text-slate-400 text-center block mt-1">Jam</span>
@@ -358,7 +401,7 @@
                             <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
                                 <span>Agresif (-10)</span>
                                 <span>Normal (0)</span>
-                                <span>Hemat Tenaga (+10)</span>
+                                <span>Hemat (+10)</span>
                             </div>
                         </div>
 
@@ -372,27 +415,27 @@
                 <!-- Right: Clean Splits Table -->
                 <div class="lg:col-span-7 space-y-3">
                     <!-- Summary Strip -->
-                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-medium block">Rata-Rata Pace</span>
-                            <span id="pp-avg-pace" class="text-base font-bold font-mono text-white mt-0.5 block">--:-- /km</span>
+                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-2.5 sm:p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
+                        <div class="px-1">
+                            <span class="text-[10px] text-slate-400 font-medium block">Avg Pace</span>
+                            <span id="pp-avg-pace" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">--:-- /km</span>
                         </div>
-                        <div>
+                        <div class="px-1">
                             <span class="text-[10px] text-slate-400 font-medium block">Target Waktu</span>
-                            <span id="pp-target-total-time" class="text-base font-bold font-mono text-white mt-0.5 block">00:00:00</span>
+                            <span id="pp-target-total-time" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">00:00:00</span>
                         </div>
-                        <div>
+                        <div class="px-1">
                             <span class="text-[10px] text-slate-400 font-medium block">Total Jarak</span>
-                            <span class="text-base font-bold font-mono text-slate-300 mt-0.5 block">{{ $formattedDist }} km</span>
+                            <span class="text-xs sm:text-base font-bold font-mono text-slate-300 mt-0.5 block truncate">{{ $formattedDist }} km</span>
                         </div>
                     </div>
 
                     <!-- Splits Table -->
                     <div class="bg-[#0D131F] border border-slate-800 rounded-lg overflow-hidden">
-                        <div class="px-3.5 py-2.5 bg-[#111724] border-b border-slate-800 flex items-center justify-between gap-2">
-                            <span class="text-xs font-semibold text-slate-200">Tabel Split per Kilometer</span>
+                        <div class="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#111724] border-b border-slate-800 flex items-center justify-between gap-2">
+                            <span class="text-xs font-semibold text-slate-200 truncate">Tabel Split KM</span>
 
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <button type="button" id="pp-btn-copy" onclick="copyPaceStrategy()" class="px-2 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 transition cursor-pointer flex items-center gap-1">
                                     <i class="fa-regular fa-copy text-[10px]"></i>
                                     <span id="pp-copy-text">Salin</span>
@@ -404,15 +447,15 @@
                             </div>
                         </div>
 
-                        <div class="pacepro-table-wrap max-h-[340px] overflow-y-auto overflow-x-auto">
-                            <table class="w-full text-left text-xs" id="pp-pace-table">
+                        <div class="pacepro-table-wrap max-h-[340px] overflow-y-auto overflow-x-auto w-full">
+                            <table class="w-full text-left text-xs min-w-[340px]" id="pp-pace-table">
                                 <thead class="bg-[#090D16] text-slate-400 uppercase text-[10px] font-mono sticky top-0 border-b border-slate-800 z-10">
                                     <tr>
-                                        <th class="py-2 px-3.5 font-medium">KM</th>
-                                        <th class="py-2 px-3.5 font-medium">Target Pace</th>
-                                        <th class="py-2 px-3.5 font-medium">Waktu Split</th>
-                                        <th class="py-2 px-3.5 font-medium">Waktu Kumulatif</th>
-                                        <th class="py-2 px-3.5 text-right font-medium">Elevasi</th>
+                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">KM</th>
+                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Target Pace</th>
+                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Waktu Split</th>
+                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Kumulatif</th>
+                                        <th class="py-2 px-2.5 sm:px-3.5 text-right font-medium">Elevasi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pp-table-body" class="divide-y divide-slate-800/80 font-mono text-slate-300">
@@ -448,28 +491,28 @@
         @endif
 
         <!-- Smartwatch Sync Guide (Garmin, Coros, Strava) -->
-        <section class="bg-[#111724] border border-slate-800/80 rounded-lg p-5 space-y-4"
+        <section class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 overflow-hidden"
                  x-data="{ activeTab: 'garmin' }">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 sm:pb-3.5">
                 <div>
-                    <h3 class="text-sm font-bold text-white uppercase">Cara Memasukkan GPX ke Jam Tangan</h3>
-                    <span class="text-xs text-slate-400">Panduan sinkronisasi ke aplikasi pendukung jam pelari.</span>
+                    <h3 class="text-xs sm:text-sm font-bold text-white uppercase">Cara Memasukkan GPX ke Jam Tangan</h3>
+                    <span class="text-[11px] sm:text-xs text-slate-400">Panduan sinkronisasi ke aplikasi pendukung jam pelari.</span>
                 </div>
 
-                <!-- Clean Tabs -->
-                <div class="flex items-center gap-1 bg-[#0D131F] p-0.5 rounded border border-slate-800">
+                <!-- Clean Responsive Tabs -->
+                <div class="flex items-center gap-1 bg-[#0D131F] p-0.5 rounded border border-slate-800 w-full sm:w-auto">
                     <button type="button" @click="activeTab = 'garmin'"
-                            class="px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
+                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
                             :class="activeTab === 'garmin' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
                         Garmin
                     </button>
                     <button type="button" @click="activeTab = 'coros'"
-                            class="px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
+                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
                             :class="activeTab === 'coros' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
                         Coros
                     </button>
                     <button type="button" @click="activeTab = 'strava'"
-                            class="px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
+                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
                             :class="activeTab === 'strava' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
                         Strava
                     </button>
@@ -551,78 +594,189 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- FULLSCREEN RUNNING NAVIGATION HUD (High-Contrast, Utility-First) -->
 <!-- ========================================================================= -->
-<div id="gpx-nav-hud" class="fixed inset-0 z-[99999] bg-[#070B12] text-white flex flex-col hidden select-none">
-    <!-- Top HUD Bar -->
-    <div class="absolute top-0 left-0 right-0 z-30 p-3 bg-gradient-to-b from-[#070B12] via-[#070B12]/90 to-transparent flex items-center justify-between gap-2.5 pointer-events-auto">
-        <!-- Status Banner -->
-        <div id="nav-banner-status" class="flex-1 bg-[#111724]/95 border border-slate-700/80 rounded-lg px-3 py-2 flex items-center gap-2.5 shadow-lg">
-            <div id="nav-status-icon" class="w-8 h-8 rounded bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                <i class="fa-solid fa-location-arrow text-xs"></i>
-            </div>
+<!-- FULLSCREEN RUNNING NAVIGATION HUD (Solid Opaque, High-Contrast Sports Tech) -->
+<!-- ========================================================================= -->
+<div id="gpx-nav-hud" class="fixed inset-0 z-[99990] bg-[#070B12] text-white flex flex-col hidden select-none font-sans overflow-hidden" style="background-color: #070B12 !important; background: #070B12 !important;">
+    
+    <!-- Top Solid Header Bar -->
+    <div class="nav-solid-header absolute top-0 left-0 right-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#070B12] border-b border-slate-800 flex items-center justify-between gap-3 shadow-2xl" style="background-color: #070B12 !important;">
+        <!-- Status & GPS Indicator -->
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
             <div class="min-w-0 flex-1">
-                <div id="nav-status-title" class="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider truncate">
-                    Mencari Sinyal GPS...
-                </div>
-                <div id="nav-status-desc" class="text-xs font-semibold text-white truncate">
-                    Menghubungkan ke satelit GPS
-                </div>
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block truncate" id="nav-status-label">
+                    Navigasi GPS Aktif
+                </span>
+                <h2 class="text-xs sm:text-sm font-bold text-white truncate" id="nav-status-title">
+                    {{ $item->title }}
+                </h2>
             </div>
         </div>
 
-        <!-- Action Controls -->
-        <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" id="nav-btn-audio" onclick="toggleNavAudio()" class="w-9 h-9 rounded-lg bg-[#111724]/95 border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer shadow" title="Suara Navigasi">
-                <i id="nav-audio-icon" class="fa-solid fa-volume-high text-xs text-[#FC4C02]"></i>
-            </button>
-            <button type="button" onclick="closeLiveNavigation()" class="w-9 h-9 rounded-lg bg-[#111724]/95 border border-slate-700 text-slate-300 hover:text-red-400 flex items-center justify-center transition cursor-pointer shadow" title="Keluar Navigasi">
+        <!-- Exit Navigation in Header -->
+        <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="closeLiveNavigation()" class="w-8 h-8 rounded-lg bg-[#111724] border border-slate-700 text-slate-300 hover:text-red-400 flex items-center justify-center transition cursor-pointer shadow" style="background-color: #111724 !important;" title="Keluar Navigasi">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
     </div>
 
-    <!-- Fullscreen Leaflet Map -->
-    <div id="nav-fullscreen-map" class="flex-1 w-full h-full relative z-10"></div>
+    <!-- Fullscreen Map Canvas -->
+    <div id="nav-fullscreen-map" class="flex-1 w-full h-full relative z-10 pt-14 pb-64"></div>
 
-    <!-- Recenter Button -->
-    <button type="button" id="nav-btn-recenter" onclick="recenterNavMap()" class="absolute right-3.5 bottom-36 z-30 w-10 h-10 rounded-lg bg-[#111724]/95 border border-slate-700 text-[#FC4C02] hover:text-white flex items-center justify-center transition cursor-pointer shadow-lg" title="Kunci Posisi Saya">
-        <i class="fa-solid fa-crosshairs text-sm"></i>
-    </button>
+    <!-- Floating Map Actions Column (Mepet Kanan, Vertikal Turun ke Bawah, Top 120px) -->
+    <div class="fixed z-40 flex flex-col gap-2.5 items-end pointer-events-auto" style="top: 120px !important; right: 12px !important; z-index: 99999 !important;">
+        <!-- Google Maps Guide Link (visible when far from start) -->
+        <a id="nav-gmaps-link" href="#" target="_blank" class="hidden px-2.5 py-1.5 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-2xl transition border border-[#FC4C02]" title="Petunjuk Google Maps ke Titik Start">
+            <i class="fa-solid fa-diamond-turn-right text-xs"></i>
+            <span>Arahkan</span>
+        </a>
 
-    <!-- Bottom Running Metrics HUD Bar -->
-    <div class="absolute bottom-0 left-0 right-0 z-30 p-3 bg-gradient-to-t from-[#070B12] via-[#070B12]/95 to-transparent pointer-events-auto">
-        <div class="max-w-lg mx-auto bg-[#111724]/95 border border-slate-700/90 rounded-xl p-3.5 shadow-xl space-y-2.5">
-            <!-- 3 Main Metrics -->
-            <div class="grid grid-cols-3 gap-2 text-center divide-x divide-slate-800">
+        <!-- Return to Start Toggle Button -->
+        <button type="button" id="nav-btn-return-start" onclick="toggleNavReturnToStart()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-[#FC4C02] flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Navigasi Kembali ke Start">
+            <i id="nav-return-icon" class="fa-solid fa-arrow-rotate-left text-sm"></i>
+        </button>
+
+        <!-- Recenter / Focus Button -->
+        <button type="button" id="nav-btn-recenter" onclick="recenterNavMap()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-[#FC4C02] hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Kunci Posisi / Rute">
+            <i class="fa-solid fa-crosshairs text-base"></i>
+        </button>
+
+        <!-- Audio Toggle Button -->
+        <button type="button" id="nav-btn-audio" onclick="toggleNavAudio()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Suara Navigasi">
+            <i id="nav-audio-icon" class="fa-solid fa-volume-high text-xs text-[#FC4C02]"></i>
+        </button>
+    </div>
+
+    <!-- Bottom Running Dashboard Panel (SOLID OPAQUE CHARCOAL) -->
+    <div class="nav-solid-bottom absolute bottom-0 left-0 right-0 z-30 bg-[#0B0F17] border-t border-slate-800 p-4 sm:p-5 shadow-2xl" style="background-color: #0B0F17 !important; opacity: 1 !important;">
+        <div class="max-w-xl mx-auto space-y-3.5">
+            
+            <!-- Primary Giant Metrics Display -->
+            <div class="nav-metrics-box grid grid-cols-3 gap-3 text-center divide-x divide-slate-800 bg-[#111724] border border-slate-800 rounded-xl p-3.5 shadow-inner" style="background-color: #111724 !important;">
                 <div>
-                    <span class="text-[10px] font-mono text-slate-400 font-medium uppercase block">Pace Saat Ini</span>
-                    <span id="nav-live-pace" class="text-xl font-mono font-bold text-white mt-0.5 block">--:--</span>
-                    <span class="text-[9px] font-mono text-slate-500 block">/km</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Pace Saat Ini</span>
+                    <div class="mt-0.5">
+                        <span id="nav-live-pace" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">--:--</span>
+                        <span class="text-[10px] font-mono text-slate-500 block">/km</span>
+                    </div>
                 </div>
+
                 <div>
-                    <span class="text-[10px] font-mono text-slate-400 font-medium uppercase block">Sisa Jarak</span>
-                    <span id="nav-remaining-dist" class="text-xl font-mono font-bold text-[#FC4C02] mt-0.5 block">{{ $formattedDist }}</span>
-                    <span class="text-[9px] font-mono text-slate-500 block">km</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Sisa Jarak</span>
+                    <div class="mt-0.5">
+                        <span id="nav-remaining-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">{{ $formattedDist }}</span>
+                        <span class="text-[10px] font-mono text-slate-500 block">km</span>
+                    </div>
                 </div>
+
                 <div>
-                    <span class="text-[10px] font-mono text-slate-400 font-medium uppercase block">Waktu Lari</span>
-                    <span id="nav-running-time" class="text-xl font-mono font-bold text-white mt-0.5 block">00:00</span>
-                    <span class="text-[9px] font-mono text-slate-500 block" id="nav-eta-label">Durasi</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Waktu Lari</span>
+                    <div class="mt-0.5">
+                        <span id="nav-running-time" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">00:00</span>
+                        <span class="text-[10px] font-mono text-slate-500 block" id="nav-eta-label">Durasi</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Route Progress Bar -->
             <div>
-                <div class="flex justify-between text-[10px] font-mono text-slate-400 mb-1">
-                    <span>Progress: <strong id="nav-progress-pct" class="text-white font-semibold">0%</strong></span>
-                    <span id="nav-completed-dist">0.00 / {{ $formattedDist }} km</span>
+                <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+                    <span>Progress: <strong id="nav-progress-pct" class="text-white font-bold">0%</strong></span>
+                    <span id="nav-completed-dist" class="text-slate-300">0.00 / {{ $formattedDist }} km</span>
                 </div>
-                <div class="w-full h-1 bg-slate-800 rounded overflow-hidden">
+                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div id="nav-progress-bar" class="h-full bg-[#FC4C02] transition-all duration-300 w-0"></div>
                 </div>
             </div>
+
+            <!-- Finish Run Button (Solid Strava-like Finish) -->
+            <div class="pt-1">
+                <button type="button" onclick="finishLiveNavigation()" class="w-full py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                    <i class="fa-solid fa-flag-checkered text-xs"></i>
+                    <span>Selesai & Simpan Lari</span>
+                </button>
+            </div>
         </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SOLID HIGH-CONTRAST POST-RUN SAVE MODAL (Strava-like) -->
+<!-- ========================================================================= -->
+<div id="post-run-modal" class="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden select-none" style="z-index: 999999 !important;">
+    <div class="post-run-card bg-[#0F172A] border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl text-slate-200" style="background-color: #0F172A !important;">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3.5">
+            <div>
+                <h3 class="text-lg font-bold text-white">Ringkasan Lari Selesai</h3>
+                <span class="text-xs text-slate-400">Selamat! Aktivitas lari rute ini berhasil direkam.</span>
+            </div>
+            <button type="button" onclick="closePostRunModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Solid Summary Metrics Strip -->
+        <div class="bg-[#1E293B] border border-slate-700 rounded-xl p-3.5 grid grid-cols-4 divide-x divide-slate-700 text-center">
+            <div>
+                <span class="text-[10px] text-slate-400 font-mono font-medium block">Jarak</span>
+                <span id="summary-distance" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">0.00 km</span>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-400 font-mono font-medium block">Waktu</span>
+                <span id="summary-time" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">00:00</span>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-400 font-mono font-medium block">Avg Pace</span>
+                <span id="summary-pace" class="text-base sm:text-lg font-bold font-mono text-[#FC4C02] mt-0.5 block">--:--</span>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-400 font-mono font-medium block">Gain</span>
+                <span id="summary-gain" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">+0m</span>
+            </div>
+        </div>
+
+        @auth
+            <!-- Save Activity Form for Authenticated Runner -->
+            <form id="save-activity-form" onsubmit="submitSaveActivity(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Judul Aktivitas</label>
+                    <input type="text" id="act-form-title" required class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2.5 text-xs text-white outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Catatan Lari (Opsional)</label>
+                    <textarea id="act-form-notes" rows="2" placeholder="Bagaimana kondisi rute dan fisik Anda hari ini?" class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2.5 text-xs text-white outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="act-form-public" checked class="rounded border-slate-700 bg-slate-800 text-[#FC4C02] focus:ring-0 cursor-pointer">
+                    <label for="act-form-public" class="text-xs text-slate-300 cursor-pointer">Tampilkan aktivitas ini di profil publik</label>
+                </div>
+
+                <button type="submit" id="btn-save-activity-submit" class="w-full py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                    <span>Simpan Aktivitas ke Profil</span>
+                </button>
+            </form>
+        @else
+            <!-- Guest Prompt -->
+            <div class="p-4 rounded-xl bg-[#1E293B] border border-slate-700 space-y-3 text-center">
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Masuk ke akun RuangLari Anda untuk menyimpan aktivitas ini ke profil, menghitung total KM mingguan, dan melihat analisis split.
+                </p>
+                <div class="flex items-center justify-center gap-2.5 pt-1">
+                    <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#e04300] transition">
+                        Masuk / Login
+                    </a>
+                    <button type="button" onclick="exportRecordedGpxDirectly()" class="px-3.5 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-xs font-semibold hover:text-white transition cursor-pointer">
+                        Download GPX Saja
+                    </button>
+                </div>
+            </div>
+        @endauth
     </div>
 </div>
 @endsection
@@ -634,6 +788,8 @@
         const totalRouteDistance = {{ $distKm > 0 ? $distKm : 10.0 }};
         const totalElevationGain = {{ $gainM }};
         const routeTitle = "{{ addslashes($item->title) }}";
+        const currentMasterGpxId = {{ $masterGpxId }};
+        const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
 
         let map = null;
         let polyline = null;
@@ -647,6 +803,7 @@
         let navPolyline = null;
         let navUserMarker = null;
         let navAccuracyCircle = null;
+        let navReturnPolyline = null;
         let navWatchId = null;
         let navWakeLock = null;
         let navAudioEnabled = true;
@@ -656,6 +813,14 @@
         let navIsOffCourse = false;
         let navUserPos = null;
         let navLastSpokenTime = 0;
+        let navReturnMode = false;
+        let navHasCenteredOnUser = false;
+
+        // GPS Breadcrumbs Recording State (for Saving Activity)
+        let recordedGpsTrack = [];
+        let recordedActualDistanceKm = 0;
+        let recordedFinalSplits = [];
+        let recordedElevationGainM = 0;
 
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
@@ -1089,7 +1254,7 @@
         }
 
         // =========================================================================
-        // 4. LIVE GPS NAVIGATION MODE ENGINE (Option A Fullscreen HUD + Sound)
+        // 4. LIVE GPS NAVIGATION & ACTIVITY RECORDING ENGINE (Strava-like)
         // =========================================================================
         function startLiveNavigation() {
             if (!navigator.geolocation) {
@@ -1100,6 +1265,13 @@
             const hudEl = document.getElementById('gpx-nav-hud');
             if (hudEl) hudEl.classList.remove('hidden');
 
+            // Hide floating chat widget during running navigation
+            document.body.classList.add('gpx-nav-active');
+            const chatToggle = document.getElementById('chatbox-toggle');
+            if (chatToggle) chatToggle.style.setProperty('display', 'none', 'important');
+            const phChat = document.getElementById('ph-chatbox');
+            if (phChat) phChat.style.setProperty('display', 'none', 'important');
+
             // Lock screen from sleeping
             requestScreenWakeLock();
 
@@ -1108,12 +1280,21 @@
                 initNavMap();
             } else {
                 navMap.invalidateSize();
+                if (navPolyline) navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
             }
 
             navStartTime = Date.now();
             navLastPassedKm = 0;
             navIsOffCourse = false;
             navLastSpokenTime = 0;
+            navReturnMode = false;
+            navHasCenteredOnUser = false;
+
+            // Reset Recorded Track
+            recordedGpsTrack = [];
+            recordedActualDistanceKm = 0;
+            recordedFinalSplits = [];
+            recordedElevationGainM = 0;
 
             // Start Running Timer
             if (navTimerInterval) clearInterval(navTimerInterval);
@@ -1194,10 +1375,28 @@
         function handleNavGpsSuccess(pos) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
+            const ele = pos.coords.altitude || null;
             const accuracy = pos.coords.accuracy || 10;
             const speedMps = pos.coords.speed;
 
             navUserPos = { lat, lng };
+
+            // Record Breadcrumb Point for Saving Activity
+            const now = Date.now();
+            if (recordedGpsTrack.length > 0) {
+                const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
+                const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
+                // Filter out tiny GPS drift (< 2 meters)
+                if (segmentDist > 0.002) {
+                    recordedActualDistanceKm += segmentDist;
+                    if (ele && prev.ele && ele > prev.ele) {
+                        recordedElevationGainM += (ele - prev.ele);
+                    }
+                    recordedGpsTrack.push({ lat, lng, ele, dist: recordedActualDistanceKm, time: now });
+                }
+            } else {
+                recordedGpsTrack.push({ lat, lng, ele, dist: 0, time: now });
+            }
 
             if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
             if (navAccuracyCircle) {
@@ -1205,7 +1404,11 @@
                 navAccuracyCircle.setRadius(Math.min(accuracy, 50));
             }
 
-            // Calculate Distance to nearest point
+            // Calculate Distance to Start Point
+            const startPt = routePoints[0] || { lat, lng, dist: 0 };
+            const distToStartM = calculateHaversine(lat, lng, startPt.lat, startPt.lng) * 1000;
+
+            // Calculate Distance to nearest route point
             let nearestPoint = routePoints[0];
             let minDistanceM = 999999;
 
@@ -1217,63 +1420,116 @@
                 }
             });
 
-            // Off-course threshold: 45m
-            const isOffCourseNow = minDistanceM > 45;
+            const statusLabel = document.getElementById('nav-status-label');
+            const statusTitle = document.getElementById('nav-status-title');
+            const gpsInd = document.getElementById('nav-gps-indicator');
+            const gmapsLink = document.getElementById('nav-gmaps-link');
 
-            const bannerIcon = document.getElementById('nav-status-icon');
-            const bannerTitle = document.getElementById('nav-status-title');
-            const bannerDesc = document.getElementById('nav-status-desc');
+            // 1. Return to Start Mode Active
+            if (navReturnMode) {
+                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-sky-400 shrink-0';
+                if (statusLabel) {
+                    statusLabel.textContent = 'Mode Kembali ke Start';
+                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 block truncate';
+                }
+                if (statusTitle) {
+                    const distKm = (distToStartM / 1000).toFixed(2);
+                    statusTitle.textContent = `${distKm} km menuju Start`;
+                }
 
-            if (isOffCourseNow) {
-                if (!navIsOffCourse) {
-                    navIsOffCourse = true;
-                    if (bannerIcon) {
-                        bannerIcon.className = 'w-8 h-8 rounded bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0';
-                        bannerIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs"></i>';
+                // Update Return Guide Line
+                if (navMap) {
+                    if (!navReturnPolyline) {
+                        navReturnPolyline = L.polyline([[lat, lng], [startPt.lat, startPt.lng]], {
+                            color: '#38bdf8',
+                            weight: 4,
+                            dashArray: '8, 8',
+                            opacity: 0.95
+                        }).addTo(navMap);
+                    } else {
+                        navReturnPolyline.setLatLngs([[lat, lng], [startPt.lat, startPt.lng]]);
                     }
-                    if (bannerTitle) {
-                        bannerTitle.className = 'text-[10px] font-mono font-bold uppercase text-red-400 tracking-wider truncate';
-                        bannerTitle.textContent = 'Melenceng dari Jalur';
-                    }
-                    if (bannerDesc) {
-                        bannerDesc.textContent = `${Math.round(minDistanceM)} meter di luar jalur rute`;
-                    }
+                }
 
+                if (distToStartM <= 30) {
+                    speakVoice('Anda telah tiba kembali di titik Start.');
                     vibratePhone([200, 100, 200]);
-                    speakVoice(`Peringatan, Anda melenceng ${Math.round(minDistanceM)} meter dari jalur rute.`);
+                    toggleNavReturnToStart();
                 }
-            } else {
-                if (navIsOffCourse) {
-                    navIsOffCourse = false;
-                    speakVoice(`Anda telah kembali ke jalur rute.`);
+            } 
+            // 2. User is Far from GPX Route (> 250m)
+            else if (minDistanceM > 250) {
+                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 shrink-0';
+                if (statusLabel) {
+                    statusLabel.textContent = 'Menuju Titik Start';
+                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
                 }
-
-                if (bannerIcon) {
-                    bannerIcon.className = 'w-8 h-8 rounded bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0';
-                    bannerIcon.innerHTML = '<i class="fa-solid fa-location-arrow text-xs"></i>';
-                }
-                if (bannerTitle) {
-                    bannerTitle.className = 'text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider truncate';
-                    bannerTitle.textContent = 'Di Jalur Rute';
+                if (statusTitle) {
+                    const distKmFormatted = (distToStartM / 1000).toFixed(1);
+                    statusTitle.textContent = `${distKmFormatted} km dari Start`;
                 }
 
-                const currentKmProgress = nearestPoint.dist || 0;
-                const nextKmTarget = Math.floor(currentKmProgress) + 1;
-                const distToNextKm = (nextKmTarget - currentKmProgress) * 1000;
+                // Show Google Maps Direct Nav Link
+                if (gmapsLink) {
+                    gmapsLink.classList.remove('hidden');
+                    gmapsLink.href = `https://www.google.com/maps/dir/?api=1&destination=${startPt.lat},${startPt.lng}&travelmode=walking`;
+                }
+            }
+            // 3. User is At / On the GPX Route
+            else {
+                if (gmapsLink) gmapsLink.classList.add('hidden');
 
-                if (nextKmTarget <= totalRouteDistance) {
-                    if (bannerDesc) bannerDesc.textContent = `${Math.round(distToNextKm)}m menuju KM ${nextKmTarget}`;
+                const isOffCourseNow = minDistanceM > 45;
+                if (isOffCourseNow) {
+                    if (!navIsOffCourse) {
+                        navIsOffCourse = true;
+                        if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-rose-500 animate-ping shrink-0';
+                        if (statusLabel) {
+                            statusLabel.textContent = 'Melenceng dari Jalur';
+                            statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block truncate';
+                        }
+                        if (statusTitle) {
+                            statusTitle.textContent = `${Math.round(minDistanceM)}m di luar jalur`;
+                        }
+
+                        vibratePhone([200, 100, 200]);
+                        speakVoice(`Peringatan, Anda melenceng ${Math.round(minDistanceM)} meter dari jalur rute.`);
+                    }
                 } else {
-                    const distToFinishM = (totalRouteDistance - currentKmProgress) * 1000;
-                    if (bannerDesc) bannerDesc.textContent = `${Math.round(Math.max(0, distToFinishM))}m menuju Finish`;
+                    if (navIsOffCourse) {
+                        navIsOffCourse = false;
+                        speakVoice(`Anda telah kembali ke jalur rute.`);
+                    }
+
+                    if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-emerald-500 shrink-0';
+                    if (statusLabel) {
+                        statusLabel.textContent = 'Di Jalur Rute';
+                        statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
+                    }
+                    if (statusTitle) {
+                        const currentKmProgress = nearestPoint.dist || 0;
+                        const nextKmTarget = Math.floor(currentKmProgress) + 1;
+                        if (nextKmTarget <= totalRouteDistance) {
+                            const distToNextKm = (nextKmTarget - currentKmProgress) * 1000;
+                            statusTitle.textContent = `${Math.round(distToNextKm)}m menuju KM ${nextKmTarget}`;
+                        } else {
+                            statusTitle.textContent = '{{ $item->title }}';
+                        }
+                    }
+
+                    const currentKmProgress = nearestPoint.dist || 0;
+                    const completedKmInt = Math.floor(currentKmProgress);
+                    if (completedKmInt > navLastPassedKm && completedKmInt > 0) {
+                        navLastPassedKm = completedKmInt;
+                        const remaining = (totalRouteDistance - currentKmProgress).toFixed(1);
+                        speakVoice(`Kilometer ${completedKmInt} terlewati. Sisa jarak ${remaining} kilometer.`);
+                        vibratePhone([150, 100]);
+                    }
                 }
 
-                const completedKmInt = Math.floor(currentKmProgress);
-                if (completedKmInt > navLastPassedKm && completedKmInt > 0) {
-                    navLastPassedKm = completedKmInt;
-                    const remaining = (totalRouteDistance - currentKmProgress).toFixed(1);
-                    speakVoice(`Kilometer ${completedKmInt} terlewati. Sisa jarak ${remaining} kilometer.`);
-                    vibratePhone([150, 100]);
+                // Smoothly center on user position when running on the route
+                if (navMap) {
+                    navMap.panTo([lat, lng], { animate: true, duration: 0.8 });
                 }
             }
 
@@ -1300,30 +1556,58 @@
                     livePaceEl.textContent = '--:--';
                 }
             }
-
-            if (navMap) {
-                navMap.panTo([lat, lng], { animate: true, duration: 0.8 });
-            }
         }
 
         function handleNavGpsError(err) {
-            console.warn('GPS Error:', err);
-            const bannerTitle = document.getElementById('nav-status-title');
-            const bannerDesc = document.getElementById('nav-status-desc');
-            if (bannerTitle) {
-                bannerTitle.className = 'text-[10px] font-mono font-bold uppercase text-amber-400 tracking-wider truncate';
-                bannerTitle.textContent = 'Menunggu Sinyal GPS';
+            console.warn('Nav GPS Error:', err);
+            const gpsInd = document.getElementById('nav-gps-indicator');
+            const statusLabel = document.getElementById('nav-status-label');
+            const statusTitle = document.getElementById('nav-status-title');
+            if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 animate-pulse shrink-0';
+            if (statusLabel) {
+                statusLabel.textContent = 'Mencari Sinyal GPS...';
+                statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
             }
-            if (bannerDesc) {
-                bannerDesc.textContent = 'Pastikan sensor GPS HP aktif dan izin browser disetujui.';
+            if (statusTitle) {
+                statusTitle.textContent = 'Pastikan GPS HP Aktif';
             }
         }
 
         function recenterNavMap() {
-            if (navUserPos && navMap) {
+            if (!navMap) return;
+            // Toggle view: if currently far, switch between user position and route
+            if (navUserPos && navHasCenteredOnUser) {
+                if (navPolyline) {
+                    navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
+                    navHasCenteredOnUser = false;
+                }
+            } else if (navUserPos) {
                 navMap.setView([navUserPos.lat, navUserPos.lng], 16, { animate: true });
-            } else if (navPolyline && navMap) {
+                navHasCenteredOnUser = true;
+            } else if (navPolyline) {
                 navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
+            }
+        }
+
+        function toggleNavReturnToStart() {
+            navReturnMode = !navReturnMode;
+            const btnIcon = document.getElementById('nav-return-icon');
+            const returnBtn = document.getElementById('nav-btn-return-start');
+
+            if (navReturnMode) {
+                if (returnBtn) returnBtn.classList.add('text-[#FC4C02]', 'border-[#FC4C02]');
+                speakVoice('Navigasi kembali ke titik start diaktifkan.');
+            } else {
+                if (returnBtn) returnBtn.classList.remove('text-[#FC4C02]', 'border-[#FC4C02]');
+                if (navReturnPolyline && navMap) {
+                    navMap.removeLayer(navReturnPolyline);
+                    navReturnPolyline = null;
+                }
+                speakVoice('Navigasi rute normal aktif.');
+            }
+
+            if (navUserPos) {
+                handleNavGpsSuccess({ coords: { latitude: navUserPos.lat, longitude: navUserPos.lng } });
             }
         }
 
@@ -1338,6 +1622,13 @@
             const hudEl = document.getElementById('gpx-nav-hud');
             if (hudEl) hudEl.classList.add('hidden');
 
+            // Restore floating chat widget
+            document.body.classList.remove('gpx-nav-active');
+            const chatToggle = document.getElementById('chatbox-toggle');
+            if (chatToggle) chatToggle.style.removeProperty('display');
+            const phChat = document.getElementById('ph-chatbox');
+            if (phChat) phChat.style.removeProperty('display');
+
             if (navWatchId) {
                 navigator.geolocation.clearWatch(navWatchId);
                 navWatchId = null;
@@ -1348,11 +1639,152 @@
                 navTimerInterval = null;
             }
 
+            if (navReturnPolyline && navMap) {
+                navMap.removeLayer(navReturnPolyline);
+                navReturnPolyline = null;
+            }
+
             releaseScreenWakeLock();
 
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
+        }
+
+        // Finish Navigation & Open Post-Run Summary Modal
+        function finishLiveNavigation() {
+            if (!confirm('Apakah Anda ingin menyelesaikan sesi lari dan melihat ringkasan aktivitas?')) {
+                return;
+            }
+
+            const elapsedSec = navStartTime ? Math.floor((Date.now() - navStartTime) / 1000) : 0;
+            closeLiveNavigation();
+
+            // Calculate Final Metrics
+            const finalDist = recordedActualDistanceKm > 0.05 ? recordedActualDistanceKm : totalRouteDistance;
+            const avgPaceSec = finalDist > 0 && elapsedSec > 0 ? Math.round(elapsedSec / finalDist) : 0;
+
+            // Generate Recorded Splits
+            recordedFinalSplits = [];
+            const wholeKm = Math.ceil(finalDist);
+            let cumSec = 0;
+            for (let k = 1; k <= wholeKm; k++) {
+                const segDist = k > finalDist ? (finalDist - (k - 1)) : 1;
+                const splitSec = Math.round(avgPaceSec * segDist);
+                cumSec += splitSec;
+                recordedFinalSplits.push({
+                    km: k,
+                    pace: formatPaceTime(avgPaceSec) + ' /km',
+                    split: formatDurationTime(splitSec),
+                    cum: formatDurationTime(cumSec),
+                    elev: '-'
+                });
+            }
+
+            // Populate Modal Metrics
+            document.getElementById('summary-distance').textContent = finalDist.toFixed(2) + ' km';
+            document.getElementById('summary-time').textContent = formatDurationTime(elapsedSec);
+            document.getElementById('summary-pace').textContent = formatPaceTime(avgPaceSec) + ' /km';
+            document.getElementById('summary-gain').textContent = '+' + Math.round(recordedElevationGainM) + 'm';
+
+            const titleInput = document.getElementById('act-form-title');
+            if (titleInput) {
+                titleInput.value = 'Lari di ' + routeTitle;
+            }
+
+            // Show Post-Run Modal
+            const modal = document.getElementById('post-run-modal');
+            if (modal) modal.classList.remove('hidden');
+
+            speakVoice('Selamat! Sesi lari Anda telah selesai.');
+        }
+
+        function closePostRunModal() {
+            const modal = document.getElementById('post-run-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function submitSaveActivity(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('act-form-title')?.value || 'Aktivitas Lari';
+            const notes = document.getElementById('act-form-notes')?.value || '';
+            const isPublic = document.getElementById('act-form-public')?.checked ?? true;
+            const elapsedSec = navStartTime ? Math.floor((Date.now() - navStartTime) / 1000) : 60;
+            const finalDist = recordedActualDistanceKm > 0.05 ? recordedActualDistanceKm : totalRouteDistance;
+            const avgPaceSec = finalDist > 0 && elapsedSec > 0 ? Math.round(elapsedSec / finalDist) : 0;
+
+            const submitBtn = document.getElementById('btn-save-activity-submit');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Menyimpan...';
+            }
+
+            const payload = {
+                title: title,
+                master_gpx_id: currentMasterGpxId,
+                distance_km: finalDist,
+                moving_time_s: elapsedSec,
+                elapsed_time_s: elapsedSec,
+                avg_pace_sec: avgPaceSec,
+                elevation_gain_m: recordedElevationGainM,
+                coordinates_json: recordedGpsTrack.length > 0 ? recordedGpsTrack : rawRouteCoords,
+                splits_json: recordedFinalSplits,
+                notes: notes,
+                is_public: isPublic ? 1 : 0
+            };
+
+            fetch("{{ route('activities.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message || 'Gagal menyimpan aktivitas.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Terjadi kesalahan jaringan saat menyimpan aktivitas.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
+                }
+            });
+        }
+
+        function exportRecordedGpxDirectly() {
+            const track = recordedGpsTrack.length > 0 ? recordedGpsTrack : rawRouteCoords;
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="RuangLari.com"><trk><name>' + routeTitle + '</name><trkseg>\n';
+            track.forEach(p => {
+                const lat = p.lat !== undefined ? p.lat : p[0];
+                const lng = p.lng !== undefined ? p.lng : p[1];
+                const ele = p.ele !== undefined ? p.ele : (p[2] || 0);
+                xml += `  <trkpt lat="${lat}" lon="${lng}"><ele>${ele}</ele></trkpt>\n`;
+            });
+            xml += '</trkseg></trk></gpx>';
+
+            const blob = new Blob([xml], { type: 'application/gpx+xml;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Aktivitas_${slugify(routeTitle)}.gpx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         function toggleNavAudio() {

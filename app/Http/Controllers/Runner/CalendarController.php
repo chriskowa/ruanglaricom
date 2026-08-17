@@ -258,6 +258,47 @@ class CalendarController extends Controller
             ];
         }
 
+        $userActivities = \App\Models\UserActivity::where('user_id', $user->id)
+            ->when($startCarbon && $endCarbon, function ($q) use ($startCarbon, $endCarbon) {
+                $q->where(function ($sq) use ($startCarbon, $endCarbon) {
+                    $sq->whereBetween('start_time', [$startCarbon, $endCarbon])
+                      ->orWhere(function ($sq2) use ($startCarbon, $endCarbon) {
+                          $sq2->whereNull('start_time')->whereBetween('created_at', [$startCarbon, $endCarbon]);
+                      });
+                });
+            })
+            ->get();
+
+        foreach ($userActivities as $act) {
+            $actDate = $act->start_time ?: $act->created_at;
+            $distFormatted = number_format((float) $act->distance_km, 2);
+            $events[] = [
+                'id' => 'user_act_' . $act->id,
+                'title' => '🏃 ' . $act->title . ' (' . $distFormatted . ' km)',
+                'start' => $actDate->format('Y-m-d\TH:i:s'),
+                'end' => $actDate->copy()->addSeconds((int) ($act->elapsed_time_s ?: $act->moving_time_s ?: 3600))->format('Y-m-d\TH:i:s'),
+                'allDay' => false,
+                'editable' => false,
+                'backgroundColor' => '#111724',
+                'borderColor' => '#FC4C02',
+                'textColor' => '#FFFFFF',
+                'extendedProps' => [
+                    'type' => 'user_activity',
+                    'activity_id' => $act->id,
+                    'title' => $act->title,
+                    'distance_km' => (float) $act->distance_km,
+                    'moving_time_s' => $act->moving_time_s,
+                    'formatted_moving_time' => $act->formatted_moving_time,
+                    'avg_pace' => $act->formatted_avg_pace,
+                    'elevation_gain' => $act->elevation_gain_m,
+                    'calories' => $act->calories,
+                    'splits' => $act->splits_json,
+                    'notes' => $act->notes,
+                    'url' => route('activities.show', $act->id),
+                ],
+            ];
+        }
+
         return response()->json($events);
     }
 

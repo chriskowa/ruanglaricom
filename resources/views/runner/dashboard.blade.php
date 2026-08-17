@@ -60,7 +60,11 @@
                     </button>
                 </div>
             </div>
-            <div class="grid grid-cols-3 gap-2 w-full md:w-auto md:flex">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full md:w-auto md:flex">
+                <a href="{{ route('run.free') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black transition-all shadow-lg shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs tracking-wide uppercase cursor-pointer" title="Mulai sesi lari live GPS (Free Run)">
+                    <i class="fa-solid fa-person-running text-sm"></i>
+                    <span>Mulai Lari</span>
+                </a>
                 @if(auth()->user()->strava_access_token)
                     <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan otorisasi (Unauthorize) Strava?');" class="px-3.5 py-3 rounded-xl bg-rose-600/90 text-white font-bold hover:bg-rose-600 transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 text-xs" title="Klik untuk melepaskan koneksi Strava">
                         <i class="fab fa-strava text-sm"></i>

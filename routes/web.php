@@ -146,6 +146,13 @@ Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxControll
 Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
 Route::get('/gpx/my', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->middleware('auth')->name('gpx.my');
 
+// User Running Activities (Strava-like activities)
+Route::get('/run', [App\Http\Controllers\UserActivityController::class, 'freeRun'])->name('run.free');
+Route::post('/activities', [App\Http\Controllers\UserActivityController::class, 'store'])->name('activities.store');
+Route::get('/activities/{id}', [App\Http\Controllers\UserActivityController::class, 'show'])->name('activities.show');
+Route::get('/activities/{id}/download', [App\Http\Controllers\UserActivityController::class, 'downloadGpx'])->name('activities.download');
+Route::delete('/activities/{id}', [App\Http\Controllers\UserActivityController::class, 'destroy'])->middleware('auth')->name('activities.destroy');
+
 // Cart count routes (Publicly accessible for header badge, handles guest & auth gracefully)
 Route::get('/marketplace/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('marketplace.cart.count');
 Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');

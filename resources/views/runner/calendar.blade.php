@@ -501,6 +501,25 @@
                 content += '<p><strong>Status:</strong> ' + (workout.status || 'pending') + '</p>';
                 // Show delete button for custom workouts
                 $('#delete-workout-btn').show();
+            } else if (props.type === 'user_activity') {
+                content += '<div class="d-flex align-items-center justify-content-between mb-2">';
+                content += '<h5 class="mb-0 text-white font-bold">' + (props.title || 'Aktivitas Lari') + '</h5>';
+                content += '<span class="badge" style="background-color: #FC4C02; color: #fff;">RuangLari Activity</span>';
+                content += '</div>';
+                content += '<hr>';
+                content += '<div class="row g-2 text-center mb-3">';
+                content += '<div class="col-3 p-2 bg-dark rounded"><span class="small text-muted d-block">Jarak</span><strong>' + (parseFloat(props.distance_km) || 0).toFixed(2) + ' km</strong></div>';
+                content += '<div class="col-3 p-2 bg-dark rounded"><span class="small text-muted d-block">Waktu</span><strong>' + (props.formatted_moving_time || '-') + '</strong></div>';
+                content += '<div class="col-3 p-2 bg-dark rounded"><span class="small text-muted d-block">Avg Pace</span><strong style="color:#FC4C02;">' + (props.avg_pace || '-') + '</strong></div>';
+                content += '<div class="col-3 p-2 bg-dark rounded"><span class="small text-muted d-block">Gain</span><strong>+' + Math.round(props.elevation_gain || 0) + 'm</strong></div>';
+                content += '</div>';
+                if (props.notes) {
+                    content += '<p class="small text-muted mb-3"><em>"' + props.notes + '"</em></p>';
+                }
+                content += '<div class="d-flex gap-2">';
+                content += '<a href="' + props.url + '" class="btn btn-sm btn-primary w-100" style="background-color: #FC4C02; border-color: #FC4C02;">Lihat Detail Aktivitas Lengkap &rarr;</a>';
+                content += '</div>';
+                $('#delete-workout-btn').hide();
             }
 
             $('#workoutDetailContent').html(content);

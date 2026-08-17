@@ -88,6 +88,29 @@ class CalendarController extends Controller
                     ];
                 });
 
+            if (auth()->check()) {
+                $userActs = \App\Models\UserActivity::where('user_id', auth()->id())
+                    ->orderBy('start_time', 'desc')
+                    ->get()
+                    ->map(function ($act) {
+                        return [
+                            'id' => $act->id,
+                            'name' => '🏃 ' . $act->title . ' (' . number_format((float)$act->distance_km, 2) . ' km)',
+                            'start_at' => $act->start_time ? $act->start_time->format('Y-m-d H:i:s') : $act->created_at->format('Y-m-d H:i:s'),
+                            'slug' => 'activity-' . $act->id,
+                            'location_name' => $act->formatted_avg_pace . ' • ' . $act->formatted_moving_time,
+                            'source' => 'user_activity',
+                            'activity_id' => $act->id,
+                            'distance_km' => $act->distance_km,
+                            'pace' => $act->formatted_avg_pace,
+                            'duration' => $act->formatted_moving_time,
+                            'gain' => $act->elevation_gain_m,
+                            'url' => route('activities.show', $act->id),
+                        ];
+                    });
+                $events = $events->concat($userActs);
+            }
+
             return response()->json($events);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
