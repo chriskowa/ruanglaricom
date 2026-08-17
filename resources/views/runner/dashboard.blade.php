@@ -348,234 +348,142 @@
                     </div>
                 </div>
 
-                <!-- Event Lari Anda Section -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
-                        <div class="min-w-0">
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Events</div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Event Lari Anda</h2>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                </svg>
+                <!-- Event Lari Terdaftar (Compact) -->
+                @if($eventRegistrations->isNotEmpty())
+                    <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
+                        <div class="flex items-center justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
+                            <div class="min-w-0">
+                                <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Events</div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-base sm:text-lg font-black text-white italic tracking-tight">Event Lari Terdaftar</h2>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
-                        </div>
-                        <div class="shrink-0" @click.stop>
-                            <a href="{{ route('events.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon text-dark font-black text-xs transition hover:bg-neon/90">
-                                Jelajahi Event
+                            <a href="{{ route('events.index') }}" class="text-xs text-neon hover:underline font-bold" @click.stop>
+                                Cari Event &rarr;
                             </a>
                         </div>
-                    </div>
 
-                    <div x-show="!collapsed" x-transition class="mt-5">
-
-                    @if($eventRegistrations->isEmpty())
-                        <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 text-center">
-                            <p class="text-xs text-slate-400 leading-relaxed">
-                                Kamu belum mendaftar di event lari manapun saat ini. Yuk, temukan event lari seru dan tantang dirimu!
-                            </p>
-                            <a href="{{ route('events.index') }}" class="mt-3 inline-block px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
-                                Cari Event Lari
-                            </a>
-                        </div>
-                    @else
-                        <div class="mt-5 space-y-4">
-                            @foreach($eventRegistrations as $reg)
+                        <div x-show="!collapsed" x-transition class="mt-3.5 space-y-2.5">
+                            @foreach($eventRegistrations->take(2) as $reg)
                                 @php($evt = $reg->event)
                                 @if(!$evt) @continue @endif
-                                <div class="bg-slate-900/40 border border-slate-750 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-slate-650">
-                                    <div class="min-w-0 flex items-start gap-3">
-                                        <div class="p-2.5 bg-neon/10 border border-neon/20 rounded-xl text-neon shrink-0">
-                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <a href="{{ route('events.show', $evt->slug) }}" class="text-base font-bold text-white hover:text-neon transition truncate block">
-                                                {{ $evt->name }}
-                                            </a>
-                                            <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                <span class="font-mono">{{ $evt->start_at ? $evt->start_at->format('d M Y') : '—' }}</span>
-                                                <span class="text-slate-600">•</span>
-                                                <span>{{ $evt->location_name ?? '—' }}</span>
-                                            </div>
-                                            <div class="text-[11px] text-slate-505 mt-2 flex flex-wrap items-center gap-1.5">
-                                                <span class="text-slate-400 font-medium">Kategori:</span>
-                                                @foreach($reg->participants as $p)
-                                                    <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">
-                                                        {{ $p->name }} ({{ $p->category->name ?? 'N/A' }})
-                                                    </span>
-                                                @endforeach
-                                            </div>
+                                <div class="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex items-center justify-between gap-3 transition">
+                                    <div class="min-w-0">
+                                        <a href="{{ route('events.show', $evt->slug) }}" class="text-xs font-bold text-white hover:text-neon transition truncate block">
+                                            {{ $evt->name }}
+                                        </a>
+                                        <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                            <span class="font-mono">{{ $evt->start_at ? $evt->start_at->format('d M Y') : '—' }}</span>
+                                            <span>•</span>
+                                            <span class="truncate">{{ $evt->location_name ?? '—' }}</span>
                                         </div>
                                     </div>
-                                    
-                                    <div class="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between md:justify-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-800">
-                                        <div class="text-left sm:text-right md:text-right">
-                                            <div class="text-xs text-slate-500">Status Pembayaran</div>
-                                            <div class="mt-1">
-                                                @if($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture')
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black uppercase tracking-wider">
-                                                        ⚡ Lunas
-                                                    </span>
-                                                @elseif($reg->payment_status === 'pending')
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[10px] font-black uppercase tracking-wider">
-                                                        ⏳ Pending
-                                                    </span>
-                                                @elseif($reg->payment_status === 'cod')
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-wider">
-                                                        💵 COD
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-wider">
-                                                        ❌ {{ ucfirst($reg->payment_status) }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="w-full sm:w-auto text-right">
-                                            @if($reg->payment_status === 'pending')
-                                                @if(($reg->payment_gateway ?? '') === 'midtrans')
-                                                    <a href="{{ route('events.payments.continue', $evt->slug) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs transition">
-                                                        Bayar Sekarang
-                                                    </a>
-                                                @elseif(($reg->payment_gateway ?? '') === 'moota')
-                                                    <a href="{{ route('events.payment', ['slug' => $evt->slug, 'transaction' => $reg->id]) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs transition">
-                                                        Bayar Sekarang
-                                                    </a>
-                                                @endif
-                                            @elseif($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture' || $reg->payment_status === 'cod')
-                                                <a href="{{ route('events.show', $evt->slug) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-750 transition">
-                                                    Lihat Event
-                                                </a>
-                                            @endif
-                                        </div>
+                                    <div class="shrink-0 flex items-center gap-2">
+                                        @if($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture')
+                                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">Lunas</span>
+                                        @elseif($reg->payment_status === 'pending')
+                                            <a href="{{ route('events.show', $evt->slug) }}" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] transition">Bayar</a>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">{{ ucfirst($reg->payment_status) }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
                         </div>
-
-                        @if($eventRegistrations->hasPages())
-                            <div class="mt-6 pt-4 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                <div class="text-xs text-slate-500">
-                                    Menampilkan {{ $eventRegistrations->firstItem() }}-{{ $eventRegistrations->lastItem() }} dari {{ $eventRegistrations->total() }} event
-                                </div>
-                                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                    @if($eventRegistrations->onFirstPage())
-                                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-slate-600 text-xs font-bold cursor-not-allowed">
-                                            Sebelumnya
-                                        </span>
-                                    @else
-                                        <a href="{{ $eventRegistrations->appends(request()->except('events_page'))->previousPageUrl() }}" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-bold transition">
-                                            Sebelumnya
-                                        </a>
-                                    @endif
-
-                                    @if($eventRegistrations->hasMorePages())
-                                        <a href="{{ $eventRegistrations->appends(request()->except('events_page'))->nextPageUrl() }}" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-bold transition">
-                                            Berikutnya
-                                        </a>
-                                    @else
-                                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-slate-600 text-xs font-bold cursor-not-allowed">
-                                            Berikutnya
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
-                    @endif
                     </div>
-                </div>
+                @endif
 
-                <!-- Wishlist Produk Saya Section -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
+                <!-- Aktivitas Lari Terakhir (Recent Runs) -->
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div class="min-w-0">
-                            <div class="text-xs font-mono text-rose-400 uppercase tracking-widest">Wishlist</div>
+                            <div class="text-[10px] font-mono text-[#FC4C02] uppercase tracking-widest">Activities</div>
                             <div class="flex items-center gap-2">
-                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1 flex items-center gap-2">
-                                    <i class="fas fa-heart text-rose-500 text-lg"></i>
-                                    <span>Wishlist Produk Saya</span>
+                                <h2 class="text-base sm:text-lg font-black text-white italic tracking-tight flex items-center gap-2">
+                                    <i class="fa-solid fa-person-running text-[#FC4C02] text-sm"></i>
+                                    <span>Aktivitas Lari Terakhir</span>
                                 </h2>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
-                        <div class="shrink-0" @click.stop>
-                            <a href="{{ route('marketplace.wishlist.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-600 text-white font-bold text-xs transition">
-                                Lihat Semua Wishlist &rarr;
-                            </a>
-                        </div>
+                        <a href="{{ route('activities.index') }}" class="text-xs text-[#FC4C02] hover:underline font-bold" @click.stop>
+                            Semua Riwayat &rarr;
+                        </a>
                     </div>
 
-                    <div x-show="!collapsed" x-transition class="mt-5">
-                        @if(isset($wishlistedProducts) && $wishlistedProducts->count() > 0)
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                @foreach($wishlistedProducts->take(4) as $wl)
-                                    @if($wl->product)
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between h-full group hover:border-slate-700 transition">
-                                            <div>
-                                                <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-slate-950 rounded-xl overflow-hidden mb-3">
-                                                    @if($wl->product->primaryImage)
-                                                        <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                                    @else
-                                                        <div class="w-full h-full flex items-center justify-center text-slate-700">📷</div>
+                    <div x-show="!collapsed" x-transition class="mt-3.5">
+                        @if(isset($userActivities) && $userActivities->count() > 0)
+                            <div class="space-y-2.5">
+                                @foreach($userActivities->take(3) as $act)
+                                    <a href="{{ route('activities.show', $act->id) }}" class="block bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl p-3 transition group">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="min-w-0">
+                                                <div class="text-xs font-bold text-white group-hover:text-[#FC4C02] transition truncate">
+                                                    {{ $act->title }}
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                                    {{ $act->start_time ? $act->start_time->format('d M Y • H:i') : $act->created_at->format('d M Y') }}
+                                                    @if($act->masterGpx)
+                                                        <span class="text-slate-500">• {{ $act->masterGpx->title }}</span>
                                                     @endif
-                                                </a>
-                                                <div class="text-[10px] text-neon font-black uppercase tracking-wider truncate mb-0.5">{{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}</div>
-                                                <h4 class="text-xs font-bold text-white truncate mb-1">
-                                                    <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="hover:text-neon transition">{{ $wl->product->title }}</a>
-                                                </h4>
-                                                <div class="text-xs font-black text-white font-mono mb-3">
-                                                    Rp {{ number_format($wl->product->price, 0, ',', '.') }}
                                                 </div>
                                             </div>
-                                            <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="w-full py-1.5 bg-slate-800 text-slate-200 hover:bg-neon hover:text-dark text-[11px] font-bold rounded-lg text-center transition">
-                                                Lihat Produk
-                                            </a>
+                                            <div class="shrink-0 text-right">
+                                                <div class="text-xs font-bold font-mono text-white">
+                                                    {{ number_format((float)$act->distance_km, 2) }} km
+                                                </div>
+                                                <div class="text-[10px] font-mono text-[#FC4C02]">
+                                                    {{ $act->formatted_avg_pace }}/km
+                                                </div>
+                                            </div>
                                         </div>
-                                    @endif
+                                    </a>
                                 @endforeach
                             </div>
                         @else
-                            <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 text-center">
+                            <div class="bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 text-center space-y-2">
                                 <p class="text-xs text-slate-400 leading-relaxed">
-                                    Belum ada produk perlengkapan lari yang Anda simpan di Wishlist.
+                                    Belum ada sesi lari yang tersimpan. Mulai rekam jejak lari Anda dengan GPS live!
                                 </p>
-                                <a href="{{ route('marketplace.index') }}" class="mt-3 inline-block px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
-                                    Cari Perlengkapan Lari
+                                <a href="{{ route('run.free') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wide transition shadow-md shadow-[#FC4C02]/20">
+                                    <i class="fa-solid fa-play text-[10px]"></i>
+                                    <span>Mulai Lari</span>
                                 </a>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <!-- 7 Hari ke Depan (Week Strip) -->
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
                     <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Week</div>
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Week</div>
                             <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">7 Hari ke Depan</h3>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <h3 class="text-base font-black text-white italic tracking-tight mt-0.5">7 Hari ke Depan</h3>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
-                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold" @click.stop>Lihat</a>
+                        <a href="{{ route('runner.calendar') }}" class="text-xs text-neon hover:underline font-bold" @click.stop>Lihat Kalender &rarr;</a>
                     </div>
-                    <div x-show="!collapsed" x-transition class="mt-4 -mx-2 px-2 overflow-x-auto">
+                    <div x-show="!collapsed" x-transition class="mt-3 -mx-1 px-1 overflow-x-auto">
                         <div class="flex gap-2 min-w-max">
                             @foreach($weekStrip ?? [] as $d)
                                 @php($st = $d['status'] ?? 'rest')
-                                <a href="{{ route('runner.calendar') }}" class="flex flex-col items-center justify-center w-16 h-20 rounded-2xl border {{ ($d['is_today'] ?? false) ? 'border-neon/40 bg-neon/10' : 'border-slate-700/60 bg-slate-900/40' }} hover:border-neon/40 transition">
-                                    <div class="text-[11px] font-mono {{ ($d['is_today'] ?? false) ? 'text-neon' : 'text-slate-400' }}">{{ $d['day_short'] ?? '' }}</div>
-                                    <div class="text-xl font-black text-white">{{ $d['day_num'] ?? '' }}</div>
-                                    <div class="mt-1 flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full {{ $st === 'completed' ? 'bg-green-400' : ($st === 'started' ? 'bg-yellow-300' : ($st === 'pending' ? 'bg-neon' : 'bg-slate-600')) }}"></span>
+                                <a href="{{ route('runner.calendar') }}" class="flex flex-col items-center justify-center w-14 h-16 rounded-xl border {{ ($d['is_today'] ?? false) ? 'border-neon/40 bg-neon/10' : 'border-slate-700/60 bg-slate-900/40' }} hover:border-neon/40 transition">
+                                    <div class="text-[10px] font-mono {{ ($d['is_today'] ?? false) ? 'text-neon' : 'text-slate-400' }}">{{ $d['day_short'] ?? '' }}</div>
+                                    <div class="text-base font-black text-white">{{ $d['day_num'] ?? '' }}</div>
+                                    <div class="mt-0.5 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $st === 'completed' ? 'bg-green-400' : ($st === 'started' ? 'bg-yellow-300' : ($st === 'pending' ? 'bg-neon' : 'bg-slate-600')) }}"></span>
                                         @if(!empty($d['items_count']))
-                                            <span class="text-[10px] text-slate-400">{{ (int) $d['items_count'] }}</span>
+                                            <span class="text-[9px] text-slate-400">{{ (int) $d['items_count'] }}</span>
                                         @endif
                                     </div>
                                 </a>
@@ -584,412 +492,85 @@
                     </div>
                 </div>
 
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <!-- Latihan Berikutnya -->
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
                     <div class="flex items-start justify-between gap-4 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Next Up</div>
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Next Up</div>
                             <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Latihan Berikutnya</h3>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <h3 class="text-base font-black text-white italic tracking-tight mt-0.5">Latihan Berikutnya</h3>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
-                        <a href="{{ route('runner.calendar') }}" class="text-sm text-neon hover:underline font-bold" @click.stop>Calendar</a>
+                        <a href="{{ route('runner.calendar') }}" class="text-xs text-neon hover:underline font-bold" @click.stop>Calendar &rarr;</a>
                     </div>
 
                     <div x-show="!collapsed" x-transition>
-
-                    @php($rows = array_slice($upcomingWorkouts ?? [], 0, 3))
-                    <div class="mt-4 space-y-2">
-                        @forelse($rows as $w)
-                            <div class="flex items-start justify-between gap-3 bg-slate-900/40 border border-slate-700/60 rounded-xl px-4 py-3">
-                                <div class="min-w-0">
-                                    <div class="text-xs text-slate-400">{{ $w['date_label'] ?? '' }}</div>
-                                    <div class="text-sm font-bold text-white truncate">
-                                        {{ ucwords(str_replace('_', ' ', (string) ($w['type'] ?? 'Run'))) }}
-                                        <span class="text-slate-400 font-normal">• {{ $w['program_title'] ?? 'Training' }}</span>
+                        @php($rows = array_slice($upcomingWorkouts ?? [], 0, 3))
+                        <div class="mt-3 space-y-2">
+                            @forelse($rows as $w)
+                                <div class="flex items-start justify-between gap-3 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3.5 py-2.5">
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] text-slate-400 font-mono">{{ $w['date_label'] ?? '' }}</div>
+                                        <div class="text-xs font-bold text-white truncate mt-0.5">
+                                            {{ ucwords(str_replace('_', ' ', (string) ($w['type'] ?? 'Run'))) }}
+                                            <span class="text-slate-400 font-normal">• {{ $w['program_title'] ?? 'Training' }}</span>
+                                        </div>
                                     </div>
-                                    <div class="text-[11px] text-slate-500">
-                                        @if(!empty($w['distance'])) {{ $w['distance'] }} km @endif
-                                        @if(!empty($w['duration'])) <span class="text-slate-600">•</span> {{ $w['duration'] }} @endif
+                                    <div class="shrink-0 text-right">
+                                        @if(!empty($w['distance'])) <span class="text-xs font-bold text-slate-200 font-mono">{{ $w['distance'] }} km</span> @endif
                                     </div>
                                 </div>
-                                <div class="shrink-0 text-right">
-                                    @php($s = $w['status'] ?? 'pending')
-                                    <div class="text-xs font-bold {{ $s === 'completed' ? 'text-green-300' : ($s === 'started' ? 'text-yellow-300' : 'text-slate-400') }}">
-                                        {{ strtoupper($s) }}
-                                    </div>
-                                    @if(!empty($w['strava_link']))
-                                        <a href="{{ $w['strava_link'] }}" target="_blank" class="text-[11px] text-orange-300 hover:underline">Strava</a>
-                                    @endif
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-sm text-slate-400">Belum ada plan 7 hari ke depan.</div>
-                        @endforelse
-                    </div>
+                            @empty
+                                <div class="text-xs text-slate-400 py-2">Belum ada plan 7 hari ke depan.</div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
 
                 @if($programBag->count() > 0)
                 <!-- Program Bag Sidebar Widget -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 mb-4 cursor-pointer select-none" @click="collapsed = !collapsed">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
+                    <div class="flex items-start justify-between gap-4 mb-3 cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div>
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Bag</div>
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Bag</div>
                             <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Program Bag</h3>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <h3 class="text-base font-black text-white italic tracking-tight mt-0.5">Program Bag</h3>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
                         </div>
-                        <button onclick="switchTab('calendar')" class="text-sm text-neon hover:underline font-bold" @click.stop>Lihat Semua</button>
+                        <button onclick="switchTab('calendar')" class="text-xs text-neon hover:underline font-bold" @click.stop>Lihat Semua &rarr;</button>
                     </div>
 
                     <div x-show="!collapsed" x-transition>
-                    <div class="space-y-3">
-                        @foreach($programBag as $bg)
-                            <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col gap-3">
-                                <div>
-                                    <div class="text-white font-bold text-sm">{{ $bg->program->title }}</div>
-                                    <div class="text-[10px] text-slate-400 mt-1 font-sans">Dibuat oleh: <span class="font-semibold text-slate-300">{{ $bg->program->coach->name }}</span></div>
-                                    <div class="text-[10px] text-slate-505 font-mono mt-0.5">Dibeli: {{ $bg->created_at->format('d M Y') }}</div>
-                                </div>
-                                <button onclick="triggerApplyProgram({{ $bg->id }})" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-white text-center text-xs uppercase italic tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-neon/10">
-                                    Aktifkan <i class="fas fa-play text-[9px]"></i>
-                                </button>
-                            </div>
-                        @endforeach
-                    </div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Running Form Analysis Section -->
-                @if(isset($publishedTrials) && $publishedTrials->count() > 0)
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5 cursor-pointer select-none" @click="collapsed = !collapsed">
-                        <div class="min-w-0">
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Analysis</div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Running Form Analysis</h2>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="shrink-0" @click.stop>
-                            <span class="px-3 py-1.5 rounded-lg bg-[#ccff00]/15 border border-[#ccff00]/30 text-[10px] text-[#ccff00] font-black uppercase tracking-wider">
-                                {{ $publishedTrials->count() }} Analisis
-                            </span>
-                        </div>
-                    </div>
-
-                    <div x-show="!collapsed" x-transition>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($publishedTrials as $trial)
-                                @php($score = $trial->quality_score ? round((float) $trial->quality_score * 100) : null)
-                                @php($report = $trial->latestReport)
-                                @php($narrative = $report ? $report->runner_narrative_json : null)
-                                @php($coachMessage = is_array($narrative) ? ($narrative['coach_message'] ?? null) : null)
-                                <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-850 hover:border-[#ccff00]/40 transition-all flex flex-col justify-between gap-3">
-                                    <div>
-                                        <div class="flex items-start justify-between gap-2 mb-2">
-                                            <div class="font-bold text-sm text-white">Trial Attempt #{{ $trial->attempt_no }}</div>
-                                            @if($score)
-                                                <span class="px-2 py-0.5 rounded bg-[#ccff00]/10 border border-[#ccff00]/30 text-[#ccff00] text-[10px] font-black tracking-tight">
-                                                    {{ $score }} Pts
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="text-[10px] text-slate-500 font-mono">
-                                            Session: {{ $trial->session->name ?? 'Default Session' }}
-                                        </div>
-                                        <div class="text-[10px] text-slate-400 mt-1 font-sans">
-                                            Tanggal: <span class="font-semibold text-slate-300">{{ $trial->published_at ? $trial->published_at->format('d M Y') : $trial->created_at->format('d M Y') }}</span>
-                                        </div>
-                                        @if($coachMessage)
-                                            <p class="text-slate-400 text-xs mt-2 italic line-clamp-2">
-                                                "{{ is_array($coachMessage) ? implode(' ', array_values($coachMessage)) : $coachMessage }}"
-                                            </p>
-                                        @endif
+                        <div class="space-y-2.5">
+                            @foreach($programBag as $bg)
+                                <div class="p-3 rounded-xl bg-slate-900/40 border border-slate-800 flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="text-white font-bold text-xs truncate">{{ $bg->program->title }}</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">Coach {{ $bg->program->coach->name }}</div>
                                     </div>
-                                    <div class="mt-2">
-                                        <a href="{{ route('runner.running-analysis.trials.review', $trial) }}" 
-                                           class="w-full py-2 rounded-lg bg-[#ccff00] text-black hover:bg-[#b3e600] font-black text-center text-xs uppercase italic tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm">
-                                            Lihat Analisis Detail <i class="fas fa-arrow-right text-[10px]"></i>
-                                        </a>
-                                    </div>
+                                    <button onclick="triggerApplyProgram({{ $bg->id }})" class="shrink-0 px-3 py-1.5 rounded-lg bg-neon text-dark font-bold text-xs hover:bg-white transition flex items-center gap-1">
+                                        Aktifkan <i class="fas fa-play text-[8px]"></i>
+                                    </button>
                                 </div>
                             @endforeach
                         </div>
                     </div>
                 </div>
                 @endif
-
-                <!-- Riwayat Run Connect Section -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5 cursor-pointer select-none" @click="collapsed = !collapsed">
-                        <div class="min-w-0">
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Connect</div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Riwayat Run Connect</h2>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300 mt-1.5" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="shrink-0" @click.stop>
-                            <a href="{{ route('run-connect.index') }}" class="px-3 py-1.5 rounded-lg bg-neon/15 border border-neon/30 text-[10px] text-neon hover:bg-neon/20 transition-all font-black uppercase tracking-wider">
-                                Cari Buddy Lari
-                            </a>
-                        </div>
-                    </div>
-
-                    <div x-show="!collapsed" x-transition>
-
-                    <div class="space-y-3.5 max-h-[400px] overflow-y-auto pr-1 scroll-thin">
-                        @forelse($runConnectHistory as $thread)
-                            @php($isCreator = $thread->creator_id === auth()->id())
-                            @php($participant = $thread->participants->where('user_id', auth()->id())->first())
-                            @php($status = $isCreator ? 'host' : ($participant ? $participant->status : ''))
-                            
-                            <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-850 hover:border-slate-750 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h4 class="font-bold text-sm text-white truncate max-w-[200px] sm:max-w-xs">{{ $thread->title }}</h4>
-                                        <span class="text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider {{ $thread->status === 'cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : ($thread->status === 'completed' ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-green-500/10 text-green-400 border border-green-500/20') }}">
-                                            {{ $thread->status }}
-                                        </span>
-                                    </div>
-                                    <div class="text-[10px] text-slate-400 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        <span class="font-bold text-slate-300">{{ $thread->type }}</span>
-                                        <span class="text-slate-700">•</span>
-                                        <span class="text-slate-300 font-semibold">{{ $thread->run_distance_km }} km</span>
-                                        <span class="text-slate-700">•</span>
-                                        <span class="text-slate-400 truncate max-w-[150px] sm:max-w-xs">{{ $thread->start_location_name }}</span>
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
-                                        <span>📅 {{ $thread->start_date->format('d M Y') }} • {{ \Carbon\Carbon::parse($thread->start_time)->format('H:i') }}</span>
-                                        <span class="text-slate-800">•</span>
-                                        <span>Buddy: {{ $thread->participants->where('status', 'joined')->count() }}/{{ $thread->quota }}</span>
-                                    </div>
-                                </div>
-                                <div class="shrink-0 flex items-center justify-between sm:justify-end gap-3.5 border-t border-slate-900/50 sm:border-0 pt-2.5 sm:pt-0">
-                                    <div>
-                                        @if($status === 'host')
-                                            <span class="px-2 py-0.5 rounded bg-neon/10 border border-neon/30 text-neon text-[9px] font-black uppercase tracking-wider">Host</span>
-                                        @elseif($status === 'joined')
-                                            <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-green-400 text-[9px] font-black uppercase tracking-wider">Terdaftar</span>
-                                        @elseif($status === 'pending')
-                                            <span class="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[9px] font-black uppercase tracking-wider">Menunggu</span>
-                                        @else
-                                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 text-[9px] font-black uppercase tracking-wider">{{ $status }}</span>
-                                        @endif
-                                    </div>
-                                    <a href="{{ route('run-connect.index') }}" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-750 hover:bg-slate-850 transition">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-xs text-slate-400 text-center py-8">
-                                <p>Belum ada riwayat lari bersama di Run Connect.</p>
-                                <a href="{{ route('run-connect.index') }}" class="inline-block mt-3 text-neon hover:underline font-bold text-[10px] uppercase tracking-wider">Mulai Cari Buddy Lari →</a>
-                            </div>
-                        @endforelse
-                    </div>
-                    </div>
-                </div>
             </div>
 
             <div class="space-y-6">
-                <!-- Weekly Report Cards from Coach -->
-                @if(isset($weeklyReports) && count($weeklyReports) > 0)
-                    <div x-data="{ collapsed: false }" class="bg-slate-800/40 backdrop-blur-md border border-neon/30 rounded-[2rem] p-6 shadow-xl shadow-neon/5 relative overflow-hidden">
-                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/10 rounded-full blur-3xl"></div>
-                        <div class="flex items-center justify-between mb-4 cursor-pointer select-none" @click="collapsed = !collapsed">
-                            <div>
-                                <div class="text-[10px] font-mono text-neon uppercase tracking-widest leading-none">Weekly Insight</div>
-                                <div class="flex items-center gap-2 mt-1 leading-none">
-                                    <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Rapor Mingguan</h3>
-                                    <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-xl bg-neon/10 text-neon font-black text-[10px] uppercase border border-neon/20" @click.stop>
-                                Active Coaching
-                            </span>
-                        </div>
-
-                        <div x-show="!collapsed" x-transition>
-
-                        <div class="space-y-4">
-                            @foreach($weeklyReports as $index => $report)
-                                <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850 {{ $index > 0 ? 'hidden' : '' }}" id="report-card-{{ $report->id }}">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-xs font-black text-white">Minggu ke-{{ $report->week_number }}</span>
-                                        <span class="text-[9px] text-slate-500 font-mono">{{ $report->created_at->format('d M Y') }}</span>
-                                    </div>
-                                    <div class="text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-line">
-                                        {{ $report->report_text }}
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            @if(count($weeklyReports) > 1)
-                                <div class="flex justify-between items-center mt-2 text-[10px] text-slate-400 font-mono">
-                                    <button onclick="toggleOtherReports()" id="toggle-reports-btn" class="hover:text-neon transition">
-                                        Lihat Riwayat Laporan ({{ count($weeklyReports) - 1 }})
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-                        </div>
-                    </div>
-
-                    <script>
-                        function toggleOtherReports() {
-                            const reports = document.querySelectorAll('[id^="report-card-"]');
-                            const btn = document.getElementById('toggle-reports-btn');
-                            let isShowingAll = false;
-                            
-                            reports.forEach((el, idx) => {
-                                if (idx > 0) {
-                                    if (el.classList.contains('hidden')) {
-                                        el.classList.remove('hidden');
-                                        isShowingAll = true;
-                                    } else {
-                                        el.classList.add('hidden');
-                                    }
-                                }
-                            });
-                            
-                            if (isShowingAll) {
-                                btn.textContent = "Sembunyikan Riwayat Laporan";
-                            } else {
-                                btn.textContent = "Lihat Riwayat Laporan (" + (reports.length - 1) + ")";
-                            }
-                        }
-                    </script>
-                @endif
-
-                <!-- Card Update Personal Best -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group">
-                    <div class="absolute -right-10 -top-10 w-24 h-24 bg-neon/5 rounded-full blur-2xl group-hover:bg-neon/10 transition-all duration-700"></div>
-                    
-                    <div class="flex items-center gap-2 mb-3 cursor-pointer select-none" @click="collapsed = !collapsed">
-                        <span class="text-lg">⚡</span>
-                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                            <span>Personal Best & Parameter Test</span>
-                            <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div x-show="!collapsed" x-transition>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Jarak / Parameter Test</label>
-                            <select x-model="card_pb_distance" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-neon transition-colors cursor-pointer">
-                                <option value="5k">5 Kilometer (5K)</option>
-                                <option value="10k">10 Kilometer (10K)</option>
-                                <option value="21k">Half Marathon (21K)</option>
-                                <option value="42k">Full Marathon (42K)</option>
-                                <option value="balke">Balke Test (15 Menit Run)</option>
-                            </select>
-                        </div>
-
-                        <!-- Time inputs for standard distances -->
-                        <div x-show="card_pb_distance !== 'balke'" class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Catatan Waktu Terkini (PB)</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="flex flex-col items-center">
-                                    <input x-model="card_pb_hours" type="number" min="0" max="99" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="HH">
-                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Jam</span>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <input x-model="card_pb_minutes" type="number" min="0" max="59" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="MM">
-                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Menit</span>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <input x-model="card_pb_seconds" type="number" min="0" max="59" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="SS">
-                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Detik</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Distance input for Balke test -->
-                        <div x-show="card_pb_distance === 'balke'" class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Jarak yang Ditempuh (15 Menit)</label>
-                            <div class="relative">
-                                <input x-model="card_pb_balke" type="number" min="0" max="10000" class="w-full pl-3 pr-12 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold text-xs focus:outline-none focus:border-neon" placeholder="Contoh: 3200">
-                                <span class="absolute right-3 top-2.5 text-[10px] font-bold text-slate-500 uppercase">Meter</span>
-                            </div>
-                            <span class="text-[9px] text-slate-500 leading-tight block mt-1">
-                                Jarak ini akan dihitung ke VDOT score menggunakan Balke 15-minute formula.
-                            </span>
-                        </div>
-
-                        <button @click="submitCardPb()" :disabled="card_pb_loading" class="w-full py-2.5 rounded-xl bg-neon hover:bg-neon/90 text-dark font-black text-xs transition duration-300 flex items-center justify-center gap-2">
-                            <span x-show="!card_pb_loading">Update & Hitung Ulang VDOT</span>
-                            <span x-show="card_pb_loading" class="flex items-center gap-1">
-                                <svg class="animate-spin h-3 w-3 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Memproses...
-                            </span>
-                        </button>
-                    </div>
-
-                    <!-- Current PBs at a glance -->
-                    <div class="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-[10px]">
-                        @if(auth()->user()->pb_5k)
-                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
-                                <span class="text-slate-500">5K:</span>
-                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_5k }}</span>
-                            </div>
-                        @endif
-                        @if(auth()->user()->pb_10k)
-                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
-                                <span class="text-slate-500">10K:</span>
-                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_10k }}</span>
-                            </div>
-                        @endif
-                        @if(auth()->user()->pb_hm)
-                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
-                                <span class="text-slate-500">HM:</span>
-                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_hm }}</span>
-                            </div>
-                        @endif
-                        @if(auth()->user()->pb_fm)
-                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
-                                <span class="text-slate-500">FM:</span>
-                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_fm }}</span>
-                            </div>
-                        @endif
-                        @if(auth()->user()->pb_balke)
-                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850 col-span-2">
-                                <span class="text-slate-500">Balke Test (15m):</span>
-                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_balke }}m</span>
-                            </div>
-                        @endif
-                    </div>
-                    </div>
-                </div>
-
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <!-- Progress Minggu Ini -->
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
                     <div class="flex items-center justify-between cursor-pointer select-none mb-3" @click="collapsed = !collapsed">
-                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                            <span>Progress</span>
+                        <div class="text-[10px] font-mono text-neon uppercase tracking-widest flex items-center gap-2">
+                            <span>Target Minggu Ini</span>
                             <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -997,37 +578,37 @@
                     </div>
 
                     <div x-show="!collapsed" x-transition>
-                    <div class="mt-2 flex items-end justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="text-2xl font-black text-white">
-                                {{ number_format((float) ($weeklyCompletedKm ?? 0), 1) }} <span class="text-sm font-bold text-slate-400">/ {{ number_format((float) ($weeklyPlannedKm ?? 0), 1) }} km</span>
+                        <div class="mt-2 flex items-end justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-2xl font-black text-white font-mono">
+                                    {{ number_format((float) ($weeklyCompletedKm ?? 0), 1) }} <span class="text-sm font-bold text-slate-400">/ {{ number_format((float) ($weeklyPlannedKm ?? 0), 1) }} km</span>
+                                </div>
+                                <div class="text-xs text-slate-400 mt-1">
+                                    {{ number_format((int) ($weeklySessionsCompleted ?? 0)) }} / {{ number_format((int) ($weeklySessionsPlanned ?? 0)) }} sesi selesai
+                                </div>
                             </div>
-                            <div class="text-xs text-slate-400 mt-1">
-                                {{ number_format((int) ($weeklySessionsCompleted ?? 0)) }} / {{ number_format((int) ($weeklySessionsPlanned ?? 0)) }} sesi selesai
+                            <div class="shrink-0 text-right">
+                                <div class="text-[10px] text-slate-400 uppercase font-mono">Wallet</div>
+                                <div class="text-xs font-bold text-white font-mono">Rp {{ number_format((float) ($walletBalance ?? 0), 0, ',', '.') }}</div>
                             </div>
                         </div>
-                        <div class="shrink-0 text-right">
-                            <div class="text-xs text-slate-400">Wallet</div>
-                            <div class="text-sm font-black text-white">Rp {{ number_format((float) ($walletBalance ?? 0), 0, ',', '.') }}</div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full mt-3.5 overflow-hidden">
+                            @php($planned = (float) ($weeklyPlannedKm ?? 0))
+                            @php($done = (float) ($weeklyCompletedKm ?? 0))
+                            @php($pct = $planned > 0 ? min(100, max(0, ($done / $planned) * 100)) : 0)
+                            <div class="bg-neon h-full rounded-full transition-all duration-500" style="width: {{ $pct }}%"></div>
                         </div>
-                    </div>
-                    <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
-                        @php($planned = (float) ($weeklyPlannedKm ?? 0))
-                        @php($done = (float) ($weeklyCompletedKm ?? 0))
-                        @php($pct = $planned > 0 ? min(100, max(0, ($done / $planned) * 100)) : 0)
-                        <div class="bg-neon h-full rounded-full" style="width: {{ $pct }}%"></div>
-                    </div>
                     </div>
                 </div>
 
                 <!-- VDOT & Paces Card -->
-                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-center justify-between cursor-pointer select-none" @click="collapsed = !collapsed">
+                <div x-data="{ collapsed: false }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5">
+                    <div class="flex items-center justify-between cursor-pointer select-none mb-2" @click="collapsed = !collapsed">
                         <div>
-                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Training Science</div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <h3 class="text-lg font-black text-white italic tracking-tight uppercase">VDOT & Target Pace</h3>
-                                <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Training Science</div>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <h3 class="text-base font-black text-white italic tracking-tight uppercase">VDOT & Target Pace</h3>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
@@ -1040,51 +621,81 @@
                     </div>
 
                     <div x-show="!collapsed" x-transition>
+                        @if(auth()->user()->vdot && auth()->user()->training_paces)
+                            @php($p = auth()->user()->training_paces)
+                            <div class="mt-3 space-y-2 text-xs">
+                                <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+                                    <span class="text-slate-400">Easy (E) Pace</span>
+                                    <span class="font-bold text-white font-mono bg-slate-900/60 px-2 py-0.5 rounded">
+                                        {{ sprintf('%d:%02d', floor($p['E']), round(($p['E'] - floor($p['E'])) * 60)) }} /km
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+                                    <span class="text-slate-400">Threshold (T) Pace</span>
+                                    <span class="font-bold text-white font-mono bg-slate-900/60 px-2 py-0.5 rounded">
+                                        {{ sprintf('%d:%02d', floor($p['T']), round(($p['T'] - floor($p['T'])) * 60)) }} /km
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400">Interval (I) Pace</span>
+                                    <span class="font-bold text-white font-mono bg-slate-900/60 px-2 py-0.5 rounded">
+                                        {{ sprintf('%d:%02d', floor($p['I']), round(($p['I'] - floor($p['I'])) * 60)) }} /km
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="mt-3 bg-slate-950/40 border border-slate-800/80 rounded-xl p-3 text-center">
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Atur Personal Best untuk memunculkan target pace latihan otomatis.
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
 
-                    @if(auth()->user()->vdot && auth()->user()->training_paces)
-                        @php($p = auth()->user()->training_paces)
-                        <div class="mt-4 space-y-2.5">
-                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
-                                <span class="text-xs text-slate-400">Easy (E) Pace</span>
-                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
-                                    {{ sprintf('%d:%02d', floor($p['E']), round(($p['E'] - floor($p['E'])) * 60)) }} /km
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
-                                <span class="text-xs text-slate-400">Marathon (M) Pace</span>
-                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
-                                    {{ sprintf('%d:%02d', floor($p['M']), round(($p['M'] - floor($p['M'])) * 60)) }} /km
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
-                                <span class="text-xs text-slate-400">Threshold (T) Pace</span>
-                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
-                                    {{ sprintf('%d:%02d', floor($p['T']), round(($p['T'] - floor($p['T'])) * 60)) }} /km
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
-                                <span class="text-xs text-slate-400">Interval (I) Pace</span>
-                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
-                                    {{ sprintf('%d:%02d', floor($p['I']), round(($p['I'] - floor($p['I'])) * 60)) }} /km
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-slate-400">Repetition (R) Pace</span>
-                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
-                                    {{ sprintf('%d:%02d', floor($p['R']), round(($p['R'] - floor($p['R'])) * 60)) }} /km
-                                </span>
-                            </div>
+                <!-- Card Update Personal Best -->
+                <div x-data="{ collapsed: true }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="flex items-center justify-between cursor-pointer select-none" @click="collapsed = !collapsed">
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span>⚡ Update Personal Best (PB)</span>
                         </div>
-                    @else
-                        <div class="mt-4 bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 text-center">
-                            <p class="text-xs text-slate-400 leading-relaxed">
-                                Personal Best (PB) belum diatur. Atur PB Anda untuk memunculkan target pace latihan terpersonalisasi.
-                            </p>
-                            <a href="{{ route('runner.calendar') }}" class="mt-3 inline-block w-full py-2 rounded-xl bg-neon/10 border border-neon/20 hover:bg-neon/15 text-neon font-bold text-xs transition text-center">
-                                Atur Personal Best
-                            </a>
+                        <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+
+                    <div x-show="!collapsed" x-transition class="mt-4">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Jarak / Test</label>
+                                <select x-model="card_pb_distance" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-neon transition-colors cursor-pointer">
+                                    <option value="5k">5 Kilometer (5K)</option>
+                                    <option value="10k">10 Kilometer (10K)</option>
+                                    <option value="21k">Half Marathon (21K)</option>
+                                    <option value="42k">Full Marathon (42K)</option>
+                                    <option value="balke">Balke Test (15 Menit Run)</option>
+                                </select>
+                            </div>
+
+                            <div x-show="card_pb_distance !== 'balke'" class="space-y-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Catatan Waktu (PB)</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input x-model="card_pb_hours" type="number" min="0" max="99" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs" placeholder="Jam">
+                                    <input x-model="card_pb_minutes" type="number" min="0" max="59" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs" placeholder="Menit">
+                                    <input x-model="card_pb_seconds" type="number" min="0" max="59" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs" placeholder="Detik">
+                                </div>
+                            </div>
+
+                            <div x-show="card_pb_distance === 'balke'" class="space-y-1">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Jarak (15 Menit)</label>
+                                <input x-model="card_pb_balke" type="number" min="0" max="10000" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold text-xs" placeholder="Contoh: 3200 Meter">
+                            </div>
+
+                            <button @click="submitCardPb()" :disabled="card_pb_loading" class="w-full py-2 rounded-xl bg-neon hover:bg-neon/90 text-dark font-black text-xs transition flex items-center justify-center gap-1.5">
+                                <span x-show="!card_pb_loading">Hitung Ulang VDOT</span>
+                                <span x-show="card_pb_loading">Memproses...</span>
+                            </button>
                         </div>
-                    @endif
                     </div>
                 </div>
 
