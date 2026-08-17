@@ -567,7 +567,7 @@
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
                         <!-- Floating Top Controls Bar (Unified Search + Stats Badge) -->
-                        <div class="absolute top-3 left-16 right-16 z-[500] flex flex-col sm:flex-row items-start sm:items-center justify-start gap-2 pointer-events-none">
+                        <div class="absolute top-3 left-1/2 -translate-x-1/2 z-[500] flex flex-col sm:flex-row items-center justify-center gap-2 pointer-events-none">
                             <!-- Unified Search Pill -->
                             <div class="pointer-events-auto relative w-full sm:w-auto sm:flex-1 max-w-xs sm:max-w-sm">
                                 <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-2.5 h-10 flex items-center gap-1.5">
