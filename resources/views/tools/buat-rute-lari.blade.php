@@ -407,9 +407,7 @@
                                     <button id="rl-share" type="button" class="w-full px-2.5 py-2 rounded-xl bg-neon text-dark font-black hover:bg-white transition text-xs flex items-center justify-center gap-1.5 shadow-md shadow-neon/15 cursor-pointer">
                                         <i class="fa-solid fa-share-nodes text-xs text-dark"></i> Share
                                     </button>
-                                    <button id="rl-export-image" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-image text-xs text-slate-400"></i> Export IMG
-                                    </button>
+                                    
                                     <button id="rl-export-gpx" type="button" class="w-full px-2.5 py-2 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-200 font-bold hover:border-slate-500 hover:text-white transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
                                         <i class="fa-solid fa-file-export text-xs text-slate-400"></i> Export GPX
                                     </button>
