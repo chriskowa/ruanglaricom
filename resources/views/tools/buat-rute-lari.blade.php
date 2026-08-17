@@ -58,7 +58,7 @@
             <div class="mb-6">
                 <div class="flex items-start justify-between gap-4 flex-wrap">
                     <div>
-                        <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white">
+                        <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white italic">
                             BUAT <span class="text-neon">RUTE LARI</span>
                         </h1>
                         <p class="text-slate-400 mt-1 max-w-2xl text-sm">
@@ -67,17 +67,13 @@
                     </div>
                     <div class="w-full sm:w-auto grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2">
                         <a href="{{ route('gpx.index') }}" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-[10px] xs:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm text-center">
-                            <i class="fa-solid fa-database text-[10px] sm:text-xs text-slate-400 shrink-0"></i>
+                            
                             <span class="truncate">Database GPX</span>
                         </a>
                         <button id="btn-open-submit-gpx-modal" type="button" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-[10px] xs:text-[11px] sm:text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-neon/10 text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-[10px] sm:text-xs text-dark shrink-0"></i>
+                            
                             <span class="truncate">Submit GPX</span>
-                        </button>
-                        <a href="{{ route('calculator') }}" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-[10px] xs:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm text-center">
-                            <i class="fa-solid fa-calculator text-[10px] sm:text-xs text-slate-400 shrink-0"></i>
-                            <span class="truncate">Tools Lain</span>
-                        </a>
+                        </button>                        
                     </div>
                 </div>
             </div>
@@ -102,8 +98,7 @@
                             <div class="text-xs font-black tracking-wider text-slate-200 uppercase flex items-center gap-2">
                                 <i class="fa-solid fa-sliders text-slate-400 text-xs"></i>
                                 Setup Rute
-                            </div>
-                            <div id="rl-route-status" class="text-[11px] text-slate-300 font-bold bg-slate-800/80 px-2.5 py-0.5 rounded-full border border-slate-700">Siap</div>
+                            </div>                            
                         </div>
 
                         <div class="mt-4 space-y-3">
@@ -571,16 +566,11 @@
                         </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
-                        <!-- Floating Top Controls Bar (Unified Search + Marker Pin + Stats Badge) -->
-                        <div class="absolute top-3 left-3 right-16 z-[500] flex flex-col sm:flex-row items-start sm:items-center justify-start gap-2 pointer-events-none">
-                            <!-- Unified Search + Marker Pill -->
+                        <!-- Floating Top Controls Bar (Unified Search + Stats Badge) -->
+                        <div class="absolute top-3 left-16 right-16 z-[500] flex flex-col sm:flex-row items-start sm:items-center justify-start gap-2 pointer-events-none">
+                            <!-- Unified Search Pill -->
                             <div class="pointer-events-auto relative w-full sm:w-auto sm:flex-1 max-w-xs sm:max-w-sm">
-                                <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl p-1 h-10 flex items-center gap-1.5">
-                                    <!-- Marker Pin Toggle Button -->
-                                    <button id="rl-marker-palette-toggle" type="button" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-neon transition flex items-center justify-center shrink-0 shadow-sm" title="Tambah Marker Rute">
-                                        <i class="fa-solid fa-map-pin text-xs"></i>
-                                    </button>
-                                    
+                                <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-2.5 h-10 flex items-center gap-1.5">
                                     <!-- Magnifying Glass Icon -->
                                     <div class="text-slate-400 text-xs shrink-0 pl-0.5">
                                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -590,30 +580,8 @@
                                     <input id="rl-search-q" type="text" class="w-full bg-transparent border-0 px-1 py-1 text-xs text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-0 truncate" placeholder="Cari kota, tempat, atau landmark...">
                                     
                                     <!-- Search Submit Button -->
-                                    <button id="rl-search-btn" type="button" class="pr-2 text-slate-400 hover:text-white transition shrink-0">
+                                    <button id="rl-search-btn" type="button" class="text-slate-400 hover:text-white transition shrink-0">
                                         <i class="fa-solid fa-arrow-right text-xs"></i>
-                                    </button>
-                                </div>
-
-                                <!-- Marker Palette Dropdown Menu -->
-                                <div id="rl-marker-palette" class="absolute top-12 left-0 hidden flex-col gap-1.5 bg-slate-900/95 backdrop-blur border border-slate-700 p-2 rounded-xl shadow-2xl z-[510]">
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Water Station" data-type="water">
-                                        <i class="fa-solid fa-droplet text-sm"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Bahaya / Warning" data-type="warning">
-                                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Perempatan / Intersection" data-type="intersection">
-                                        <i class="fa-solid fa-arrows-split-up-and-left text-sm"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Foto Spot" data-type="photo">
-                                        <i class="fa-solid fa-camera text-sm"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Rest Stop / Cafe" data-type="rest">
-                                        <i class="fa-solid fa-mug-hot text-sm"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition relative group flex items-center justify-center" title="Toilet" data-type="toilet">
-                                        <i class="fa-solid fa-toilet text-sm"></i>
                                     </button>
                                 </div>
 
@@ -624,7 +592,6 @@
                             <!-- Floating Distance Stats Badge (Stacked below on mobile, side-by-side on desktop) -->
                             <div id="rl-floating-summary-badge" class="pointer-events-auto h-9 sm:h-10 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-3 flex items-center gap-2 shrink-0 text-xs">
                                 <div class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-route text-neon text-xs"></i>
                                     <span class="font-black text-white"><span id="rl-floating-dist">0.00</span> <span class="text-[10px] text-slate-300 font-bold">KM</span></span>
                                 </div>
                                 <div class="h-3.5 w-px bg-slate-700/80 hidden sm:block"></div>
@@ -638,6 +605,28 @@
                                     <span id="rl-floating-elev" class="font-bold text-slate-300">+0m</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Marker Palette Controls (Left) -->
+                        <div id="rl-marker-palette" class="absolute top-20 sm:top-3 left-3 z-[500] flex flex-col gap-2 pointer-events-auto">
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-sky-400 hover:border-sky-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Water Station" data-type="water">
+                                <i class="fa-solid fa-droplet text-sm"></i>
+                            </button>
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-orange-400 hover:border-orange-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Bahaya / Warning" data-type="warning">
+                                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                            </button>
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-lime-400 hover:border-lime-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Perempatan / Intersection" data-type="intersection">
+                                <i class="fa-solid fa-arrows-split-up-and-left text-sm"></i>
+                            </button>
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-pink-400 hover:border-pink-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Foto Spot" data-type="photo">
+                                <i class="fa-solid fa-camera text-sm"></i>
+                            </button>
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-amber-400 hover:border-amber-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Rest Stop / Cafe" data-type="rest">
+                                <i class="fa-solid fa-mug-hot text-sm"></i>
+                            </button>
+                            <button type="button" class="rl-custom-icon-btn w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-purple-400 hover:border-purple-500 transition flex items-center justify-center shadow-lg cursor-pointer" title="Toilet" data-type="toilet">
+                                <i class="fa-solid fa-toilet text-sm"></i>
+                            </button>
                         </div>
 
                         <!-- Drawing Controls (Right) -->
