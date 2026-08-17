@@ -4708,10 +4708,16 @@
             function openGpxModal() {
                 if (!modal) return;
                 @guest
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('open_gpx_modal', '1');
+                    const returnUrl = currentUrl.toString();
+
                     if (typeof window.openLoginModal === 'function') {
-                        window.openLoginModal();
+                        window.openLoginModal(returnUrl);
                         return;
                     }
+                    window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(returnUrl);
+                    return;
                 @endguest
 
                 modal.classList.remove('hidden');
@@ -4740,6 +4746,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('open_gpx_modal') === '1') {
                 openGpxModal();
+                try {
+                    const cleanUrl = new URL(window.location.href);
+                    cleanUrl.searchParams.delete('open_gpx_modal');
+                    window.history.replaceState({}, document.title, cleanUrl.toString());
+                } catch(e) {}
             }
 
             // GPX Parser and Map Preview

@@ -782,11 +782,15 @@
             function openGpxModal() {
                 if (!modal) return;
                 if (!isUserLoggedIn) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('open_gpx_modal', '1');
+                    const returnUrl = currentUrl.toString();
+
                     if (typeof window.openLoginModal === 'function') {
-                        window.openLoginModal();
+                        window.openLoginModal(returnUrl);
                         return;
                     }
-                    window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(window.location.href);
+                    window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(returnUrl);
                     return;
                 }
                 modal.classList.remove('hidden');
@@ -813,6 +817,11 @@
 
             if (currentUrlParams.get('open_gpx_modal') === '1') {
                 openGpxModal();
+                try {
+                    const cleanUrl = new URL(window.location.href);
+                    cleanUrl.searchParams.delete('open_gpx_modal');
+                    window.history.replaceState({}, document.title, cleanUrl.toString());
+                } catch(e) {}
             }
 
             function haversineDistance(lat1, lon1, lat2, lon2) {

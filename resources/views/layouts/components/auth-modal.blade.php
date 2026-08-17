@@ -67,6 +67,7 @@
                         </label>
                     </div>
                     
+                    <input type="hidden" name="redirect" :value="redirectUrl">
                     <input type="hidden" name="g-recaptcha-response" value="">
 
                     <button type="submit" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
@@ -207,6 +208,7 @@
             successMessage: '',
             userId: null,
             role: 'runner',
+            redirectUrl: '',
             
             init() {
                 this.$watch('open', (value) => {
@@ -215,16 +217,18 @@
                     }
                 });
 
-                window.openLoginModal = () => { 
+                window.openLoginModal = (redirectUrl = '') => { 
                     this.tab = 'login'; 
                     this.open = true; 
+                    this.redirectUrl = redirectUrl || '';
                     this.errorMessage = ''; 
                     this.successMessage = '';
                     if (window.loadRecaptcha) window.loadRecaptcha();
                 };
-                window.openRegisterModal = () => { 
+                window.openRegisterModal = (redirectUrl = '') => { 
                     this.tab = 'register'; 
                     this.open = true; 
+                    this.redirectUrl = redirectUrl || '';
                     this.errorMessage = ''; 
                     this.successMessage = '';
                     if (window.loadRecaptcha) window.loadRecaptcha();
@@ -290,8 +294,9 @@
                     const data = await response.json();
                     if (response.ok && data.success) {
                         this.successMessage = data.message;
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
+                        const targetUrl = data.redirect_url || this.redirectUrl;
+                        if (targetUrl) {
+                            window.location.href = targetUrl;
                         } else {
                             window.location.reload();
                         }
@@ -334,8 +339,9 @@
                     
                     const data = await res.json();
                     if (data.success) {
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
+                        const targetUrl = data.redirect_url || this.redirectUrl;
+                        if (targetUrl) {
+                            window.location.href = targetUrl;
                         } else {
                             window.location.reload();
                         }
