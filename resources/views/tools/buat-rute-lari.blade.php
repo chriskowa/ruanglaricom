@@ -4598,6 +4598,8 @@
 
                 <form id="form-submit-gpx-modal" enctype="multipart/form-data" class="space-y-4">
                     @csrf
+                    <!-- Anti-Bot Honeypot -->
+                    <input type="text" name="website_url" class="hidden" style="display:none !important;" tabindex="-1" autocomplete="off">
                     
                     <!-- File Input -->
                     <div>

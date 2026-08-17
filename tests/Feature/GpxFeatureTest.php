@@ -85,4 +85,60 @@ class GpxFeatureTest extends TestCase
 
         $this->assertEquals(10, $user->fresh()->run_points);
     }
+
+    public function test_honeypot_rejects_spam_submission()
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['role' => 'runner']);
+        $file = UploadedFile::fake()->create('test.gpx', 10, 'application/gpx+xml');
+
+        $response = $this->actingAs($user)->postJson(route('tools.buat-rute-lari.submit-gpx'), [
+            'title' => 'Bot Route',
+            'city' => 'Jakarta',
+            'gpx_file' => $file,
+            'website_url' => 'http://spam-link.com', // Honeypot filled by bot
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_daily_point_cap_limits_points_to_max_3_submissions_per_day()
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['role' => 'runner', 'run_points' => 0]);
+
+        $gpxContent = '<?xml version="1.0" encoding="UTF-8"?>
+        <gpx version="1.1" creator="RuangLari">
+            <trk><trkseg>
+                <trkpt lat="-6.175392" lon="106.827153"><ele>10</ele></trkpt>
+                <trkpt lat="-6.176000" lon="106.828000"><ele>12</ele></trkpt>
+            </trkseg></trk>
+        </gpx>';
+
+        // Submit 3 times (earned 10 pts each = 30 pts)
+        for ($i = 1; $i <= 3; $i++) {
+            $file = UploadedFile::fake()->createWithContent("route-{$i}.gpx", $gpxContent);
+            $res = $this->actingAs($user)->postJson(route('tools.buat-rute-lari.submit-gpx'), [
+                'title' => "Route {$i}",
+                'city' => 'Jakarta',
+                'gpx_file' => $file,
+            ]);
+            $res->assertStatus(200);
+            $res->assertJson(['points_earned' => 10]);
+        }
+
+        $this->assertEquals(30, $user->fresh()->run_points);
+
+        // 4th submission: Route is still accepted for moderation, but 0 points awarded
+        $file4 = UploadedFile::fake()->createWithContent('route-4.gpx', $gpxContent);
+        $res4 = $this->actingAs($user)->postJson(route('tools.buat-rute-lari.submit-gpx'), [
+            'title' => 'Route 4',
+            'city' => 'Jakarta',
+            'gpx_file' => $file4,
+        ]);
+        $res4->assertStatus(200);
+        $res4->assertJson(['points_earned' => 0]);
+
+        $this->assertEquals(30, $user->fresh()->run_points);
+    }
 }

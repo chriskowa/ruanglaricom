@@ -295,6 +295,14 @@ class PublicGpxController extends Controller
             ], 401);
         }
 
+        // Anti-Bot Honeypot Protection: Reject silently/422 if filled
+        if ($request->filled('website_url') || $request->filled('_rl_hp_check')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aktivitas mencurigakan terdeteksi.',
+            ], 422);
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'city' => 'required|string|max:255',
@@ -321,6 +329,18 @@ class PublicGpxController extends Controller
             $coords = json_decode($request->input('coordinates_json'), true);
         }
 
+        // Validate that GPX file contains real route coordinates (anti-empty/corrupt file)
+        if (! $distanceKm || $distanceKm <= 0 || (is_array($coords) && count($coords) < 2)) {
+            // Check if extractGpxStats extracted anything
+            if (! $distanceKm || $distanceKm <= 0) {
+                Storage::disk('public')->delete($path);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File GPX tidak valid atau tidak memiliki titik koordinat rute yang dapat diproses.',
+                ], 422);
+            }
+        }
+
         $user = auth()->user();
 
         $masterGpx = MasterGpx::create([
@@ -333,17 +353,27 @@ class PublicGpxController extends Controller
             'elevation_gain_m' => $gainM,
             'elevation_loss_m' => $lossM,
             'coordinates_json' => $coords,
-            'is_published' => false, // Default unpublished as requested
+            'is_published' => false, // Moderation queue (Pending review)
             'notes' => $request->input('notes'),
         ]);
 
-        // Award +10 run points to user
-        $rewardPoints = 10;
-        $user->addPoints($rewardPoints);
+        // Daily Point Cap Anti-Farming: Max 30 points (3 routes) per day per user
+        $todaySubmissions = MasterGpx::where('user_id', $user->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+
+        $rewardPoints = 0;
+        if ($todaySubmissions <= 3) {
+            $rewardPoints = 10;
+            $user->addPoints($rewardPoints);
+            $message = 'Rute GPX berhasil dikirim! Status saat ini menunggu peninjauan admin. Anda mendapatkan +' . $rewardPoints . ' poin runner!';
+        } else {
+            $message = 'Rute GPX berhasil dikirim dan menunggu peninjauan admin. (Batas bonus 30 poin/hari untuk submit rute telah tercapai hari ini).';
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Rute GPX berhasil dikirim! Status saat ini belum dipublish dan menunggu peninjauan admin. Anda mendapatkan +' . $rewardPoints . ' poin runner!',
+            'message' => $message,
             'gpx_id' => $masterGpx->id,
             'points_earned' => $rewardPoints,
             'total_points' => $user->fresh()->run_points,

@@ -144,7 +144,7 @@ Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::clas
 Route::get('/api/cities/autocomplete', [App\Http\Controllers\PublicGpxController::class, 'searchCities'])->name('gpx.cities.autocomplete');
 Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
 Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
-Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
+Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->middleware('throttle:10,1')->name('tools.buat-rute-lari.submit-gpx');
 Route::get('/gpx/my', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->middleware('auth')->name('gpx.my');
 
 // User Running Activities (Strava-like activities)
