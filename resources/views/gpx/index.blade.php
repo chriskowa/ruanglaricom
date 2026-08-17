@@ -81,11 +81,7 @@
             
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
                 <div class="space-y-3 max-w-2xl">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-xs text-slate-300">
-                        <i class="fa-solid fa-map-location-dot text-accent"></i>
-                        <span>Rute terverifikasi komunitas</span>
-                    </div>
-
+                    
                     <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
                         Database Rute <span class="text-accent">GPX</span> Lari Indonesia
                     </h1>
@@ -97,12 +93,10 @@
                 
                 <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
                     <a href="{{ route('tools.buat-rute-lari') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-medium transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-draw-polygon text-slate-400"></i>
                         <span>Buat rute baru</span>
                     </a>
                     
                     <button id="btn-open-submit-gpx-modal" type="button" class="btn-trigger-gpx-modal w-full sm:w-auto px-5 py-2.5 rounded-xl bg-accent text-slate-950 hover:bg-white text-sm font-bold transition shadow-accent flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-cloud-arrow-up text-slate-950"></i>
                         <span>Submit rute (+10 poin)</span>
                     </button>
                 </div>
