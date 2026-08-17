@@ -125,12 +125,17 @@ class PublicGpxController extends Controller
             $item->save();
         }
 
-        // Auto-parse coordinates_json from GPX file if missing
-        if (empty($item->coordinates_json) && $item->gpx_path && Storage::disk('public')->exists($item->gpx_path)) {
-            $parsedCoords = $this->parseGpxCoordinates(Storage::disk('public')->path($item->gpx_path));
-            if (! empty($parsedCoords)) {
-                $item->coordinates_json = $parsedCoords;
-                $item->save();
+        // Auto-parse coordinates_json from GPX file if missing or lacks elevation data
+        if ($item->gpx_path && Storage::disk('public')->exists($item->gpx_path)) {
+            $needsParse = empty($item->coordinates_json) ||
+                (is_array($item->coordinates_json) && count($item->coordinates_json) > 0 && !array_key_exists('ele', (array)$item->coordinates_json[0]));
+            
+            if ($needsParse) {
+                $parsedCoords = $this->parseGpxCoordinates(Storage::disk('public')->path($item->gpx_path));
+                if (! empty($parsedCoords)) {
+                    $item->coordinates_json = $parsedCoords;
+                    $item->save();
+                }
             }
         }
 
@@ -391,14 +396,34 @@ class PublicGpxController extends Controller
         $coords = [];
         $totalPts = count($trkpts);
         $step = $totalPts > 2000 ? (int) ceil($totalPts / 2000) : 1;
+        $cumulativeDist = 0.0;
+        $prevLat = null;
+        $prevLon = null;
 
         for ($i = 0; $i < $totalPts; $i += $step) {
             $pt = $trkpts[$i];
             $lat = isset($pt['lat']) ? (float) $pt['lat'] : null;
             $lon = isset($pt['lon']) ? (float) $pt['lon'] : (isset($pt['lng']) ? (float) $pt['lng'] : null);
 
+            $eleNode = $pt->xpath('./*[local-name()="ele"]');
+            $ele = null;
+            if ($eleNode && isset($eleNode[0])) {
+                $ele = round((float) $eleNode[0], 1);
+            }
+
             if (is_finite($lat) && is_finite($lon)) {
-                $coords[] = ['lat' => $lat, 'lng' => $lon];
+                if ($prevLat !== null && $prevLon !== null) {
+                    $cumulativeDist += $this->haversineKm($prevLat, $prevLon, $lat, $lon);
+                }
+                $prevLat = $lat;
+                $prevLon = $lon;
+
+                $coords[] = [
+                    'lat' => $lat,
+                    'lng' => $lon,
+                    'ele' => $ele,
+                    'dist' => round($cumulativeDist, 3),
+                ];
             }
         }
 
