@@ -44,22 +44,22 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 md:px-8 bg-[#0B0F17] text-slate-200 font-sans">
-    <div class="max-w-5xl mx-auto space-y-6">
+<div class="min-h-screen pt-20 sm:pt-24 pb-16 px-3 sm:px-4 md:px-8 bg-[#0B0F17] text-slate-200 font-sans overflow-x-hidden w-full max-w-full">
+    <div class="max-w-5xl mx-auto space-y-4 sm:space-y-5">
 
         <!-- Breadcrumb & Utility Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-            <nav class="flex items-center gap-1.5 font-medium">
-                <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition">Database GPX</a>
+        <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-400">
+            <nav class="flex items-center gap-1.5 font-medium truncate max-w-[240px] sm:max-w-none">
+                <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition shrink-0">Database GPX</a>
                 <span class="text-slate-600">/</span>
-                <span>Aktivitas</span>
+                <span class="text-slate-400 shrink-0">Aktivitas</span>
                 <span class="text-slate-600">/</span>
-                <span class="text-slate-300 truncate max-w-[200px]">{{ $activity->title }}</span>
+                <span class="text-slate-300 truncate">{{ $activity->title }}</span>
             </nav>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
                 @if($isOwner)
-                    <button type="button" onclick="deleteActivity()" class="px-2.5 py-1.5 rounded-md border border-red-900/60 hover:border-red-700 text-red-400 hover:text-red-300 text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
+                    <button type="button" onclick="deleteActivity()" class="px-2.5 py-1.5 rounded-md border border-red-900/60 hover:border-red-700 bg-red-950/30 text-red-400 hover:text-red-300 text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
                         <i class="fa-regular fa-trash-can text-[11px]"></i>
                         <span>Hapus</span>
                     </button>
@@ -71,100 +71,98 @@
             </div>
         </div>
 
-        <!-- Activity Header -->
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-2 border-b border-slate-800/80">
-            <div class="space-y-2.5 max-w-3xl">
+        <!-- Activity Header (Professional & Compact) -->
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-3 border-b border-slate-800/80">
+            <div class="space-y-2 max-w-3xl">
                 <!-- User Meta Row -->
-                <div class="flex items-center gap-3">
-                    @if($activity->user?->avatar)
-                        <img src="{{ asset('storage/' . $activity->user->avatar) }}" alt="{{ $activity->user->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
-                    @else
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-bold text-white uppercase">
-                            {{ substr($activity->user?->name ?? 'R', 0, 1) }}
-                        </div>
-                    @endif
-                    <div>
-                        <span class="text-sm font-semibold text-white block">{{ $activity->user?->name ?? 'Runner' }}</span>
-                        <span class="text-xs text-slate-400 block">
-                            {{ $activity->start_time ? $activity->start_time->format('l, d F Y • H:i') : $activity->created_at->format('d M Y') }}
+                <div class="flex items-center gap-2.5">
+                    <img src="{{ $activity->user?->avatar_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($activity->user?->name ?? 'Runner') . '&background=1e293b&color=fc4c02&bold=true') }}" 
+                         alt="{{ $activity->user?->name ?? 'Runner' }}" 
+                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=Runner&background=1e293b&color=fc4c02&bold=true';"
+                         class="w-9 h-9 rounded-full object-cover border border-slate-700 shrink-0 shadow-sm">
+                    <div class="min-w-0">
+                        <span class="text-xs sm:text-sm font-semibold text-white block truncate">{{ $activity->user?->name ?? 'RuangLari Runner' }}</span>
+                        <span class="text-[11px] text-slate-400 block font-mono">
+                            {{ $activity->start_time ? $activity->start_time->format('l, d M Y • H:i') : $activity->created_at->format('d M Y') }}
                         </span>
                     </div>
                 </div>
 
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">
+                <h1 class="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-white break-words">
                     {{ $activity->title }}
                 </h1>
 
                 @if($activity->notes)
-                    <p class="text-slate-300 text-sm leading-relaxed max-w-2xl font-normal whitespace-pre-line">
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal whitespace-pre-line bg-[#0D131F] border border-slate-800/80 rounded-lg p-3">
                         {{ $activity->notes }}
                     </p>
                 @endif
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center gap-2.5 shrink-0">
-                <a href="{{ route('activities.download', $activity->id) }}" class="px-4 py-2.5 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+            <!-- Actions Bar -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 w-full sm:w-auto">
+                <a href="{{ route('activities.download', $activity->id) }}" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer text-center">
                     <i class="fa-solid fa-download text-xs"></i>
                     <span>Export GPX</span>
                 </a>
 
                 @if($activity->masterGpx)
-                    <a href="{{ route('gpx.show', $activity->masterGpx->slug ?: $activity->masterGpx->id) }}" class="px-3.5 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                    <a href="{{ route('gpx.show', $activity->masterGpx->slug ?: $activity->masterGpx->id) }}" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs transition flex items-center justify-center gap-1.5 text-center">
                         <i class="fa-solid fa-route text-xs text-[#FC4C02]"></i>
-                        <span>Lihat Rute Asli</span>
+                        <span>Rute Asli</span>
                     </a>
                 @endif
             </div>
         </div>
 
-        <!-- Consolidated Metric Strip -->
-        <div class="bg-[#111724] border border-slate-800/80 rounded-lg grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Jarak</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">{{ $formattedDist }}</span>
-                    <span class="text-xs text-slate-400 font-medium">km</span>
+        <!-- Consolidated Metric Strip (Sleek Professional Font Sizes) -->
+        <div class="bg-[#111724] border border-slate-800/80 rounded-lg grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80">
+            <div class="p-3 sm:p-3.5">
+                <span class="text-[11px] font-medium text-slate-400 block">Jarak</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold font-mono text-white tabular-nums">{{ $formattedDist }}</span>
+                    <span class="text-xs text-slate-400 font-mono">km</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Waktu Bergerak</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">{{ $activity->formatted_moving_time }}</span>
+            <div class="p-3 sm:p-3.5">
+                <span class="text-[11px] font-medium text-slate-400 block">Waktu Bergerak</span>
+                <div class="mt-0.5">
+                    <span class="text-xl sm:text-2xl font-bold font-mono text-white tabular-nums">{{ $activity->formatted_moving_time }}</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Pace Rata-Rata</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">{{ $activity->formatted_avg_pace }}</span>
+            <div class="p-3 sm:p-3.5">
+                <span class="text-[11px] font-medium text-slate-400 block">Avg Pace</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold font-mono text-[#FC4C02] tabular-nums">{{ $activity->formatted_avg_pace }}</span>
+                    <span class="text-xs text-slate-400 font-mono">/km</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Elevasi Naik</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">+{{ round($activity->elevation_gain_m ?? 0) }}</span>
-                    <span class="text-xs text-slate-400 font-medium">m</span>
+            <div class="p-3 sm:p-3.5">
+                <span class="text-[11px] font-medium text-slate-400 block">Elevasi Gain</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold font-mono text-white tabular-nums">+{{ round($activity->elevation_gain_m ?? 0) }}</span>
+                    <span class="text-xs text-slate-400 font-mono">m</span>
                 </div>
             </div>
 
-            <div class="p-4">
-                <span class="text-xs font-medium text-slate-400 block">Estimasi Kalori</span>
-                <div class="mt-1 flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-white tabular-nums">{{ number_format($activity->calories ?? 0) }}</span>
-                    <span class="text-xs text-slate-400 font-medium">kcal</span>
+            <div class="p-3 sm:p-3.5 col-span-2 sm:col-span-1 border-t sm:border-t-0 border-slate-800/80">
+                <span class="text-[11px] font-medium text-slate-400 block">Kalori</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                    <span class="text-xl sm:text-2xl font-bold font-mono text-white tabular-nums">{{ number_format($activity->calories ?? 0) }}</span>
+                    <span class="text-xs text-slate-400 font-mono">kcal</span>
                 </div>
             </div>
         </div>
 
         <!-- Recorded GPS Map & Integrated Elevation Stage -->
         <div class="bg-[#111724] border border-slate-800/80 rounded-lg overflow-hidden">
-            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-2 text-xs">
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex items-center justify-between gap-2 text-xs">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span>
-                    <h2 class="font-semibold text-slate-200 text-xs">Peta Jejak Aktivitas</h2>
+                    <h2 class="font-semibold text-slate-200 text-xs">Peta Jejak GPS</h2>
                 </div>
                 <div class="flex items-center gap-3 text-slate-400 font-medium text-xs">
                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start</span>
@@ -172,13 +170,13 @@
                 </div>
             </div>
 
-            <!-- Leaflet Map -->
-            <div id="activity-map" class="relative"></div>
+            <!-- Leaflet Map Container -->
+            <div id="activity-map" class="relative w-full h-[280px] sm:h-[360px] md:h-[420px] bg-[#0d121c]"></div>
 
             <!-- Elevation Profile -->
-            <div class="p-4 bg-[#0D131F] border-t border-slate-800 space-y-2.5">
-                <div class="flex items-center justify-between gap-2 text-xs text-slate-400">
-                    <span class="font-medium text-slate-300">Profil Elevasi Hasil Lari</span>
+            <div class="p-3.5 sm:p-4 bg-[#0D131F] border-t border-slate-800 space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                    <span class="font-medium text-slate-300 text-xs">Profil Elevasi</span>
                     <div class="flex items-center gap-3 font-mono text-[11px]">
                         <span>Min: <strong id="act-min-elev" class="text-slate-200">0m</strong></span>
                         <span>Max: <strong id="act-max-elev" class="text-slate-200">0m</strong></span>
@@ -186,7 +184,7 @@
                     </div>
                 </div>
 
-                <div class="relative w-full h-24 select-none" id="act-elev-container">
+                <div class="relative w-full h-20 sm:h-24 select-none" id="act-elev-container">
                     <svg id="act-elev-svg" class="w-full h-full block overflow-visible" preserveAspectRatio="none">
                         <defs>
                             <linearGradient id="actElevGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -203,28 +201,28 @@
 
         <!-- Splits Table Section -->
         @if(!empty($activity->splits_json) && is_array($activity->splits_json) && count($activity->splits_json) > 0)
-            <div class="bg-[#111724] border border-slate-800/80 rounded-lg p-5 space-y-3.5">
-                <h3 class="text-sm font-bold text-white uppercase">Rincian Split per Kilometer</h3>
+            <div class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 space-y-3">
+                <h3 class="text-xs sm:text-sm font-bold text-white uppercase">Rincian Split per Kilometer</h3>
                 
-                <div class="activity-table-wrap overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                <div class="activity-table-wrap overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs min-w-[320px]">
                         <thead class="bg-[#0D131F] text-slate-400 uppercase text-[10px] font-mono border-b border-slate-800">
                             <tr>
-                                <th class="py-2.5 px-4 font-semibold">KM</th>
-                                <th class="py-2.5 px-4 font-semibold">Pace</th>
-                                <th class="py-2.5 px-4 font-semibold">Waktu Split</th>
-                                <th class="py-2.5 px-4 font-semibold">Waktu Kumulatif</th>
-                                <th class="py-2.5 px-4 text-right font-semibold">Elevasi</th>
+                                <th class="py-2 px-3 font-semibold">KM</th>
+                                <th class="py-2 px-3 font-semibold">Pace</th>
+                                <th class="py-2 px-3 font-semibold">Waktu Split</th>
+                                <th class="py-2 px-3 font-semibold">Kumulatif</th>
+                                <th class="py-2 px-3 text-right font-semibold">Elevasi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800/80 font-mono text-slate-300">
                             @foreach($activity->splits_json as $s)
                                 <tr class="hover:bg-slate-800/40">
-                                    <td class="py-2.5 px-4 font-bold text-white">{{ $s['km'] ?? '-' }}</td>
-                                    <td class="py-2.5 px-4 font-semibold text-white">{{ $s['pace'] ?? '-' }}</td>
-                                    <td class="py-2.5 px-4 text-slate-300">{{ $s['split'] ?? '-' }}</td>
-                                    <td class="py-2.5 px-4 text-slate-400">{{ $s['cum'] ?? '-' }}</td>
-                                    <td class="py-2.5 px-4 text-right text-slate-300">{{ $s['elev'] ?? '-' }}</td>
+                                    <td class="py-2 px-3 font-bold text-white">{{ $s['km'] ?? '-' }}</td>
+                                    <td class="py-2 px-3 font-semibold text-[#FC4C02]">{{ $s['pace'] ?? '-' }}</td>
+                                    <td class="py-2 px-3 text-slate-300">{{ $s['split'] ?? '-' }}</td>
+                                    <td class="py-2 px-3 text-slate-400">{{ $s['cum'] ?? '-' }}</td>
+                                    <td class="py-2 px-3 text-right text-slate-300">{{ $s['elev'] ?? '-' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -365,8 +363,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert('Aktivitas berhasil dihapus.');
-                    window.location.href = "{{ route('gpx.index') }}";
+                    window.location.href = data.redirect_url || "{{ route('activities.index') }}";
                 } else {
                     alert(data.message || 'Gagal menghapus aktivitas.');
                 }

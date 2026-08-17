@@ -13,6 +13,38 @@ use Illuminate\Support\Str;
 class UserActivityController extends Controller
 {
     /**
+     * List all recorded running activities for the authenticated user.
+     */
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+        
+        $query = UserActivity::where('user_id', $user->id)
+            ->with('masterGpx')
+            ->orderBy('start_time', 'desc');
+
+        if ($request->filled('q')) {
+            $search = trim($request->input('q'));
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $activities = $query->paginate(12)->withQueryString();
+
+        // Calculate user total statistics
+        $totalStats = UserActivity::where('user_id', $user->id)
+            ->selectRaw('
+                COUNT(id) as total_runs,
+                COALESCE(SUM(distance_km), 0) as total_distance,
+                COALESCE(SUM(moving_time_s), 0) as total_time,
+                COALESCE(SUM(elevation_gain_m), 0) as total_elevation,
+                COALESCE(SUM(calories), 0) as total_calories
+            ')
+            ->first();
+
+        return view('activities.index', compact('activities', 'totalStats'));
+    }
+
+    /**
      * Free Run Live GPS Tracker (/run) - Strava-like Live GPS Running.
      */
     public function freeRun()
@@ -168,7 +200,7 @@ class UserActivityController extends Controller
     /**
      * Delete user activity.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, Request $request)
     {
         $activity = UserActivity::where('id', $id)
             ->where('user_id', Auth::id())
@@ -176,9 +208,14 @@ class UserActivityController extends Controller
 
         $activity->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Aktivitas berhasil dihapus.',
-        ]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Aktivitas lari berhasil dihapus.',
+                'redirect_url' => route('activities.index'),
+            ]);
+        }
+
+        return redirect()->route('activities.index')->with('success', 'Aktivitas lari berhasil dihapus.');
     }
 }

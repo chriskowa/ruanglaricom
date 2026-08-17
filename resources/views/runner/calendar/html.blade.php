@@ -2398,7 +2398,7 @@
             </div>
         </div>
 
-        <div class="fixed bottom-4 left-4 right-4 z-[900] md:hidden pointer-events-none">
+        <div class="fixed bottom-0 left-4 right-4 z-[900] md:hidden pointer-events-none">
             <div class="pointer-events-auto bg-slate-900/80 border border-slate-700/70 backdrop-blur-xl rounded-[8px] shadow-2xl px-2 py-1.5">
                 <div class="grid grid-cols-4 gap-1.5">
                     <button type="button" class="py-1.5 rounded-[6px] text-[10px] font-bold transition flex flex-col items-center justify-center gap-0.5"

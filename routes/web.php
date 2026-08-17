@@ -147,6 +147,7 @@ Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxC
 Route::get('/gpx/my', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->middleware('auth')->name('gpx.my');
 
 // User Running Activities (Strava-like activities)
+Route::get('/activities', [App\Http\Controllers\UserActivityController::class, 'index'])->middleware('auth')->name('activities.index');
 Route::get('/run', [App\Http\Controllers\UserActivityController::class, 'freeRun'])->name('run.free');
 Route::post('/activities', [App\Http\Controllers\UserActivityController::class, 'store'])->name('activities.store');
 Route::get('/activities/{id}', [App\Http\Controllers\UserActivityController::class, 'show'])->name('activities.show');

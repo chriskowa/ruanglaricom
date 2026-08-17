@@ -705,50 +705,50 @@
 <!-- ========================================================================= -->
 <!-- SOLID HIGH-CONTRAST POST-RUN SAVE MODAL (Strava-like) -->
 <!-- ========================================================================= -->
-<div id="post-run-modal" class="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden select-none" style="z-index: 999999 !important;">
-    <div class="post-run-card bg-[#0F172A] border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl text-slate-200" style="background-color: #0F172A !important;">
+<div id="post-run-modal" class="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden select-none" style="z-index: 999999 !important;">
+    <div class="post-run-card bg-[#0F172A] border border-slate-700 rounded-2xl max-w-md w-full p-4 sm:p-5 space-y-3.5 shadow-2xl text-slate-200" style="background-color: #0F172A !important;">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3.5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <div>
-                <h3 class="text-lg font-bold text-white">Ringkasan Lari Selesai</h3>
-                <span class="text-xs text-slate-400">Selamat! Aktivitas lari rute ini berhasil direkam.</span>
+                <h3 class="text-sm sm:text-base font-bold text-white">Ringkasan Lari Selesai</h3>
+                <span class="text-[11px] text-slate-400">Aktivitas lari rute ini berhasil direkam.</span>
             </div>
             <button type="button" onclick="closePostRunModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
-                <i class="fa-solid fa-xmark text-lg"></i>
+                <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
 
         <!-- Solid Summary Metrics Strip -->
-        <div class="bg-[#1E293B] border border-slate-700 rounded-xl p-3.5 grid grid-cols-4 divide-x divide-slate-700 text-center">
-            <div>
+        <div class="bg-[#1E293B] border border-slate-700 rounded-xl p-2.5 sm:p-3 grid grid-cols-4 divide-x divide-slate-700 text-center">
+            <div class="px-1">
                 <span class="text-[10px] text-slate-400 font-mono font-medium block">Jarak</span>
-                <span id="summary-distance" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">0.00 km</span>
+                <span id="summary-distance" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">0.00 km</span>
             </div>
-            <div>
+            <div class="px-1">
                 <span class="text-[10px] text-slate-400 font-mono font-medium block">Waktu</span>
-                <span id="summary-time" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">00:00</span>
+                <span id="summary-time" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">00:00</span>
             </div>
-            <div>
+            <div class="px-1">
                 <span class="text-[10px] text-slate-400 font-mono font-medium block">Avg Pace</span>
-                <span id="summary-pace" class="text-base sm:text-lg font-bold font-mono text-[#FC4C02] mt-0.5 block">--:--</span>
+                <span id="summary-pace" class="text-xs sm:text-sm font-bold font-mono text-[#FC4C02] mt-0.5 block truncate">--:--</span>
             </div>
-            <div>
+            <div class="px-1">
                 <span class="text-[10px] text-slate-400 font-mono font-medium block">Gain</span>
-                <span id="summary-gain" class="text-base sm:text-lg font-bold font-mono text-white mt-0.5 block">+0m</span>
+                <span id="summary-gain" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">+0m</span>
             </div>
         </div>
 
         @auth
             <!-- Save Activity Form for Authenticated Runner -->
-            <form id="save-activity-form" onsubmit="submitSaveActivity(event)" class="space-y-4">
+            <form id="save-activity-form" onsubmit="submitSaveActivity(event)" class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Judul Aktivitas</label>
-                    <input type="text" id="act-form-title" required class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2.5 text-xs text-white outline-none">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Judul Aktivitas</label>
+                    <input type="text" id="act-form-title" required class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-xs text-white outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Catatan Lari (Opsional)</label>
-                    <textarea id="act-form-notes" rows="2" placeholder="Bagaimana kondisi rute dan fisik Anda hari ini?" class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2.5 text-xs text-white outline-none resize-none"></textarea>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Catatan Lari (Opsional)</label>
+                    <textarea id="act-form-notes" rows="2" placeholder="Bagaimana kondisi rute dan fisik Anda hari ini?" class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-xs text-white outline-none resize-none"></textarea>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -756,22 +756,22 @@
                     <label for="act-form-public" class="text-xs text-slate-300 cursor-pointer">Tampilkan aktivitas ini di profil publik</label>
                 </div>
 
-                <button type="submit" id="btn-save-activity-submit" class="w-full py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                <button type="submit" id="btn-save-activity-submit" class="w-full py-2.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
                     <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
                     <span>Simpan Aktivitas ke Profil</span>
                 </button>
             </form>
         @else
             <!-- Guest Prompt -->
-            <div class="p-4 rounded-xl bg-[#1E293B] border border-slate-700 space-y-3 text-center">
+            <div class="p-3.5 rounded-xl bg-[#1E293B] border border-slate-700 space-y-2.5 text-center">
                 <p class="text-xs text-slate-300 leading-relaxed">
                     Masuk ke akun RuangLari Anda untuk menyimpan aktivitas ini ke profil, menghitung total KM mingguan, dan melihat analisis split.
                 </p>
-                <div class="flex items-center justify-center gap-2.5 pt-1">
-                    <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#e04300] transition">
+                <div class="flex items-center justify-center gap-2 pt-1">
+                    <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#e04300] transition">
                         Masuk / Login
                     </a>
-                    <button type="button" onclick="exportRecordedGpxDirectly()" class="px-3.5 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-xs font-semibold hover:text-white transition cursor-pointer">
+                    <button type="button" onclick="exportGpxSessionDirectly()" class="px-3 py-2 rounded-lg border border-slate-600 text-slate-300 text-xs font-semibold hover:text-white transition cursor-pointer">
                         Download GPX Saja
                     </button>
                 </div>
@@ -1372,22 +1372,79 @@
             }
         }
 
+        // GPS Kalman Filter for smooth navigation without spikes
+        class NavGpsKalmanFilter {
+            constructor(decay = 3) {
+                this.variance = -1;
+                this.minAccuracy = 1;
+                this.decay = decay;
+                this.lat = 0;
+                this.lng = 0;
+                this.timestamp = 0;
+            }
+
+            process(rawLat, rawLng, accuracy, timestamp) {
+                if (accuracy < this.minAccuracy) accuracy = this.minAccuracy;
+
+                if (this.variance < 0) {
+                    this.timestamp = timestamp;
+                    this.lat = rawLat;
+                    this.lng = rawLng;
+                    this.variance = accuracy * accuracy;
+                    return { lat: rawLat, lng: rawLng };
+                }
+
+                const durationMs = timestamp - this.timestamp;
+                if (durationMs > 0) {
+                    this.variance += (durationMs / 1000) * this.decay * this.decay;
+                    this.timestamp = timestamp;
+                }
+
+                const k = this.variance / (this.variance + accuracy * accuracy);
+                this.lat += k * (rawLat - this.lat);
+                this.lng += k * (rawLng - this.lng);
+                this.variance = (1 - k) * this.variance;
+
+                return { lat: this.lat, lng: this.lng };
+            }
+        }
+
+        const navKalmanFilter = new NavGpsKalmanFilter(3);
+
         function handleNavGpsSuccess(pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
+            const rawLat = pos.coords.latitude;
+            const rawLng = pos.coords.longitude;
             const ele = pos.coords.altitude || null;
             const accuracy = pos.coords.accuracy || 10;
             const speedMps = pos.coords.speed;
+            const now = Date.now();
+
+            // Reject poor accuracy GPS points (> 30 meters) if recorded track already started
+            if (accuracy > 30 && recordedGpsTrack.length > 0) {
+                return;
+            }
+
+            // Apply Kalman smoothing
+            const smoothed = navKalmanFilter.process(rawLat, rawLng, accuracy, now);
+            const lat = smoothed.lat;
+            const lng = smoothed.lng;
 
             navUserPos = { lat, lng };
 
-            // Record Breadcrumb Point for Saving Activity
-            const now = Date.now();
+            // Record Breadcrumb Point for Saving Activity with Anti-Drift & Speed Rejection Filter
             if (recordedGpsTrack.length > 0) {
                 const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
                 const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
-                // Filter out tiny GPS drift (< 2 meters)
-                if (segmentDist > 0.002) {
+                const timeDiffSec = (now - prev.time) / 1000;
+                
+                // Speed anomaly check: reject if speed > 40 km/h (teleportation/glitch)
+                const segmentSpeedKmh = timeDiffSec > 0 ? (segmentDist / (timeDiffSec / 3600)) : 0;
+                if (segmentSpeedKmh > 40) {
+                    return; // Ignore glitch jump
+                }
+
+                // Filter out tiny GPS drift (< 2.5 meters)
+                if (segmentDist > 0.0025) {
                     recordedActualDistanceKm += segmentDist;
                     if (ele && prev.ele && ele > prev.ele) {
                         recordedElevationGainM += (ele - prev.ele);
@@ -1401,7 +1458,7 @@
             if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
             if (navAccuracyCircle) {
                 navAccuracyCircle.setLatLng([lat, lng]);
-                navAccuracyCircle.setRadius(Math.min(accuracy, 50));
+                navAccuracyCircle.setRadius(Math.min(accuracy, 25));
             }
 
             // Calculate Distance to Start Point

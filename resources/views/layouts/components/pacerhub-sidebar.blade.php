@@ -286,6 +286,14 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('activities.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('activities.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-running"></i></span>
+                                    <span class="flex items-center justify-between w-full">
+                                        <span>Aktivitas Lari</span>                                        
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('calculator') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('calculator') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calculator"></i></span>
                                     <span>Calculator</span>
