@@ -763,6 +763,15 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         window.RL_MAPBOX_TOKEN = "{{ config('services.mapbox.token') }}";
+        @if(isset($initialGpx) && $initialGpx)
+            window.INITIAL_GPX_DATA = {
+                id: {{ $initialGpx->id }},
+                title: @json($initialGpx->title),
+                coordinates: @json($initialGpx->coordinates_json ?? [])
+            };
+        @else
+            window.INITIAL_GPX_DATA = null;
+        @endif
     </script>
     <script>
         (function () {
@@ -2098,21 +2107,31 @@
                     return;
                 }
                 points = coordsArray.map(function(pt) {
+                    var lat = Array.isArray(pt) ? pt[0] : (pt.lat !== undefined ? pt.lat : (pt.latitude !== undefined ? pt.latitude : null));
+                    var lng = Array.isArray(pt) ? pt[1] : (pt.lng !== undefined ? pt.lng : (pt.longitude !== undefined ? pt.longitude : null));
                     return {
-                        lat: pt[0],
-                        lng: pt[1],
-                        mode: 'direct',
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
+                        mode: (els.followRoad && els.followRoad.checked) ? 'osrm' : 'direct',
                         segment: [],
                         iconType: ''
                     };
+                }).filter(function(p) {
+                    return !isNaN(p.lat) && !isNaN(p.lng) && isFinite(p.lat) && isFinite(p.lng);
                 });
+
+                if (points.length === 0) {
+                    setStatus('Koordinat tidak valid');
+                    return;
+                }
+
                 if (els.name && title) els.name.value = title;
                 rebuildLine();
                 rebuildMarkers();
                 updateStats();
                 updateElevation();
                 if (points.length >= 2) fitRoute();
-                setStatus('Rute GPX Dimuat');
+                setStatus('Rute GPX ' + (title ? ('"' + title + '" ') : '') + 'berhasil dimuat ke editor');
                 pushState();
             }
 
@@ -2554,6 +2573,30 @@
                     setStyle(nextStyle);
                 } else {
                     applyStyleFromState(getStyle());
+                }
+                if (window.INITIAL_GPX_DATA && Array.isArray(window.INITIAL_GPX_DATA.coordinates) && window.INITIAL_GPX_DATA.coordinates.length > 0) {
+                    scrollToMap();
+                    loadGpxCoordinates(window.INITIAL_GPX_DATA.coordinates, window.INITIAL_GPX_DATA.title);
+                    setTimeout(function () {
+                        map.invalidateSize();
+                        fitRoute();
+                    }, 500);
+                } else if (qs.has('gpx_id') || qs.has('gpx_slug')) {
+                    var gpxParam = qs.get('gpx_id') || qs.get('gpx_slug');
+                    fetch('{{ route("gpx.published.json") }}?q=' + encodeURIComponent(gpxParam))
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data.success && data.items && data.items.length > 0) {
+                                var itm = data.items[0];
+                                if (itm.coordinates_json && itm.coordinates_json.length > 0) {
+                                    scrollToMap();
+                                    loadGpxCoordinates(itm.coordinates_json, itm.title);
+                                    setTimeout(function() { map.invalidateSize(); fitRoute(); }, 500);
+                                }
+                            }
+                        }).catch(function(e) {
+                            console.error('Failed to auto load GPX from URL:', e);
+                        });
                 }
                 var pts = qs.get('pts');
                 var modes = qs.get('m') || '';

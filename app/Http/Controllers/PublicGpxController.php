@@ -95,6 +95,14 @@ class PublicGpxController extends Controller
             ->orderBy('city')
             ->pluck('city');
 
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            return response()->json([
+                'success' => true,
+                'html' => view('gpx.partials.cards', ['items' => $items])->render(),
+                'total' => $items->total(),
+            ]);
+        }
+
         return view('gpx.index', [
             'items' => $items,
             'cities' => $cities,
@@ -201,6 +209,62 @@ class PublicGpxController extends Controller
             'success' => true,
             'items' => $items,
         ]);
+    }
+
+    /**
+     * Autocomplete Indonesian cities / regencies
+     */
+    public function searchCities(Request $request)
+    {
+        $q = trim($request->input('q', ''));
+        if (mb_strlen($q) < 1) {
+            return response()->json([]);
+        }
+
+        $results = [];
+
+        // 1. Search database cities
+        if (class_exists(\App\Models\City::class)) {
+            $dbCities = \App\Models\City::with('province')
+                ->where('name', 'like', "%{$q}%")
+                ->limit(15)
+                ->get()
+                ->map(function ($c) {
+                    return [
+                        'name' => $c->name,
+                        'display' => $c->name . ($c->province ? ', ' . $c->province->name : ''),
+                        'province' => $c->province?->name,
+                    ];
+                })
+                ->toArray();
+            $results = array_merge($results, $dbCities);
+        }
+
+        // 2. Search distinct MasterGpx cities
+        $gpxCities = MasterGpx::where('city', 'like', "%{$q}%")
+            ->distinct()
+            ->limit(10)
+            ->pluck('city')
+            ->map(function ($name) {
+                return [
+                    'name' => $name,
+                    'display' => $name,
+                    'province' => '',
+                ];
+            })
+            ->toArray();
+        $results = array_merge($results, $gpxCities);
+
+        // Deduplicate by name
+        $unique = [];
+        foreach ($results as $item) {
+            $key = strtolower(trim($item['name']));
+            if (!isset($unique[$key])) {
+                $unique[$key] = $item;
+            }
+        }
+
+        return response()->json(array_values($unique));
     }
 
     public function download($identifier)

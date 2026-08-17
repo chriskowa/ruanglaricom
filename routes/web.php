@@ -141,6 +141,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // Public GPX Database & Submit GPX Modal
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
+Route::get('/api/cities/autocomplete', [App\Http\Controllers\PublicGpxController::class, 'searchCities'])->name('gpx.cities.autocomplete');
 Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
 Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
 Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->name('tools.buat-rute-lari.submit-gpx');
@@ -311,8 +312,14 @@ Route::post('/tools/paid-feature/checkout', [App\Http\Controllers\PaidFeatureCon
     ->name('tools.paid-feature.checkout');
 Route::post('/tools/paid-feature/confirm', [App\Http\Controllers\PaidFeatureController::class, 'confirm'])
     ->name('tools.paid-feature.confirm');
-Route::get('/tools/buat-rute-lari', function () {
-    return view('tools.buat-rute-lari');
+Route::get('/tools/buat-rute-lari', function (\Illuminate\Http\Request $request) {
+    $initialGpx = null;
+    if ($request->filled('gpx_id')) {
+        $initialGpx = \App\Models\MasterGpx::find($request->gpx_id);
+    } elseif ($request->filled('gpx_slug')) {
+        $initialGpx = \App\Models\MasterGpx::where('slug', $request->gpx_slug)->first();
+    }
+    return view('tools.buat-rute-lari', compact('initialGpx'));
 })->name('tools.buat-rute-lari');
 
 Route::post('/tools/buat-rute-lari/ai-generate', [App\Http\Controllers\Tools\AiRouteController::class, 'generate'])->name('tools.buat-rute-lari.ai-generate');

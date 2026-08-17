@@ -148,7 +148,7 @@
     <div class="max-w-6xl mx-auto space-y-5 sm:space-y-6">
         
         <!-- Breadcrumb & Top Utility Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-400">
+        <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-200">
             <nav class="flex items-center gap-1.5 font-medium truncate max-w-[240px] sm:max-w-none">
                 <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition shrink-0">Database GPX</a>
                 <span class="text-slate-600">/</span>
@@ -157,7 +157,7 @@
 
             <div class="flex items-center gap-2 shrink-0">
                 <button type="button" onclick="shareGpxRoute()" class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-slate-600 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
-                    <i class="fa-solid fa-share-nodes text-[11px] text-slate-400"></i>
+                    <i class="fa-solid fa-share-nodes text-[11px] text-slate-200"></i>
                     <span>Bagikan</span>
                 </button>
             </div>
@@ -174,7 +174,7 @@
                     
                     @if($item->event)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">
-                            <i class="fa-solid fa-trophy text-slate-400 text-[10px]"></i>
+                            <i class="fa-solid fa-trophy text-slate-200 text-[10px]"></i>
                             <span class="truncate max-w-[150px]">{{ $item->event->title ?? $item->event->name ?? 'Event Lari' }}</span>
                         </span>
                     @endif
@@ -189,7 +189,7 @@
                     {{ $item->title }}
                 </h1>
 
-                <p class="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
+                <p class="text-slate-200 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
                     {{ $item->description ?? $item->notes ?? 'File rute GPX lari terverifikasi untuk Garmin, Coros, Suunto, dan Strava dengan profil elevasi dan panduan strategi pacing.' }}
                 </p>
             </div>
@@ -210,8 +210,8 @@
                     </button>
 
                     <!-- Minor Action: Route Editor -->
-                    <a href="{{ route('tools.buat-rute-lari') }}" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5 text-center" title="Buka di Route Builder">
-                        <i class="fa-solid fa-draw-polygon text-[11px]"></i>
+                    <a href="{{ route('tools.buat-rute-lari', ['gpx_id' => $item->id]) }}" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-200 hover:text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5 text-center" title="Buka dan Edit di Route Builder">
+                        <i class="fa-solid fa-draw-polygon text-[11px] text-[#FC4C02]"></i>
                         <span>Editor</span>
                     </a>
                 </div>
@@ -221,31 +221,31 @@
         <!-- Consolidated Statistics Strip (Optimized for 360px mobile) -->
         <div class="bg-[#111724] border border-slate-800/80 rounded-lg grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Jarak Total</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Jarak Total</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">{{ $formattedDist }}</span>
-                    <span class="text-xs text-slate-400 font-medium">km</span>
+                    <span class="text-xs text-slate-200 font-medium">km</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Naik</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Elevasi Naik</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">+{{ number_format($gainM) }}</span>
-                    <span class="text-xs text-slate-400 font-medium">m</span>
+                    <span class="text-xs text-slate-200 font-medium">m</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Turun</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Elevasi Turun</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">-{{ number_format($lossM) }}</span>
-                    <span class="text-xs text-slate-400 font-medium">m</span>
+                    <span class="text-xs text-slate-200 font-medium">m</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Kontributor</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Kontributor</span>
                 <div class="mt-0.5 sm:mt-1 truncate">
                     <span class="text-xs sm:text-sm font-semibold text-white block truncate">{{ $item->user?->name ?? 'RuangLari' }}</span>
                     <span class="text-[10px] sm:text-[11px] text-slate-500 block">{{ $item->created_at ? $item->created_at->format('d M Y') : 'Terverifikasi' }}</span>
@@ -262,12 +262,12 @@
                     <h2 class="font-semibold text-slate-200 text-xs">Peta Jalur GPS</h2>
                 </div>
 
-                <div class="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                <div class="flex items-center gap-3 text-xs text-slate-200 font-medium">
                     <span class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start
                     </span>
                     <span class="flex items-center gap-1.5">
-                        <span class="w-3.5 h-3.5 rounded-full bg-[#0d121c] border border-slate-600 text-[9px] font-mono text-center flex items-center justify-center font-bold text-white">1</span> KM Mark
+                        <span class="w-4 h-4 rounded-full bg-white border-2 border-[#FC4C02] text-[9px] font-mono text-center flex items-center justify-center font-black text-[#FC4C02] shadow-sm">1</span> KM Mark
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span> Finish
@@ -280,7 +280,7 @@
 
             <!-- Elevation Profile (Integrated directly underneath) -->
             <div class="p-4 bg-[#0D131F] border-t border-slate-800 space-y-2.5">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-200">
                     <div class="flex items-center gap-1.5 font-medium text-slate-300">
                         <i class="fa-solid fa-chart-area text-[#FC4C02] text-[11px]"></i>
                         <span>Profil Elevasi</span>
@@ -328,13 +328,13 @@
                     <h2 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight">
                         PacePro™ Strategy Planner
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                    <p class="text-[11px] sm:text-xs text-slate-200 mt-0.5">
                         Rencana target split per kilometer berdasarkan profil tanjakan rute dan tipe pacing yang dipilih.
                     </p>
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                    <span class="text-xs text-slate-400 font-medium">Strategi:</span>
+                    <span class="text-xs text-slate-200 font-medium">Strategi:</span>
                     <span id="pp-strategy-badge" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs font-semibold text-white">Even Split (0%)</span>
                 </div>
             </div>
@@ -351,22 +351,22 @@
                             <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
                                 <div>
                                     <input type="number" id="pp-time-h" min="0" max="23" value="0" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Jam</span>
+                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Jam</span>
                                 </div>
                                 <div>
                                     <input type="number" id="pp-time-m" min="0" max="59" value="{{ $distKm >= 20 ? 55 : ($distKm >= 10 ? 50 : 28) }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Menit</span>
+                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Menit</span>
                                 </div>
                                 <div>
                                     <input type="number" id="pp-time-s" min="0" max="59" value="00" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Detik</span>
+                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Detik</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Presets -->
                         <div>
-                            <span class="block text-[11px] font-medium text-slate-400 mb-1.5">Preset Target Pace:</span>
+                            <span class="block text-[11px] font-medium text-slate-200 mb-1.5">Preset Target Pace:</span>
                             <div class="grid grid-cols-3 sm:grid-cols-6 gap-1">
                                 <button type="button" onclick="setPacePreset(4, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">4:30</button>
                                 <button type="button" onclick="setPacePreset(5, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">5:00</button>
@@ -417,15 +417,15 @@
                     <!-- Summary Strip -->
                     <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-2.5 sm:p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
                         <div class="px-1">
-                            <span class="text-[10px] text-slate-400 font-medium block">Avg Pace</span>
+                            <span class="text-[10px] text-slate-200 font-medium block">Avg Pace</span>
                             <span id="pp-avg-pace" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">--:-- /km</span>
                         </div>
                         <div class="px-1">
-                            <span class="text-[10px] text-slate-400 font-medium block">Target Waktu</span>
+                            <span class="text-[10px] text-slate-200 font-medium block">Target Waktu</span>
                             <span id="pp-target-total-time" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">00:00:00</span>
                         </div>
                         <div class="px-1">
-                            <span class="text-[10px] text-slate-400 font-medium block">Total Jarak</span>
+                            <span class="text-[10px] text-slate-200 font-medium block">Total Jarak</span>
                             <span class="text-xs sm:text-base font-bold font-mono text-slate-300 mt-0.5 block truncate">{{ $formattedDist }} km</span>
                         </div>
                     </div>
@@ -449,7 +449,7 @@
 
                         <div class="pacepro-table-wrap max-h-[340px] overflow-y-auto overflow-x-auto w-full">
                             <table class="w-full text-left text-xs min-w-[340px]" id="pp-pace-table">
-                                <thead class="bg-[#090D16] text-slate-400 uppercase text-[10px] font-mono sticky top-0 border-b border-slate-800 z-10">
+                                <thead class="bg-[#090D16] text-slate-200 uppercase text-[10px] font-mono sticky top-0 border-b border-slate-800 z-10">
                                     <tr>
                                         <th class="py-2 px-2.5 sm:px-3.5 font-medium">KM</th>
                                         <th class="py-2 px-2.5 sm:px-3.5 font-medium">Target Pace</th>
@@ -481,7 +481,7 @@
                     @endif
 
                     @if($item->notes && $item->notes !== $item->description)
-                        <div class="p-3 rounded bg-[#0D131F] border border-slate-800 text-xs text-slate-400">
+                        <div class="p-3 rounded bg-[#0D131F] border border-slate-800 text-xs text-slate-200">
                             <strong class="text-white block mb-0.5">Catatan Tambahan:</strong>
                             <p class="whitespace-pre-line">{{ $item->notes }}</p>
                         </div>
@@ -496,24 +496,24 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 sm:pb-3.5">
                 <div>
                     <h3 class="text-xs sm:text-sm font-bold text-white uppercase">Cara Memasukkan GPX ke Jam Tangan</h3>
-                    <span class="text-[11px] sm:text-xs text-slate-400">Panduan sinkronisasi ke aplikasi pendukung jam pelari.</span>
+                    <span class="text-[11px] sm:text-xs text-slate-200">Panduan sinkronisasi ke aplikasi pendukung jam pelari.</span>
                 </div>
 
                 <!-- Clean Responsive Tabs -->
                 <div class="flex items-center gap-1 bg-[#0D131F] p-0.5 rounded border border-slate-800 w-full sm:w-auto">
                     <button type="button" @click="activeTab = 'garmin'"
                             class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'garmin' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
+                            :class="activeTab === 'garmin' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
                         Garmin
                     </button>
                     <button type="button" @click="activeTab = 'coros'"
                             class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'coros' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
+                            :class="activeTab === 'coros' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
                         Coros
                     </button>
                     <button type="button" @click="activeTab = 'strava'"
                             class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'strava' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'">
+                            :class="activeTab === 'strava' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
                         Strava
                     </button>
                 </div>
@@ -521,7 +521,7 @@
 
             <!-- Garmin Guide -->
             <div x-show="activeTab === 'garmin'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-400">
+                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
                     <li><strong class="text-white">Download file GPX</strong> rute ini dengan menekan tombol <em>Download GPX</em> di atas.</li>
                     <li>Buka aplikasi <strong class="text-white">Garmin Connect</strong> di smartphone Anda.</li>
                     <li>Pilih menu <strong>More (&hellip;) &rarr; Training & Planning &rarr; Courses</strong>.</li>
@@ -533,7 +533,7 @@
 
             <!-- Coros Guide -->
             <div x-show="activeTab === 'coros'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-400">
+                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
                     <li><strong class="text-white">Download file GPX</strong> rute ini ke smartphone Anda.</li>
                     <li>Buka file GPX yang terunduh dan pilih <strong>Open with COROS App</strong>.</li>
                     <li>Aplikasi COROS akan otomatis menampilkan preview rute dan peta. Klik <strong>Save to My Routes</strong>.</li>
@@ -544,7 +544,7 @@
 
             <!-- Strava Guide -->
             <div x-show="activeTab === 'strava'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-400">
+                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
                     <li>Download file GPX di RuangLari.</li>
                     <li>Buka website <strong>Strava.com</strong> di browser komputer / HP.</li>
                     <li>Buka menu <strong>Dashboard &rarr; My Routes &rarr; Create New Route</strong> &rarr; Pilih <strong>Upload GPX</strong>.</li>
@@ -559,9 +559,9 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-bold text-white uppercase">Rute GPX Serupa</h3>
-                        <span class="text-xs text-slate-400">Rute lari lain di wilayah sekitarnya.</span>
+                        <span class="text-xs text-slate-200">Rute lari lain di wilayah sekitarnya.</span>
                     </div>
-                    <a href="{{ route('gpx.index') }}" class="text-xs text-slate-400 hover:text-white transition font-medium">
+                    <a href="{{ route('gpx.index') }}" class="text-xs text-slate-200 hover:text-white transition font-medium">
                         Lihat Semua &rarr;
                     </a>
                 </div>
@@ -570,7 +570,7 @@
                     @foreach($related as $rel)
                         <a href="{{ route('gpx.show', $rel->slug ?: $rel->id) }}" class="group bg-[#111724] border border-slate-800 hover:border-slate-700 rounded-lg p-3.5 transition flex flex-col justify-between">
                             <div class="space-y-1.5">
-                                <div class="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-400">
+                                <div class="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-200">
                                     <span class="text-[#FC4C02] font-semibold">{{ $rel->city ?? 'Indonesia' }}</span>
                                     <span class="text-white font-semibold">{{ number_format((float)($rel->distance_km ?? 0), 1) }} km</span>
                                 </div>
@@ -580,7 +580,7 @@
                                 </h4>
                             </div>
 
-                            <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
+                            <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-200">
                                 <span>+{{ round($rel->elevation_gain_m ?? 0) }}m</span>
                                 <span class="text-slate-300 font-semibold group-hover:text-[#FC4C02] transition-colors">Detail &rarr;</span>
                             </div>
@@ -605,7 +605,7 @@
         <div class="flex items-center gap-2 min-w-0 flex-1">
             <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
             <div class="min-w-0 flex-1">
-                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block truncate" id="nav-status-label">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-200 block truncate" id="nav-status-label">
                     Navigasi GPS Aktif
                 </span>
                 <h2 class="text-xs sm:text-sm font-bold text-white truncate" id="nav-status-title">
@@ -656,7 +656,7 @@
             <!-- Primary Giant Metrics Display -->
             <div class="nav-metrics-box grid grid-cols-3 gap-3 text-center divide-x divide-slate-800 bg-[#111724] border border-slate-800 rounded-xl p-3.5 shadow-inner" style="background-color: #111724 !important;">
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Pace Saat Ini</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Pace Saat Ini</span>
                     <div class="mt-0.5">
                         <span id="nav-live-pace" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">--:--</span>
                         <span class="text-[10px] font-mono text-slate-500 block">/km</span>
@@ -664,7 +664,7 @@
                 </div>
 
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Sisa Jarak</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Sisa Jarak</span>
                     <div class="mt-0.5">
                         <span id="nav-remaining-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">{{ $formattedDist }}</span>
                         <span class="text-[10px] font-mono text-slate-500 block">km</span>
@@ -672,7 +672,7 @@
                 </div>
 
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Waktu Lari</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Waktu Lari</span>
                     <div class="mt-0.5">
                         <span id="nav-running-time" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">00:00</span>
                         <span class="text-[10px] font-mono text-slate-500 block" id="nav-eta-label">Durasi</span>
@@ -682,7 +682,7 @@
 
             <!-- Route Progress Bar -->
             <div>
-                <div class="flex justify-between text-xs font-mono text-slate-400 mb-1.5">
+                <div class="flex justify-between text-xs font-mono text-slate-200 mb-1.5">
                     <span>Progress: <strong id="nav-progress-pct" class="text-white font-bold">0%</strong></span>
                     <span id="nav-completed-dist" class="text-slate-300">0.00 / {{ $formattedDist }} km</span>
                 </div>
@@ -711,9 +711,9 @@
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <div>
                 <h3 class="text-sm sm:text-base font-bold text-white">Ringkasan Lari Selesai</h3>
-                <span class="text-[11px] text-slate-400">Aktivitas lari rute ini berhasil direkam.</span>
+                <span class="text-[11px] text-slate-200">Aktivitas lari rute ini berhasil direkam.</span>
             </div>
-            <button type="button" onclick="closePostRunModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+            <button type="button" onclick="closePostRunModal()" class="text-slate-200 hover:text-white p-1 cursor-pointer">
                 <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
@@ -721,19 +721,19 @@
         <!-- Solid Summary Metrics Strip -->
         <div class="bg-[#1E293B] border border-slate-700 rounded-xl p-2.5 sm:p-3 grid grid-cols-4 divide-x divide-slate-700 text-center">
             <div class="px-1">
-                <span class="text-[10px] text-slate-400 font-mono font-medium block">Jarak</span>
+                <span class="text-[10px] text-slate-200 font-mono font-medium block">Jarak</span>
                 <span id="summary-distance" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">0.00 km</span>
             </div>
             <div class="px-1">
-                <span class="text-[10px] text-slate-400 font-mono font-medium block">Waktu</span>
+                <span class="text-[10px] text-slate-200 font-mono font-medium block">Waktu</span>
                 <span id="summary-time" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">00:00</span>
             </div>
             <div class="px-1">
-                <span class="text-[10px] text-slate-400 font-mono font-medium block">Avg Pace</span>
+                <span class="text-[10px] text-slate-200 font-mono font-medium block">Avg Pace</span>
                 <span id="summary-pace" class="text-xs sm:text-sm font-bold font-mono text-[#FC4C02] mt-0.5 block truncate">--:--</span>
             </div>
             <div class="px-1">
-                <span class="text-[10px] text-slate-400 font-mono font-medium block">Gain</span>
+                <span class="text-[10px] text-slate-200 font-mono font-medium block">Gain</span>
                 <span id="summary-gain" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">+0m</span>
             </div>
         </div>
@@ -919,14 +919,14 @@
                     if (currentTargetKm <= totalKmWhole && p.dist >= currentTargetKm) {
                         const kmBadgeIcon = L.divIcon({
                             className: 'custom-km-marker',
-                            html: `<div class="w-4 h-4 rounded-full bg-[#0d121c] border border-slate-500 text-white text-[8px] font-mono font-bold flex items-center justify-center shadow select-none">${currentTargetKm}</div>`,
-                            iconSize: [16, 16],
-                            iconAnchor: [8, 8]
+                            html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-mono font-black flex items-center justify-center select-none" style="box-shadow: 0 2px 8px rgba(0,0,0,0.6);">${currentTargetKm}</div>`,
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
                         });
 
                         L.marker([p.lat, p.lng], { icon: kmBadgeIcon })
                             .addTo(map)
-                            .bindPopup(`<div style="font-family:sans-serif; font-size:12px;"><b>Kilometer ${currentTargetKm}</b><br><span style="color:#64748b;">${p.ele ? 'Ketinggian: ' + Math.round(p.ele) + 'm' : ''}</span></div>`);
+                            .bindPopup(`<div style="font-family:sans-serif; font-size:12px; color:#0f172a;"><b>Kilometer ${currentTargetKm}</b><br><span style="color:#64748b;">${p.ele ? 'Ketinggian: ' + Math.round(p.ele) + 'm' : ''}</span></div>`);
                         
                         currentTargetKm++;
                     }
@@ -1238,7 +1238,7 @@
                     <td class="py-2 px-3.5 font-medium text-slate-300">${s.km}${s.dist < 1 ? ` (${(s.dist * 1000).toFixed(0)}m)` : ''}</td>
                     <td class="py-2 px-3.5 text-white font-semibold">${formatPaceTime(pacePerKm)}</td>
                     <td class="py-2 px-3.5 text-slate-300">${formatDurationTime(adjTime)}</td>
-                    <td class="py-2 px-3.5 text-slate-400">${formatDurationTime(cumSec)}</td>
+                    <td class="py-2 px-3.5 text-slate-200">${formatDurationTime(cumSec)}</td>
                     <td class="py-2 px-3.5 text-right ${elevClass}">${elevText}</td>
                 `;
                 tableBody.appendChild(tr);
