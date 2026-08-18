@@ -319,11 +319,82 @@
                         <i class="fa-solid fa-expand text-[10px]"></i>
                         <span class="hidden md:inline">Fit</span>
                     </button>
+
+                    <!-- GPX Trail Animator Toggle Button -->
+                    <button type="button" id="btn-toggle-animator-panel" onclick="toggleGpxAnimator()" class="px-2.5 py-1 rounded bg-[#FC4C02] text-slate-950 font-bold text-[11px] hover:bg-accent/90 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Putar Animasi Rute">
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                        <span>Animasi</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Leaflet Map Container -->
-            <div id="gpx-detail-map" class="relative"></div>
+            <!-- Leaflet Map Container & Floating Replay HUD -->
+            <div class="relative overflow-hidden">
+                <div id="gpx-detail-map" class="relative"></div>
+
+                <!-- Floating Minimalist GPX Animator Replay HUD Overlay (No emojis, clean data layout) -->
+                <div id="gpx-animator-hud" class="hidden absolute bottom-3 left-3 right-3 z-[999] bg-[#0b1220]/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl space-y-2 transition-all">
+                    <!-- Telemetry Stats Line -->
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-mono text-white font-bold text-sm tracking-tight" id="anim-telemetry-km">0.00 km</span>
+                            <span class="text-slate-400 font-mono text-[11px]" id="anim-telemetry-total-km">/ {{ $formattedDist }} km</span>
+                        </div>
+                        <div class="flex items-center gap-3 sm:gap-4 text-[11px] font-mono text-slate-300">
+                            <div>
+                                <span class="text-slate-400">Elev:</span>
+                                <span id="anim-telemetry-elev" class="text-white font-semibold ml-0.5">0 m</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">Waktu:</span>
+                                <span id="anim-telemetry-time" class="text-white font-semibold ml-0.5">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Slider Scrubber -->
+                    <div class="relative flex items-center">
+                        <input type="range" id="anim-progress-slider" min="0" max="1000" value="0" step="1"
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FC4C02] focus:outline-none"
+                            oninput="onAnimSliderInput(this.value)">
+                    </div>
+
+                    <!-- Bottom Controls Line -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-xs">
+                        <!-- Play / Pause & Reset -->
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3 py-1 rounded bg-[#FC4C02] hover:bg-[#e04302] text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-play text-[10px]" id="icon-anim-play"></i>
+                                <span id="label-anim-play">Play</span>
+                            </button>
+                            <button type="button" onclick="restartAnimation()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
+                                <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+
+                        <!-- Speed Buttons, Camera Follow & Close -->
+                        <div class="flex items-center gap-1.5 sm:gap-2 font-mono text-[11px]">
+                            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded p-0.5" id="anim-speed-btn-group">
+                                <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
+                                <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
+                                <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
+                                <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
+                                <button type="button" onclick="setAnimSpeed(20)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="20">20x</button>
+                            </div>
+
+                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1" title="Kamera otomatis mengikuti runner">
+                                <span class="hidden xs:inline">Kamera</span>
+                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">ON</span>
+                            </button>
+
+                            <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-1" title="Tutup Animasi">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Elevation Profile (Integrated directly underneath) -->
             <div class="p-4 bg-[#0D131F] border-t border-slate-800 space-y-2.5">
@@ -1139,6 +1210,265 @@
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
+        }
+
+        // =========================================================================
+        // GPX TRAIL ANIMATOR ENGINE (Interactive 2D Route Replay / Relive Style)
+        // =========================================================================
+        let isAnimPlaying = false;
+        let animProgressRatio = 0.0;
+        let animSpeedMultiplier = 5;
+        let animRafId = null;
+        let animLastTimestamp = null;
+        let animCameraFollow = true;
+        let animRunnerMarker = null;
+        let animProgressTrail = null;
+        const animBaseDurationSeconds = 60; // 60s total duration at 1x
+
+        function initAnimatorLayers() {
+            if (!map) return;
+            if (!animProgressTrail) {
+                animProgressTrail = L.polyline([], {
+                    color: '#FC4C02',
+                    weight: 5,
+                    opacity: 1.0,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    zIndexOffset: 1200
+                }).addTo(map);
+            }
+
+            if (!animRunnerMarker) {
+                const runnerIcon = L.divIcon({
+                    className: 'custom-anim-runner-marker',
+                    html: '<div class="relative flex items-center justify-center w-6 h-6"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FC4C02] opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FC4C02] border-2 border-white shadow-md"></span></div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+                const startPos = (routePoints && routePoints.length > 0) ? [routePoints[0].lat, routePoints[0].lng] : [-6.2088, 106.8456];
+                animRunnerMarker = L.marker(startPos, { icon: runnerIcon, zIndexOffset: 2000 }).addTo(map);
+            }
+        }
+
+        function toggleGpxAnimator() {
+            const hud = document.getElementById('gpx-animator-hud');
+            if (!hud) return;
+
+            const isCurrentlyOpen = !hud.classList.contains('hidden');
+            if (isCurrentlyOpen) {
+                pauseAnimation();
+                hud.classList.add('hidden');
+                if (animRunnerMarker && map.hasLayer(animRunnerMarker)) map.removeLayer(animRunnerMarker);
+                if (animProgressTrail && map.hasLayer(animProgressTrail)) map.removeLayer(animProgressTrail);
+                animRunnerMarker = null;
+                animProgressTrail = null;
+                fitRouteBounds();
+            } else {
+                hud.classList.remove('hidden');
+                initAnimatorLayers();
+                renderAnimationState(animProgressRatio);
+                startAnimation();
+            }
+        }
+
+        function togglePlayPauseAnimation() {
+            if (isAnimPlaying) {
+                pauseAnimation();
+            } else {
+                if (animProgressRatio >= 1.0) {
+                    animProgressRatio = 0.0;
+                }
+                startAnimation();
+            }
+        }
+
+        function startAnimation() {
+            initAnimatorLayers();
+            isAnimPlaying = true;
+            animLastTimestamp = null;
+
+            const playIcon = document.getElementById('icon-anim-play');
+            const playLabel = document.getElementById('label-anim-play');
+            if (playIcon) playIcon.className = 'fa-solid fa-pause text-[10px]';
+            if (playLabel) playLabel.textContent = 'Pause';
+
+            if (animRafId) cancelAnimationFrame(animRafId);
+            animRafId = requestAnimationFrame(animLoop);
+        }
+
+        function pauseAnimation() {
+            isAnimPlaying = false;
+            if (animRafId) {
+                cancelAnimationFrame(animRafId);
+                animRafId = null;
+            }
+
+            const playIcon = document.getElementById('icon-anim-play');
+            const playLabel = document.getElementById('label-anim-play');
+            if (playIcon) playIcon.className = 'fa-solid fa-play text-[10px]';
+            if (playLabel) playLabel.textContent = 'Play';
+        }
+
+        function restartAnimation() {
+            pauseAnimation();
+            animProgressRatio = 0.0;
+            renderAnimationState(0.0);
+            startAnimation();
+        }
+
+        function onAnimSliderInput(val) {
+            animProgressRatio = Math.max(0, Math.min(1000, parseFloat(val))) / 1000;
+            renderAnimationState(animProgressRatio);
+        }
+
+        function setAnimSpeed(speed) {
+            animSpeedMultiplier = parseFloat(speed) || 5;
+            document.querySelectorAll('#anim-speed-btn-group .anim-speed-btn').forEach(btn => {
+                const s = parseFloat(btn.getAttribute('data-speed'));
+                if (s === animSpeedMultiplier) {
+                    btn.className = 'anim-speed-btn px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer';
+                } else {
+                    btn.className = 'anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer';
+                }
+            });
+        }
+
+        function toggleCameraFollow() {
+            animCameraFollow = !animCameraFollow;
+            const badge = document.getElementById('badge-camera-follow');
+            if (badge) {
+                if (animCameraFollow) {
+                    badge.textContent = 'ON';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold';
+                } else {
+                    badge.textContent = 'OFF';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold';
+                }
+            }
+        }
+
+        function getPointAtRatio(ratio) {
+            if (!routePoints || routePoints.length === 0) return null;
+            if (routePoints.length === 1 || ratio <= 0) return { ...routePoints[0], index: 0 };
+            if (ratio >= 1.0) return { ...routePoints[routePoints.length - 1], index: routePoints.length - 1 };
+
+            const maxDist = routePoints[routePoints.length - 1].dist || totalRouteDistance || 1;
+            const targetDist = ratio * maxDist;
+
+            for (let i = 0; i < routePoints.length - 1; i++) {
+                const p1 = routePoints[i];
+                const p2 = routePoints[i + 1];
+                if (targetDist >= p1.dist && targetDist <= p2.dist) {
+                    const span = (p2.dist - p1.dist) || 0.0001;
+                    const frac = (targetDist - p1.dist) / span;
+
+                    const lat = p1.lat + (p2.lat - p1.lat) * frac;
+                    const lng = p1.lng + (p2.lng - p1.lng) * frac;
+                    const ele = (p1.ele !== null && p2.ele !== null) ? (p1.ele + (p2.ele - p1.ele) * frac) : (p1.ele || p2.ele || 0);
+
+                    return {
+                        lat: lat,
+                        lng: lng,
+                        ele: ele,
+                        dist: targetDist,
+                        index: i
+                    };
+                }
+            }
+            return { ...routePoints[routePoints.length - 1], index: routePoints.length - 1 };
+        }
+
+        function formatAnimTime(totalSeconds) {
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = Math.floor(totalSeconds % 60);
+            if (hrs > 0) {
+                return String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            }
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function renderAnimationState(ratio) {
+            const pt = getPointAtRatio(ratio);
+            if (!pt) return;
+
+            // 1. Update Telemetry
+            const kmEl = document.getElementById('anim-telemetry-km');
+            const elevEl = document.getElementById('anim-telemetry-elev');
+            const timeEl = document.getElementById('anim-telemetry-time');
+            const slider = document.getElementById('anim-progress-slider');
+
+            if (kmEl) kmEl.textContent = pt.dist.toFixed(2) + ' km';
+            if (elevEl) elevEl.textContent = Math.round(pt.ele) + ' m';
+            if (slider) slider.value = Math.round(ratio * 1000);
+
+            // Estimated run time at default ~5:00 min/km (300 sec/km)
+            const simulatedSecs = pt.dist * 300;
+            if (timeEl) timeEl.textContent = formatAnimTime(simulatedSecs);
+
+            // 2. Update Runner Marker Position
+            if (animRunnerMarker) {
+                animRunnerMarker.setLatLng([pt.lat, pt.lng]);
+            }
+
+            // 3. Update Dynamic Trail Polyline
+            if (animProgressTrail && routePoints.length > 0) {
+                const subPoints = [];
+                for (let i = 0; i <= pt.index; i++) {
+                    subPoints.push([routePoints[i].lat, routePoints[i].lng]);
+                }
+                subPoints.push([pt.lat, pt.lng]);
+                animProgressTrail.setLatLngs(subPoints);
+            }
+
+            // 4. Camera Follow
+            if (animCameraFollow && map) {
+                map.panTo([pt.lat, pt.lng], { animate: true, duration: 0.1 });
+            }
+
+            // 5. Sync with Elevation Chart Tracker
+            const container = document.getElementById('elevation-chart-container');
+            const hoverLine = document.getElementById('elev-hover-line');
+            const hoverDot = document.getElementById('elev-hover-dot');
+            if (container && hoverLine && hoverDot) {
+                const svgWidth = container.clientWidth || 300;
+                const x = ratio * svgWidth;
+                hoverLine.style.left = x + 'px';
+                hoverLine.classList.remove('hidden');
+                hoverDot.style.left = x + 'px';
+                hoverDot.classList.remove('hidden');
+            }
+
+            // 6. Sync with PacePro Split Table Highlight
+            const curKm = Math.min(Math.floor(pt.dist) + 1, Math.ceil(totalRouteDistance || 1));
+            document.querySelectorAll('[id^="pacepro-split-row-"]').forEach(row => {
+                row.classList.remove('bg-[#FC4C02]/20', 'border-l-2', 'border-[#FC4C02]');
+            });
+            const activeSplitRow = document.getElementById('pacepro-split-row-' + curKm);
+            if (activeSplitRow) {
+                activeSplitRow.classList.add('bg-[#FC4C02]/20', 'border-l-2', 'border-[#FC4C02]');
+            }
+        }
+
+        function animLoop(timestamp) {
+            if (!isAnimPlaying) return;
+            if (!animLastTimestamp) animLastTimestamp = timestamp;
+
+            const deltaSec = (timestamp - animLastTimestamp) / 1000;
+            animLastTimestamp = timestamp;
+
+            const step = (deltaSec / animBaseDurationSeconds) * animSpeedMultiplier;
+            animProgressRatio += step;
+
+            if (animProgressRatio >= 1.0) {
+                animProgressRatio = 1.0;
+                renderAnimationState(1.0);
+                pauseAnimation();
+                return;
+            }
+
+            renderAnimationState(animProgressRatio);
+            animRafId = requestAnimationFrame(animLoop);
         }
 
         // 2. Elevation Profile Graph
