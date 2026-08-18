@@ -3,7 +3,8 @@
 @section('title', 'Edit Product - RuangLari Market')
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark">
+<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
+     x-data="productEditForm()">
     <div class="max-w-4xl mx-auto">
         
         <!-- Breadcrumb & Top Action -->
@@ -294,57 +295,109 @@
                             @error('description') <p class="text-rose-400 text-xs mt-1 font-mono">{{ $message }}</p> @enderror
                         </div>
 
-                        <!-- Multi-Image Management (Max 4 Photos) -->
-                        <div class="space-y-3">
-                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-                                Galeri Foto Produk (Maksimal 4 Foto)
-                            </label>
-                            
-                            <!-- Existing Photos -->
-                            @if($product->images->count() > 0)
-                                <div class="space-y-2 mb-4">
-                                    <span class="text-[11px] font-mono text-slate-400 uppercase">Foto Saat Ini:</span>
+                        <!-- Multi-Image Management (Dropzone Max 4 Photos) -->
+                        <div class="space-y-4 pt-2 border-t border-slate-800">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+                                    Galeri Foto Produk (Maksimal 4 Foto)
+                                </label>
+                                <span class="text-[10px] font-mono text-slate-400 uppercase">
+                                    <span x-text="totalImagesCount">0</span> / 4 Foto Total
+                                </span>
+                            </div>
+
+                            <!-- Hidden inputs for delete_images -->
+                            <template x-for="id in deletedImageIds" :key="id">
+                                <input type="hidden" name="delete_images[]" :value="id">
+                            </template>
+
+                            <!-- Hidden input for new uploaded files -->
+                            <input type="file" id="edit-images-input" name="images[]" multiple accept="image/*" class="hidden" @change="handleFilesFromInput($event)">
+
+                            <!-- Existing Photos Section -->
+                            <template x-if="existingImages.length > 0">
+                                <div class="space-y-2">
+                                    <span class="text-[11px] font-mono text-slate-400 uppercase font-bold">Foto Saat Ini:</span>
                                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                        @foreach($product->images as $img)
-                                            <div class="relative aspect-square rounded-xl border border-slate-700 bg-slate-950 overflow-hidden group">
-                                                <img src="{{ asset('storage/' . $img->image_path) }}" class="w-full h-full object-cover">
+                                        <template x-for="img in existingImages" :key="img.id">
+                                            <div class="relative aspect-square rounded-xl border transition-all overflow-hidden flex flex-col items-center justify-center text-center group shadow-md"
+                                                 :class="isMarkedDeleted(img.id) ? 'border-rose-700/60 bg-rose-950/40 opacity-50 grayscale' : 'border-slate-700 bg-slate-950'">
+                                                <img :src="img.url" class="w-full h-full object-cover">
                                                 
-                                                @if($img->is_primary)
+                                                <template x-if="img.is_primary && !isMarkedDeleted(img.id)">
                                                     <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase font-mono shadow">
                                                         UTAMA
                                                     </span>
-                                                @endif
+                                                </template>
 
-                                                <label class="absolute inset-0 bg-rose-950/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center cursor-pointer">
-                                                    <input type="checkbox" name="delete_images[]" value="{{ $img->id }}" class="w-4 h-4 rounded border-rose-500 text-rose-600 focus:ring-rose-500 mb-1">
-                                                    <span class="text-[10px] font-bold text-rose-200 uppercase font-mono">Hapus Foto</span>
-                                                </label>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <p class="text-[10px] text-slate-500 font-mono">*Centang foto yang ingin dihapus saat klik Update Product.</p>
-                                </div>
-                            @endif
+                                                <template x-if="isMarkedDeleted(img.id)">
+                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-rose-600 text-white text-[8px] font-black uppercase font-mono shadow">
+                                                        AKAN DIHAPUS
+                                                    </span>
+                                                </template>
 
-                            @php($availableSlots = max(0, 4 - $product->images->count()))
-                            @if($availableSlots > 0)
-                                <div class="space-y-2">
-                                    <span class="text-[11px] font-mono text-slate-300 uppercase font-bold">Tambah Foto Baru (Tersisa {{ $availableSlots }} Slot):</span>
-                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                        @for($i = 0; $i < $availableSlots; $i++)
-                                            <div class="relative aspect-square rounded-xl border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900 transition overflow-hidden flex flex-col items-center justify-center text-center group">
-                                                <label for="new-file-{{ $i }}" class="w-full h-full flex flex-col items-center justify-center p-3 cursor-pointer">
-                                                    <div class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
-                                                        <i class="fas fa-plus text-xs"></i>
-                                                    </div>
-                                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
-                                                    <input id="new-file-{{ $i }}" type="file" name="images[]" accept="image/*" class="hidden">
-                                                </label>
+                                                <button type="button" @click="toggleDeleteExisting(img.id)"
+                                                        class="absolute top-1.5 right-1.5 px-2 py-1 rounded-md text-[10px] font-mono font-bold transition flex items-center gap-1 shadow cursor-pointer"
+                                                        :class="isMarkedDeleted(img.id) ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-rose-600 hover:bg-rose-500 text-white'"
+                                                        :title="isMarkedDeleted(img.id) ? 'Batalkan hapus foto' : 'Hapus foto ini'">
+                                                    <i class="fas" :class="isMarkedDeleted(img.id) ? 'fa-undo text-[9px]' : 'fa-trash-alt text-[9px]'"></i>
+                                                    <span x-text="isMarkedDeleted(img.id) ? 'Batal' : 'Hapus'"></span>
+                                                </button>
                                             </div>
-                                        @endfor
+                                        </template>
                                     </div>
                                 </div>
-                            @endif
+                            </template>
+
+                            <!-- Newly Added Photos (Dropzone Preview) -->
+                            <div class="space-y-2" x-show="newFileList.length > 0" x-cloak>
+                                <span class="text-[11px] font-mono text-neon uppercase font-bold">Foto Baru Akan Diunggah:</span>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                    <template x-for="(item, idx) in newFileList" :key="idx">
+                                        <div class="relative aspect-square rounded-xl border-2 border-neon/60 bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md">
+                                            <img :src="item.previewUrl" class="w-full h-full object-cover">
+                                            
+                                            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/85 backdrop-blur border border-slate-700 text-[8px] font-mono font-bold text-white uppercase"
+                                                  x-text="'BARU ' + (idx + 1)"></span>
+                                            
+                                            <button type="button" @click.stop="removeNewFile(idx)" 
+                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer"
+                                                    title="Hapus foto baru ini">
+                                                <i class="fas fa-times text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Dropzone for Adding More Photos -->
+                            <div 
+                                id="product-dropzone"
+                                class="relative border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
+                                :class="isDragging ? 'border-neon bg-neon/5 scale-[1.01]' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-900/60'"
+                                @dragover.prevent="isDragging = true"
+                                @dragleave.prevent="isDragging = false"
+                                @drop.prevent="handleFilesDrop($event)"
+                                @click="triggerFileInput()"
+                                x-show="availableSlots > 0"
+                            >
+                                <div class="flex flex-col items-center justify-center space-y-2.5 pointer-events-none">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
+                                        <i class="fas fa-cloud-arrow-up text-lg text-neon"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">
+                                            Tarik &amp; letakkan foto baru di sini, atau <span class="text-neon underline">pilih dari galeri</span>
+                                        </p>
+                                        <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                            Tersisa <span x-text="availableSlots" class="text-white font-bold"></span> slot foto tambahan (JPEG, PNG, WEBP hingga 3MB)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @error('images') <p class="text-rose-400 text-xs font-mono">{{ $message }}</p> @enderror
+                            @error('images.*') <p class="text-rose-400 text-xs font-mono">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
@@ -354,7 +407,7 @@
                             Batal
                         </a>
 
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-white/5">
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-white/5 cursor-pointer">
                             <i class="fas fa-check text-xs"></i>
                             <span>Update Product</span>
                         </button>
@@ -366,24 +419,96 @@
 </div>
 
 <script>
-function previewImage(input) {
-    const preview = document.getElementById('image-preview');
-    let img = preview ? preview.querySelector('img') : null;
-    
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (!img) {
-                img = document.createElement('img');
-                img.className = "h-36 w-36 rounded-lg border border-slate-700 object-cover";
-                preview.appendChild(img);
+function productEditForm() {
+    return {
+        existingImages: @json($product->images->map(fn($img) => [
+            'id' => $img->id,
+            'url' => asset('storage/' . $img->image_path),
+            'is_primary' => (bool)$img->is_primary
+        ])),
+        deletedImageIds: [],
+        newFileList: [],
+        isDragging: false,
+
+        get activeExistingCount() {
+            return this.existingImages.length - this.deletedImageIds.length;
+        },
+
+        get totalImagesCount() {
+            return this.activeExistingCount + this.newFileList.length;
+        },
+
+        get availableSlots() {
+            return Math.max(0, 4 - this.totalImagesCount);
+        },
+
+        toggleDeleteExisting(id) {
+            const index = this.deletedImageIds.indexOf(id);
+            if (index > -1) {
+                this.deletedImageIds.splice(index, 1);
+            } else {
+                this.deletedImageIds.push(id);
             }
-            img.src = e.target.result;
-            img.classList.remove('hidden');
-            preview.classList.remove('hidden');
+        },
+
+        isMarkedDeleted(id) {
+            return this.deletedImageIds.includes(id);
+        },
+
+        triggerFileInput() {
+            const input = document.getElementById('edit-images-input');
+            if (input) input.click();
+        },
+
+        handleFilesDrop(e) {
+            this.isDragging = false;
+            if (e.dataTransfer && e.dataTransfer.files) {
+                this.addNewFiles(Array.from(e.dataTransfer.files));
+            }
+        },
+
+        handleFilesFromInput(e) {
+            if (e.target && e.target.files) {
+                this.addNewFiles(Array.from(e.target.files));
+                e.target.value = '';
+            }
+        },
+
+        addNewFiles(files) {
+            const validImageFiles = files.filter(f => f.type.startsWith('image/'));
+            if (validImageFiles.length === 0) return;
+
+            const slots = this.availableSlots;
+            if (slots <= 0) return;
+
+            const toAdd = validImageFiles.slice(0, slots);
+            toAdd.forEach(file => {
+                const previewUrl = URL.createObjectURL(file);
+                this.newFileList.push({ file, previewUrl });
+            });
+
+            this.syncFileInput();
+        },
+
+        removeNewFile(index) {
+            if (this.newFileList[index]) {
+                URL.revokeObjectURL(this.newFileList[index].previewUrl);
+            }
+            this.newFileList.splice(index, 1);
+            this.syncFileInput();
+        },
+
+        syncFileInput() {
+            const input = document.getElementById('edit-images-input');
+            if (!input) return;
+
+            const dt = new DataTransfer();
+            this.newFileList.forEach(item => {
+                dt.items.add(item.file);
+            });
+            input.files = dt.files;
         }
-        reader.readAsDataURL(input.files[0]);
-    }
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function() {
