@@ -86,6 +86,32 @@ class MasterGpxController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
+        // Send notification to admins
+        try {
+            $adminUsers = \App\Models\User::where('role', 'admin')->get();
+            $now = now();
+            $notifRows = [];
+            foreach ($adminUsers as $admin) {
+                $notifRows[] = [
+                    'user_id' => $admin->id,
+                    'type' => 'gpx_submission',
+                    'title' => 'Master GPX Baru Ditambahkan',
+                    'message' => 'Admin ' . (auth()->user()->name ?? '') . ' menambahkan rute Master GPX baru: "' . $item->title . '" (' . ($item->distance_km ? number_format((float) $item->distance_km, 1) . ' km, ' : '') . ($item->city ?? 'Indonesia') . ').',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $item->id,
+                    'is_read' => false,
+                    'read_at' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            if (!empty($notifRows)) {
+                \App\Models\Notification::insert($notifRows);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to create admin notification for Master GPX creation: ' . $e->getMessage());
+        }
+
         return redirect()->route('admin.master-gpx.edit', $item)->with('success', 'Master GPX berhasil dibuat.');
     }
 
@@ -115,6 +141,8 @@ class MasterGpxController extends Controller
             'notes' => 'nullable|string|max:5000',
         ]);
 
+        $wasPublished = (bool) $masterGpx->is_published;
+
         $update = [
             'event_id' => $data['event_id'] ?? null,
             'title' => $data['title'],
@@ -141,14 +169,49 @@ class MasterGpxController extends Controller
 
         $masterGpx->update($update);
 
+        // Notify submitter if published status changed from false to true
+        if (!$wasPublished && $masterGpx->is_published && $masterGpx->user_id) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $masterGpx->user_id,
+                    'type' => 'gpx_published',
+                    'title' => 'Rute GPX Disetujui & Tayang!',
+                    'message' => 'Kabar gembira! Rute GPX "' . $masterGpx->title . '" (' . ($masterGpx->distance_km ? number_format((float) $masterGpx->distance_km, 1) . ' km, ' : '') . ($masterGpx->city ?? 'Indonesia') . ') yang Anda kirimkan telah disetujui admin dan kini tayang di Katalog Rute RuangLari.',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $masterGpx->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to notify user on GPX publish update: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('admin.master-gpx.edit', $masterGpx)->with('success', 'Master GPX berhasil diupdate.');
     }
 
     public function togglePublish(MasterGpx $masterGpx)
     {
+        $newStatus = ! $masterGpx->is_published;
         $masterGpx->update([
-            'is_published' => ! $masterGpx->is_published,
+            'is_published' => $newStatus,
         ]);
+
+        // Notify submitter if published status became true
+        if ($newStatus && $masterGpx->user_id) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $masterGpx->user_id,
+                    'type' => 'gpx_published',
+                    'title' => 'Rute GPX Disetujui & Tayang!',
+                    'message' => 'Kabar gembira! Rute GPX "' . $masterGpx->title . '" (' . ($masterGpx->distance_km ? number_format((float) $masterGpx->distance_km, 1) . ' km, ' : '') . ($masterGpx->city ?? 'Indonesia') . ') yang Anda kirimkan telah disetujui admin dan kini tayang di Katalog Rute RuangLari.',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $masterGpx->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to notify user on GPX togglePublish: ' . $e->getMessage());
+            }
+        }
 
         $statusText = $masterGpx->is_published ? 'dipublish' : 'dijadikan draft (belum publish)';
 

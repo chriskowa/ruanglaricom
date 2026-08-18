@@ -20,6 +20,7 @@
                         @if($notification->type === 'like') bg-red-500/20 text-red-400 border border-red-500/30
                         @elseif($notification->type === 'comment') bg-blue-500/20 text-blue-400 border border-blue-500/30
                         @elseif($notification->type === 'follow') bg-green-500/20 text-green-400 border border-green-500/30
+                        @elseif(in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved']) || $notification->reference_type === 'MasterGpx') bg-neon/15 text-neon border border-neon/30
                         @else bg-slate-700 text-slate-300 border border-slate-600
                         @endif">
                         @if($notification->type === 'like')
@@ -28,6 +29,8 @@
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 6h-2v9H7l-4 4V6a2 2 0 012-2h16a2 2 0 012 2z"/></svg>
                         @elseif($notification->type === 'follow')
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.89 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        @elseif(in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved']) || $notification->reference_type === 'MasterGpx')
+                            <i class="fa-solid fa-map-location-dot text-base text-neon"></i>
                         @else
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6.32-6a1 1 0 00.68-.94V11a6.002 6.002 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6.002 6.002 0 006 11v4.06a1 1 0 00.68.94L8 17v1h8v-1l2.32-1z"/></svg>
                         @endif
@@ -39,8 +42,8 @@
                                     <a href="{{ route('feed.index') }}#post-{{ $notification->reference_id }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @elseif($notification->reference_type === 'EventSubmission' && $notification->reference_id && auth()->user()?->role === 'admin')
                                     <a href="{{ route('admin.event-submissions.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
-                                @elseif(($notification->reference_type === 'MasterGpx' || $notification->type === 'gpx_submission') && $notification->reference_id)
-                                    <a href="{{ auth()->user()?->role === 'admin' ? route('admin.master-gpx.index') : route('gpx.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
+                                @elseif(($notification->reference_type === 'MasterGpx' || in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved'])) && $notification->reference_id)
+                                    <a href="{{ auth()->user()?->role === 'admin' && $notification->type === 'gpx_submission' ? route('admin.master-gpx.index') : route('gpx.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\Marketplace\MarketplaceOrder' || $notification->reference_type === 'MarketplaceOrder' || $notification->type === 'marketplace_order_paid' || $notification->type === 'marketplace_sale') && $notification->reference_id)
                                     <a href="{{ auth()->user()?->role === 'admin' ? route('admin.marketplace.orders.show', $notification->reference_id) : route('marketplace.orders.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
@@ -52,8 +55,8 @@
                                     <a href="{{ route('feed.index') }}#post-{{ $notification->reference_id }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @elseif($notification->reference_type === 'EventSubmission' && $notification->reference_id && auth()->user()?->role === 'admin')
                                     <a href="{{ route('admin.event-submissions.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
-                                @elseif(($notification->reference_type === 'MasterGpx' || $notification->type === 'gpx_submission') && $notification->reference_id)
-                                    <a href="{{ auth()->user()?->role === 'admin' ? route('admin.master-gpx.index') : route('gpx.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
+                                @elseif(($notification->reference_type === 'MasterGpx' || in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved'])) && $notification->reference_id)
+                                    <a href="{{ auth()->user()?->role === 'admin' && $notification->type === 'gpx_submission' ? route('admin.master-gpx.index') : route('gpx.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\Marketplace\MarketplaceOrder' || $notification->reference_type === 'MarketplaceOrder' || $notification->type === 'marketplace_order_paid' || $notification->type === 'marketplace_sale') && $notification->reference_id)
                                     <a href="{{ auth()->user()?->role === 'admin' ? route('admin.marketplace.orders.show', $notification->reference_id) : route('marketplace.orders.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
@@ -61,7 +64,7 @@
                                 @else
                                     <a href="javascript:void(0)" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @endif
-                                <div class="text-[11px] text-slate-500 font-mono">{{ $notification->created_at->format('d/m/Y, H.i.s') }}</div>
+                                <div class="text-xs text-slate-500 font-medium">{{ $notification->created_at->format('d/m/Y, H.i.s') }}</div>
                             </div>
                             @if(!$notification->is_read)
                                 <form action="{{ route('notifications.read', $notification) }}" method="POST" class="shrink-0">

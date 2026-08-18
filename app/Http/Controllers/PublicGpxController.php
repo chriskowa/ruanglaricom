@@ -469,7 +469,7 @@ class PublicGpxController extends Controller
             $message = 'Rute GPX berhasil dikirim dan menunggu peninjauan admin. (Batas bonus 30 poin/hari untuk submit rute telah tercapai hari ini).';
         }
 
-        // Send Notification to Admins
+        // Send Notification to Admins and Submitter
         try {
             $adminUsers = \App\Models\User::where('role', 'admin')->get();
             $now = now();
@@ -488,11 +488,26 @@ class PublicGpxController extends Controller
                     'updated_at' => $now,
                 ];
             }
+
+            // Notification for the runner who uploaded
+            $notifRows[] = [
+                'user_id' => $user->id,
+                'type' => 'gpx_submission',
+                'title' => 'Pengajuan Rute GPX Terkirim',
+                'message' => 'Rute GPX "' . $masterGpx->title . '" (' . ($masterGpx->city ?? 'Indonesia') . ') berhasil dikirim dan sedang dalam antrean verifikasi admin.',
+                'reference_type' => 'MasterGpx',
+                'reference_id' => $masterGpx->id,
+                'is_read' => false,
+                'read_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
             if (!empty($notifRows)) {
                 \App\Models\Notification::insert($notifRows);
             }
         } catch (\Throwable $e) {
-            \Log::error('Failed to create admin notification for GPX submission: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to create notification for GPX submission: ' . $e->getMessage());
         }
 
         return response()->json([
