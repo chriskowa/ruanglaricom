@@ -43,18 +43,24 @@
             display: none !important;
         }
 
-        /* Mobile Floating Filter Drawer & Bottom-Center Floating Pill */
+        /* Mobile Floating Filter Drawer & Bottom Docked Button */
         @media (max-width: 767px) {
             #mobile-filter-btn-wrap {
                 position: fixed !important;
-                bottom: 1.5rem !important;
+                bottom: 0 !important;
                 left: 50% !important;
                 transform: translateX(-50%) !important;
                 z-index: 99980 !important;
+                margin: 0 !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
             }
             #btn-open-mobile-filter {
                 background-color: #0c121e !important;
                 background: #0c121e !important;
+                margin: 0 !important;
+                margin-bottom: 0 !important;
             }
             #mobile-filter-backdrop {
                 position: fixed !important;
@@ -194,13 +200,17 @@
             </div>
         </div>
 
-        <!-- Floating Mobile Filter Trigger Pill (Bottom-Center) -->
+        <!-- Docked Bottom Mobile Filter Trigger (Bottom 0) -->
         <div id="mobile-filter-btn-wrap"
-            class="md:hidden"
+            class="md:hidden !m-0 !mt-0 !mb-0 !p-0"
             style="
                 position: fixed !important;
                 left: 50% !important;
-                bottom: 24px !important;
+                bottom: 0 !important;
+                margin: 0 !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
                 transform: translateX(-50%) !important;
                 z-index: 99980 !important;
                 width: max-content;
@@ -208,8 +218,8 @@
 
             <button id="btn-open-mobile-filter"
                 type="button"
-                class="group relative flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#0c121e] border-2 border-accent text-white shadow-2xl shadow-accent/40 hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
-                style="background-color: #0c121e !important;"
+                class="group relative flex items-center gap-2.5 px-6 pt-2.5 pb-2.5 rounded-t-2xl rounded-b-none bg-[#0c121e] border-2 border-b-0 border-accent text-white shadow-[0_-8px_25px_rgba(0,0,0,0.9)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none !m-0 !mt-0 !mb-0"
+                style="background-color: #0c121e !important; margin: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important;"
                 title="Buka Filter Rute">
 
                 <i class="fa-solid fa-sliders text-accent text-sm group-hover:scale-110 transition-transform"></i>
