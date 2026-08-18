@@ -258,24 +258,67 @@
         </div>
 
         <!-- Primary Map & Integrated Elevation Stage -->
-        <div class="bg-[#111724] border border-slate-800/80 rounded-lg overflow-hidden">
-            <!-- Map Sub-header -->
-            <div class="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="bg-[#111724] border border-slate-800/80 rounded-lg overflow-hidden" id="gpx-map-card-wrap">
+            <!-- Map Sub-header with Navigation & Tools Toolbar -->
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span>
-                    <h2 class="font-semibold text-slate-200 text-xs">Peta Jalur GPS</h2>
+                    <h2 class="font-bold text-white text-xs tracking-wide">Peta Jalur GPS</h2>
+                    
+                    <!-- Legend Tags -->
+                    <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-300 font-mono ml-2 pl-2 border-l border-slate-800">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span> Finish
+                        </span>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-3 text-xs text-slate-200 font-medium">
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-4 h-4 rounded-full bg-white border-2 border-[#FC4C02] text-[9px] font-mono text-center flex items-center justify-center font-black text-[#FC4C02] shadow-sm">1</span> KM Mark
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span> Finish
-                    </span>
+                <!-- Navigation Controls Toolbar -->
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- Toggle KM Markers -->
+                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Tampilkan / Sembunyikan Marker KM">
+                        <span class="w-3.5 h-3.5 rounded-full bg-[#FC4C02] text-white text-[8px] font-mono font-black flex items-center justify-center">1</span>
+                        <span>KM</span>
+                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">ON</span>
+                    </button>
+
+                    <!-- Map Layer Switcher (Dark / Street / Satelit) -->
+                    <div class="relative inline-block" id="map-layer-dropdown-wrapper">
+                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Ganti Tampilan Peta">
+                            <i class="fa-solid fa-layer-group text-[10px] text-[#FC4C02]"></i>
+                            <span id="label-active-map-layer" class="hidden xs:inline">Street</span>
+                            <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800" style="background-color: #0b1220 !important; background: #0b1220 !important; opacity: 1 !important; z-index: 99999 !important;">
+                            <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Dark Mode</span>
+                                <span class="layer-check-dark text-accent text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Street Map</span>
+                                <span class="layer-check-street text-accent text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Satelit Topo</span>
+                                <span class="layer-check-satellite text-accent text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Locate Me (GPS) -->
+                    <button type="button" id="btn-map-locate-me" onclick="locateMeOnDetailMap()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Cari Lokasi Saya Sekarang">
+                        <i class="fa-solid fa-location-crosshairs text-[10px] text-accent"></i>
+                        <span class="hidden sm:inline">Lokasi Saya</span>
+                    </button>
+
+                    <!-- Reset / Fit Bounds -->
+                    <button type="button" id="btn-map-fit-bounds" onclick="fitRouteBounds()" class="px-2 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm" title="Posisikan Ulang ke Seluruh Rute">
+                        <i class="fa-solid fa-expand text-[10px]"></i>
+                        <span class="hidden md:inline">Fit</span>
+                    </button>
                 </div>
             </div>
 
@@ -826,15 +869,30 @@
         let recordedFinalSplits = [];
         let recordedElevationGainM = 0;
 
+        // Map Layers & Navigation State
+        let kmMarkersLayer = null;
+        let showKmMarkers = true;
+        let activeTileLayer = null;
+        let baseTileLayers = {};
+        let userLocationMarker = null;
+        let userLocationCircle = null;
+        let userDistanceLine = null;
+
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             initElevationProfile();
             initPacePro();
         });
 
-        // 1. Map Initialization (Strava Athletic Orange Theme + KM Split Markers)
+        // 1. Map Initialization (Strava Athletic Orange Theme + KM Split Markers + Layer Switcher)
         function initMap() {
-            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            kmMarkersLayer = L.layerGroup();
+
+            baseTileLayers = {
+                dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }),
+                street: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }),
+                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 })
+            };
 
             map = L.map('gpx-detail-map', {
                 zoomControl: true,
@@ -842,10 +900,9 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 12);
 
-            L.tileLayer(tileUrl, {
-                maxZoom: 19,
-                subdomains: 'abcd'
-            }).addTo(map);
+            activeTileLayer = baseTileLayers.street;
+            activeTileLayer.addTo(map);
+            kmMarkersLayer.addTo(map);
 
             function parseCoordinatePoint(item, idx) {
                 if (!item) return null;
@@ -928,10 +985,10 @@
                             iconAnchor: [10, 10]
                         });
 
-                        L.marker([p.lat, p.lng], { icon: kmBadgeIcon })
-                            .addTo(map)
+                        const m = L.marker([p.lat, p.lng], { icon: kmBadgeIcon })
                             .bindPopup(`<div style="font-family:sans-serif; font-size:12px; color:#0f172a;"><b>Kilometer ${currentTargetKm}</b><br><span style="color:#64748b;">${p.ele ? 'Ketinggian: ' + Math.round(p.ele) + 'm' : ''}</span></div>`);
                         
+                        kmMarkersLayer.addLayer(m);
                         currentTargetKm++;
                     }
                 });
@@ -956,6 +1013,132 @@
                     map.setView(latlngs[0], 13);
                 }
             }
+        }
+
+        // Map Toolbar Action Handlers
+        function toggleKmMarkers() {
+            if (!map || !kmMarkersLayer) return;
+            showKmMarkers = !showKmMarkers;
+            const badge = document.getElementById('badge-km-toggle-state');
+            if (showKmMarkers) {
+                map.addLayer(kmMarkersLayer);
+                if (badge) {
+                    badge.textContent = 'ON';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold';
+                }
+            } else {
+                map.removeLayer(kmMarkersLayer);
+                if (badge) {
+                    badge.textContent = 'OFF';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-mono font-bold';
+                }
+            }
+        }
+
+        function toggleMapLayerMenu() {
+            const menu = document.getElementById('map-layer-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('map-layer-dropdown-wrapper');
+            const menu = document.getElementById('map-layer-menu');
+            if (wrap && menu && !wrap.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function setMapLayer(type) {
+            if (!map || !baseTileLayers[type]) return;
+            if (activeTileLayer) map.removeLayer(activeTileLayer);
+            activeTileLayer = baseTileLayers[type];
+            activeTileLayer.addTo(map);
+
+            const label = document.getElementById('label-active-map-layer');
+            if (label) {
+                label.textContent = type === 'dark' ? 'Dark' : (type === 'street' ? 'Street' : 'Satelit');
+            }
+
+            document.querySelectorAll('.layer-check-dark, .layer-check-street, .layer-check-satellite').forEach(el => el.classList.add('hidden'));
+            const activeCheck = document.querySelector('.layer-check-' + type);
+            if (activeCheck) activeCheck.classList.remove('hidden');
+
+            const menu = document.getElementById('map-layer-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        function fitRouteBounds() {
+            if (map && polyline) {
+                const b = polyline.getBounds();
+                if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
+            }
+        }
+
+        function locateMeOnDetailMap() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung oleh browser Anda.');
+                return;
+            }
+
+            const locateBtn = document.getElementById('btn-map-locate-me');
+            const originalBtnHtml = locateBtn ? locateBtn.innerHTML : '';
+            if (locateBtn) {
+                locateBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-[10px] text-accent"></i><span class="hidden sm:inline">Mencari...</span>';
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
+                    const uLat = pos.coords.latitude;
+                    const uLng = pos.coords.longitude;
+                    const uAcc = pos.coords.accuracy;
+
+                    if (userLocationMarker && map.hasLayer(userLocationMarker)) map.removeLayer(userLocationMarker);
+                    if (userLocationCircle && map.hasLayer(userLocationCircle)) map.removeLayer(userLocationCircle);
+                    if (userDistanceLine && map.hasLayer(userDistanceLine)) map.removeLayer(userDistanceLine);
+
+                    // User pulsing location icon
+                    const userIcon = L.divIcon({
+                        className: 'custom-user-gps-marker',
+                        html: '<div class="relative flex items-center justify-center w-6 h-6"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white shadow"></span></div>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    userLocationMarker = L.marker([uLat, uLng], { icon: userIcon, zIndexOffset: 1500 }).addTo(map);
+                    userLocationCircle = L.circle([uLat, uLng], { radius: uAcc, color: '#38bdf8', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.12 }).addTo(map);
+
+                    if (routePoints.length > 0) {
+                        const startPt = routePoints[0];
+                        const distToStartKm = calculateHaversine(uLat, uLng, startPt.lat, startPt.lng);
+
+                        userDistanceLine = L.polyline([[uLat, uLng], [startPt.lat, startPt.lng]], {
+                            color: '#38bdf8',
+                            weight: 2,
+                            dashArray: '4, 6',
+                            opacity: 0.8
+                        }).addTo(map);
+
+                        userLocationMarker.bindPopup(`
+                            <div style="font-family:sans-serif; font-size:12px; color:#0f172a; line-height:1.4;">
+                                <strong style="color:#0284c7;">Lokasi Anda Saat Ini</strong><br>
+                                <span>Akurasi GPS: ±${Math.round(uAcc)}m</span><br>
+                                <span style="font-weight:600; color:#FC4C02;">${distToStartKm.toFixed(2)} km</span> ke titik Start rute
+                            </div>
+                        `).openPopup();
+
+                        const groupBounds = L.latLngBounds([[uLat, uLng], [startPt.lat, startPt.lng]]);
+                        map.fitBounds(groupBounds, { padding: [50, 50] });
+                    } else {
+                        map.setView([uLat, uLng], 15);
+                    }
+                },
+                function(err) {
+                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
+                    alert('Gagal mendapatkan lokasi GPS: ' + err.message);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
         }
 
         // 2. Elevation Profile Graph
