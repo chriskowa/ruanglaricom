@@ -142,13 +142,13 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
-                                        <button onclick="editItem({{ $item }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
+                                        <button onclick="editItem({{ $item->id }}, {{ json_encode($item->title) }}, {{ json_encode($item->url) }}, {{ json_encode($item->target ?? '_self') }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer" title="Edit Item">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </button>
                                         <form action="{{ route('admin.menus.items.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Delete this item?')" class="inline-block">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors">
+                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer" title="Delete Item">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </form>
@@ -169,13 +169,13 @@
                                                         </div>
                                                     </div>
                                                     <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
-                                                        <button onclick="editItem({{ $child }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
+                                                        <button onclick="editItem({{ $child->id }}, {{ json_encode($child->title) }}, {{ json_encode($child->url) }}, {{ json_encode($child->target ?? '_self') }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer" title="Edit Item">
                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                         </button>
                                                         <form action="{{ route('admin.menus.items.destroy', $child->id) }}" method="POST" onsubmit="return confirm('Delete this item?')" class="inline-block">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors">
+                                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer" title="Delete Item">
                                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                             </button>
                                                         </form>
@@ -196,13 +196,13 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
-                                                                        <button onclick="editItem({{ $subchild }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
+                                                                        <button onclick="editItem({{ $subchild->id }}, {{ json_encode($subchild->title) }}, {{ json_encode($subchild->url) }}, {{ json_encode($subchild->target ?? '_self') }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer" title="Edit Item">
                                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                                         </button>
                                                                         <form action="{{ route('admin.menus.items.destroy', $subchild->id) }}" method="POST" onsubmit="return confirm('Delete this item?')" class="inline-block">
                                                                             @csrf
                                                                             @method('DELETE')
-                                                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors">
+                                                                            <button type="submit" class="p-1.5 rounded text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer" title="Delete Item">
                                                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                                             </button>
                                                                         </form>
@@ -235,7 +235,7 @@
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeEditModal()"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-slate-900 border border-slate-700 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div class="inline-block align-bottom bg-slate-900 border border-slate-700 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full relative z-10">
                 <form id="editForm" method="POST">
                     @csrf
                     @method('PUT')
@@ -259,9 +259,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-slate-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-neon text-base font-medium text-dark hover:bg-neon/90 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">Save Changes</button>
-                        <button type="button" onclick="closeEditModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">Cancel</button>
+                    <div class="bg-slate-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-neon text-base font-medium text-dark hover:bg-neon/90 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm cursor-pointer">Save Changes</button>
+                        <button type="button" onclick="closeEditModal()" class="mt-3 sm:mt-0 w-full inline-flex justify-center rounded-xl border border-slate-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none sm:w-auto sm:text-sm cursor-pointer">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -362,21 +362,39 @@
         });
     })(jQuery);
 
-    function editItem(item) {
-        document.getElementById('edit-title').value = item.title;
-        document.getElementById('edit-url').value = item.url;
-        document.getElementById('edit-target').value = item.target;
+    function editItem(id, title, url, target) {
+        if (typeof id === 'object' && id !== null) {
+            title = id.title;
+            url = id.url;
+            target = id.target;
+            id = id.id;
+        }
+
+        var titleEl = document.getElementById('edit-title');
+        var urlEl = document.getElementById('edit-url');
+        var targetEl = document.getElementById('edit-target');
+        
+        if (titleEl) titleEl.value = title || '';
+        if (urlEl) urlEl.value = url || '';
+        if (targetEl) targetEl.value = target || '_self';
         
         var form = document.getElementById('editForm');
-        // Fix: Use route helper with placeholder replacement for robust URL generation
-        var urlTemplate = "{{ route('admin.menus.items.update', ['item' => 'ITEM_ID']) }}";
-        form.action = urlTemplate.replace('ITEM_ID', item.id);
+        if (form) {
+            var urlTemplate = "{{ route('admin.menus.items.update', ['item' => 'ITEM_ID']) }}";
+            form.action = urlTemplate.replace('ITEM_ID', id);
+        }
         
-        document.getElementById('editModal').classList.remove('hidden');
+        var modal = document.getElementById('editModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
     }
 
     function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
+        var modal = document.getElementById('editModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
     }
 </script>
 @endpush
