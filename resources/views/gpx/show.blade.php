@@ -180,7 +180,6 @@
                     
                     @if($item->event)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">
-                            <i class="fa-solid fa-trophy text-slate-200 text-[10px]"></i>
                             <span class="truncate max-w-[150px]">{{ $item->event->title ?? $item->event->name ?? 'Event Lari' }}</span>
                         </span>
                     @endif
