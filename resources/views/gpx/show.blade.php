@@ -10,6 +10,12 @@
     $gainM = (float)($item->elevation_gain_m ?? 0);
     $lossM = (float)($item->elevation_loss_m ?? 0);
     $masterGpxId = $item->id;
+
+    // Realistic default PacePro target time based on distance * 5:00 min/km (300 sec/km)
+    $defaultTargetSec = max(60, (int)round($distKm * 300));
+    $defaultH = (int)floor($defaultTargetSec / 3600);
+    $defaultM = (int)floor(($defaultTargetSec % 3600) / 60);
+    $defaultS = (int)($defaultTargetSec % 60);
 @endphp
 
 @section('title', $pageTitle)
@@ -178,11 +184,6 @@
                             <span class="truncate max-w-[150px]">{{ $item->event->title ?? $item->event->name ?? 'Event Lari' }}</span>
                         </span>
                     @endif
-
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-emerald-800/60 bg-emerald-950/40 text-emerald-400 text-[11px] font-medium">
-                        <i class="fa-solid fa-check text-[10px]"></i>
-                        <span>Terverifikasi</span>
-                    </span>
                 </div>
 
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
@@ -323,7 +324,7 @@
 
         <!-- PACEPRO RACE STRATEGY PLANNER (Data-Focused Running Tool) -->
         <section id="gpx-pacepro-section" class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 md:p-6 space-y-4 sm:space-y-5 overflow-hidden">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800 pb-3 sm:pb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800 pb-3 sm:pb-4 text-center sm:text-left">
                 <div>
                     <h2 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight">
                         PacePro™ Strategy Planner
@@ -333,7 +334,7 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center justify-center sm:justify-start gap-2 shrink-0">
                     <span class="text-xs text-slate-200 font-medium">Strategi:</span>
                     <span id="pp-strategy-badge" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs font-semibold text-white">Even Split (0%)</span>
                 </div>
@@ -345,20 +346,20 @@
                     <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-3 sm:p-4 space-y-3.5 sm:space-y-4">
                         <!-- Target Time -->
                         <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-                                Target Waktu Selesai
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5 text-center sm:text-left">
+                                Target Waktu Selesai (Default Pace 5:00/km)
                             </label>
                             <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
                                 <div>
-                                    <input type="number" id="pp-time-h" min="0" max="23" value="0" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <input type="number" id="pp-time-h" min="0" max="23" value="{{ $defaultH }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
                                     <span class="text-[10px] text-slate-200 text-center block mt-1">Jam</span>
                                 </div>
                                 <div>
-                                    <input type="number" id="pp-time-m" min="0" max="59" value="{{ $distKm >= 20 ? 55 : ($distKm >= 10 ? 50 : 28) }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <input type="number" id="pp-time-m" min="0" max="59" value="{{ $defaultM }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
                                     <span class="text-[10px] text-slate-200 text-center block mt-1">Menit</span>
                                 </div>
                                 <div>
-                                    <input type="number" id="pp-time-s" min="0" max="59" value="00" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <input type="number" id="pp-time-s" min="0" max="59" value="{{ str_pad($defaultS, 2, '0', STR_PAD_LEFT) }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
                                     <span class="text-[10px] text-slate-200 text-center block mt-1">Detik</span>
                                 </div>
                             </div>
@@ -366,8 +367,8 @@
 
                         <!-- Presets -->
                         <div>
-                            <span class="block text-[11px] font-medium text-slate-200 mb-1.5">Preset Target Pace:</span>
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1">
+                            <span class="block text-[11px] font-medium text-slate-200 mb-1.5 text-center sm:text-left">Preset Target Pace:</span>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-center">
                                 <button type="button" onclick="setPacePreset(4, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">4:30</button>
                                 <button type="button" onclick="setPacePreset(5, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">5:00</button>
                                 <button type="button" onclick="setPacePreset(5, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">5:30</button>
@@ -416,17 +417,17 @@
                 <div class="lg:col-span-7 space-y-3">
                     <!-- Summary Strip -->
                     <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-2.5 sm:p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
-                        <div class="px-1">
-                            <span class="text-[10px] text-slate-200 font-medium block">Avg Pace</span>
-                            <span id="pp-avg-pace" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">--:-- /km</span>
+                        <div class="px-1 flex flex-col items-center justify-center">
+                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Avg Pace</span>
+                            <span id="pp-avg-pace" class="text-xs sm:text-base font-bold font-mono text-[#FC4C02] mt-0.5 block truncate">5:00 /km</span>
                         </div>
-                        <div class="px-1">
-                            <span class="text-[10px] text-slate-200 font-medium block">Target Waktu</span>
+                        <div class="px-1 flex flex-col items-center justify-center">
+                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Target Waktu</span>
                             <span id="pp-target-total-time" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">00:00:00</span>
                         </div>
-                        <div class="px-1">
-                            <span class="text-[10px] text-slate-200 font-medium block">Total Jarak</span>
-                            <span class="text-xs sm:text-base font-bold font-mono text-slate-300 mt-0.5 block truncate">{{ $formattedDist }} km</span>
+                        <div class="px-1 flex flex-col items-center justify-center">
+                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Total Jarak</span>
+                            <span class="text-xs sm:text-base font-bold font-mono text-slate-200 mt-0.5 block truncate">{{ $formattedDist }} km</span>
                         </div>
                     </div>
 
@@ -447,18 +448,18 @@
                             </div>
                         </div>
 
-                        <div class="pacepro-table-wrap max-h-[340px] overflow-y-auto overflow-x-auto w-full">
-                            <table class="w-full text-left text-xs min-w-[340px]" id="pp-pace-table">
-                                <thead class="bg-[#090D16] text-slate-200 uppercase text-[10px] font-mono sticky top-0 border-b border-slate-800 z-10">
+                        <div class="pacepro-table-wrap max-h-[360px] overflow-y-auto overflow-x-auto w-full">
+                            <table class="w-full text-xs text-center table-fixed" id="pp-pace-table">
+                                <thead class="bg-[#090D16] text-slate-300 uppercase text-[10px] sm:text-[11px] font-mono sticky top-0 border-b border-slate-800 z-10">
                                     <tr>
-                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">KM</th>
-                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Target Pace</th>
-                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Waktu Split</th>
-                                        <th class="py-2 px-2.5 sm:px-3.5 font-medium">Kumulatif</th>
-                                        <th class="py-2 px-2.5 sm:px-3.5 text-right font-medium">Elevasi</th>
+                                        <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[16%]">KM</th>
+                                        <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[22%]">Pace</th>
+                                        <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[22%]">Split</th>
+                                        <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[23%]">Kumulatif</th>
+                                        <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[17%]">Elev</th>
                                     </tr>
                                 </thead>
-                                <tbody id="pp-table-body" class="divide-y divide-slate-800/80 font-mono text-slate-300">
+                                <tbody id="pp-table-body" class="divide-y divide-slate-800/80 font-mono text-slate-300 text-center">
                                     <!-- Dynamic Rows -->
                                 </tbody>
                             </table>
@@ -1229,17 +1230,17 @@
                 const pacePerKm = adjTime / s.dist;
 
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                tr.className = 'hover:bg-slate-800/40 transition-colors text-center';
 
                 const elevText = s.gain > 0 ? `+${s.gain}m` : '-';
                 const elevClass = s.gain > 15 ? 'text-[#FC4C02] font-semibold' : (s.gain > 0 ? 'text-slate-200' : 'text-slate-500');
 
                 tr.innerHTML = `
-                    <td class="py-2 px-3.5 font-medium text-slate-300">${s.km}${s.dist < 1 ? ` (${(s.dist * 1000).toFixed(0)}m)` : ''}</td>
-                    <td class="py-2 px-3.5 text-white font-semibold">${formatPaceTime(pacePerKm)}</td>
-                    <td class="py-2 px-3.5 text-slate-300">${formatDurationTime(adjTime)}</td>
-                    <td class="py-2 px-3.5 text-slate-200">${formatDurationTime(cumSec)}</td>
-                    <td class="py-2 px-3.5 text-right ${elevClass}">${elevText}</td>
+                    <td class="py-2.5 px-1 sm:px-2 font-medium text-slate-300 text-center">${s.km}${s.dist < 0.99 ? `<span class="block text-[9px] text-slate-500 font-mono">${(s.dist * 1000).toFixed(0)}m</span>` : ''}</td>
+                    <td class="py-2.5 px-1 sm:px-2 text-white font-semibold text-center">${formatPaceTime(pacePerKm)}</td>
+                    <td class="py-2.5 px-1 sm:px-2 text-slate-300 text-center">${formatDurationTime(adjTime)}</td>
+                    <td class="py-2.5 px-1 sm:px-2 text-slate-200 text-center">${formatDurationTime(cumSec)}</td>
+                    <td class="py-2.5 px-1 sm:px-2 text-center ${elevClass}">${elevText}</td>
                 `;
                 tableBody.appendChild(tr);
 
