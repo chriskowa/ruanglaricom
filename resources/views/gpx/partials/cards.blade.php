@@ -20,6 +20,13 @@
                             </div>
                         @endif
 
+                        @if(isset($item->user_distance_km))
+                            <div class="absolute bottom-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-md bg-accent/95 text-slate-950 text-[11px] font-bold flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+                                <span>{{ number_format($item->user_distance_km, 1) }} km dari Anda</span>
+                            </div>
+                        @endif
+
                         <div class="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur border border-slate-800 text-[11px] text-slate-300 flex items-center gap-1">
                             <i class="fa-solid fa-check text-accent text-[10px]"></i>
                             <span>GPX</span>

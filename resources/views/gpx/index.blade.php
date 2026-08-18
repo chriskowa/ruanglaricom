@@ -4,6 +4,7 @@
 @section('meta_title', 'Database Rute GPX Lari Indonesia - Download Gratis untuk Garmin, Coros, Suunto & Strava | RuangLari')
 @section('meta_description', 'Kumpulan rute GPX lari terverifikasi di Jakarta, Bandung, Surabaya, Bali, Yogyakarta dan kota lainnya. Unduh gratis file GPX siap pakai untuk Garmin, Coros, Suunto, dan Strava.')
 @section('meta_keywords', 'rute gpx lari, download gpx, rute lari jakarta, gpx garmin, gpx coros, gpx suunto, gpx strava, rute lari bandung, rute lari indonesia, database gpx')
+@section('og_image', 'https://ruanglari.com/storage/blog/media/7fd6f9b8-5b5f-49d6-a0f6-f1d35b915e36.webp')
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
@@ -36,17 +37,77 @@
             background-color: #1e293b !important;
             color: #ccff00 !important;
         }
+
+        /* Hide floating chat on GPX database page */
+        #chatbox-toggle, #ph-chatbox {
+            display: none !important;
+        }
+
+        /* Mobile Floating Filter Drawer & Bottom-Center Floating Pill */
+        @media (max-width: 767px) {
+            #mobile-filter-btn-wrap {
+                position: fixed !important;
+                bottom: 1.5rem !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                z-index: 99980 !important;
+            }
+            #btn-open-mobile-filter {
+                background-color: #0c121e !important;
+                background: #0c121e !important;
+            }
+            #mobile-filter-backdrop {
+                position: fixed !important;
+                inset: 0 !important;
+                background-color: rgba(0, 0, 0, 0.85) !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
+                z-index: 99990 !important;
+            }
+            #filter-wrapper-container {
+                position: fixed !important;
+                left: 0.75rem !important;
+                right: 0.75rem !important;
+                top: 4.75rem !important;
+                bottom: auto !important;
+                max-height: calc(100vh - 5.75rem) !important;
+                overflow-y: auto !important;
+                background-color: #0c121e !important;
+                background: #0c121e !important;
+                opacity: 1 !important;
+                border: 1px solid rgba(204, 255, 0, 0.4) !important;
+                border-radius: 1.25rem !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95) !important;
+                z-index: 99999 !important;
+                padding: 1.25rem !important;
+            }
+            #filter-wrapper-container form#form-gpx-filter {
+                background-color: #0c121e !important;
+                background: #0c121e !important;
+                opacity: 1 !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            #filter-wrapper-container input,
+            #filter-wrapper-container select {
+                background-color: #090D16 !important;
+                background: #090D16 !important;
+                opacity: 1 !important;
+            }
+        }
     </style>
 
     <!-- OpenGraph & Twitter Meta Tags -->
     <meta property="og:title" content="Database Rute GPX Lari Indonesia - RuangLari">
     <meta property="og:description" content="Kumpulan rute GPX lari terverifikasi di Jakarta, Bandung, Surabaya, Bali dan kota lainnya. Unduh gratis untuk Garmin, Coros, Suunto & Strava.">
+    <meta property="og:image" content="https://ruanglari.com/storage/blog/media/7fd6f9b8-5b5f-49d6-a0f6-f1d35b915e36.webp">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="RuangLari">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Database Rute GPX Lari Indonesia - RuangLari">
     <meta name="twitter:description" content="Unduh gratis file GPX rute lari untuk Garmin, Coros, Suunto, dan Strava.">
+    <meta name="twitter:image" content="https://ruanglari.com/storage/blog/media/7fd6f9b8-5b5f-49d6-a0f6-f1d35b915e36.webp">
 
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
@@ -114,118 +175,203 @@
         </div>
 
         <!-- Location Detection Banner -->
-        <div id="gpx-geo-notice-bar" class="hidden p-4 rounded-xl bg-slate-900/90 border border-[#ccff00]/25 text-sm text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div id="gpx-geo-notice-bar" class="{{ $hasCoordinates ? '' : 'hidden' }} p-4 rounded-xl bg-slate-900/90 border border-[#ccff00]/30 text-sm text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-2.5">
-                <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
-                <span>Lokasi terdeteksi: <strong id="gpx-detected-city-name" class="text-white">...</strong></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shrink-0"></span>
+                <div>
+                    <span>Lokasi GPS terdeteksi: <strong id="gpx-detected-city-name" class="text-white">{{ $userLat ? number_format($userLat, 4) . ', ' . number_format($userLng, 4) : '...' }}</strong></span>
+                    <span id="gpx-detected-radius-badge" class="text-xs text-accent font-semibold ml-2">({{ request('radius') ? 'Radius ' . request('radius') . ' km' : 'Semua radius' }})</span>
+                </div>
             </div>
-            <button id="btn-apply-detected-city" type="button" class="px-3.5 py-1.5 bg-accent text-slate-950 font-bold rounded-lg text-sm hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm">
-                <i class="fa-solid fa-filter text-xs text-slate-950"></i>
-                <span>Filter rute kota ini</span>
+            <div class="flex items-center gap-2">
+                <button id="btn-apply-detected-city" type="button" class="px-3.5 py-1.5 bg-accent text-slate-950 font-bold rounded-lg text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-location-crosshairs text-xs text-slate-950"></i>
+                    <span>Urutkan Terdekat</span>
+                </button>
+                <button id="btn-clear-gps-filter" type="button" class="px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-rose-500/50 text-slate-400 hover:text-rose-400 text-xs font-semibold transition cursor-pointer" title="Hapus Filter GPS">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Floating Mobile Filter Trigger Pill (Bottom-Center) -->
+        <div id="mobile-filter-btn-wrap"
+            class="md:hidden"
+            style="
+                position: fixed !important;
+                left: 50% !important;
+                bottom: 24px !important;
+                transform: translateX(-50%) !important;
+                z-index: 99980 !important;
+                width: max-content;
+            ">
+
+            <button id="btn-open-mobile-filter"
+                type="button"
+                class="group relative flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#0c121e] border-2 border-accent text-white shadow-2xl shadow-accent/40 hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+                style="background-color: #0c121e !important;"
+                title="Buka Filter Rute">
+
+                <i class="fa-solid fa-sliders text-accent text-sm group-hover:scale-110 transition-transform"></i>
+
+                <span class="text-xs font-bold text-white tracking-wide uppercase">
+                    Filter Rute
+                </span>
+
+                <span id="mobile-filter-active-dot"
+                    class="hidden w-2.5 h-2.5 bg-accent rounded-full animate-pulse">
+                </span>
+
             </button>
         </div>
 
-        <!-- Search & Filter -->
-        <form id="form-gpx-filter" method="GET" action="{{ route('gpx.index') }}" class="bg-[#0c121e] border border-slate-800 p-5 md:p-6 rounded-2xl space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-                
-                <div>
-                    <label class="block text-xs text-slate-200 mb-1.5">Cari rute</label>
-                    <div class="relative">
-                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Nama rute..." 
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+        <!-- Search & Filter Wrapper (Desktop In-Line & Mobile Top Modal) -->
+        <div id="mobile-filter-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[99990] hidden transition-opacity" style="position: fixed; z-index: 99990 !important;"></div>
+
+        <div id="filter-wrapper-container" class="hidden md:block fixed md:static inset-x-3 top-20 z-[99999] md:z-auto bg-[#0c121e] border border-accent/40 md:border-0 rounded-2xl md:rounded-2xl max-h-[85vh] md:max-h-none overflow-y-auto md:overflow-visible shadow-2xl md:shadow-none p-5 md:p-0 transition-all" style="background-color: #0c121e !important; z-index: 99999 !important;">
+            <form id="form-gpx-filter" method="GET" action="{{ route('gpx.index') }}" class="bg-[#0c121e] md:border md:border-slate-800 p-0 md:p-6 md:rounded-2xl space-y-4">
+                <!-- GPS Coordinates Hidden Inputs -->
+                <input type="hidden" name="user_lat" id="filter-user-lat" value="{{ request('user_lat', request('lat')) }}">
+                <input type="hidden" name="user_lng" id="filter-user-lng" value="{{ request('user_lng', request('lng')) }}">
+
+                <!-- Mobile Header with Close Button (Visible only on mobile) -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800 md:hidden">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent">
+                            <i class="fa-solid fa-sliders text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Filter & Pencarian Rute</h3>
+                            <p class="text-[10px] text-slate-400">Atur filter jarak, radius, kota, dan elevasi</p>
+                        </div>
+                    </div>
+                    <button id="btn-close-mobile-filter" type="button" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer" title="Tutup Filter">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
+                    
+                    <div>
+                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Cari rute</label>
+                        <div class="relative">
+                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Nama rute..." 
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs text-slate-200 font-semibold">Kota</label>
+                            <button id="btn-detect-user-city" type="button" class="text-xs text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer" title="Deteksi GPS">
+                                <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+                                <span>GPS</span>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <select id="select-filter-city" name="city" 
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="">Semua kota</option>
+                                @foreach($cities as $c)
+                                    <option value="{{ $c }}" {{ request('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                                @endforeach
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs text-slate-200 font-semibold">Radius GPS</label>
+                            <span id="label-gps-active" class="text-[10px] text-accent font-mono {{ $hasCoordinates ? '' : 'hidden' }}">Aktif</span>
+                        </div>
+                        <div class="relative">
+                            <select id="select-filter-radius" name="radius" 
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="">Semua radius</option>
+                                <option value="5" {{ request('radius') == '5' ? 'selected' : '' }}>Radius &lt; 5 km</option>
+                                <option value="10" {{ request('radius') == '10' ? 'selected' : '' }}>Radius 10 km</option>
+                                <option value="25" {{ request('radius') == '25' ? 'selected' : '' }}>Radius 25 km</option>
+                                <option value="50" {{ request('radius') == '50' ? 'selected' : '' }}>Radius 50 km</option>
+                                <option value="100" {{ request('radius') == '100' ? 'selected' : '' }}>Radius 100 km</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Jarak rute</label>
+                        <div class="relative">
+                            <select name="distance" 
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="">Semua jarak</option>
+                                <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km</option>
+                                <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km</option>
+                                <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km</option>
+                                <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Elevasi</label>
+                        <div class="relative">
+                            <select name="elevation" 
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="">Semua elevasi</option>
+                                <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
+                                <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
+                                <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Urutan</label>
+                        <div class="relative">
+                            <select name="sort" id="select-filter-sort"
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="nearest" {{ request('sort') == 'nearest' || ($hasCoordinates && !request('sort')) ? 'selected' : '' }}>📍 Terdekat dari saya (GPS)</option>
+                                <option value="latest" {{ request('sort') == 'latest' || (!$hasCoordinates && !request('sort')) ? 'selected' : '' }}>Terbaru</option>
+                                <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak terjauh</option>
+                                <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak terdekat</option>
+                                <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi tertinggi</option>
+                                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-xs text-slate-200">Kota</label>
-                        <button id="btn-detect-user-city" type="button" class="text-xs text-accent hover:underline flex items-center gap-1">
-                            <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
-                            <span>Deteksi GPS</span>
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+                    <div class="text-xs sm:text-sm text-slate-200">
+                        Menampilkan <strong id="gpx-total-count" class="text-white font-bold">{{ $items->total() }}</strong> rute
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btn-reset-filters" class="px-3.5 py-2 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-xs sm:text-sm transition cursor-pointer">
+                            Reset
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-accent text-slate-950 hover:bg-white text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer shadow-accent">
+                            <i class="fa-solid fa-sliders text-xs"></i>
+                            <span>Terapkan</span>
                         </button>
                     </div>
-                    <div class="relative">
-                        <select id="select-filter-city" name="city" 
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                            <option value="">Semua kota</option>
-                            @foreach($cities as $c)
-                                <option value="{{ $c }}" {{ request('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
-                            @endforeach
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                            <i class="fas fa-chevron-down text-[10px]"></i>
-                        </div>
-                    </div>
                 </div>
-
-                <div>
-                    <label class="block text-xs text-slate-200 mb-1.5">Jarak</label>
-                    <div class="relative">
-                        <select name="distance" 
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                            <option value="">Semua jarak</option>
-                            <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km</option>
-                            <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km</option>
-                            <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km</option>
-                            <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                            <i class="fas fa-chevron-down text-[10px]"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-200 mb-1.5">Elevasi</label>
-                    <div class="relative">
-                        <select name="elevation" 
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                            <option value="">Semua elevasi</option>
-                            <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
-                            <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
-                            <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                            <i class="fas fa-chevron-down text-[10px]"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-200 mb-1.5">Urutan</label>
-                    <div class="relative">
-                        <select name="sort" 
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                            <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
-                            <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak terjauh</option>
-                            <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak terdekat</option>
-                            <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi tertinggi</option>
-                            <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                            <i class="fas fa-chevron-down text-[10px]"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                <div class="text-sm text-slate-200">
-                    Menampilkan <strong id="gpx-total-count" class="text-white font-bold">{{ $items->total() }}</strong> rute
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" id="btn-reset-filters" class="px-3.5 py-2 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-sm transition cursor-pointer">
-                        Reset
-                    </button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-medium transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-sliders text-accent text-xs"></i>
-                        <span>Terapkan</span>
-                    </button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
 
         <!-- Dynamic AJAX GPX Cards & Pagination Container -->
         <div id="gpx-catalog-results" class="relative transition-all duration-200">
@@ -590,6 +736,74 @@
                 }
             }
 
+            // ==========================================
+            // MOBILE FLOATING FILTER DRAWER CONTROLLER
+            // ==========================================
+            const btnOpenMobileFilter = document.getElementById('btn-open-mobile-filter');
+            const btnCloseMobileFilter = document.getElementById('btn-close-mobile-filter');
+            const mobileFilterBackdrop = document.getElementById('mobile-filter-backdrop');
+            const filterWrapperContainer = document.getElementById('filter-wrapper-container');
+            const mobileFilterActiveDot = document.getElementById('mobile-filter-active-dot');
+
+            function openMobileFilterDrawer() {
+                if (!filterWrapperContainer) return;
+                filterWrapperContainer.classList.remove('hidden');
+                if (mobileFilterBackdrop) mobileFilterBackdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileFilterDrawer() {
+                if (!filterWrapperContainer) return;
+                if (window.innerWidth < 768) {
+                    filterWrapperContainer.classList.add('hidden');
+                }
+                if (mobileFilterBackdrop) mobileFilterBackdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    filterWrapperContainer?.classList.remove('hidden');
+                    if (mobileFilterBackdrop) mobileFilterBackdrop.classList.add('hidden');
+                    document.body.style.overflow = '';
+                } else {
+                    if (mobileFilterBackdrop && mobileFilterBackdrop.classList.contains('hidden')) {
+                        filterWrapperContainer?.classList.add('hidden');
+                    }
+                }
+            });
+
+            function updateMobileFilterActiveBadge() {
+                if (!filterForm || !mobileFilterActiveDot) return;
+                const qVal = searchInput?.value?.trim() || '';
+                const cityVal = selectCity?.value?.trim() || '';
+                const radiusVal = document.getElementById('select-filter-radius')?.value?.trim() || '';
+                const distVal = filterForm.querySelector('select[name="distance"]')?.value?.trim() || '';
+                const eleVal = filterForm.querySelector('select[name="elevation"]')?.value?.trim() || '';
+                const sortVal = filterForm.querySelector('select[name="sort"]')?.value?.trim() || 'latest';
+                const latVal = document.getElementById('filter-user-lat')?.value?.trim() || '';
+
+                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || (sortVal !== '' && sortVal !== 'latest');
+                if (hasActiveFilters) {
+                    mobileFilterActiveDot.classList.remove('hidden');
+                } else {
+                    mobileFilterActiveDot.classList.add('hidden');
+                }
+            }
+
+            if (btnOpenMobileFilter) {
+                btnOpenMobileFilter.addEventListener('click', openMobileFilterDrawer);
+            }
+            if (btnCloseMobileFilter) {
+                btnCloseMobileFilter.addEventListener('click', closeMobileFilterDrawer);
+            }
+            if (mobileFilterBackdrop) {
+                mobileFilterBackdrop.addEventListener('click', closeMobileFilterDrawer);
+            }
+
+            // Initial active filter check
+            updateMobileFilterActiveBadge();
+
             function applyFiltersAjax() {
                 if (!filterForm) return;
                 const formData = new FormData(filterForm);
@@ -605,6 +819,7 @@
                 const queryString = params.toString();
                 const targetUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
 
+                updateMobileFilterActiveBadge();
                 fetchGpxResults(targetUrl, true);
             }
 
@@ -612,6 +827,9 @@
                 filterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     applyFiltersAjax();
+                    if (window.innerWidth < 768) {
+                        closeMobileFilterDrawer();
+                    }
                 });
 
                 // Auto filter on select change
@@ -639,6 +857,14 @@
                     e.preventDefault();
                     if (filterForm) filterForm.reset();
                     if (searchInput) searchInput.value = '';
+                    const inputLat = document.getElementById('filter-user-lat');
+                    const inputLng = document.getElementById('filter-user-lng');
+                    if (inputLat) inputLat.value = '';
+                    if (inputLng) inputLng.value = '';
+                    const lblGps = document.getElementById('label-gps-active');
+                    if (lblGps) lblGps.classList.add('hidden');
+                    const noticeBar = document.getElementById('gpx-geo-notice-bar');
+                    if (noticeBar) noticeBar.classList.add('hidden');
                     filterForm?.querySelectorAll('select').forEach(s => s.value = '');
                     applyFiltersAjax();
                 });
@@ -660,6 +886,14 @@
                     e.preventDefault();
                     if (filterForm) filterForm.reset();
                     if (searchInput) searchInput.value = '';
+                    const inputLat = document.getElementById('filter-user-lat');
+                    const inputLng = document.getElementById('filter-user-lng');
+                    if (inputLat) inputLat.value = '';
+                    if (inputLng) inputLng.value = '';
+                    const lblGps = document.getElementById('label-gps-active');
+                    if (lblGps) lblGps.classList.add('hidden');
+                    const noticeBar = document.getElementById('gpx-geo-notice-bar');
+                    if (noticeBar) noticeBar.classList.add('hidden');
                     filterForm?.querySelectorAll('select').forEach(s => s.value = '');
                     applyFiltersAjax();
                 }
@@ -674,19 +908,31 @@
                 const params = new URLSearchParams(window.location.search);
                 if (searchInput) searchInput.value = params.get('q') || '';
                 if (selectCity) selectCity.value = params.get('city') || '';
+                const radiusSel = document.getElementById('select-filter-radius');
+                if (radiusSel) radiusSel.value = params.get('radius') || '';
                 const distanceSel = filterForm?.querySelector('select[name="distance"]');
                 if (distanceSel) distanceSel.value = params.get('distance') || '';
                 const elevationSel = filterForm?.querySelector('select[name="elevation"]');
                 if (elevationSel) elevationSel.value = params.get('elevation') || '';
-                const sortSel = filterForm?.querySelector('select[name="sort"]');
+                const sortSel = document.getElementById('select-filter-sort') || filterForm?.querySelector('select[name="sort"]');
                 if (sortSel) sortSel.value = params.get('sort') || 'latest';
+                const inputLat = document.getElementById('filter-user-lat');
+                const inputLng = document.getElementById('filter-user-lng');
+                if (inputLat) inputLat.value = params.get('user_lat') || params.get('lat') || '';
+                if (inputLng) inputLng.value = params.get('user_lng') || params.get('lng') || '';
             });
 
-            // Geolocation helpers
+            // Geolocation & GPS Radius helpers
             const detectCityBtn = document.getElementById('btn-detect-user-city');
             const applyCityBtn = document.getElementById('btn-apply-detected-city');
+            const clearGpsBtn = document.getElementById('btn-clear-gps-filter');
             const geoNoticeBar = document.getElementById('gpx-geo-notice-bar');
             const detectedCityNameEl = document.getElementById('gpx-detected-city-name');
+            const inputUserLat = document.getElementById('filter-user-lat');
+            const inputUserLng = document.getElementById('filter-user-lng');
+            const selectRadius = document.getElementById('select-filter-radius');
+            const selectSort = document.getElementById('select-filter-sort');
+            const labelGpsActive = document.getElementById('label-gps-active');
 
             async function reverseGeocodeUserLoc(lat, lon) {
                 try {
@@ -705,54 +951,96 @@
                 return null;
             }
 
-            function handleCityDetection(city) {
-                if (!city) return;
-                if (detectedCityNameEl) detectedCityNameEl.textContent = city;
-                if (geoNoticeBar) geoNoticeBar.classList.remove('hidden');
-
-                if (selectCity) {
-                    for (let i = 0; i < selectCity.options.length; i++) {
-                        const optVal = selectCity.options[i].value.toLowerCase();
-                        if (optVal && (optVal.includes(city.toLowerCase()) || city.toLowerCase().includes(optVal))) {
-                            selectCity.selectedIndex = i;
-                            break;
-                        }
-                    }
+            function triggerGeoLocation(forceFilter = true) {
+                if (!navigator.geolocation) {
+                    alert('Geolocation tidak didukung oleh browser Anda.');
+                    return;
                 }
-            }
 
-            function triggerGeoLocation(forceFilter = false) {
-                if (!navigator.geolocation) return;
+                if (detectCityBtn) {
+                    detectCityBtn.classList.add('animate-pulse', 'text-white');
+                }
+
                 navigator.geolocation.getCurrentPosition(
                     async function(pos) {
-                        const city = await reverseGeocodeUserLoc(pos.coords.latitude, pos.coords.longitude);
-                        if (city) {
-                            handleCityDetection(city);
-                            if (forceFilter) {
-                                applyFiltersAjax();
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+
+                        if (inputUserLat) inputUserLat.value = lat;
+                        if (inputUserLng) inputUserLng.value = lng;
+
+                        if (labelGpsActive) labelGpsActive.classList.remove('hidden');
+                        if (geoNoticeBar) geoNoticeBar.classList.remove('hidden');
+
+                        if (detectedCityNameEl) {
+                            detectedCityNameEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                        }
+
+                        // Try to get city name for better user display
+                        reverseGeocodeUserLoc(lat, lng).then(city => {
+                            if (city && detectedCityNameEl) {
+                                detectedCityNameEl.textContent = `${city} (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
                             }
+                        });
+
+                        // Set sort to nearest
+                        if (selectSort) {
+                            selectSort.value = 'nearest';
+                        }
+
+                        if (detectCityBtn) {
+                            detectCityBtn.classList.remove('animate-pulse', 'text-white');
+                        }
+
+                        if (forceFilter) {
+                            applyFiltersAjax();
                         }
                     },
-                    function(err) {},
-                    { timeout: 8000 }
+                    function(err) {
+                        console.warn('Geolocation Error:', err);
+                        if (detectCityBtn) {
+                            detectCityBtn.classList.remove('animate-pulse', 'text-white');
+                        }
+                        if (forceFilter && err.code === err.PERMISSION_DENIED) {
+                            alert('Izin lokasi GPS belum diaktifkan di browser.');
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
                 );
             }
 
             if (detectCityBtn) {
-                detectCityBtn.addEventListener('click', function() {
+                detectCityBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     triggerGeoLocation(true);
                 });
             }
 
             if (applyCityBtn) {
-                applyCityBtn.addEventListener('click', function() {
-                    applyFiltersAjax();
+                applyCityBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (!inputUserLat?.value || !inputUserLng?.value) {
+                        triggerGeoLocation(true);
+                    } else {
+                        if (selectSort) selectSort.value = 'nearest';
+                        applyFiltersAjax();
+                    }
                 });
             }
 
-            const currentUrlParams = new URLSearchParams(window.location.search);
-            if (!currentUrlParams.has('city') || currentUrlParams.get('city') === '') {
-                triggerGeoLocation(false);
+            if (clearGpsBtn) {
+                clearGpsBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (inputUserLat) inputUserLat.value = '';
+                    if (inputUserLng) inputUserLng.value = '';
+                    if (selectRadius) selectRadius.value = '';
+                    if (labelGpsActive) labelGpsActive.classList.add('hidden');
+                    if (geoNoticeBar) geoNoticeBar.classList.add('hidden');
+                    if (selectSort && selectSort.value === 'nearest') {
+                        selectSort.value = 'latest';
+                    }
+                    applyFiltersAjax();
+                });
             }
 
             // Modal handlers (warna disesuaikan ke accent)

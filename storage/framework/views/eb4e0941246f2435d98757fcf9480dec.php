@@ -15,7 +15,7 @@
             <!-- Left Side: Logo & Sidebar Toggle -->
             <div class="flex items-center gap-2 pl-2">
                 <?php if(isset($isDashboard) && $isDashboard): ?>
-                <button id="ph-sidebar-toggle" class="p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors" title="Toggle Sidebar">
+                <button id="ph-sidebar-toggle" class="p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors" title="Toggle Sidebar">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <?php endif; ?>
@@ -35,7 +35,7 @@
                         <?php if($item->children->count() > 0): ?>
                             <!-- Dropdown for <?php echo e($item->title); ?> -->
                             <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @keydown.escape.window="open = false" @click.outside="open = false">
-                                <button id="nav-<?php echo e(Str::slug($item->title)); ?>-btn" type="button" class="flex items-center gap-1 px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon'); ?> transition-colors focus:outline-none" :class="{ '<?php echo e($lightMode ? 'text-slate-900' : 'text-neon'); ?>': open }" @click="open = !open">
+                                <button id="nav-<?php echo e(Str::slug($item->title)); ?>-btn" type="button" class="flex items-center gap-1 px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon'); ?> transition-colors focus:outline-none" :class="{ '<?php echo e($lightMode ? 'text-slate-900' : 'text-neon'); ?>': open }" @click="open = !open">
                                     <?php echo e($item->title); ?>
 
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
@@ -52,7 +52,7 @@
                                      class="absolute left-0 mt-2 w-48 <?php echo e($lightMode ? 'bg-white border-slate-200' : 'bg-slate-900/95 border-slate-700'); ?> backdrop-blur-xl border rounded-xl shadow-2xl origin-top-left z-50">
                                     <div class="p-1 space-y-1">
                                         <?php $__currentLoopData = $item->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $child): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <a href="<?php echo e(url($child->url)); ?>" target="<?php echo e($child->target); ?>" class="block px-4 py-2 text-sm <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
+                                            <a href="<?php echo e(url($child->url)); ?>" target="<?php echo e($child->target); ?>" class="block px-4 py-2 text-sm <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
                                                 <?php echo e($child->title); ?>
 
                                             </a>
@@ -62,7 +62,7 @@
                             </div>
                         <?php else: ?>
                             <!-- Single Link <?php echo e($item->title); ?> -->
-                            <a href="<?php echo e(url($item->url)); ?>" target="<?php echo e($item->target); ?>" class="px-3 py-2 text-sm font-bold <?php echo e(request()->is(trim($item->url, '/') . '*') ? ($lightMode ? 'text-slate-900 border-b-2 border-slate-900' : 'text-neon') : ($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon')); ?> transition-colors">
+                            <a href="<?php echo e(url($item->url)); ?>" target="<?php echo e($item->target); ?>" class="px-3 py-2 text-sm font-bold <?php echo e(request()->is(trim($item->url, '/') . '*') ? ($lightMode ? 'text-slate-900 border-b-2 border-slate-900' : 'text-neon') : ($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon')); ?> transition-colors">
                                 <?php echo e($item->title); ?>
 
                             </a>
@@ -70,10 +70,10 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <?php else: ?>
                     <!-- Fallback if no menu found -->
-                    <a href="<?php echo e(route('marketplace.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e(request()->routeIs('marketplace.*') ? ($lightMode ? 'text-slate-900' : 'text-neon') : ($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon')); ?> transition-colors">Marketplace</a>
-                    <a href="<?php echo e(route('programs.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon'); ?> transition-colors">Programs</a>
-                    <a href="<?php echo e(route('coaches.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon'); ?> transition-colors">Coach</a>
-                    <a href="<?php echo e(route('calendar.public')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon'); ?> transition-colors">Calendar</a>
+                    <a href="<?php echo e(route('marketplace.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e(request()->routeIs('marketplace.*') ? ($lightMode ? 'text-slate-900' : 'text-neon') : ($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon')); ?> transition-colors">Marketplace</a>
+                    <a href="<?php echo e(route('programs.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon'); ?> transition-colors">Programs</a>
+                    <a href="<?php echo e(route('coaches.index')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon'); ?> transition-colors">Coach</a>
+                    <a href="<?php echo e(route('calendar.public')); ?>" class="px-3 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon'); ?> transition-colors">Calendar</a>
                 <?php endif; ?>
             </div>
          
@@ -81,7 +81,7 @@
             <!-- Right Side: Navigation & Actions -->
             <div class="flex items-center gap-1">
                 <?php if(!isset($isDashboard) || !$isDashboard): ?>
-                <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors" title="Menu">
+                <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <?php endif; ?>
@@ -96,7 +96,7 @@
 
                 <!-- Cart Icon -->
                 <?php if(auth()->guard()->check()): ?>
-                <a href="<?php echo e(route('marketplace.cart.index')); ?>" class="p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors relative" title="Cart">
+                <a href="<?php echo e(route('marketplace.cart.index')); ?>" class="p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors relative" title="Cart">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     <span id="nav-cart-count" class="absolute top-1.5 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
                 </a>
@@ -105,7 +105,7 @@
                 <!-- Chat / Messages -->
                 <?php if(auth()->guard()->check()): ?>
                 <?php if(auth()->user()->role !== 'eo'): ?>
-                <a href="<?php echo e(route('chat.index')); ?>" class="hidden md:block p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors relative" title="Messages">
+                <a href="<?php echo e(route('chat.index')); ?>" class="hidden md:block p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors relative" title="Messages">
                     <?php echo $__env->make('layouts.components.svg-chat', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                 </a>
                 <?php endif; ?>
@@ -114,7 +114,7 @@
                 <!-- Notifications -->
                 <?php if(auth()->guard()->check()): ?>
                 <div class="relative" id="notification-container">
-                    <button id="nav-bell-btn" class="p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300'); ?> transition-colors relative" title="Notifications">
+                    <button id="nav-bell-btn" class="p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors relative" title="Notifications">
                         <?php echo $__env->make('layouts.components.svg-bell', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                         <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center border <?php echo e($lightMode ? 'border-white' : 'border-slate-900'); ?> hidden"></span>
                     </button>
@@ -127,7 +127,7 @@
                             <div class="p-8 text-center text-slate-500 text-sm">Loading...</div>
                         </div>
                         <div class="p-3 border-t <?php echo e($lightMode ? 'border-slate-100 bg-slate-50/50' : 'border-slate-800 bg-slate-900/50'); ?>">
-                            <a href="<?php echo e(route('notifications.index')); ?>" class="block w-full text-center py-2 rounded-lg <?php echo e($lightMode ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'); ?> text-sm transition-colors">
+                            <a href="<?php echo e(route('notifications.index')); ?>" class="block w-full text-center py-2 rounded-lg <?php echo e($lightMode ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'); ?> text-sm transition-colors">
                                 View All Notifications
                             </a>
                         </div>
@@ -156,15 +156,15 @@
                             <p class="text-xs <?php echo e($lightMode ? 'text-slate-500' : 'text-primary'); ?> font-medium uppercase tracking-wider mt-0.5"><?php echo e(auth()->user()->role); ?></p>
                         </div>
                         <div class="p-2 space-y-1">
-                            <a href="<?php echo e(route(auth()->user()->role . '.dashboard')); ?>" class="flex items-center gap-3 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
+                            <a href="<?php echo e(route(auth()->user()->role . '.dashboard')); ?>" class="flex items-center gap-3 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                                 Dashboard
                             </a>
-                            <a href="<?php echo e(route('profile.show')); ?>" class="flex items-center gap-3 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
+                            <a href="<?php echo e(route('profile.show')); ?>" class="flex items-center gap-3 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Profile
                             </a>
-                            <a href="<?php echo e(route('notifications.index')); ?>" class="flex items-center gap-1 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
+                            <a href="<?php echo e(route('notifications.index')); ?>" class="flex items-center gap-1 px-3 py-2 text-sm <?php echo e($lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                                 Notifications
                             </a>
@@ -183,14 +183,14 @@
                 
                 <?php if(auth()->guard()->guest()): ?>
                 <div class="flex items-center gap-1.5 sm:gap-3">
-                    <button onclick="openLoginModal()" class="text-xs sm:text-sm font-bold <?php echo e($lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-slate-300 hover:text-white'); ?> transition-colors px-1 py-1">Login</button>
+                    <button onclick="openLoginModal()" class="text-xs sm:text-sm font-bold <?php echo e($lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-slate-200 hover:text-white'); ?> transition-colors px-1 py-1">Login</button>
                     <button onclick="openRegisterModal()" class="px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 hover:shadow-lg transition-all transform hover:-translate-y-0.5">Register</button>
                 </div>
                 <?php endif; ?>
                 
                 <?php if(auth()->guard()->check()): ?>
                 <div class="hidden md:flex items-center gap-2 pl-2 border-l <?php echo e($lightMode ? 'border-slate-200' : 'border-slate-800'); ?>">
-                    <a href="<?php echo e(route('pacer.index')); ?>" class="px-4 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-300 hover:text-neon'); ?> transition-colors">Pacers</a>
+                    <a href="<?php echo e(route('pacer.index')); ?>" class="px-4 py-2 text-sm font-bold <?php echo e($lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon'); ?> transition-colors">Pacers</a>
                     <a href="<?php echo e(route('pacer.register')); ?>" class="px-4 py-2 text-sm font-bold <?php echo e($lightMode ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-neon text-dark hover:bg-lime-400 hover:shadow-neon/20'); ?> rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
                         Join Pacer
                     </a>
@@ -208,9 +208,9 @@
                 <?php if($item->children->count() > 0): ?>
                     <!-- Submenu for <?php echo e($item->title); ?> -->
                     <div class="px-3 py-2">
-                        <div class="text-xs font-bold text-slate-500 uppercase mb-2"><?php echo e($item->title); ?></div>
+                        <div class="text-xs font-bold text-slate-400 uppercase mb-2"><?php echo e($item->title); ?></div>
                         <?php $__currentLoopData = $item->children; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $child): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <a href="<?php echo e(url($child->url)); ?>" target="<?php echo e($child->target); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+                            <a href="<?php echo e(url($child->url)); ?>" target="<?php echo e($child->target); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                                 <?php echo e($child->title); ?>
 
                             </a>
@@ -218,7 +218,7 @@
                     </div>
                 <?php else: ?>
                     <!-- Single Link <?php echo e($item->title); ?> -->
-                    <a href="<?php echo e(url($item->url)); ?>" target="<?php echo e($item->target); ?>" class="px-3 py-3 rounded-lg <?php echo e(request()->is(trim($item->url, '/') . '*') ? ($lightMode ? 'bg-slate-50 text-primary' : 'bg-slate-800 text-white') : ($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-300 hover:bg-slate-800 hover:text-white')); ?> transition-colors font-bold">
+                    <a href="<?php echo e(url($item->url)); ?>" target="<?php echo e($item->target); ?>" class="px-3 py-3 rounded-lg <?php echo e(request()->is(trim($item->url, '/') . '*') ? ($lightMode ? 'bg-slate-50 text-primary' : 'bg-slate-800 text-white') : ($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-200 hover:bg-slate-800 hover:text-white')); ?> transition-colors font-bold">
                         <?php echo e($item->title); ?>
 
                     </a>
@@ -226,10 +226,10 @@
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         <?php else: ?>
             <!-- Fallback -->
-            <a href="<?php echo e(route('programs.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Programs</a>
-            <a href="<?php echo e(route('marketplace.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e(request()->routeIs('marketplace.*') ? ($lightMode ? 'bg-slate-50 text-primary' : 'bg-slate-800 text-white') : ($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-300 hover:bg-slate-800 hover:text-white')); ?> transition-colors font-bold">Marketplace</a>
-            <a href="<?php echo e(route('coaches.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Coach</a>
-            <a href="<?php echo e(route('calendar.public')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-300 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Calendar</a>
+            <a href="<?php echo e(route('programs.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Programs</a>
+            <a href="<?php echo e(route('marketplace.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e(request()->routeIs('marketplace.*') ? ($lightMode ? 'bg-slate-50 text-primary' : 'bg-slate-800 text-white') : ($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-200 hover:bg-slate-800 hover:text-white')); ?> transition-colors font-bold">Marketplace</a>
+            <a href="<?php echo e(route('coaches.index')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Coach</a>
+            <a href="<?php echo e(route('calendar.public')); ?>" class="px-3 py-3 rounded-lg <?php echo e($lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-primary' : 'text-slate-200 hover:bg-slate-800 hover:text-white'); ?> transition-colors font-bold">Calendar</a>
         <?php endif; ?>
 
 
@@ -243,21 +243,21 @@
                  </div>
             </div>
 
-            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Account</div>
-            <a href="<?php echo e(route(auth()->user()->role . '.dashboard')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+            <div class="text-xs font-bold text-slate-400 uppercase mb-2">Account</div>
+            <a href="<?php echo e(route(auth()->user()->role . '.dashboard')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                 Dashboard
             </a>
-            <a href="<?php echo e(route('profile.show')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+            <a href="<?php echo e(route('profile.show')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                 Profile
             </a>
-            <a href="<?php echo e(route('marketplace.cart.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+            <a href="<?php echo e(route('marketplace.cart.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                 Cart
                 <span id="mobile-cart-count" class="ml-2 bg-neon text-dark text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
             </a>
-            <a href="<?php echo e(route('chat.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+            <a href="<?php echo e(route('chat.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                 Messages
             </a>
-            <a href="<?php echo e(route('notifications.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
+            <a href="<?php echo e(route('notifications.index')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">
                 Notifications
                 <span id="mobile-notif-count" class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
             </a>
@@ -273,9 +273,9 @@
 
         <?php if(auth()->guard()->guest()): ?>
         <div class="px-3 py-2 border-t <?php echo e($lightMode ? 'border-slate-100' : 'border-slate-800'); ?> mt-2">
-             <div class="text-xs font-bold text-slate-500 uppercase mb-2">Account</div>
-             <a href="<?php echo e(route('login')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">Login</a>
-             <a href="<?php echo e(route('register')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-300 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">Register</a>
+             <div class="text-xs font-bold text-slate-400 uppercase mb-2">Account</div>
+             <a href="<?php echo e(route('login')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">Login</a>
+             <a href="<?php echo e(route('register')); ?>" class="block py-2 <?php echo e($lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white'); ?> pl-4 border-l <?php echo e($lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon'); ?> transition-colors">Register</a>
         </div>
         <?php endif; ?>
     </div>

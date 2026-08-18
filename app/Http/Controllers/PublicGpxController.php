@@ -15,6 +15,26 @@ class PublicGpxController extends Controller
             ->with(['user', 'event'])
             ->where('is_published', true);
 
+        // GPS Radius / Proximity calculation (Haversine formula)
+        $userLat = $request->filled('user_lat') ? (float) $request->input('user_lat') : ($request->filled('lat') ? (float) $request->input('lat') : null);
+        $userLng = $request->filled('user_lng') ? (float) $request->input('user_lng') : ($request->filled('lng') ? (float) $request->input('lng') : null);
+        $radius = $request->filled('radius') && is_numeric($request->input('radius')) ? (float) $request->input('radius') : null;
+
+        $hasCoordinates = ($userLat !== null && $userLng !== null && $userLat >= -90 && $userLat <= 90 && $userLng >= -180 && $userLng <= 180);
+
+        if ($hasCoordinates) {
+            $haversineSql = "(6371 * acos(least(1.0, greatest(-1.0, cos(radians(?)) * cos(radians(COALESCE(start_latitude, 0))) * cos(radians(COALESCE(start_longitude, 0)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(start_latitude, 0)))))))";
+            
+            $query->select('master_gpxes.*')
+                ->selectRaw("{$haversineSql} AS user_distance_km", [$userLat, $userLng, $userLat])
+                ->whereNotNull('start_latitude')
+                ->whereNotNull('start_longitude');
+
+            if ($radius !== null && $radius > 0) {
+                $query->whereRaw("{$haversineSql} <= ?", [$userLat, $userLng, $userLat, $radius]);
+            }
+        }
+
         // Filter: Search Keyword
         if ($request->filled('q')) {
             $search = $request->input('q');
@@ -64,8 +84,15 @@ class PublicGpxController extends Controller
         }
 
         // Sort
-        $sort = $request->input('sort', 'latest');
+        $sort = $request->input('sort', $hasCoordinates && ! $request->filled('sort') ? 'nearest' : 'latest');
         switch ($sort) {
+            case 'nearest':
+                if ($hasCoordinates) {
+                    $query->orderBy('user_distance_km', 'asc');
+                } else {
+                    $query->orderByDesc('created_at');
+                }
+                break;
             case 'distance_desc':
                 $query->orderByDesc('distance_km');
                 break;
@@ -98,7 +125,12 @@ class PublicGpxController extends Controller
         if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
             return response()->json([
                 'success' => true,
-                'html' => view('gpx.partials.cards', ['items' => $items])->render(),
+                'html' => view('gpx.partials.cards', [
+                    'items' => $items,
+                    'userLat' => $userLat,
+                    'userLng' => $userLng,
+                    'hasCoordinates' => $hasCoordinates,
+                ])->render(),
                 'total' => $items->total(),
             ]);
         }
@@ -106,6 +138,9 @@ class PublicGpxController extends Controller
         return view('gpx.index', [
             'items' => $items,
             'cities' => $cities,
+            'userLat' => $userLat,
+            'userLng' => $userLng,
+            'hasCoordinates' => $hasCoordinates,
             'filters' => $request->all(),
         ]);
     }

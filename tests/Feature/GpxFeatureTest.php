@@ -141,4 +141,46 @@ class GpxFeatureTest extends TestCase
 
         $this->assertEquals(30, $user->fresh()->run_points);
     }
+
+    public function test_gps_radius_and_nearest_sorting()
+    {
+        $user = User::factory()->create();
+
+        // Monas Jakarta: lat -6.1754, lng 106.8272
+        $monas = MasterGpx::create([
+            'user_id' => $user->id,
+            'title' => 'Monas Loop',
+            'city' => 'Jakarta Pusat',
+            'start_latitude' => -6.175400,
+            'start_longitude' => 106.827200,
+            'coordinates_json' => [[-6.175400, 106.827200], [-6.176000, 106.828000]],
+            'distance_km' => 5.0,
+            'is_published' => true,
+        ]);
+
+        // Bandung: lat -6.9175, lng 107.6191 (~120 km away from Jakarta)
+        $bandung = MasterGpx::create([
+            'user_id' => $user->id,
+            'title' => 'Gasibu Loop',
+            'city' => 'Bandung',
+            'start_latitude' => -6.917500,
+            'start_longitude' => 107.619100,
+            'coordinates_json' => [[-6.917500, 107.619100], [-6.918000, 107.620000]],
+            'distance_km' => 3.0,
+            'is_published' => true,
+        ]);
+
+        // User is at Thamrin Jakarta (-6.1900, 106.8230) ~ 1.7 km from Monas, ~120 km from Bandung
+        $response = $this->getJson(route('gpx.index', [
+            'lat' => -6.1900,
+            'lng' => 106.8230,
+            'radius' => 25, // 25 km radius should only include Monas
+            'sort' => 'nearest',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+        $response->assertSee('Monas Loop');
+        $response->assertDontSee('Gasibu Loop');
+    }
 }
