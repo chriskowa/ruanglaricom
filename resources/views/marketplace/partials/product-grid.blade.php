@@ -1,5 +1,5 @@
 @if($products->count() > 0)
-    <div data-products-total="{{ $products->total() }}" :class="sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'">
+    <div data-products-total="{{ method_exists($products, 'total') ? $products->total() : $products->count() }}" :class="sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'">
         @foreach($products as $product)
         @php
             $isWishlisted = false;
