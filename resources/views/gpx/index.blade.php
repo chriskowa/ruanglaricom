@@ -1113,6 +1113,7 @@
                 });
             }
 
+            const currentUrlParams = new URLSearchParams(window.location.search);
             if (currentUrlParams.get('open_gpx_modal') === '1') {
                 openGpxModal();
                 try {
