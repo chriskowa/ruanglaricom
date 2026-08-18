@@ -311,64 +311,85 @@
                                 </div>
                             </div>
 
-                            <!-- 03. Foto Produk (Maksimal 4 Foto) -->
+                            <!-- 03. Foto Produk (Dropzone Maksimal 4 Foto) -->
                             <div class="space-y-4 pt-4 border-t border-slate-800">
                                 <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-mono font-black text-neon uppercase tracking-wider">03.</span>
-                                        <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Foto Produk (Maksimal 4 Foto)</h2>
+                                        <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-white">Foto Produk (Maksimal 4 Foto) <span class="text-rose-400">*</span></h2>
                                     </div>
                                     <span class="text-[10px] font-mono text-slate-400 uppercase">
-                                        <span x-text="images.filter(img => img !== null).length">0</span> / 4 Foto
+                                        <span x-text="fileList.length">0</span> / 4 Foto Terpilih
                                     </span>
                                 </div>
 
                                 <p class="text-xs text-slate-300">
-                                    Upload hingga 4 foto jelas (tampak depan, samping, outsole, insole/tag size). Foto otomatis dikonversi ke WebP multi-resolusi.
+                                    Unggah hingga 4 foto produk (foto pertama menjadi foto utama/sampul). Mendukung format JPG, PNG, WEBP hingga 3MB per file.
                                 </p>
 
-                                <!-- 4 Photo Slots Grid -->
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                    <template x-for="(imgSlot, idx) in 4" :key="idx">
-                                        <div class="relative aspect-square rounded-xl border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center text-center group"
-                                             :class="images[idx] ? 'border-neon/60 bg-slate-950' : 'border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900'">
-                                            
-                                            <!-- If image uploaded in this slot -->
-                                            <template x-if="images[idx]">
-                                                <div class="w-full h-full relative">
-                                                    <img :src="images[idx]" class="w-full h-full object-cover">
-                                                    
-                                                    <!-- Slot Badge -->
-                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/80 backdrop-blur border border-slate-700 text-[9px] font-mono font-bold text-white uppercase"
-                                                          x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
-                                                    
-                                                    <!-- Remove Button -->
-                                                    <button type="button" @click.stop="removeImage(idx)" 
-                                                            class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition">
-                                                        <i class="fas fa-times text-[10px]"></i>
-                                                    </button>
-                                                </div>
-                                            </template>
+                                <!-- Hidden File Input that holds the actual DataTransfer files -->
+                                <input type="file" id="product-images-input" name="images[]" multiple accept="image/*" class="hidden" @change="handleFilesFromInput($event)">
 
-                                            <!-- If slot is empty -->
-                                            <template x-if="!images[idx]">
-                                                <label :for="'file-input-' + idx" class="w-full h-full flex flex-col items-center justify-center p-3 cursor-pointer">
-                                                    <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-2 transition">
-                                                        <i class="fas fa-plus text-xs"></i>
-                                                    </div>
-                                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300"
-                                                          x-text="idx === 0 ? 'Foto Utama *' : 'Foto ' + (idx + 1)"></span>
-                                                    <span class="text-[9px] text-slate-500 font-mono mt-0.5"
-                                                          x-text="idx === 0 ? 'Sampul' : (idx === 1 ? 'Outsole' : (idx === 2 ? 'Insole/Tag' : 'Detail'))"></span>
-                                                    
-                                                    <input :id="'file-input-' + idx" type="file" name="images[]" accept="image/*" class="hidden" @change="handleFileSelect($event, idx)">
-                                                </label>
-                                            </template>
+                                <!-- Dropzone Drag & Drop Area -->
+                                <div 
+                                    id="product-dropzone"
+                                    class="relative border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
+                                    :class="isDragging ? 'border-neon bg-neon/5 scale-[1.01]' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-900/60'"
+                                    @dragover.prevent="isDragging = true"
+                                    @dragleave.prevent="isDragging = false"
+                                    @drop.prevent="handleFilesDrop($event)"
+                                    @click="triggerFileInput()"
+                                    x-show="fileList.length < 4"
+                                >
+                                    <div class="flex flex-col items-center justify-center space-y-3 pointer-events-none">
+                                        <div class="w-12 h-12 rounded-2xl bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
+                                            <i class="fas fa-cloud-arrow-up text-xl text-neon"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs sm:text-sm font-bold text-white">
+                                                Tarik &amp; letakkan foto di sini, atau <span class="text-neon underline">pilih dari galeri</span>
+                                            </p>
+                                            <p class="text-[11px] text-slate-400 font-mono mt-1">
+                                                Maksimal 4 foto (JPEG, PNG, WEBP hingga 3MB)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Photo Thumbnails Grid (when files are selected) -->
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5" x-show="fileList.length > 0" x-cloak>
+                                    <template x-for="(item, idx) in fileList" :key="idx">
+                                        <div class="relative aspect-square rounded-xl border-2 border-neon/60 bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md">
+                                            <img :src="item.previewUrl" class="w-full h-full object-cover">
+                                            
+                                            <!-- Slot Badge -->
+                                            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/85 backdrop-blur border border-slate-700 text-[9px] font-mono font-bold text-white uppercase"
+                                                  x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
+                                            
+                                            <!-- Remove Button -->
+                                            <button type="button" @click.stop="removeImage(idx)" 
+                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer"
+                                                    title="Hapus foto ini">
+                                                <i class="fas fa-times text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+
+                                    <!-- Add more slot if less than 4 -->
+                                    <template x-if="fileList.length > 0 && fileList.length < 4">
+                                        <div @click="triggerFileInput()"
+                                             class="relative aspect-square rounded-xl border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900/80 cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none">
+                                            <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
+                                                <i class="fas fa-plus text-xs"></i>
+                                            </div>
+                                            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
+                                            <span class="text-[9px] text-slate-500 font-mono mt-0.5" x-text="'Slot ' + (fileList.length + 1) + '/4'"></span>
                                         </div>
                                     </template>
                                 </div>
 
                                 @error('images') <p class="text-rose-400 text-xs font-mono">{{ $message }}</p> @enderror
+                                @error('images.*') <p class="text-rose-400 text-xs font-mono">{{ $message }}</p> @enderror
                             </div>
 
                             <!-- 04. Deskripsi Lengkap Produk -->
@@ -473,15 +494,13 @@
                     </div>
 
                     <!-- Mini Gallery Thumbnail Selector -->
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1" x-show="images.filter(img => img !== null).length > 1">
-                        <template x-for="(imgSrc, i) in images" :key="i">
-                            <template x-if="imgSrc">
-                                <button type="button" @click="activePreviewIndex = i"
-                                        class="w-12 h-12 rounded-lg overflow-hidden border transition shrink-0"
-                                        :class="activePreviewIndex === i ? 'border-white ring-1 ring-white' : 'border-slate-800 opacity-60 hover:opacity-100'">
-                                    <img :src="imgSrc" class="w-full h-full object-cover">
-                                </button>
-                            </template>
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1" x-show="fileList.length > 1" x-cloak>
+                        <template x-for="(item, i) in fileList" :key="i">
+                            <button type="button" @click="activePreviewIndex = i"
+                                    class="w-12 h-12 rounded-lg overflow-hidden border transition shrink-0 cursor-pointer"
+                                    :class="activePreviewIndex === i ? 'border-white ring-1 ring-white' : 'border-slate-800 opacity-60 hover:opacity-100'">
+                                <img :src="item.previewUrl" class="w-full h-full object-cover">
+                            </button>
                         </template>
                     </div>
 
@@ -572,15 +591,18 @@ function productCreateForm() {
         startingPrice: '{{ old('starting_price', '') }}',
         description: '{{ old('description', '') }}',
         
-        images: [null, null, null, null],
+        isDragging: false,
+        fileList: [],
         activePreviewIndex: 0,
 
         get primaryPreviewImage() {
-            if (this.images[this.activePreviewIndex]) {
-                return this.images[this.activePreviewIndex];
+            if (this.fileList[this.activePreviewIndex]) {
+                return this.fileList[this.activePreviewIndex].previewUrl;
             }
-            const firstAvailable = this.images.find(img => img !== null);
-            return firstAvailable || null;
+            if (this.fileList.length > 0) {
+                return this.fileList[0].previewUrl;
+            }
+            return null;
         },
 
         get formattedPrice() {
@@ -593,6 +615,64 @@ function productCreateForm() {
             return 'Rp ' + Number(this.startingPrice).toLocaleString('id-ID');
         },
 
+        triggerFileInput() {
+            const input = document.getElementById('product-images-input');
+            if (input) input.click();
+        },
+
+        handleFilesDrop(e) {
+            this.isDragging = false;
+            if (e.dataTransfer && e.dataTransfer.files) {
+                this.addFiles(Array.from(e.dataTransfer.files));
+            }
+        },
+
+        handleFilesFromInput(e) {
+            if (e.target && e.target.files) {
+                this.addFiles(Array.from(e.target.files));
+                e.target.value = ''; // Reset input to allow re-selecting same file name if needed
+            }
+        },
+
+        addFiles(newFiles) {
+            const validImageFiles = newFiles.filter(f => f.type.startsWith('image/'));
+            if (validImageFiles.length === 0) return;
+
+            const availableSlots = 4 - this.fileList.length;
+            if (availableSlots <= 0) return;
+
+            const toAdd = validImageFiles.slice(0, availableSlots);
+
+            toAdd.forEach(file => {
+                const previewUrl = URL.createObjectURL(file);
+                this.fileList.push({ file, previewUrl });
+            });
+
+            this.syncFileInput();
+        },
+
+        removeImage(index) {
+            if (this.fileList[index]) {
+                URL.revokeObjectURL(this.fileList[index].previewUrl);
+            }
+            this.fileList.splice(index, 1);
+            if (this.activePreviewIndex >= this.fileList.length) {
+                this.activePreviewIndex = Math.max(0, this.fileList.length - 1);
+            }
+            this.syncFileInput();
+        },
+
+        syncFileInput() {
+            const input = document.getElementById('product-images-input');
+            if (!input) return;
+
+            const dt = new DataTransfer();
+            this.fileList.forEach(item => {
+                dt.items.add(item.file);
+            });
+            input.files = dt.files;
+        },
+
         updateCategoryText(e) {
             const opt = e.target.options[e.target.selectedIndex];
             this.categoryText = opt ? (opt.dataset.name || opt.text) : '';
@@ -602,27 +682,6 @@ function productCreateForm() {
         updateBrandText(e) {
             const opt = e.target.options[e.target.selectedIndex];
             this.brandText = opt && opt.value !== "" ? (opt.dataset.name || opt.text) : '';
-        },
-
-        handleFileSelect(event, index) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.images[index] = e.target.result;
-                    this.activePreviewIndex = index;
-                };
-                reader.readAsDataURL(file);
-            }
-        },
-
-        removeImage(index) {
-            this.images[index] = null;
-            const input = document.getElementById('file-input-' + index);
-            if (input) input.value = '';
-            if (this.activePreviewIndex === index) {
-                this.activePreviewIndex = 0;
-            }
         },
 
         filterBrands() {
