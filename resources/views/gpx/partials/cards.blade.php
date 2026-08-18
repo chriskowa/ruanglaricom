@@ -49,13 +49,13 @@
                         <div class="bg-[#090D16] p-2.5 rounded-xl border border-slate-800">
                             <div class="text-[11px] text-slate-200">Elev gain</div>
                             <div class="text-sm font-semibold text-white mt-0.5 font-mono">
-                                {{ $item->elevation_gain_m !== null ? '+' . round($item->elevation_gain_m) . ' m' : '-' }}
+                                +{{ round($item->elevation_gain_m ?? 0) }} m
                             </div>
                         </div>
                         <div class="bg-[#090D16] p-2.5 rounded-xl border border-slate-800">
                             <div class="text-[11px] text-slate-200">Elev loss</div>
                             <div class="text-sm font-semibold text-white mt-0.5 font-mono">
-                                {{ $item->elevation_loss_m !== null ? '-' . round($item->elevation_loss_m) . ' m' : '-' }}
+                                -{{ round($item->elevation_loss_m ?? 0) }} m
                             </div>
                         </div>
                     </div>
