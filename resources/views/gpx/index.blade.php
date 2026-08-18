@@ -300,16 +300,33 @@
                                 <span>GPS</span>
                             </button>
                         </div>
-                        <div class="relative">
-                            <select id="select-filter-city" name="city" 
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="">Semua kota</option>
-                                @foreach($cities as $c)
-                                    <option value="{{ $c }}" {{ request('city') == $c ? 'selected' : '' }}>{{ $c }}</option>
-                                @endforeach
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
+                        <div class="relative" id="filter-city-combobox-wrap">
+                            <div class="relative flex items-center">
+                                <input type="text" 
+                                    id="select-filter-city" 
+                                    name="city" 
+                                    value="{{ request('city') }}" 
+                                    placeholder="Semua kota / cari..." 
+                                    autocomplete="off"
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-8 pr-12 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent transition cursor-text">
+                                
+                                <div class="pointer-events-none absolute left-2.5 text-slate-400">
+                                    <i class="fa-solid fa-location-dot text-xs text-accent"></i>
+                                </div>
+
+                                <div class="absolute right-2 flex items-center gap-1">
+                                    <button type="button" id="btn-clear-filter-city" class="text-slate-500 hover:text-white p-1 text-xs cursor-pointer {{ request('city') ? '' : 'hidden' }}" title="Hapus Filter Kota">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                    <button type="button" id="btn-toggle-filter-city" class="text-slate-400 hover:text-white p-1 text-[10px] cursor-pointer" title="Lihat Pilihan Kota">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Floating Autocomplete / Selection Menu -->
+                            <div id="filter-city-dropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto backdrop-blur-md">
+                                <!-- Populated dynamically by JS -->
                             </div>
                         </div>
                     </div>
@@ -389,8 +406,10 @@
                         <div class="relative">
                             <select name="sort" id="select-filter-sort"
                                 class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="nearest" {{ request('sort') == 'nearest' || ($hasCoordinates && !request('sort')) ? 'selected' : '' }}>📍 Terdekat dari saya (GPS)</option>
-                                <option value="latest" {{ request('sort') == 'latest' || (!$hasCoordinates && !request('sort')) ? 'selected' : '' }}>Terbaru</option>
+                                <option value="default" {{ (!request('sort') || request('sort') == 'default' || request('sort') == 'nearest') ? 'selected' : '' }}>📍 Terdekat (Start GPX &gt; Kota &gt; A-Z)</option>
+                                <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
+                                <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
+                                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
                                 <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak terjauh</option>
                                 <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak terdekat</option>
                                 <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi tertinggi</option>
@@ -684,6 +703,148 @@
             let filterDebounceTimer = null;
             let currentFilterAbortCtrl = null;
 
+            // ==========================================
+            // SEARCHABLE CITY FILTER COMBOBOX ENGINE
+            // ==========================================
+            const catalogCities = @json($cities ?? []);
+            const filterCityDropdown = document.getElementById('filter-city-dropdown');
+            const btnClearFilterCity = document.getElementById('btn-clear-filter-city');
+            const btnToggleFilterCity = document.getElementById('btn-toggle-filter-city');
+            let cityFilterDebounce = null;
+
+            function renderCityFilterDropdown(query = '') {
+                if (!filterCityDropdown) return;
+                const cleanQuery = (query || '').toLowerCase().trim();
+                
+                let matches = catalogCities.filter(c => c && c.toLowerCase().includes(cleanQuery));
+
+                let html = `
+                    <div class="p-2 border-b border-slate-800 bg-slate-900/90 text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center justify-between">
+                        <span>Pilihan Kota Katalog</span>
+                        <span class="text-accent">${matches.length} kota</span>
+                    </div>
+                    <div class="py-1">
+                        <button type="button" data-city="" class="city-filter-option w-full text-left px-3 py-2 text-xs font-semibold text-accent hover:bg-slate-800/80 flex items-center gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-globe text-[11px]"></i>
+                            <span>Semua Kota (Reset)</span>
+                        </button>
+                `;
+
+                if (matches.length > 0) {
+                    matches.forEach(city => {
+                        const isSelected = selectCity?.value?.trim().toLowerCase() === city.toLowerCase();
+                        html += `
+                            <button type="button" data-city="${city}" class="city-filter-option w-full text-left px-3 py-2 text-xs text-white hover:bg-slate-800/80 flex items-center justify-between transition cursor-pointer ${isSelected ? 'bg-accent/15 text-accent font-bold' : ''}">
+                                <div class="flex items-center gap-2 truncate">
+                                    <i class="fa-solid fa-location-dot text-[10px] ${isSelected ? 'text-accent' : 'text-slate-500'}"></i>
+                                    <span class="truncate">${city}</span>
+                                </div>
+                                ${isSelected ? '<i class="fa-solid fa-check text-accent text-[10px]"></i>' : ''}
+                            </button>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="px-3 py-3 text-xs text-slate-400 text-center">
+                            Tidak ada kota katalog bernama "<strong>${cleanQuery}</strong>".
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+                filterCityDropdown.innerHTML = html;
+                filterCityDropdown.classList.remove('hidden');
+            }
+
+            function selectFilterCity(cityName) {
+                if (selectCity) {
+                    selectCity.value = cityName;
+                }
+                if (btnClearFilterCity) {
+                    if (cityName) {
+                        btnClearFilterCity.classList.remove('hidden');
+                    } else {
+                        btnClearFilterCity.classList.add('hidden');
+                    }
+                }
+                if (filterCityDropdown) {
+                    filterCityDropdown.classList.add('hidden');
+                }
+                applyFiltersAjax();
+            }
+
+            if (selectCity) {
+                selectCity.addEventListener('focus', function() {
+                    renderCityFilterDropdown(this.value);
+                });
+
+                selectCity.addEventListener('input', function() {
+                    const val = this.value.trim();
+                    if (btnClearFilterCity) {
+                        if (val) {
+                            btnClearFilterCity.classList.remove('hidden');
+                        } else {
+                            btnClearFilterCity.classList.add('hidden');
+                        }
+                    }
+                    clearTimeout(cityFilterDebounce);
+                    cityFilterDebounce = setTimeout(() => {
+                        renderCityFilterDropdown(val);
+                        if (!val) {
+                            applyFiltersAjax();
+                        }
+                    }, 150);
+                });
+
+                selectCity.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
+                        applyFiltersAjax();
+                    } else if (e.key === 'Escape') {
+                        if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (btnToggleFilterCity) {
+                btnToggleFilterCity.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (filterCityDropdown && !filterCityDropdown.classList.contains('hidden')) {
+                        filterCityDropdown.classList.add('hidden');
+                    } else {
+                        renderCityFilterDropdown(selectCity?.value || '');
+                    }
+                });
+            }
+
+            if (btnClearFilterCity) {
+                btnClearFilterCity.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectFilterCity('');
+                });
+            }
+
+            // Click option or outside listener
+            document.addEventListener('click', function(e) {
+                const optBtn = e.target.closest('.city-filter-option');
+                if (optBtn) {
+                    e.preventDefault();
+                    const cityVal = optBtn.getAttribute('data-city') || '';
+                    selectFilterCity(cityVal);
+                    return;
+                }
+
+                const comboboxWrap = document.getElementById('filter-city-combobox-wrap');
+                if (comboboxWrap && !comboboxWrap.contains(e.target)) {
+                    if (filterCityDropdown) {
+                        filterCityDropdown.classList.add('hidden');
+                    }
+                }
+            });
+
             function renderAllRouteSvgs() {
                 const routeSvgs = document.querySelectorAll('.gpx-route-svg');
                 routeSvgs.forEach(function(svg) {
@@ -847,10 +1008,10 @@
                 const radiusVal = document.getElementById('select-filter-radius')?.value?.trim() || '';
                 const distVal = filterForm.querySelector('select[name="distance"]')?.value?.trim() || '';
                 const eleVal = filterForm.querySelector('select[name="elevation"]')?.value?.trim() || '';
-                const sortVal = filterForm.querySelector('select[name="sort"]')?.value?.trim() || 'latest';
+                const sortVal = filterForm.querySelector('select[name="sort"]')?.value?.trim() || 'default';
                 const latVal = document.getElementById('filter-user-lat')?.value?.trim() || '';
 
-                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || (sortVal !== '' && sortVal !== 'latest');
+                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || (sortVal !== '' && sortVal !== 'default' && sortVal !== 'nearest');
                 if (hasActiveFilters) {
                     mobileFilterActiveDot.classList.remove('hidden');
                 } else {
@@ -924,6 +1085,9 @@
                     e.preventDefault();
                     if (filterForm) filterForm.reset();
                     if (searchInput) searchInput.value = '';
+                    if (selectCity) selectCity.value = '';
+                    if (btnClearFilterCity) btnClearFilterCity.classList.add('hidden');
+                    if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
                     const inputLat = document.getElementById('filter-user-lat');
                     const inputLng = document.getElementById('filter-user-lng');
                     if (inputLat) inputLat.value = '';
@@ -953,6 +1117,9 @@
                     e.preventDefault();
                     if (filterForm) filterForm.reset();
                     if (searchInput) searchInput.value = '';
+                    if (selectCity) selectCity.value = '';
+                    if (btnClearFilterCity) btnClearFilterCity.classList.add('hidden');
+                    if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
                     const inputLat = document.getElementById('filter-user-lat');
                     const inputLng = document.getElementById('filter-user-lng');
                     if (inputLat) inputLat.value = '';
@@ -974,7 +1141,13 @@
                 // Sync form inputs with current URL search params
                 const params = new URLSearchParams(window.location.search);
                 if (searchInput) searchInput.value = params.get('q') || '';
-                if (selectCity) selectCity.value = params.get('city') || '';
+                if (selectCity) {
+                    selectCity.value = params.get('city') || '';
+                    if (btnClearFilterCity) {
+                        if (selectCity.value) btnClearFilterCity.classList.remove('hidden');
+                        else btnClearFilterCity.classList.add('hidden');
+                    }
+                }
                 const radiusSel = document.getElementById('select-filter-radius');
                 if (radiusSel) radiusSel.value = params.get('radius') || '';
                 const distanceSel = filterForm?.querySelector('select[name="distance"]');
@@ -982,7 +1155,7 @@
                 const elevationSel = filterForm?.querySelector('select[name="elevation"]');
                 if (elevationSel) elevationSel.value = params.get('elevation') || '';
                 const sortSel = document.getElementById('select-filter-sort') || filterForm?.querySelector('select[name="sort"]');
-                if (sortSel) sortSel.value = params.get('sort') || 'latest';
+                if (sortSel) sortSel.value = params.get('sort') || 'default';
                 const inputLat = document.getElementById('filter-user-lat');
                 const inputLng = document.getElementById('filter-user-lng');
                 if (inputLat) inputLat.value = params.get('user_lat') || params.get('lat') || '';
@@ -1103,11 +1276,20 @@
                     if (selectRadius) selectRadius.value = '';
                     if (labelGpsActive) labelGpsActive.classList.add('hidden');
                     if (geoNoticeBar) geoNoticeBar.classList.add('hidden');
-                    if (selectSort && selectSort.value === 'nearest') {
-                        selectSort.value = 'latest';
+                    if (selectSort && (selectSort.value === 'nearest' || selectSort.value === 'default')) {
+                        selectSort.value = 'default';
                     }
                     applyFiltersAjax();
                 });
+            }
+
+            // Auto-detect geolocation if not set in query param and permission already granted
+            if (navigator.permissions && navigator.geolocation && !inputUserLat?.value && !inputUserLng?.value) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+                    if (result.state === 'granted') {
+                        triggerGeoLocation(false);
+                    }
+                }).catch(function() {});
             }
 
             // Modal handlers (warna disesuaikan ke accent)

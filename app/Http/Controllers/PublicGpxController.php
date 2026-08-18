@@ -26,12 +26,12 @@ class PublicGpxController extends Controller
             $haversineSql = "(6371 * acos(least(1.0, greatest(-1.0, cos(radians(?)) * cos(radians(COALESCE(start_latitude, 0))) * cos(radians(COALESCE(start_longitude, 0)) - radians(?)) + sin(radians(?)) * sin(radians(COALESCE(start_latitude, 0)))))))";
             
             $query->select('master_gpxes.*')
-                ->selectRaw("{$haversineSql} AS user_distance_km", [$userLat, $userLng, $userLat])
-                ->whereNotNull('start_latitude')
-                ->whereNotNull('start_longitude');
+                ->selectRaw("{$haversineSql} AS user_distance_km", [$userLat, $userLng, $userLat]);
 
             if ($radius !== null && $radius > 0) {
-                $query->whereRaw("{$haversineSql} <= ?", [$userLat, $userLng, $userLat, $radius]);
+                $query->whereNotNull('start_latitude')
+                    ->whereNotNull('start_longitude')
+                    ->whereRaw("{$haversineSql} <= ?", [$userLat, $userLng, $userLat, $radius]);
             }
         }
 
@@ -88,15 +88,32 @@ class PublicGpxController extends Controller
             }
         }
 
-        // Sort
-        $sort = $request->input('sort', $hasCoordinates && ! $request->filled('sort') ? 'nearest' : 'latest');
+        // Sort: Default is Titik Start Terdekat -> Kota -> Abjad Judul / Font (A-Z)
+        $sort = $request->input('sort', 'default');
         switch ($sort) {
             case 'nearest':
+            case 'default':
                 if ($hasCoordinates) {
-                    $query->orderBy('user_distance_km', 'asc');
+                    $query->orderByRaw("CASE WHEN start_latitude IS NOT NULL AND start_longitude IS NOT NULL THEN 0 ELSE 1 END")
+                        ->orderBy('user_distance_km', 'asc')
+                        ->orderByRaw("CASE WHEN city IS NOT NULL AND city != '' THEN 0 ELSE 1 END")
+                        ->orderBy('city', 'asc')
+                        ->orderBy('title', 'asc');
                 } else {
-                    $query->orderByDesc('created_at');
+                    $query->orderByRaw("CASE WHEN city IS NOT NULL AND city != '' THEN 0 ELSE 1 END")
+                        ->orderBy('city', 'asc')
+                        ->orderBy('title', 'asc')
+                        ->orderByDesc('created_at');
                 }
+                break;
+            case 'title_asc':
+            case 'alphabetical':
+                $query->orderBy('title', 'asc');
+                break;
+            case 'city':
+                $query->orderByRaw("CASE WHEN city IS NOT NULL AND city != '' THEN 0 ELSE 1 END")
+                    ->orderBy('city', 'asc')
+                    ->orderBy('title', 'asc');
                 break;
             case 'distance_desc':
                 $query->orderByDesc('distance_km');
@@ -111,8 +128,21 @@ class PublicGpxController extends Controller
                 $query->orderBy('created_at');
                 break;
             case 'latest':
-            default:
                 $query->orderByDesc('created_at');
+                break;
+            default:
+                if ($hasCoordinates) {
+                    $query->orderByRaw("CASE WHEN start_latitude IS NOT NULL AND start_longitude IS NOT NULL THEN 0 ELSE 1 END")
+                        ->orderBy('user_distance_km', 'asc')
+                        ->orderByRaw("CASE WHEN city IS NOT NULL AND city != '' THEN 0 ELSE 1 END")
+                        ->orderBy('city', 'asc')
+                        ->orderBy('title', 'asc');
+                } else {
+                    $query->orderByRaw("CASE WHEN city IS NOT NULL AND city != '' THEN 0 ELSE 1 END")
+                        ->orderBy('city', 'asc')
+                        ->orderBy('title', 'asc')
+                        ->orderByDesc('created_at');
+                }
                 break;
         }
 
