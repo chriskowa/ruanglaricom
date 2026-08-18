@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSettings;
 use App\Models\Marketplace\MarketplaceOrder;
 use App\Models\Marketplace\MarketplaceProduct;
+use App\Models\Notification;
+use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -23,6 +27,57 @@ class CheckoutController extends Controller
         Config::$isProduction = config('midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
+    }
+
+    /**
+     * Autocomplete Indonesian cities / regencies (used identically like GPX submit)
+     */
+    public function searchCities(Request $request, RajaOngkirService $rajaOngkirService)
+    {
+        $q = trim($request->input('q', ''));
+        if (mb_strlen($q) < 1) {
+            return response()->json([]);
+        }
+
+        $results = $rajaOngkirService->searchCities($q);
+
+        return response()->json($results);
+    }
+
+    /**
+     * Calculate dynamic shipping costs from seller origin to buyer destination
+     */
+    public function calculateShipping(Request $request, RajaOngkirService $rajaOngkirService)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:marketplace_orders,id',
+            'destination_city_id' => 'required|integer',
+        ]);
+
+        $order = MarketplaceOrder::with(['seller', 'items.product'])->findOrFail($request->order_id);
+
+        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        // Determine origin city: from seller's profile or product or default (152 = Jakarta Selatan)
+        $sellerCity = $order->seller?->city ?: ($order->seller?->city_name ?? 'Jakarta Selatan');
+        $originCityId = $rajaOngkirService->findCityIdByName($sellerCity);
+        $destinationCityId = (int) $request->destination_city_id;
+
+        // Calculate package weight (1000g default per item)
+        $itemCount = $order->items->sum('quantity') ?: 1;
+        $weightInGrams = $itemCount * 1000;
+
+        $options = $rajaOngkirService->calculateShippingCost($originCityId, $destinationCityId, $weightInGrams);
+
+        return response()->json([
+            'success' => true,
+            'origin_city_id' => $originCityId,
+            'destination_city_id' => $destinationCityId,
+            'weight_grams' => $weightInGrams,
+            'options' => $options,
+        ]);
     }
 
     public function init(Request $request)
@@ -73,7 +128,7 @@ class CheckoutController extends Controller
             DB::beginTransaction();
 
             $order = MarketplaceOrder::create([
-                'invoice_number' => 'INV-RL-'.strtoupper(Str::random(10)),
+                'invoice_number' => 'INV-RL-' . strtoupper(Str::random(10)),
                 'buyer_id' => Auth::id(),
                 'seller_id' => $product->user_id,
                 'total_amount' => $product->price,
@@ -93,13 +148,13 @@ class CheckoutController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Gagal membuat order: '.$e->getMessage());
+            return back()->with('error', 'Gagal membuat order: ' . $e->getMessage());
         }
 
         return redirect()->route('marketplace.checkout.show', $order->id);
     }
 
-    public function show(MarketplaceOrder $order)
+    public function show(MarketplaceOrder $order, RajaOngkirService $rajaOngkirService)
     {
         if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return redirect()
@@ -120,18 +175,43 @@ class CheckoutController extends Controller
             return (float) $item->price_snapshot * (int) $item->quantity;
         });
 
+        // Default initial fallback shipping options
         $shippingOptions = [
-            'regular' => [
-                'label' => 'Regular Courier (2-3 hari)',
+            [
+                'courier_code' => 'jne',
+                'courier_name' => 'JNE',
+                'service' => 'REG',
+                'description' => 'Layanan Reguler',
                 'cost' => 20000,
+                'etd' => '2-3 hari',
+                'formatted_cost' => 'Rp 20.000',
             ],
-            'express' => [
-                'label' => 'Express Courier (1 hari)',
-                'cost' => 35000,
+            [
+                'courier_code' => 'pos',
+                'courier_name' => 'POS INDONESIA',
+                'service' => 'KILAT',
+                'description' => 'Pos Kilat Khusus',
+                'cost' => 18000,
+                'etd' => '2-4 hari',
+                'formatted_cost' => 'Rp 18.000',
             ],
-            'pickup' => [
-                'label' => 'Ambil sendiri / COD di lokasi',
+            [
+                'courier_code' => 'tiki',
+                'courier_name' => 'TIKI',
+                'service' => 'REG',
+                'description' => 'Regular Service',
+                'cost' => 21000,
+                'etd' => '2-3 hari',
+                'formatted_cost' => 'Rp 21.000',
+            ],
+            [
+                'courier_code' => 'pickup',
+                'courier_name' => 'Ambil Sendiri / COD',
+                'service' => 'PICKUP',
+                'description' => 'Ambil langsung di lokasi',
                 'cost' => 0,
+                'etd' => 'Langsung',
+                'formatted_cost' => 'Gratis (Rp 0)',
             ],
         ];
 
@@ -155,19 +235,17 @@ class CheckoutController extends Controller
             'shipping_phone' => ['required', 'string', 'max:30'],
             'shipping_address' => ['required', 'string', 'max:500'],
             'shipping_city' => ['required', 'string', 'max:120'],
-            'shipping_postal_code' => ['required', 'string', 'max:20'],
-            'shipping_courier' => ['required', 'in:regular,express,pickup'],
+            'destination_city_id' => ['nullable', 'integer'],
+            'shipping_postal_code' => ['nullable', 'string', 'max:20'],
+            'shipping_courier' => ['required', 'string', 'max:50'],
+            'shipping_service_name' => ['nullable', 'string', 'max:100'],
+            'shipping_etd' => ['nullable', 'string', 'max:50'],
+            'shipping_cost' => ['required', 'numeric', 'min:0'],
             'shipping_note' => ['nullable', 'string', 'max:500'],
             'payment_method' => ['required', 'in:wallet,midtrans'],
         ]);
 
-        $shippingOptions = [
-            'regular' => 20000,
-            'express' => 35000,
-            'pickup' => 0,
-        ];
-
-        $shippingCost = $shippingOptions[$validated['shipping_courier']] ?? 0;
+        $shippingCost = (float) $validated['shipping_cost'];
 
         $items = $order->items()->get();
         $productSubtotal = $items->sum(function ($item) {
@@ -188,7 +266,7 @@ class CheckoutController extends Controller
 
             if ($wallet->balance < $total) {
                 return back()->withErrors([
-                    'error' => 'Saldo wallet tidak cukup. Saldo Anda: Rp '.number_format($wallet->balance, 0, ',', '.').', Diperlukan: Rp '.number_format($total, 0, ',', '.'),
+                    'error' => 'Saldo wallet tidak cukup. Saldo Anda: Rp ' . number_format($wallet->balance, 0, ',', '.') . ', Diperlukan: Rp ' . number_format($total, 0, ',', '.'),
                 ]);
             }
 
@@ -198,8 +276,11 @@ class CheckoutController extends Controller
                     'shipping_phone' => $validated['shipping_phone'],
                     'shipping_address' => $validated['shipping_address'],
                     'shipping_city' => $validated['shipping_city'],
-                    'shipping_postal_code' => $validated['shipping_postal_code'],
+                    'destination_city_id' => $validated['destination_city_id'] ?? null,
+                    'shipping_postal_code' => $validated['shipping_postal_code'] ?? null,
                     'shipping_courier' => $validated['shipping_courier'],
+                    'shipping_service_name' => $validated['shipping_service_name'] ?? null,
+                    'shipping_etd' => $validated['shipping_etd'] ?? null,
                     'shipping_cost' => $shippingCost,
                     'shipping_note' => $validated['shipping_note'] ?? null,
                     'total_amount' => $total,
@@ -208,10 +289,10 @@ class CheckoutController extends Controller
                 ]);
 
                 $wallet->refresh();
-                $before = $wallet->balance;
+                $before = (float) $wallet->balance;
                 $wallet->decrement('balance', $total);
                 $wallet->refresh();
-                $after = $wallet->balance;
+                $after = (float) $wallet->balance;
 
                 WalletTransaction::create([
                     'wallet_id' => $wallet->id,
@@ -220,7 +301,7 @@ class CheckoutController extends Controller
                     'balance_before' => $before,
                     'balance_after' => $after,
                     'status' => 'completed',
-                    'description' => 'Marketplace order: '.$order->invoice_number,
+                    'description' => 'Pembayaran pesanan marketplace: ' . $order->invoice_number,
                     'reference_type' => MarketplaceOrder::class,
                     'reference_id' => $order->id,
                     'processed_at' => now(),
@@ -246,159 +327,126 @@ class CheckoutController extends Controller
                         . "Silakan cek dashboard seller Anda untuk memproses pengiriman.";
                     \App\Helpers\WhatsApp::send($order->seller->phone, $waMsg, 'seller_order');
                 }
+
+                // Create In-App Notification for Seller
+                if ($order->seller_id) {
+                    Notification::create([
+                        'user_id' => $order->seller_id,
+                        'type' => 'marketplace_sale',
+                        'title' => 'Pesanan Baru Masuk',
+                        'message' => 'Pesanan #' . $order->invoice_number . ' (' . ($order->buyer->name ?? 'Pembeli') . ') telah dibayar. Silakan proses pesanan.',
+                        'reference_type' => MarketplaceOrder::class,
+                        'reference_id' => $order->id,
+                        'is_read' => false,
+                    ]);
+                }
+
+                // Create In-App Notification for Admin users
+                $adminUsers = User::where('role', 'admin')->get();
+                foreach ($adminUsers as $adminUser) {
+                    Notification::create([
+                        'user_id' => $adminUser->id,
+                        'type' => 'marketplace_order_paid',
+                        'title' => 'Penjualan Marketplace Baru',
+                        'message' => 'Pesanan #' . $order->invoice_number . ' senilai Rp ' . number_format($order->total_amount, 0, ',', '.') . ' telah dibayar oleh ' . ($order->buyer->name ?? 'Pembeli'),
+                        'reference_type' => MarketplaceOrder::class,
+                        'reference_id' => $order->id,
+                        'is_read' => false,
+                    ]);
+                }
             } catch (\Exception $e) {
-                \Log::error('Failed to send marketplace order notifications: ' . $e->getMessage());
+                Log::error('Failed to send marketplace order notifications: ' . $e->getMessage());
             }
 
             return redirect()
                 ->route('marketplace.orders.show', $order->id)
-                ->with('success', 'Pembayaran via wallet berhasil. Order menunggu pengiriman dari seller.');
+                ->with('success', 'Pembayaran via wallet berhasil! Pesanan menunggu diproses oleh penjual.');
         }
 
+        // Midtrans Flow
         $order->update([
             'shipping_name' => $validated['shipping_name'],
             'shipping_phone' => $validated['shipping_phone'],
             'shipping_address' => $validated['shipping_address'],
             'shipping_city' => $validated['shipping_city'],
-            'shipping_postal_code' => $validated['shipping_postal_code'],
+            'destination_city_id' => $validated['destination_city_id'] ?? null,
+            'shipping_postal_code' => $validated['shipping_postal_code'] ?? null,
             'shipping_courier' => $validated['shipping_courier'],
+            'shipping_service_name' => $validated['shipping_service_name'] ?? null,
+            'shipping_etd' => $validated['shipping_etd'] ?? null,
             'shipping_cost' => $shippingCost,
             'shipping_note' => $validated['shipping_note'] ?? null,
             'total_amount' => $total,
             'payment_method' => 'midtrans',
         ]);
 
-        $itemDetails = $items->map(function ($it) {
-            return [
-                'id' => $it->product_id,
-                'price' => (int) $it->price_snapshot,
-                'quantity' => (int) $it->quantity,
-                'name' => substr($it->product_title_snapshot, 0, 50),
-            ];
-        })->values()->all();
+        return redirect()->route('marketplace.orders.show', $order->id);
+    }
 
-        if ($shippingCost > 0) {
-            $itemDetails[] = [
+    public function getSnapToken(MarketplaceOrder $order)
+    {
+        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($order->status !== 'pending') {
+            return response()->json(['error' => 'Order already processed.'], 400);
+        }
+
+        if ($order->snap_token) {
+            return response()->json([
+                'success' => true,
+                'snap_token' => $order->snap_token,
+            ]);
+        }
+
+        $items = [];
+        foreach ($order->items as $item) {
+            $items[] = [
+                'id' => (string) $item->product_id,
+                'price' => (int) round($item->price_snapshot),
+                'quantity' => (int) $item->quantity,
+                'name' => (string) Str::limit($item->product_title_snapshot, 45),
+            ];
+        }
+
+        if ($order->shipping_cost > 0) {
+            $items[] = [
                 'id' => 'SHIPPING',
-                'price' => (int) $shippingCost,
+                'price' => (int) round($order->shipping_cost),
                 'quantity' => 1,
-                'name' => 'Shipping - '.$validated['shipping_courier'],
+                'name' => 'Ongkos Kirim (' . strtoupper($order->shipping_courier ?: 'Ekspedisi') . ')',
             ];
         }
 
         $params = [
             'transaction_details' => [
-                'order_id' => $order->invoice_number . '-' . time(),
-                'gross_amount' => (int) $total,
+                'order_id' => $order->invoice_number,
+                'gross_amount' => (int) round($order->total_amount),
             ],
             'customer_details' => [
-                'first_name' => $user->name,
-                'email' => $user->email,
+                'first_name' => $order->shipping_name ?: (Auth::user()->name ?? 'Customer'),
+                'email' => Auth::user()->email ?? 'customer@ruanglari.com',
+                'phone' => $order->shipping_phone ?: (Auth::user()->phone ?? '08123456789'),
             ],
-            'item_details' => $itemDetails,
-            'callbacks' => [
-                'finish' => route('marketplace.orders.show', $order->id),
-                'pending' => route('marketplace.orders.show', $order->id),
-                'error' => route('marketplace.orders.show', $order->id),
-            ],
+            'item_details' => $items,
         ];
 
         try {
-            Config::$serverKey = config('midtrans.server_key');
-            Config::$isProduction = config('midtrans.is_production');
-            Config::$isSanitized = true;
-            Config::$is3ds = true;
-
             $snapToken = Snap::getSnapToken($params);
             $order->update(['snap_token' => $snapToken]);
-        } catch (\Exception $e) {
-            \Log::error('Midtrans process error: '.$e->getMessage(), [
-                'order_id' => $order->id,
-                'invoice_number' => $order->invoice_number,
-            ]);
-            return back()->with('error', 'Payment gateway error: '.$e->getMessage());
-        }
 
-        return redirect()->route('marketplace.checkout.pay', $order->id);
-    }
-
-    public function pay(MarketplaceOrder $order)
-    {
-        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
-            return redirect()
-                ->route('marketplace.orders.index')
-                ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');
-        }
-        if ($order->status !== 'pending') {
-            return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
-        }
-
-        // Redirect to checkout form if shipping address is not yet filled
-        if (empty($order->shipping_address)) {
-            return redirect()->route('marketplace.checkout.show', $order->id)
-                ->with('info', 'Silakan lengkapi informasi pengiriman terlebih dahulu.');
-        }
-
-        if (! $order->snap_token) {
-            $items = $order->items()->with('product')->get();
-            $itemDetails = $items->map(function ($it) {
-                return [
-                    'id' => $it->product_id,
-                    'price' => (int) $it->price_snapshot,
-                    'quantity' => (int) $it->quantity,
-                    'name' => substr($it->product_title_snapshot, 0, 50),
-                ];
-            })->values()->all();
-
-            $params = [
-                'transaction_details' => [
-                    'order_id' => $order->invoice_number . '-' . time(),
-                    'gross_amount' => (int) $order->total_amount,
-                ],
-                'customer_details' => [
-                    'first_name' => Auth::user()->name,
-                    'email' => Auth::user()->email,
-                ],
-                'item_details' => $itemDetails,
-                'callbacks' => [
-                    'finish' => route('marketplace.orders.show', $order->id),
-                    'pending' => route('marketplace.orders.show', $order->id),
-                    'error' => route('marketplace.orders.show', $order->id),
-                ],
-            ];
-
-            try {
-                Config::$serverKey = config('midtrans.server_key');
-                Config::$isProduction = config('midtrans.is_production');
-                Config::$isSanitized = true;
-                Config::$is3ds = true;
-
-                $snapToken = Snap::getSnapToken($params);
-                $order->update(['snap_token' => $snapToken]);
-            } catch (\Exception $e) {
-                \Log::error('Midtrans pay error: '.$e->getMessage(), [
-                    'order_id' => $order->id,
-                    'invoice_number' => $order->invoice_number,
-                ]);
-
-                if (request()->wantsJson() || request()->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Payment gateway error: '.$e->getMessage()
-                    ], 500);
-                }
-
-                return back()->with('error', 'Payment gateway error: '.$e->getMessage());
-            }
-        }
-
-        if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'snap_token' => $order->snap_token
+                'snap_token' => $snapToken,
             ]);
-        }
+        } catch (\Exception $e) {
+            Log::error('Midtrans Snap Error: ' . $e->getMessage());
 
-        return view('marketplace.checkout.pay', compact('order'));
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat sesi pembayaran: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

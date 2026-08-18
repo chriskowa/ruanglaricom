@@ -333,6 +333,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
             return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
+        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission') && notif.reference_id) {
+            if (userRole === 'admin') {
+                return @json(route('admin.master-gpx.index'));
+            }
+            return @json(route('gpx.show', ':id')).replace(':id', notif.reference_id);
+        }
+        if (notif.reference_type === 'App\\Models\\Marketplace\\MarketplaceOrder' || notif.reference_type === 'MarketplaceOrder' || notif.type === 'marketplace_order_paid' || notif.type === 'marketplace_sale') {
+            if (userRole === 'admin' && notif.reference_id) {
+                return @json(route('admin.marketplace.orders.show', ':id')).replace(':id', notif.reference_id);
+            }
+            if (notif.reference_id) {
+                return @json(route('marketplace.orders.show', ':id')).replace(':id', notif.reference_id);
+            }
+        }
         if (notif.reference_type === 'App\\Models\\RunningAnalysis\\AnalysisRequest') {
             if (userRole === 'admin' && notif.reference_id) {
                 return @json(route('admin.running-analysis.requests.show', ':id')).replace(':id', notif.reference_id);

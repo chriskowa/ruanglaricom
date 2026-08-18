@@ -1,30 +1,30 @@
 @forelse($orders as $order)
-<tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-850/60" id="order-row-{{ $order->id }}">
+<tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-850/60 font-sans" id="order-row-{{ $order->id }}">
     <td class="px-6 py-4">
         <div class="space-y-1">
-            <a href="{{ route('admin.marketplace.orders.show', $order->id) }}" class="text-white font-mono font-bold text-sm hover:text-neon transition flex items-center gap-1.5">
+            <a href="{{ route('admin.marketplace.orders.show', $order->id) }}" class="text-white font-bold text-sm hover:text-neon transition flex items-center gap-1.5">
                 <span>#{{ $order->invoice_number }}</span>
                 <i class="fas fa-external-link-alt text-[10px] text-slate-500"></i>
             </a>
-            <p class="text-slate-400 text-xs font-mono">{{ $order->created_at->format('d M Y H:i') }}</p>
+            <p class="text-slate-400 text-xs font-medium">{{ $order->created_at->format('d M Y H:i') }}</p>
         </div>
     </td>
     <td class="px-6 py-4">
         <div class="space-y-1">
             <p class="text-white font-bold text-xs">{{ optional($order->buyer)->name ?? 'Buyer' }}</p>
-            <p class="text-slate-400 text-[11px] font-mono">{{ optional($order->buyer)->email ?? '-' }}</p>
+            <p class="text-slate-400 text-xs font-medium">{{ optional($order->buyer)->email ?? '-' }}</p>
         </div>
     </td>
     <td class="px-6 py-4">
         <div class="space-y-1">
             <p class="text-white font-bold text-xs">{{ optional($order->seller)->name ?? 'Seller' }}</p>
-            <p class="text-slate-400 text-[11px] font-mono">{{ optional($order->seller)->email ?? '-' }}</p>
+            <p class="text-slate-400 text-xs font-medium">{{ optional($order->seller)->email ?? '-' }}</p>
         </div>
     </td>
     <td class="px-6 py-4">
         <div class="space-y-1">
-            <p class="text-neon font-black font-mono text-sm">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</p>
-            <p class="text-slate-400 text-[10px] font-mono">Fee: Rp {{ number_format($order->commission_amount, 0, ',', '.') }}</p>
+            <p class="text-neon font-black text-sm">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</p>
+            <p class="text-slate-400 text-xs font-semibold">Fee: Rp {{ number_format($order->commission_amount, 0, ',', '.') }}</p>
         </div>
     </td>
     <td class="px-6 py-4">
@@ -55,7 +55,7 @@
         @endif
 
         @if($order->shipping_tracking_number)
-            <div class="mt-1 text-[10px] font-mono text-slate-300">
+            <div class="mt-1 text-xs text-slate-300 font-medium">
                 Resi: <span class="text-white font-bold">{{ $order->shipping_tracking_number }}</span>
             </div>
         @endif
@@ -80,7 +80,7 @@
 </tr>
 @empty
 <tr>
-    <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-sm">
+    <td colspan="6" class="px-6 py-12 text-center text-slate-400 text-sm font-sans">
         <div class="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-3 text-xl">🛒</div>
         Tidak ada pesanan marketplace yang sesuai dengan filter.
     </td>

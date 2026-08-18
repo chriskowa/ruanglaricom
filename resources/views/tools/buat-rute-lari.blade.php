@@ -4873,10 +4873,13 @@
                         if (data && data.address) {
                             const a = data.address;
                             const city = a.city || a.town || a.city_district || a.county || a.municipality || a.state_district || a.state;
+                            const country = a.country || '';
+                            const countryCode = (a.country_code || '').toLowerCase();
                             if (city) {
                                 const cleanCity = city.replace(/^(Kota|Kabupaten)\s+/i, '').trim();
+                                const finalCityName = (country && countryCode !== 'id') ? `${cleanCity}, ${country}` : cleanCity;
                                 const cityInput = document.getElementById('input-modal-city');
-                                if (cityInput) cityInput.value = cleanCity;
+                                if (cityInput) cityInput.value = finalCityName;
                             }
                         }
                     }

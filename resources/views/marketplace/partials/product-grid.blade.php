@@ -17,7 +17,7 @@
             $categoryName = $product->category ? $product->category->name : 'Gear';
             $metaHeader = $brandName ? ($brandName . ' • ' . $categoryName) : $categoryName;
         @endphp
-        <div class="bg-[#0c121e] border border-slate-800/90 rounded-2xl overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col h-full relative shadow-md shadow-black/20">
+        <div class="bg-[#0c121e] border border-slate-800/90 rounded-2xl overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col h-full relative shadow-md shadow-black/20 font-sans">
             
             <!-- Image Section (Clean Athletic Framing) -->
             <a href="{{ route('marketplace.show', $product->slug) }}" class="block relative aspect-square overflow-hidden bg-[#131b2c]">
@@ -28,7 +28,7 @@
                         <svg class="w-10 h-10 mb-1.5 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span class="text-[9px] font-mono tracking-widest uppercase opacity-30">No Image</span>
+                        <span class="text-[9px] tracking-wider uppercase opacity-30 font-semibold">No Image</span>
                     </div>
                 @endif
                 
@@ -72,11 +72,11 @@
                 <!-- Sold Out Overlay -->
                 @if($product->is_sold || $product->stock < 1)
                 <div class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
-                    <span class="text-white font-black text-xs md:text-sm tracking-widest border border-white/40 bg-white/10 px-3 py-1 rounded-md uppercase">
+                    <span class="text-white font-black text-xs md:text-sm tracking-wider border border-white/40 bg-white/10 px-3 py-1 rounded-md uppercase">
                         {{ $product->is_sold ? 'TERJUAL' : 'HABIS' }}
                     </span>
                     @if($product->is_sold && $product->sold_channel)
-                        <span class="text-[9px] text-slate-400 font-mono mt-1.5 uppercase">
+                        <span class="text-[9px] text-slate-400 mt-1.5 uppercase font-semibold">
                             via {{ strtoupper($product->sold_channel) }}
                         </span>
                     @endif
@@ -88,7 +88,7 @@
             <div class="p-4 flex flex-col flex-1 min-w-0">
                 
                 <!-- Category / Brand Header -->
-                <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold mb-1 truncate">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1 truncate">
                     {{ $metaHeader }}
                 </div>
                 
@@ -99,7 +99,7 @@
 
                 <!-- Price Block -->
                 <div class="mt-auto">
-                    <div class="text-sm md:text-base font-black text-white font-mono tracking-tight truncate">
+                    <div class="text-sm md:text-base font-black text-white tracking-tight truncate">
                         Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
                     </div>
                 </div>
@@ -107,15 +107,15 @@
                 <!-- Seller & Location Meta -->
                 <div class="pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-400">
                     @if($product->seller)
-                        <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-white transition truncate">
+                        <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-white transition truncate font-medium">
                             <span class="truncate">{{ $product->seller->name ?? 'Seller' }}</span>
                         </a>
                     @else
-                        <span class="italic truncate text-slate-500">Seller</span>
+                        <span class="italic truncate text-slate-500 font-medium">Seller</span>
                     @endif
 
                     @if($product->seller && $product->seller->city)
-                    <span class="text-slate-500 shrink-0 max-w-[45%] truncate text-right" title="{{ $product->seller->city->name }}">
+                    <span class="text-slate-500 shrink-0 max-w-[45%] truncate text-right font-medium" title="{{ $product->seller->city->name }}">
                         {{ $product->seller->city->name }}
                     </span>
                     @endif
@@ -187,7 +187,7 @@
         </div>
     @endif
 @else
-    <div class="border border-slate-800 bg-[#0c121e] rounded-2xl p-12 text-center max-w-md mx-auto my-8">
+    <div class="border border-slate-800 bg-[#0c121e] rounded-2xl p-12 text-center max-w-md mx-auto my-8 font-sans">
         <div class="w-14 h-14 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl">
             <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -201,71 +201,3 @@
         </a>
     </div>
 @endif
-
-<script>
-    async function quickToggleWishlist(productId, btn) {
-        @guest
-            if (window.openLoginModal) {
-                window.openLoginModal();
-            } else {
-                window.location.href = '{{ route('login') }}';
-            }
-            return;
-        @endguest
-
-        try {
-            const res = await fetch(`/marketplace/wishlist/toggle/${productId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            });
-            if (res.status === 401) {
-                if (window.openLoginModal) window.openLoginModal(); else window.location.href = '{{ route('login') }}';
-                return;
-            }
-            const data = await res.json();
-            if (data.success) {
-                const svg = btn.querySelector('svg');
-                if (data.in_wishlist) {
-                    btn.classList.add('text-rose-500', 'border-rose-500/50');
-                    btn.classList.remove('text-slate-400');
-                    if (svg) svg.classList.add('fill-current');
-                } else {
-                    btn.classList.remove('text-rose-500', 'border-rose-500/50');
-                    btn.classList.add('text-slate-400');
-                    if (svg) svg.classList.remove('fill-current');
-                }
-            } else {
-                alert(data.message || 'Silakan login terlebih dahulu.');
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
-    async function quickAddToCart(event, form) {
-        event.preventDefault();
-        try {
-            const res = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new FormData(form)
-            });
-            const data = await res.json();
-            if (data.success) {
-                // Refresh cart badge count
-                if (typeof updateMarketCartBadge === 'function') updateMarketCartBadge();
-                alert(data.message || 'Berhasil ditambahkan ke keranjang!');
-            } else {
-                alert(data.message || 'Gagal menambahkan ke keranjang.');
-            }
-        } catch (e) {
-            form.submit();
-        }
-    }
-</script>

@@ -6,9 +6,9 @@
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
-    <div class="flex justify-between items-end mb-8">
+    <div class="flex justify-between items-end mb-8 font-sans">
         <div>
-            <p class="text-neon font-mono text-sm tracking-widest uppercase mb-1">Admin Dashboard</p>
+            <p class="text-neon text-xs tracking-wider uppercase mb-1 font-bold">Admin Dashboard</p>
             <h1 class="text-4xl font-black text-white italic tracking-tighter">
                 MARKETPLACE <span class="text-neon">CATEGORIES</span>
             </h1>
@@ -26,7 +26,7 @@
         </div>
     @endif
 
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl font-sans">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -48,7 +48,7 @@
                                 <span class="text-white font-bold">{{ $category->name }}</span>
                             </div>
                         </td>
-                        <td class="p-4 text-slate-400 font-mono text-sm">{{ $category->slug }}</td>
+                        <td class="p-4 text-slate-400 font-medium text-xs">{{ $category->slug }}</td>
                         <td class="p-4">
                             @if($category->parent)
                                 <span class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs border border-slate-700">{{ $category->parent->name }}</span>

@@ -37,7 +37,7 @@
         </div>
 
         <div class="relative mt-2">
-            <input id="mp-share-url-input" type="text" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 pr-16 text-xs text-slate-300 font-mono focus:outline-none select-all">
+            <input id="mp-share-url-input" type="text" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 pr-16 text-xs text-slate-300 font-medium focus:outline-none select-all">
             <button type="button" onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-white text-slate-950 text-[10px] font-black hover:bg-slate-200 transition-colors">
                 <span id="mp-copy-btn-text">Salin</span>
             </button>

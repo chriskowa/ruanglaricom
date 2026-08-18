@@ -41,7 +41,7 @@
 
                     <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl mb-6">
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-mono text-sm">1</div>
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-bold text-sm">1</div>
                             Alamat Pengiriman
                         </h3>
 
@@ -128,7 +128,7 @@
 
                     <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl mb-6">
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-mono text-sm">2</div>
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-bold text-sm">2</div>
                             Metode Pembayaran
                         </h3>
 

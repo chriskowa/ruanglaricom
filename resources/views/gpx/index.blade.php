@@ -1364,17 +1364,22 @@
 
                 currentFocusIdx = -1;
                 cityAutoList.innerHTML = suggestions.map((item, idx) => {
-                    const provLabel = item.province ? `<span class="text-[10px] text-slate-300 font-normal block">${escapeHtml(item.province)}</span>` : '';
+                    const isGlobal = item.country && item.country !== 'Indonesia';
+                    const provLabel = isGlobal 
+                        ? `<span class="text-[10px] text-slate-300 font-normal block">${escapeHtml(item.province ? item.province + ', ' : '')}${escapeHtml(item.country)}</span>` 
+                        : (item.province ? `<span class="text-[10px] text-slate-300 font-normal block">${escapeHtml(item.province)}</span>` : '');
+                    const iconClass = isGlobal ? 'fa-globe text-cyan-400' : 'fa-location-dot text-accent';
+
                     return `
                         <div class="city-auto-item px-3.5 py-2.5 bg-[#0b1220] hover:bg-[#1e293b] cursor-pointer flex items-center justify-between text-xs text-slate-200 transition-colors" data-index="${idx}" data-name="${escapeHtml(item.name)}" style="background-color: #0b1220;">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <i class="fa-solid fa-location-dot text-[11px] text-accent shrink-0"></i>
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i class="fa-solid ${iconClass} text-[11px] shrink-0"></i>
                                 <div class="truncate">
                                     <strong class="text-white font-semibold">${escapeHtml(item.name)}</strong>
                                     ${provLabel}
                                 </div>
                             </div>
-                            <span class="text-[10px] text-accent font-mono shrink-0 font-bold">Pilih &rarr;</span>
+                            <span class="text-[10px] text-accent font-bold shrink-0">Pilih &rarr;</span>
                         </div>
                     `;
                 }).join('');
@@ -1420,24 +1425,24 @@
                     // 1. Instant local filter from master list
                     const localMatches = INDONESIA_CITIES_MASTER.filter(c => 
                         c.name.toLowerCase().includes(q) || (c.province && c.province.toLowerCase().includes(q))
-                    ).slice(0, 10);
+                    ).slice(0, 8);
 
                     renderCityAutocomplete(localMatches, q);
 
-                    // 2. Fetch from backend API endpoint for database-registered cities
+                    // 2. Fetch from backend API endpoint (searches Indonesian DB + Photon Global API)
                     cityDebounceTimer = setTimeout(() => {
                         fetch('{{ route("gpx.cities.autocomplete") }}?q=' + encodeURIComponent(q))
                             .then(res => res.json())
                             .then(apiData => {
                                 if (Array.isArray(apiData) && apiData.length > 0) {
                                     // Merge & deduplicate
-                                    const merged = [...apiData];
-                                    localMatches.forEach(lm => {
-                                        if (!merged.some(m => m.name.toLowerCase() === lm.name.toLowerCase())) {
-                                            merged.push(lm);
+                                    const merged = [...localMatches];
+                                    apiData.forEach(item => {
+                                        if (!merged.some(m => m.name.toLowerCase() === item.name.toLowerCase())) {
+                                            merged.push(item);
                                         }
                                     });
-                                    renderCityAutocomplete(merged.slice(0, 12), q);
+                                    renderCityAutocomplete(merged.slice(0, 15), q);
                                 }
                             })
                             .catch(err => {});
@@ -1487,9 +1492,12 @@
                         if (data && data.address) {
                             const a = data.address;
                             const city = a.city || a.town || a.city_district || a.county || a.municipality || a.state_district || a.state;
+                            const country = a.country || '';
+                            const countryCode = (a.country_code || '').toLowerCase();
                             if (city) {
                                 const cleanCity = city.replace(/^(Kota|Kabupaten)\s+/i, '').trim();
-                                if (modalCityInput) modalCityInput.value = cleanCity;
+                                const finalCityName = (country && countryCode !== 'id') ? `${cleanCity}, ${country}` : cleanCity;
+                                if (modalCityInput) modalCityInput.value = finalCityName;
                             }
                         }
                     }

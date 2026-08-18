@@ -1,6 +1,6 @@
 @if($products->hasPages())
-    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-800">
-        <div class="text-xs text-slate-400 font-mono">
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-800 font-sans">
+        <div class="text-xs text-slate-400 font-medium">
             Showing <span class="font-bold text-white">{{ $products->firstItem() }}</span> to <span class="font-bold text-white">{{ $products->lastItem() }}</span> of <span class="font-bold text-white">{{ $products->total() }}</span> products
         </div>
         <div class="flex items-center gap-1">

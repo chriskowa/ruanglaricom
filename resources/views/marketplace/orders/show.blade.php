@@ -1,241 +1,476 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['withSidebar' => true])
+
+@section('title', 'Pesanan #' . $order->invoice_number . ' - Marketplace')
 
 @section('content')
-@php($withSidebar = true)
-<div class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
+<div class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto min-h-screen font-sans text-slate-200">
     <!-- Breadcrumb -->
-    <nav class="flex mb-8" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <a href="{{ route('marketplace.index') }}" class="inline-flex items-center text-sm font-medium text-slate-400 hover:text-white">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-                    Marketplace
-                </a>
-            </li>
+    <nav class="flex mb-6 text-xs text-slate-400" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2">
             <li>
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-slate-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
-                    <a href="{{ route('marketplace.orders.index') }}" class="ml-1 text-sm font-medium text-slate-400 hover:text-white md:ml-2">My Orders</a>
-                </div>
+                <a href="{{ route('marketplace.index') }}" class="hover:text-white transition">Marketplace</a>
             </li>
-            <li aria-current="page">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-slate-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
-                    <span class="ml-1 text-sm font-medium text-slate-500 md:ml-2">#{{ $order->invoice_number }}</span>
-                </div>
+            <li>/</li>
+            <li>
+                <a href="{{ route('marketplace.orders.index') }}" class="hover:text-white transition">Daftar Pesanan</a>
             </li>
+            <li>/</li>
+            <li class="text-white font-bold">#{{ $order->invoice_number }}</li>
         </ol>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Order Details (Left Column) -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Order Header -->
-            <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-                <div class="p-6 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <!-- Session Alerts -->
+    @if(session('success'))
+        <div class="bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-2xl mb-6 text-xs font-semibold flex items-center justify-between">
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-rose-950/80 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-2xl mb-6 text-xs font-semibold">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Order Items & Shipping (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Order Header Card -->
+            <div class="bg-slate-900/60 backdrop-blur-md rounded-3xl border border-slate-800 p-6 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-800">
                     <div>
-                        <div class="flex items-center gap-3 mb-1">
-                            <h2 class="text-2xl font-black text-white italic">ORDER <span class="text-neon">DETAILS</span></h2>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
-                                {{ $order->status === 'completed' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
-                                  ($order->status === 'shipped' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
-                                  ($order->status === 'paid' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                   'bg-slate-700 text-slate-300 border-slate-600')) }}">
-                                {{ ucfirst($order->status) }}
-                            </span>
-                        </div>
-                        <p class="text-slate-400 text-sm">
-                            Placed on <span class="text-white">{{ $order->created_at->format('d M Y, H:i') }}</span>
+                        <p class="text-xs text-neon uppercase tracking-wider font-bold mb-1">Invoice</p>
+                        <h1 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">
+                            #{{ $order->invoice_number }}
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Dibuat: {{ $order->created_at->format('d/m/Y H:i') }}
                         </p>
                     </div>
-                    <div class="text-right">
-                         <p class="text-slate-400 text-xs uppercase tracking-wider mb-1">Invoice Number</p>
-                         <p class="text-white font-mono font-bold">{{ $order->invoice_number }}</p>
+                    <div>
+                        <span class="px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border
+                            {{ in_array($order->status, ['completed']) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 
+                              (in_array($order->status, ['shipped', 'delivered']) ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' : 
+                              (in_array($order->status, ['paid', 'processing', 'packing']) ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' :
+                              (in_array($order->status, ['disputed', 'return_in_progress']) ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' :
+                              'bg-slate-800 text-slate-300 border-slate-700'))) }}">
+                            {{ $order->status_label }}
+                        </span>
                     </div>
                 </div>
 
-                <!-- Items List -->
-                <div class="p-6">
-                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                        Items Ordered
-                    </h3>
-                    <div class="space-y-4">
-                        @foreach($order->items as $item)
-                        <div class="flex gap-4 p-4 bg-slate-800/40 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
-                            <!-- Image -->
-                            <div class="w-20 h-20 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 border border-slate-700">
-                                @if($item->product && $item->product->primaryImage)
-                                    <img src="{{ asset('storage/' . $item->product->primaryImage->image_path) }}" class="w-full h-full object-cover" alt="{{ $item->product_title_snapshot }}">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center text-slate-600">
-                                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                    </div>
-                                @endif
-                            </div>
-                            
-                            <!-- Content -->
-                            <div class="flex-1 flex flex-col justify-between">
-                                <div>
-                                    <h4 class="font-bold text-white text-lg line-clamp-1">{{ $item->product_title_snapshot }}</h4>
-                                    <p class="text-slate-400 text-sm">Quantity: <span class="text-white font-mono">{{ $item->quantity }}</span></p>
-                                </div>
-                                <div class="text-neon font-black italic text-lg">
-                                    Rp {{ number_format($item->price_snapshot, 0, ',', '.') }}
-                                </div>
-                            </div>
+                <!-- Transaction Stepper -->
+                <div class="pt-2">
+                    <p class="text-xs text-slate-400 uppercase font-bold mb-3 tracking-wider">Tahapan Pesanan</p>
+                    <div class="grid grid-cols-5 gap-1.5 text-center text-xs">
+                        @php
+                            $stepOrder = ['paid' => 1, 'processing' => 2, 'packing' => 3, 'shipped' => 4, 'delivered' => 5, 'completed' => 6];
+                            $currentStep = $stepOrder[$order->status] ?? 0;
+                            if ($order->status === 'disputed' || $order->status === 'return_in_progress' || $order->status === 'refunded') {
+                                $currentStep = 99;
+                            }
+                        @endphp
+
+                        <div class="p-2 rounded-xl border {{ $currentStep >= 1 ? 'border-neon/60 bg-neon/10 text-neon font-bold' : 'border-slate-800 text-slate-600' }}">
+                            1. Dibayar
                         </div>
-                        @endforeach
-                    </div>
-                </div>
-                
-                <!-- Order Summary -->
-                <div class="bg-slate-800/30 p-6 border-t border-slate-800">
-                    <div class="flex justify-between items-center text-xl">
-                        <span class="font-bold text-white uppercase tracking-wider">Total Amount</span>
-                        <span class="font-black text-neon italic text-2xl">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
+                        <div class="p-2 rounded-xl border {{ $currentStep >= 2 ? 'border-neon/60 bg-neon/10 text-neon font-bold' : 'border-slate-800 text-slate-600' }}">
+                            2. Diproses
+                        </div>
+                        <div class="p-2 rounded-xl border {{ $currentStep >= 3 ? 'border-neon/60 bg-neon/10 text-neon font-bold' : 'border-slate-800 text-slate-600' }}">
+                            3. Dikemas
+                        </div>
+                        <div class="p-2 rounded-xl border {{ $currentStep >= 4 ? 'border-neon/60 bg-neon/10 text-neon font-bold' : 'border-slate-800 text-slate-600' }}">
+                            4. Dikirim
+                        </div>
+                        <div class="p-2 rounded-xl border {{ $currentStep >= 6 ? 'border-emerald-500/60 bg-emerald-500/10 text-emerald-400 font-bold' : ($currentStep == 5 ? 'border-blue-500/60 bg-blue-500/10 text-blue-400 font-bold' : 'border-slate-800 text-slate-600') }}">
+                            5. Selesai
+                        </div>
                     </div>
                 </div>
 
-                @if($order->shipping_name || $order->shipping_address)
-                    <div class="bg-slate-900 p-6 border-t border-slate-800">
-                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414A1 1 0 0115.414 19H19a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" /></svg>
-                            Shipping Details
-                        </h3>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Nama Penerima</span>
-                                <span class="text-white font-medium">{{ $order->shipping_name ?? '-' }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">No. HP</span>
-                                <span class="text-white font-medium">{{ $order->shipping_phone ?? '-' }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 block">Alamat</span>
-                                <p class="text-white mt-1 text-sm">
-                                    {{ $order->shipping_address ?? '-' }}<br>
-                                    {{ $order->shipping_city ?? '' }}{{ $order->shipping_postal_code ? ', '.$order->shipping_postal_code : '' }}
-                                </p>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Kurir</span>
-                                <span class="text-white font-medium">
-                                    {{ $order->shipping_courier ? strtoupper($order->shipping_courier) : '-' }}
-                                    @if($order->shipping_cost !== null)
-                                        • Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}
-                                    @endif
-                                </span>
-                            </div>
-                            @if($order->shipping_note)
-                                <div>
-                                    <span class="text-slate-400 block">Catatan</span>
-                                    <p class="text-white mt-1 text-sm">{{ $order->shipping_note }}</p>
-                                </div>
+                <!-- Dispute / Retur Alert Banner -->
+                @if(in_array($order->status, ['disputed', 'return_in_progress', 'refunded']))
+                    <div class="mt-4 p-4 rounded-2xl border {{ $order->status === 'refunded' ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' : 'border-rose-500/40 bg-rose-950/30 text-rose-300' }} space-y-2 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold uppercase tracking-wider">
+                                @if($order->status === 'disputed') Status: Komplain Diajukan Pembeli
+                                @elseif($order->status === 'return_in_progress') Status: Pengembalian Barang (Retur)
+                                @elseif($order->status === 'refunded') Status: Transaksi Dibatalkan & Refund Selesai
+                                @endif
+                            </span>
+                            @if($order->disputed_at)
+                                <span class="text-xs text-slate-400">{{ $order->disputed_at->format('d/m/Y H:i') }}</span>
                             @endif
                         </div>
+                        <p class="text-slate-300">
+                            <strong>Alasan:</strong> {{ ucfirst(str_replace('_', ' ', $order->dispute_reason ?: 'Barang tidak sesuai')) }} - "{{ $order->dispute_notes }}"
+                        </p>
+
+                        @if(!empty($order->dispute_proof_images) && is_array($order->dispute_proof_images))
+                            <div class="pt-2">
+                                <p class="text-xs text-slate-400 uppercase font-semibold mb-1.5">Foto Bukti Fisik:</p>
+                                <div class="flex gap-2">
+                                    @foreach($order->dispute_proof_images as $proof)
+                                        <a href="{{ asset('storage/' . $proof) }}" target="_blank" class="w-16 h-16 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 block shrink-0 hover:border-neon transition">
+                                            <img src="{{ asset('storage/' . $proof) }}" class="w-full h-full object-cover">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($order->return_tracking_number)
+                            <div class="pt-2 border-t border-slate-800/80">
+                                <p class="text-xs text-white">
+                                    <strong>Resi Retur:</strong> <span class="font-bold text-neon">{{ $order->return_tracking_number }}</span> ({{ strtoupper($order->return_courier ?: 'Ekspedisi') }})
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
-        </div>
 
-        <!-- Status & Actions (Right Column) -->
-        <div class="lg:col-span-1">
-            <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 overflow-hidden shadow-xl sticky top-24">
-                <div class="p-6 border-b border-slate-800">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Status & Actions
-                    </h3>
+            <!-- Items List Card -->
+            <div class="bg-slate-900/60 rounded-3xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                <h2 class="text-xs font-black text-white uppercase tracking-wider border-b border-slate-800 pb-3">Daftar Produk</h2>
+                <div class="space-y-3">
+                    @foreach($order->items as $item)
+                        <div class="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-950 border border-slate-850">
+                            <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shrink-0 flex items-center justify-center">
+                                @if($item->product && $item->product->primaryImage)
+                                    <img src="{{ asset('storage/' . $item->product->primaryImage->image_path) }}" class="w-full h-full object-cover" alt="{{ $item->product_title_snapshot }}">
+                                @else
+                                    <span class="text-xs text-slate-600 font-semibold">NO IMG</span>
+                                @endif
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <p class="text-sm font-bold text-white truncate">{{ $item->product_title_snapshot }}</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Jumlah: {{ $item->quantity }} x Rp {{ number_format($item->price_snapshot, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="text-right font-black text-neon text-sm">
+                                Rp {{ number_format($item->price_snapshot * $item->quantity, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+            </div>
 
-                <div class="p-6 space-y-6">
-                    @if($order->status == 'pending')
-                        <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-center">
-                            <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-400">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <h4 class="font-bold text-white mb-1">Waiting for Payment</h4>
-                            <p class="text-sm text-slate-400">Please complete the payment to process your order.</p>
+            <!-- Shipping Details Card -->
+            <div class="bg-slate-900/60 rounded-3xl border border-slate-800 p-6 space-y-3 shadow-xl text-xs">
+                <h2 class="text-xs font-black text-white uppercase tracking-wider border-b border-slate-800 pb-3">Informasi Pengiriman</h2>
+                <div class="space-y-2 text-slate-300">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Penerima:</span>
+                        <span class="text-white font-bold">{{ $order->shipping_name ?? '-' }} ({{ $order->shipping_phone ?? '-' }})</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">Alamat Tujuan:</span>
+                        <p class="text-white bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                            {{ $order->shipping_address ?? '-' }}<br>
+                            {{ $order->shipping_city ?? '' }}{{ $order->shipping_postal_code ? ' ' . $order->shipping_postal_code : '' }}
+                        </p>
+                    </div>
+                    <div class="flex justify-between pt-1">
+                        <span class="text-slate-400">Layanan Kurir:</span>
+                        <span class="text-white font-bold uppercase">
+                            {{ $order->shipping_courier ?: '-' }} {{ $order->shipping_service_name ? '(' . $order->shipping_service_name . ')' : '' }}
+                        </span>
+                    </div>
+                    @if($order->shipping_tracking_number)
+                        <div class="flex justify-between pt-1 items-center">
+                            <span class="text-slate-400">Nomor Resi:</span>
+                            <span class="text-neon font-bold text-sm bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+                                {{ $order->shipping_tracking_number }}
+                            </span>
                         </div>
-
-                        @if(Auth::id() == $order->buyer_id)
-                             <button id="pay-now-btn" onclick="payPurchase({{ $order->id }})" class="w-full block bg-neon text-slate-900 font-black text-center py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] transition-all">
-                                PAY NOW
-                             </button>
-                        @endif
-
-                    @elseif($order->status == 'paid')
-                        <div class="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
-                            <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-green-400">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <h4 class="font-bold text-white mb-1">Payment Confirmed</h4>
-                            <p class="text-sm text-slate-400">Waiting for seller to ship the items.</p>
-                        </div>
-                        
-                        @if(Auth::id() == $order->seller_id)
-                            <div class="mt-6 border-t border-slate-800 pt-6">
-                                <h4 class="font-bold text-white mb-4">Update Shipping Info</h4>
-                                <form action="{{ route('marketplace.orders.shipped', $order->id) }}" method="POST">
-                                    @csrf
-                                    <div class="mb-4">
-                                        <label class="block text-sm font-bold text-slate-400 mb-2">Tracking Number / Resi</label>
-                                        <input type="text" name="tracking_number" required 
-                                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" 
-                                            placeholder="e.g. JNE123456 or Link">
-                                    </div>
-                                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">
-                                        Mark as Shipped
-                                    </button>
-                                </form>
-                            </div>
-                        @endif
-
-                    @elseif($order->status == 'shipped')
-                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-center">
-                            <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-400">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
-                            </div>
-                            <h4 class="font-bold text-white mb-1">Order Shipped</h4>
-                            <p class="text-sm text-slate-400 mb-3">Your order is on the way.</p>
-                            <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-left">
-                                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tracking Info</p>
-                                <p class="text-white font-mono break-all">{{ $order->shipping_tracking_number }}</p>
-                            </div>
-                        </div>
-
-                        @if(Auth::id() == $order->buyer_id)
-                            <div class="mt-6 border-t border-slate-800 pt-6">
-                                <h4 class="font-bold text-white mb-2">Received the item?</h4>
-                                <p class="text-sm text-slate-400 mb-4">Confirming receipt will release funds to the seller.</p>
-                                <form action="{{ route('marketplace.orders.completed', $order->id) }}" method="POST" onsubmit="return confirm('Are you sure you have received the item? Funds will be released to the seller.')">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-500 transition-colors shadow-lg shadow-green-600/20 flex items-center justify-center gap-2">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                        Confirm Received
-                                    </button>
-                                </form>
-                            </div>
-                        @else
-                            <div class="mt-4 text-center p-4 bg-slate-800/30 rounded-xl border border-slate-800">
-                                <p class="text-sm text-slate-400 italic">Waiting for buyer confirmation to release funds.</p>
-                            </div>
-                        @endif
-
-                    @elseif($order->status == 'completed')
-                        <div class="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center">
-                            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-green-400">
-                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <h4 class="text-xl font-bold text-white mb-2">Transaction Completed</h4>
-                            <p class="text-slate-400">This order has been fulfilled and completed successfully.</p>
+                    @endif
+                    @if($order->shipping_note)
+                        <div class="pt-1">
+                            <span class="text-slate-400 block mb-0.5">Catatan:</span>
+                            <p class="text-slate-300 italic">"{{ $order->shipping_note }}"</p>
                         </div>
                     @endif
                 </div>
             </div>
+
         </div>
+
+        <!-- Right Column: Status Actions & Parties (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Actions Panel (Sticky) -->
+            <div class="bg-slate-900/60 rounded-3xl border border-slate-800 p-6 shadow-xl space-y-5 sticky top-24">
+                <h3 class="text-xs font-black text-white uppercase tracking-wider pb-3 border-b border-slate-800">
+                    Aksi & Pengelolaan Pesanan
+                </h3>
+
+                @php
+                    $isBuyer = (auth()->id() == $order->buyer_id);
+                    $isSeller = (auth()->id() == $order->seller_id);
+                    $isAdmin = auth()->user()?->isAdmin();
+                @endphp
+
+                <!-- 1. PENDING (Buyer Bayar) -->
+                @if($order->status === 'pending')
+                    <div class="space-y-3">
+                        <p class="text-xs text-yellow-400">Menunggu pembayaran pesanan.</p>
+                        @if($isBuyer)
+                            <button id="pay-now-btn" onclick="payPurchase({{ $order->id }})" class="w-full py-3.5 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                Bayar Sekarang
+                            </button>
+                        @endif
+                    </div>
+
+                <!-- 2. PAID (Seller Proses) -->
+                @elseif($order->status === 'paid')
+                    <div class="space-y-3">
+                        <p class="text-xs text-slate-300">Pembayaran telah dikonfirmasi dan ditampung aman di rekening bersama RuangLari.</p>
+                        
+                        @if($isSeller || $isAdmin)
+                            <form action="{{ route('marketplace.seller.orders.process', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Proses Pesanan
+                                </button>
+                            </form>
+                        @else
+                            <p class="text-xs text-slate-500 italic">Menunggu penjual memproses pesanan.</p>
+                        @endif
+                    </div>
+
+                <!-- 3. PROCESSING (Seller Kemas atau Kirim) -->
+                @elseif($order->status === 'processing')
+                    <div class="space-y-4">
+                        <p class="text-xs text-slate-300">Penjual sedang menyiapkan barang pesanan.</p>
+                        
+                        @if($isSeller || $isAdmin)
+                            <form action="{{ route('marketplace.seller.orders.pack', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition mb-2">
+                                    Tandai Sedang Dikemas (Packing)
+                                </button>
+                            </form>
+
+                            <!-- Ship with Tracking Form -->
+                            <form action="{{ route('marketplace.seller.orders.ship', $order->id) }}" method="POST" class="pt-3 border-t border-slate-800 space-y-3">
+                                @csrf
+                                <div>
+                                    <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Nomor Resi Pengiriman (Wajib)</label>
+                                    <input type="text" name="tracking_number" required placeholder="Contoh: JNE12345678" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-neon">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Kirim & Input Resi
+                                </button>
+                            </form>
+                        @else
+                            <p class="text-xs text-slate-500 italic">Penjual sedang menyiapkan barang untuk pengiriman.</p>
+                        @endif
+                    </div>
+
+                <!-- 4. PACKING (Seller Siap Kirim) -->
+                @elseif($order->status === 'packing')
+                    <div class="space-y-4">
+                        <p class="text-xs text-slate-300">Paket sedang dikemas rapi.</p>
+                        
+                        @if($isSeller || $isAdmin)
+                            <form action="{{ route('marketplace.seller.orders.ship', $order->id) }}" method="POST" class="space-y-3">
+                                @csrf
+                                <div>
+                                    <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Nomor Resi Pengiriman (Wajib)</label>
+                                    <input type="text" name="tracking_number" required placeholder="Contoh: JNE12345678" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-neon">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Kirim & Simpan Resi
+                                </button>
+                            </form>
+                        @else
+                            <p class="text-xs text-slate-500 italic">Pesanan sedang dikemas oleh penjual.</p>
+                        @endif
+                    </div>
+
+                <!-- 5. SHIPPED (Buyer Konfirmasi Terima) -->
+                @elseif($order->status === 'shipped')
+                    <div class="space-y-4">
+                        <p class="text-xs text-slate-300">Paket sedang dalam perjalanan kurir.</p>
+                        
+                        @if($isBuyer || $isAdmin)
+                            <form action="{{ route('marketplace.orders.delivered', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Konfirmasi Barang Diterima
+                                </button>
+                            </form>
+                            <p class="text-xs text-slate-500 text-center">Klik saat kurir telah menyerahkan paket fisik ke tangan Anda.</p>
+                        @else
+                            <p class="text-xs text-slate-500 italic">Menunggu pembeli mengonfirmasi penerimaan barang.</p>
+                        @endif
+                    </div>
+
+                <!-- 6. DELIVERED (Buyer Approve atau Ajukan Komplain) -->
+                @elseif($order->status === 'delivered')
+                    <div class="space-y-4">
+                        <p class="text-xs text-slate-300">Barang telah sampai. Silakan periksa kondisi fisik dan kelayakan barang sebelum menyelesaikan transaksi.</p>
+                        
+                        @if($isBuyer || $isAdmin)
+                            <!-- Approve & Release Funds -->
+                            <form action="{{ route('marketplace.orders.completed', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin barang sesuai dan ingin menyelesaikan pesanan? Dana akan dicairkan ke penjual.')">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Setujui & Selesaikan Pesanan
+                                </button>
+                            </form>
+
+                            <!-- Dispute Button -->
+                            <button type="button" onclick="document.getElementById('dispute-modal').classList.remove('hidden')" class="w-full py-2.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-700 transition">
+                                Barang Tidak Sesuai (Ajukan Komplain)
+                            </button>
+                        @else
+                            <p class="text-xs text-slate-500 italic">Menunggu pembeli memeriksa barang dan menyelesaikan transaksi.</p>
+                        @endif
+                    </div>
+
+                <!-- 7. DISPUTED (Seller Setujui Retur / Admin Mediasi) -->
+                @elseif($order->status === 'disputed')
+                    <div class="space-y-4">
+                        <p class="text-xs text-rose-300">Komplain sedang berlangsung. Dana rekening bersama ditahan sementara.</p>
+                        
+                        @if($isSeller || $isAdmin)
+                            <form action="{{ route('marketplace.orders.accept-return', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition">
+                                    Setujui Pengembalian Barang (Retur)
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+
+                <!-- 8. RETURN IN PROGRESS (Buyer Input Resi Retur / Seller Konfirmasi Terima Retur) -->
+                @elseif($order->status === 'return_in_progress')
+                    <div class="space-y-4">
+                        @if($isBuyer && !$order->return_tracking_number)
+                            <form action="{{ route('marketplace.orders.return-tracking', $order->id) }}" method="POST" class="space-y-3">
+                                @csrf
+                                <p class="text-xs text-slate-300">Pengajuan retur disetujui. Silakan kirim barang kembali dan input nomor resi di bawah:</p>
+                                <div>
+                                    <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Kurir Retur</label>
+                                    <input type="text" name="return_courier" required placeholder="Contoh: JNE / J&T" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-neon">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Nomor Resi Retur</label>
+                                    <input type="text" name="return_tracking_number" required placeholder="Nomor Resi Pengiriman Retur" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-neon">
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Simpan Resi Retur
+                                </button>
+                            </form>
+                        @elseif(($isSeller || $isAdmin) && $order->return_tracking_number)
+                            <p class="text-xs text-slate-300">Barang retur sedang dikirim kembali oleh pembeli.</p>
+                            <form action="{{ route('marketplace.orders.confirm-return', $order->id) }}" method="POST" onsubmit="return confirm('Konfirmasi bahwa barang retur telah Anda terima dalam kondisi aman? Dana 100% akan direfund ke pembeli.')">
+                                @csrf
+                                <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition">
+                                    Konfirmasi Barang Retur Diterima (Refund)
+                                </button>
+                            </form>
+                        @else
+                            <p class="text-xs text-slate-400 italic">Menunggu proses pengiriman barang retur.</p>
+                        @endif
+                    </div>
+
+                <!-- 9. COMPLETED (Selesai) -->
+                @elseif($order->status === 'completed')
+                    <div class="text-center py-2 space-y-2">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto font-black">✓</div>
+                        <p class="text-xs font-bold text-white uppercase tracking-wider">Transaksi Selesai</p>
+                        <p class="text-xs text-slate-400">Dana telah dicairkan ke saldo dompet penjual.</p>
+                    </div>
+
+                <!-- 10. REFUNDED (Dana Kembali) -->
+                @elseif($order->status === 'refunded')
+                    <div class="text-center py-2 space-y-2">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center mx-auto font-black">✓</div>
+                        <p class="text-xs font-bold text-white uppercase tracking-wider">Dana Dikembalikan (Refund)</p>
+                        <p class="text-xs text-slate-400">Dana 100% telah dikembalikan ke saldo dompet pembeli.</p>
+                    </div>
+                @endif
+
+                <!-- Financial Breakdown -->
+                <div class="pt-4 border-t border-slate-800 space-y-2 text-xs">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Subtotal Produk:</span>
+                        <span class="text-white font-semibold">Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Ongkos Kirim:</span>
+                        <span class="text-white font-semibold">Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="border-t border-slate-800 pt-2 flex justify-between font-bold">
+                        <span class="text-white">Total Pembayaran:</span>
+                        <span class="text-neon font-black text-sm">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+
+                <!-- Parties Info -->
+                <div class="pt-4 border-t border-slate-800 space-y-3 text-xs">
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase font-bold block">Pembeli (Buyer):</span>
+                        <span class="text-white font-bold">{{ $order->buyer->name ?? 'Buyer' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase font-bold block">Penjual (Seller):</span>
+                        <span class="text-white font-bold">{{ $order->seller->name ?? 'Seller' }}</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Dispute Modal (Komplain Barang Tidak Sesuai) -->
+<div id="dispute-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-sm font-black text-white uppercase tracking-wider">Ajukan Komplain Barang</h3>
+            <button type="button" onclick="document.getElementById('dispute-modal').classList.add('hidden')" class="text-slate-400 hover:text-white text-base">✕</button>
+        </div>
+
+        <form action="{{ route('marketplace.orders.dispute', $order->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
+            @csrf
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1.5">Jenis Masalah</label>
+                <select name="dispute_reason" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-neon">
+                    <option value="not_as_described">Barang Tidak Sesuai Foto / Deskripsi Listing</option>
+                    <option value="damaged">Barang Rusak / Cacat Fisik</option>
+                    <option value="wrong_item">Salah Kirim Barang / Salah Ukuran</option>
+                    <option value="fake">Barang Palsu / Tidak Original</option>
+                    <option value="other">Masalah Lainnya</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1.5">Rincian Penjelasan Masalah</label>
+                <textarea name="dispute_notes" rows="3" required placeholder="Jelaskan ketidaksesuaian barang secara jelas..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-neon resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1.5">Upload Foto Bukti Fisik (Maksimal 3 Foto)</label>
+                <input type="file" name="dispute_proofs[]" multiple accept="image/*" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-white hover:file:bg-slate-700">
+            </div>
+
+            <div class="flex gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="document.getElementById('dispute-modal').classList.add('hidden')" class="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 transition">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition">
+                    Kirim Komplain
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
@@ -248,7 +483,7 @@
         const btn = document.getElementById('pay-now-btn');
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = 'Processing...';
+            btn.innerHTML = 'Memproses...';
         }
         
         fetch('{{ route("marketplace.checkout.pay", $order->id) }}', {
@@ -266,25 +501,24 @@
                         window.location.href = "{{ route('marketplace.orders.show', $order->id) }}?payment=success";
                     },
                     onPending: function(result){
-                        alert("Waiting for your payment!");
                         window.location.reload();
                     },
                     onError: function(result){
-                        alert("Payment failed!");
+                        alert("Pembayaran gagal.");
                         window.location.reload();
                     },
                     onClose: function(){
                         if (btn) {
                             btn.disabled = false;
-                            btn.innerHTML = 'PAY NOW';
+                            btn.innerHTML = 'Bayar Sekarang';
                         }
                     }
                 });
             } else {
-                alert('Gagal mengambil token pembayaran.');
+                alert('Gagal mengambil sesi pembayaran.');
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = 'PAY NOW';
+                    btn.innerHTML = 'Bayar Sekarang';
                 }
             }
         })
@@ -293,7 +527,7 @@
             alert('Terjadi kesalahan koneksi.');
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = 'PAY NOW';
+                btn.innerHTML = 'Bayar Sekarang';
             }
         });
     }

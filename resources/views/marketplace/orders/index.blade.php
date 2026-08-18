@@ -143,7 +143,7 @@
                                          </div>
 
                                          <div class="flex justify-between items-end mt-4 md:mt-0">
-                                             <div class="text-slate-500 text-xs font-mono">
+                                             <div class="text-slate-500 text-xs font-medium">
                                                  Qty: {{ $item->quantity }}
                                              </div>
                                              <div class="text-right">
@@ -239,13 +239,13 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider
+                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
                                             {{ $order->payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' }}">
                                             {{ $order->payment_status === 'paid' ? 'Paid' : 'Pending' }}
                                         </span>
-                                        <span class="text-xs text-slate-500 font-mono">{{ $order->created_at->format('d M Y, H:i') }}</span>
+                                        <span class="text-xs text-slate-500 font-medium">{{ $order->created_at->format('d M Y, H:i') }}</span>
                                     </div>
-                                    <span class="text-xs font-mono text-slate-500">#{{ $order->order_number }}</span>
+                                    <span class="text-xs font-semibold text-slate-500">#{{ $order->order_number }}</span>
                                 </div>
                                 
                                 <h3 class="text-lg font-bold text-white mb-1 truncate">
@@ -263,7 +263,7 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Amount</div>
-                                    <div class="text-xl font-black text-neon font-mono">
+                                    <div class="text-xl font-black text-neon">
                                         Rp {{ number_format($order->total, 0, ',', '.') }}
                                     </div>
                                 </div>
@@ -339,7 +339,7 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider
+                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
                                             {{ match($order->status) {
                                                 'paid' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
                                                 'shipped' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
@@ -349,9 +349,9 @@
                                             } }}">
                                             {{ $order->status }}
                                         </span>
-                                        <span class="text-xs text-slate-500 font-mono">{{ $order->created_at->format('d M Y, H:i') }}</span>
+                                        <span class="text-xs text-slate-500">{{ $order->created_at->format('d M Y, H:i') }}</span>
                                     </div>
-                                    <span class="text-xs font-mono text-slate-500">#{{ $order->invoice_number }}</span>
+                                    <span class="text-xs text-slate-500 font-semibold">#{{ $order->invoice_number }}</span>
                                 </div>
                                 
                                 <h3 class="text-lg font-bold text-white mb-1 truncate">{{ $firstItem->product_title_snapshot }}</h3>
@@ -363,7 +363,7 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Amount</div>
-                                    <div class="text-xl font-black text-neon font-mono">
+                                    <div class="text-xl font-black text-neon">
                                         Rp {{ number_format($order->total_amount, 0, ',', '.') }}
                                     </div>
                                 </div>
@@ -445,7 +445,7 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider
+                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
                                             {{ match($order->status) {
                                                 'paid' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
                                                 'shipped' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
@@ -455,9 +455,9 @@
                                             } }}">
                                             {{ $order->status }}
                                         </span>
-                                        <span class="text-xs font-mono text-slate-500">Buyer: {{ $order->buyer->name }}</span>
+                                        <span class="text-xs text-slate-500">Buyer: {{ $order->buyer->name }}</span>
                                     </div>
-                                    <span class="text-xs font-mono text-slate-500">#{{ $order->invoice_number }}</span>
+                                    <span class="text-xs text-slate-500 font-semibold">#{{ $order->invoice_number }}</span>
                                 </div>
                                 
                                 <h3 class="text-lg font-bold text-white mb-1 truncate">{{ $firstItem->product_title_snapshot }}</h3>
@@ -469,7 +469,7 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Your Earnings</div>
-                                    <div class="text-xl font-black text-emerald-400 font-mono">
+                                    <div class="text-xl font-black text-emerald-400">
                                         Rp {{ number_format($order->seller_amount, 0, ',', '.') }}
                                     </div>
                                 </div>

@@ -206,7 +206,7 @@
         <!-- Page Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
-                <p class="text-neon font-mono text-[10px] tracking-widest uppercase mb-1 font-bold">Admin Control Center</p>
+                <p class="text-neon text-xs tracking-wider uppercase mb-1 font-bold">Admin Control Center</p>
                 <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">
                     Moderasi <span class="text-neon">Katalog Produk</span>
                 </h1>
@@ -258,7 +258,7 @@
                     <span>Menunggu Review</span>
                     <span x-show="pendingCount > 0" 
                           x-text="pendingCount" 
-                          class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-dark text-white"></span>
+                          class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-dark text-white"></span>
                 </button>
                 <button @click="status = 'active'; fetchProducts()" 
                         class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all border whitespace-nowrap"
@@ -311,12 +311,12 @@
             <div x-show="loading" class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm z-20 flex items-center justify-center">
                 <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 px-5 py-3 rounded-2xl shadow-2xl">
                     <i class="fas fa-spinner fa-spin text-neon text-lg"></i>
-                    <span class="text-xs font-bold text-white uppercase tracking-wider font-mono">Memuat Produk...</span>
+                    <span class="text-xs font-bold text-white uppercase tracking-wider">Memuat Produk...</span>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full leading-normal">
+                <table class="min-w-full leading-normal font-sans">
                     <thead>
                         <tr class="bg-slate-950/80 border-b border-slate-800">
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Produk / Kategori</th>

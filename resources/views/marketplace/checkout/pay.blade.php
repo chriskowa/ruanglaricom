@@ -13,7 +13,7 @@
         
         <div class="relative z-10">
             <h2 class="text-2xl font-black text-white italic tracking-tighter mb-2">COMPLETE PAYMENT</h2>
-            <p class="text-slate-400 text-sm mb-8 font-mono">Invoice: {{ $order->invoice_number }}</p>
+            <p class="text-slate-400 text-sm mb-8 font-medium">Invoice: {{ $order->invoice_number }}</p>
             
             <div class="bg-slate-950 rounded-xl p-6 mb-8 border border-slate-800">
                 <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Total Amount</div>

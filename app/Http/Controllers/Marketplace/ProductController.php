@@ -151,6 +151,8 @@ class ProductController extends Controller
             MarketplaceConsignmentIntake::create([
                 'product_id' => $product->id,
                 'seller_id' => Auth::id(),
+                'owner_name' => $request->input('owner_name'),
+                'owner_phone' => $request->input('owner_phone'),
                 'status' => 'requested',
                 'dropoff_method' => $request->dropoff_method,
                 'dropoff_location' => $request->dropoff_location,
@@ -323,21 +325,108 @@ class ProductController extends Controller
         }
 
         if ($order->status !== 'paid') {
-            return response()->json(['success' => false, 'message' => 'Hanya pesanan yang sudah dibayar (paid) yang dapat diproses.'], 400);
+            $msg = 'Hanya pesanan yang sudah dibayar (paid) yang dapat diproses.';
+            return $request->ajax() ? response()->json(['success' => false, 'message' => $msg], 400) : back()->with('error', $msg);
         }
 
-        $trackingNumber = $request->input('tracking_number') ?: 'TRK-' . strtoupper(Str::random(10));
+        $order->update([
+            'status' => 'processing',
+            'processed_at' => now(),
+        ]);
+
+        // Send In-App Notification to Buyer
+        if ($order->buyer_id) {
+            \App\Models\Notification::create([
+                'user_id' => $order->buyer_id,
+                'type' => 'marketplace_order_processing',
+                'title' => 'Pesanan Sedang Diproses',
+                'message' => 'Penjual telah mengonfirmasi pesanan #' . $order->invoice_number . ' dan sedang menyiapkannya.',
+                'reference_type' => MarketplaceOrder::class,
+                'reference_id' => $order->id,
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = 'Pesanan #' . $order->invoice_number . ' berhasil diproses.';
+        return $request->ajax() ? response()->json(['success' => true, 'message' => $msg]) : back()->with('success', $msg);
+    }
+
+    public function packOrder(Request $request, MarketplaceOrder $order)
+    {
+        if ((int) $order->seller_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($order->status, ['paid', 'processing'])) {
+            $msg = 'Hanya pesanan berstatus paid atau processing yang dapat dikemas.';
+            return $request->ajax() ? response()->json(['success' => false, 'message' => $msg], 400) : back()->with('error', $msg);
+        }
+
+        $order->update([
+            'status' => 'packing',
+            'packed_at' => now(),
+        ]);
+
+        // Send In-App Notification to Buyer
+        if ($order->buyer_id) {
+            \App\Models\Notification::create([
+                'user_id' => $order->buyer_id,
+                'type' => 'marketplace_order_packing',
+                'title' => 'Pesanan Sedang Dikemas',
+                'message' => 'Paket pesanan #' . $order->invoice_number . ' sedang dikemas rapi oleh penjual.',
+                'reference_type' => MarketplaceOrder::class,
+                'reference_id' => $order->id,
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = 'Status pesanan diperbarui: Sedang Dikemas (Packing).';
+        return $request->ajax() ? response()->json(['success' => true, 'message' => $msg]) : back()->with('success', $msg);
+    }
+
+    public function shipOrder(Request $request, MarketplaceOrder $order)
+    {
+        if ((int) $order->seller_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($order->status, ['paid', 'processing', 'packing'])) {
+            $msg = 'Hanya pesanan yang belum dikirim yang dapat ditandai dikirim.';
+            return $request->ajax() ? response()->json(['success' => false, 'message' => $msg], 400) : back()->with('error', $msg);
+        }
+
+        $request->validate([
+            'tracking_number' => ['required', 'string', 'max:100'],
+            'shipping_courier' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $trackingNumber = trim($request->input('tracking_number'));
+        $courier = $request->input('shipping_courier', $order->shipping_courier);
 
         $order->update([
             'status' => 'shipped',
             'shipping_tracking_number' => $trackingNumber,
+            'shipping_courier' => $courier,
+            'shipped_at' => now(),
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan berhasil diproses & ditandai sebagai dikirim.',
-            'tracking_number' => $trackingNumber
-        ]);
+        // Send In-App Notification to Buyer
+        if ($order->buyer_id) {
+            \App\Models\Notification::create([
+                'user_id' => $order->buyer_id,
+                'type' => 'marketplace_order_shipped',
+                'title' => 'Pesanan Telah Dikirim',
+                'message' => 'Pesanan #' . $order->invoice_number . ' telah dikirim dengan nomor resi ' . $trackingNumber . ' (' . strtoupper($courier ?: 'Ekspedisi') . ').',
+                'reference_type' => MarketplaceOrder::class,
+                'reference_id' => $order->id,
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = 'Pesanan berhasil ditandai sebagai dikirim dengan resi: ' . $trackingNumber;
+        return $request->ajax() 
+            ? response()->json(['success' => true, 'message' => $msg, 'tracking_number' => $trackingNumber]) 
+            : back()->with('success', $msg);
     }
 
     public function cancelOrder(MarketplaceOrder $order)

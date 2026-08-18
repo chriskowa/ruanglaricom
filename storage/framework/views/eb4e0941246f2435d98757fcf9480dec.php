@@ -338,6 +338,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
             return <?php echo json_encode(route('admin.event-submissions.show', ':id'), 512) ?>.replace(':id', notif.reference_id);
         }
+        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission') && notif.reference_id) {
+            if (userRole === 'admin') {
+                return <?php echo json_encode(route('admin.master-gpx.index'), 15, 512) ?>;
+            }
+            return <?php echo json_encode(route('gpx.show', ':id'), 512) ?>.replace(':id', notif.reference_id);
+        }
+        if (notif.reference_type === 'App\\Models\\Marketplace\\MarketplaceOrder' || notif.reference_type === 'MarketplaceOrder' || notif.type === 'marketplace_order_paid' || notif.type === 'marketplace_sale') {
+            if (userRole === 'admin' && notif.reference_id) {
+                return <?php echo json_encode(route('admin.marketplace.orders.show', ':id'), 512) ?>.replace(':id', notif.reference_id);
+            }
+            if (notif.reference_id) {
+                return <?php echo json_encode(route('marketplace.orders.show', ':id'), 512) ?>.replace(':id', notif.reference_id);
+            }
+        }
         if (notif.reference_type === 'App\\Models\\RunningAnalysis\\AnalysisRequest') {
             if (userRole === 'admin' && notif.reference_id) {
                 return <?php echo json_encode(route('admin.running-analysis.requests.show', ':id'), 512) ?>.replace(':id', notif.reference_id);

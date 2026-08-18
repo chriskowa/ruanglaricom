@@ -35,7 +35,7 @@
     <div class="max-w-7xl mx-auto mb-8">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-800/80 pb-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-850 border border-slate-750 text-[10px] font-mono uppercase tracking-widest text-neon mb-3">
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-850 border border-slate-750 text-[10px] uppercase tracking-wider text-neon mb-3 font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
                     Verified Running Gear & Marketplace
                 </div>
@@ -78,7 +78,7 @@
                     class="px-4 py-2 rounded-full whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5">
                 <span>{{ $cat->name }}</span>
                 @if($cat->products_count > 0)
-                    <span class="text-[9px] opacity-60 font-mono">({{ $cat->products_count }})</span>
+                    <span class="text-[9px] opacity-60 font-bold">({{ $cat->products_count }})</span>
                 @endif
             </button>
             @endforeach
@@ -90,9 +90,9 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
-                    <h2 class="text-xs font-mono font-black uppercase tracking-widest text-white">FEATURED GEAR</h2>
+                    <h2 class="text-xs font-black uppercase tracking-wider text-white">FEATURED GEAR</h2>
                 </div>
-                <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Pilihan Unggulan Komunitas</span>
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Pilihan Unggulan Komunitas</span>
             </div>
             
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
@@ -102,14 +102,14 @@
                         <img src="{{ $fProd->primaryImage ? asset('storage/'.$fProd->primaryImage->image_path) : ($fProd->images->first() ? asset('storage/'.$fProd->images->first()->image_path) : '') }}" 
                              alt="{{ $fProd->title }}" 
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase tracking-widest font-mono shadow">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase tracking-wider shadow">
                             FEATURED
                         </span>
                     </div>
                     <div class="space-y-0.5">
-                        <p class="text-[9px] font-mono text-slate-500 uppercase truncate">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
+                        <p class="text-[9px] text-slate-500 uppercase truncate font-semibold">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
                         <h3 class="text-xs font-bold text-white truncate group-hover:text-neon transition">{{ $fProd->title }}</h3>
-                        <p class="text-xs font-black text-white font-mono">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
+                        <p class="text-xs font-black text-white">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
                     </div>
                 </a>
                 @endforeach
@@ -151,12 +151,12 @@
             
             <!-- Right: Sort Dropdown & Item Counter -->
             <div class="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-between sm:justify-end">
-                <div class="text-[11px] text-slate-400 font-mono" id="results-count-label">
+                <div class="text-xs text-slate-400 font-medium" id="results-count-label">
                     {{ $products->total() }} Produk
                 </div>
                 
                 <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider hidden sm:inline">Urutkan:</span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider hidden sm:inline font-semibold">Urutkan:</span>
                     <select id="sort-select-top" class="bg-slate-900 border border-slate-800 text-slate-200 rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none transition-all font-medium">
                         <option value="latest">Terbaru</option>
                         <option value="price_asc">Harga: Terendah</option>
@@ -247,11 +247,11 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div class="relative">
                                 <input type="number" name="price_min" placeholder="Min" value="{{ request('price_min') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-mono">
+                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold">
                             </div>
                             <div class="relative">
                                 <input type="number" name="price_max" placeholder="Max" value="{{ request('price_max') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-mono">
+                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold">
                             </div>
                         </div>
                     </div>
@@ -300,7 +300,7 @@
                                         :class="activeCategory === '{{ $cat->slug }}' ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'">
                                     <span>{{ $cat->name }}</span>
                                     @if($cat->products_count > 0)
-                                        <span class="text-[10px] font-mono text-slate-500">{{ $cat->products_count }}</span>
+                                        <span class="text-[10px] font-semibold text-slate-500">{{ $cat->products_count }}</span>
                                     @endif
                                 </button>
                             @endforeach

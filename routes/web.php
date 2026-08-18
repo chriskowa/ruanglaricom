@@ -1131,6 +1131,10 @@ Route::middleware('auth')->group(function () {
 
     // Marketplace routes (accessible by all authenticated users)
     Route::middleware(['role:runner,coach,eo,admin'])->prefix('marketplace')->name('marketplace.')->group(function () {
+        // City autocomplete & Shipping cost API
+        Route::get('/api/cities', [App\Http\Controllers\Marketplace\CheckoutController::class, 'searchCities'])->name('cities.autocomplete');
+        Route::post('/checkout/shipping-cost', [App\Http\Controllers\Marketplace\CheckoutController::class, 'calculateShipping'])->name('checkout.shipping-cost');
+
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
         Route::post('seller/products/{product}/mark-sold', [App\Http\Controllers\Marketplace\ProductController::class, 'markSold'])->name('seller.products.mark-sold');
@@ -1139,6 +1143,8 @@ Route::middleware('auth')->group(function () {
         Route::post('seller/products/{product}/boost', [App\Http\Controllers\Marketplace\ProductController::class, 'boost'])->name('seller.products.boost');
         Route::post('seller/products/{product}/featured', [App\Http\Controllers\Marketplace\ProductController::class, 'requestFeatured'])->name('seller.products.featured');
         Route::post('seller/orders/{order}/process', [App\Http\Controllers\Marketplace\ProductController::class, 'processOrder'])->name('seller.orders.process');
+        Route::post('seller/orders/{order}/pack', [App\Http\Controllers\Marketplace\ProductController::class, 'packOrder'])->name('seller.orders.pack');
+        Route::post('seller/orders/{order}/ship', [App\Http\Controllers\Marketplace\ProductController::class, 'shipOrder'])->name('seller.orders.ship');
         Route::post('seller/orders/{order}/cancel', [App\Http\Controllers\Marketplace\ProductController::class, 'cancelOrder'])->name('seller.orders.cancel');
 
         Route::post('/product/{slug}/bid', [App\Http\Controllers\Marketplace\AuctionController::class, 'bid'])->name('auction.bid')->middleware('throttle:20,1');
@@ -1155,13 +1161,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/checkout/init', [App\Http\Controllers\Marketplace\CheckoutController::class, 'init'])->name('checkout.init');
         Route::get('/checkout/{order}', [App\Http\Controllers\Marketplace\CheckoutController::class, 'show'])->name('checkout.show');
         Route::post('/checkout/{order}', [App\Http\Controllers\Marketplace\CheckoutController::class, 'process'])->name('checkout.process');
-        Route::get('/checkout/{order}/pay', [App\Http\Controllers\Marketplace\CheckoutController::class, 'pay'])->name('checkout.pay');
+        Route::get('/checkout/{order}/pay', [App\Http\Controllers\Marketplace\CheckoutController::class, 'getSnapToken'])->name('checkout.pay');
 
-        // My Orders
+        // My Orders (Marketplace physical products)
         Route::get('/orders', [App\Http\Controllers\Marketplace\OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/shipped', [App\Http\Controllers\Marketplace\OrderController::class, 'markShipped'])->name('orders.shipped');
+        Route::post('/orders/{order}/delivered', [App\Http\Controllers\Marketplace\OrderController::class, 'markDelivered'])->name('orders.delivered');
         Route::post('/orders/{order}/completed', [App\Http\Controllers\Marketplace\OrderController::class, 'markCompleted'])->name('orders.completed');
+        Route::post('/orders/{order}/dispute', [App\Http\Controllers\Marketplace\OrderController::class, 'submitDispute'])->name('orders.dispute');
+        Route::post('/orders/{order}/accept-return', [App\Http\Controllers\Marketplace\OrderController::class, 'acceptReturn'])->name('orders.accept-return');
+        Route::post('/orders/{order}/return-tracking', [App\Http\Controllers\Marketplace\OrderController::class, 'submitReturnTracking'])->name('orders.return-tracking');
+        Route::post('/orders/{order}/confirm-return', [App\Http\Controllers\Marketplace\OrderController::class, 'confirmReturnReceived'])->name('orders.confirm-return');
         Route::delete('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'destroy'])->name('orders.destroy');
         Route::post('/cart/add/{program}', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
         Route::match(['get', 'delete'], '/cart/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
@@ -1180,6 +1191,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/program-orders/{order}/invoice', [App\Http\Controllers\OrderController::class, 'invoice'])->name('program-orders.invoice');
         Route::delete('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('program-orders.destroy');
     });
+
+    // Compatibility Alias for legacy orders.show & orders.index
+    Route::middleware('auth')->get('/orders/{order}', function ($order) {
+        return redirect()->route('marketplace.orders.show', $order);
+    })->name('orders.show');
+    Route::middleware('auth')->get('/orders', function () {
+        return redirect()->route('marketplace.orders.index');
+    })->name('orders.index');
 
     // Public Seller Store (placed after specific marketplace routes to prevent route collision)
     Route::get('/marketplace/seller/{username}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'sellerStore'])

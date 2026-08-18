@@ -61,7 +61,7 @@
                                     <a href="{{ route('marketplace.show', $product->slug) }}">{{ $product->title }}</a>
                                 </h3>
 
-                                <div class="text-base font-black text-white font-mono mb-3">
+                                <div class="text-base font-black text-white mb-3">
                                     Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </div>
 

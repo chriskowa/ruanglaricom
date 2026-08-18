@@ -65,4 +65,9 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    'rajaongkir' => [
+        'key' => env('RAJAONGKIR_API_KEY', 'c7d5ff5a5a151bba9b434e9deae19edf'),
+        'base_url' => env('RAJAONGKIR_BASE_URL', 'https://api.rajaongkir.com/starter/'),
+    ],
+
 ];

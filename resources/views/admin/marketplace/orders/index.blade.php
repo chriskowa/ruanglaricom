@@ -115,7 +115,7 @@
         <!-- Page Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
-                <p class="text-neon font-mono text-[10px] tracking-widest uppercase mb-1 font-bold">Admin Control Center</p>
+                <p class="text-neon text-xs tracking-wider uppercase mb-1 font-bold">Admin Control Center</p>
                 <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">
                     Marketplace <span class="text-neon">Orders & Dispute</span>
                 </h1>
@@ -133,26 +133,26 @@
         <!-- Financial Metrics Banner -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
-                <div class="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Total GMV Penjualan</div>
-                <div class="text-xl md:text-2xl font-black text-white font-mono" id="metric-gmv">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">Total GMV Penjualan</div>
+                <div class="text-xl md:text-2xl font-black text-white" id="metric-gmv">
                     Rp {{ number_format($metrics['total_gmv'], 0, ',', '.') }}
                 </div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
-                <div class="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Pendapatan Fee Platform</div>
-                <div class="text-xl md:text-2xl font-black text-neon font-mono" id="metric-income">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">Pendapatan Fee Platform</div>
+                <div class="text-xl md:text-2xl font-black text-neon" id="metric-income">
                     Rp {{ number_format($metrics['total_platform_income'], 0, ',', '.') }}
                 </div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
-                <div class="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Dana Escrow (Mengendap)</div>
-                <div class="text-xl md:text-2xl font-black text-cyan-400 font-mono" id="metric-escrow">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">Dana Escrow (Mengendap)</div>
+                <div class="text-xl md:text-2xl font-black text-cyan-400" id="metric-escrow">
                     Rp {{ number_format($metrics['total_escrow_funds'], 0, ',', '.') }}
                 </div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
-                <div class="text-xs text-slate-400 font-mono uppercase tracking-wider mb-1">Pesanan Berkendala</div>
-                <div class="text-xl md:text-2xl font-black text-rose-400 font-mono flex items-center gap-2">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-semibold">Pesanan Berkendala</div>
+                <div class="text-xl md:text-2xl font-black text-rose-400 flex items-center gap-2">
                     <span id="metric-disputed">{{ $metrics['disputed_count'] }}</span>
                     <span class="text-xs font-sans font-bold text-slate-400">Kasus</span>
                 </div>
@@ -232,12 +232,12 @@
             <div x-show="loading" class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm z-20 flex items-center justify-center">
                 <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 px-5 py-3 rounded-2xl shadow-2xl">
                     <i class="fas fa-spinner fa-spin text-neon text-lg"></i>
-                    <span class="text-xs font-bold text-white uppercase tracking-wider font-mono">Memuat Data Transaksi...</span>
+                    <span class="text-xs font-bold text-white uppercase tracking-wider">Memuat Data Transaksi...</span>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full leading-normal">
+                <table class="min-w-full leading-normal font-sans">
                     <thead>
                         <tr class="bg-slate-950/80 border-b border-slate-800">
                             <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Invoice / Tanggal</th>
@@ -265,7 +265,7 @@
     <!-- Dispute Resolution Modal (AJAX) -->
     <div x-show="showDisputeModal" 
          x-transition
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm font-sans"
          style="display: none;">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative" @click.outside="showDisputeModal = false">
             
@@ -286,15 +286,15 @@
                     <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
                         <div class="flex justify-between">
                             <span class="text-slate-400">Invoice:</span>
-                            <span class="font-mono font-bold text-white" x-text="'#' + activeOrder.invoice_number"></span>
+                            <span class="font-bold text-white" x-text="'#' + activeOrder.invoice_number"></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Total Transaksi:</span>
-                            <span class="font-mono font-bold text-neon" x-text="'Rp ' + Number(activeOrder.grand_total).toLocaleString('id-ID')"></span>
+                            <span class="font-bold text-neon" x-text="'Rp ' + Number(activeOrder.grand_total).toLocaleString('id-ID')"></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Status Saat Ini:</span>
-                            <span class="font-mono uppercase font-bold text-amber-400" x-text="activeOrder.status"></span>
+                            <span class="uppercase font-bold text-amber-400" x-text="activeOrder.status"></span>
                         </div>
                     </div>
 

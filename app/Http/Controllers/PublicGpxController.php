@@ -252,7 +252,7 @@ class PublicGpxController extends Controller
     }
 
     /**
-     * Autocomplete Indonesian cities / regencies
+     * Autocomplete Indonesian & International cities
      */
     public function searchCities(Request $request)
     {
@@ -263,17 +263,18 @@ class PublicGpxController extends Controller
 
         $results = [];
 
-        // 1. Search database cities
+        // 1. Search database Indonesian cities
         if (class_exists(\App\Models\City::class)) {
             $dbCities = \App\Models\City::with('province')
                 ->where('name', 'like', "%{$q}%")
-                ->limit(15)
+                ->limit(10)
                 ->get()
                 ->map(function ($c) {
                     return [
                         'name' => $c->name,
                         'display' => $c->name . ($c->province ? ', ' . $c->province->name : ''),
                         'province' => $c->province?->name,
+                        'country' => 'Indonesia',
                     ];
                 })
                 ->toArray();
@@ -283,23 +284,78 @@ class PublicGpxController extends Controller
         // 2. Search distinct MasterGpx cities
         $gpxCities = MasterGpx::where('city', 'like', "%{$q}%")
             ->distinct()
-            ->limit(10)
+            ->limit(8)
             ->pluck('city')
             ->map(function ($name) {
                 return [
                     'name' => $name,
                     'display' => $name,
                     'province' => '',
+                    'country' => '',
                 ];
             })
             ->toArray();
         $results = array_merge($results, $gpxCities);
 
-        // Deduplicate by name
+        // 3. Search Global & International Cities via Photon Komoot API
+        try {
+            $cacheKey = 'photon_cities_' . md5(strtolower($q));
+            $photonResults = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($q) {
+                $response = \Illuminate\Support\Facades\Http::timeout(3)
+                    ->withHeaders(['User-Agent' => 'RuangLari-App/1.0'])
+                    ->get('https://photon.komoot.io/api/', [
+                        'q' => $q,
+                        'limit' => 8,
+                    ]);
+
+                if (! $response->successful()) {
+                    return [];
+                }
+
+                $data = $response->json('features') ?? [];
+                $items = [];
+
+                foreach ($data as $feat) {
+                    $props = $feat['properties'] ?? [];
+                    $name = $props['name'] ?? null;
+                    if (! $name) {
+                        continue;
+                    }
+
+                    $state = $props['state'] ?? ($props['county'] ?? '');
+                    $country = $props['country'] ?? '';
+                    $countryCode = strtoupper($props['countrycode'] ?? '');
+
+                    $displayParts = array_filter([$name, $state, $country]);
+                    $display = implode(', ', $displayParts);
+
+                    // Formatted final name for city input: if foreign, e.g. "Tokyo, Japan"
+                    $finalName = ($country && $countryCode !== 'ID') ? "{$name}, {$country}" : $name;
+
+                    $items[] = [
+                        'name' => $finalName,
+                        'display' => $display,
+                        'province' => $state ?: $country,
+                        'country' => $country,
+                        'country_code' => $countryCode,
+                    ];
+                }
+
+                return $items;
+            });
+
+            if (! empty($photonResults)) {
+                $results = array_merge($results, $photonResults);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Photon autocomplete error: ' . $e->getMessage());
+        }
+
+        // Deduplicate by normalized name
         $unique = [];
         foreach ($results as $item) {
             $key = strtolower(trim($item['name']));
-            if (!isset($unique[$key])) {
+            if (! isset($unique[$key])) {
                 $unique[$key] = $item;
             }
         }
@@ -411,6 +467,32 @@ class PublicGpxController extends Controller
             $message = 'Rute GPX berhasil dikirim! Status saat ini menunggu peninjauan admin. Anda mendapatkan +' . $rewardPoints . ' poin runner!';
         } else {
             $message = 'Rute GPX berhasil dikirim dan menunggu peninjauan admin. (Batas bonus 30 poin/hari untuk submit rute telah tercapai hari ini).';
+        }
+
+        // Send Notification to Admins
+        try {
+            $adminUsers = \App\Models\User::where('role', 'admin')->get();
+            $now = now();
+            $notifRows = [];
+            foreach ($adminUsers as $admin) {
+                $notifRows[] = [
+                    'user_id' => $admin->id,
+                    'type' => 'gpx_submission',
+                    'title' => 'Pengajuan Rute GPX Baru',
+                    'message' => ($user->name ?? 'User') . ' mengunggah rute GPX baru: "' . $masterGpx->title . '" (' . number_format($masterGpx->distance_km ?? 0, 1) . ' km, ' . ($masterGpx->city ?? 'Indonesia') . '). Menunggu moderasi.',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $masterGpx->id,
+                    'is_read' => false,
+                    'read_at' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            if (!empty($notifRows)) {
+                \App\Models\Notification::insert($notifRows);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to create admin notification for GPX submission: ' . $e->getMessage());
         }
 
         return response()->json([

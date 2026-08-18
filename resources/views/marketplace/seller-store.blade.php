@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto">
         <!-- Breadcrumb -->
         <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+            <div class="flex items-center gap-2 text-xs text-slate-400">
                 <a href="{{ route('marketplace.index') }}" class="hover:text-[#B8FF00] transition-colors">MARKETPLACE</a>
                 <span>/</span>
                 <span class="text-white uppercase font-bold">PENJUAL: {{ $seller->name }}</span>
@@ -45,7 +45,7 @@
                         </span>
                     </div>
 
-                    <p class="text-slate-400 text-xs md:text-sm font-mono mb-4">
+                    <p class="text-slate-400 text-xs md:text-sm mb-4">
                         @<span>{{ $seller->username ?: strtolower(str_replace(' ', '', $seller->name)) }}</span>
                         @if($seller->city)
                             <span class="mx-2">•</span>
@@ -58,12 +58,12 @@
                     <!-- Stats Badges -->
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
                         <div class="bg-[#111F35] border border-[#1F2D44] px-4 py-2 rounded-2xl text-center">
-                            <div class="text-xs text-slate-400 font-mono uppercase">Produk Aktif</div>
-                            <div class="text-xl font-black text-white font-mono" id="seller-products-count">{{ $products->total() }}</div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">Produk Aktif</div>
+                            <div class="text-xl font-black text-white" id="seller-products-count">{{ $products->total() }}</div>
                         </div>
                         <div class="bg-[#111F35] border border-[#1F2D44] px-4 py-2 rounded-2xl text-center">
-                            <div class="text-xs text-slate-400 font-mono uppercase">Total Terjual</div>
-                            <div class="text-xl font-black text-[#B8FF00] font-mono">{{ $salesCount }}</div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">Total Terjual</div>
+                            <div class="text-xl font-black text-[#B8FF00]">{{ $salesCount }}</div>
                         </div>
                     </div>
                 </div>
@@ -143,7 +143,7 @@
             <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">
                 PRODUK DARI <span class="text-[#B8FF00]">{{ strtoupper($seller->name) }}</span>
             </h2>
-            <div id="seller-results-count" class="text-xs text-slate-400 font-mono">
+            <div id="seller-results-count" class="text-xs text-slate-400 font-medium">
                 Menampilkan {{ $products->count() }} dari {{ $products->total() }} barang
             </div>
         </div>
@@ -151,7 +151,7 @@
         <!-- Products Grid Container (AJAX Target) -->
         <div id="seller-product-grid-container" class="relative min-h-[300px]">
             <div id="seller-grid-loader" class="hidden absolute inset-0 bg-[#08111F]/70 backdrop-blur-xs z-30 flex items-center justify-center rounded-2xl">
-                <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-mono font-bold shadow-2xl">
+                <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-bold shadow-2xl">
                     <div class="w-4 h-4 border-2 border-[#B8FF00] border-t-transparent rounded-full animate-spin"></div>
                     <span>Memuat Produk...</span>
                 </div>
@@ -203,7 +203,7 @@
         </div>
 
         <div class="relative mt-2">
-            <input id="mp-share-url-input" type="text" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 pr-16 text-xs text-slate-300 font-mono focus:outline-none select-all">
+            <input id="mp-share-url-input" type="text" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 pr-16 text-xs text-slate-300 focus:outline-none select-all font-medium">
             <button type="button" onclick="copyShareLink()" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-[#B8FF00] text-[#08111F] text-[10px] font-black hover:bg-white transition-colors">
                 <span id="mp-copy-btn-text">Salin</span>
             </button>
@@ -236,7 +236,7 @@
             })
             .then(function(res) { return res.text(); })
             .then(function(html) {
-                container.innerHTML = '<div id="seller-grid-loader" class="hidden absolute inset-0 bg-[#08111F]/70 backdrop-blur-xs z-30 flex items-center justify-center rounded-2xl"><div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-mono font-bold shadow-2xl"><div class="w-4 h-4 border-2 border-[#B8FF00] border-t-transparent rounded-full animate-spin"></div><span>Memuat Produk...</span></div></div>' + html;
+                container.innerHTML = '<div id="seller-grid-loader" class="hidden absolute inset-0 bg-[#08111F]/70 backdrop-blur-xs z-30 flex items-center justify-center rounded-2xl"><div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#0E1A2D] border border-[#1F2D44] text-white text-xs font-bold shadow-2xl"><div class="w-4 h-4 border-2 border-[#B8FF00] border-t-transparent rounded-full animate-spin"></div><span>Memuat Produk...</span></div></div>' + html;
                 window.history.pushState({}, '', fetchUrl);
             })
             .catch(function(err) {
