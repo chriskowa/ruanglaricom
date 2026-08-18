@@ -27,9 +27,10 @@
                             </div>
                         @endif
 
-                        <div class="absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur border border-slate-800 text-[11px] text-slate-300 flex items-center gap-1">
-                            <i class="fa-solid fa-check text-accent text-[10px]"></i>
-                            <span>GPX</span>
+                        <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur border border-slate-750 text-[11px] font-semibold text-slate-200 uppercase tracking-wider font-mono">
+                                {{ $item->route_type_label }}
+                            </span>
                         </div>
                     </div>
 

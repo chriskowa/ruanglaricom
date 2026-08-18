@@ -183,4 +183,44 @@ class GpxFeatureTest extends TestCase
         $response->assertSee('Monas Loop');
         $response->assertDontSee('Gasibu Loop');
     }
+
+    public function test_route_type_filter_and_smart_determination()
+    {
+        $user = User::factory()->create(['role' => 'runner']);
+
+        // Road Route (42 km Marathon with 400m elevation gain => ~9.5m/km, still road!)
+        $roadRoute = MasterGpx::create([
+            'user_id' => $user->id,
+            'title' => 'Jakarta Marathon 42K',
+            'city' => 'Jakarta Pusat',
+            'distance_km' => 42.195,
+            'elevation_gain_m' => 400,
+            'is_published' => true,
+        ]);
+
+        // Trail Route (10 km with 600m gain => 60m/km steep gradient, smart detected as trail)
+        $trailRoute = MasterGpx::create([
+            'user_id' => $user->id,
+            'title' => 'Gunung Gede Trail Run',
+            'city' => 'Cianjur',
+            'distance_km' => 10.0,
+            'elevation_gain_m' => 600,
+            'is_published' => true,
+        ]);
+
+        $this->assertEquals('road', $roadRoute->route_type);
+        $this->assertEquals('trail', $trailRoute->route_type);
+
+        // Filter for Trail
+        $responseTrail = $this->get(route('gpx.index', ['route_type' => 'trail']));
+        $responseTrail->assertStatus(200);
+        $responseTrail->assertSee('Gunung Gede Trail Run');
+        $responseTrail->assertDontSee('Jakarta Marathon 42K');
+
+        // Filter for Road
+        $responseRoad = $this->get(route('gpx.index', ['route_type' => 'road']));
+        $responseRoad->assertStatus(200);
+        $responseRoad->assertSee('Jakarta Marathon 42K');
+        $responseRoad->assertDontSee('Gunung Gede Trail Run');
+    }
 }

@@ -177,6 +177,10 @@
                         <i class="fa-solid fa-location-dot text-[#FC4C02] text-[10px]"></i>
                         <span>{{ $cityName }}</span>
                     </span>
+
+                    <span class="inline-flex items-center px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-200 font-semibold text-[11px] font-mono uppercase tracking-wider">
+                        {{ $item->route_type_label }}
+                    </span>
                     
                     @if($item->event)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">

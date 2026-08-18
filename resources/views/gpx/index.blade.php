@@ -43,6 +43,28 @@
             display: none !important;
         }
 
+        /* Route Type Radio Buttons (Neon Lime Active) */
+        .route-type-btn {
+            background-color: #090D16 !important;
+            border-color: #334155 !important;
+            color: #cbd5e1 !important;
+            transition: all 0.2s ease-in-out;
+        }
+        .route-type-btn.is-active,
+        .route-type-btn:has(input:checked) {
+            background-color: #ccff00 !important;
+            background: #ccff00 !important;
+            border-color: #ccff00 !important;
+            color: #020617 !important;
+            font-weight: 700 !important;
+            box-shadow: 0 0 12px rgba(204, 255, 0, 0.25) !important;
+        }
+        .route-type-btn.is-active span,
+        .route-type-btn:has(input:checked) span {
+            color: #020617 !important;
+            font-weight: 700 !important;
+        }
+
         /* Mobile Floating Filter Drawer & Bottom Docked Button */
         @media (max-width: 767px) {
             #mobile-filter-btn-wrap {
@@ -191,7 +213,6 @@
             </div>
             <div class="flex items-center gap-2">
                 <button id="btn-apply-detected-city" type="button" class="px-3.5 py-1.5 bg-accent text-slate-950 font-bold rounded-lg text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-location-crosshairs text-xs text-slate-950"></i>
                     <span>Urutkan Terdekat</span>
                 </button>
                 <button id="btn-clear-gps-filter" type="button" class="px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-rose-500/50 text-slate-400 hover:text-rose-400 text-xs font-semibold transition cursor-pointer" title="Hapus Filter GPS">
@@ -260,7 +281,7 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
                     
                     <div>
                         <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Cari rute</label>
@@ -307,6 +328,22 @@
                                 <option value="25" {{ request('radius') == '25' ? 'selected' : '' }}>Radius 25 km</option>
                                 <option value="50" {{ request('radius') == '50' ? 'selected' : '' }}>Radius 50 km</option>
                                 <option value="100" {{ request('radius') == '100' ? 'selected' : '' }}>Radius 100 km</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                <i class="fas fa-chevron-down text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Tipe rute</label>
+                        <div class="relative">
+                            <select name="route_type" id="select-filter-route-type"
+                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
+                                <option value="">Semua tipe</option>
+                                <option value="road" {{ request('route_type') == 'road' ? 'selected' : '' }}>Road</option>
+                                <option value="trail" {{ request('route_type') == 'trail' ? 'selected' : '' }}>Trail</option>
+                                <option value="track" {{ request('route_type') == 'track' ? 'selected' : '' }}>Track</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
                                 <i class="fas fa-chevron-down text-[10px]"></i>
@@ -536,6 +573,26 @@
                 <input id="input-modal-title" type="text" name="title" required
                     class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition"
                     placeholder="Contoh: Rute CFD Sudirman – GBK Loop">
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-200 mb-1.5 font-semibold">
+                    Tipe rute
+                </label>
+                <div class="grid grid-cols-3 gap-2" id="modal-route-type-group">
+                    <label class="route-type-btn is-active flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                        <input type="radio" name="route_type" value="road" class="hidden" checked>
+                        <span>Road</span>
+                    </label>
+                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                        <input type="radio" name="route_type" value="trail" class="hidden">
+                        <span>Trail</span>
+                    </label>
+                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                        <input type="radio" name="route_type" value="track" class="hidden">
+                        <span>Track</span>
+                    </label>
+                </div>
             </div>
 
             <div>
@@ -1699,12 +1756,53 @@
                         reverseGeocodeModalCity(coords[0][0], coords[0][1]);
                     }
 
+                    // 3. Auto-detect route type based on gradient density / filename
+                    const gainPerKm = (totalDist > 0) ? (gainSum / (totalDist / 1000)) : 0;
+                    const isTrailCandidate = (gainPerKm >= 35.0) || (file.name.toLowerCase().includes('trail'));
+                    const targetType = isTrailCandidate ? 'trail' : 'road';
+                    document.querySelectorAll('input[name="route_type"]').forEach(r => {
+                        r.checked = (r.value === targetType);
+                    });
+                    syncRouteTypeButtons();
+
                     setTimeout(() => {
                         if (previewMap) previewMap.invalidateSize();
                     }, 250);
                 };
                 reader.readAsText(file);
             }
+
+            // ==========================================
+            // ROUTE TYPE SELECTOR (NEON LIME SYNC)
+            // ==========================================
+            function syncRouteTypeButtons() {
+                document.querySelectorAll('input[name="route_type"]').forEach(r => {
+                    const label = r.closest('.route-type-btn');
+                    if (label) {
+                        if (r.checked) {
+                            label.classList.add('is-active');
+                        } else {
+                            label.classList.remove('is-active');
+                        }
+                    }
+                });
+            }
+
+            document.querySelectorAll('input[name="route_type"]').forEach(radio => {
+                radio.addEventListener('change', syncRouteTypeButtons);
+            });
+
+            document.querySelectorAll('.route-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const input = this.querySelector('input[name="route_type"]');
+                    if (input) {
+                        input.checked = true;
+                        syncRouteTypeButtons();
+                    }
+                });
+            });
+
+            syncRouteTypeButtons();
 
             if (form) {
                 form.addEventListener('submit', function(e) {
@@ -1735,6 +1833,7 @@
                             showAlert(resObj.body.message, true);
                             form.reset();
                             resetDropzone();
+                            syncRouteTypeButtons();
                             setTimeout(() => {
                                 closeGpxModal();
                                 window.location.reload();

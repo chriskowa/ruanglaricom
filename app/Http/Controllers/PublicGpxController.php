@@ -68,6 +68,11 @@ class PublicGpxController extends Controller
             }
         }
 
+        // Filter: Route Type (Road, Trail, Track)
+        if ($request->filled('route_type') && in_array($request->input('route_type'), ['road', 'trail', 'track'])) {
+            $query->where('route_type', $request->input('route_type'));
+        }
+
         // Filter: Elevation Gain
         if ($request->filled('elevation')) {
             switch ($request->input('elevation')) {
@@ -341,6 +346,7 @@ class PublicGpxController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'city' => 'required|string|max:255',
+            'route_type' => 'nullable|string|in:road,trail,track',
             'gpx_file' => 'required|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
             'description' => 'nullable|string|max:5000',
             'notes' => 'nullable|string|max:3000',
@@ -382,6 +388,7 @@ class PublicGpxController extends Controller
             'user_id' => $user->id,
             'title' => $request->input('title'),
             'city' => $request->input('city'),
+            'route_type' => $request->input('route_type') ?: null,
             'description' => $request->input('description') ?? $request->input('notes'),
             'gpx_path' => $path,
             'distance_km' => $distanceKm,
@@ -612,6 +619,7 @@ class PublicGpxController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'city' => 'nullable|string|max:255',
+            'route_type' => 'nullable|string|in:road,trail,track',
             'description' => 'nullable|string|max:5000',
             'notes' => 'nullable|string|max:3000',
         ]);
@@ -619,6 +627,7 @@ class PublicGpxController extends Controller
         $masterGpx->update([
             'title' => $data['title'],
             'city' => $data['city'] ?? null,
+            'route_type' => $data['route_type'] ?? $masterGpx->route_type,
             'description' => $data['description'] ?? null,
             'notes' => $data['notes'] ?? null,
         ]);

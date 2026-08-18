@@ -15,6 +15,7 @@ class MasterGpx extends Model
         'title',
         'slug',
         'city',
+        'route_type',
         'description',
         'gpx_path',
         'distance_km',
@@ -35,6 +36,7 @@ class MasterGpx extends Model
             }
             $model->extractStartCoordinates();
             $model->extractElevationStats();
+            $model->determineRouteType();
         });
 
         static::updating(function ($model) {
@@ -45,7 +47,50 @@ class MasterGpx extends Model
                 $model->extractStartCoordinates();
                 $model->extractElevationStats();
             }
+            if (empty($model->route_type) || ($model->isDirty('title') && empty($model->attributes['route_type']))) {
+                $model->determineRouteType();
+            }
         });
+    }
+
+    public function determineRouteType(): void
+    {
+        if (! empty($this->route_type) && in_array($this->route_type, ['road', 'trail', 'track'])) {
+            return;
+        }
+
+        $text = strtolower(($this->title ?? '') . ' ' . ($this->notes ?? '') . ' ' . ($this->description ?? ''));
+        $trailKeywords = ['trail', 'gunung', 'bukit', 'summit', 'ridge', 'forest', 'tahura', 'rinjani', 'merbabu', 'bromo', 'sikunir', 'lawu', 'ciremai', 'semeru', 'patuha', 'kawah', 'curug', 'alas'];
+
+        foreach ($trailKeywords as $kw) {
+            if (str_contains($text, $kw)) {
+                $this->route_type = 'trail';
+                return;
+            }
+        }
+
+        $dist = (float) ($this->distance_km ?? 0);
+        $gain = (float) ($this->elevation_gain_m ?? 0);
+
+        if ($dist > 0 && $gain > 0) {
+            $gainPerKm = $gain / $dist;
+            // Steep gradient (>35m gain per km) indicates trail terrain
+            if ($gainPerKm >= 35.0) {
+                $this->route_type = 'trail';
+                return;
+            }
+        }
+
+        $this->route_type = 'road';
+    }
+
+    public function getRouteTypeLabelAttribute(): string
+    {
+        return match ($this->route_type) {
+            'trail' => 'Trail',
+            'track' => 'Track',
+            default => 'Road',
+        };
     }
 
     public function extractStartCoordinates(): void
