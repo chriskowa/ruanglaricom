@@ -539,8 +539,8 @@
                     <!-- Seller Card Preview -->
                     <div class="p-3 rounded-xl bg-[#0a0e17] border border-slate-800/80 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
-                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold shrink-0">
-                                {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                            <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-700 bg-slate-800 shrink-0">
+                                <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-white truncate">{{ auth()->user()->name ?? 'Seller Anda' }}</p>

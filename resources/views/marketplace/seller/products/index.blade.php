@@ -351,7 +351,7 @@
                                                     <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">Lelang</span>
                                                 @endif
                                                 @if($product->fulfillment_mode === 'consignment')
-                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-400/20 text-cyan-400">Titip Jual</span>
+                                                    <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white text-slate-950">Titip Jual</span>
                                                 @endif
                                                 @if(!$product->is_active && !$product->is_sold && !$product->is_archived)
                                                     <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400">Hidden</span>

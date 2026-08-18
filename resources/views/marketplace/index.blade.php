@@ -203,6 +203,25 @@
                     <input type="hidden" name="sort" id="hidden-sort" value="{{ request('sort') }}">
                     <input type="hidden" name="category" id="hidden-category" value="{{ request('category') }}">
                     
+                    <!-- Fulfillment Mode Filter (Titip Jual / Kirim Sendiri) -->
+                    <div class="space-y-2.5">
+                        <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Tipe Layanan</label>
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="fulfillment_mode" value="" class="hidden peer" {{ !request('fulfillment_mode') ? 'checked' : '' }}>
+                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="fulfillment_mode" value="consignment" class="hidden peer" {{ request('fulfillment_mode') == 'consignment' ? 'checked' : '' }}>
+                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Titip Jual</div>
+                            </label>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="fulfillment_mode" value="self_ship" class="hidden peer" {{ request('fulfillment_mode') == 'self_ship' ? 'checked' : '' }}>
+                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Direct</div>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Condition Filter (Segmented Control) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Kondisi</label>

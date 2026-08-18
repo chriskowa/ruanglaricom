@@ -31,6 +31,13 @@ class MarketplaceController extends Controller
                     });
             });
 
+        // Fulfillment Mode Filter (Titip Jual vs Kirim Langsung)
+        if ($request->filled('fulfillment_mode')) {
+            $query->where('fulfillment_mode', $request->fulfillment_mode);
+        } elseif ($request->filled('fulfillment')) {
+            $query->where('fulfillment_mode', $request->fulfillment);
+        }
+
         // Filter by Category (and sub-category if needed)
         if ($request->filled('category')) {
             $cat = MarketplaceCategory::where('slug', $request->category)->first();
@@ -179,16 +186,16 @@ class MarketplaceController extends Controller
             })
             ->with(['category', 'primaryImage', 'seller.city', 'brand'])
             ->latest()
-            ->take(4)
+            ->take(6)
             ->get();
 
-        if ($relatedProducts->count() < 4) {
+        if ($relatedProducts->count() < 6) {
             $existingIds = $relatedProducts->pluck('id')->push($product->id);
             $moreProducts = MarketplaceProduct::where('is_active', true)
                 ->whereNotIn('id', $existingIds)
                 ->with(['category', 'primaryImage', 'seller.city', 'brand'])
                 ->latest()
-                ->take(4 - $relatedProducts->count())
+                ->take(6 - $relatedProducts->count())
                 ->get();
             $relatedProducts = $relatedProducts->concat($moreProducts);
         }

@@ -1,5 +1,12 @@
 @if($products->count() > 0)
-    <div data-products-total="{{ method_exists($products, 'total') ? $products->total() : $products->count() }}" :class="sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'">
+    <div data-products-total="{{ method_exists($products, 'total') ? $products->total() : $products->count() }}"
+         @if(isset($gridClass))
+            class="{{ $gridClass }}"
+         @else
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+            :class="typeof sidebarOpen !== 'undefined' && sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'"
+         @endif
+    >
         @foreach($products as $product)
         @php
             $isWishlisted = false;
@@ -44,7 +51,7 @@
                     @endif
 
                     @if($product->fulfillment_mode === 'consignment')
-                    <span class="bg-cyan-500/20 backdrop-blur-md border border-cyan-400/40 text-cyan-300 text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                    <span class="bg-white text-slate-950 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
                         TITIP JUAL
                     </span>
                     @endif

@@ -142,8 +142,8 @@ class ProductController extends Controller
             'buy_now_price' => $saleType === 'auction' ? ($request->buy_now_price !== null ? (float) $request->buy_now_price : null) : null,
             'auction_status' => $saleType === 'auction' ? 'running' : 'draft',
             'is_active' => $fulfillment !== 'consignment',
-            'is_approved' => $isApproved,
-            'approval_status' => $approvalStatus,
+            'is_approved' => $fulfillment === 'consignment' ? false : $isApproved,
+            'approval_status' => $fulfillment === 'consignment' ? 'pending' : $approvalStatus,
             'meta_data' => $request->meta_data ?? [],
         ]);
 

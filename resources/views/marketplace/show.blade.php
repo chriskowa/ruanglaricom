@@ -107,6 +107,12 @@
                                 </span>
                             @endif
 
+                            @if($product->fulfillment_mode === 'consignment')
+                                <span class="px-3 py-1 rounded-md bg-white text-dark text-[10px] font-black uppercase tracking-widest shadow-md">
+                                    TITIP JUAL
+                                </span>
+                            @endif
+
                             @if($product->isFeaturedActive())
                                 <span class="px-3 py-1 rounded-md bg-neon text-dark text-[10px] font-black uppercase tracking-widest shadow-md">
                                     FEATURED
@@ -179,7 +185,7 @@
                     </div>
                     
                     <div class="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight flex items-baseline gap-2">
-                        <span class="text-neon">Rp</span>
+                        <span class="text-white">Rp</span>
                         <span>{{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}</span>
                     </div>
 
@@ -255,8 +261,8 @@
                 <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
                         <div class="w-12 h-12 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 shrink-0">
-                            <img src="{{ optional($product->seller)->avatar ? (Str::startsWith($product->seller->avatar, 'http') ? $product->seller->avatar : '/storage/'.$product->seller->avatar) : 'https://ui-avatars.com/api/?name='.urlencode(optional($product->seller)->name ?? 'Seller').'&background=111F35&color=B8FF00' }}" 
-                                 alt="Avatar" 
+                            <img src="{{ optional($product->seller)->avatar_url }}" 
+                                 alt="{{ optional($product->seller)->name ?? 'Seller' }}" 
                                  class="w-full h-full object-cover">
                         </div>
                         <div>
@@ -367,7 +373,10 @@
                     </a>
                 </div>
 
-                @include('marketplace.partials.product-grid', ['products' => $relatedProducts, 'sidebarOpen' => false])
+                @include('marketplace.partials.product-grid', [
+                    'products' => $relatedProducts,
+                    'gridClass' => 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6'
+                ])
             </div>
         @endif
 
