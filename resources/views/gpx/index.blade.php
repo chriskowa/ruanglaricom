@@ -323,7 +323,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">Peta Sebaran Rute GPX</h2>
                             <span id="gpx-map-routes-count" class="px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 text-[11px] font-bold">
-                                {{ count($mapRoutes ?? []) }} Titik Start
+                                {{ count($mapRoutes ?? []) }} Rute terdaftar
                             </span>
                         </div>
                         <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta (CARTO Light). Klik marker untuk melihat detail rute.</p>
