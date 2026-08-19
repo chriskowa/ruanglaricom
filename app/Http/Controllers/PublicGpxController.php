@@ -170,9 +170,45 @@ class PublicGpxController extends Controller
             ]);
         }
 
+        // Prepare published routes with start coordinates for the Interactive Explorer Map
+        $mapRoutes = MasterGpx::query()
+            ->where('is_published', true)
+            ->whereNotNull('start_latitude')
+            ->whereNotNull('start_longitude')
+            ->select([
+                'id',
+                'slug',
+                'title',
+                'city',
+                'route_type',
+                'distance_km',
+                'elevation_gain_m',
+                'elevation_loss_m',
+                'start_latitude',
+                'start_longitude',
+            ])
+            ->get()
+            ->map(function ($route) {
+                return [
+                    'id' => $route->id,
+                    'title' => $route->title,
+                    'city' => $route->city ?? 'Indonesia',
+                    'route_type' => $route->route_type ?? 'road',
+                    'route_type_label' => $route->route_type_label ?? ucfirst($route->route_type ?? 'Road'),
+                    'distance_km' => $route->distance_km ? number_format($route->distance_km, 2) : null,
+                    'elevation_gain_m' => round($route->elevation_gain_m ?? 0),
+                    'elevation_loss_m' => round($route->elevation_loss_m ?? 0),
+                    'start_lat' => (float) $route->start_latitude,
+                    'start_lng' => (float) $route->start_longitude,
+                    'url' => route('gpx.show', $route->slug ?: $route->id),
+                    'download_url' => route('gpx.download', $route->id),
+                ];
+            });
+
         return view('gpx.index', [
             'items' => $items,
             'cities' => $cities,
+            'mapRoutes' => $mapRoutes,
             'userLat' => $userLat,
             'userLng' => $userLng,
             'hasCoordinates' => $hasCoordinates,

@@ -8,10 +8,72 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         .leaflet-control-attribution, .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo {
             display: none !important;
+        }
+        /* Custom GPX Marker Cluster */
+        .gpx-cluster-wrapper {
+            background: transparent !important;
+            border: none !important;
+        }
+        .gpx-map-cluster {
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+            border: 2px solid #0c121e;
+            transition: transform 0.15s ease;
+        }
+        .gpx-map-cluster:hover {
+            transform: scale(1.1);
+        }
+        .gpx-cluster-small {
+            background: #ccff00;
+            color: #020617;
+        }
+        .gpx-cluster-medium {
+            background: #38bdf8;
+            color: #020617;
+        }
+        .gpx-cluster-large {
+            background: #f97316;
+            color: #ffffff;
+        }
+
+        /* Custom Leaflet Popup Styling */
+        .gpx-custom-leaflet-popup .leaflet-popup-content-wrapper {
+            background: #0c121e !important;
+            color: #f1f5f9 !important;
+            border-radius: 1rem !important;
+            border: 1px solid #334155 !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
+            padding: 0 !important;
+        }
+        .gpx-custom-leaflet-popup .leaflet-popup-content {
+            margin: 0.875rem !important;
+            line-height: 1.4 !important;
+            min-width: 220px;
+            max-width: 280px;
+        }
+        .gpx-custom-leaflet-popup .leaflet-popup-tip {
+            background: #0c121e !important;
+            border: 1px solid #334155 !important;
+        }
+        .gpx-custom-leaflet-popup a.leaflet-popup-close-button {
+            color: #94a3b8 !important;
+            padding: 8px !important;
+        }
+        .gpx-custom-leaflet-popup a.leaflet-popup-close-button:hover {
+            color: #ffffff !important;
         }
         .gpx-svg-grid {
             background-color: #0c121e;
@@ -218,6 +280,60 @@
                 <button id="btn-clear-gps-filter" type="button" class="px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-rose-500/50 text-slate-400 hover:text-rose-400 text-xs font-semibold transition cursor-pointer" title="Hapus Filter GPS">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
+            </div>
+        </div>
+
+        <!-- Interactive Explorer Map Section (Minimizable, OpenStreetMap with CARTO Light style, Marker Clustering) -->
+        <div id="gpx-explorer-map-section" class="bg-[#0c121e] border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all duration-300">
+            <!-- Header bar with Minimize/Expand toggle -->
+            <div class="px-5 py-3.5 bg-[#090D16]/90 border-b border-slate-800 flex items-center justify-between gap-4 cursor-pointer select-none" id="btn-toggle-explorer-map">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent shrink-0">
+                        <i class="fa-solid fa-map-location-dot text-base"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">Peta Sebaran Rute GPX</h2>
+                            <span class="px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 text-[11px] font-bold">
+                                {{ count($mapRoutes ?? []) }} Titik Start
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta OpenStreetMap (CARTO Light). Klik marker untuk melihat detail rute.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+                    <button type="button" id="btn-map-recenter" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Pusatkan Peta ke Seluruh Rute">
+                        <i class="fa-solid fa-expand text-[11px]"></i>
+                        <span class="hidden sm:inline">Pusatkan</span>
+                    </button>
+                    <button type="button" id="btn-map-minimize-toggle" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Minimize / Tampilkan Peta">
+                        <span id="label-map-toggle" class="text-xs">Sembunyikan</span>
+                        <i id="icon-map-toggle" class="fa-solid fa-chevron-up transition-transform duration-300 text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Container Wrapper -->
+            <div id="explorer-map-collapse-wrap" class="relative transition-all duration-300">
+                <div id="gpx-explorer-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-[#f2efe9]"></div>
+                
+                <!-- Map Legend / Controls Overlay -->
+                <div class="absolute bottom-3 left-3 z-[400] bg-slate-950/90 backdrop-blur border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 shadow-xl pointer-events-auto flex items-center gap-3">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tipe:</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#ccff00] border border-black/40"></span>
+                        <span class="text-[11px] text-slate-200 font-medium">Road</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] border border-black/40"></span>
+                        <span class="text-[11px] text-slate-200 font-medium">Trail</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] border border-black/40"></span>
+                        <span class="text-[11px] text-slate-200 font-medium">Track</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -672,9 +788,254 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const isUserLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+
+            // ==========================================
+            // INTERACTIVE GPX EXPLORER MAP (CARTO Light & Clustering)
+            // ==========================================
+            const mapContainer = document.getElementById('gpx-explorer-map');
+            const mapRoutesData = @json($mapRoutes ?? []);
+            let explorerMap = null;
+            let explorerClusterGroup = null;
+
+            function initExplorerMap() {
+                if (!mapContainer || explorerMap) return;
+
+                // Center of Indonesia as default fallback
+                const defaultCenter = [-2.5489, 118.0149];
+                const defaultZoom = 5;
+
+                explorerMap = L.map('gpx-explorer-map', {
+                    zoomControl: true,
+                    attributionControl: false,
+                    scrollWheelZoom: true
+                }).setView(defaultCenter, defaultZoom);
+
+                // OpenStreetMap tiles styled with CARTO Light (Positron)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    subdomains: 'abcd',
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                }).addTo(explorerMap);
+
+                // Initialize Marker Cluster Group with custom styling
+                explorerClusterGroup = L.markerClusterGroup({
+                    showCoverageOnHover: false,
+                    maxClusterRadius: 45,
+                    spiderfyOnMaxZoom: true,
+                    iconCreateFunction: function(cluster) {
+                        const count = cluster.getChildCount();
+                        let size = 36;
+                        let cClass = 'gpx-cluster-small';
+                        if (count >= 10) {
+                            size = 42;
+                            cClass = 'gpx-cluster-medium';
+                        }
+                        if (count >= 50) {
+                            size = 50;
+                            cClass = 'gpx-cluster-large';
+                        }
+
+                        return L.divIcon({
+                            html: `<div class="gpx-map-cluster ${cClass}"><span>${count}</span></div>`,
+                            className: 'gpx-cluster-wrapper',
+                            iconSize: L.point(size, size)
+                        });
+                    }
+                });
+
+                function getPinIcon(routeType) {
+                    let color = '#ccff00';
+                    let textColor = '#020617';
+                    let iconClass = 'fa-person-running';
+                    if (routeType === 'trail') {
+                        color = '#10b981';
+                        iconClass = 'fa-mountain';
+                        textColor = '#ffffff';
+                    } else if (routeType === 'track') {
+                        color = '#38bdf8';
+                        iconClass = 'fa-stopwatch';
+                        textColor = '#020617';
+                    }
+
+                    return L.divIcon({
+                        className: 'custom-gpx-pin-wrapper',
+                        html: `<div style="
+                            background: ${color};
+                            color: ${textColor};
+                            width: 30px;
+                            height: 30px;
+                            border-radius: 50% 50% 50% 0;
+                            transform: rotate(-45deg);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 3px 8px rgba(0,0,0,0.35), 0 0 0 2px #0c121e;
+                            cursor: pointer;
+                        ">
+                            <i class="fa-solid ${iconClass}" style="transform: rotate(45deg); font-size: 12px;"></i>
+                        </div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 30],
+                        popupAnchor: [0, -30]
+                    });
+                }
+
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                const validBounds = [];
+
+                mapRoutesData.forEach(route => {
+                    if (route.start_lat && route.start_lng && !isNaN(route.start_lat) && !isNaN(route.start_lng)) {
+                        const marker = L.marker([route.start_lat, route.start_lng], {
+                            icon: getPinIcon(route.route_type)
+                        });
+
+                        let typeBadgeClass = 'bg-[#ccff00]/15 text-accent border border-accent/30';
+                        if (route.route_type === 'trail') {
+                            typeBadgeClass = 'bg-[#10b981]/15 text-emerald-400 border border-emerald-500/30';
+                        } else if (route.route_type === 'track') {
+                            typeBadgeClass = 'bg-[#38bdf8]/15 text-sky-400 border border-sky-500/30';
+                        }
+
+                        const popupHtml = `
+                            <div class="gpx-map-popup-card">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono ${typeBadgeClass}">
+                                        ${escapeHtml(route.route_type_label || route.route_type)}
+                                    </span>
+                                    <span class="text-xs text-slate-300 flex items-center gap-1">
+                                        <i class="fa-solid fa-location-dot text-accent text-[10px]"></i>
+                                        <span>${escapeHtml(route.city || 'Indonesia')}</span>
+                                    </span>
+                                </div>
+                                
+                                <h4 class="text-sm font-bold text-white mb-2.5 line-clamp-2 leading-snug">
+                                    <a href="${route.url}" class="hover:text-accent transition-colors">
+                                        ${escapeHtml(route.title)}
+                                    </a>
+                                </h4>
+                                
+                                <div class="grid grid-cols-3 gap-1.5 text-center mb-3 bg-[#090D16] p-2 rounded-xl border border-slate-800">
+                                    <div>
+                                        <div class="text-[10px] text-slate-400">Jarak</div>
+                                        <div class="text-xs font-bold text-white font-mono">${route.distance_km ? route.distance_km + ' km' : '-'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-slate-400">Gain</div>
+                                        <div class="text-xs font-bold text-white font-mono">+${route.elevation_gain_m}m</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-slate-400">Loss</div>
+                                        <div class="text-xs font-bold text-white font-mono">-${route.elevation_loss_m}m</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <a href="${route.url}" class="flex-1 px-3 py-1.5 rounded-lg bg-accent text-slate-950 hover:bg-white text-xs font-bold transition flex items-center justify-center gap-1 text-center shadow-sm">
+                                        <span>Detail Rute</span>
+                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </a>
+                                    <a href="${route.download_url}" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="Unduh GPX">
+                                        <i class="fa-solid fa-download text-[11px]"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+
+                        marker.bindPopup(popupHtml, {
+                            maxWidth: 300,
+                            minWidth: 240,
+                            className: 'gpx-custom-leaflet-popup'
+                        });
+
+                        explorerClusterGroup.addLayer(marker);
+                        validBounds.push([route.start_lat, route.start_lng]);
+                    }
+                });
+
+                explorerMap.addLayer(explorerClusterGroup);
+
+                if (validBounds.length > 0) {
+                    try {
+                        const bounds = L.latLngBounds(validBounds);
+                        if (bounds.isValid()) {
+                            explorerMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 12 });
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            initExplorerMap();
+
+            // Recenter button
+            const btnMapRecenter = document.getElementById('btn-map-recenter');
+            if (btnMapRecenter) {
+                btnMapRecenter.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (explorerMap && explorerClusterGroup) {
+                        try {
+                            const bounds = explorerClusterGroup.getBounds();
+                            if (bounds.isValid()) {
+                                explorerMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 12 });
+                            }
+                        } catch(err) {}
+                    }
+                });
+            }
+
+            // Minimize / Expand Toggle Engine
+            const btnToggleExplorerMap = document.getElementById('btn-toggle-explorer-map');
+            const btnMapMinimizeToggle = document.getElementById('btn-map-minimize-toggle');
+            const explorerMapCollapseWrap = document.getElementById('explorer-map-collapse-wrap');
+            const iconMapToggle = document.getElementById('icon-map-toggle');
+            const labelMapToggle = document.getElementById('label-map-toggle');
+            let isMapMinimized = false;
+
+            function toggleExplorerMap(forceState) {
+                if (!explorerMapCollapseWrap) return;
+                
+                isMapMinimized = (typeof forceState === 'boolean') ? forceState : !isMapMinimized;
+
+                if (isMapMinimized) {
+                    explorerMapCollapseWrap.style.display = 'none';
+                    if (iconMapToggle) iconMapToggle.classList.add('rotate-180');
+                    if (labelMapToggle) labelMapToggle.textContent = 'Tampilkan';
+                } else {
+                    explorerMapCollapseWrap.style.display = 'block';
+                    if (iconMapToggle) iconMapToggle.classList.remove('rotate-180');
+                    if (labelMapToggle) labelMapToggle.textContent = 'Sembunyikan';
+                    
+                    setTimeout(() => {
+                        if (explorerMap) {
+                            explorerMap.invalidateSize();
+                        }
+                    }, 100);
+                }
+            }
+
+            if (btnToggleExplorerMap) {
+                btnToggleExplorerMap.addEventListener('click', function() {
+                    toggleExplorerMap();
+                });
+            }
+            if (btnMapMinimizeToggle) {
+                btnMapMinimizeToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleExplorerMap();
+                });
+            }
 
             function parseCoordinatePair(item) {
                 if (!item) return null;

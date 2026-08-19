@@ -21,8 +21,14 @@
                         @endif
 
                         @if(isset($item->user_distance_km))
-                            <div class="absolute bottom-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-md bg-accent/95 text-slate-950 text-[11px] font-bold flex items-center gap-1 shadow-sm">
-                                <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+                            <div class="absolute top-2.5 left-1/2 -translate-x-1/2 z-10 px-2.5 py-1 rounded-md bg-slate-950/80 backdrop-blur border border-slate-800 text-[11px] font-medium text-white flex items-center gap-1.5 whitespace-nowrap shadow-sm">
+                                <svg class="w-3 h-3 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="22" y1="12" x2="18" y2="12"></line>
+                                    <line x1="6" y1="12" x2="2" y2="12"></line>
+                                    <line x1="12" y1="6" x2="12" y2="2"></line>
+                                    <line x1="12" y1="22" x2="12" y2="18"></line>
+                                </svg>
                                 <span>{{ number_format($item->user_distance_km, 1) }} km dari Anda</span>
                             </div>
                         @endif
