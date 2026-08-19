@@ -49,7 +49,33 @@
             color: #ffffff;
         }
 
-        /* Custom Leaflet Popup Styling */
+        /* Custom Leaflet Popup Styling (Pure Dark & RuangLari Palette - No #0078A8) */
+        .leaflet-container {
+            font-family: inherit !important;
+            background: #111827 !important;
+        }
+        .leaflet-container a {
+            color: #ccff00 !important;
+            text-decoration: none !important;
+        }
+        .leaflet-container a:hover {
+            color: #ffffff !important;
+        }
+        .leaflet-control-zoom a {
+            background-color: #0c121e !important;
+            color: #f1f5f9 !important;
+            border-color: #334155 !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background-color: #1e293b !important;
+            color: #ccff00 !important;
+        }
+        .leaflet-control-zoom a:focus {
+            background-color: #1e293b !important;
+            color: #ccff00 !important;
+            outline: none !important;
+            border-color: #ccff00 !important;
+        }
         .gpx-custom-leaflet-popup .leaflet-popup-content-wrapper {
             background: #0c121e !important;
             color: #f1f5f9 !important;
@@ -287,18 +313,15 @@
         <div id="gpx-explorer-map-section" class="bg-[#0c121e] border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all duration-300">
             <!-- Header bar with Minimize/Expand toggle -->
             <div class="px-5 py-3.5 bg-[#090D16]/90 border-b border-slate-800 flex items-center justify-between gap-4 cursor-pointer select-none" id="btn-toggle-explorer-map">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center text-accent shrink-0">
-                        <i class="fa-solid fa-map-location-dot text-base"></i>
-                    </div>
+                <div class="flex items-center gap-3">                    
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">Peta Sebaran Rute GPX</h2>
-                            <span class="px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 text-[11px] font-bold">
+                            <span id="gpx-map-routes-count" class="px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 text-[11px] font-bold">
                                 {{ count($mapRoutes ?? []) }} Titik Start
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta OpenStreetMap (CARTO Light). Klik marker untuk melihat detail rute.</p>
+                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta (Stadia Alidade Smooth). Klik marker untuk melihat detail rute.</p>
                     </div>
                 </div>
 
@@ -794,109 +817,74 @@
             const isUserLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
 
             // ==========================================
-            // INTERACTIVE GPX EXPLORER MAP (CARTO Light & Clustering)
+            // INTERACTIVE GPX EXPLORER MAP (Stadia Alidade Smooth & Clustering)
             // ==========================================
             const mapContainer = document.getElementById('gpx-explorer-map');
-            const mapRoutesData = @json($mapRoutes ?? []);
+            const allInitialMapRoutes = @json($mapRoutes ?? []);
+            const mapRoutesCountEl = document.getElementById('gpx-map-routes-count');
             let explorerMap = null;
             let explorerClusterGroup = null;
 
-            function initExplorerMap() {
-                if (!mapContainer || explorerMap) return;
-
-                // Center of Indonesia as default fallback
-                const defaultCenter = [-2.5489, 118.0149];
-                const defaultZoom = 5;
-
-                explorerMap = L.map('gpx-explorer-map', {
-                    zoomControl: true,
-                    attributionControl: false,
-                    scrollWheelZoom: true
-                }).setView(defaultCenter, defaultZoom);
-
-                // OpenStreetMap tiles styled with CARTO Light (Positron)
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }).addTo(explorerMap);
-
-                // Initialize Marker Cluster Group with custom styling
-                explorerClusterGroup = L.markerClusterGroup({
-                    showCoverageOnHover: false,
-                    maxClusterRadius: 45,
-                    spiderfyOnMaxZoom: true,
-                    iconCreateFunction: function(cluster) {
-                        const count = cluster.getChildCount();
-                        let size = 36;
-                        let cClass = 'gpx-cluster-small';
-                        if (count >= 10) {
-                            size = 42;
-                            cClass = 'gpx-cluster-medium';
-                        }
-                        if (count >= 50) {
-                            size = 50;
-                            cClass = 'gpx-cluster-large';
-                        }
-
-                        return L.divIcon({
-                            html: `<div class="gpx-map-cluster ${cClass}"><span>${count}</span></div>`,
-                            className: 'gpx-cluster-wrapper',
-                            iconSize: L.point(size, size)
-                        });
-                    }
-                });
-
-                function getPinIcon(routeType) {
-                    let color = '#ccff00';
-                    let textColor = '#020617';
-                    let iconClass = 'fa-person-running';
-                    if (routeType === 'trail') {
-                        color = '#10b981';
-                        iconClass = 'fa-mountain';
-                        textColor = '#ffffff';
-                    } else if (routeType === 'track') {
-                        color = '#38bdf8';
-                        iconClass = 'fa-stopwatch';
-                        textColor = '#020617';
-                    }
-
-                    return L.divIcon({
-                        className: 'custom-gpx-pin-wrapper',
-                        html: `<div style="
-                            background: ${color};
-                            color: ${textColor};
-                            width: 30px;
-                            height: 30px;
-                            border-radius: 50% 50% 50% 0;
-                            transform: rotate(-45deg);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            box-shadow: 0 3px 8px rgba(0,0,0,0.35), 0 0 0 2px #0c121e;
-                            cursor: pointer;
-                        ">
-                            <i class="fa-solid ${iconClass}" style="transform: rotate(45deg); font-size: 12px;"></i>
-                        </div>`,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 30],
-                        popupAnchor: [0, -30]
-                    });
+            function getPinIcon(routeType) {
+                let color = '#ccff00';
+                let textColor = '#020617';
+                let iconClass = 'fa-person-running';
+                if (routeType === 'trail') {
+                    color = '#10b981';
+                    iconClass = 'fa-mountain';
+                    textColor = '#ffffff';
+                } else if (routeType === 'track') {
+                    color = '#38bdf8';
+                    iconClass = 'fa-stopwatch';
+                    textColor = '#020617';
                 }
 
-                function escapeHtml(str) {
-                    if (!str) return '';
-                    return String(str)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;');
+                return L.divIcon({
+                    className: 'custom-gpx-pin-wrapper',
+                    html: `<div style="
+                        background: ${color};
+                        color: ${textColor};
+                        width: 30px;
+                        height: 30px;
+                        border-radius: 50% 50% 50% 0;
+                        transform: rotate(-45deg);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-shadow: 0 3px 8px rgba(0,0,0,0.35), 0 0 0 2px #0c121e;
+                        cursor: pointer;
+                    ">
+                        <i class="fa-solid ${iconClass}" style="transform: rotate(45deg); font-size: 12px;"></i>
+                    </div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30],
+                    popupAnchor: [0, -30]
+                });
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function updateExplorerMapMarkers(routesList, shouldZoom = true) {
+                if (!explorerMap || !explorerClusterGroup) return;
+
+                const routes = Array.isArray(routesList) ? routesList : [];
+                explorerClusterGroup.clearLayers();
+
+                if (mapRoutesCountEl) {
+                    mapRoutesCountEl.textContent = `${routes.length} Titik Start`;
                 }
 
                 const validBounds = [];
 
-                mapRoutesData.forEach(route => {
+                routes.forEach(route => {
                     if (route.start_lat && route.start_lng && !isNaN(route.start_lat) && !isNaN(route.start_lng)) {
                         const marker = L.marker([route.start_lat, route.start_lng], {
                             icon: getPinIcon(route.route_type)
@@ -915,7 +903,7 @@
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono ${typeBadgeClass}">
                                         ${escapeHtml(route.route_type_label || route.route_type)}
                                     </span>
-                                    <span class="text-xs text-slate-300 flex items-center gap-1">
+                                    <span class="text-xs text-slate-300 flex items-center gap-1 pl-2">
                                         <i class="fa-solid fa-location-dot text-accent text-[10px]"></i>
                                         <span>${escapeHtml(route.city || 'Indonesia')}</span>
                                     </span>
@@ -965,16 +953,67 @@
                     }
                 });
 
-                explorerMap.addLayer(explorerClusterGroup);
-
-                if (validBounds.length > 0) {
+                if (shouldZoom && validBounds.length > 0) {
                     try {
-                        const bounds = L.latLngBounds(validBounds);
-                        if (bounds.isValid()) {
-                            explorerMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 12 });
+                        if (validBounds.length === 1) {
+                            explorerMap.setView(validBounds[0], 14, { animate: true });
+                        } else {
+                            const bounds = L.latLngBounds(validBounds);
+                            if (bounds.isValid()) {
+                                explorerMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: true });
+                            }
                         }
                     } catch(e) {}
                 }
+            }
+
+            function initExplorerMap() {
+                if (!mapContainer || explorerMap) return;
+
+                // Center of Indonesia as default fallback
+                const defaultCenter = [-2.5489, 118.0149];
+                const defaultZoom = 5;
+
+                explorerMap = L.map('gpx-explorer-map', {
+                    zoomControl: true,
+                    attributionControl: false,
+                    scrollWheelZoom: true
+                }).setView(defaultCenter, defaultZoom);
+
+                // Stadia Alidade Smooth Tile Layer
+                L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(explorerMap);
+
+                // Initialize Marker Cluster Group with custom styling
+                explorerClusterGroup = L.markerClusterGroup({
+                    showCoverageOnHover: false,
+                    maxClusterRadius: 45,
+                    spiderfyOnMaxZoom: true,
+                    iconCreateFunction: function(cluster) {
+                        const count = cluster.getChildCount();
+                        let size = 36;
+                        let cClass = 'gpx-cluster-small';
+                        if (count >= 10) {
+                            size = 42;
+                            cClass = 'gpx-cluster-medium';
+                        }
+                        if (count >= 50) {
+                            size = 50;
+                            cClass = 'gpx-cluster-large';
+                        }
+
+                        return L.divIcon({
+                            html: `<div class="gpx-map-cluster ${cClass}"><span>${count}</span></div>`,
+                            className: 'gpx-cluster-wrapper',
+                            iconSize: L.point(size, size)
+                        });
+                    }
+                });
+
+                explorerMap.addLayer(explorerClusterGroup);
+                updateExplorerMapMarkers(allInitialMapRoutes, true);
             }
 
             initExplorerMap();
@@ -1307,6 +1346,9 @@
                             gpxCatalogResults.innerHTML = data.html;
                             if (totalCountEl && data.total !== undefined) {
                                 totalCountEl.textContent = data.total;
+                            }
+                            if (data.mapRoutes !== undefined) {
+                                updateExplorerMapMarkers(data.mapRoutes, true);
                             }
                             renderAllRouteSvgs();
 

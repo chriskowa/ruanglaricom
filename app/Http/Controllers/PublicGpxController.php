@@ -146,33 +146,8 @@ class PublicGpxController extends Controller
                 break;
         }
 
-        $items = $query->paginate(12)->withQueryString();
-
-        // Get distinct cities for filter dropdown
-        $cities = MasterGpx::query()
-            ->where('is_published', true)
-            ->whereNotNull('city')
-            ->where('city', '!=', '')
-            ->distinct()
-            ->orderBy('city')
-            ->pluck('city');
-
-        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
-            return response()->json([
-                'success' => true,
-                'html' => view('gpx.partials.cards', [
-                    'items' => $items,
-                    'userLat' => $userLat,
-                    'userLng' => $userLng,
-                    'hasCoordinates' => $hasCoordinates,
-                ])->render(),
-                'total' => $items->total(),
-            ]);
-        }
-
-        // Prepare published routes with start coordinates for the Interactive Explorer Map
-        $mapRoutes = MasterGpx::query()
-            ->where('is_published', true)
+        // Prepare published routes with start coordinates matching current filters for the Interactive Explorer Map
+        $mapRoutes = (clone $query)
             ->whereNotNull('start_latitude')
             ->whereNotNull('start_longitude')
             ->select([
@@ -204,6 +179,31 @@ class PublicGpxController extends Controller
                     'download_url' => route('gpx.download', $route->id),
                 ];
             });
+
+        $items = $query->paginate(12)->withQueryString();
+
+        // Get distinct cities for filter dropdown
+        $cities = MasterGpx::query()
+            ->where('is_published', true)
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city');
+
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            return response()->json([
+                'success' => true,
+                'html' => view('gpx.partials.cards', [
+                    'items' => $items,
+                    'userLat' => $userLat,
+                    'userLng' => $userLng,
+                    'hasCoordinates' => $hasCoordinates,
+                ])->render(),
+                'total' => $items->total(),
+                'mapRoutes' => $mapRoutes,
+            ]);
+        }
 
         return view('gpx.index', [
             'items' => $items,
