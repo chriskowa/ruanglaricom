@@ -148,9 +148,10 @@ class PublicGpxController extends Controller
 
         // Prepare published routes with start coordinates matching current filters for the Interactive Explorer Map
         $mapRoutes = (clone $query)
+            ->reorder()
             ->whereNotNull('start_latitude')
             ->whereNotNull('start_longitude')
-            ->select([
+            ->get([
                 'id',
                 'slug',
                 'title',
@@ -162,7 +163,6 @@ class PublicGpxController extends Controller
                 'start_latitude',
                 'start_longitude',
             ])
-            ->get()
             ->map(function ($route) {
                 return [
                     'id' => $route->id,
