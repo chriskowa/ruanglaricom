@@ -22,6 +22,9 @@
 @section('meta_title', $pageTitle)
 @section('meta_description', $pageDesc)
 @section('meta_keywords', 'rute gpx ' . strtolower($item->title) . ', navigasi gpx ' . strtolower($item->title) . ', download gpx ' . strtolower($cityName) . ', gpx garmin, gpx strava route')
+@section('canonical_url', route('gpx.show', $item->slug ?: $item->id))
+@section('og_url', route('gpx.show', $item->slug ?: $item->id))
+@section('og_type', 'place')
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">

@@ -81,6 +81,13 @@
         .gpx-custom-leaflet-popup a.btn-popup-detail:hover * {
             color: #020617 !important;
         }
+        .gpx-custom-leaflet-popup h4 a {
+            color: #ffffff !important;
+            transition: color 0.15s ease;
+        }
+        .gpx-custom-leaflet-popup h4 a:hover {
+            color: #ccff00 !important;
+        }
         .gpx-custom-leaflet-popup .leaflet-popup-content-wrapper {
             background: #0c121e !important;
             color: #f1f5f9 !important;
@@ -915,7 +922,7 @@
                                 </div>
                                 
                                 <h4 class="text-sm font-bold text-white mb-2.5 line-clamp-2 leading-snug">
-                                    <a href="${route.url}" class="hover:text-accent transition-colors">
+                                    <a href="${route.url}" class="text-white hover:text-accent transition-colors" style="color: #ffffff !important;">
                                         ${escapeHtml(route.title)}
                                     </a>
                                 </h4>

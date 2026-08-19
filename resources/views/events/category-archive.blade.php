@@ -15,7 +15,7 @@
 @section('meta_title', $title)
 @section('meta_description', $metaDescription)
 @section('canonical_url', $canonicalUrl)
-@section('og_image', 'https://ruanglari.com/images/og/jadwal-lari-2026.jpg')
+@section('og_image', 'https://ruanglari.com/storage/blog/media/012cce42-9e25-41b8-9e03-dc3a177fd595.webp')
 
 @section('content')
 <div class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-dark relative overflow-hidden font-sans">
