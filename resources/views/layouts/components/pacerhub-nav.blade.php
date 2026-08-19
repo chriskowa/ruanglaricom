@@ -281,7 +281,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
     const userRole = {!! json_encode(auth()->check() ? auth()->user()->role : null) !!};
-    const supportsCartAndNotif = ['runner', 'coach', 'eo'].includes(userRole);
+    const supportsCart = ['runner', 'coach', 'eo', 'admin'].includes(userRole);
+    const supportsNotif = isAuthenticated;
 
     // Dropdown Toggles
     const toggles = [
@@ -359,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchNotifications(showLoading = false) {
-        if (!isAuthenticated || !supportsCartAndNotif) return;
+        if (!isAuthenticated || !supportsNotif) return;
 
         if (showLoading && notifList) {
             notifList.innerHTML =
@@ -432,9 +433,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial fetch and interval (only when authenticated)
     if (notifList) {
-        if (isAuthenticated && supportsCartAndNotif) {
+        if (isAuthenticated && supportsNotif) {
             fetchNotifications();
-            setInterval(fetchNotifications, 60000);
+            setInterval(fetchNotifications, 30000);
         } else {
             if (notifBadge) notifBadge.classList.add('hidden');
             notifList.innerHTML =
@@ -494,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileCartBadge = document.getElementById('mobile-cart-count');
 
     function fetchCartCount() {
-        if (!isAuthenticated || !supportsCartAndNotif) return;
+        if (!isAuthenticated || !supportsCart) return;
 
         fetch('{{ route("marketplace.cart.count") }}', {
             headers: { 'Accept': 'application/json' }
@@ -523,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(err => console.error('Cart error:', err));
     }
 
-    if ((cartBadge || mobileCartBadge) && supportsCartAndNotif) {
+    if ((cartBadge || mobileCartBadge) && supportsCart) {
         fetchCartCount();
         window.addEventListener('focus', fetchCartCount);
     } else {
