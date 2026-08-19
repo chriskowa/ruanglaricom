@@ -140,24 +140,24 @@
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
     {
-      "@@context": "https://schema.org",
-      "@@type": "CollectionPage",
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
       "name": "Database Rute GPX Lari Indonesia",
       "description": "Kumpulan rute lari dan file GPX terverifikasi untuk pelari di Indonesia. Siap dipakai di Garmin, Coros, Suunto, dan Strava.",
       "url": "{{ url()->current() }}",
       "publisher": {
-        "@@type": "Organization",
+        "@type": "Organization",
         "name": "RuangLari",
         "url": "{{ url('/') }}"
       },
       "mainEntity": {
-        "@@type": "ItemList",
+        "@type": "ItemList",
         "numberOfItems": {{ $items->total() ?? 0 }},
         "itemListElement": [
           @if(isset($items) && $items->count() > 0)
             @foreach($items->take(10) as $index => $item)
             {
-              "@@type": "ListItem",
+              "@type": "ListItem",
               "position": {{ $index + 1 }},
               "name": "{{ addslashes($item->title) }}",
               "url": "{{ route('gpx.show', $item->slug ?: $item->id) }}"
@@ -406,7 +406,7 @@
                         <div class="relative">
                             <select name="sort" id="select-filter-sort"
                                 class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="default" {{ (!request('sort') || request('sort') == 'default' || request('sort') == 'nearest') ? 'selected' : '' }}>Terdekat (Start GPX &gt; Kota &gt; A-Z)</option>
+                                <option value="default" {{ (!request('sort') || request('sort') == 'default' || request('sort') == 'nearest') ? 'selected' : '' }}>📍 Terdekat (Start GPX &gt; Kota &gt; A-Z)</option>
                                 <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
                                 <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
                                 <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
