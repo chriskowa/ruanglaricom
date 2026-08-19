@@ -55,11 +55,7 @@
             background: #111827 !important;
         }
         .leaflet-container a {
-            color: #ccff00 !important;
             text-decoration: none !important;
-        }
-        .leaflet-container a:hover {
-            color: #ffffff !important;
         }
         .leaflet-control-zoom a {
             background-color: #0c121e !important;
@@ -75,6 +71,15 @@
             color: #ccff00 !important;
             outline: none !important;
             border-color: #ccff00 !important;
+        }
+        .gpx-custom-leaflet-popup a.btn-popup-detail,
+        .gpx-custom-leaflet-popup a.btn-popup-detail * {
+            color: #020617 !important;
+            font-weight: 700 !important;
+        }
+        .gpx-custom-leaflet-popup a.btn-popup-detail:hover,
+        .gpx-custom-leaflet-popup a.btn-popup-detail:hover * {
+            color: #020617 !important;
         }
         .gpx-custom-leaflet-popup .leaflet-popup-content-wrapper {
             background: #0c121e !important;
@@ -903,7 +908,7 @@
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono ${typeBadgeClass}">
                                         ${escapeHtml(route.route_type_label || route.route_type)}
                                     </span>
-                                    <span class="text-xs text-slate-300 flex items-center gap-1 pl-2">
+                                    <span class="text-xs text-slate-300 flex items-center gap-1 pr-3">
                                         <i class="fa-solid fa-location-dot text-accent text-[10px]"></i>
                                         <span>${escapeHtml(route.city || 'Indonesia')}</span>
                                     </span>
@@ -931,11 +936,11 @@
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
-                                    <a href="${route.url}" class="flex-1 px-3 py-1.5 rounded-lg bg-accent text-slate-950 hover:bg-white text-xs font-bold transition flex items-center justify-center gap-1 text-center shadow-sm">
-                                        <span>Detail Rute</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    <a href="${route.url}" class="btn-popup-detail flex-1 px-3 py-1.5 rounded-lg bg-accent text-slate-950 hover:bg-white text-xs font-bold transition flex items-center justify-center gap-1 text-center shadow-sm" style="color: #020617 !important;">
+                                        <span style="color: #020617 !important;">Detail Rute</span>
+                                        <i class="fa-solid fa-arrow-right text-[10px]" style="color: #020617 !important;"></i>
                                     </a>
-                                    <a href="${route.download_url}" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="Unduh GPX">
+                                    <a href="${route.download_url}" class="btn-popup-download px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="Unduh GPX">
                                         <i class="fa-solid fa-download text-[11px]"></i>
                                     </a>
                                 </div>
