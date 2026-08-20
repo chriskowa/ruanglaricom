@@ -246,4 +246,9 @@ class MasterGpx extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function titleSuggestions()
+    {
+        return $this->hasMany(GpxTitleSuggestion::class, 'master_gpx_id');
+    }
 }

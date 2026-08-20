@@ -819,6 +819,8 @@
         </form>
     </div>
 </div>
+
+@include('gpx.partials.suggest-title-modal')
 @endsection
 
 @push('scripts')

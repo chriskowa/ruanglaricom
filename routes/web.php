@@ -136,12 +136,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Master GPX Management
     Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class);
     Route::post('/master-gpx/{master_gpx}/toggle-publish', [App\Http\Controllers\Admin\MasterGpxController::class, 'togglePublish'])->name('master-gpx.toggle-publish');
+    Route::post('/master-gpx/suggestions/{suggestion}/approve', [App\Http\Controllers\Admin\MasterGpxController::class, 'approveSuggestion'])->name('master-gpx.suggestions.approve');
+    Route::post('/master-gpx/suggestions/{suggestion}/reject', [App\Http\Controllers\Admin\MasterGpxController::class, 'rejectSuggestion'])->name('master-gpx.suggestions.reject');
+    Route::delete('/master-gpx/suggestions/{suggestion}', [App\Http\Controllers\Admin\MasterGpxController::class, 'destroySuggestion'])->name('master-gpx.suggestions.destroy');
 });
 
 // Public GPX Database & Submit GPX Modal
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
 Route::get('/api/cities/autocomplete', [App\Http\Controllers\PublicGpxController::class, 'searchCities'])->name('gpx.cities.autocomplete');
+Route::post('/database-gpx/{master_gpx}/suggest-title', [App\Http\Controllers\PublicGpxController::class, 'suggestTitle'])->middleware('auth')->name('gpx.suggest-title');
 Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
 Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
 Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->middleware('throttle:10,1')->name('tools.buat-rute-lari.submit-gpx');

@@ -37,8 +37,11 @@
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && authRole === 'admin') {
             return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
-        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission') && notif.reference_id) {
+        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission' || notif.type === 'gpx_title_suggestion') && notif.reference_id) {
             if (authRole === 'admin') {
+                if (notif.type === 'gpx_title_suggestion') {
+                    return @json(route('admin.master-gpx.index', ['tab' => 'suggestions']));
+                }
                 return @json(route('admin.master-gpx.index'));
             }
             return @json(route('gpx.show', ':id')).replace(':id', notif.reference_id);

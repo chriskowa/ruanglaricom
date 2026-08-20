@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\GpxTitleSuggestion;
 use App\Models\MasterGpx;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -35,9 +37,35 @@ class MasterGpxController extends Controller
 
         $items = $query->paginate(25)->withQueryString();
 
+        // Get suggestions count and query
+        $pendingSuggestionsCount = GpxTitleSuggestion::pending()->count();
+        $suggestionsQuery = GpxTitleSuggestion::with(['masterGpx', 'user', 'reviewer'])
+            ->orderByDesc('created_at');
+
+        if ($request->input('tab') === 'suggestions') {
+            if ($request->filled('suggestion_status')) {
+                $suggestionsQuery->where('status', $request->input('suggestion_status'));
+            }
+            if ($request->filled('q')) {
+                $search = $request->input('q');
+                $suggestionsQuery->where(function ($q) use ($search) {
+                    $q->where('proposed_title', 'like', "%{$search}%")
+                      ->orWhereHas('masterGpx', function ($mq) use ($search) {
+                          $mq->where('title', 'like', "%{$search}%")
+                            ->orWhere('city', 'like', "%{$search}%");
+                      });
+                });
+            }
+        }
+
+        $suggestions = $suggestionsQuery->paginate(25)->withQueryString();
+
         return view('admin.master-gpx.index', [
             'withSidebar' => true,
             'items' => $items,
+            'suggestions' => $suggestions,
+            'pendingSuggestionsCount' => $pendingSuggestionsCount,
+            'tab' => $request->input('tab', 'routes'),
             'status' => $request->input('status'),
             'search' => $request->input('q'),
         ]);
@@ -316,5 +344,74 @@ class MasterGpxController extends Controller
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $R * $c;
+    }
+
+    /**
+     * Approve a route title suggestion and update MasterGpx
+     */
+    public function approveSuggestion(Request $request, GpxTitleSuggestion $suggestion)
+    {
+        $masterGpx = $suggestion->masterGpx;
+        if (!$masterGpx) {
+            return back()->with('error', 'Data master GPX tidak ditemukan.');
+        }
+
+        $oldTitle = $masterGpx->title;
+        $newTitle = $suggestion->proposed_title;
+
+        // Update master GPX title and slug
+        $masterGpx->title = $newTitle;
+        $masterGpx->slug = MasterGpx::generateUniqueSlug($newTitle, $masterGpx->id);
+        $masterGpx->save();
+
+        // Mark current suggestion as approved
+        $suggestion->update([
+            'status' => 'approved',
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+            'admin_notes' => $request->input('admin_notes'),
+        ]);
+
+        // Send Notification to user who submitted the suggestion
+        if ($suggestion->user_id) {
+            try {
+                Notification::create([
+                    'user_id' => $suggestion->user_id,
+                    'type' => 'gpx_approved',
+                    'title' => 'Saran Nama Rute Diterapkan!',
+                    'message' => 'Saran penamaan rute kamu untuk "' . $oldTitle . '" telah disetujui menjadi "' . $newTitle . '". Terima kasih atas kontribusimu!',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $masterGpx->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
+        return redirect()->route('admin.master-gpx.index', ['tab' => 'suggestions'])->with('success', 'Saran nama rute berhasil diterapkan! Nama rute diperbarui menjadi: "' . $newTitle . '".');
+    }
+
+    /**
+     * Reject a route title suggestion
+     */
+    public function rejectSuggestion(Request $request, GpxTitleSuggestion $suggestion)
+    {
+        $suggestion->update([
+            'status' => 'rejected',
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+            'admin_notes' => $request->input('admin_notes'),
+        ]);
+
+        return redirect()->route('admin.master-gpx.index', ['tab' => 'suggestions'])->with('success', 'Saran nama rute telah ditolak.');
+    }
+
+    /**
+     * Delete a title suggestion record
+     */
+    public function destroySuggestion(GpxTitleSuggestion $suggestion)
+    {
+        $suggestion->delete();
+
+        return redirect()->route('admin.master-gpx.index', ['tab' => 'suggestions'])->with('success', 'Saran nama rute berhasil dihapus.');
     }
 }

@@ -165,6 +165,13 @@
             </nav>
 
             <div class="flex items-center gap-2 shrink-0">
+                <button type="button" 
+                        onclick="openSuggestTitleModal({{ $item->id }}, '{{ addslashes($item->title) }}', '{{ addslashes($cityName) }}')" 
+                        class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-accent/40 text-slate-300 hover:text-accent text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
+                        title="Sarankan Nama Rute Baru">
+                    <i class="fa-solid fa-pen-to-square text-[11px] text-accent"></i>
+                    <span>Saran Nama</span>
+                </button>
                 <button type="button" onclick="shareGpxRoute()" class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-slate-600 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-share-nodes text-[11px] text-slate-200"></i>
                     <span>Bagikan</span>
@@ -900,6 +907,8 @@
         @endauth
     </div>
 </div>
+
+@include('gpx.partials.suggest-title-modal')
 @endsection
 
 @push('scripts')

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GpxTitleSuggestion;
 use App\Models\MasterGpx;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -814,5 +818,88 @@ class PublicGpxController extends Controller
         $masterGpx->delete();
 
         return redirect()->route('runner.gpx.index')->with('success', 'Rute GPX berhasil dihapus.');
+    }
+
+    /**
+     * Submit a crowdsourced route title suggestion
+     */
+    public function suggestTitle(Request $request, MasterGpx $masterGpx)
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'require_login' => true,
+                'message' => 'Silakan login terlebih dahulu untuk menyarankan nama rute.',
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'proposed_title' => 'required|string|min:3|max:255',
+            'reason' => 'nullable|string|max:500',
+        ], [
+            'proposed_title.required' => 'Nama rute usulan wajib diisi.',
+            'proposed_title.min' => 'Nama rute usulan minimal 3 karakter.',
+            'proposed_title.max' => 'Nama rute usulan maksimal 255 karakter.',
+            'reason.max' => 'Catatan alasan maksimal 500 karakter.',
+        ]);
+
+        $proposedTitle = trim($validated['proposed_title']);
+
+        // Check if identical to current title
+        if (strcasecmp($proposedTitle, $masterGpx->title) === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama usulan sama persis dengan nama rute saat ini.',
+            ], 422);
+        }
+
+        // Check for pending suggestion from the same user for this GPX
+        $existing = GpxTitleSuggestion::where('master_gpx_id', $masterGpx->id)
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'proposed_title' => $proposedTitle,
+                'reason' => $validated['reason'] ?? null,
+            ]);
+            $suggestion = $existing;
+            $msg = 'Saran nama rute kamu berhasil diperbarui dan sedang menunggu tinjauan admin.';
+        } else {
+            $suggestion = GpxTitleSuggestion::create([
+                'master_gpx_id' => $masterGpx->id,
+                'user_id' => auth()->id(),
+                'proposed_title' => $proposedTitle,
+                'reason' => $validated['reason'] ?? null,
+                'status' => 'pending',
+            ]);
+            $msg = 'Terima kasih! Saran nama rute kamu berhasil dikirim dan akan segera ditinjau admin.';
+        }
+
+        // Send notifications to all Admin users
+        try {
+            $adminUsers = User::where('role', 'admin')->get();
+            $submitterName = auth()->user()->name ?? 'Runner';
+            foreach ($adminUsers as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'gpx_title_suggestion',
+                    'title' => 'Saran Nama Rute: ' . $masterGpx->title,
+                    'message' => $submitterName . ' menyarankan nama: "' . $proposedTitle . '"',
+                    'reference_type' => 'MasterGpx',
+                    'reference_id' => $masterGpx->id,
+                    'is_read' => false,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed sending admin notification for gpx title suggestion: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
+            'suggestion_id' => $suggestion->id,
+        ]);
     }
 }

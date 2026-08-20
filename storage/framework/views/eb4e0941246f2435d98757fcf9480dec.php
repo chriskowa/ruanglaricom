@@ -339,8 +339,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
             return <?php echo json_encode(route('admin.event-submissions.show', ':id'), 512) ?>.replace(':id', notif.reference_id);
         }
-        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission' || notif.type === 'gpx_published' || notif.type === 'gpx_approved') && notif.reference_id) {
-            if (userRole === 'admin' && notif.type === 'gpx_submission') {
+        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission' || notif.type === 'gpx_published' || notif.type === 'gpx_approved' || notif.type === 'gpx_title_suggestion') && notif.reference_id) {
+            if (userRole === 'admin') {
+                if (notif.type === 'gpx_title_suggestion') {
+                    return <?php echo json_encode(route('admin.master-gpx.index', ['tab' => 'suggestions']), 512) ?>;
+                }
                 return <?php echo json_encode(route('admin.master-gpx.index'), 15, 512) ?>;
             }
             return <?php echo json_encode(route('gpx.show', ':id'), 512) ?>.replace(':id', notif.reference_id);

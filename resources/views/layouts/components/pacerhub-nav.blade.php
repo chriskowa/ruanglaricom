@@ -334,8 +334,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
             return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
-        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission' || notif.type === 'gpx_published' || notif.type === 'gpx_approved') && notif.reference_id) {
-            if (userRole === 'admin' && notif.type === 'gpx_submission') {
+        if ((notif.reference_type === 'MasterGpx' || notif.type === 'gpx_submission' || notif.type === 'gpx_published' || notif.type === 'gpx_approved' || notif.type === 'gpx_title_suggestion') && notif.reference_id) {
+            if (userRole === 'admin') {
+                if (notif.type === 'gpx_title_suggestion') {
+                    return @json(route('admin.master-gpx.index', ['tab' => 'suggestions']));
+                }
                 return @json(route('admin.master-gpx.index'));
             }
             return @json(route('gpx.show', ':id')).replace(':id', notif.reference_id);

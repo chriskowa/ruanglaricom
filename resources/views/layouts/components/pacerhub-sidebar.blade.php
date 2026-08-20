@@ -112,6 +112,12 @@
                                 <a href="{{ route('admin.master-gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.master-gpx.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
                                     <span>Master GPX</span>
+                                    @php
+                                        $pendingGpxSugCount = \App\Models\GpxTitleSuggestion::pending()->count();
+                                    @endphp
+                                    @if ($pendingGpxSugCount > 0)
+                                        <span class="ml-auto text-[10px] font-black bg-neon text-[#121212] rounded-full px-1.5 py-0.5" title="{{ $pendingGpxSugCount }} saran penamaan rute baru">{{ $pendingGpxSugCount }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li>
@@ -124,12 +130,6 @@
                                 <a href="{{ route('admin.races.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.races.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-flag-checkered"></i></span>
                                     <span>Race Master</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('admin.master-gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.master-gpx.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
-                                    <span>Master GPX</span>
                                 </a>
                             </li>
                             <li>

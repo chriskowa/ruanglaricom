@@ -85,6 +85,13 @@
                     </div>
 
                     <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" 
+                                onclick="openSuggestTitleModal({{ $item->id }}, '{{ addslashes($item->title) }}', '{{ addslashes($item->city ?? 'Indonesia') }}')"
+                                class="px-2 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 hover:border-accent/40 text-slate-300 hover:text-accent text-xs transition flex items-center gap-1 cursor-pointer" 
+                                title="Sarankan Nama Rute">
+                            <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                            <span class="hidden xl:inline">Saran Nama</span>
+                        </button>
                         <a href="{{ route('gpx.show', $item->slug ?: $item->id) }}" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs transition flex items-center gap-1">
                             <span>Detail</span>
                         </a>
