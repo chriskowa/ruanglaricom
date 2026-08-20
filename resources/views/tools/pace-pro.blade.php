@@ -5,204 +5,242 @@
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <style>
-        .leaflet-control{display: none;}
+        .leaflet-control { display: none; }
+        select, select option, select optgroup {
+            background-color: #0c121e !important;
+            color: #ffffff !important;
+        }
+        select option:hover, select option:focus, select option:checked {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        select option:disabled {
+            color: #64748b !important;
+        }
     </style>
 @endpush
 
 @section('content')
-    <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 bg-dark text-white">
+    <div class="min-h-screen pt-16 sm:pt-20 pb-10 px-3.5 sm:px-6 md:px-8 bg-[#08111F] text-white">
         <div class="max-w-7xl mx-auto">
             <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white">
-                        PACE<span class="text-neon">PRO</span> PLANNER
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white uppercase">
+                        PACE<span class="text-[#B8FF00]">PRO</span> PLANNER
                     </h1>
-                    <p class="text-slate-400 mt-1 max-w-2xl">
-                        Generate split strategy berdasarkan target waktu dan rute (manual / GPX event).
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Rancang strategi split pace berbasis target waktu dan rute lomba (Manual, GPX Event, atau Gambar Rute).
                     </p>
                 </div>
             </div>
 
-            <div class="grid lg:grid-cols-12 gap-6">
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-card/70 backdrop-blur border border-slate-700/50 rounded-2xl p-6">
-                        <h2 class="text-lg font-bold mb-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+                <!-- Sidebar Form Controls -->
+                <div class="lg:col-span-4 space-y-4 sm:space-y-6">
+                    <div class="bg-[#0E1A2D] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
+                        <h2 class="text-base sm:text-lg font-bold mb-4 text-white">
                             Konfigurasi Lomba
                         </h2>
 
-                        <div class="flex p-1 bg-slate-800 rounded-lg mb-6">
-                            <button type="button" data-pp-tab="manual" class="flex-1 py-2 text-sm font-black rounded-md bg-slate-600 text-white shadow-sm transition-all">Manual</button>
-                            <button type="button" data-pp-tab="gpx" class="flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all">GPX Event</button>
-                            <button type="button" data-pp-tab="draw" class="flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all">Gambar Rute</button>
+                        <!-- Mode Switcher Tabs -->
+                        <div class="flex p-1 bg-[#111724] border border-slate-800 rounded-xl mb-5">
+                            <button type="button" data-pp-tab="manual" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg bg-slate-800 text-white shadow-sm transition-all text-center">Manual</button>
+                            <button type="button" data-pp-tab="gpx" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg text-slate-400 hover:text-white transition-all text-center">GPX Event</button>
+                            <button type="button" data-pp-tab="draw" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg text-slate-400 hover:text-white transition-all text-center">Gambar Rute</button>
                         </div>
 
+                        <!-- 1. Manual Input Mode -->
                         <div id="pp-input-manual" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Jarak Lomba</label>
-                                <select id="pp-distance-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none text-white">
-                                    <option value="5">5K (5.0 km)</option>
-                                    <option value="10">10K (10.0 km)</option>
-                                    <option value="21.0975">Half Marathon (21.1 km)</option>
-                                    <option value="42.195">Full Marathon (42.2 km)</option>
-                                    <option value="custom">Custom...</option>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Jarak Lomba</label>
+                                <select id="pp-distance-select" class="w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 focus:border-[#B8FF00] focus:ring-1 focus:ring-[#B8FF00] outline-none text-white text-xs sm:text-sm transition cursor-pointer" style="background-color: #111724 !important; color: #ffffff !important;">
+                                    <option value="5" style="background-color: #0c121e !important; color: #ffffff !important;">5K (5.0 km)</option>
+                                    <option value="10" style="background-color: #0c121e !important; color: #ffffff !important;">10K (10.0 km)</option>
+                                    <option value="21.0975" style="background-color: #0c121e !important; color: #ffffff !important;">Half Marathon (21.1 km)</option>
+                                    <option value="42.195" style="background-color: #0c121e !important; color: #ffffff !important;">Full Marathon (42.2 km)</option>
+                                    <option value="custom" style="background-color: #0c121e !important; color: #ffffff !important;">Custom...</option>
                                 </select>
-                                <input type="number" id="pp-custom-distance" placeholder="Masukkan km" class="hidden mt-2 w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white">
+                                <input type="number" id="pp-custom-distance" placeholder="Masukkan jarak dalam km" class="hidden mt-2 w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 text-white text-xs sm:text-sm placeholder:text-slate-400">
                             </div>
                         </div>
 
+                        <!-- 2. GPX Library Mode -->
                         <div id="pp-input-gpx" class="space-y-4 hidden">
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Pilih GPX Event</label>
-                            <select id="pp-gpx-library" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none text-white">
-                                <option value="">Pilih GPX dari Event...</option>
-                            </select>
-                            <button id="pp-gpx-load" type="button" class="w-full bg-neon text-dark font-black py-3 rounded-xl hover:bg-white transition">
-                                LOAD GPX
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Pilih GPX Event</label>
+                                <select id="pp-gpx-library" class="w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 focus:border-[#B8FF00] focus:ring-1 focus:ring-[#B8FF00] outline-none text-white text-xs sm:text-sm transition cursor-pointer" style="background-color: #111724 !important; color: #ffffff !important;">
+                                    <option value="" style="background-color: #0c121e !important; color: #94a3b8 !important;">Pilih GPX dari Event...</option>
+                                </select>
+                            </div>
+                            <button id="pp-gpx-load" type="button" class="w-full bg-[#B8FF00] text-[#08111F] font-black py-2.5 sm:py-3 rounded-xl hover:bg-lime-300 transition text-xs sm:text-sm uppercase tracking-wider">
+                                Load GPX
                             </button>
 
-                            <div class="pt-2 border-t border-slate-800">
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Atau Upload GPX Sendiri</label>
-                                <div class="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center hover:border-neon transition cursor-pointer relative">
+                            <div class="pt-3 border-t border-slate-800">
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Atau Upload GPX Sendiri</label>
+                                <div class="border border-dashed border-slate-700 rounded-xl p-4 sm:p-6 text-center hover:border-slate-500 bg-[#111724] transition cursor-pointer relative">
                                     <input type="file" id="pp-gpx-file" accept=".gpx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                    <div class="text-sm text-slate-400" id="pp-file-name">Klik untuk upload GPX</div>
+                                    <div class="text-xs sm:text-sm text-slate-300 flex items-center justify-center gap-2" id="pp-file-name">
+                                        <i class="fa-solid fa-cloud-arrow-up text-sm text-slate-400"></i>
+                                        <span>Klik untuk upload GPX</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- 3. Draw Route Mode -->
                         <div id="pp-input-draw" class="space-y-4 hidden">
                             <!-- Search Location -->
                             <div class="flex gap-2">
-                                <input type="text" id="pp-draw-search-input" placeholder="Cari lokasi (Enter)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:border-neon outline-none">
-                                <button id="pp-draw-search-btn" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 rounded-lg text-xs font-bold border border-slate-700">Search</button>
+                                <input type="text" id="pp-draw-search-input" placeholder="Cari lokasi / kota..." class="flex-1 bg-[#111724] border border-slate-700 rounded-xl p-2.5 text-white text-xs placeholder:text-slate-400 focus:border-[#B8FF00] outline-none">
+                                <button id="pp-draw-search-btn" type="button" class="bg-slate-800 text-white hover:bg-slate-700 px-3.5 rounded-xl text-xs font-bold border border-slate-700 shrink-0">Cari</button>
                             </div>
 
-                            <div class="p-4 bg-slate-900/50 border border-slate-700 rounded-xl space-y-3">
+                            <div class="p-3.5 bg-[#111724] border border-slate-800 rounded-xl space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-slate-400 uppercase">Jarak Rute</label>
-                                    <span id="pp-draw-dist" class="text-neon font-black text-lg">0.00 km</span>
+                                    <label class="text-xs font-bold text-slate-300 uppercase">Jarak Rute</label>
+                                    <span id="pp-draw-dist" class="text-[#B8FF00] font-black text-base sm:text-lg font-mono">0.00 km</span>
                                 </div>
                                 
                                 <div class="grid grid-cols-2 gap-2">
-                                     <button id="pp-draw-center" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-[10px] font-bold border border-slate-700">Center Last</button>
-                                     <button id="pp-draw-fit" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-[10px] font-bold border border-slate-700">Fit Route</button>
+                                     <button id="pp-draw-center" type="button" class="bg-slate-800 text-slate-200 hover:bg-slate-700 py-2 rounded-lg text-[11px] font-bold border border-slate-700 transition">Center Last</button>
+                                     <button id="pp-draw-fit" type="button" class="bg-slate-800 text-slate-200 hover:bg-slate-700 py-2 rounded-lg text-[11px] font-bold border border-slate-700 transition">Fit Route</button>
                                 </div>
 
-                                <div class="flex gap-2">
-                                    <button id="pp-draw-undo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700" title="Ctrl+Z">Undo</button>
-                                    <button id="pp-draw-redo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700" title="Ctrl+Y">Redo</button>
-                                    <button id="pp-draw-clear" type="button" class="flex-1 bg-slate-800 text-red-400 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700">Reset</button>
+                                <div class="grid grid-cols-3 gap-2">
+                                     <button id="pp-draw-undo" type="button" class="bg-slate-800 text-slate-200 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700 transition" title="Ctrl+Z">Undo</button>
+                                     <button id="pp-draw-redo" type="button" class="bg-slate-800 text-slate-200 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700 transition" title="Ctrl+Y">Redo</button>
+                                     <button id="pp-draw-clear" type="button" class="bg-slate-800 text-rose-400 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700 transition">Reset</button>
                                 </div>
                                 
-                                <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
-                                    <input type="checkbox" id="pp-draw-road" class="accent-neon rounded" checked>
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-200 cursor-pointer select-none pt-1">
+                                    <input type="checkbox" id="pp-draw-road" class="accent-[#B8FF00] rounded" checked>
                                     <span>Ikuti Jalan (Snap to Road)</span>
                                 </label>
 
-                                <div class="flex gap-3 text-[10px] text-slate-400 justify-center pt-2 border-t border-slate-800">
-                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Start</span>
-                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Point</span>
-                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Finish</span>
+                                <div class="flex flex-wrap gap-2.5 text-[10px] text-slate-400 justify-center pt-2 border-t border-slate-800">
+                                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start</span>
+                                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Waypoint</span>
+                                     <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Finish</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-4 space-y-4">
+                        <!-- Target Time & Strategy Inputs -->
+                        <div class="mt-4 space-y-4 pt-3 border-t border-slate-800">
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Target Waktu (Jam:Menit:Detik)</label>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Target Waktu (Jam : Menit : Detik)</label>
                                 <div class="grid grid-cols-3 gap-2">
-                                    <input type="number" id="pp-time-h" placeholder="00" min="0" class="bg-slate-900 border border-slate-700 rounded-lg p-3 text-center text-white focus:border-neon outline-none">
-                                    <input type="number" id="pp-time-m" placeholder="00" min="0" max="59" class="bg-slate-900 border border-slate-700 rounded-lg p-3 text-center text-white focus:border-neon outline-none">
-                                    <input type="number" id="pp-time-s" placeholder="00" min="0" max="59" class="bg-slate-900 border border-slate-700 rounded-lg p-3 text-center text-white focus:border-neon outline-none">
+                                    <div class="relative">
+                                        <input type="number" id="pp-time-h" placeholder="00" min="0" class="w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 text-center text-white text-xs sm:text-sm font-mono focus:border-[#B8FF00] outline-none">
+                                        <span class="text-[9px] text-slate-400 block text-center mt-0.5">Jam</span>
+                                    </div>
+                                    <div class="relative">
+                                        <input type="number" id="pp-time-m" placeholder="00" min="0" max="59" class="w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 text-center text-white text-xs sm:text-sm font-mono focus:border-[#B8FF00] outline-none">
+                                        <span class="text-[9px] text-slate-400 block text-center mt-0.5">Menit</span>
+                                    </div>
+                                    <div class="relative">
+                                        <input type="number" id="pp-time-s" placeholder="00" min="0" max="59" class="w-full bg-[#111724] border border-slate-700 rounded-xl p-2.5 sm:p-3 text-center text-white text-xs sm:text-sm font-mono focus:border-[#B8FF00] outline-none">
+                                        <span class="text-[9px] text-slate-400 block text-center mt-0.5">Detik</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
-                                <div class="flex justify-between mb-1">
-                                    <label class="block text-xs font-bold text-slate-400 uppercase">Strategi Pacing</label>
-                                    <span id="pp-strategy-label" class="text-xs font-bold text-neon">Even Split</span>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Strategi Pacing</label>
+                                    <span id="pp-strategy-label" class="text-xs font-bold text-[#B8FF00]">Even Split</span>
                                 </div>
-                                <input type="range" id="pp-strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
-                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                <input type="range" id="pp-strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#B8FF00]">
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
                                     <span>Negative Split</span>
                                     <span>Positive Split</span>
                                 </div>
                             </div>
 
                             <div>
-                                <div class="flex justify-between mb-1">
-                                    <label class="block text-xs font-bold text-slate-400 uppercase">Hill Strategy</label>
-                                    <span id="pp-hill-label" class="text-xs font-bold text-neon">Normal</span>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Hill Strategy</label>
+                                    <span id="pp-hill-label" class="text-xs font-bold text-[#B8FF00]">Normal</span>
                                 </div>
-                                <input type="range" id="pp-hill-slider" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
-                                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                <input type="range" id="pp-hill-slider" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#B8FF00]">
+                                <div class="flex justify-between text-[10px] text-slate-400 mt-1">
                                     <span>Agresif di tanjakan</span>
                                     <span>Konservatif di tanjakan</span>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Map Style</label>
-                                <div class="flex p-1 bg-slate-800 rounded-lg">
-                                    <button type="button" id="pp-map-style-dark" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-400 hover:text-white transition-all">Dark</button>
-                                    <button type="button" id="pp-map-style-light" class="flex-1 py-1.5 text-xs font-bold rounded-md bg-slate-600 text-white shadow-sm transition-all">Light</button>
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Map Style</label>
+                                <div class="flex p-1 bg-[#111724] border border-slate-800 rounded-xl">
+                                    <button type="button" id="pp-map-style-dark" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Dark</button>
+                                    <button type="button" id="pp-map-style-light" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm transition-all">Light</button>
                                 </div>
                             </div>
 
-                            <button id="pp-generate" type="button" class="w-full bg-neon text-dark font-black py-4 rounded-xl hover:bg-white transition shadow-[0_0_15px_rgba(204,255,0,0.2)] mt-4">
-                                GENERATE STRATEGY
+                            <button id="pp-generate" type="button" class="w-full bg-[#B8FF00] text-[#08111F] font-black py-3.5 sm:py-4 rounded-xl hover:bg-lime-300 transition text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-[#B8FF00]/20 cursor-pointer">
+                                Generate Strategy
                             </button>
                         </div>
                     </div>
 
-                    <div id="pp-stats-card" class="bg-card/70 backdrop-blur border border-slate-700/50 rounded-2xl p-6 hidden">
-                        <div class="grid grid-cols-2 gap-4 text-center">
-                            <div class="bg-slate-900 p-3 rounded-lg">
-                                <p class="text-xs text-slate-400">Average Pace</p>
-                                <p class="text-xl font-black text-white" id="pp-avg-pace">--:--</p>
+                    <!-- Summary Stats Card -->
+                    <div id="pp-stats-card" class="bg-[#0E1A2D] border border-slate-800 rounded-2xl p-4 sm:p-5 hidden shadow-xl">
+                        <div class="grid grid-cols-2 gap-3 text-center">
+                            <div class="bg-[#111724] border border-slate-800 p-3 rounded-xl">
+                                <p class="text-[10px] text-slate-400 uppercase font-medium">Average Pace</p>
+                                <p class="text-lg sm:text-xl font-bold font-mono text-white mt-0.5" id="pp-avg-pace">--:--</p>
                             </div>
-                            <div class="bg-slate-900 p-3 rounded-lg">
-                                <p class="text-xs text-slate-400">Total Distance</p>
-                                <p class="text-xl font-black text-white" id="pp-total-dist">-- km</p>
+                            <div class="bg-[#111724] border border-slate-800 p-3 rounded-xl">
+                                <p class="text-[10px] text-slate-400 uppercase font-medium">Total Distance</p>
+                                <p class="text-lg sm:text-xl font-bold font-mono text-[#B8FF00] mt-0.5" id="pp-total-dist">-- km</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-8 flex flex-col gap-6">
-                    <div class="bg-card/70 backdrop-blur border border-slate-700/50 rounded-2xl p-1 h-[320px] relative overflow-hidden">
-                        <div id="pp-map" class="w-full h-full rounded-xl bg-slate-800"></div>
-                        <div class="absolute bottom-2 right-2 z-20 bg-black/50 px-2 py-1 rounded text-[10px] text-white backdrop-blur">
+                <!-- Main Content (Map & Strategy Table) -->
+                <div class="lg:col-span-8 flex flex-col gap-5 sm:gap-6">
+                    <!-- Map Box -->
+                    <div class="bg-[#0E1A2D] border border-slate-800 rounded-2xl p-1.5 h-[280px] sm:h-[340px] md:h-[400px] relative overflow-hidden shadow-xl">
+                        <div id="pp-map" class="w-full h-full rounded-xl bg-slate-900"></div>
+                        <div class="absolute bottom-3 right-3 z-20 bg-slate-950/80 px-2.5 py-1 rounded-md text-[10px] text-slate-300 border border-slate-800">
                             © OpenStreetMap
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-3" id="pp-export-actions">
-                        <button id="pp-export-image" type="button" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold transition">
-                            Simpan Gambar
+                    <!-- Export Actions Buttons -->
+                    <div class="flex flex-wrap sm:flex-nowrap justify-end gap-2.5 w-full" id="pp-export-actions">
+                        <button id="pp-export-image" type="button" class="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition cursor-pointer">
+                            <i class="fa-solid fa-image text-xs text-slate-400"></i>
+                            <span>Simpan Gambar</span>
                         </button>
-                        <button id="pp-export-csv" type="button" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold transition">
-                            Export CSV
+                        <button id="pp-export-csv" type="button" class="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition cursor-pointer">
+                            <i class="fa-solid fa-file-csv text-xs text-slate-400"></i>
+                            <span>Export CSV</span>
                         </button>
                     </div>
 
-                    <div id="pp-capture-area" class="bg-card/70 backdrop-blur border border-slate-700/50 rounded-2xl p-0 overflow-hidden bg-slate-900">
-                        <div class="p-4 border-b border-slate-800 bg-slate-800 flex justify-between items-center">
-                            <h3 class="font-black text-white">Split Strategy</h3>
-                            <div class="text-xs text-neon font-mono">PacePro Generated</div>
+                    <!-- Split Table Container -->
+                    <div id="pp-capture-area" class="bg-[#0E1A2D] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="p-3.5 sm:p-4 border-b border-slate-800 bg-[#111724] flex justify-between items-center">
+                            <h3 class="font-bold text-sm sm:text-base text-white">Split Strategy</h3>
+                            <div class="text-[11px] sm:text-xs text-[#B8FF00] font-mono font-semibold">PacePro Generated</div>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left" id="pp-pace-table">
-                                <thead class="text-xs text-slate-400 uppercase bg-slate-950 border-b border-slate-800">
+                            <table class="w-full text-xs sm:text-sm text-left" id="pp-pace-table">
+                                <thead class="text-[10px] sm:text-xs text-slate-300 font-bold uppercase bg-[#08111F] border-b border-slate-800">
                                     <tr>
-                                        <th class="px-6 py-3">Split (KM)</th>
-                                        <th class="px-6 py-3">Target Pace</th>
-                                        <th class="px-6 py-3">Split Time</th>
-                                        <th class="px-6 py-3">Cumulative</th>
-                                        <th class="px-6 py-3 text-right">Elev Gain</th>
+                                        <th class="px-3 sm:px-5 py-3 whitespace-nowrap">Split (KM)</th>
+                                        <th class="px-3 sm:px-5 py-3 whitespace-nowrap">Target Pace</th>
+                                        <th class="px-3 sm:px-5 py-3 whitespace-nowrap">Split Time</th>
+                                        <th class="px-3 sm:px-5 py-3 whitespace-nowrap">Cumulative</th>
+                                        <th class="px-3 sm:px-5 py-3 text-right whitespace-nowrap">Elev Gain</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800 font-mono text-slate-300">
                                     <tr>
-                                        <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                                        <td colspan="5" class="px-4 py-8 text-center text-xs sm:text-sm text-slate-400">
                                             Silahkan input jarak dan waktu, lalu klik Generate Strategy.
                                         </td>
                                     </tr>
@@ -302,8 +340,8 @@
                 els.tabButtons.forEach(function (b) {
                     var active = b.getAttribute('data-pp-tab') === mode;
                     b.className = active
-                        ? 'flex-1 py-2 text-sm font-black rounded-md bg-slate-600 text-white shadow-sm transition-all'
-                        : 'flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all';
+                        ? 'flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg bg-slate-800 text-white shadow-sm transition-all text-center'
+                        : 'flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg text-slate-400 hover:text-white transition-all text-center';
                 });
                 els.boxManual.classList.add('hidden');
                 els.boxGpx.classList.add('hidden');
@@ -318,6 +356,7 @@
                     if (polyline) map.removeLayer(polyline);
                     if (drawPolyline) map.removeLayer(drawPolyline);
                     drawMarkers.forEach(function(m) { map.removeLayer(m); });
+                    setTimeout(function() { map.invalidateSize(); }, 150);
                 }
                 
                 // Restore logic
@@ -447,6 +486,9 @@
                 items.forEach(function (it) {
                     var opt = document.createElement('option');
                     opt.value = String(it.id);
+                    opt.className = 'bg-[#0c121e] text-white';
+                    opt.style.backgroundColor = '#0c121e';
+                    opt.style.color = '#ffffff';
                     var left = it.event_name ? (it.event_name + ' - ') : '';
                     var d = it.distance_km ? (Number(it.distance_km).toFixed(2) + ' km') : '';
                     opt.textContent = left + (it.title || 'GPX') + (d ? (' (' + d + ')') : '');
@@ -596,7 +638,7 @@
                 fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q))
                     .then(function(r){ return r.json(); })
                     .then(function(data){
-                        els.drawSearchBtn.textContent = '🔍';
+                        els.drawSearchBtn.textContent = 'Cari';
                         if (data && data.length > 0) {
                             var lat = parseFloat(data[0].lat);
                             var lon = parseFloat(data[0].lon);
@@ -606,7 +648,7 @@
                         }
                     })
                     .catch(function(){
-                        els.drawSearchBtn.textContent = '🔍';
+                        els.drawSearchBtn.textContent = 'Cari';
                     });
             }
 
@@ -717,13 +759,13 @@
                     var displayPace = adjustedTime / s.dist;
 
                     var tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-800 transition border-b border-slate-800';
+                    tr.className = 'hover:bg-slate-800/60 transition border-b border-slate-800/80';
                     tr.innerHTML =
-                        '<td class="px-6 py-4 font-bold text-white">' + s.km + '</td>' +
-                        '<td class="px-6 py-4 text-neon">' + formatTime(displayPace) + '</td>' +
-                        '<td class="px-6 py-4">' + formatTime(adjustedTime) + '</td>' +
-                        '<td class="px-6 py-4 text-slate-400">' + formatTime(cumulativeSeconds) + '</td>' +
-                        '<td class="px-6 py-4 text-right text-slate-500">' + s.elev + '</td>';
+                        '<td class="px-3 sm:px-5 py-2.5 sm:py-3.5 font-bold text-white whitespace-nowrap">' + s.km + '</td>' +
+                        '<td class="px-3 sm:px-5 py-2.5 sm:py-3.5 text-[#B8FF00] font-bold whitespace-nowrap">' + formatTime(displayPace) + '</td>' +
+                        '<td class="px-3 sm:px-5 py-2.5 sm:py-3.5 text-slate-200 whitespace-nowrap">' + formatTime(adjustedTime) + '</td>' +
+                        '<td class="px-3 sm:px-5 py-2.5 sm:py-3.5 text-slate-400 whitespace-nowrap">' + formatTime(cumulativeSeconds) + '</td>' +
+                        '<td class="px-3 sm:px-5 py-2.5 sm:py-3.5 text-right text-slate-300 font-bold whitespace-nowrap">' + s.elev + '</td>';
                     els.tableBody.appendChild(tr);
 
                     tableData.push([s.km, formatTime(displayPace), formatTime(adjustedTime), formatTime(cumulativeSeconds), s.elev]);
