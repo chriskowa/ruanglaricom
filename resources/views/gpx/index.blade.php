@@ -353,21 +353,24 @@
             <div id="explorer-map-collapse-wrap" class="relative transition-all duration-300">
                 <div id="gpx-explorer-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-[#f2efe9]"></div>
                 
-                <!-- Map Legend / Controls Overlay -->
-                <div class="absolute bottom-3 left-3 z-[400] bg-slate-950/90 backdrop-blur border border-slate-800 rounded-xl p-2.5 text-xs text-slate-300 shadow-xl pointer-events-auto flex items-center gap-3">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tipe:</span>
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#ccff00] border border-black/40"></span>
-                        <span class="text-[11px] text-slate-200 font-medium">Road</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] border border-black/40"></span>
-                        <span class="text-[11px] text-slate-200 font-medium">Trail</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] border border-black/40"></span>
-                        <span class="text-[11px] text-slate-200 font-medium">Track</span>
-                    </div>
+                <!-- Map Legend / Interactive Route Type Filter Overlay -->
+                <div id="gpx-map-type-filter-overlay" class="absolute bottom-3 left-3 z-[400] bg-[#0c121e] border border-slate-700 rounded-xl p-1.5 text-xs text-slate-300 shadow-2xl pointer-events-auto flex items-center gap-1.5" style="background-color: #0c121e !important;">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">Tipe:</span>
+                    <button type="button" onclick="setMapAndFormRouteType('')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ (!request('route_type') || request('route_type') == '') ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }}">
+                        Semua
+                    </button>
+                    <button type="button" onclick="setMapAndFormRouteType('road')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'road' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#ccff00]"></span>
+                        <span>Road</span>
+                    </button>
+                    <button type="button" onclick="setMapAndFormRouteType('trail')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'trail' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+                        <span>Trail</span>
+                    </button>
+                    <button type="button" onclick="setMapAndFormRouteType('track')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'track' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span>
+                        <span>Track</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -432,142 +435,161 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-                    
-                    <div>
-                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Cari rute</label>
-                        <div class="relative">
-                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Nama rute..." 
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <div class="space-y-4">
+                    <!-- Top Row: Tipe Rute Segmented Radio & Search Box -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <!-- Tipe Rute (Segmented Radio Group like Submit Modal) -->
+                        <div class="space-y-1.5 flex-1 max-w-xl">
+                            <label class="block text-xs text-slate-200 font-semibold">Tipe Rute</label>
+                            <div class="grid grid-cols-4 gap-1.5 bg-[#090D16] p-1 rounded-xl border border-slate-700 select-none">
+                                <label class="route-type-filter-btn {{ (!request('route_type') || request('route_type') == '') ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                    <input type="radio" name="route_type" value="" class="hidden" {{ (!request('route_type') || request('route_type') == '') ? 'checked' : '' }}>
+                                    <span>Semua</span>
+                                </label>
+                                <label class="route-type-filter-btn {{ request('route_type') == 'road' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                    <input type="radio" name="route_type" value="road" class="hidden" {{ request('route_type') == 'road' ? 'checked' : '' }}>
+                                    <span>Road</span>
+                                </label>
+                                <label class="route-type-filter-btn {{ request('route_type') == 'trail' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                    <input type="radio" name="route_type" value="trail" class="hidden" {{ request('route_type') == 'trail' ? 'checked' : '' }}>
+                                    <span>Trail</span>
+                                </label>
+                                <label class="route-type-filter-btn {{ request('route_type') == 'track' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                    <input type="radio" name="route_type" value="track" class="hidden" {{ request('route_type') == 'track' ? 'checked' : '' }}>
+                                    <span>Track</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Cari Rute Keyword -->
+                        <div class="space-y-1.5 flex-1">
+                            <label class="block text-xs text-slate-200 font-semibold">Cari Rute</label>
+                            <div class="relative">
+                                <input type="text" name="q" value="{{ request('q') }}" placeholder="Ketik nama rute..." 
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs text-slate-200 font-semibold">Kota</label>
-                            <button id="btn-detect-user-city" type="button" class="text-xs text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer" title="Deteksi GPS">
-                                <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
-                                <span>GPS</span>
-                            </button>
-                        </div>
-                        <div class="relative" id="filter-city-combobox-wrap">
-                            <div class="relative flex items-center">
-                                <input type="text" 
-                                    id="select-filter-city" 
-                                    name="city" 
-                                    value="{{ request('city') }}" 
-                                    placeholder="Semua kota / cari..." 
-                                    autocomplete="off"
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-8 pr-12 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-accent transition cursor-text">
-                                
-                                <div class="pointer-events-none absolute left-2.5 text-slate-400">
-                                    <i class="fa-solid fa-location-dot text-xs text-accent"></i>
+                    <!-- Secondary Row: Kota, Radius, Jarak, Elevasi, Urutan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                        
+                        <!-- Kota -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs text-slate-200 font-semibold">Kota</label>
+                                <button id="btn-detect-user-city" type="button" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-semibold cursor-pointer" title="Deteksi GPS">
+                                    <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+                                    <span>GPS</span>
+                                </button>
+                            </div>
+                            <div class="relative" id="filter-city-combobox-wrap">
+                                <div class="relative flex items-center">
+                                    <input type="text" 
+                                        id="select-filter-city" 
+                                        name="city" 
+                                        value="{{ request('city') }}" 
+                                        placeholder="Semua kota / cari..." 
+                                        autocomplete="off"
+                                        class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-8 pr-12 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition cursor-text">
+                                    
+                                    <div class="pointer-events-none absolute left-2.5 text-slate-400">
+                                        <i class="fa-solid fa-location-dot text-xs text-slate-400"></i>
+                                    </div>
+
+                                    <div class="absolute right-2 flex items-center gap-1">
+                                        <button type="button" id="btn-clear-filter-city" class="text-slate-400 hover:text-white p-1 text-xs cursor-pointer {{ request('city') ? '' : 'hidden' }}" title="Hapus Filter Kota">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                        <button type="button" id="btn-toggle-filter-city" class="text-slate-400 hover:text-white p-1 text-[10px] cursor-pointer" title="Lihat Pilihan Kota">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div class="absolute right-2 flex items-center gap-1">
-                                    <button type="button" id="btn-clear-filter-city" class="text-slate-500 hover:text-white p-1 text-xs cursor-pointer {{ request('city') ? '' : 'hidden' }}" title="Hapus Filter Kota">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                    <button type="button" id="btn-toggle-filter-city" class="text-slate-400 hover:text-white p-1 text-[10px] cursor-pointer" title="Lihat Pilihan Kota">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
+                                <!-- Floating Autocomplete / Selection Menu (100% Solid Opaque Dark) -->
+                                <div id="filter-city-dropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[99999] bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto" style="background-color: #0c121e !important; background: #0c121e !important; opacity: 1 !important; z-index: 99999 !important;">
+                                    <!-- Populated dynamically by JS -->
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Floating Autocomplete / Selection Menu -->
-                            <div id="filter-city-dropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#0f172a] border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto backdrop-blur-md">
-                                <!-- Populated dynamically by JS -->
+                        <!-- Radius GPS -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs text-slate-200 font-semibold">Radius GPS</label>
+                                <span id="label-gps-active" class="text-[10px] text-emerald-400 font-mono {{ $hasCoordinates ? '' : 'hidden' }}">Aktif</span>
+                            </div>
+                            <div class="relative">
+                                <select id="select-filter-radius" name="radius" 
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
+                                    <option value="">Semua radius</option>
+                                    <option value="5" {{ request('radius') == '5' ? 'selected' : '' }}>Radius &lt; 5 km</option>
+                                    <option value="10" {{ request('radius') == '10' ? 'selected' : '' }}>Radius 10 km</option>
+                                    <option value="25" {{ request('radius') == '25' ? 'selected' : '' }}>Radius 25 km</option>
+                                    <option value="50" {{ request('radius') == '50' ? 'selected' : '' }}>Radius 50 km</option>
+                                    <option value="100" {{ request('radius') == '100' ? 'selected' : '' }}>Radius 100 km</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs text-slate-200 font-semibold">Radius GPS</label>
-                            <span id="label-gps-active" class="text-[10px] text-accent font-mono {{ $hasCoordinates ? '' : 'hidden' }}">Aktif</span>
-                        </div>
-                        <div class="relative">
-                            <select id="select-filter-radius" name="radius" 
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="">Semua radius</option>
-                                <option value="5" {{ request('radius') == '5' ? 'selected' : '' }}>Radius &lt; 5 km</option>
-                                <option value="10" {{ request('radius') == '10' ? 'selected' : '' }}>Radius 10 km</option>
-                                <option value="25" {{ request('radius') == '25' ? 'selected' : '' }}>Radius 25 km</option>
-                                <option value="50" {{ request('radius') == '50' ? 'selected' : '' }}>Radius 50 km</option>
-                                <option value="100" {{ request('radius') == '100' ? 'selected' : '' }}>Radius 100 km</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
+                        <!-- Jarak Rute -->
+                        <div>
+                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Jarak Rute</label>
+                            <div class="relative">
+                                <select name="distance" 
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
+                                    <option value="">Semua jarak</option>
+                                    <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km</option>
+                                    <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km</option>
+                                    <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km</option>
+                                    <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Tipe rute</label>
-                        <div class="relative">
-                            <select name="route_type" id="select-filter-route-type"
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="">Semua tipe</option>
-                                <option value="road" {{ request('route_type') == 'road' ? 'selected' : '' }}>Road</option>
-                                <option value="trail" {{ request('route_type') == 'trail' ? 'selected' : '' }}>Trail</option>
-                                <option value="track" {{ request('route_type') == 'track' ? 'selected' : '' }}>Track</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
+                        <!-- Elevasi -->
+                        <div>
+                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Elevasi</label>
+                            <div class="relative">
+                                <select name="elevation" 
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
+                                    <option value="">Semua elevasi</option>
+                                    <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
+                                    <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
+                                    <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Jarak rute</label>
-                        <div class="relative">
-                            <select name="distance" 
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="">Semua jarak</option>
-                                <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km</option>
-                                <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km</option>
-                                <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km</option>
-                                <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Elevasi</label>
-                        <div class="relative">
-                            <select name="elevation" 
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="">Semua elevasi</option>
-                                <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
-                                <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
-                                <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Urutan</label>
-                        <div class="relative">
-                            <select name="sort" id="select-filter-sort"
-                                class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0f172a]">
-                                <option value="default" {{ (!request('sort') || request('sort') == 'default' || request('sort') == 'nearest') ? 'selected' : '' }}>Terdekat (Start GPX &gt; Kota &gt; A-Z)</option>
-                                <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
-                                <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
-                                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
-                                <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak terjauh</option>
-                                <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak terdekat</option>
-                                <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi tertinggi</option>
-                                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                <i class="fas fa-chevron-down text-[10px]"></i>
+                        <!-- Urutan (Sorting) -->
+                        <div>
+                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Urutan</label>
+                            <div class="relative">
+                                <select name="sort" id="select-filter-sort"
+                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
+                                    <option value="nearest" {{ (request('sort') == 'nearest' || (!request('sort') && $hasCoordinates)) ? 'selected' : '' }}>Lokasi Terdekat (GPS)</option>
+                                    <option value="latest" {{ (request('sort') == 'latest' || (!request('sort') && !$hasCoordinates)) ? 'selected' : '' }}>Rute Terbaru</option>
+                                    <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak Terpendek</option>
+                                    <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak Terpanjang</option>
+                                    <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi Tertinggi</option>
+                                    <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
+                                    <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
+                                    <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
+                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -653,16 +675,16 @@
     </div>
 </div>
 
-<!-- Submit GPX Modal (style disesuaikan) -->
-<div id="modal-submit-gpx" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-[#0c121e] border border-slate-800 rounded-2xl max-w-xl w-full p-6 md:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+<!-- Submit GPX Modal (Solid Opaque High-Contrast) -->
+<div id="modal-submit-gpx" class="fixed inset-0 z-[99999] bg-black/90 hidden items-center justify-center p-4" style="z-index: 99999 !important;">
+    <div class="bg-[#0c121e] border border-slate-700 rounded-2xl max-w-xl w-full p-6 md:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto text-slate-200" style="background-color: #0c121e !important; opacity: 1 !important;">
         
         <div class="flex items-center justify-between border-b border-slate-800 pb-4">
             <div>
-                <p class="text-xs text-accent font-medium">Kontribusi komunitas</p>
-                <h3 class="text-lg font-bold text-white mt-0.5">Bagikan rute GPX</h3>
+                <p class="text-xs text-slate-400 font-medium">Kontribusi Komunitas</p>
+                <h3 class="text-lg font-bold text-white mt-0.5">Bagikan Rute GPX</h3>
             </div>
-            <button id="btn-close-submit-gpx-modal" type="button" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition">
+            <button id="btn-close-submit-gpx-modal" type="button" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer" title="Tutup Modal">
                 <i class="fa-solid fa-times text-xs"></i>
             </button>
         </div>
@@ -675,90 +697,90 @@
             <input type="text" name="website_url" class="hidden" style="display:none !important;" tabindex="-1" autocomplete="off">
 
             <div>
-                <label class="block text-sm font-semibold text-slate-200 mb-2">
+                <label class="block text-sm font-semibold text-white mb-2">
                     File GPX <span class="text-rose-400">*</span>
                 </label>
                 
                 <!-- Interactive Dropzone -->
-                <div id="modal-gpx-dropzone" class="relative border-2 border-dashed border-slate-700 hover:border-accent rounded-2xl p-5 transition-all duration-200 bg-[#090D16] text-center cursor-pointer group flex flex-col items-center justify-center min-h-[130px] select-none">
+                <div id="modal-gpx-dropzone" class="relative border-2 border-dashed border-slate-700 hover:border-slate-500 rounded-2xl p-5 transition-all duration-200 bg-[#111724] text-center cursor-pointer group flex flex-col items-center justify-center min-h-[130px] select-none" style="background-color: #111724 !important;">
                     <input id="input-modal-gpx-file" name="gpx_file" type="file" accept=".gpx,application/gpx+xml,text/xml" class="hidden" required>
                     
                     <!-- Empty State -->
                     <div id="dropzone-empty-state" class="flex flex-col items-center space-y-2 pointer-events-none">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-200 group-hover:text-accent group-hover:scale-110 group-hover:border-accent/40 transition-all duration-300 shadow-inner">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-white transition-all duration-200">
                             <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
-                                Tarik & lepaskan file <span class="text-accent font-bold">GPX</span> di sini, atau <span class="text-accent underline underline-offset-2">pilih file</span>
+                                Tarik & lepaskan file <span class="text-white font-bold">GPX</span> di sini, atau <span class="text-white underline underline-offset-2">pilih file</span>
                             </p>
-                            <p class="text-xs text-slate-500 mt-0.5 font-mono">Format .gpx (maksimal 10 MB)</p>
+                            <p class="text-xs text-slate-400 mt-0.5 font-mono">Format .gpx (maksimal 10 MB)</p>
                         </div>
                     </div>
 
                     <!-- Loaded File State -->
-                    <div id="dropzone-file-state" class="hidden w-full flex items-center justify-between gap-3 bg-slate-900 border border-slate-750 rounded-xl p-3 text-left">
+                    <div id="dropzone-file-state" class="hidden w-full flex items-center justify-between gap-3 bg-slate-900 border border-slate-700 rounded-xl p-3 text-left">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-lg bg-accent/10 border border-accent/30 text-accent flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-white flex items-center justify-center shrink-0">
                                 <i class="fa-solid fa-file-lines text-lg"></i>
                             </div>
                             <div class="min-w-0">
                                 <div id="dropzone-filename" class="text-xs sm:text-sm font-bold text-white truncate">route.gpx</div>
-                                <div id="dropzone-filesize" class="text-[11px] text-slate-200 font-mono">0 KB • Siap diproses</div>
+                                <div id="dropzone-filesize" class="text-[11px] text-slate-300 font-mono">0 KB • Siap diproses</div>
                             </div>
                         </div>
-                        <button type="button" id="btn-dropzone-remove" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 border border-slate-700 hover:border-rose-500/40 text-slate-300 hover:text-rose-400 text-xs font-semibold transition shrink-0 cursor-pointer">
+                        <button type="button" id="btn-dropzone-remove" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition shrink-0 cursor-pointer">
                             <i class="fa-solid fa-rotate-left mr-1"></i> Ganti
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="modal-gpx-preview-container" class="hidden space-y-3 p-4 rounded-xl bg-[#090D16] border border-slate-800">
+            <div id="modal-gpx-preview-container" class="hidden space-y-3 p-4 rounded-xl bg-[#111724] border border-slate-700" style="background-color: #111724 !important;">
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-slate-200 font-medium">Preview rute</span>
+                    <span class="text-slate-200 font-medium">Preview Rute</span>
                     <span id="modal-gpx-point-count" class="text-[#FC4C02] font-semibold font-mono">0 pts</span>
                 </div>
-                <div id="modal-gpx-preview-map" class="h-44 w-full rounded-xl overflow-hidden border border-slate-800"></div>
+                <div id="modal-gpx-preview-map" class="h-44 w-full rounded-xl overflow-hidden border border-slate-700"></div>
                 <div class="grid grid-cols-3 gap-2 text-center text-sm">
                     <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-200 block">Jarak</span>
+                        <span class="text-xs text-slate-300 block">Jarak</span>
                         <strong id="modal-stat-distance" class="text-white">-</strong>
                     </div>
                     <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-200 block">Gain</span>
+                        <span class="text-xs text-slate-300 block">Gain</span>
                         <strong id="modal-stat-gain" class="text-white">-</strong>
                     </div>
                     <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-200 block">Loss</span>
+                        <span class="text-xs text-slate-300 block">Loss</span>
                         <strong id="modal-stat-loss" class="text-white">-</strong>
                     </div>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5">
-                    Judul rute <span class="text-rose-400">*</span>
+                <label class="block text-sm text-slate-200 mb-1.5 font-medium">
+                    Judul Rute <span class="text-rose-400">*</span>
                 </label>
                 <input id="input-modal-title" type="text" name="title" required
-                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition"
+                    class="w-full bg-[#111724] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
                     placeholder="Contoh: Rute CFD Sudirman – GBK Loop">
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5 font-semibold">
-                    Tipe rute
+                <label class="block text-sm text-slate-200 mb-1.5 font-medium">
+                    Tipe Rute
                 </label>
                 <div class="grid grid-cols-3 gap-2" id="modal-route-type-group">
-                    <label class="route-type-btn is-active flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn is-active flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
                         <input type="radio" name="route_type" value="road" class="hidden" checked>
                         <span>Road</span>
                     </label>
-                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
                         <input type="radio" name="route_type" value="trail" class="hidden">
                         <span>Trail</span>
                     </label>
-                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#090D16] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
                         <input type="radio" name="route_type" value="track" class="hidden">
                         <span>Track</span>
                     </label>
@@ -767,10 +789,10 @@
 
             <div>
                 <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-sm text-slate-200">
+                    <label class="block text-sm text-slate-200 font-medium">
                         Kota / Kabupaten <span class="text-rose-400">*</span>
                     </label>
-                    <button id="btn-modal-detect-location" type="button" class="text-xs text-accent hover:underline flex items-center gap-1 cursor-pointer">
+                    <button id="btn-modal-detect-location" type="button" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
                         <span>Deteksi otomatis</span>
                     </button>
@@ -778,25 +800,25 @@
                 <div class="relative" id="modal-city-autocomplete-wrapper">
                     <div class="relative">
                         <input id="input-modal-city" type="text" name="city" required autocomplete="off"
-                            class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-8 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition"
+                            class="w-full bg-[#111724] border border-slate-700 rounded-xl pl-9 pr-8 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
                             placeholder="Ketik nama kota / kabupaten di Indonesia...">
-                        <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                        <div id="modal-city-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-accent text-sm">
+                        <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <div id="modal-city-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-white text-sm">
                             <i class="fa-solid fa-spinner animate-spin"></i>
                         </div>
                     </div>
 
                     <!-- Floating Autocomplete Dropdown List (Solid Opaque Dark Background) -->
-                    <div id="modal-city-autocomplete-list" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl z-[99999] max-h-52 overflow-y-auto divide-y divide-slate-800" style="background-color: #0b1220 !important; background: #0b1220 !important; opacity: 1 !important; z-index: 99999 !important;">
+                    <div id="modal-city-autocomplete-list" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl z-[99999] max-h-52 overflow-y-auto divide-y divide-slate-800" style="background-color: #0c121e !important; background: #0c121e !important; opacity: 1 !important; z-index: 99999 !important;">
                         <!-- Populated by JavaScript -->
                     </div>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5">Catatan (opsional)</label>
+                <label class="block text-sm text-slate-200 mb-1.5 font-medium">Catatan Tambahan (opsional)</label>
                 <textarea name="notes" rows="2"
-                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition"
+                    class="w-full bg-[#111724] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
                     placeholder="Contoh: Aspal mulus, cocok long run pagi. Ada water station di km 5."></textarea>
             </div>
 
@@ -807,13 +829,13 @@
 
             <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
                 <button type="button" onclick="document.getElementById('btn-close-submit-gpx-modal').click()"
-                    class="px-4 py-2.5 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-sm transition">
+                    class="px-4 py-2.5 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-800 text-slate-300 hover:text-white text-sm font-semibold transition cursor-pointer">
                     Batal
                 </button>
                 <button id="btn-submit-gpx-form" type="submit"
-                    class="px-5 py-2.5 rounded-xl bg-accent text-slate-950 hover:bg-white text-sm font-bold transition shadow-accent flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane text-xs text-slate-950"></i>
-                    <span>Kirim rute</span>
+                    class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition border border-slate-700 flex items-center gap-2 cursor-pointer shadow-md">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    <span>Kirim Rute</span>
                 </button>
             </div>
         </form>
@@ -893,7 +915,7 @@
                 explorerClusterGroup.clearLayers();
 
                 if (mapRoutesCountEl) {
-                    mapRoutesCountEl.textContent = `${routes.length} Titik Start`;
+                    mapRoutesCountEl.textContent = `${routes.length} Titik Rute`;
                 }
 
                 const validBounds = [];
@@ -1134,13 +1156,13 @@
                 let matches = catalogCities.filter(c => c && c.toLowerCase().includes(cleanQuery));
 
                 let html = `
-                    <div class="p-2 border-b border-slate-800 bg-slate-900/90 text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center justify-between">
+                    <div class="p-2.5 border-b border-slate-800 bg-[#111724] text-[10px] text-slate-300 font-bold uppercase tracking-wider flex items-center justify-between" style="background-color: #111724 !important;">
                         <span>Pilihan Kota Katalog</span>
-                        <span class="text-accent">${matches.length} kota</span>
+                        <span class="text-white font-bold">${matches.length} kota</span>
                     </div>
-                    <div class="py-1">
-                        <button type="button" data-city="" class="city-filter-option w-full text-left px-3 py-2 text-xs font-semibold text-accent hover:bg-slate-800/80 flex items-center gap-2 transition cursor-pointer">
-                            <i class="fa-solid fa-globe text-[11px]"></i>
+                    <div class="py-1 divide-y divide-slate-800/60 bg-[#0c121e]" style="background-color: #0c121e !important;">
+                        <button type="button" data-city="" class="city-filter-option w-full text-left px-3.5 py-2.5 text-xs font-bold text-white hover:bg-[#111724] flex items-center gap-2.5 transition cursor-pointer" style="background-color: #0c121e !important;">
+                            <i class="fa-solid fa-globe text-[11px] text-slate-400"></i>
                             <span>Semua Kota (Reset)</span>
                         </button>
                 `;
@@ -1149,19 +1171,19 @@
                     matches.forEach(city => {
                         const isSelected = selectCity?.value?.trim().toLowerCase() === city.toLowerCase();
                         html += `
-                            <button type="button" data-city="${city}" class="city-filter-option w-full text-left px-3 py-2 text-xs text-white hover:bg-slate-800/80 flex items-center justify-between transition cursor-pointer ${isSelected ? 'bg-accent/15 text-accent font-bold' : ''}">
-                                <div class="flex items-center gap-2 truncate">
-                                    <i class="fa-solid fa-location-dot text-[10px] ${isSelected ? 'text-accent' : 'text-slate-500'}"></i>
-                                    <span class="truncate">${city}</span>
+                            <button type="button" data-city="${city}" class="city-filter-option w-full text-left px-3.5 py-2.5 text-xs font-medium text-white hover:bg-[#111724] flex items-center justify-between transition cursor-pointer ${isSelected ? 'bg-slate-800 font-bold' : ''}" style="${isSelected ? 'background-color: #1e293b !important;' : 'background-color: #0c121e !important;'}">
+                                <div class="flex items-center gap-2.5 truncate">
+                                    <i class="fa-solid fa-location-dot text-[11px] ${isSelected ? 'text-white' : 'text-slate-400'}"></i>
+                                    <span class="truncate ${isSelected ? 'text-white font-bold' : 'text-slate-200'}">${city}</span>
                                 </div>
-                                ${isSelected ? '<i class="fa-solid fa-check text-accent text-[10px]"></i>' : ''}
+                                ${isSelected ? '<i class="fa-solid fa-check text-white text-[11px]"></i>' : ''}
                             </button>
                         `;
                     });
                 } else {
                     html += `
-                        <div class="px-3 py-3 text-xs text-slate-400 text-center">
-                            Tidak ada kota katalog bernama "<strong>${cleanQuery}</strong>".
+                        <div class="px-3.5 py-3 text-xs text-slate-300 text-center bg-[#0c121e]" style="background-color: #0c121e !important;">
+                            Tidak ada kota katalog bernama "<strong class="text-white">${cleanQuery}</strong>".
                         </div>
                     `;
                 }
@@ -1428,14 +1450,59 @@
                 const eleVal = filterForm.querySelector('select[name="elevation"]')?.value?.trim() || '';
                 const sortVal = filterForm.querySelector('select[name="sort"]')?.value?.trim() || 'default';
                 const latVal = document.getElementById('filter-user-lat')?.value?.trim() || '';
+                const routeTypeVal = filterForm.querySelector('input[name="route_type"]:checked')?.value?.trim() || '';
 
-                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || (sortVal !== '' && sortVal !== 'default' && sortVal !== 'nearest');
+                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || routeTypeVal !== '' || (sortVal !== '' && sortVal !== 'default' && sortVal !== 'nearest');
                 if (hasActiveFilters) {
                     mobileFilterActiveDot.classList.remove('hidden');
                 } else {
                     mobileFilterActiveDot.classList.add('hidden');
                 }
             }
+
+            // Sync Route Type Pills (Both on Map & in Filter Form)
+            window.setMapAndFormRouteType = function(type) {
+                const targetVal = type || '';
+                
+                // Update Radio in form
+                const radio = filterForm?.querySelector(`input[name="route_type"][value="${targetVal}"]`);
+                if (radio) {
+                    radio.checked = true;
+                }
+
+                // Update form segmented buttons UI
+                document.querySelectorAll('.route-type-filter-btn').forEach(btn => {
+                    const input = btn.querySelector('input[name="route_type"]');
+                    const isActive = (input?.value || '') === targetVal;
+                    if (isActive) {
+                        btn.className = 'route-type-filter-btn is-active bg-slate-800 text-white font-bold border-slate-600 flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm';
+                    } else {
+                        btn.className = 'route-type-filter-btn text-slate-300 hover:text-white border-transparent flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm';
+                    }
+                });
+
+                // Update map overlay pills UI
+                document.querySelectorAll('#gpx-map-type-filter-overlay .btn-map-type-pill').forEach(pill => {
+                    const onclickAttr = pill.getAttribute('onclick') || '';
+                    const isPillActive = onclickAttr.includes(`'${targetVal}'`);
+                    if (isPillActive) {
+                        pill.classList.add('bg-slate-800', 'text-white', 'font-bold', 'border-slate-600');
+                        pill.classList.remove('text-slate-300', 'border-transparent');
+                    } else {
+                        pill.classList.remove('bg-slate-800', 'text-white', 'font-bold', 'border-slate-600');
+                        pill.classList.add('text-slate-300', 'border-transparent');
+                    }
+                });
+
+                applyFiltersAjax();
+            };
+
+            // Form radio change listener
+            document.querySelectorAll('input[name="route_type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    window.setMapAndFormRouteType(this.value);
+                });
+            });
 
             if (btnOpenMobileFilter) {
                 btnOpenMobileFilter.addEventListener('click', openMobileFilterDrawer);
@@ -1478,9 +1545,17 @@
                     }
                 });
 
-                // Auto filter on select change
+                // Auto filter on select change & sort nearest GPS handling
                 filterForm.querySelectorAll('select').forEach(sel => {
                     sel.addEventListener('change', function() {
+                        if (this.id === 'select-filter-sort' && this.value === 'nearest') {
+                            const inputLat = document.getElementById('filter-user-lat');
+                            const inputLng = document.getElementById('filter-user-lng');
+                            if (!inputLat?.value || !inputLng?.value) {
+                                triggerGeoLocation(true);
+                                return;
+                            }
+                        }
                         applyFiltersAjax();
                     });
                 });
@@ -1515,7 +1590,7 @@
                     const noticeBar = document.getElementById('gpx-geo-notice-bar');
                     if (noticeBar) noticeBar.classList.add('hidden');
                     filterForm?.querySelectorAll('select').forEach(s => s.value = '');
-                    applyFiltersAjax();
+                    window.setMapAndFormRouteType('');
                 });
             }
 

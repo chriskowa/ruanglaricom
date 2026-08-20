@@ -1,11 +1,11 @@
 <!-- Modal: Sarankan Nama Rute GPX -->
-<div id="modal-gpx-suggest-title" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden" style="z-index: 99999;">
-    <div class="relative w-full max-w-lg bg-[#0c121e] border border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden text-slate-200">
+<div id="modal-gpx-suggest-title" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/90 hidden" style="z-index: 99999 !important;">
+    <div class="relative w-full max-w-lg bg-[#0c121e] border border-slate-700 rounded-2xl p-6 shadow-2xl overflow-hidden text-slate-200" style="background-color: #0c121e !important; opacity: 1 !important;">
         
         <!-- Header -->
         <div class="flex items-start justify-between gap-3 pb-4 border-b border-slate-800">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-neon/10 border border-neon/30 text-neon flex items-center justify-center text-sm shrink-0">
+                <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-sm shrink-0">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </div>
                 <div>
@@ -13,7 +13,7 @@
                     <p class="text-xs text-slate-400">Bantu komunitas dengan nama rute yang lebih akurat atau populer.</p>
                 </div>
             </div>
-            <button type="button" onclick="closeSuggestTitleModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer" title="Tutup Modal">
+            <button type="button" onclick="closeSuggestTitleModal()" class="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer" title="Tutup Modal">
                 <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
@@ -24,8 +24,8 @@
 
             <!-- Current Title (Read Only) -->
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1">Nama Rute Saat Ini</label>
-                <div id="suggest-current-title" class="px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-bold text-slate-300 break-words">
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Rute Saat Ini</label>
+                <div id="suggest-current-title" class="px-3.5 py-2.5 rounded-xl bg-[#111724] border border-slate-700 text-xs font-bold text-white break-words" style="background-color: #111724 !important;">
                     -
                 </div>
             </div>
@@ -42,26 +42,26 @@
                        minlength="3" 
                        maxlength="255" 
                        placeholder="Contoh: Loop Senayan - Sudirman 10K" 
-                       class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
+                       class="w-full px-3.5 py-2.5 rounded-xl bg-[#111724] border border-slate-700 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition" style="background-color: #111724 !important;">
                 <p class="text-[11px] text-slate-400 mt-1">Gunakan nama yang jelas, mudah dikenali, atau mencakup rute utama.</p>
             </div>
 
             <!-- Reason / Notes -->
             <div>
                 <label for="suggest-reason" class="block text-xs font-semibold text-slate-300 mb-1">
-                    Alasan / Catatan Tambahan <span class="text-slate-500 text-[11px]">(opsional)</span>
+                    Alasan / Catatan Tambahan <span class="text-slate-400 text-[11px]">(opsional)</span>
                 </label>
                 <textarea id="suggest-reason" 
                           name="reason" 
                           rows="3" 
                           maxlength="500" 
                           placeholder="Contoh: Rute ini lebih populer disebut Loop Senayan oleh komunitas lari setempat." 
-                          class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition resize-none"></textarea>
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-[#111724] border border-slate-700 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition resize-none" style="background-color: #111724 !important;"></textarea>
             </div>
 
-            <!-- Notice / Reward Incentive -->
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-2.5 text-xs text-slate-300">
-                <i class="fa-solid fa-circle-info text-neon mt-0.5 shrink-0 text-sm"></i>
+            <!-- Notice / Information -->
+            <div class="p-3 rounded-xl bg-[#111724] border border-slate-800 flex items-start gap-2.5 text-xs text-slate-300" style="background-color: #111724 !important;">
+                <i class="fa-solid fa-circle-info text-slate-400 mt-0.5 shrink-0 text-sm"></i>
                 <p class="leading-relaxed">
                     Saran penamaan akan ditinjau oleh Admin RuangLari sebelum diterapkan secara resmi pada katalog rute GPX.
                 </p>
@@ -72,10 +72,10 @@
 
             <!-- Footer Buttons -->
             <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
-                <button type="button" onclick="closeSuggestTitleModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer">
+                <button type="button" onclick="closeSuggestTitleModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer">
                     Batal
                 </button>
-                <button type="submit" id="btn-submit-suggest-title" class="px-5 py-2 rounded-xl bg-neon text-dark hover:bg-white text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-neon/10">
+                <button type="submit" id="btn-submit-suggest-title" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700 shadow-md">
                     <span id="btn-submit-suggest-text">Kirim Saran</span>
                     <i class="fa-solid fa-paper-plane text-[11px]"></i>
                 </button>

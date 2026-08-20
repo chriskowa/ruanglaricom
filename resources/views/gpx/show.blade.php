@@ -2572,25 +2572,25 @@
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Aktivitas Tersimpan di HP! 🏔️',
+                        title: 'Aktivitas Tersimpan di HP',
                         html: `
                             <div class="text-left space-y-2.5 text-xs text-slate-300">
                                 <p class="leading-relaxed">
-                                    Karena sedang di gunung / offline, sesi lari <strong class="text-white">${payload.title}</strong> (${payload.distance_km.toFixed(2)} km) telah diamankan di memori HP Anda.
+                                    Karena sedang offline, sesi lari <strong class="text-white">${payload.title}</strong> (${payload.distance_km.toFixed(2)} km) telah diamankan di memori lokal HP Anda.
                                 </p>
-                                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white-400 flex items-center gap-2">
-                                    <i class="fa-solid fa-cloud-arrow-up animate-bounce text-sm"></i>
-                                    <span>Akan otomatis di-upload ke database saat HP terhubung ke internet.</span>
+                                <div class="p-3 rounded-xl bg-[#111724] border border-slate-800 text-xs text-emerald-400 flex items-center gap-2" style="background-color: #111724 !important;">
+                                    <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                                    <span>Akan otomatis diunggah ke database saat HP terhubung ke internet.</span>
                                 </div>
                             </div>
                         `,
                         background: '#0c121e',
                         color: '#fff',
-                        confirmButtonColor: '#FC4C02',
-                        confirmButtonText: 'Oke, Selesai',
+                        confirmButtonColor: '#334155',
+                        confirmButtonText: 'Tutup',
                         showCancelButton: true,
                         cancelButtonText: 'Download File GPX',
-                        cancelButtonColor: '#334155',
+                        cancelButtonColor: '#1e293b',
                         customClass: {
                             confirmButton: 'text-white font-bold',
                             cancelButton: 'text-slate-300 font-semibold'
@@ -2878,20 +2878,20 @@
                     const savedDate = new Date(data.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                     
                     if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-white-400';
+                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-emerald-400';
                     }
                     if (btnLabel) {
                         btnLabel.textContent = 'Offline Siap';
-                        btnLabel.className = 'text-white-400 font-semibold';
+                        btnLabel.className = 'text-emerald-400 font-semibold';
                     }
                     if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-white-400';
+                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-emerald-400';
                     }
                     if (statusBanner) {
-                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-white-500/10 border-white-500/30 text-white-300';
+                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-[#111724] border-emerald-500/40 text-emerald-300';
                     }
                     if (statusIcon) {
-                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-white-400';
+                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-emerald-400';
                         statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
                     }
                     if (statusTitle) {
@@ -2904,24 +2904,24 @@
                         btnDelete.classList.remove('hidden');
                     }
                     if (btnStart) {
-                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer';
+                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-md';
                     }
                     if (btnStartText) {
                         btnStartText.textContent = 'Perbarui Cache Offline';
                     }
                 } else {
                     if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-white-400';
+                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-white';
                     }
                     if (btnLabel) {
                         btnLabel.textContent = 'Offline';
                         btnLabel.className = 'text-slate-200';
                     }
                     if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-white-400';
+                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-white';
                     }
                     if (statusBanner) {
-                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-slate-900/80 border-slate-800';
+                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-[#111724] border-slate-800';
                     }
                     if (statusIcon) {
                         statusIcon.className = 'mt-0.5 text-base shrink-0 text-amber-400';
@@ -2937,7 +2937,7 @@
                         btnDelete.classList.add('hidden');
                     }
                     if (btnStart) {
-                        btnStart.className = 'px-4 py-2 rounded-xl bg-white-500 hover:bg-white-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-white-500/20';
+                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-md';
                     }
                     if (btnStartText) {
                         btnStartText.textContent = 'Simpan Rute Sekarang';
