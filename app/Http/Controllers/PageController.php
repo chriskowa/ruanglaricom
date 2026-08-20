@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\HomepageContent;
 use App\Models\Menu;
 use App\Models\Article;
+use App\Models\MasterGpx;
 use App\Services\StravaClubService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -39,6 +40,7 @@ class PageController extends Controller
             return PageTemplate::homepage()->active()->first();
         });
         
+        // Get featured events (published, starting from today onwards)
         $featuredEvents = Cache::remember('home.featured_events', 300, function () {
             return Event::query()
                 ->where('is_featured', true)
@@ -88,8 +90,6 @@ class PageController extends Controller
                 ->limit(4)
                 ->get();
         });
-
-
 
         return view('home.index', [
             'homepageContent' => $homepageContent,

@@ -75,11 +75,6 @@ class HomeController extends Controller
             'homepageContent' => $homepageContent,
             'featuredEvent'   => $featuredEvent,
             'leaderboard'     => null, // Loaded asynchronously via AJAX
-            //'topRunner' => $topStats['runner'],
-            //'topPacer' => $topStats['pacer'],
-            //'topCoach' => $topStats['coach'],
-            //'topCoachData' => $topStats['coachData'],
-            //'totalUsers' => $topStats['totalUsers'] ?? 0,
         ]);
     }
 

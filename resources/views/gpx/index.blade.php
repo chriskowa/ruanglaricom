@@ -333,7 +333,7 @@
                                 {{ count($mapRoutes ?? []) }} Rute terdaftar
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta (CARTO Light). Klik marker untuk melihat detail rute.</p>
+                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta. Klik marker untuk melihat detail rute.</p>
                     </div>
                 </div>
 
@@ -928,7 +928,7 @@
 
                         let typeBadgeClass = 'bg-[#ccff00]/15 text-accent border border-accent/30';
                         if (route.route_type === 'trail') {
-                            typeBadgeClass = 'bg-[#10b981]/15 text-emerald-400 border border-emerald-500/30';
+                            typeBadgeClass = 'bg-[#10b981]/15 text-white-400 border border-emerald-500/30';
                         } else if (route.route_type === 'track') {
                             typeBadgeClass = 'bg-[#38bdf8]/15 text-sky-400 border border-sky-500/30';
                         }
@@ -971,9 +971,9 @@
                                         <span style="color: #020617 !important;">Detail Rute</span>
                                         <i class="fa-solid fa-arrow-right text-[10px]" style="color: #020617 !important;"></i>
                                     </a>
-                                    <a href="${route.download_url}" class="btn-popup-download px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" title="Unduh GPX">
-                                        <i class="fa-solid fa-download text-[11px]"></i>
-                                    </a>
+                                    <a href="${route.download_url}" class="btn-popup-download px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" style="color: #ffffff !important;" title="Unduh GPX">
+    <i class="fa-solid fa-download text-[11px]" style="color: #ffffff !important;"></i>
+</a>
                                 </div>
                             </div>
                         `;
@@ -1017,11 +1017,11 @@
                 }).setView(defaultCenter, defaultZoom);
 
                 // CARTO Light (Positron) Tile Layer
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }).addTo(explorerMap);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20,
+    subdomains: 'abcd',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(explorerMap);
 
                 // Initialize Marker Cluster Group with custom styling
                 explorerClusterGroup = L.markerClusterGroup({

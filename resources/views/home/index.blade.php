@@ -554,6 +554,89 @@
             </div>
         </section>
 
+        <!-- DATABASE RUTE GPX SECTION (2 Columns: Image & Short Explanation - Ultra Lightweight) -->
+        <section id="database-gpx" class="py-20 md:py-24 relative bg-[#0B1526] border-t border-[#1F2D44]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid md:grid-cols-2 gap-10 md:gap-16 items-top">
+                    
+                    <!-- COLUMN 1: Image & Visual Card Feature Mockup -->
+                    <div class="relative order-2 md:order-1" data-aos="fade-right">
+                        <div class="inline-flex items-center gap-2 mb-10 px-3.5 py-1.5 rounded-full border border-[#B8FF00]/30 bg-[#B8FF00]/10 text-[#B8FF00] text-xs font-mono font-bold uppercase tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-[#B8FF00]"></span>
+                            <span>Katalog Rute Lari</span>
+                        </div>
+                        <div class="relative rounded-3xl overflow-hidden border border-[#1F2D44] bg-[#0E1A2D] shadow-2xl">
+                            <!-- Main Image -->
+                            <img src="https://ruanglari.com/storage/blog/media/7fd6f9b8-5b5f-49d6-a0f6-f1d35b915e36.webp" 
+                                alt="Database Rute GPX Lari Indonesia" 
+                                class="w-full h-[320px] sm:h-[380px] md:h-[420px] object-cover object-center" 
+                                loading="lazy" decoding="async">
+
+                            
+                        </div>
+                    </div>
+
+                    <!-- COLUMN 2: Short Explanation & Actions -->
+                    <div class="order-1 md:order-2 space-y-6" data-aos="fade-left">                        
+
+                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight uppercase leading-tight">
+                            Database Rute <span class="text-[#B8FF00]">GPX</span> Lari Indonesia
+                        </h2>
+
+                        <p class="text-[#94A3B8] text-base md:text-lg leading-relaxed">
+                            Unduh ribuan jalur lari terverifikasi di seluruh Indonesia untuk road, trail running, dan track. File GPX siap pakai dan disinkronkan langsung ke smartwatch Anda.
+                        </p>
+
+                        <!-- Key Feature Highlights List -->
+                        <div class="space-y-3.5 pt-1">
+                            <div class="flex items-start gap-3.5 p-3.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44]">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-white shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-compass text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Navigasi GPS & Mode Offline di Gunung</h4>
+                                    <p class="text-xs text-[#94A3B8] leading-relaxed">Panduan rute turn-by-turn dan peta tetap dapat diakses di HP tanpa memerlukan sinyal internet.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3.5 p-3.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44]">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-white shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-stopwatch text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Sinkronisasi Instan ke Jam Lari</h4>
+                                    <p class="text-xs text-[#94A3B8] leading-relaxed">File format GPX 1.1 standar kompatibel dengan Garmin Connect, Coros App, Suunto, dan Strava.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3.5 p-3.5 rounded-xl bg-[#0E1A2D] border border-[#1F2D44]">
+                                <div class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-white shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-map-location-dot text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Buat & Rancang Rute Sendiri</h4>
+                                    <p class="text-xs text-[#94A3B8] leading-relaxed">Gunakan tool Buat Rute Lari untuk mengukur jarak, elevasi gain, dan membagikannya ke komunitas.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+                            <a href="{{ route('gpx.index') }}" class="px-6 py-3.5 rounded-xl bg-[#B8FF00] hover:bg-slate-700 hover:text-white border border-slate-700 text-black font-bold text-xs uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2">
+                                <span>Route me!</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
+                            <a href="{{ route('tools.buat-rute-lari') }}" class="px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                                <span>Buat Rute Baru</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
         <!-- SATU EKOSISTEM UNTUK PELARI -->
         <section class="py-24 relative bg-[#08111F] border-t border-[#1F2D44]">
             <!-- Subtle glow -->
@@ -578,6 +661,10 @@
                             <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Tingkatkan performa larimu dengan kalkulator pace, training plan custom, serta bimbingan dari coach TrackMaster Pro.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
+                            <a href="{{ route('gpx.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Database Rute GPX</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
                             <a href="{{ route('calendar.public') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
                                 <span>Kalender Lari</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
