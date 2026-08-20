@@ -216,11 +216,17 @@
                     <span>Download GPX</span>
                 </a>
 
-                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto">
                     <!-- Secondary CTA: Live Navigation -->
                     <button type="button" onclick="startLiveNavigation()" class="px-3 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
                         <i class="fa-solid fa-location-arrow text-xs text-[#FC4C02]"></i>
                         <span>Navigasi</span>
+                    </button>
+
+                    <!-- Offline Mode Button -->
+                    <button type="button" id="btn-offline-cache-toggle" onclick="openOfflineCacheModal()" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-200 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5 text-center cursor-pointer" title="Simpan Peta & Rute untuk Offline di Gunung">
+                        <i class="fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400" id="icon-offline-btn"></i>
+                        <span id="label-offline-btn">Offline</span>
                     </button>
 
                     <!-- Minor Action: Route Editor -->
@@ -775,6 +781,11 @@
         <button type="button" id="nav-btn-audio" onclick="toggleNavAudio()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Suara Navigasi">
             <i id="nav-audio-icon" class="fa-solid fa-volume-high text-xs text-[#FC4C02]"></i>
         </button>
+
+        <!-- Offline Mode Status Button in HUD -->
+        <button type="button" id="nav-btn-offline-hud" onclick="openOfflineCacheModal()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-emerald-400 flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Status Mode Offline Peta">
+            <i id="nav-offline-icon-hud" class="fa-solid fa-cloud-arrow-down text-sm text-emerald-400"></i>
+        </button>
     </div>
 
     <!-- Bottom Running Dashboard Panel (SOLID OPAQUE CHARCOAL) -->
@@ -909,6 +920,7 @@
 </div>
 
 @include('gpx.partials.suggest-title-modal')
+@include('gpx.partials.offline-cache-modal')
 @endsection
 
 @push('scripts')
@@ -965,6 +977,9 @@
             initMap();
             initElevationProfile();
             initPacePro();
+            checkOfflineRouteStatus();
+            syncPendingActivities();
+            window.addEventListener('online', syncPendingActivities);
         });
 
         // 1. Map Initialization (Strava Athletic Orange Theme + KM Split Markers + Layer Switcher)
@@ -2320,6 +2335,16 @@
                 is_public: isPublic ? 1 : 0
             };
 
+            // If offline, queue directly to localStorage
+            if (!navigator.onLine) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
+                }
+                queueActivityForOfflineSync(payload);
+                return;
+            }
+
             fetch("{{ route('activities.store') }}", {
                 method: 'POST',
                 headers: {
@@ -2342,13 +2367,120 @@
                 }
             })
             .catch(err => {
-                console.error(err);
-                alert('Terjadi kesalahan jaringan saat menyimpan aktivitas.');
+                console.warn('Network error during save, queueing offline:', err);
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
                 }
+                // Fallback to offline queue
+                queueActivityForOfflineSync(payload);
             });
+        }
+
+        function queueActivityForOfflineSync(payload) {
+            try {
+                const queueKey = 'ruanglari_pending_activities';
+                const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
+                payload.offline_id = 'act_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                payload.queued_at = new Date().toISOString();
+                queue.push(payload);
+                localStorage.setItem(queueKey, JSON.stringify(queue));
+
+                closePostRunModal();
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Aktivitas Tersimpan di HP! 🏔️',
+                        html: `
+                            <div class="text-left space-y-2.5 text-xs text-slate-300">
+                                <p class="leading-relaxed">
+                                    Karena sedang di gunung / offline, sesi lari <strong class="text-white">${payload.title}</strong> (${payload.distance_km.toFixed(2)} km) telah diamankan di memori HP Anda.
+                                </p>
+                                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-emerald-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-cloud-arrow-up animate-bounce text-sm"></i>
+                                    <span>Akan otomatis di-upload ke database saat HP terhubung ke internet.</span>
+                                </div>
+                            </div>
+                        `,
+                        background: '#0c121e',
+                        color: '#fff',
+                        confirmButtonColor: '#FC4C02',
+                        confirmButtonText: 'Oke, Selesai',
+                        showCancelButton: true,
+                        cancelButtonText: 'Download File GPX',
+                        cancelButtonColor: '#334155',
+                        customClass: {
+                            confirmButton: 'text-white font-bold',
+                            cancelButton: 'text-slate-300 font-semibold'
+                        }
+                    }).then((result) => {
+                        if (result.dismiss === Swal.DismissReason.cancel) {
+                            exportRecordedGpxDirectly();
+                        }
+                    });
+                } else {
+                    alert(`Aktivitas "${payload.title}" aman tersimpan di memori HP. Akan otomatis tersinkronisasi ke profil saat ada sinyal internet.`);
+                }
+            } catch (err) {
+                console.error('Queue save error:', err);
+                alert('Gagal menyimpan aktivitas ke memori offline HP.');
+            }
+        }
+
+        async function syncPendingActivities() {
+            if (!navigator.onLine) return;
+            const queueKey = 'ruanglari_pending_activities';
+            let queue = [];
+            try {
+                queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
+            } catch (e) {
+                queue = [];
+            }
+            if (queue.length === 0) return;
+
+            console.log(`[RuangLari Offline Sync] Sinkronisasi ${queue.length} aktivitas tertunda...`);
+            const remainingQueue = [];
+
+            for (const act of queue) {
+                try {
+                    const res = await fetch("{{ route('activities.store') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(act)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        console.log(`[RuangLari Offline Sync] Berhasil sync: ${act.title}`);
+                        if (typeof Swal !== 'undefined') {
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 5000,
+                                timerProgressBar: true,
+                                background: '#0c121e',
+                                color: '#fff'
+                            });
+                            Toast.fire({
+                                icon: 'success',
+                                title: `Aktivitas "${act.title}" (${act.distance_km} km) berhasil disinkronkan ke profil!`
+                            });
+                        }
+                    } else {
+                        remainingQueue.push(act);
+                    }
+                } catch (e) {
+                    console.warn(`[RuangLari Offline Sync] Gagal sync aktivitas:`, e);
+                    remainingQueue.push(act);
+                }
+            }
+
+            localStorage.setItem(queueKey, JSON.stringify(remainingQueue));
         }
 
         function exportRecordedGpxDirectly() {
@@ -2537,6 +2669,241 @@
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     alert('Link rute GPX berhasil disalin ke clipboard!');
                 });
+            }
+        }
+
+        // ==========================================
+        // OFFLINE ROUTE & MAP TILES CACHING ENGINE
+        // ==========================================
+        const OFFLINE_CACHE_NAME = 'ruanglari-gpx-offline-v1';
+        const OFFLINE_STORAGE_KEY = 'ruanglari_gpx_offline_' + currentMasterGpxId;
+
+        function checkOfflineRouteStatus() {
+            try {
+                const saved = localStorage.getItem(OFFLINE_STORAGE_KEY);
+                const btnIcon = document.getElementById('icon-offline-btn');
+                const btnLabel = document.getElementById('label-offline-btn');
+                const navBtnIcon = document.getElementById('nav-offline-icon-hud');
+                const statusBanner = document.getElementById('offline-status-banner');
+                const statusIcon = document.getElementById('offline-status-icon');
+                const statusTitle = document.getElementById('offline-status-title');
+                const statusDesc = document.getElementById('offline-status-desc');
+                const btnDelete = document.getElementById('btn-delete-offline-cache');
+                const btnStart = document.getElementById('btn-start-offline-download');
+                const btnStartText = document.getElementById('btn-start-offline-text');
+
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    const savedDate = new Date(data.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    
+                    if (btnIcon) {
+                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-emerald-400';
+                    }
+                    if (btnLabel) {
+                        btnLabel.textContent = 'Offline Siap';
+                        btnLabel.className = 'text-emerald-400 font-semibold';
+                    }
+                    if (navBtnIcon) {
+                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-emerald-400';
+                    }
+                    if (statusBanner) {
+                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-emerald-500/10 border-emerald-500/30 text-emerald-300';
+                    }
+                    if (statusIcon) {
+                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-emerald-400';
+                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    }
+                    if (statusTitle) {
+                        statusTitle.textContent = 'Status: Tersimpan di HP (Offline Siap)';
+                    }
+                    if (statusDesc) {
+                        statusDesc.textContent = `Peta & rute (${data.tileCount || 0} tile) tersimpan sejak ${savedDate}. Siap digunakan di gunung tanpa internet.`;
+                    }
+                    if (btnDelete) {
+                        btnDelete.classList.remove('hidden');
+                    }
+                    if (btnStart) {
+                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer';
+                    }
+                    if (btnStartText) {
+                        btnStartText.textContent = 'Perbarui Cache Offline';
+                    }
+                } else {
+                    if (btnIcon) {
+                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400';
+                    }
+                    if (btnLabel) {
+                        btnLabel.textContent = 'Offline';
+                        btnLabel.className = 'text-slate-200';
+                    }
+                    if (navBtnIcon) {
+                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-emerald-400';
+                    }
+                    if (statusBanner) {
+                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-slate-900/80 border-slate-800';
+                    }
+                    if (statusIcon) {
+                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-amber-400';
+                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+                    }
+                    if (statusTitle) {
+                        statusTitle.textContent = 'Status: Belum Tersimpan Offline';
+                    }
+                    if (statusDesc) {
+                        statusDesc.textContent = 'Unduh data lintasan & tile peta resolusi tinggi saat masih ada Wi-Fi/sinyal di basecamp.';
+                    }
+                    if (btnDelete) {
+                        btnDelete.classList.add('hidden');
+                    }
+                    if (btnStart) {
+                        btnStart.className = 'px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-500/20';
+                    }
+                    if (btnStartText) {
+                        btnStartText.textContent = 'Simpan Rute Sekarang';
+                    }
+                }
+            } catch (e) {
+                console.warn('Offline cache status check error:', e);
+            }
+        }
+
+        function openOfflineCacheModal() {
+            checkOfflineRouteStatus();
+            const modal = document.getElementById('modal-gpx-offline-cache');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeOfflineCacheModal() {
+            const modal = document.getElementById('modal-gpx-offline-cache');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function latLngToTile(lat, lng, zoom) {
+            const n = Math.pow(2, zoom);
+            const rad = lat * Math.PI / 180;
+            const x = Math.floor((lng + 180) / 360 * n);
+            const y = Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n);
+            return { x, y, z: zoom };
+        }
+
+        function generateRouteTileUrls() {
+            if (!routePoints || routePoints.length === 0) return [];
+
+            const tileSet = new Set();
+            const zoomLevels = [13, 14, 15, 16];
+            const subdomains = ['a', 'b', 'c', 'd'];
+
+            // Sample points along route to avoid excessive memory
+            const sampleStep = Math.max(1, Math.floor(routePoints.length / 80));
+            const sampledPoints = [];
+            for (let i = 0; i < routePoints.length; i += sampleStep) {
+                sampledPoints.push(routePoints[i]);
+            }
+            if (routePoints.length > 0) sampledPoints.push(routePoints[routePoints.length - 1]);
+
+            zoomLevels.forEach(z => {
+                sampledPoints.forEach(p => {
+                    const center = latLngToTile(p.lat, p.lng, z);
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const sub = subdomains[Math.abs((center.x + dx + center.y + dy)) % subdomains.length];
+                            const tileKey = `${z}/${center.x + dx}/${center.y + dy}`;
+                            tileSet.add(`https://${sub}.basemaps.cartocdn.com/rastertiles/voyager/${tileKey}.png`);
+                        }
+                    }
+                });
+            });
+
+            return Array.from(tileSet);
+        }
+
+        async function startOfflineRouteCaching() {
+            if (!('caches' in window)) {
+                alert('Browser ini tidak mendukung Cache Storage. Gunakan Chrome, Safari, atau Firefox versi terbaru.');
+                return;
+            }
+
+            const urls = generateRouteTileUrls();
+            if (urls.length === 0) {
+                alert('Tidak ada koordinat rute yang dapat diunduh.');
+                return;
+            }
+
+            const progressWrap = document.getElementById('offline-progress-wrap');
+            const progressBar = document.getElementById('offline-progress-bar');
+            const progressPercent = document.getElementById('offline-progress-percent');
+            const progressDetail = document.getElementById('offline-progress-detail');
+            const progressCount = document.getElementById('offline-progress-count');
+            const btnStart = document.getElementById('btn-start-offline-download');
+
+            if (progressWrap) progressWrap.classList.remove('hidden');
+            if (btnStart) btnStart.disabled = true;
+
+            try {
+                const cache = await caches.open(OFFLINE_CACHE_NAME);
+                let completed = 0;
+                const total = urls.length;
+
+                // Concurrent fetch in chunks
+                const batchSize = 6;
+                for (let i = 0; i < total; i += batchSize) {
+                    const chunk = urls.slice(i, i + batchSize);
+                    await Promise.all(chunk.map(async url => {
+                        try {
+                            const match = await cache.match(url);
+                            if (!match) {
+                                const response = await fetch(url, { mode: 'cors' });
+                                if (response.ok) {
+                                    await cache.put(url, response);
+                                }
+                            }
+                        } catch (err) {
+                            // Non-blocking single tile error
+                        }
+                        completed++;
+                        const pct = Math.round((completed / total) * 100);
+                        if (progressBar) progressBar.style.width = pct + '%';
+                        if (progressPercent) progressPercent.textContent = pct + '%';
+                        if (progressCount) progressCount.textContent = `${completed} / ${total}`;
+                        if (progressDetail) progressDetail.textContent = `Menyimpan tile peta (${pct}%)...`;
+                    }));
+                }
+
+                // Save Route Metadata & Geometry in localStorage
+                localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify({
+                    id: currentMasterGpxId,
+                    title: routeTitle,
+                    savedAt: Date.now(),
+                    tileCount: total,
+                    pointsCount: routePoints.length,
+                    distanceKm: totalRouteDistance,
+                    elevationGain: totalElevationGain
+                }));
+
+                checkOfflineRouteStatus();
+
+                if (progressDetail) progressDetail.textContent = '100% Selesai! Peta offline siap dipakai di gunung.';
+                setTimeout(() => {
+                    if (progressWrap) progressWrap.classList.add('hidden');
+                }, 2000);
+
+            } catch (err) {
+                console.error('Offline caching error:', err);
+                alert('Gagal menyimpan beberapa data offline. Pastikan memori browser Anda mencukupi.');
+            } finally {
+                if (btnStart) btnStart.disabled = false;
+            }
+        }
+
+        async function deleteOfflineRouteCache() {
+            if (!confirm('Hapus data peta & rute offline untuk rute ini?')) return;
+
+            try {
+                localStorage.removeItem(OFFLINE_STORAGE_KEY);
+                checkOfflineRouteStatus();
+                alert('Cache rute offline berhasil dibersihkan.');
+            } catch (e) {
+                console.error(e);
             }
         }
     </script>

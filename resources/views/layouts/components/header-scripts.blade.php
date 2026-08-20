@@ -502,5 +502,61 @@
             }
         }
     });
+
+    // Global Offline Running Activities Auto-Sync Engine
+    @auth
+    async function syncGlobalOfflineActivities() {
+        if (!navigator.onLine) return;
+        const queueKey = 'ruanglari_pending_activities';
+        let queue = [];
+        try {
+            queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
+        } catch (e) {
+            queue = [];
+        }
+        if (queue.length === 0) return;
+
+        const remainingQueue = [];
+        for (const act of queue) {
+            try {
+                const res = await fetch(@json(route('activities.store')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(act)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (typeof Swal !== 'undefined') {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 5000,
+                            timerProgressBar: true,
+                            background: '#0c121e',
+                            color: '#fff'
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: `Aktivitas "${act.title}" (${act.distance_km} km) berhasil disinkronkan ke profil!`
+                        });
+                    }
+                } else {
+                    remainingQueue.push(act);
+                }
+            } catch (e) {
+                remainingQueue.push(act);
+            }
+        }
+        localStorage.setItem(queueKey, JSON.stringify(remainingQueue));
+    }
+
+    document.addEventListener('DOMContentLoaded', syncGlobalOfflineActivities);
+    window.addEventListener('online', syncGlobalOfflineActivities);
+    @endauth
 </script>
 @endpush
