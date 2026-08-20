@@ -225,7 +225,7 @@
 
                     <!-- Offline Mode Button -->
                     <button type="button" id="btn-offline-cache-toggle" onclick="openOfflineCacheModal()" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-200 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5 text-center cursor-pointer" title="Simpan Peta & Rute untuk Offline di Gunung">
-                        <i class="fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400" id="icon-offline-btn"></i>
+                        <i class="fa-solid fa-cloud-arrow-down text-[11px] text-white-400" id="icon-offline-btn"></i>
                         <span id="label-offline-btn">Offline</span>
                     </button>
 
@@ -284,7 +284,7 @@
                     <!-- Legend Tags -->
                     <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-300 font-mono ml-2 pl-2 border-l border-slate-800">
                         <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Start
+                            <span class="w-2 h-2 rounded-full bg-white-500"></span> Start
                         </span>
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span> Finish
@@ -298,7 +298,7 @@
                     <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Tampilkan / Sembunyikan Marker KM">
                         <span class="w-3.5 h-3.5 rounded-full bg-[#FC4C02] text-white text-[8px] font-mono font-black flex items-center justify-center">1</span>
                         <span>KM</span>
-                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">ON</span>
+                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-mono font-bold">ON</span>
                     </button>
 
                     <!-- Map Layer Switcher (Dark / Street / Satelit) -->
@@ -401,7 +401,7 @@
 
                             <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1" title="Kamera otomatis mengikuti runner">
                                 <span class="hidden xs:inline">Kamera</span>
-                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">ON</span>
+                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-bold">ON</span>
                             </button>
 
                             <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-1" title="Tutup Animasi">
@@ -737,7 +737,7 @@
     <div class="nav-solid-header absolute top-0 left-0 right-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#070B12] border-b border-slate-800 flex items-center justify-between gap-3 shadow-2xl" style="background-color: #070B12 !important;">
         <!-- Status & GPS Indicator -->
         <div class="flex items-center gap-2 min-w-0 flex-1">
-            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
+            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-white-500 shrink-0"></div>
             <div class="min-w-0 flex-1">
                 <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-200 block truncate" id="nav-status-label">
                     Navigasi GPS Aktif
@@ -782,9 +782,14 @@
             <i id="nav-audio-icon" class="fa-solid fa-volume-high text-xs text-[#FC4C02]"></i>
         </button>
 
+        <!-- Reset Activity Button in HUD Floating Column -->
+        <button type="button" id="nav-btn-reset" onclick="resetLiveNavigationSession()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-amber-400 flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Reset Aktivitas Lari ke 0">
+            <i class="fa-solid fa-rotate-left text-sm"></i>
+        </button>
+
         <!-- Offline Mode Status Button in HUD -->
-        <button type="button" id="nav-btn-offline-hud" onclick="openOfflineCacheModal()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-emerald-400 flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Status Mode Offline Peta">
-            <i id="nav-offline-icon-hud" class="fa-solid fa-cloud-arrow-down text-sm text-emerald-400"></i>
+        <button type="button" id="nav-btn-offline-hud" onclick="openOfflineCacheModal()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Status Mode Offline Peta">
+            <i id="nav-offline-icon-hud" class="fa-solid fa-cloud-arrow-down text-sm text-white"></i>
         </button>
     </div>
 
@@ -803,9 +808,9 @@
                 </div>
 
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Sisa Jarak</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Jarak Lari</span>
                     <div class="mt-0.5">
-                        <span id="nav-remaining-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">{{ $formattedDist }}</span>
+                        <span id="nav-actual-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">0.00</span>
                         <span class="text-[10px] font-mono text-slate-500 block">km</span>
                     </div>
                 </div>
@@ -819,23 +824,54 @@
                 </div>
             </div>
 
-            <!-- Route Progress Bar -->
+            <!-- Route Progress Bar & Remaining Distance -->
             <div>
                 <div class="flex justify-between text-xs font-mono text-slate-200 mb-1.5">
                     <span>Progress: <strong id="nav-progress-pct" class="text-white font-bold">0%</strong></span>
-                    <span id="nav-completed-dist" class="text-slate-300">0.00 / {{ $formattedDist }} km</span>
+                    <span>Sisa Rute: <strong id="nav-remaining-dist" class="text-[#FC4C02] font-bold">{{ $formattedDist }}</strong> km (<span id="nav-completed-dist" class="text-slate-400">0.00 / {{ $formattedDist }} km</span>)</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div id="nav-progress-bar" class="h-full bg-[#FC4C02] transition-all duration-300 w-0"></div>
                 </div>
             </div>
 
-            <!-- Finish Run Button (Solid Strava-like Finish) -->
-            <div class="pt-1">
-                <button type="button" onclick="finishLiveNavigation()" class="w-full py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
-                    <i class="fa-solid fa-flag-checkered text-xs"></i>
-                    <span>Selesai & Simpan Lari</span>
-                </button>
+            <!-- Dynamic Action Buttons: Ready / Running / Paused State -->
+            <div id="nav-action-buttons-wrap" class="pt-1">
+                <!-- State 1: READY (Waiting for user to press Start) -->
+                <div id="nav-actions-ready" class="w-full">
+                    <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Mulai Lari (Start)</span>
+                    </button>
+                </div>
+
+                <!-- State 2: RUNNING (Active Tracking) -->
+                <div id="nav-actions-running" class="hidden grid grid-cols-3 gap-2">
+                    <button type="button" onclick="pauseRunningSession()" class="col-span-1 py-3 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer border border-amber-500/40" title="Jeda Lari">
+                        <i class="fa-solid fa-pause text-xs"></i>
+                        <span>Jeda</span>
+                    </button>
+                    <button type="button" onclick="finishLiveNavigation()" class="col-span-2 py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                        <i class="fa-solid fa-flag-checkered text-xs"></i>
+                        <span>Selesai & Simpan</span>
+                    </button>
+                </div>
+
+                <!-- State 3: PAUSED (Paused Session) -->
+                <div id="nav-actions-paused" class="hidden grid grid-cols-3 gap-2">
+                    <button type="button" onclick="resumeRunningSession()" class="col-span-1 py-3 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer shadow-md">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Lanjut</span>
+                    </button>
+                    <button type="button" onclick="resetLiveNavigationSession()" class="col-span-1 py-3 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer border border-slate-700">
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                        <span>Reset</span>
+                    </button>
+                    <button type="button" onclick="finishLiveNavigation()" class="col-span-1 py-3 px-2 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                        <i class="fa-solid fa-flag-checkered text-xs"></i>
+                        <span>Selesai</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -958,6 +994,11 @@
         let navReturnMode = false;
         let navHasCenteredOnUser = false;
 
+        // Navigation Session Control State (Strava/Garmin Ready -> Running -> Paused)
+        let navSessionState = 'ready'; // 'ready', 'running', 'paused'
+        let navAccumulatedElapsedSec = 0;
+        let navRunStartTimestamp = null;
+
         // GPS Breadcrumbs Recording State (for Saving Activity)
         let recordedGpsTrack = [];
         let recordedActualDistanceKm = 0;
@@ -1054,10 +1095,10 @@
                     lineJoin: 'round',
                 }).addTo(map);
 
-                // Start Marker (Emerald Green)
+                // Start Marker (white Green)
                 const startIcon = L.divIcon({
                     className: 'custom-start-marker',
-                    html: '<div class="w-5 h-5 rounded-full bg-emerald-600 border border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
+                    html: '<div class="w-5 h-5 rounded-full bg-white-600 border border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
@@ -1122,7 +1163,7 @@
                 map.addLayer(kmMarkersLayer);
                 if (badge) {
                     badge.textContent = 'ON';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-mono font-bold';
                 }
             } else {
                 map.removeLayer(kmMarkersLayer);
@@ -1366,7 +1407,7 @@
             if (badge) {
                 if (animCameraFollow) {
                     badge.textContent = 'ON';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold';
+                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-bold';
                 } else {
                     badge.textContent = 'OFF';
                     badge.className = 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold';
@@ -1834,18 +1875,45 @@
             navReturnMode = false;
             navHasCenteredOnUser = false;
 
+            // Reset Session State to READY (Waiting for user to press Start)
+            navSessionState = 'ready';
+            navAccumulatedElapsedSec = 0;
+            navRunStartTimestamp = null;
+
             // Reset Recorded Track
             recordedGpsTrack = [];
             recordedActualDistanceKm = 0;
             recordedFinalSplits = [];
             recordedElevationGainM = 0;
 
-            // Start Running Timer
-            if (navTimerInterval) clearInterval(navTimerInterval);
-            navTimerInterval = setInterval(updateNavTimer, 1000);
+            // Reset HUD Elements to 0
+            const actualDistEl = document.getElementById('nav-actual-dist');
+            const timeEl = document.getElementById('nav-running-time');
+            const progBar = document.getElementById('nav-progress-bar');
+            const progPctEl = document.getElementById('nav-progress-pct');
+            const compDistEl = document.getElementById('nav-completed-dist');
+            const remDistEl = document.getElementById('nav-remaining-dist');
+            const livePaceEl = document.getElementById('nav-live-pace');
+
+            if (actualDistEl) actualDistEl.textContent = '0.00';
+            if (timeEl) timeEl.textContent = '00:00';
+            if (progBar) progBar.style.width = '0%';
+            if (progPctEl) progPctEl.textContent = '0%';
+            if (compDistEl) compDistEl.textContent = `0.00 / ${totalRouteDistance.toFixed(2)} km`;
+            if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
+            if (livePaceEl) livePaceEl.textContent = '--:--';
+
+            // Clear Running Timer if active
+            if (navTimerInterval) {
+                clearInterval(navTimerInterval);
+                navTimerInterval = null;
+            }
+
+            // Set UI State to READY (Show "Mulai Lari" Button)
+            setNavUIState('ready');
 
             // Voice Welcome
-            speakVoice(`Navigasi rute dimulai. Ikuti jalur peta.`);
+            speakVoice(`GPS terhubung. Tekan tombol Mulai Lari saat Anda siap.`);
 
             // Watch Position
             navWatchId = navigator.geolocation.watchPosition(
@@ -1857,6 +1925,62 @@
                     timeout: 10000
                 }
             );
+        }
+
+        function setNavUIState(state) {
+            navSessionState = state;
+            const wrapReady = document.getElementById('nav-actions-ready');
+            const wrapRunning = document.getElementById('nav-actions-running');
+            const wrapPaused = document.getElementById('nav-actions-paused');
+            const statusLabel = document.getElementById('nav-status-label');
+            const gpsInd = document.getElementById('nav-gps-indicator');
+
+            if (wrapReady) wrapReady.classList.toggle('hidden', state !== 'ready');
+            if (wrapRunning) wrapRunning.classList.toggle('hidden', state !== 'running');
+            if (wrapPaused) wrapPaused.classList.toggle('hidden', state !== 'paused');
+
+            if (state === 'ready') {
+                if (statusLabel) {
+                    statusLabel.textContent = 'GPS Siap — Tekan Mulai Lari';
+                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
+                }
+                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse shrink-0';
+            } else if (state === 'paused') {
+                if (statusLabel) {
+                    statusLabel.textContent = 'Sesi Dijeda (Paused)';
+                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
+                }
+                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 shrink-0';
+            }
+        }
+
+        function startRunningSession() {
+            setNavUIState('running');
+            navRunStartTimestamp = Date.now();
+            if (navTimerInterval) clearInterval(navTimerInterval);
+            navTimerInterval = setInterval(updateNavTimer, 1000);
+            speakVoice('Sesi lari dimulai. Selamat berlari!');
+        }
+
+        function pauseRunningSession() {
+            if (navRunStartTimestamp) {
+                navAccumulatedElapsedSec += Math.floor((Date.now() - navRunStartTimestamp) / 1000);
+            }
+            navRunStartTimestamp = null;
+            if (navTimerInterval) {
+                clearInterval(navTimerInterval);
+                navTimerInterval = null;
+            }
+            setNavUIState('paused');
+            speakVoice('Sesi lari dijeda.');
+        }
+
+        function resumeRunningSession() {
+            setNavUIState('running');
+            navRunStartTimestamp = Date.now();
+            if (navTimerInterval) clearInterval(navTimerInterval);
+            navTimerInterval = setInterval(updateNavTimer, 1000);
+            speakVoice('Sesi lari dilanjutkan.');
         }
 
         function initNavMap() {
@@ -1975,28 +2099,30 @@
 
             navUserPos = { lat, lng };
 
-            // Record Breadcrumb Point for Saving Activity with Anti-Drift & Speed Rejection Filter
-            if (recordedGpsTrack.length > 0) {
-                const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
-                const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
-                const timeDiffSec = (now - prev.time) / 1000;
-                
-                // Speed anomaly check: reject if speed > 40 km/h (teleportation/glitch)
-                const segmentSpeedKmh = timeDiffSec > 0 ? (segmentDist / (timeDiffSec / 3600)) : 0;
-                if (segmentSpeedKmh > 40) {
-                    return; // Ignore glitch jump
-                }
-
-                // Filter out tiny GPS drift (< 2.5 meters)
-                if (segmentDist > 0.0025) {
-                    recordedActualDistanceKm += segmentDist;
-                    if (ele && prev.ele && ele > prev.ele) {
-                        recordedElevationGainM += (ele - prev.ele);
+            // Record Breadcrumb Point for Saving Activity ONLY when session is actively running
+            if (navSessionState === 'running') {
+                if (recordedGpsTrack.length > 0) {
+                    const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
+                    const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
+                    const timeDiffSec = (now - prev.time) / 1000;
+                    
+                    // Speed anomaly check: reject if speed > 40 km/h (teleportation/glitch)
+                    const segmentSpeedKmh = timeDiffSec > 0 ? (segmentDist / (timeDiffSec / 3600)) : 0;
+                    if (segmentSpeedKmh > 40) {
+                        return; // Ignore glitch jump
                     }
-                    recordedGpsTrack.push({ lat, lng, ele, dist: recordedActualDistanceKm, time: now });
+
+                    // Filter out tiny GPS drift (< 2.5 meters)
+                    if (segmentDist > 0.0025) {
+                        recordedActualDistanceKm += segmentDist;
+                        if (ele && prev.ele && ele > prev.ele) {
+                            recordedElevationGainM += (ele - prev.ele);
+                        }
+                        recordedGpsTrack.push({ lat, lng, ele, dist: recordedActualDistanceKm, time: now });
+                    }
+                } else {
+                    recordedGpsTrack.push({ lat, lng, ele, dist: 0, time: now });
                 }
-            } else {
-                recordedGpsTrack.push({ lat, lng, ele, dist: 0, time: now });
             }
 
             if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
@@ -2102,10 +2228,10 @@
                         speakVoice(`Anda telah kembali ke jalur rute.`);
                     }
 
-                    if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-emerald-500 shrink-0';
+                    if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-white-500 shrink-0';
                     if (statusLabel) {
                         statusLabel.textContent = 'Di Jalur Rute';
-                        statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
+                        statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-white-400 block truncate';
                     }
                     if (statusTitle) {
                         const currentKmProgress = nearestPoint.dist || 0;
@@ -2134,19 +2260,25 @@
                 }
             }
 
-            const completedDist = Math.min(totalRouteDistance, nearestPoint.dist || 0);
-            const remainingDist = Math.max(0, totalRouteDistance - completedDist);
-            const progressPct = Math.min(100, Math.round((completedDist / totalRouteDistance) * 100));
+            // Calculate Route Progress along GPX (only when user is on or near route <= 250m)
+            let routeProgressKm = 0;
+            if (minDistanceM <= 250) {
+                routeProgressKm = Math.min(totalRouteDistance, nearestPoint.dist || 0);
+            }
+            const remainingRouteDist = Math.max(0, totalRouteDistance - routeProgressKm);
+            const progressPct = Math.min(100, Math.round((routeProgressKm / totalRouteDistance) * 100));
 
             const progBar = document.getElementById('nav-progress-bar');
             const progPctEl = document.getElementById('nav-progress-pct');
             const compDistEl = document.getElementById('nav-completed-dist');
             const remDistEl = document.getElementById('nav-remaining-dist');
+            const actualDistEl = document.getElementById('nav-actual-dist');
 
             if (progBar) progBar.style.width = `${progressPct}%`;
             if (progPctEl) progPctEl.textContent = `${progressPct}%`;
-            if (compDistEl) compDistEl.textContent = `${completedDist.toFixed(2)} / ${totalRouteDistance.toFixed(2)} km`;
-            if (remDistEl) remDistEl.textContent = remainingDist.toFixed(2);
+            if (compDistEl) compDistEl.textContent = `${routeProgressKm.toFixed(2)} / ${totalRouteDistance.toFixed(2)} km`;
+            if (remDistEl) remDistEl.textContent = remainingRouteDist.toFixed(2);
+            if (actualDistEl) actualDistEl.textContent = recordedActualDistanceKm.toFixed(2);
 
             const livePaceEl = document.getElementById('nav-live-pace');
             if (livePaceEl) {
@@ -2213,10 +2345,11 @@
         }
 
         function updateNavTimer() {
-            if (!navStartTime) return;
-            const elapsedSec = Math.floor((Date.now() - navStartTime) / 1000);
+            if (navSessionState !== 'running' || !navRunStartTimestamp) return;
+            const currentRunningSec = Math.floor((Date.now() - navRunStartTimestamp) / 1000);
+            const totalElapsedSec = navAccumulatedElapsedSec + currentRunningSec;
             const timeEl = document.getElementById('nav-running-time');
-            if (timeEl) timeEl.textContent = formatDurationTime(elapsedSec);
+            if (timeEl) timeEl.textContent = formatDurationTime(totalElapsedSec);
         }
 
         function closeLiveNavigation() {
@@ -2240,6 +2373,10 @@
                 navTimerInterval = null;
             }
 
+            navSessionState = 'ready';
+            navAccumulatedElapsedSec = 0;
+            navRunStartTimestamp = null;
+
             if (navReturnPolyline && navMap) {
                 navMap.removeLayer(navReturnPolyline);
                 navReturnPolyline = null;
@@ -2252,13 +2389,57 @@
             }
         }
 
+        function resetLiveNavigationSession() {
+            if (!confirm('Reset sesi lari saat ini? Jarak lari, waktu tempuh, dan rekaman rute akan kembali ke 0.')) {
+                return;
+            }
+
+            navSessionState = 'ready';
+            navAccumulatedElapsedSec = 0;
+            navRunStartTimestamp = null;
+            if (navTimerInterval) {
+                clearInterval(navTimerInterval);
+                navTimerInterval = null;
+            }
+
+            recordedActualDistanceKm = 0;
+            recordedGpsTrack = [];
+            recordedElevationGainM = 0;
+            recordedFinalSplits = [];
+            navStartTime = Date.now();
+            navLastPassedKm = 0;
+            navIsOffCourse = false;
+
+            const actualDistEl = document.getElementById('nav-actual-dist');
+            const timeEl = document.getElementById('nav-running-time');
+            const progBar = document.getElementById('nav-progress-bar');
+            const progPctEl = document.getElementById('nav-progress-pct');
+            const compDistEl = document.getElementById('nav-completed-dist');
+            const remDistEl = document.getElementById('nav-remaining-dist');
+            const livePaceEl = document.getElementById('nav-live-pace');
+
+            if (actualDistEl) actualDistEl.textContent = '0.00';
+            if (timeEl) timeEl.textContent = '00:00';
+            if (progBar) progBar.style.width = '0%';
+            if (progPctEl) progPctEl.textContent = '0%';
+            if (compDistEl) compDistEl.textContent = `0.00 / ${totalRouteDistance.toFixed(2)} km`;
+            if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
+            if (livePaceEl) livePaceEl.textContent = '--:--';
+
+            setNavUIState('ready');
+            speakVoice('Sesi lari direset ke 0.');
+        }
+
         // Finish Navigation & Open Post-Run Summary Modal
         function finishLiveNavigation() {
             if (!confirm('Apakah Anda ingin menyelesaikan sesi lari dan melihat ringkasan aktivitas?')) {
                 return;
             }
 
-            const elapsedSec = navStartTime ? Math.floor((Date.now() - navStartTime) / 1000) : 0;
+            const currentRunningSec = (navSessionState === 'running' && navRunStartTimestamp) 
+                ? Math.floor((Date.now() - navRunStartTimestamp) / 1000) 
+                : 0;
+            const elapsedSec = navAccumulatedElapsedSec + currentRunningSec;
             closeLiveNavigation();
 
             // Calculate Final Metrics
@@ -2397,7 +2578,7 @@
                                 <p class="leading-relaxed">
                                     Karena sedang di gunung / offline, sesi lari <strong class="text-white">${payload.title}</strong> (${payload.distance_km.toFixed(2)} km) telah diamankan di memori HP Anda.
                                 </p>
-                                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-emerald-400 flex items-center gap-2">
+                                <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white-400 flex items-center gap-2">
                                     <i class="fa-solid fa-cloud-arrow-up animate-bounce text-sm"></i>
                                     <span>Akan otomatis di-upload ke database saat HP terhubung ke internet.</span>
                                 </div>
@@ -2697,20 +2878,20 @@
                     const savedDate = new Date(data.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                     
                     if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-emerald-400';
+                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-white-400';
                     }
                     if (btnLabel) {
                         btnLabel.textContent = 'Offline Siap';
-                        btnLabel.className = 'text-emerald-400 font-semibold';
+                        btnLabel.className = 'text-white-400 font-semibold';
                     }
                     if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-emerald-400';
+                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-white-400';
                     }
                     if (statusBanner) {
-                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-emerald-500/10 border-emerald-500/30 text-emerald-300';
+                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-white-500/10 border-white-500/30 text-white-300';
                     }
                     if (statusIcon) {
-                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-emerald-400';
+                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-white-400';
                         statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
                     }
                     if (statusTitle) {
@@ -2730,14 +2911,14 @@
                     }
                 } else {
                     if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400';
+                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-white-400';
                     }
                     if (btnLabel) {
                         btnLabel.textContent = 'Offline';
                         btnLabel.className = 'text-slate-200';
                     }
                     if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-emerald-400';
+                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-white-400';
                     }
                     if (statusBanner) {
                         statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-slate-900/80 border-slate-800';
@@ -2756,7 +2937,7 @@
                         btnDelete.classList.add('hidden');
                     }
                     if (btnStart) {
-                        btnStart.className = 'px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-500/20';
+                        btnStart.className = 'px-4 py-2 rounded-xl bg-white-500 hover:bg-white-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-white-500/20';
                     }
                     if (btnStartText) {
                         btnStartText.textContent = 'Simpan Rute Sekarang';
