@@ -145,11 +145,25 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
 Route::get('/api/cities/autocomplete', [App\Http\Controllers\PublicGpxController::class, 'searchCities'])->name('gpx.cities.autocomplete');
-Route::post('/database-gpx/{master_gpx}/suggest-title', [App\Http\Controllers\PublicGpxController::class, 'suggestTitle'])->middleware('auth')->name('gpx.suggest-title');
-Route::get('/database-gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
-Route::get('/database-gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
-Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->middleware('throttle:10,1')->name('tools.buat-rute-lari.submit-gpx');
 Route::get('/gpx/my', [App\Http\Controllers\PublicGpxController::class, 'myGpx'])->middleware('auth')->name('gpx.my');
+Route::post('/gpx/{master_gpx}/suggest-title', [App\Http\Controllers\PublicGpxController::class, 'suggestTitle'])->middleware('auth')->name('gpx.suggest-title');
+Route::get('/gpx/{identifier}/download', [App\Http\Controllers\PublicGpxController::class, 'download'])->name('gpx.download');
+Route::get('/gpx/{identifier}', [App\Http\Controllers\PublicGpxController::class, 'show'])->name('gpx.show');
+Route::post('/tools/buat-rute-lari/submit-gpx', [App\Http\Controllers\PublicGpxController::class, 'submitModal'])->middleware('throttle:10,1')->name('tools.buat-rute-lari.submit-gpx');
+
+// Legacy 301 Redirects for /database-gpx and /gps aliases
+Route::get('/database-gpx/{identifier}', function($identifier) {
+    return redirect()->route('gpx.show', $identifier, 301);
+});
+Route::get('/database-gpx/{identifier}/download', function($identifier) {
+    return redirect()->route('gpx.download', $identifier, 301);
+});
+Route::get('/gps/{identifier}', function($identifier) {
+    return redirect()->route('gpx.show', $identifier, 301);
+});
+Route::get('/gps/{identifier}/download', function($identifier) {
+    return redirect()->route('gpx.download', $identifier, 301);
+});
 
 // User Running Activities (Strava-like activities)
 Route::get('/activities', [App\Http\Controllers\UserActivityController::class, 'index'])->middleware('auth')->name('activities.index');

@@ -3,13 +3,15 @@
 @php
     $formattedDist = number_format((float)($item->distance_km ?? 0), 2);
     $cityName = $item->city ?? 'Indonesia';
-    $pageTitle = e($item->title) . ' (' . $formattedDist . ' km, ' . e($cityName) . ') - Download GPX & Navigasi | RuangLari';
-    $pageDesc = 'Unduh gratis file GPX rute lari ' . e($item->title) . ' di ' . e($cityName) . '. Jarak ' . $formattedDist . ' km, elevasi +' . round($item->elevation_gain_m ?? 0) . 'm. Dilengkapi mode navigasi live GPS dan analisis PacePro.';
+    $pageTitle = 'Download GPX ' . e($item->title) . ' (' . $formattedDist . ' km, ' . e($cityName) . ') - Rute Lari & Navigasi | RuangLari';
+    $pageDesc = 'Download gratis file GPX rute lari ' . e($item->title) . ' (' . $formattedDist . ' km, elevasi +' . round($item->elevation_gain_m ?? 0) . 'm) di ' . e($cityName) . '. Kompatibel untuk Garmin, Coros, Suunto, Strava, navigasi GPS offline, dan kalkulator PacePro.';
     $coordsJson = json_encode($item->coordinates_json ?? []);
     $distKm = (float)($item->distance_km ?? 0);
     $gainM = (float)($item->elevation_gain_m ?? 0);
     $lossM = (float)($item->elevation_loss_m ?? 0);
     $masterGpxId = $item->id;
+    $canonicalUrl = route('gpx.show', $item->slug ?: $item->id);
+    $downloadUrl = route('gpx.download', $item->id);
 
     // Realistic default PacePro target time based on distance * 5:00 min/km (300 sec/km)
     $defaultTargetSec = max(60, (int)round($distKm * 300));
@@ -21,10 +23,10 @@
 @section('title', $pageTitle)
 @section('meta_title', $pageTitle)
 @section('meta_description', $pageDesc)
-@section('meta_keywords', 'rute gpx ' . strtolower($item->title) . ', navigasi gpx ' . strtolower($item->title) . ', download gpx ' . strtolower($cityName) . ', gpx garmin, gpx strava route')
-@section('canonical_url', route('gpx.show', $item->slug ?: $item->id))
-@section('og_url', route('gpx.show', $item->slug ?: $item->id))
-@section('og_type', 'place')
+@section('meta_keywords', 'download gpx ' . strtolower($item->title) . ', rute gpx ' . strtolower($item->title) . ', file gpx ' . strtolower($cityName) . ', gpx garmin ' . strtolower($cityName) . ', gpx strava route, rute lari ' . strtolower($cityName))
+@section('canonical_url', $canonicalUrl)
+@section('og_url', $canonicalUrl)
+@section('og_type', 'website')
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
@@ -98,14 +100,16 @@
     <!-- OpenGraph & Twitter Meta Tags -->
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $pageDesc }}">
-    <meta property="og:type" content="place">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:site_name" content="RuangLari">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDesc }}">
+@endpush
 
-    <!-- Schema.org JSON-LD Structured Data -->
+@push('structured_data')
+    <!-- Schema.org BreadcrumbList -->
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
@@ -127,18 +131,20 @@
           "@@type": "ListItem",
           "position": 3,
           "name": "{{ addslashes($item->title) }}",
-          "item": "{{ url()->current() }}"
+          "item": "{{ $canonicalUrl }}"
         }
       ]
     }
     </script>
+
+    <!-- Schema.org ExercisePlan -->
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
       "@@type": "ExercisePlan",
-      "name": "{{ addslashes($item->title) }}",
+      "name": "Download GPX {{ addslashes($item->title) }}",
       "description": "{{ addslashes($pageDesc) }}",
-      "exerciseType": "Running",
+      "exerciseType": "{{ $item->route_type === 'trail' ? 'Trail Running' : 'Running' }}",
       "distance": "{{ $formattedDist }} km",
       "spatialCoverage": {
         "@@type": "Place",
@@ -148,6 +154,70 @@
         "@@type": "Person",
         "name": "{{ addslashes($item->user?->name ?? 'RuangLari Official') }}"
       }
+    }
+    </script>
+
+    <!-- Schema.org Dataset (For Downloadable GPX File) -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Dataset",
+      "name": "File GPX Rute Lari {{ addslashes($item->title) }}",
+      "description": "{{ addslashes($pageDesc) }}",
+      "url": "{{ $canonicalUrl }}",
+      "keywords": ["GPX", "Rute Lari", "Running Route", "Garmin GPX", "Coros GPX", "{{ addslashes($cityName) }}"],
+      "distribution": [
+        {
+          "@@type": "DataDownload",
+          "encodingFormat": "application/gpx+xml",
+          "contentUrl": "{{ $downloadUrl }}"
+        }
+      ],
+      "spatialCoverage": {
+        "@@type": "Place",
+        "name": "{{ addslashes($cityName) }}"
+        @if($item->start_latitude && $item->start_longitude)
+        ,"geo": {
+          "@@type": "GeoCoordinates",
+          "latitude": {{ (float) $item->start_latitude }},
+          "longitude": {{ (float) $item->start_longitude }}
+        }
+        @endif
+      }
+    }
+    </script>
+
+    <!-- Schema.org FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@@type": "Question",
+          "name": "Bagaimana cara memasukkan file GPX {{ addslashes($item->title) }} ke jam Garmin?",
+          "acceptedAnswer": {
+            "@@type": "Answer",
+            "text": "Unduh file GPX di RuangLari dengan klik tombol Download GPX. Buka aplikasi Garmin Connect di smartphone, masuk ke menu More > Training & Planning > Courses > Import Course, pilih file GPX yang diunduh lalu klik Send to Device untuk menyinkronkan ke jam tangan Garmin Anda."
+          }
+        },
+        {
+          "@@type": "Question",
+          "name": "Bagaimana cara memasukkan file GPX ke jam tangan COROS?",
+          "acceptedAnswer": {
+            "@@type": "Answer",
+            "text": "Download file GPX di RuangLari, lalu buka file tersebut dengan aplikasi COROS. Klik Simpan ke Rute Saya (Save to My Routes), buka menu Profile > Route Library dan pilih Sync with Watch."
+          }
+        },
+        {
+          "@@type": "Question",
+          "name": "Apakah rute GPX ini bisa dipakai untuk navigasi lari offline?",
+          "acceptedAnswer": {
+            "@@type": "Answer",
+            "text": "Ya, file GPX ini dapat diunduh ke jam tangan GPS (Garmin, Coros, Suunto) untuk navigasi mandiri tanpa sinyal ponsel. Anda juga bisa mengaktifkan mode Offline di RuangLari untuk panduan GPS langsung di browser HP tanpa kuota data."
+          }
+        }
+      ]
     }
     </script>
 @endpush
@@ -161,7 +231,9 @@
             <nav class="flex items-center gap-1.5 font-medium truncate max-w-[240px] sm:max-w-none">
                 <a href="{{ route('gpx.index') }}" class="hover:text-slate-200 transition shrink-0">Database GPX</a>
                 <span class="text-slate-600">/</span>
-                <span class="text-slate-300 truncate">{{ $item->title }}</span>
+                <a href="{{ route('gpx.index', ['city' => $cityName]) }}" class="hover:text-white transition shrink-0 text-slate-300">{{ $cityName }}</a>
+                <span class="text-slate-600">/</span>
+                <span class="text-white font-semibold truncate">{{ $item->title }}</span>
             </nav>
 
             <div class="flex items-center gap-2 shrink-0">
@@ -183,10 +255,10 @@
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6 pb-3 border-b border-slate-800/80">
             <div class="space-y-2 max-w-3xl">
                 <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-300 font-medium text-[11px]">
+                    <a href="{{ route('gpx.index', ['city' => $cityName]) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-slate-700 bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-[11px] transition">
                         <i class="fa-solid fa-location-dot text-[#FC4C02] text-[10px]"></i>
                         <span>{{ $cityName }}</span>
-                    </span>
+                    </a>
 
                     <span class="inline-flex items-center px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-200 font-semibold text-[11px] font-mono uppercase tracking-wider">
                         {{ $item->route_type_label }}
@@ -200,7 +272,7 @@
                 </div>
 
                 <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
-                    {{ $item->title }}
+                    Download GPX {{ $item->title }}
                 </h1>
 
                 <p class="text-slate-200 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
@@ -692,11 +764,11 @@
             <div class="space-y-3.5 pt-3 border-t border-slate-800">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-bold text-white uppercase">Rute GPX Serupa</h3>
+                        <h3 class="text-sm font-bold text-white uppercase">Rute GPX Serupa di {{ $cityName }}</h3>
                         <span class="text-xs text-slate-200">Rute lari lain di wilayah sekitarnya.</span>
                     </div>
-                    <a href="{{ route('gpx.index') }}" class="text-xs text-slate-200 hover:text-white transition font-medium">
-                        Lihat Semua &rarr;
+                    <a href="{{ route('gpx.index', ['city' => $cityName]) }}" class="text-xs text-slate-200 hover:text-white transition font-medium">
+                        Rute {{ $cityName }} Lainnya &rarr;
                     </a>
                 </div>
 

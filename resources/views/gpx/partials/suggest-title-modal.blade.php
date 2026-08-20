@@ -146,7 +146,7 @@ function submitSuggestTitle(e) {
     btnSubmit.disabled = true;
     btnText.textContent = 'Mengirim...';
 
-    const url = "{{ url('/database-gpx') }}/" + currentSuggestGpxId + "/suggest-title";
+    const url = "{{ url('/gpx') }}/" + currentSuggestGpxId + "/suggest-title";
 
     fetch(url, {
         method: 'POST',
