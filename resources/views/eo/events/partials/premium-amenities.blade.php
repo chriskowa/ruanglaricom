@@ -109,6 +109,16 @@
                     <p class="text-[10px] text-slate-500">Meminta golongan darah peserta</p>
                 </div>
             </label>
+
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="premium_amenities[form_fields][strava_activity]" value="1" 
+                    {{ old('premium_amenities.form_fields.strava_activity', ($event->premium_amenities['form_fields']['strava_activity'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
+                <div>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Strava Activity / Link Strava</span>
+                    <p class="text-[10px] text-slate-500">Meminta link aktivitas Strava peserta (misal untuk kualifikasi/verifikasi race)</p>
+                </div>
+            </label>
         </div>
     </div>
 </div>

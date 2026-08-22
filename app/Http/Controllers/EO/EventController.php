@@ -1738,6 +1738,7 @@ class EventController extends Controller
             'bib_number' => ['nullable', 'string', 'max:20', Rule::unique('participants', 'bib_number')->ignore($participant->id)],
             'jersey_size' => 'nullable|string|max:10',
             'blood_type' => 'nullable|string|in:A,B,AB,O',
+            'strava_url' => 'nullable|string|max:500',
             'is_picked_up' => 'nullable|boolean',
             'coupon_id' => 'nullable|exists:coupons,id',
             'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],

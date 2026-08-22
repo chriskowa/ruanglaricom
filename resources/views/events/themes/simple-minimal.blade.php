@@ -348,6 +348,9 @@
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                         <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Optional)" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition">
+                                        @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
+                                        <input type="url" name="participants[0][strava_url]" placeholder="Link Aktivitas Strava (https://www.strava.com/...)" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        @endif
                                     </div>
                                 </div>
 

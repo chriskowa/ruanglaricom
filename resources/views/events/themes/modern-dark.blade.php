@@ -870,6 +870,13 @@
                                                     <label class="text-[10px] text-slate-500 uppercase font-bold">Target Waktu (Optional)</label>
                                                     <input type="text" name="participants[0][target_time]" placeholder="HH:MM:SS (Contoh: 00:55:00)" class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
                                                 </div>
+
+                                                @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
+                                                <div class="space-y-1">
+                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Link Aktivitas Strava <span class="text-rose-500">*</span></label>
+                                                    <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none" required>
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>

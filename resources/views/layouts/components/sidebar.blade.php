@@ -86,6 +86,10 @@
                         <i class="flaticon-381-controls-3"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('eo.events.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-calendar"></i>
+                        <span class="nav-text">Manage Event</span>
+                    </a></li>
                 @endif
                 <li class="menu-title">Finance</li>
                 <li><a class="ai-icon" href="{{ route('wallet.index', ['action' => 'deposit']) }}" aria-expanded="false">

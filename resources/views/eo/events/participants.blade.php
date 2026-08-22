@@ -588,6 +588,7 @@
                             'age_group' => $participant->getAgeGroup($event->start_at),
                             'jersey_size' => $participant->jersey_size,
                             'blood_type' => $participant->blood_type,
+                            'strava_url' => $participant->strava_url,
                             'pic_name' => $participant->transaction->pic_data['name'] ?? '-',
                             'pic_phone' => $participant->transaction->pic_data['phone'] ?? '-',
                             'pic_email' => $participant->transaction->pic_data['email'] ?? '-',
@@ -1850,6 +1851,12 @@
                                         <div class="view-mode text-white font-mono" id="dm_target_time"></div>
                                         <input type="text" name="target_time" id="edit_target_time" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none font-mono" placeholder="HH:MM:SS">
                                     </div>
+                                    <!-- Strava Link -->
+                                    <div class="col-span-2">
+                                        <div class="text-xs text-slate-500">Strava Activity / Link</div>
+                                        <div class="view-mode text-white text-xs" id="dm_strava_url"></div>
+                                        <input type="url" name="strava_url" id="edit_strava_url" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="https://www.strava.com/activities/...">
+                                    </div>
                                 </div>
 
                                 <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
@@ -2859,6 +2866,7 @@
         setValue('edit_bib_number', d.bib_number);
         setValue('edit_jersey_size', d.jersey_size);
         setValue('edit_blood_type', d.blood_type);
+        setValue('edit_strava_url', d.strava_url);
         setValue('edit_target_time', d.target_time);
 
         setValue('edit_coupon_id', d.coupon_id);
@@ -2946,6 +2954,7 @@
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
             blood_type: document.getElementById('edit_blood_type').value,
+            strava_url: document.getElementById('edit_strava_url').value.trim(),
             target_time: document.getElementById('edit_target_time').value.trim(),
             coupon_id: document.getElementById('edit_coupon_id').value,
             pic_name: document.getElementById('edit_pic_name').value.trim(),
@@ -3267,6 +3276,15 @@
         document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
         document.getElementById('dm_blood_type').textContent = data.blood_type || '-';
         document.getElementById('dm_target_time').textContent = data.target_time || '-';
+        
+        var stravaEl = document.getElementById('dm_strava_url');
+        if (stravaEl) {
+            if (data.strava_url) {
+                stravaEl.innerHTML = '<a href="' + data.strava_url + '" target="_blank" rel="noopener noreferrer" class="text-orange-400 hover:text-orange-300 underline break-all flex items-center gap-1.5 font-medium"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> ' + data.strava_url + '</a>';
+            } else {
+                stravaEl.textContent = '-';
+            }
+        }
         
         // Populate Inputs (Initial)
         populateEditForm();

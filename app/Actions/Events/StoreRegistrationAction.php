@@ -65,6 +65,21 @@ class StoreRegistrationAction
                         $p['blood_type'] = null;
                     }
                 }
+                if (isset($p['strava_url'])) {
+                    $p['strava_url'] = trim((string) $p['strava_url']);
+                    if ($p['strava_url'] === '') {
+                        $p['strava_url'] = null;
+                    }
+                }
+                if (isset($p['strava_activity'])) {
+                    $p['strava_activity'] = trim((string) $p['strava_activity']);
+                    if ($p['strava_activity'] === '') {
+                        $p['strava_activity'] = null;
+                    }
+                    if (empty($p['strava_url']) && !empty($p['strava_activity'])) {
+                        $p['strava_url'] = $p['strava_activity'];
+                    }
+                }
             }
             $request->merge(['participants' => $participants]);
         }
@@ -100,6 +115,8 @@ class StoreRegistrationAction
             'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
             'participants.*.jersey_size' => 'required|string|max:10',
             'participants.*.blood_type' => 'nullable|string|in:A,B,AB,O',
+            'participants.*.strava_url' => 'nullable|string|max:500',
+            'participants.*.strava_activity' => 'nullable|string|max:500',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',
             'participants.*.addons' => 'nullable|array',
@@ -564,6 +581,7 @@ class StoreRegistrationAction
                     'target_time' => $participantData['target_time'] ?? null,
                     'jersey_size' => $participantData['jersey_size'] ?? null,
                     'blood_type' => $participantData['blood_type'] ?? null,
+                    'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
                     'status' => 'pending',

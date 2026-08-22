@@ -73,6 +73,7 @@
     $showJersey = !empty($formFields['jersey_size']);
     $showTargetTime = !empty($formFields['target_time']);
     $showBloodType = !empty($formFields['blood_type']);
+    $showStrava = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']) || !empty($formFields['strava_link']);
     $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
     if ($schemaDescription === '') {
         $schemaDescription = $event->name;
@@ -807,6 +808,15 @@
                                                 @else
                                                     <input type="hidden" data-hidden-auto="blood_type" name="participants[0][blood_type]" value="">
                                                 @endif
+
+                                                @if($showStrava)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava <span class="text-orange-600">*</span></label>
+                                                        <input class="field mt-1" type="url" data-field="strava_url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="strava_url" name="participants[0][strava_url]" value="">
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -1016,6 +1026,15 @@
                                                     </div>
                                                 @else
                                                     <input type="hidden" data-hidden-auto="blood_type" value="">
+                                                @endif
+
+                                                @if($showStrava)
+                                                    <div>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava</label>
+                                                        <input class="field mt-1" type="url" data-field="strava_url" placeholder="https://www.strava.com/activities/..." required>
+                                                    </div>
+                                                @else
+                                                    <input type="hidden" data-hidden-auto="strava_url" value="">
                                                 @endif
                                             </div>
                                         </div>

@@ -536,6 +536,12 @@
                                             </select>
                                             <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Opsional)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none">
                                         </div>
+
+                                        @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
+                                        <div class="mt-4">
+                                            <input type="url" name="participants[0][strava_url]" placeholder="Link Aktivitas Strava (https://www.strava.com/...)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

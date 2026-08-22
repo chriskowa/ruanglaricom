@@ -326,6 +326,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('eo.events.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('eo.events.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calendar-alt"></i></span>
+                                    <span>Manage Event</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('eo.coupons.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('eo.coupons.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-ticket-alt"></i></span>
                                     <span>Master Kupon</span>

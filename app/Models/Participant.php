@@ -30,6 +30,7 @@ class Participant extends Model
         'bib_number',
         'jersey_size',
         'blood_type',
+        'strava_url',
         'photo',
         'addons',
         'status',
