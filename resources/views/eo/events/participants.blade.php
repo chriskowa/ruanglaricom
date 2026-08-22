@@ -716,7 +716,7 @@
                                     <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                                     Approved
                                 </span>
-                            @elseif($participant->status === 'rejected')
+                            @elseif($participant->status === 'cancelled' || $participant->status === 'rejected')
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="{{ $participant->notes }}">
                                     <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                                     Rejected
@@ -2411,7 +2411,7 @@
                 var approvalBadge = '';
                 if (p.isApproved) {
                     approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
-                } else if (p.status === 'rejected') {
+                } else if (p.status === 'cancelled' || p.status === 'rejected') {
                     approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="'+ escapeHtml(p.notes || '') +'"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
                 } else {
                     approvalBadge = '<div class="flex flex-col gap-1.5 items-start">' +

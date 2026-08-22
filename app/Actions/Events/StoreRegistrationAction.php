@@ -586,7 +586,7 @@ class StoreRegistrationAction
                     'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
-                    'status' => $requiresApproval ? 'pending_approval' : 'pending',
+                    'status' => 'pending',
                     'isApproved' => $requiresApproval ? 0 : 1,
                     'price_type' => $priceType,
                 ]);

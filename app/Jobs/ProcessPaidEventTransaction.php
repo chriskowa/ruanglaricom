@@ -49,9 +49,9 @@ class ProcessPaidEventTransaction implements ShouldQueue
             $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
 
             if ($requiresApproval) {
-                // 4. Update participant status to pending_approval (awaiting EO review)
+                // 4. Set participant to pending review (isApproved = 0)
                 $this->transaction->participants()->update([
-                    'status' => 'pending_approval',
+                    'status' => 'pending',
                     'isApproved' => 0,
                 ]);
 

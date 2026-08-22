@@ -1116,11 +1116,11 @@ class EventController extends Controller
         if (request()->filled('approval_status')) {
             $appStatus = request('approval_status');
             if ($appStatus === 'pending_approval') {
-                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'rejected');
+                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'cancelled');
             } elseif ($appStatus === 'approved') {
                 $query->where('participants.isApproved', 1);
             } elseif ($appStatus === 'rejected') {
-                $query->where('participants.status', 'rejected');
+                $query->where('participants.status', 'cancelled');
             }
         }
 
@@ -1480,11 +1480,11 @@ class EventController extends Controller
         if ($request->filled('approval_status')) {
             $appStatus = $request->query('approval_status');
             if ($appStatus === 'pending_approval') {
-                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'rejected');
+                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'cancelled');
             } elseif ($appStatus === 'approved') {
                 $query->where('participants.isApproved', 1);
             } elseif ($appStatus === 'rejected') {
-                $query->where('participants.status', 'rejected');
+                $query->where('participants.status', 'cancelled');
             }
         }
 
@@ -2162,7 +2162,7 @@ class EventController extends Controller
 
         $participant->update([
             'isApproved' => 0,
-            'status' => 'rejected',
+            'status' => 'cancelled',
             'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
         ]);
 
@@ -2280,7 +2280,7 @@ class EventController extends Controller
         foreach ($participants as $participant) {
             $participant->update([
                 'isApproved' => 0,
-                'status' => 'rejected',
+                'status' => 'cancelled',
                 'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
             ]);
         }
