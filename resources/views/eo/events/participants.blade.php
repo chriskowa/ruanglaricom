@@ -609,6 +609,8 @@
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
                             'is_picked_up' => $participant->is_picked_up,
                             'picked_up_by' => $participant->picked_up_by,
+                            'isApproved' => (bool)$participant->isApproved,
+                            'status' => $participant->status,
                             'coupon_id' => $participant->transaction->coupon_id ?? null,
                             'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
@@ -835,37 +837,38 @@
         @endif
         
         <!-- Bulk Action Toolbar -->
-        <div id="bulkActionToolbar" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 flex items-center gap-4 hidden transition-all duration-300">
-            <div class="text-white font-bold">
-                <span id="selectedCount">0</span> Selected
+        <div id="bulkActionToolbar" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl px-3.5 py-2 z-50 flex items-center gap-1.5 flex-wrap max-w-[95vw] hidden transition-all duration-200">
+            <div class="text-xs font-semibold text-slate-300 pr-2.5 mr-0.5 border-r border-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                <span id="selectedCount" class="font-bold text-white bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">0</span>
+                <span class="text-slate-400 text-xs">terpilih</span>
             </div>
-            <button onclick="bulkApprove(this)" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-                Approve (Kirim Tiket)
+            <button onclick="bulkApprove(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Setujui dan kirim e-tiket">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                Approve
             </button>
-            <button onclick="bulkReject(this)" class="px-4 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+            <button onclick="bulkReject(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Tolak pendaftaran terpilih">
+                <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                 Tolak
             </button>
-            <button onclick="bulkDelete()" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                Delete
+            <button onclick="bulkRemind()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Kirim reminder email pembayaran pending">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                Remind Email
             </button>
-            <button onclick="bulkRemind()" class="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                Remind Pending
+            <button onclick="openWaReminderModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Kirim reminder WhatsApp">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.536 0 1.52 1.115 2.988 1.264 3.186.149.198 2.19 3.361 5.27 4.69 2.151.928 2.988.94 3.518.865.592-.084 1.758-.717 2.006-1.41.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.381a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                Remind WA
             </button>
-            <button onclick="openWaReminderModal()" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                WA Reminder
-            </button>
-            <button onclick="bulkResendEmail(this)" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <button onclick="bulkResendEmail(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Kirim ulang email tiket">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 Resend Tiket
             </button>
-            <button onclick="bulkPickedUp(this)" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                Picked Up
+            <button onclick="bulkPickedUp(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Tandai race pack sudah diambil">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                Set Picked Up
+            </button>
+            <button onclick="bulkDelete()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-red-950/60 text-slate-400 hover:text-red-400 border border-slate-700 hover:border-red-800/50 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Hapus peserta terpilih">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Hapus
             </button>
         </div>
     </div>
@@ -1573,73 +1576,86 @@
 </div>
 
 <div id="participantsActionsModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeParticipantsActionsModal()"></div>
+    <div class="fixed inset-0 bg-slate-950/80 transition-opacity" onclick="closeParticipantsActionsModal()"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative w-full sm:max-w-md transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all">
-                <div class="p-5 border-b border-slate-700 flex items-center justify-between">
-                    <div class="text-white font-black uppercase tracking-widest text-sm">Actions</div>
-                    <button type="button" onclick="closeParticipantsActionsModal()" class="text-slate-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <div class="relative w-full sm:max-w-md transform overflow-hidden rounded-xl bg-slate-900 border border-slate-700 text-left shadow-2xl transition-all">
+                <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                    <div class="text-white font-bold text-xs uppercase tracking-wider">Menu Aksi Peserta</div>
+                    <button type="button" onclick="closeParticipantsActionsModal()" class="text-slate-400 hover:text-white p-1">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
-                <div class="p-5 space-y-4">
-                    <div class="space-y-2">
-                        <button type="button" onclick="closeParticipantsActionsModal(); openAddParticipantModal();" class="w-full px-4 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm flex items-center justify-between transition-colors">
-                            <span class="flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                
+                <div class="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
+                    <!-- Manajemen Data -->
+                    <div>
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Manajemen Peserta</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="closeParticipantsActionsModal(); openAddParticipantModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                 Tambah Peserta
-                            </span>
-                            <span class="text-xs font-black opacity-70">Primary</span>
-                        </button>
-                        <button type="button" onclick="closeParticipantsActionsModal(); openImportCsvModal();" class="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-between transition-colors">
-                            <span class="flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openImportCsvModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                                 Import CSV
-                            </span>
-                        </button>
-                        <button type="button" onclick="closeParticipantsActionsModal(); openQrScanModal();" class="w-full px-4 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-sm flex items-center justify-between transition-colors">
-                            <span class="flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openQrScanModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
                                 Scan QR
-                            </span>
-                        </button>
-                        <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn w-full px-4 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-black text-sm flex items-center justify-between transition-colors">
-                            <span class="flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            </button>
+                            <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                 Export CSV
-                            </span>
-                        </a>
+                            </a>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openBibModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                Print BIB
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openDoorprizeModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
+                                Doorprize
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="border-t border-slate-700 pt-4 space-y-2">
-                        <a href="{{ route('eo.events.community.index', $event) }}" class="w-full px-4 py-3 rounded-xl bg-slate-900/40 hover:bg-slate-700 text-white font-bold text-sm flex items-center gap-2 transition-colors border border-slate-700">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                            Community
-                        </a>
-                        <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-4 py-3 rounded-xl bg-slate-900/40 hover:bg-slate-700 text-white font-bold text-sm flex items-center gap-2 transition-colors border border-slate-700">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            Copy Report Link
-                        </button>
-                        <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                            Bulk Reminder
-                        </button>
+                    <!-- Komunikasi & Laporan -->
+                    <div class="border-t border-slate-800 pt-3">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Komunikasi & Info</div>
+                        <div class="space-y-2">
+                            <a href="{{ route('eo.events.community.index', $event) }}" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                Community
+                            </a>
+                            <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                Copy Report Link
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                Kirim Reminder Pending (> 1 Hari)
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="border-t border-slate-700 pt-4 space-y-2">
-                        <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, false);" class="w-full px-4 py-3 rounded-xl bg-slate-800 hover:bg-red-900/40 text-red-200 font-black text-sm flex items-center gap-2 transition-colors border border-red-500/30">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            Clear Non-Paid
-                        </button>
-                        <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, true);" class="w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
-                            Clear ALL (Paid)
-                        </button>
+                    <!-- Pembersihan Data -->
+                    <div class="border-t border-slate-800 pt-3">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Pembersihan Data</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, false);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-red-950/40 text-slate-300 hover:text-red-300 border border-slate-700 hover:border-red-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                Clear Non-Paid
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, true);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-red-950/60 text-slate-400 hover:text-red-400 border border-slate-700 hover:border-red-800/50 text-xs font-medium flex items-center gap-1.5 transition-colors">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                                Clear ALL
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-slate-900/50 px-5 py-4 flex justify-end">
-                    <button type="button" onclick="closeParticipantsActionsModal()" class="px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-black uppercase tracking-widest">Tutup</button>
+
+                <div class="bg-slate-950 px-4 py-3 flex justify-end border-t border-slate-800">
+                    <button type="button" onclick="closeParticipantsActionsModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1928,7 +1944,7 @@
                         </div>
 
                         <div class="mt-6 pt-6 border-t border-slate-700">
-                            <h4 class="text-sm font-bold text-green-400 uppercase tracking-wider mb-3">Transaction Info</h4>
+                            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3">Status & Transaksi</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
@@ -1947,7 +1963,8 @@
                                     </div>
                                 </div>
                                 <div class="space-y-3">
-                                    <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
+                                    <div><div class="text-xs text-slate-500">Payment Status</div><div id="dm_payment_status"></div></div>
+                                    <div><div class="text-xs text-slate-500">Approval Status</div><div id="dm_approval_status"></div></div>
                                     <div>
                                         <div class="text-xs text-slate-500">Addons</div>
                                         <div id="dm_addons" class="view-mode space-y-1"></div>
@@ -1960,24 +1977,34 @@
                 </div>
                 
                 <!-- Footer -->
-                <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-2">
-                    <div class="view-mode flex gap-2">
-                        <button type="button" id="btn_create_user" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-colors">
-                            <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                <div class="bg-slate-900 px-6 py-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
+                    <div class="view-mode flex items-center gap-2">
+                        <button type="button" id="btn_detail_approve" onclick="approveParticipant(currentParticipantData.id, currentParticipantData.name)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-700/50 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Setujui dan kirim e-tiket">
+                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                            Approve
+                        </button>
+                        <button type="button" id="btn_detail_reject" onclick="rejectParticipant(currentParticipantData.id, currentParticipantData.name)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Tolak pendaftaran peserta">
+                            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                            Tolak
+                        </button>
+                    </div>
+                    <div class="view-mode flex items-center gap-2">
+                        <button type="button" id="btn_create_user" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                             Add as User
                         </button>
-                        <button type="button" id="btn_resend_email" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors">
-                            <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <button type="button" id="btn_resend_email" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                             Resend Email
                         </button>
-                        <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Close</button>
+                        <button type="button" onclick="closeDetailModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-colors">Tutup</button>
                     </div>
-                    <div class="edit-mode hidden flex gap-2">
-                         <button type="button" onclick="cancelEdit()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Cancel</button>
-                         <button type="button" onclick="saveParticipant()" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-bold transition-colors flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            Save Changes
-                         </button>
+                    <div class="edit-mode hidden flex gap-2 w-full justify-end">
+                        <button type="button" onclick="cancelEdit()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-colors">Batal</button>
+                        <button type="button" onclick="saveParticipant()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-950/60 text-emerald-400 border border-slate-700 hover:border-emerald-700/50 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            Simpan Perubahan
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2402,6 +2429,8 @@
                     payment_update_url: p.payment_update_url,
                     is_picked_up: p.is_picked_up,
                     picked_up_by: p.picked_up_by,
+                    isApproved: (p.isApproved == 1 || p.isApproved === true || p.isApproved === '1') ? 1 : 0,
+                    status: p.status,
                     coupon_code: p.coupon_code,
                     coupon_id: p.coupon_id,
                     addons: p.addons,
@@ -3392,12 +3421,15 @@
             addonsContainer.innerHTML = '<div class="text-slate-500 text-sm italic">No additional data</div>';
         }
 
+        // Update Approval UI in Detail Modal
+        updateDetailApprovalUI(data);
+
         // Set participant ID for resend email button
         var btnResend = document.getElementById('btn_resend_email');
         if(btnResend) {
             btnResend.dataset.participantId = data.id;
             btnResend.disabled = false;
-            btnResend.innerHTML = '<svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Resend Email';
+            btnResend.innerHTML = '<svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Resend Email';
         }
 
         // Set participant ID for create user button
@@ -3886,6 +3918,32 @@
     });
     */
 
+    function updateDetailApprovalUI(data) {
+        var approvalBadge = document.getElementById('dm_approval_status');
+        var btnApprove = document.getElementById('btn_detail_approve');
+        var btnReject = document.getElementById('btn_detail_reject');
+        
+        if (!approvalBadge || !data) return;
+
+        var isApproved = (data.isApproved == 1 || data.isApproved === true || data.isApproved === '1');
+        var isCancelled = (data.status === 'cancelled' || data.status === 'rejected');
+
+        if (isApproved) {
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+            if (btnApprove) btnApprove.classList.add('hidden');
+            if (btnReject) btnReject.classList.remove('hidden');
+        } else if (isCancelled) {
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60"><svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
+            if (btnApprove) btnApprove.classList.remove('hidden');
+            if (btnReject) btnReject.classList.add('hidden');
+        } else {
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pending Review</span>';
+            if (btnApprove) btnApprove.classList.remove('hidden');
+            if (btnReject) btnReject.classList.remove('hidden');
+        }
+    }
+    window.updateDetailApprovalUI = updateDetailApprovalUI;
+
     window.approveParticipant = function(id, name) {
         if (!confirm(`Setujui pendaftaran ${name || 'peserta'} dan kirim email konfirmasi e-Tiket resmi?`)) return;
 
@@ -3901,6 +3959,11 @@
         .then(res => {
             if (res.success) {
                 alert(res.message);
+                if (currentParticipantData && currentParticipantData.id == id) {
+                    currentParticipantData.isApproved = 1;
+                    currentParticipantData.status = 'confirmed';
+                    updateDetailApprovalUI(currentParticipantData);
+                }
                 if (typeof fetchParticipants === 'function') {
                     fetchParticipants(currentParticipantsPage || 1);
                 } else {
@@ -3933,6 +3996,11 @@
         .then(res => {
             if (res.success) {
                 alert(res.message);
+                if (currentParticipantData && currentParticipantData.id == id) {
+                    currentParticipantData.isApproved = 0;
+                    currentParticipantData.status = 'cancelled';
+                    updateDetailApprovalUI(currentParticipantData);
+                }
                 if (typeof fetchParticipants === 'function') {
                     fetchParticipants(currentParticipantsPage || 1);
                 } else {
