@@ -86,10 +86,14 @@ class PublicEventController extends Controller
         if ($event) {
             $categories = $event->categories;
             $seo = $this->buildSeo($event);
-            $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $hasPaidParticipantsQuery = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
                     ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
-            })->exists();
+            });
+            if ($event->requires_approval) {
+                $hasPaidParticipantsQuery->where('isApproved', 1);
+            }
+            $hasPaidParticipants = $hasPaidParticipantsQuery->exists();
 
             $this->trackEventDetailView($event);
 
@@ -132,10 +136,14 @@ class PublicEventController extends Controller
         // Get categories
         $categories = $event->categories;
         $seo = $this->buildSeo($event);
-        $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+        $hasPaidParticipantsQuery = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
                 ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
-        })->exists();
+        });
+        if ($event->requires_approval) {
+            $hasPaidParticipantsQuery->where('isApproved', 1);
+        }
+        $hasPaidParticipants = $hasPaidParticipantsQuery->exists();
 
         $this->trackEventDetailView($event);
 
@@ -287,6 +295,10 @@ class PublicEventController extends Controller
                 $q->where('created_at', '>=', $fromDate);
             }
         });
+
+        if ($event->requires_approval) {
+            $query->where('isApproved', 1);
+        }
 
         if ($request->has('category_id') && $request->category_id) {
             $query->where('race_category_id', $request->category_id);
