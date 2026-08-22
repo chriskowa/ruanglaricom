@@ -74,6 +74,8 @@
     $showTargetTime = !empty($formFields['target_time']);
     $showBloodType = !empty($formFields['blood_type']);
     $showStrava = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']) || !empty($formFields['strava_link']);
+    $primaryColor = !empty($event->theme_colors['primary']) ? $event->theme_colors['primary'] : '#f1631e';
+    $primaryDark = !empty($event->theme_colors['primary_dark']) ? $event->theme_colors['primary_dark'] : null;
     $isFaqEnabled = !empty($event->premium_amenities['faq']['enabled']);
     $rawFaqs = $event->premium_amenities['faq']['items'] ?? [];
     $validFaqs = is_array($rawFaqs) ? array_values(array_filter($rawFaqs, function($f) {
@@ -155,13 +157,20 @@
     @endif
     <style>
         :root { 
-            --primary: #f1631e; 
-            --primary-dark: #d94f0b; 
+            --primary: {{ $primaryColor }}; 
+            --primary-dark: {{ $primaryDark ?? 'color-mix(in srgb, '.$primaryColor.' 82%, black)' }}; 
+            --primary-light: color-mix(in srgb, {{ $primaryColor }} 8%, white);
+            --primary-ring: color-mix(in srgb, {{ $primaryColor }} 22%, transparent);
             --ink: #0f172a; 
             --muted: #64748b; 
             --line: #e2e8f0; 
             --bg: #f8fafc; 
         }
+        .bg-theme-primary { background-color: var(--primary) !important; }
+        .bg-theme-primary-dark { background-color: var(--primary-dark) !important; }
+        .hover-bg-theme-primary-dark:hover { background-color: var(--primary-dark) !important; }
+        .text-theme-primary { color: var(--primary) !important; }
+        .border-theme-primary { border-color: var(--primary) !important; }
         html, body {
             width: 100%;
             max-width: 100%;
@@ -212,8 +221,8 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease; 
         }
         .field:focus { 
-            border-color: #f1631e; 
-            box-shadow: 0 0 0 3px rgba(241, 99, 30, 0.12); 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px var(--primary-ring); 
         }
         .field::placeholder { color: #94a3b8; font-weight: 400; }
         .pill-badge { 
@@ -237,9 +246,9 @@
             transition: all 0.2s ease; 
         }
         .choice input:checked + .choice-box { 
-            border-color: #f1631e; 
-            background: #fff8f5; 
-            box-shadow: 0 0 0 3px rgba(241, 99, 30, 0.1); 
+            border-color: var(--primary); 
+            background: var(--primary-light); 
+            box-shadow: 0 0 0 3px var(--primary-ring); 
         }
         .submit-btn[disabled] { opacity: 0.65; cursor: not-allowed; }
         .content-html p { margin-top: 0; margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 0.925rem; }
@@ -248,9 +257,9 @@
         .content-html table { display: block; width: 100%; overflow-x: auto; }
         .content-html img, .content-html iframe { max-width: 100%; height: auto; }
         .ql-gallery-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(15,23,42,0.2); transition: transform 0.2s ease, background 0.2s ease; }
-        .ql-gallery-dot[data-active="1"] { background: #f1631e; transform: scale(1.25); }
+        .ql-gallery-dot[data-active="1"] { background: var(--primary); transform: scale(1.25); }
         #qlSponsorDots .ql-gallery-dot { background: rgba(15,23,42,0.2); }
-        #qlSponsorDots .ql-gallery-dot[data-active="1"] { background: #f1631e; }
+        #qlSponsorDots .ql-gallery-dot[data-active="1"] { background: var(--primary); }
         i { color: #ffffff !important; }
         @if(env('RECAPTCHA_SITE_KEY_v3'))
         .grecaptcha-badge { visibility: hidden !important; }
@@ -316,7 +325,7 @@
                     </p>
 
                     <div class="pt-1 sm:pt-2 flex flex-wrap gap-2.5 sm:gap-3">
-                        <a href="#register" class="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-extrabold shadow-md transition-colors text-xs sm:text-sm">
+                        <a href="#register" class="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-theme-primary hover-bg-theme-primary-dark text-white font-extrabold shadow-md transition-colors text-xs sm:text-sm">
                             <i class="fa-solid fa-bolt text-white"></i>
                             Daftar Sekarang
                         </a>
@@ -705,7 +714,7 @@
                                                                             @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                                 <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                             @endif
-                                                                            <div class="text-xs font-bold text-orange-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                            <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
                                                                         </div>
                                                                     </div>
                                                                 </label>
@@ -925,7 +934,7 @@
                                                                             @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                                 <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                             @endif
-                                                                            <div class="text-xs font-bold text-orange-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                            <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
                                                                         </div>
                                                                     </div>
                                                                 </label>
@@ -968,7 +977,7 @@
                                                         <input class="field mt-1" data-field="id_card" placeholder="Nomor KTP/SIM" required>
                                                     </div>
                                                 @else
-                                                    <input type="hidden" data-hidden-auto="id_card">
+                                                    <input type="hidden" data-hidden-auto="id_card" value="">
                                                 @endif
 
                                                 @if($showAddress)
@@ -977,42 +986,49 @@
                                                         <textarea class="field mt-1" data-field="address" placeholder="Alamat lengkap" rows="2" required></textarea>
                                                     </div>
                                                 @else
-                                                    <input type="hidden" data-hidden-auto="address">
+                                                    <input type="hidden" data-hidden-auto="address" value="">
                                                 @endif
 
                                                 @if($showEmergency)
                                                     <div class="grid sm:grid-cols-2 gap-3">
                                                         <div>
-                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nama Kontak Darurat</label>
-                                                            <input class="field mt-1" data-field="emergency_contact_name" placeholder="Nama kontak" required>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Kontak Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_contact" placeholder="Nama kontak darurat" required>
                                                         </div>
                                                         <div>
-                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. HP Darurat</label>
-                                                            <input class="field mt-1" data-field="emergency_contact_number" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Kontak Darurat</label>
+                                                            <input class="field mt-1" data-field="emergency_phone" inputmode="numeric" placeholder="08xxxxxxxxxx" required>
                                                         </div>
                                                     </div>
                                                 @else
-                                                    <input type="hidden" data-hidden-auto="emergency_contact_name">
-                                                    <input type="hidden" data-hidden-auto="emergency_contact_number">
+                                                    <input type="hidden" data-hidden-auto="emergency_contact" value="">
+                                                    <input type="hidden" data-hidden-auto="emergency_phone" value="">
                                                 @endif
 
                                                 @if($showDob)
                                                     <div>
                                                         <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Tanggal Lahir</label>
-                                                        <input type="date" class="field mt-1" data-field="date_of_birth" required>
+                                                        <input class="field mt-1" type="date" data-field="date_of_birth" required>
                                                     </div>
                                                 @else
-                                                    <input type="hidden" data-hidden-auto="date_of_birth">
+                                                    <input type="hidden" data-hidden-auto="date_of_birth" value="">
                                                 @endif
 
                                                 @if($showJersey)
                                                     <div>
                                                         <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Ukuran Jersey</label>
                                                         <select class="field mt-1" data-field="jersey_size" required>
-                                                            <option value="">Pilih ukuran jersey</option>
-                                                            @foreach($event->jersey_sizes ?? [] as $sz)
-                                                                <option value="{{ $sz }}">{{ $sz }}</option>
-                                                            @endforeach
+                                                            @if(!empty($event->jersey_sizes) && is_array($event->jersey_sizes))
+                                                                @foreach($event->jersey_sizes as $size)
+                                                                    <option value="{{ $size }}">{{ $size }}</option>
+                                                                @endforeach
+                                                            @else
+                                                                <option value="S">S</option>
+                                                                <option value="M">M</option>
+                                                                <option value="L" selected>L</option>
+                                                                <option value="XL">XL</option>
+                                                                <option value="XXL">XXL</option>
+                                                            @endif
                                                         </select>
                                                     </div>
                                                 @else
@@ -1021,31 +1037,8 @@
 
                                                 @if($showTargetTime)
                                                     <div>
-                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Target Time</label>
-                                                        <div class="grid grid-cols-3 gap-2 mt-1">
-                                                            <div>
-                                                                <select class="field" data-target-hour required>
-                                                                    @for ($i = 0; $i <= 23; $i++)
-                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
-                                                                    @endfor
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <select class="field" data-target-minute required>
-                                                                    @for ($i = 0; $i <= 59; $i++)
-                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
-                                                                    @endfor
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <select class="field" data-target-second required>
-                                                                    @for ($i = 0; $i <= 59; $i++)
-                                                                        <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
-                                                                    @endfor
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <input type="hidden" data-field="target_time" value="00:30:00">
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Target Waktu (COT)</label>
+                                                        <input class="field mt-1" data-field="target_time" placeholder="Contoh: 01:45:00" required>
                                                     </div>
                                                 @else
                                                     <input type="hidden" data-hidden-auto="target_time" value="">
@@ -1165,7 +1158,7 @@
                                         </div>
                                         <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between">
                                             <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Total Pembayaran</span>
-                                            <span id="ql-total-price" class="text-lg font-bold text-orange-600">Rp 0</span>
+                                            <span id="ql-total-price" class="text-lg font-bold text-theme-primary">Rp 0</span>
                                         </div>
                                     </div>
 
@@ -1173,7 +1166,7 @@
                                     <input type="hidden" name="pic_email">
                                     <input type="hidden" name="pic_phone">
 
-                                    <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-[#f1631e] hover:bg-[#d94f0b] text-white font-bold text-sm shadow transition-colors">
+                                    <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-theme-primary hover-bg-theme-primary-dark text-white font-bold text-sm shadow transition-colors">
                                         <i class="fa-solid fa-paper-plane text-white"></i>
                                         <span>Proses Pendaftaran</span>
                                     </button>

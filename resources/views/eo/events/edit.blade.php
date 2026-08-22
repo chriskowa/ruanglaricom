@@ -436,6 +436,51 @@
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
+                    <!-- Theme Color Customization -->
+                    <div class="md:col-span-2 space-y-3 pt-4 border-t border-slate-700/60">
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-0.5">Warna Aksen Tema (Theme Color)</label>
+                            <p class="text-xs text-slate-400">Pilih warna aksen utama untuk tombol pendaftaran, highlight kategori, dan elemen tema event (khususnya tema Quick Light & landing page).</p>
+                        </div>
+                        
+                        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-600 shadow-sm shrink-0 cursor-pointer">
+                                    <input type="color" id="primaryColorPicker" value="{{ old('theme_colors.primary', $event->theme_colors['primary'] ?? '#f1631e') }}" class="absolute -top-4 -left-4 w-20 h-20 cursor-pointer border-0 p-0" oninput="updatePrimaryColor(this.value)">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Hex Code</label>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <input type="text" id="primaryColorHex" name="theme_colors[primary]" value="{{ old('theme_colors.primary', $event->theme_colors['primary'] ?? '#f1631e') }}" placeholder="#f1631e" maxlength="7" class="w-28 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono font-bold text-white focus:border-yellow-400 focus:outline-none uppercase" oninput="updatePrimaryColorFromText(this.value)">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t sm:border-t-0 sm:border-l border-slate-700 pt-3 sm:pt-0 sm:pl-4 flex-1">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Preset Warna Populer:</span>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @php
+                                        $presets = [
+                                            ['name' => 'RuangLari Orange', 'hex' => '#f1631e'],
+                                            ['name' => 'Royal Blue', 'hex' => '#2563eb'],
+                                            ['name' => 'Emerald Green', 'hex' => '#10b981'],
+                                            ['name' => 'Neon Lime', 'hex' => '#84cc16'],
+                                            ['name' => 'Amber Gold', 'hex' => '#f59e0b'],
+                                            ['name' => 'Crimson Red', 'hex' => '#ef4444'],
+                                            ['name' => 'Purple Violet', 'hex' => '#8b5cf6'],
+                                            ['name' => 'Cyan Sky', 'hex' => '#06b6d4'],
+                                        ];
+                                    @endphp
+                                    @foreach($presets as $preset)
+                                        <button type="button" class="w-7 h-7 rounded-lg border border-slate-600 hover:scale-110 transition-transform shadow-sm relative group" style="background-color: {{ $preset['hex'] }}" onclick="updatePrimaryColor('{{ $preset['hex'] }}')" title="{{ $preset['name'] }} ({{ $preset['hex'] }})">
+                                        </button>
+                                    @endforeach
+                                    <button type="button" onclick="updatePrimaryColor('#f1631e')" class="text-xs text-slate-400 hover:text-white underline ml-2 transition-colors">Reset Default</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Short Desc & Full Desc (1 Row, 2 Columns) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                         <div>
@@ -1100,6 +1145,25 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
     window.laravelErrors = @json($errors->getMessages());
+
+    function updatePrimaryColor(hex) {
+        if (!hex) return;
+        if (!hex.startsWith('#')) hex = '#' + hex;
+        const picker = document.getElementById('primaryColorPicker');
+        const input = document.getElementById('primaryColorHex');
+        if (picker) picker.value = hex;
+        if (input) input.value = hex.toUpperCase();
+    }
+
+    function updatePrimaryColorFromText(val) {
+        if (!val) return;
+        if (!val.startsWith('#')) val = '#' + val;
+        if (/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/.test(val)) {
+            const picker = document.getElementById('primaryColorPicker');
+            if (picker) picker.value = val;
+        }
+    }
+
     function toggleWhatsappTemplate(value) {
         const container = document.getElementById('whatsapp_template_container');
         const textarea = document.getElementById('whatsapp_template');
