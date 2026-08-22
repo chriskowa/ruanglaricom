@@ -85,7 +85,7 @@
 
             <div class="mb-8">
                 <label class="block text-sm font-medium text-slate-300 mb-2">Message Content <span class="text-red-400">*</span></label>
-                <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                <div class="rounded-xl overflow-hidden">
                     <div id="content_editor"></div>
                     <textarea name="content" id="content" class="hidden">{{ old('content') }}</textarea>
                 </div>
@@ -121,8 +121,78 @@
 </div>
 @endsection
 
+@push('styles')
+    <style>
+        /* CKEditor 5 Solid Dark Theme Styling */
+        .ck.ck-editor {
+            width: 100% !important;
+        }
+        .ck-editor__editable_inline {
+            min-height: 250px !important;
+            max-height: 850px !important;
+            background-color: #0c121e !important;
+            color: #f8fafc !important;
+            border-radius: 0 0 0.75rem 0.75rem !important;
+            padding: 1.25rem !important;
+            border-color: #334155 !important;
+            font-size: 0.875rem !important;
+            line-height: 1.6 !important;
+        }
+        .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+            border-color: #334155 !important;
+        }
+        .ck.ck-editor__main>.ck-editor__editable.ck-focused {
+            border-color: #eab308 !important;
+            box-shadow: 0 0 0 1px #eab308 !important;
+        }
+        .ck.ck-toolbar {
+            background-color: #111724 !important;
+            border-color: #334155 !important;
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+            padding: 0.25rem !important;
+        }
+        .ck.ck-toolbar .ck-toolbar__separator {
+            background-color: #334155 !important;
+        }
+        .ck.ck-toolbar .ck-button {
+            color: #cbd5e1 !important;
+            cursor: pointer !important;
+        }
+        .ck.ck-toolbar .ck-button:hover:not(.ck-disabled),
+        .ck.ck-toolbar .ck-button:focus:not(.ck-disabled) {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        .ck.ck-toolbar .ck-button.ck-on {
+            background-color: #eab308 !important;
+            color: #0f172a !important;
+        }
+        .ck.ck-toolbar .ck-button.ck-on .ck-icon {
+            color: #0f172a !important;
+        }
+        .ck.ck-dropdown__panel {
+            background-color: #111724 !important;
+            border-color: #334155 !important;
+        }
+        .ck.ck-list {
+            background-color: #111724 !important;
+        }
+        .ck.ck-list__item button {
+            color: #f8fafc !important;
+        }
+        .ck.ck-list__item button:hover:not(.ck-disabled) {
+            background-color: #1e293b !important;
+            color: #eab308 !important;
+        }
+        .ck.ck-list__item button.ck-on {
+            background-color: #eab308 !important;
+            color: #0f172a !important;
+        }
+    </style>
+@endpush
+
 @push('scripts')
-<script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         ClassicEditor

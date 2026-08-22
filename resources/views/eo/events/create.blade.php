@@ -10,17 +10,23 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     <style>
-        /* CKEditor Custom Height & Dark Styling */
+        /* CKEditor 5 Solid Dark Theme Styling */
+        .ck.ck-editor {
+            width: 100% !important;
+        }
         .ck-editor__editable_inline {
             min-height: 250px !important;
             max-height: 850px !important;
-            background-color: #0f172a !important;
+            background-color: #0c121e !important;
             color: #f8fafc !important;
             border-radius: 0 0 0.75rem 0.75rem !important;
             padding: 1.25rem !important;
+            border-color: #334155 !important;
+            font-size: 0.875rem !important;
+            line-height: 1.6 !important;
         }
         #full_description_editor .ck-editor__editable_inline {
-            min-height: 480px !important;
+            min-height: 450px !important;
         }
         .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
             border-color: #334155 !important;
@@ -30,27 +36,47 @@
             box-shadow: 0 0 0 1px #eab308 !important;
         }
         .ck.ck-toolbar {
-            background-color: #1e293b !important;
+            background-color: #111724 !important;
             border-color: #334155 !important;
             border-radius: 0.75rem 0.75rem 0 0 !important;
+            padding: 0.25rem !important;
+        }
+        .ck.ck-toolbar .ck-toolbar__separator {
+            background-color: #334155 !important;
         }
         .ck.ck-toolbar .ck-button {
             color: #cbd5e1 !important;
+            cursor: pointer !important;
         }
-        .ck.ck-toolbar .ck-button:hover,
+        .ck.ck-toolbar .ck-button:hover:not(.ck-disabled),
+        .ck.ck-toolbar .ck-button:focus:not(.ck-disabled) {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+        }
         .ck.ck-toolbar .ck-button.ck-on {
-            background-color: #334155 !important;
-            color: #facc15 !important;
+            background-color: #eab308 !important;
+            color: #0f172a !important;
+        }
+        .ck.ck-toolbar .ck-button.ck-on .ck-icon {
+            color: #0f172a !important;
         }
         .ck.ck-dropdown__panel {
-            background-color: #1e293b !important;
+            background-color: #111724 !important;
             border-color: #334155 !important;
+        }
+        .ck.ck-list {
+            background-color: #111724 !important;
         }
         .ck.ck-list__item button {
             color: #f8fafc !important;
         }
-        .ck.ck-list__item button:hover {
-            background-color: #334155 !important;
+        .ck.ck-list__item button:hover:not(.ck-disabled) {
+            background-color: #1e293b !important;
+            color: #eab308 !important;
+        }
+        .ck.ck-list__item button.ck-on {
+            background-color: #eab308 !important;
+            color: #0f172a !important;
         }
         .dropzone {
             background: rgba(15, 23, 42, 0.5);
@@ -517,7 +543,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">Short Description</label>
-                            <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div class="rounded-xl overflow-hidden">
                                 <div id="short_description_editor"></div>
                                 <textarea name="short_description" id="short_description" class="hidden">{{ old('short_description') }}</textarea>
                             </div>
@@ -526,7 +552,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-2">Full Description</label>
-                            <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div class="rounded-xl overflow-hidden">
                                 <div id="full_description_editor"></div>
                                 <textarea name="full_description" id="full_description" class="hidden">{{ old('full_description') }}</textarea>
                             </div>
@@ -535,7 +561,7 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Terms & Conditions</label>
-                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                        <div class="rounded-xl overflow-hidden">
                             <div id="terms_and_conditions_editor"></div>
                             <textarea name="terms_and_conditions" id="terms_and_conditions" class="hidden">{{ old('terms_and_conditions') }}</textarea>
                         </div>
@@ -995,7 +1021,7 @@
 <script>
     window.laravelErrors = @json($errors->getMessages());
 </script>
-<script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <script>window.Dropzone = window.Dropzone || {}; window.Dropzone.autoDiscover = false;</script>

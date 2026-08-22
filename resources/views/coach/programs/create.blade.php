@@ -866,7 +866,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 @include('layouts.components.advanced-builder-utils')
 <script>
 const { createApp, ref, reactive, computed, onMounted } = Vue;
