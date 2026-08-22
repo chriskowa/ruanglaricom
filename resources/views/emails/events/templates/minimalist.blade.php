@@ -34,10 +34,31 @@
 <body>
     <div class="container">
         <div class="header">
-            @if(isset($event) && $event->logo_image)
-                <img src="{{ isset($message) ? $message->embed(storage_path('app/public/' . $event->logo_image)) : asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" style="max-height: 70px; max-width: 180px; object-fit: contain;">
+            @php
+                $eventLogoSrc = null;
+                if (!empty($event->logo_image)) {
+                    if (str_starts_with($event->logo_image, 'http://') || str_starts_with($event->logo_image, 'https://')) {
+                        $eventLogoSrc = $event->logo_image;
+                    } elseif (isset($message) && file_exists(storage_path('app/public/' . $event->logo_image))) {
+                        $eventLogoSrc = $message->embed(storage_path('app/public/' . $event->logo_image));
+                    } elseif (isset($message) && file_exists(public_path('storage/' . $event->logo_image))) {
+                        $eventLogoSrc = $message->embed(public_path('storage/' . $event->logo_image));
+                    } else {
+                        $eventLogoSrc = asset('storage/' . ltrim($event->logo_image, '/'));
+                    }
+                }
+            @endphp
+
+            @if($eventLogoSrc)
+                <img src="{{ $eventLogoSrc }}" alt="{{ $event->name }}" style="max-height: 70px; max-width: 180px; object-fit: contain;">
             @else
-                <img src="{{ isset($message) ? $message->embed(public_path('images/logo-text-dark.png')) : asset('images/logo-text-dark.png') }}" alt="{{ config('app.name') }}" style="max-height: 45px; object-fit: contain;">
+                @php
+                    $defaultLogo = 'images/logo-text.png';
+                    $fallbackSrc = (isset($message) && file_exists(public_path($defaultLogo)))
+                        ? $message->embed(public_path($defaultLogo))
+                        : asset($defaultLogo);
+                @endphp
+                <img src="{{ $fallbackSrc }}" alt="{{ config('app.name') }}" style="max-height: 45px; object-fit: contain;">
             @endif
         </div>
         

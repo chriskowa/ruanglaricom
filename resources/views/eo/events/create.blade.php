@@ -1873,10 +1873,15 @@
             form.appendChild(inp);
         };
 
+        const logoImage = document.querySelector('input[name="logo_image"]')?.value || '';
+        const locationName = document.querySelector('input[name="location_name"]')?.value || '';
+
         appendInp('_token', document.querySelector('input[name="_token"]').value);
         appendInp('custom_email_message', content);
         appendInp('name', name);
         appendInp('slug', document.querySelector('input[name="slug"]')?.value || 'jakarta-marathon-2025');
+        appendInp('logo_image', logoImage);
+        appendInp('location_name', locationName);
         appendInp('ticket_email_use_qr', ticketEmailUseQr);
         appendInp('ticket_email_template', templateVal);
         appendInp('ticket_email_show_jersey', showJerseyVal);

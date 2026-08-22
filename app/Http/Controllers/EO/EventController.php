@@ -3545,6 +3545,12 @@ class EventController extends Controller
         if ($request->has('name')) {
             $event->name = $request->input('name');
         }
+        if ($request->filled('logo_image')) {
+            $event->logo_image = $request->input('logo_image');
+        }
+        if ($request->filled('location_name')) {
+            $event->location_name = $request->input('location_name');
+        }
 
         // Mock Participant
         $participant = new \App\Models\Participant([

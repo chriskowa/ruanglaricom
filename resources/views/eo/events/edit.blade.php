@@ -1823,6 +1823,11 @@
             form.appendChild(inp);
         };
 
+        const logoImage = document.querySelector('input[name="logo_image"]')?.value || '{{ addslashes($event->logo_image ?? "") }}';
+        const locationName = document.querySelector('input[name="location_name"]')?.value || '{{ addslashes($event->location_name ?? "") }}';
+
+        appendHiddenInput('logo_image', logoImage);
+        appendHiddenInput('location_name', locationName);
         appendHiddenInput('ticket_email_use_qr', ticketEmailUseQr);
         appendHiddenInput('ticket_email_template', templateVal);
         appendHiddenInput('ticket_email_show_jersey', showJerseyVal);
@@ -2084,10 +2089,15 @@
             form.appendChild(inp);
         };
 
+        const logoImage = document.querySelector('input[name="logo_image"]')?.value || '{{ addslashes($event->logo_image ?? "") }}';
+        const locationName = document.querySelector('input[name="location_name"]')?.value || '{{ addslashes($event->location_name ?? "") }}';
+
         appendInp('_token', document.querySelector('input[name="_token"]').value);
         appendInp('custom_email_message', content);
         appendInp('name', name);
         appendInp('slug', document.querySelector('input[name="slug"]')?.value || '{{ $event->slug ?? "jakarta-marathon-2025" }}');
+        appendInp('logo_image', logoImage);
+        appendInp('location_name', locationName);
         appendInp('ticket_email_use_qr', ticketEmailUseQr);
         appendInp('ticket_email_template', templateVal);
         appendInp('ticket_email_show_jersey', showJerseyVal);
