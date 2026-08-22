@@ -74,6 +74,11 @@
     $showTargetTime = !empty($formFields['target_time']);
     $showBloodType = !empty($formFields['blood_type']);
     $showStrava = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']) || !empty($formFields['strava_link']);
+    $isFaqEnabled = !empty($event->premium_amenities['faq']['enabled']);
+    $rawFaqs = $event->premium_amenities['faq']['items'] ?? [];
+    $validFaqs = is_array($rawFaqs) ? array_values(array_filter($rawFaqs, function($f) {
+        return !empty(trim($f['question'] ?? '')) && !empty(trim($f['answer'] ?? ''));
+    })) : [];
     $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
     if ($schemaDescription === '') {
         $schemaDescription = $event->name;
@@ -319,6 +324,12 @@
                             <i class="fa-solid fa-circle-info text-white"></i>
                             Informasi Detail
                         </a>
+                        @if($isFaqEnabled && count($validFaqs) > 0)
+                            <a href="#faq-section" class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-white font-bold transition-colors text-xs sm:text-sm shadow-sm">
+                                <i class="fa-solid fa-circle-question text-white"></i>
+                                FAQ
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -540,6 +551,33 @@
                                 <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors whitespace-nowrap justify-center">
                                     <i class="fa-solid fa-shield-halved text-white"></i> Baca Ketentuan
                                 </button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- FAQ Section -->
+                    @if($isFaqEnabled && count($validFaqs) > 0)
+                        <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden" id="faq-section">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-circle-question text-white"></i>
+                                </span>
+                                FAQ (Pertanyaan Umum)
+                            </div>
+                            <div class="space-y-2.5">
+                                @foreach($validFaqs as $idx => $faq)
+                                    <div class="rounded-xl border border-slate-200 bg-white overflow-hidden transition-colors">
+                                        <button type="button" class="w-full px-4 py-3.5 text-left font-bold text-slate-900 flex justify-between items-center gap-3 text-sm focus:outline-none hover:bg-slate-50 transition-colors" onclick="const body = this.nextElementSibling; const icon = this.querySelector('.faq-icon'); body.classList.toggle('hidden'); icon.classList.toggle('rotate-180');">
+                                            <span class="leading-snug">{{ $faq['question'] }}</span>
+                                            <span class="w-6 h-6 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0 faq-icon transition-transform duration-200">
+                                                <i class="fa-solid fa-chevron-down text-[10px] text-white"></i>
+                                            </span>
+                                        </button>
+                                        <div class="px-4 pb-4 pt-2 text-xs text-slate-600 leading-relaxed border-t border-slate-100 hidden">
+                                            {!! nl2br(e($faq['answer'])) !!}
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
