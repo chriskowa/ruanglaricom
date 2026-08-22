@@ -64,6 +64,17 @@
             background-color: #111724 !important;
             border-color: #334155 !important;
         }
+        .ck.ck-balloon-panel {
+            background-color: #111724 !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+        .ck.ck-source-editing-area textarea {
+            background-color: #0c121e !important;
+            color: #f8fafc !important;
+            font-family: monospace !important;
+            font-size: 0.875rem !important;
+        }
         .ck.ck-list {
             background-color: #111724 !important;
         }
@@ -1081,7 +1092,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/super-build/ckeditor.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <script>window.Dropzone = window.Dropzone || {}; window.Dropzone.autoDiscover = false;</script>
@@ -1249,57 +1260,109 @@
 
     // Initialize Editor
     window.editors = {};
+    const EditorClass = window.CKEDITOR && window.CKEDITOR.ClassicEditor ? window.CKEDITOR.ClassicEditor : window.ClassicEditor;
+
+    const commonPluginsToRemove = [
+        'CKBox', 'CKFinder', 'EasyImage', 'RealTimeCollaborativeComments',
+        'RealTimeCollaborativeTrackChanges', 'RealTimeCollaborativeRevisionHistory',
+        'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData',
+        'RevisionHistory', 'Pagination', 'WProofreader', 'MathType',
+        'SlashCommand', 'Template', 'DocumentOutline', 'FormatPainter',
+        'TableOfContents', 'PasteFromOfficeEnhanced'
+    ];
+
+    const fullConfig = {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', 'code', '|',
+                'alignment', '|',
+                'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '|',
+                'link', 'blockQuote', 'insertTable', 'mediaEmbed', 'horizontalLine', '|',
+                'sourceEditing', 'findAndReplace', 'selectAll', '|',
+                'undo', 'redo'
+            ],
+            shouldNotGroupWhenFull: true
+        },
+        table: {
+            contentToolbar: [
+                'tableColumn', 'tableRow', 'mergeTableCells',
+                'tableProperties', 'tableCellProperties'
+            ]
+        },
+        removePlugins: commonPluginsToRemove
+    };
+
     const commonConfig = {
-        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'underline', '|',
+                'bulletedList', 'numberedList', '|',
+                'link', 'blockQuote', 'insertTable', '|',
+                'undo', 'redo'
+            ],
+            shouldNotGroupWhenFull: true
+        },
+        removePlugins: commonPluginsToRemove
     };
 
     // Short Description
-    ClassicEditor
-        .create(document.querySelector('#short_description_editor'), commonConfig)
-        .then(editor => {
-            window.editors['short_description'] = editor;
-            editor.setData(`{!! old('short_description', $event->short_description) !!}`);
-            editor.model.document.on('change:data', () => {
-                document.querySelector('#short_description').value = editor.getData();
-            });
-        })
-        .catch(error => console.error(error));
+    if (document.querySelector('#short_description_editor') && EditorClass) {
+        EditorClass
+            .create(document.querySelector('#short_description_editor'), commonConfig)
+            .then(editor => {
+                window.editors['short_description'] = editor;
+                editor.setData(`{!! old('short_description', $event->short_description) !!}`);
+                editor.model.document.on('change:data', () => {
+                    document.querySelector('#short_description').value = editor.getData();
+                });
+            })
+            .catch(error => console.error(error));
+    }
 
-    // Full Description
-    ClassicEditor
-        .create(document.querySelector('#full_description_editor'), commonConfig)
-        .then(editor => {
-            window.editors['full_description'] = editor;
-            editor.setData(`{!! old('full_description', $event->full_description) !!}`);
-            editor.model.document.on('change:data', () => {
-                document.querySelector('#full_description').value = editor.getData();
-            });
-        })
-        .catch(error => console.error(error));
+    // Full Description (Full Feature Editor)
+    if (document.querySelector('#full_description_editor') && EditorClass) {
+        EditorClass
+            .create(document.querySelector('#full_description_editor'), fullConfig)
+            .then(editor => {
+                window.editors['full_description'] = editor;
+                editor.setData(`{!! old('full_description', $event->full_description) !!}`);
+                editor.model.document.on('change:data', () => {
+                    document.querySelector('#full_description').value = editor.getData();
+                });
+            })
+            .catch(error => console.error(error));
+    }
 
     // Terms and Conditions
-    ClassicEditor
-        .create(document.querySelector('#terms_and_conditions_editor'), commonConfig)
-        .then(editor => {
-            window.editors['terms_and_conditions'] = editor;
-            editor.setData(`{!! old('terms_and_conditions', $event->terms_and_conditions) !!}`);
-            editor.model.document.on('change:data', () => {
-                document.querySelector('#terms_and_conditions').value = editor.getData();
-            });
-        })
-        .catch(error => console.error(error));
+    if (document.querySelector('#terms_and_conditions_editor') && EditorClass) {
+        EditorClass
+            .create(document.querySelector('#terms_and_conditions_editor'), commonConfig)
+            .then(editor => {
+                window.editors['terms_and_conditions'] = editor;
+                editor.setData(`{!! old('terms_and_conditions', $event->terms_and_conditions) !!}`);
+                editor.model.document.on('change:data', () => {
+                    document.querySelector('#terms_and_conditions').value = editor.getData();
+                });
+            })
+            .catch(error => console.error(error));
+    }
 
     // Custom Email Message
-    ClassicEditor
-        .create(document.querySelector('#custom_email_message_editor'), commonConfig)
-        .then(editor => {
-            window.editors['custom_email_message'] = editor;
-            editor.setData(`{!! old('custom_email_message', $event->custom_email_message) !!}`);
-            editor.model.document.on('change:data', () => {
-                document.querySelector('#custom_email_message').value = editor.getData();
-            });
-        })
-        .catch(error => console.error(error));
+    if (document.querySelector('#custom_email_message_editor') && EditorClass) {
+        EditorClass
+            .create(document.querySelector('#custom_email_message_editor'), commonConfig)
+            .then(editor => {
+                window.editors['custom_email_message'] = editor;
+                editor.setData(`{!! old('custom_email_message', $event->custom_email_message) !!}`);
+                editor.model.document.on('change:data', () => {
+                    document.querySelector('#custom_email_message').value = editor.getData();
+                });
+            })
+            .catch(error => console.error(error));
+    }
 
     function openLivePreview() {
         if (window.editors) {
