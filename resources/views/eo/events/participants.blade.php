@@ -3947,7 +3947,7 @@
     window.approveParticipant = function(id, name) {
         if (!confirm(`Setujui pendaftaran ${name || 'peserta'} dan kirim email konfirmasi e-Tiket resmi?`)) return;
 
-        fetch(`{{ url('eo/events/' . $event->slug . '/participants') }}/${id}/approve`, {
+        fetch(`{{ url('eo/events/' . $event->id . '/participants') }}/${id}/approve`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3983,7 +3983,7 @@
         const reason = prompt(`Masukkan alasan penolakan pendaftaran untuk ${name || 'peserta'}:`, 'Data kualifikasi / persyaratan tidak sesuai.');
         if (reason === null) return;
 
-        fetch(`{{ url('eo/events/' . $event->slug . '/participants') }}/${id}/reject`, {
+        fetch(`{{ url('eo/events/' . $event->id . '/participants') }}/${id}/reject`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
