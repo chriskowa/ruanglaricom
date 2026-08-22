@@ -417,10 +417,10 @@
 
             <!-- Payment Notification Badges -->
             @if(request('payment') === 'pending')
-                <div class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-amber-300 bg-amber-50">
+                <div id="payment-notification-badge" class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-amber-300 bg-amber-50 scroll-mt-24">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-clock text-white"></i></div>
-                        <div>
+                        <div class="flex-1 min-w-0">
                             <div class="text-base font-bold text-slate-900">Menunggu Pembayaran</div>
                             <div class="mt-0.5 text-xs text-slate-600">Transaksi kamu belum selesai. Silakan klik tombol di bawah untuk melanjutkan pembayaran.</div>
                             <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-flex mt-3 items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-700 transition-colors text-xs">
@@ -430,12 +430,15 @@
                     </div>
                 </div>
             @elseif(request('payment') === 'success')
-                <div class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-emerald-300 bg-emerald-50">
+                <div id="payment-notification-badge" class="pro-card p-4 sm:p-5 mb-6 sm:mb-8 border-emerald-300 bg-emerald-50 scroll-mt-24">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0"><i class="fa-solid fa-circle-check text-white"></i></div>
-                        <div>
-                            <div class="text-base font-bold text-slate-900">Pendaftaran Berhasil</div>
-                            <div class="mt-0.5 text-xs text-slate-600">Terima kasih. Cek email kamu untuk informasi konfirmasi e-Tiket dan rincian transaksi.</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-base font-bold text-slate-900">Pendaftaran Berhasil!</div>
+                            <div class="mt-0.5 text-xs text-slate-600">Terima kasih telah mendaftar. Konfirmasi pendaftaran dan e-Tiket resmi telah dikirim ke email kamu.</div>
+                            <button type="button" onclick="openSuccessModal()" class="inline-flex mt-3 items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold transition-colors text-xs shadow-sm">
+                                <i class="fa-solid fa-ticket text-white"></i> Lihat Rincian Konfirmasi
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1307,6 +1310,52 @@
         </div>
     @endif
 
+    <!-- Registration Success Modal -->
+    <div id="registrationSuccessModal" class="fixed inset-0 z-[999] hidden">
+        <div class="absolute inset-0 bg-slate-900/65" onclick="closeSuccessModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-lg shadow-2xl overflow-hidden relative z-10">
+                <div class="p-6 sm:p-8 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl mx-auto shadow-sm mb-4">
+                        <i class="fa-solid fa-circle-check text-white"></i>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black text-slate-900">Pendaftaran Berhasil!</h3>
+                    <p class="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Terima kasih telah mendaftar di <strong>{{ $event->name }}</strong>. Konfirmasi pendaftaran dan e-Tiket resmi telah dikirim ke email kamu.
+                    </p>
+
+                    <div class="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left space-y-2 text-xs">
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span>Event:</span>
+                            <span class="font-bold text-slate-900 truncate max-w-[240px]">{{ $event->name }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span>Tanggal:</span>
+                            <span class="font-bold text-slate-900">{{ optional($event->start_at)->format('d F Y') ?: '-' }}</span>
+                        </div>
+                        @if($event->location_name)
+                            <div class="flex items-center justify-between text-slate-600">
+                                <span>Lokasi:</span>
+                                <span class="font-bold text-slate-900 truncate max-w-[240px]">{{ $event->location_name }}</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
+                        @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+                            <a href="#participants-list" onclick="closeSuccessModal()" class="w-full sm:w-1/2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors text-center shadow-sm">
+                                <i class="fa-solid fa-users text-white mr-1.5"></i> Lihat Peserta
+                            </a>
+                        @endif
+                        <button type="button" onclick="closeSuccessModal()" class="w-full {{ (($hasPaidParticipants ?? false) && $event->show_participant_list) ? 'sm:w-1/2' : 'sm:w-full' }} py-3 px-4 rounded-xl bg-theme-primary hover-bg-theme-primary-dark text-white text-xs font-bold transition-colors text-center shadow-sm">
+                            <i class="fa-solid fa-check text-white mr-1.5"></i> Tutup & Lihat Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         var routeMap = null;
         var startMarker = null;
@@ -1327,6 +1376,39 @@
             const modal = document.getElementById('routeModal');
             modal.classList.add('hidden');
         }
+
+        function openSuccessModal() {
+            const modal = document.getElementById('registrationSuccessModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeSuccessModal() {
+            const modal = document.getElementById('registrationSuccessModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            scrollToPaymentBadge();
+        }
+
+        function scrollToPaymentBadge() {
+            const badge = document.getElementById('payment-notification-badge');
+            if (badge) {
+                badge.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentStatus = urlParams.get('payment');
+            if (paymentStatus === 'success') {
+                openSuccessModal();
+                setTimeout(scrollToPaymentBadge, 200);
+            } else if (paymentStatus === 'pending') {
+                setTimeout(scrollToPaymentBadge, 200);
+            }
+        });
 
         function initRouteMap() {
             const mapboxToken = '{{ config('services.mapbox.token') }}';
