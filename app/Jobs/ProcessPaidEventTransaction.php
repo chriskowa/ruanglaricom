@@ -45,11 +45,27 @@ class ProcessPaidEventTransaction implements ShouldQueue
                 \App\Models\Coupon::recalculateUsedCount($this->transaction->coupon_id);
             }
 
-            // 4. Update participant status to confirmed
-            $this->transaction->participants()->update(['status' => 'confirmed']);
+            $event = $this->transaction->event;
+            $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
 
-            // 5. Send notifications (email/wa)
-            app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($this->transaction);
+            if ($requiresApproval) {
+                // 4. Update participant status to pending_approval (awaiting EO review)
+                $this->transaction->participants()->update([
+                    'status' => 'pending_approval',
+                    'isApproved' => 0,
+                ]);
+
+                // 5. Note: e-Ticket email is deferred until EO approves the participant
+            } else {
+                // 4. Update participant status to confirmed
+                $this->transaction->participants()->update([
+                    'status' => 'confirmed',
+                    'isApproved' => 1,
+                ]);
+
+                // 5. Send notifications (email/wa)
+                app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($this->transaction);
+            }
 
             Log::info('ProcessPaidEventTransaction completed', [
                 'transaction_id' => $this->transaction->id,

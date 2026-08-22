@@ -1325,6 +1325,10 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/participants/print-bib', [App\Http\Controllers\EO\EventController::class, 'printBibPdf'])->name('events.participants.print-bib');
         Route::get('events/{event}/participants/doorprize-list', [App\Http\Controllers\EO\EventController::class, 'doorprizeList'])->name('events.participants.doorprize-list');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
+        Route::post('events/{event}/participants/{participant}/approve', [App\Http\Controllers\EO\EventController::class, 'approveParticipant'])->name('events.participants.approve');
+        Route::post('events/{event}/participants/{participant}/reject', [App\Http\Controllers\EO\EventController::class, 'rejectParticipant'])->name('events.participants.reject');
+        Route::post('events/{event}/participants/bulk-approve', [App\Http\Controllers\EO\EventController::class, 'bulkApproveParticipants'])->name('events.participants.bulk-approve');
+        Route::post('events/{event}/participants/bulk-reject', [App\Http\Controllers\EO\EventController::class, 'bulkRejectParticipants'])->name('events.participants.bulk-reject');
         Route::post('events/{event}/participants/{participant}/create-user', [App\Http\Controllers\EO\EventController::class, 'createUserFromParticipant'])->name('events.participants.create-user');
         Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/participants/resend-email-bulk', [App\Http\Controllers\EO\EventController::class, 'resendEmailBulk'])->name('events.participants.resend-email-bulk');

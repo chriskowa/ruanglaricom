@@ -120,5 +120,19 @@
                 </div>
             </label>
         </div>
+
+        <!-- Approval Workflow Configuration -->
+        <div class="mt-6 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="hidden" name="premium_amenities[requires_approval]" value="0">
+                <input type="checkbox" name="premium_amenities[requires_approval]" value="1" 
+                    {{ old('premium_amenities.requires_approval', ($event->premium_amenities['requires_approval'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500 h-5 w-5">
+                <div>
+                    <span class="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">Sistem Approval Pendaftaran (Manual Review EO)</span>
+                    <p class="text-xs text-slate-400 mt-0.5">Jika diaktifkan, pendaftar tidak langsung menerima email e-Tiket resmi sampai disetujui (Approved) secara manual oleh panitia EO dari menu Peserta.</p>
+                </div>
+            </label>
+        </div>
     </div>
 </div>

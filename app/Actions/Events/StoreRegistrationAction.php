@@ -565,6 +565,8 @@ class StoreRegistrationAction
                     }
                 }
 
+                $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
+
                 // Create participant
                 Participant::create([
                     'transaction_id' => $transaction->id,
@@ -584,7 +586,8 @@ class StoreRegistrationAction
                     'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
-                    'status' => 'pending',
+                    'status' => $requiresApproval ? 'pending_approval' : 'pending',
+                    'isApproved' => $requiresApproval ? 0 : 1,
                     'price_type' => $priceType,
                 ]);
             }
@@ -607,11 +610,15 @@ class StoreRegistrationAction
             // Load participants with category for Midtrans
             $transaction->load(['participants.category']);
 
+            $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
+
             if ($isZeroAmount) {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
 
-                // Dispatch emails
-                app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+                if (! $requiresApproval) {
+                    // Dispatch emails only if no manual approval required
+                    app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+                }
 
                 // Process Paid Event Transaction (Wallet, Stats, etc)
                 \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
@@ -622,7 +629,10 @@ class StoreRegistrationAction
             if ($paymentMethod === 'cod') {
                 $transaction->update(['payment_status' => 'cod']);
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
-                app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+
+                if (! $requiresApproval) {
+                    app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+                }
 
                 return $transaction;
             } elseif ($paymentMethod === 'moota') {

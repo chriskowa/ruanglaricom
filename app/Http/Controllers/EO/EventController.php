@@ -1113,6 +1113,16 @@ class EventController extends Controller
         if (request()->filled('end_date')) {
             $query->whereDate('participants.created_at', '<=', request()->end_date);
         }
+        if (request()->filled('approval_status')) {
+            $appStatus = request('approval_status');
+            if ($appStatus === 'pending_approval') {
+                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'rejected');
+            } elseif ($appStatus === 'approved') {
+                $query->where('participants.isApproved', 1);
+            } elseif ($appStatus === 'rejected') {
+                $query->where('participants.status', 'rejected');
+            }
+        }
 
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
@@ -1466,6 +1476,16 @@ class EventController extends Controller
         }
         if ($request->filled('end_date')) {
             $query->whereDate('participants.created_at', '<=', $request->query('end_date'));
+        }
+        if ($request->filled('approval_status')) {
+            $appStatus = $request->query('approval_status');
+            if ($appStatus === 'pending_approval') {
+                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'rejected');
+            } elseif ($appStatus === 'approved') {
+                $query->where('participants.isApproved', 1);
+            } elseif ($appStatus === 'rejected') {
+                $query->where('participants.status', 'rejected');
+            }
         }
 
         if ($request->filled('search')) {
@@ -2063,6 +2083,212 @@ class EventController extends Controller
             'success' => false,
             'message' => 'Gagal mengirim email konfirmasi tiket ke semua peserta terpilih.',
         ], 500);
+    }
+
+    /**
+     * Approve single participant and dispatch confirmation email
+     */
+    public function approveParticipant(Request $request, Event $event, \App\Models\Participant $participant)
+    {
+        $this->authorizeEvent($event);
+
+        if ((int) ($participant->transaction?->event_id ?? $participant->category?->event_id ?? 0) !== (int) $event->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peserta tidak ditemukan pada event ini.',
+            ], 404);
+        }
+
+        $participant->update([
+            'isApproved' => 1,
+            'status' => 'confirmed',
+        ]);
+
+        // Generate BIB if missing
+        if (empty($participant->bib_number) && $participant->category) {
+            $catId = $participant->category->id;
+            $prefix = strtoupper(substr($participant->category->name, 0, 2));
+            $lastBib = \App\Models\Participant::where('race_category_id', $catId)
+                ->whereNotNull('bib_number')
+                ->orderByRaw('LENGTH(bib_number) DESC, bib_number DESC')
+                ->value('bib_number');
+            $nextNumber = 1;
+            if ($lastBib && preg_match('/(\d+)$/', $lastBib, $matches)) {
+                $nextNumber = intval($matches[1]) + 1;
+            }
+            $participant->bib_number = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $participant->save();
+        }
+
+        // Send email confirmation
+        $emailSent = false;
+        try {
+            if (! empty($participant->email)) {
+                Mail::to($participant->email)->send(
+                    new EventRegistrationSuccess(
+                        $event,
+                        $participant->transaction,
+                        collect([$participant]),
+                        $participant->name
+                    )
+                );
+                $emailSent = true;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Approval Email Error: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Peserta ' . $participant->name . ' berhasil disetujui (Approved)' . ($emailSent ? ' dan e-Tiket telah dikirim.' : '.'),
+        ]);
+    }
+
+    /**
+     * Reject single participant
+     */
+    public function rejectParticipant(Request $request, Event $event, \App\Models\Participant $participant)
+    {
+        $this->authorizeEvent($event);
+
+        if ((int) ($participant->transaction?->event_id ?? $participant->category?->event_id ?? 0) !== (int) $event->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peserta tidak ditemukan pada event ini.',
+            ], 404);
+        }
+
+        $reason = $request->input('reason', 'Pendaftaran ditolak oleh panitia.');
+
+        $participant->update([
+            'isApproved' => 0,
+            'status' => 'rejected',
+            'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Peserta ' . $participant->name . ' telah ditolak (Rejected).',
+        ]);
+    }
+
+    /**
+     * Bulk approve participants
+     */
+    public function bulkApproveParticipants(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'exists:participants,id',
+        ]);
+
+        $participants = \App\Models\Participant::with(['transaction', 'category'])
+            ->whereIn('id', $request->participant_ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->get();
+
+        if ($participants->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada peserta valid yang dipilih.',
+            ], 400);
+        }
+
+        $approvedCount = 0;
+        $errors = [];
+
+        foreach ($participants as $participant) {
+            $participant->update([
+                'isApproved' => 1,
+                'status' => 'confirmed',
+            ]);
+
+            // Generate BIB if missing
+            if (empty($participant->bib_number) && $participant->category) {
+                $catId = $participant->category->id;
+                $prefix = strtoupper(substr($participant->category->name, 0, 2));
+                $lastBib = \App\Models\Participant::where('race_category_id', $catId)
+                    ->whereNotNull('bib_number')
+                    ->orderByRaw('LENGTH(bib_number) DESC, bib_number DESC')
+                    ->value('bib_number');
+                $nextNumber = 1;
+                if ($lastBib && preg_match('/(\d+)$/', $lastBib, $matches)) {
+                    $nextNumber = intval($matches[1]) + 1;
+                }
+                $participant->bib_number = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                $participant->save();
+            }
+
+            try {
+                if (! empty($participant->email)) {
+                    Mail::to($participant->email)->send(
+                        new EventRegistrationSuccess(
+                            $event,
+                            $participant->transaction,
+                            collect([$participant]),
+                            $participant->name
+                        )
+                    );
+                }
+                $approvedCount++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Bulk Approval Email Error for ' . $participant->email . ': ' . $e->getMessage());
+                $errors[] = $participant->email;
+                $approvedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menyetujui {$approvedCount} peserta dan mengirimkan email konfirmasi e-Tiket.",
+        ]);
+    }
+
+    /**
+     * Bulk reject participants
+     */
+    public function bulkRejectParticipants(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'exists:participants,id',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $reason = $request->input('reason', 'Pendaftaran ditolak oleh panitia.');
+
+        $participants = \App\Models\Participant::with('transaction')
+            ->whereIn('id', $request->participant_ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->get();
+
+        if ($participants->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada peserta valid yang dipilih.',
+            ], 400);
+        }
+
+        foreach ($participants as $participant) {
+            $participant->update([
+                'isApproved' => 0,
+                'status' => 'rejected',
+                'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil menolak ' . $participants->count() . ' peserta terpilih.',
+        ]);
     }
 
     /**

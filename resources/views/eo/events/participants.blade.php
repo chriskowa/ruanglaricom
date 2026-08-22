@@ -354,6 +354,15 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Approval Review</label>
+                    <select name="approval_status" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Approval</option>
+                        <option value="pending_approval" {{ request('approval_status') == 'pending_approval' ? 'selected' : '' }}>Perlu Review (Pending)</option>
+                        <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Disetujui (Approved)</option>
+                        <option value="rejected" {{ request('approval_status') == 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Gateway / Source</label>
                     <select name="payment_gateway" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Gateways</option>
@@ -491,6 +500,7 @@
                 </select>
                 <span class="text-slate-400">per page</span>
                 <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
+                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
                 <input type="hidden" name="payment_gateway" value="{{ request('payment_gateway') }}">
                 <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
                 <input type="hidden" name="gender" value="{{ request('gender') }}">
@@ -552,6 +562,7 @@
                                 <span class="sort-indicator" data-sort-indicator="payment_status"></span>
                             </button>
                         </th>
+                        <th class="px-6 py-4">Approval</th>
                         <th class="px-6 py-4">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="is_picked_up" onclick="setTableSort('is_picked_up')">
                                 Pickup Status
@@ -699,6 +710,35 @@
                                 </div>
                             @endif
                         </td>
+                        <td class="px-6 py-4" onclick="event.stopPropagation()">
+                            @if($participant->isApproved)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">
+                                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                    Approved
+                                </span>
+                            @elseif($participant->status === 'rejected')
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="{{ $participant->notes }}">
+                                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    Rejected
+                                </span>
+                            @else
+                                <div class="flex flex-col gap-1.5 items-start">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700/60">
+                                        <svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Pending Review
+                                    </span>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" onclick="approveParticipant({{ $participant->id }}, '{{ addslashes($participant->name) }}')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket">
+                                            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                            Approve
+                                        </button>
+                                        <button type="button" onclick="rejectParticipant({{ $participant->id }}, '{{ addslashes($participant->name) }}')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             @if($status == 'paid')
                                 <div class="flex flex-col items-start gap-1">
@@ -799,7 +839,14 @@
             <div class="text-white font-bold">
                 <span id="selectedCount">0</span> Selected
             </div>
-            <div class="h-6 w-px bg-slate-600"></div>
+            <button onclick="bulkApprove(this)" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                Approve (Kirim Tiket)
+            </button>
+            <button onclick="bulkReject(this)" class="px-4 py-2 rounded-lg bg-rose-700 hover:bg-rose-600 text-white font-bold flex items-center gap-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                Tolak
+            </button>
             <button onclick="bulkDelete()" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 Delete
@@ -2361,6 +2408,21 @@
                     notes: p.notes
                 }).replace(/'/g, "&#39;");
 
+                var approvalBadge = '';
+                if (p.isApproved) {
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+                } else if (p.status === 'rejected') {
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="'+ escapeHtml(p.notes || '') +'"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
+                } else {
+                    approvalBadge = '<div class="flex flex-col gap-1.5 items-start">' +
+                        '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pending Review</span>' +
+                        '<div class="flex items-center gap-1">' +
+                            '<button type="button" onclick="approveParticipant('+ p.id +', \''+ safeName +'\')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approve</button>' +
+                            '<button type="button" onclick="rejectParticipant('+ p.id +', \''+ safeName +'\')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>' +
+                        '</div>' +
+                    '</div>';
+                }
+
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
                     '<td class="px-6 py-4" onclick="event.stopPropagation()">'+
                         '<input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="'+ p.id +'">'+
@@ -2376,9 +2438,10 @@
                     '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
                     '<td class="px-6 py-4">'+ couponHtml +'</td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
+                    '<td class="px-6 py-4" onclick="event.stopPropagation()">'+ approvalBadge +'</td>'+
                     '<td class="px-6 py-4">'+ pickedBadge +'</td>'+
                     '<td class="px-6 py-4 text-right"><div class="flex items-center justify-end gap-2">'+
-                        '<a href="mailto:'+ (p.email || '') +'" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></a>'+
+                        '<a href="mailto:'+ (p.email || '') +'" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></a>'+
                         '<a href="https://wa.me/'+ phoneToWa(p.phone) +'" target="_blank" class="p-2 rounded-lg bg-slate-800 text-green-400 hover:bg-slate-700 hover:text-green-300 transition-colors" title="WhatsApp"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.536 0 1.52 1.115 2.988 1.264 3.186.149.198 2.19 3.361 5.27 4.69 2.151.928 2.988.94 3.518.865.592-.084 1.758-.717 2.006-1.41.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.381a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>'+
                         (status !== 'paid' ? '<button onclick="deleteParticipant('+ p.id +')" class="p-2 rounded-lg bg-slate-800 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors" title="Delete"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>' : '') +
                     '</div></td>'+
@@ -3822,6 +3885,171 @@
         });
     });
     */
+
+    window.approveParticipant = function(id, name) {
+        if (!confirm(`Setujui pendaftaran ${name || 'peserta'} dan kirim email konfirmasi e-Tiket resmi?`)) return;
+
+        fetch(`{{ url('eo/events/' . $event->slug . '/participants') }}/${id}/approve`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert(res.message);
+                if (typeof fetchParticipants === 'function') {
+                    fetchParticipants(currentParticipantsPage || 1);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert(res.message || 'Gagal menyetujui peserta.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan saat menyetujui peserta.');
+        });
+    };
+
+    window.rejectParticipant = function(id, name) {
+        const reason = prompt(`Masukkan alasan penolakan pendaftaran untuk ${name || 'peserta'}:`, 'Data kualifikasi / persyaratan tidak sesuai.');
+        if (reason === null) return;
+
+        fetch(`{{ url('eo/events/' . $event->slug . '/participants') }}/${id}/reject`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert(res.message);
+                if (typeof fetchParticipants === 'function') {
+                    fetchParticipants(currentParticipantsPage || 1);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert(res.message || 'Gagal menolak peserta.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan saat menolak peserta.');
+        });
+    };
+
+    window.bulkApprove = function(btn) {
+        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
+            return;
+        }
+
+        if (!confirm(`Setujui ${selected.length} peserta terpilih dan kirimkan email konfirmasi e-Tiket resmi?`)) return;
+
+        const originalText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
+        }
+
+        fetch(`{{ route('eo.events.participants.bulk-approve', $event, false) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ participant_ids: selected })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            if (res.success) {
+                alert(res.message);
+                if (typeof fetchParticipants === 'function') {
+                    fetchParticipants(currentParticipantsPage || 1);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert(res.message || 'Gagal menyetujui peserta terpilih.');
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            console.error(err);
+            alert('Terjadi kesalahan saat menyetujui peserta terpilih.');
+        });
+    };
+
+    window.bulkReject = function(btn) {
+        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
+            return;
+        }
+
+        const reason = prompt(`Masukkan alasan penolakan untuk ${selected.length} peserta terpilih:`, 'Data kualifikasi / persyaratan tidak sesuai.');
+        if (reason === null) return;
+
+        const originalText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
+        }
+
+        fetch(`{{ route('eo.events.participants.bulk-reject', $event, false) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ participant_ids: selected, reason: reason })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            if (res.success) {
+                alert(res.message);
+                if (typeof fetchParticipants === 'function') {
+                    fetchParticipants(currentParticipantsPage || 1);
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                alert(res.message || 'Gagal menolak peserta terpilih.');
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            console.error(err);
+            alert('Terjadi kesalahan saat menolak peserta terpilih.');
+        });
+    };
 
     window.bulkDelete = function() {
         const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
