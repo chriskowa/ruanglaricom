@@ -32,6 +32,10 @@ class Article extends Model
         'meta_description_en',
         'meta_keywords',
         'meta_keywords_en',
+        'focus_keyword',
+        'focus_keyword_en',
+        'secondary_keywords',
+        'secondary_keywords_en',
         'canonical_url',
         'canonical_url_en',
         'views_count',
@@ -130,8 +134,34 @@ class Article extends Model
         return $this->meta_description;
     }
 
+    public function getLocalizedFocusKeywordAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->focus_keyword_en) {
+            return $this->focus_keyword_en;
+        }
+
+        return $this->focus_keyword;
+    }
+
+    public function getLocalizedSecondaryKeywordsAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->secondary_keywords_en) {
+            return $this->secondary_keywords_en;
+        }
+
+        return $this->secondary_keywords;
+    }
+
     public function getLocalizedMetaKeywordsAttribute(): ?string
     {
+        $focus = $this->localized_focus_keyword;
+        $secondary = $this->localized_secondary_keywords;
+
+        if ($focus || $secondary) {
+            $parts = array_filter([$focus, $secondary]);
+            return implode(', ', $parts);
+        }
+
         if (app()->getLocale() === 'en' && $this->meta_keywords_en) {
             return $this->meta_keywords_en;
         }

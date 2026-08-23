@@ -42,6 +42,100 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function getEoEvents()
+    {
+        $user = Auth::user();
+        $query = \App\Models\Event::query();
+        if ($user && $user->role !== 'admin') {
+            $query->where('user_id', $user->id);
+        }
+
+        $events = $query->with('categories')
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'name', 'slug', 'hero_image', 'hero_image_url', 'start_at'])
+            ->map(function ($ev) {
+                return [
+                    'id' => $ev->id,
+                    'name' => $ev->name,
+                    'slug' => $ev->slug,
+                    'start_at' => $ev->start_at ? $ev->start_at->format('d M Y') : null,
+                    'logo_url' => $ev->getHeroImageUrl(),
+                    'categories' => $ev->categories->map(fn($c) => [
+                        'id' => $c->id,
+                        'name' => $c->name,
+                        'distance_km' => $c->distance_km
+                    ]),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'events' => $events,
+        ]);
+    }
+
+    public function getEoEventParticipants(Request $request, \App\Models\Event $event)
+    {
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && $event->user_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $categoryId = $request->query('category_id');
+
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id)
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
+        });
+
+        if ($event->requires_approval) {
+            $query->where('isApproved', 1);
+        }
+
+        if ($categoryId && $categoryId !== 'all') {
+            $query->where('race_category_id', $categoryId);
+        }
+
+        $participants = $query->with('category')
+            ->orderByRaw('COALESCE(bib_number, "") ASC, name ASC')
+            ->get();
+
+        $mapped = $participants->map(function ($p, $idx) {
+            $predictedMs = null;
+            if ($p->target_time) {
+                if (preg_match('/^(\d+):(\d+):(\d+)$/', $p->target_time, $m)) {
+                    $predictedMs = ($m[1] * 3600 + $m[2] * 60 + $m[3]) * 1000;
+                } elseif (preg_match('/^(\d+):(\d+)$/', $p->target_time, $m)) {
+                    $predictedMs = ($m[1] * 60 + $m[2]) * 1000;
+                }
+            }
+
+            return [
+                'id' => (string) $p->id,
+                'bib' => (string) ($p->bib_number ?: ($idx + 101)),
+                'name' => $p->name,
+                'gender' => $p->gender,
+                'photo_url' => $p->photo ? Storage::disk('public')->url($p->photo) : null,
+                'category_name' => $p->category?->name,
+                'predictedTimeMs' => $predictedMs,
+                'laps' => [],
+                'status' => 'ready',
+                'totalTime' => 0,
+                'recentlyScanned' => false,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'event' => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'logo_url' => $event->getHeroImageUrl(),
+            ],
+            'participants' => $mapped,
+        ]);
+    }
+
     public function index()
     {
         $query = Race::query();

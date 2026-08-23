@@ -204,6 +204,8 @@ Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\Race
 
 Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->group(function () {
     Route::get('/docs', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'docs'])->name('tools.race-master.api.docs');
+    Route::get('/eo-events', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'getEoEvents'])->name('tools.race-master.api.eo-events');
+    Route::get('/eo-events/{event}/participants', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'getEoEventParticipants'])->name('tools.race-master.api.eo-events.participants');
     Route::get('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'index'])->name('tools.race-master.api.races.index');
     Route::get('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'show'])->name('tools.race-master.api.races.show');
     Route::post('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeRace'])->name('tools.race-master.api.races.store');

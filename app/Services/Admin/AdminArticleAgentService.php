@@ -137,9 +137,10 @@ TEXT;
         //* 3. Format Output JSON Strict
         $prompt .= "Untuk setiap ide, berikan:\n" .
                    "1. Judul yang memancing klik (CTR tinggi)\n" .
-                   "2. Kata kunci utama (Target Keyword)\n" .
-                   "3. Ringkasan singkat isi konten (Maksimal 2 kalimat).\n\n" .
-                   "KEMBALIKAN HASILNYA HANYA SEBAGAI ARRAY JSON objek dengan kunci persis seperti ini: 'title', 'keyword', 'summary'. Jangan sertakan format markdown, backticks (```json), atau teks pengantar apa pun di luar JSON.";
+                   "2. Kata kunci utama (Focus Keyword / Target Ranking Utama)\n" .
+                   "3. Kata kunci pendukung/turunan (Secondary Keywords / LSI, 3-5 kata kunci relevan, pisahkan koma)\n" .
+                   "4. Ringkasan singkat isi konten (Maksimal 2 kalimat).\n\n" .
+                   "KEMBALIKAN HASILNYA HANYA SEBAGAI ARRAY JSON objek dengan kunci persis seperti ini: 'title', 'keyword', 'secondary_keywords', 'summary'. Jangan sertakan format markdown, backticks (```json), atau teks pengantar apa pun di luar JSON.";
 
         //* 4. Hit LLM
         $rawResponse = $this->openai->getAiResponseOrThrow($prompt, "Kamu adalah ahli strategi konten SEO.", $this->modelBrainstorm);
@@ -330,7 +331,7 @@ TEXT;
                         "- Nada Jurnalistik & Bersumber: Gunakan kalimat aktif, lugas, obyektif, faktual, dan bersumber (sebutkan rujukan secara eksplisit jika ada rincian kutipan, data, atau cuplikan dari Threads/Instagram/berita terkini, misal: 'Berdasarkan laporan...', 'Sebagaimana diungkapkan dalam...'). JANGAN mengarang data atau hoaks.\n" .
                         "- Kedalaman & Edukasi: Hubungkan isu/berita realtime tersebut dengan panduan praktis, riset ilmiah, atau dampaknya bagi dunia lari.\n" .
                         "- Panjang & Struktur: 400 hingga 1200 kata. Setiap subjudul minimal 2 paragraf. 1 paragraf 2-4 kalimat. 1 kalimat maksimal 20-25 kata.\n" .
-                        "- Keterbacaan & SEO 2026: Sebarkan kata kunci fokus secara alami di paragraf pembuka, tengah, dan penutup. Jangan membuat kata kunci menjadi bold.\n" .
+                        "- Keterbacaan & Optimasi SEO 2026: Sisipkan Focus Keyword secara alami di judul, paragraf pembuka (lead), dan minimal 1 sub-heading. Distribusikan Secondary Keywords secara alami ke dalam sub-heading (<h2>/<h3>) dan tubuh konten tanpa keyword stuffing.\n" .
                         "- Jangan menambahkan kata 'Kesimpulan' atau 'Penutup' sebagai subjudul kaku di akhir artikel.\n\n" .
                         self::HTML_STRUCTURE_RULES_ID . "\n" .
                         "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy khas media berita nasional), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat ringkas, dan slug pendek.\n\n" .
@@ -346,13 +347,14 @@ TEXT;
                         "  * Lighting/Pencahayaan: Alami & organik (soft natural daylight, warm ambient light, bayangan realistis seperti gaya visual Grok Imagine).\n" .
                         "  * Detail & Finishing: Real photorealistic, tekstur kulit alami (smooth natural skin pores), tanpa oversharpening, tidak kaku, tanpa efek 3D CGI/render AI kaku.\n" .
                         "  * Tulis deskripsi visual di dalam [Gambar: ...] secara detail dalam bahasa Inggris (atau campuran ID/EN) yang spesifik menyebutkan subjek orang Indonesia, ekspresi candid, lokasi, pencahayaan alami, dan gaya fotografi realistis ratio 3:2.\n\n" .
-                        "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug'.\n" .
+                        "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug', 'secondary_keywords'.\n" .
                         "IMPORTANT: Pastikan semua double quote di dalam 'content' ter-escape agar JSON valid.";
 
         $sourcesBlock = $this->extractSourceLinks($query->research_raw_tavily);
 
         $userPrompt = "Title: {$selectedData['title']}\n" .
                       "Focus Keyword: {$selectedData['keyword']}\n" .
+                      (!empty($selectedData['secondary_keywords']) ? "Secondary Keywords (LSI): {$selectedData['secondary_keywords']}\n" : '') .
                       "Text to Rewrite:\n{$query->research_summary}\n" .
                       ($sourcesBlock !== '' ? "\n{$sourcesBlock}\n" : '');
 
@@ -370,6 +372,9 @@ TEXT;
 
         $decoded['title']   = $selectedData['title'] ?? '';
         $decoded['keyword'] = $selectedData['keyword'] ?? '';
+        if (empty($decoded['secondary_keywords']) && !empty($selectedData['secondary_keywords'])) {
+            $decoded['secondary_keywords'] = $selectedData['secondary_keywords'];
+        }
 
         $query->update(['generated_article_content' => json_encode($decoded)]);
 
@@ -531,6 +536,8 @@ TEXT;
             'content'          => $content,
             'meta_title'       => $generated['meta_title'] ?? null,
             'meta_description' => $generated['meta_description'] ?? null,
+            'focus_keyword'    => $selected['keyword'] ?? null,
+            'secondary_keywords' => $generated['secondary_keywords'] ?? null,
             'meta_keywords'    => $selected['keyword'] ?? null,
             'status'           => 'draft',
             'user_id'          => auth()->id(),
@@ -543,6 +550,8 @@ TEXT;
             $data['content_en']          = $generatedEn['content'];
             $data['meta_title_en']       = $generatedEn['meta_title'] ?? $generatedEn['title'] ?? null;
             $data['meta_description_en'] = $generatedEn['meta_description'] ?? null;
+            $data['focus_keyword_en']    = $selected['keyword'] ?? null;
+            $data['secondary_keywords_en'] = $generatedEn['secondary_keywords'] ?? null;
             $data['meta_keywords_en']    = $selected['keyword'] ?? null;
         }
 
@@ -719,12 +728,13 @@ TEXT;
                         "  * Lighting: Soft natural sunlight, organic shadows, warm photorealistic daylight (Grok Imagine style lighting).\n" .
                         "  * Texture & Details: Real candid photography look, natural skin texture, no oversharpening, no plastic 3D AI render look.\n\n" .
 
-                        "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'meta_keywords'.\n" .
+                        "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'focus_keyword', 'secondary_keywords', 'meta_keywords'.\n" .
                         "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";
 
         if ($context === 'full_article') {
             $userPrompt = "Original Indonesian Title: {$fields['title']}\n" .
                           "Focus Keyword (ID): {$keyword}\n" .
+                          (!empty($fields['secondary_keywords']) ? "Secondary Keywords (ID): {$fields['secondary_keywords']}\n" : '') .
                           "Indonesian Article Content (translate & adapt to English):\n{$fields['content']}\n";
         } else {
             $userPrompt = "Translate the following Indonesian article fields into English:\n\n" .
@@ -732,6 +742,8 @@ TEXT;
                           "Excerpt (ID): " . ($fields['excerpt'] ?? '') . "\n" .
                           "Meta Title (ID): " . ($fields['meta_title'] ?? '') . "\n" .
                           "Meta Description (ID): " . ($fields['meta_description'] ?? '') . "\n" .
+                          "Focus Keyword (ID): " . ($fields['focus_keyword'] ?? $keyword) . "\n" .
+                          "Secondary Keywords (ID): " . ($fields['secondary_keywords'] ?? '') . "\n" .
                           "Meta Keywords (ID): " . ($fields['meta_keywords'] ?? '') . "\n" .
                           "Content (ID HTML):\n{$fields['content']}\n";
         }

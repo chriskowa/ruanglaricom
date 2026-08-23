@@ -115,7 +115,7 @@
             ],
         ],
         'articleSection' => $article->category?->name ?? 'Blog',
-        'keywords' => $article->tags->pluck('name')->implode(', '),
+        'keywords' => implode(', ', array_filter([$article->localized_meta_keywords, $article->tags->pluck('name')->implode(', ')])),
     ];
 
     $breadcrumbSchema = [

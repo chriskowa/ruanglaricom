@@ -58,6 +58,22 @@
                                     SEO (ID)
                                 </h3>
                                 <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-bold text-neon mb-2 flex items-center justify-between">
+                                                <span>Focus Keyword (Utama - ID)</span>
+                                                <span class="text-xs text-slate-400 font-normal">Target ranking #1</span>
+                                            </label>
+                                            <input type="text" name="focus_keyword" id="seo_focus_keyword" value="{{ old('focus_keyword', $article->focus_keyword) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="e.g. sepatu lari marathon">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-slate-300 mb-2 flex items-center justify-between">
+                                                <span>Secondary Keywords (LSI - ID)</span>
+                                                <span class="text-xs text-slate-400 font-normal">Pisahkan koma</span>
+                                            </label>
+                                            <input type="text" name="secondary_keywords" id="seo_secondary_keywords" value="{{ old('secondary_keywords', $article->secondary_keywords) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="e.g. rekomendasi sepatu lari, sepatu road race">
+                                        </div>
+                                    </div>
                                     <div>
                                         <label class="block text-sm font-bold text-slate-300 mb-2">Meta Title (ID)</label>
                                         <input type="text" name="meta_title" value="{{ old('meta_title', $article->meta_title) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
@@ -67,8 +83,8 @@
                                         <textarea name="meta_description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('meta_description', $article->meta_description) }}</textarea>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Keywords (ID)</label>
-                                        <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $article->meta_keywords) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="run, marathon, training">
+                                        <label class="block text-sm font-bold text-slate-400 mb-2">Meta Keywords Fallback (ID - Opsional)</label>
+                                        <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $article->meta_keywords) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="Otomatis terisi dari Focus + Secondary Keywords jika kosong">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-bold text-slate-300 mb-2">Canonical URL (ID)</label>
@@ -101,6 +117,22 @@
                                     SEO (EN)
                                 </h3>
                                 <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-bold text-neon mb-2 flex items-center justify-between">
+                                                <span>Focus Keyword (Primary - EN)</span>
+                                                <span class="text-xs text-slate-400 font-normal">Target ranking #1</span>
+                                            </label>
+                                            <input type="text" name="focus_keyword_en" id="seo_focus_keyword_en" value="{{ old('focus_keyword_en', $article->focus_keyword_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="e.g. best marathon running shoes">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-slate-300 mb-2 flex items-center justify-between">
+                                                <span>Secondary Keywords (LSI - EN)</span>
+                                                <span class="text-xs text-slate-400 font-normal">Comma separated</span>
+                                            </label>
+                                            <input type="text" name="secondary_keywords_en" id="seo_secondary_keywords_en" value="{{ old('secondary_keywords_en', $article->secondary_keywords_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="e.g. running shoe review, road race shoes">
+                                        </div>
+                                    </div>
                                     <div>
                                         <label class="block text-sm font-bold text-slate-300 mb-2">Meta Title (EN)</label>
                                         <input type="text" name="meta_title_en" value="{{ old('meta_title_en', $article->meta_title_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
@@ -110,8 +142,8 @@
                                         <textarea name="meta_description_en" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('meta_description_en', $article->meta_description_en) }}</textarea>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Keywords (EN)</label>
-                                        <input type="text" name="meta_keywords_en" value="{{ old('meta_keywords_en', $article->meta_keywords_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="run, marathon, training">
+                                        <label class="block text-sm font-bold text-slate-400 mb-2">Meta Keywords Fallback (EN - Optional)</label>
+                                        <input type="text" name="meta_keywords_en" value="{{ old('meta_keywords_en', $article->meta_keywords_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500" placeholder="Auto-filled from Focus + Secondary Keywords">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-bold text-slate-300 mb-2">Canonical URL (EN)</label>
@@ -149,6 +181,71 @@
                         <button type="submit" class="w-full py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20">
                             Update Article
                         </button>
+                    </div>
+                </div>
+
+                <!-- Live SEO Score & Content Auditor Widget -->
+                <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-neon"></i> Live SEO Audit
+                        </h3>
+                        <div id="seo-score-badge" class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-800 text-slate-300 border border-slate-700">
+                            <span id="seo-score-num">0</span> / 100
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-950 rounded-full h-2.5 mb-3 overflow-hidden border border-slate-800">
+                        <div id="seo-progress-bar" class="h-full bg-red-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <div id="seo-verdict" class="text-xs font-bold text-slate-300 mb-4 pb-3 border-b border-slate-800 leading-relaxed">
+                        Audit SEO real-time...
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="space-y-2.5 text-xs" id="seo-audit-checklist">
+                        <div data-audit="focus-title" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Focus Keyword di Judul (Title H1)</span>
+                        </div>
+                        <div data-audit="focus-slug" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Focus Keyword di URL Slug</span>
+                        </div>
+                        <div data-audit="focus-desc" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Focus Keyword di Meta Description</span>
+                        </div>
+                        <div data-audit="focus-lead" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Focus Keyword di Paragraf Pertama (Lead)</span>
+                        </div>
+                        <div data-audit="focus-heading" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Focus Keyword di Subheading (H2 / H3)</span>
+                        </div>
+                        <div data-audit="title-len" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Panjang Judul Ideal (40 – 65 Karakter)</span>
+                        </div>
+                        <div data-audit="desc-len" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Panjang Meta Description (120 – 165 Karakter)</span>
+                        </div>
+                        <div data-audit="word-count" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Panjang Konten Artikel (Min. 600 kata)</span>
+                        </div>
+                        <div data-audit="density" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Kepadatan Keyword (0.8% – 2.5%)</span>
+                        </div>
+                        <div data-audit="secondary" class="flex items-start gap-2 text-slate-400">
+                            <i class="fa-regular fa-circle mt-0.5 shrink-0"></i>
+                            <span>Secondary Keywords Digunakan di Konten</span>
+                        </div>
                     </div>
                 </div>
 
@@ -289,8 +386,11 @@
                 </div>
                 <div id="aa-options" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
                 <div id="aa-manual" class="hidden space-y-3 p-4 bg-slate-950 border border-slate-800 rounded-xl">
-                    <input type="text" id="aa-manual-title" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon" placeholder="Judul artikel">
-                    <input type="text" id="aa-manual-keyword" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon" placeholder="Kata kunci utama">
+                    <input type="text" id="aa-manual-title" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon placeholder:text-slate-500" placeholder="Judul artikel">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" id="aa-manual-keyword" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon placeholder:text-slate-500" placeholder="Focus Keyword (Utama)">
+                        <input type="text" id="aa-manual-secondary" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon placeholder:text-slate-500" placeholder="Secondary Keywords (pisahkan koma)">
+                    </div>
                 </div>
                 <label class="flex items-center gap-2.5 text-xs text-slate-300">
                     <input type="checkbox" id="aa-research-manual" class="rounded bg-slate-800 border-slate-700 text-neon focus:ring-0 accent-lime-400">
@@ -417,7 +517,160 @@
             formData.append('file', blobInfo.blob(), blobInfo.filename());
 
             xhr.send(formData);
-        })
+        }),
+        setup: (editor) => {
+            editor.on('input change keyup SetContent', () => {
+                runLiveSeoAudit();
+            });
+        }
+    });
+
+    function runLiveSeoAudit() {
+        const focusKw = (document.getElementById('seo_focus_keyword')?.value || '').toLowerCase().trim();
+        const secKwsRaw = (document.getElementById('seo_secondary_keywords')?.value || '').toLowerCase().trim();
+        const title = (document.querySelector('input[name="title"]')?.value || '').trim();
+        const slug = (document.querySelector('input[name="slug"]')?.value || '').trim();
+        const metaDesc = (document.querySelector('textarea[name="meta_description"]')?.value || '').trim();
+        
+        let contentHtml = '';
+        if (typeof tinymce !== 'undefined' && tinymce.get('editor_id')) {
+            contentHtml = tinymce.get('editor_id').getContent();
+        } else {
+            contentHtml = document.getElementById('editor_id')?.value || '';
+        }
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHtml;
+        const contentText = (tempDiv.textContent || tempDiv.innerText || '').trim();
+        const words = contentText.split(/\s+/).filter(w => w.length > 0);
+        const wordCount = words.length;
+
+        let score = 0;
+
+        const setItemStatus = (key, passed) => {
+            const item = document.querySelector(`[data-audit="${key}"]`);
+            if (!item) return;
+            const icon = item.querySelector('i');
+            
+            if (passed) {
+                item.className = 'flex items-start gap-2 text-emerald-400 font-medium';
+                if (icon) icon.className = 'fa-solid fa-circle-check mt-0.5 text-emerald-400 shrink-0';
+            } else {
+                item.className = 'flex items-start gap-2 text-slate-400';
+                if (icon) icon.className = 'fa-regular fa-circle mt-0.5 text-slate-500 shrink-0';
+            }
+        };
+
+        if (!focusKw) {
+            document.getElementById('seo-score-num').textContent = '0';
+            document.getElementById('seo-progress-bar').style.width = '0%';
+            document.getElementById('seo-verdict').innerHTML = 'Masukkan Focus Keyword untuk mengaktifkan audit SEO.';
+            document.querySelectorAll('#seo-audit-checklist [data-audit]').forEach(el => {
+                el.className = 'flex items-start gap-2 text-slate-500';
+                const i = el.querySelector('i');
+                if (i) i.className = 'fa-regular fa-circle mt-0.5 text-slate-600 shrink-0';
+            });
+            return;
+        }
+
+        // 1. Focus in Title (15 pts)
+        const hasFocusInTitle = title.toLowerCase().includes(focusKw);
+        if (hasFocusInTitle) score += 15;
+        setItemStatus('focus-title', hasFocusInTitle);
+
+        // 2. Focus in Slug (10 pts)
+        const slugNorm = slug.toLowerCase().replace(/-/g, ' ');
+        const hasFocusInSlug = slugNorm.includes(focusKw.replace(/\s+/g, ' '));
+        if (hasFocusInSlug) score += 10;
+        setItemStatus('focus-slug', hasFocusInSlug);
+
+        // 3. Focus in Meta Description (10 pts)
+        const hasFocusInDesc = metaDesc.toLowerCase().includes(focusKw);
+        if (hasFocusInDesc) score += 10;
+        setItemStatus('focus-desc', hasFocusInDesc);
+
+        // 4. Focus in Lead Paragraph (15 pts)
+        const firstP = (tempDiv.querySelector('p')?.textContent || '').toLowerCase();
+        const hasFocusInLead = firstP.includes(focusKw);
+        if (hasFocusInLead) score += 15;
+        setItemStatus('focus-lead', hasFocusInLead);
+
+        // 5. Focus in Headings H2/H3 (10 pts)
+        const headings = Array.from(tempDiv.querySelectorAll('h2, h3')).map(h => h.textContent.toLowerCase());
+        const hasFocusInHeadings = headings.some(h => h.includes(focusKw));
+        if (hasFocusInHeadings) score += 10;
+        setItemStatus('focus-heading', hasFocusInHeadings);
+
+        // 6. Title Length 40 - 65 (10 pts)
+        const titleLenOk = title.length >= 40 && title.length <= 65;
+        if (titleLenOk) score += 10;
+        setItemStatus('title-len', titleLenOk);
+
+        // 7. Desc Length 120 - 165 (10 pts)
+        const descLenOk = metaDesc.length >= 120 && metaDesc.length <= 165;
+        if (descLenOk) score += 10;
+        setItemStatus('desc-len', descLenOk);
+
+        // 8. Word Count >= 600 (10 pts)
+        const wordCountOk = wordCount >= 600;
+        if (wordCountOk) score += 10;
+        else if (wordCount >= 300) score += 5;
+        setItemStatus('word-count', wordCountOk);
+
+        // 9. Keyword Density (0.8% - 2.5%) (10 pts)
+        let kwCount = 0;
+        if (wordCount > 0) {
+            const regex = new RegExp(focusKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            const matches = contentText.match(regex);
+            kwCount = matches ? matches.length : 0;
+        }
+        const kwDensity = wordCount > 0 ? ((kwCount * focusKw.split(/\s+/).length) / wordCount) * 100 : 0;
+        const densityOk = kwDensity >= 0.8 && kwDensity <= 2.5;
+        if (densityOk) score += 10;
+        else if (kwCount >= 2) score += 5;
+        setItemStatus('density', densityOk);
+
+        // 10. Secondary Keywords in Content (10 pts)
+        let hasSecOk = false;
+        if (secKwsRaw) {
+            const secList = secKwsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            const secFound = secList.filter(s => contentText.toLowerCase().includes(s));
+            hasSecOk = secFound.length > 0;
+            if (hasSecOk) score += 10;
+        }
+        setItemStatus('secondary', hasSecOk);
+
+        // Update Overall Score UI
+        document.getElementById('seo-score-num').textContent = score;
+        const prog = document.getElementById('seo-progress-bar');
+        const badge = document.getElementById('seo-score-badge');
+        const verdict = document.getElementById('seo-verdict');
+
+        prog.style.width = score + '%';
+
+        if (score >= 80) {
+            prog.className = 'h-full bg-emerald-500 transition-all duration-300';
+            badge.className = 'px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-950 text-emerald-400 border border-emerald-800';
+            verdict.innerHTML = `<span class="text-emerald-400 font-bold">Sangat Optimal (${score}/100)</span> • Siap bersaing di Google Page 1.`;
+        } else if (score >= 50) {
+            prog.className = 'h-full bg-amber-500 transition-all duration-300';
+            badge.className = 'px-2.5 py-1 rounded-lg text-xs font-black bg-amber-950 text-amber-400 border border-amber-800';
+            verdict.innerHTML = `<span class="text-amber-400 font-bold">Cukup (${score}/100)</span> • Lengkapi checklist hijau di bawah.`;
+        } else {
+            prog.className = 'h-full bg-red-500 transition-all duration-300';
+            badge.className = 'px-2.5 py-1 rounded-lg text-xs font-black bg-red-950 text-red-400 border border-red-800';
+            verdict.innerHTML = `<span class="text-red-400 font-bold">Kurang Optimal (${score}/100)</span> • Fokus keyword & konten belum selaras.`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ['seo_focus_keyword', 'seo_secondary_keywords'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', runLiveSeoAudit);
+        });
+        document.querySelector('input[name="title"]')?.addEventListener('input', runLiveSeoAudit);
+        document.querySelector('input[name="slug"]')?.addEventListener('input', runLiveSeoAudit);
+        document.querySelector('textarea[name="meta_description"]')?.addEventListener('input', runLiveSeoAudit);
+        setTimeout(runLiveSeoAudit, 600);
     });
 
     const setLangTab = (lang) => {
@@ -444,6 +697,8 @@
         const excerptId = document.querySelector('textarea[name="excerpt"]')?.value || '';
         const metaTitleId = document.querySelector('input[name="meta_title"]')?.value || '';
         const metaDescId = document.querySelector('textarea[name="meta_description"]')?.value || '';
+        const focusKwId = document.querySelector('input[name="focus_keyword"]')?.value || '';
+        const secKwsId = document.querySelector('input[name="secondary_keywords"]')?.value || '';
         const metaKeywordsId = document.querySelector('input[name="meta_keywords"]')?.value || '';
         const canonicalId = document.querySelector('input[name="canonical_url"]')?.value || '';
 
@@ -451,6 +706,8 @@
         const excerptEn = document.querySelector('textarea[name="excerpt_en"]');
         const metaTitleEn = document.querySelector('input[name="meta_title_en"]');
         const metaDescEn = document.querySelector('textarea[name="meta_description_en"]');
+        const focusKwEn = document.querySelector('input[name="focus_keyword_en"]');
+        const secKwsEn = document.querySelector('input[name="secondary_keywords_en"]');
         const metaKeywordsEn = document.querySelector('input[name="meta_keywords_en"]');
         const canonicalEn = document.querySelector('input[name="canonical_url_en"]');
 
@@ -458,6 +715,8 @@
         if (excerptEn && !excerptEn.value) excerptEn.value = excerptId;
         if (metaTitleEn && !metaTitleEn.value) metaTitleEn.value = metaTitleId;
         if (metaDescEn && !metaDescEn.value) metaDescEn.value = metaDescId;
+        if (focusKwEn && !focusKwEn.value) focusKwEn.value = focusKwId;
+        if (secKwsEn && !secKwsEn.value) secKwsEn.value = secKwsId;
         if (metaKeywordsEn && !metaKeywordsEn.value) metaKeywordsEn.value = metaKeywordsId;
         if (canonicalEn && !canonicalEn.value) canonicalEn.value = canonicalId;
 
@@ -892,10 +1151,13 @@
             div.className = 'flex items-start gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3.5 cursor-pointer hover:border-neon/60 transition-all';
             div.innerHTML = `
                 <input type="radio" name="aa-option" value="${i}" class="mt-1 rounded bg-slate-800 border-slate-700 text-neon focus:ring-0 accent-lime-400">
-                <div class="min-w-0">
-                    <div class="text-white font-bold text-sm">${opt.title || ''}</div>
-                    <div class="text-neon/80 text-xs font-semibold mt-0.5">${opt.keyword || ''}</div>
-                    <div class="text-slate-400 text-xs mt-1 leading-relaxed">${opt.summary || ''}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-white font-bold text-sm leading-snug">${opt.title || ''}</div>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        <span class="px-2 py-0.5 rounded-md bg-neon/15 text-neon text-[11px] font-bold">Focus: ${opt.keyword || ''}</span>
+                        ${opt.secondary_keywords ? `<span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-700">LSI: ${opt.secondary_keywords}</span>` : ''}
+                    </div>
+                    <div class="text-slate-400 text-xs mt-1.5 leading-relaxed">${opt.summary || ''}</div>
                 </div>`;
             box.appendChild(div);
         });
@@ -918,8 +1180,9 @@
         if (manualOpen) {
             const t = document.getElementById('aa-manual-title').value.trim();
             const k = document.getElementById('aa-manual-keyword').value.trim();
-            if (!t || !k) { alert('Isi judul & keyword manual.'); return; }
-            selection = { title: t, keyword: k };
+            const sec = (document.getElementById('aa-manual-secondary')?.value || '').trim();
+            if (!t || !k) { alert('Isi judul & focus keyword manual.'); return; }
+            selection = { title: t, keyword: k, secondary_keywords: sec };
         } else {
             const checked = document.querySelector('input[name="aa-option"]:checked');
             if (!checked) { alert('Pilih 1 ide terlebih dahulu.'); return; }

@@ -67,10 +67,11 @@ class ArticleController extends Controller
                 . "Input:\n"
                 . "- Topik / Berita Realtime: {$topic}\n"
                 . ($url ? "- URL referensi: {$url}\n" : "")
-                . "\nOutput HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
+                . "Output HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
                 . "{\n"
                 . "  \"seo_title\": \"... (<= 60 karakter)\",\n"
-                . "  \"keywords\": \"... (utama + 3-5 LSI)\",\n"
+                . "  \"focus_keyword\": \"... (1 kata kunci utama target ranking)\",\n"
+                . "  \"secondary_keywords\": \"... (3-5 kata kunci turunan/LSI, pisahkan koma)\",\n"
                 . "  \"meta_description\": \"... (140-160 karakter)\",\n"
                 . "  \"excerpt\": \"... (ringkas 1-2 kalimat)\",\n"
                 . "  \"content\": \"... (HTML body, tanpa <h1>)\",\n"
@@ -156,11 +157,23 @@ class ArticleController extends Controller
             'meta_title_en' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_description_en' => 'nullable|string|max:500',
+            'focus_keyword' => 'nullable|string|max:255',
+            'focus_keyword_en' => 'nullable|string|max:255',
+            'secondary_keywords' => 'nullable|string|max:1000',
+            'secondary_keywords_en' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:255',
             'meta_keywords_en' => 'nullable|string|max:255',
             'canonical_url' => 'nullable|url',
             'canonical_url_en' => 'nullable|url',
         ]);
+
+        if (empty($validated['meta_keywords']) && (!empty($validated['focus_keyword']) || !empty($validated['secondary_keywords']))) {
+            $validated['meta_keywords'] = implode(', ', array_filter([$validated['focus_keyword'] ?? null, $validated['secondary_keywords'] ?? null]));
+        }
+
+        if (empty($validated['meta_keywords_en']) && (!empty($validated['focus_keyword_en']) || !empty($validated['secondary_keywords_en']))) {
+            $validated['meta_keywords_en'] = implode(', ', array_filter([$validated['focus_keyword_en'] ?? null, $validated['secondary_keywords_en'] ?? null]));
+        }
 
         $validated['user_id'] = auth()->id();
         $validated['is_featured'] = $request->boolean('is_featured');
@@ -273,11 +286,23 @@ class ArticleController extends Controller
             'meta_title_en' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_description_en' => 'nullable|string|max:500',
+            'focus_keyword' => 'nullable|string|max:255',
+            'focus_keyword_en' => 'nullable|string|max:255',
+            'secondary_keywords' => 'nullable|string|max:1000',
+            'secondary_keywords_en' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:255',
             'meta_keywords_en' => 'nullable|string|max:255',
             'canonical_url' => 'nullable|url',
             'canonical_url_en' => 'nullable|url',
         ]);
+
+        if (empty($validated['meta_keywords']) && (!empty($validated['focus_keyword']) || !empty($validated['secondary_keywords']))) {
+            $validated['meta_keywords'] = implode(', ', array_filter([$validated['focus_keyword'] ?? null, $validated['secondary_keywords'] ?? null]));
+        }
+
+        if (empty($validated['meta_keywords_en']) && (!empty($validated['focus_keyword_en']) || !empty($validated['secondary_keywords_en']))) {
+            $validated['meta_keywords_en'] = implode(', ', array_filter([$validated['focus_keyword_en'] ?? null, $validated['secondary_keywords_en'] ?? null]));
+        }
 
         if ($request->filled('slug')) {
             $validated['slug'] = Str::slug($request->slug);
