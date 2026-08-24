@@ -34,6 +34,10 @@
         .leaflet-control-attribution, .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo {
             display: none !important;
         }
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
         #gpx-detail-map {
             height: 480px;
             width: 100%;
@@ -266,9 +270,9 @@
         </div>
 
         <!-- Primary Map & Integrated Elevation Stage -->
-        <div class="bg-[#111724] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl" id="gpx-map-card-wrap">
+        <div class="bg-[#111724] border border-slate-800/80 rounded-2xl shadow-2xl relative" id="gpx-map-card-wrap">
             <!-- Map Sub-header with Mode Switchers -->
-            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-[#0c121e]">
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-[#0c121e] relative z-40 rounded-t-2xl">
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-[#FC4C02] shadow-[0_0_8px_#FC4C02]"></span>
                     <h2 class="font-bold text-white text-xs tracking-wide">Peta Interaktif Jalur GPX</h2>
@@ -283,20 +287,20 @@
                     </button>
 
                     <!-- Map Layer Switcher -->
-                    <div class="relative inline-block" id="map-layer-dropdown-wrapper">
+                    <div class="relative inline-block z-50" id="map-layer-dropdown-wrapper">
                         <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-layer-group text-[10px] text-[#FC4C02]"></i>
-                            <span id="label-active-map-layer" class="hidden xs:inline">Dark</span>
+                            <span id="label-active-map-layer" class="hidden xs:inline">Voyager Light</span>
                             <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
                         </button>
                         <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800">
-                            <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
-                                <span>Dark Mode</span>
-                                <span class="layer-check-dark text-[#FC4C02] text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
-                            </button>
                             <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Voyager Light</span>
-                                <span class="layer-check-street text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                                <span class="layer-check-street text-[#FC4C02] text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Dark Mode</span>
+                                <span class="layer-check-dark text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
                             </button>
                             <button type="button" onclick="setMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Satelit Topo</span>
@@ -733,7 +737,7 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 13);
 
-            activeTileLayer = baseTileLayers.dark;
+            activeTileLayer = baseTileLayers.street;
             activeTileLayer.addTo(map);
             kmMarkersLayer.addTo(map);
 
@@ -797,11 +801,13 @@
 
                 // Start / Finish Markers
                 const startIcon = L.divIcon({
+                    className: 'border-0 bg-transparent',
                     html: '<div class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
                 const finishIcon = L.divIcon({
+                    className: 'border-0 bg-transparent',
                     html: '<div class="w-5 h-5 rounded-full bg-[#FC4C02] border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">F</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
@@ -816,6 +822,7 @@
                 validCoords.forEach((p) => {
                     if (currentTargetKm <= totalKmWhole && p.dist >= currentTargetKm) {
                         const kmBadgeIcon = L.divIcon({
+                            className: 'border-0 bg-transparent',
                             html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-mono font-black flex items-center justify-center shadow">${currentTargetKm}</div>`,
                             iconSize: [20, 20],
                             iconAnchor: [10, 10]
@@ -834,7 +841,7 @@
             if (!map) return;
             if (!animRunnerMarker) {
                 const runnerBeaconIcon = L.divIcon({
-                    className: '',
+                    className: 'border-0 bg-transparent',
                     html: `
                         <div class="runner-beacon">
                             <div class="runner-beacon-ring"></div>
@@ -1183,12 +1190,26 @@
             document.getElementById('map-layer-menu')?.classList.toggle('hidden');
         }
 
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('map-layer-dropdown-wrapper');
+            const menu = document.getElementById('map-layer-menu');
+            if (wrap && menu && !wrap.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
         function setMapLayer(type) {
             if (!map || !baseTileLayers[type]) return;
             if (activeTileLayer) map.removeLayer(activeTileLayer);
             activeTileLayer = baseTileLayers[type];
             activeTileLayer.addTo(map);
-            document.getElementById('label-active-map-layer').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            const labelMap = {
+                'street': 'Voyager Light',
+                'dark': 'Dark Mode',
+                'satellite': 'Satelit Topo'
+            };
+            const labelEl = document.getElementById('label-active-map-layer');
+            if (labelEl) labelEl.textContent = labelMap[type] || (type.charAt(0).toUpperCase() + type.slice(1));
             document.querySelectorAll('.layer-check-dark, .layer-check-street, .layer-check-satellite').forEach(el => el.classList.add('hidden'));
             document.querySelector('.layer-check-' + type)?.classList.remove('hidden');
             document.getElementById('map-layer-menu')?.classList.add('hidden');
