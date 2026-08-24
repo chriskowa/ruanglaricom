@@ -13,7 +13,6 @@
     $canonicalUrl = route('gpx.show', $item->slug ?: $item->id);
     $downloadUrl = route('gpx.download', $item->id);
 
-    // Realistic default PacePro target time based on distance * 5:00 min/km (300 sec/km)
     $defaultTargetSec = max(60, (int)round($distKm * 300));
     $defaultH = (int)floor($defaultTargetSec / 3600);
     $defaultM = (int)floor(($defaultTargetSec % 3600) / 60);
@@ -36,13 +35,13 @@
             display: none !important;
         }
         #gpx-detail-map {
-            height: 460px;
+            height: 480px;
             width: 100%;
-            background: #0d121c;
+            background: #070B12;
             z-index: 1;
         }
         .leaflet-tile {
-            filter: brightness(0.95) contrast(1.05);
+            filter: brightness(0.92) contrast(1.1);
         }
         .pacepro-table-wrap::-webkit-scrollbar {
             height: 5px;
@@ -62,31 +61,26 @@
         }
         .nav-solid-header {
             background-color: #070B12 !important;
-            background: #070B12 !important;
             border-bottom: 1px solid #1E293B !important;
             z-index: 30 !important;
         }
         .nav-solid-bottom {
             background-color: #0B0F17 !important;
-            background: #0B0F17 !important;
             border-top: 1px solid #1E293B !important;
             z-index: 30 !important;
             opacity: 1 !important;
         }
         .nav-metrics-box {
             background-color: #111724 !important;
-            background: #111724 !important;
             border: 1px solid #1E293B !important;
             opacity: 1 !important;
         }
         #post-run-modal {
             background-color: rgba(0, 0, 0, 0.88) !important;
-            background: rgba(0, 0, 0, 0.88) !important;
             z-index: 999999 !important;
         }
         .post-run-card {
             background-color: #0F172A !important;
-            background: #0F172A !important;
             border: 1px solid #334155 !important;
         }
         body.gpx-nav-active #chatbox-toggle,
@@ -95,9 +89,54 @@
         body.gpx-nav-active #crisp-chatbox {
             display: none !important;
         }
+
+        /* Neon Glow Multi-layer Trail Effect */
+        .leaflet-pane svg path.leaflet-interactive {
+            filter: drop-shadow(0 0 6px rgba(252, 76, 2, 0.85)) drop-shadow(0 0 14px rgba(252, 76, 2, 0.45));
+        }
+
+        /* Runner Beacon Pulse Marker */
+        .runner-beacon {
+            position: relative;
+            width: 32px;
+            height: 32px;
+        }
+        .runner-beacon-inner {
+            width: 100%;
+            height: 100%;
+            background: #FC4C02;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px #FC4C02, 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            position: relative;
+        }
+        .runner-arrow-rotator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            will-change: transform;
+        }
+        .runner-beacon-ring {
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            background: rgba(252, 76, 2, 0.35);
+            animation: beaconRipple 1.4s ease-out infinite;
+            z-index: 1;
+        }
+        @keyframes beaconRipple {
+            0% { transform: scale(0.6); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
     </style>
 
-    <!-- OpenGraph & Twitter Meta Tags -->
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ $pageDesc }}">
     <meta property="og:type" content="website">
@@ -106,120 +145,6 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDesc }}">
-@endpush
-
-@push('structured_data')
-    <!-- Schema.org BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "{{ url('/') }}"
-        },
-        {
-          "@@type": "ListItem",
-          "position": 2,
-          "name": "Database GPX",
-          "item": "{{ route('gpx.index') }}"
-        },
-        {
-          "@@type": "ListItem",
-          "position": 3,
-          "name": "{{ addslashes($item->title) }}",
-          "item": "{{ $canonicalUrl }}"
-        }
-      ]
-    }
-    </script>
-
-    <!-- Schema.org ExercisePlan -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "ExercisePlan",
-      "name": "Download GPX {{ addslashes($item->title) }}",
-      "description": "{{ addslashes($pageDesc) }}",
-      "exerciseType": "{{ $item->route_type === 'trail' ? 'Trail Running' : 'Running' }}",
-      "distance": "{{ $formattedDist }} km",
-      "spatialCoverage": {
-        "@@type": "Place",
-        "name": "{{ addslashes($cityName) }}"
-      },
-      "author": {
-        "@@type": "Person",
-        "name": "{{ addslashes($item->user?->name ?? 'RuangLari Official') }}"
-      }
-    }
-    </script>
-
-    <!-- Schema.org Dataset (For Downloadable GPX File) -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "Dataset",
-      "name": "File GPX Rute Lari {{ addslashes($item->title) }}",
-      "description": "{{ addslashes($pageDesc) }}",
-      "url": "{{ $canonicalUrl }}",
-      "keywords": ["GPX", "Rute Lari", "Running Route", "Garmin GPX", "Coros GPX", "{{ addslashes($cityName) }}"],
-      "distribution": [
-        {
-          "@@type": "DataDownload",
-          "encodingFormat": "application/gpx+xml",
-          "contentUrl": "{{ $downloadUrl }}"
-        }
-      ],
-      "spatialCoverage": {
-        "@@type": "Place",
-        "name": "{{ addslashes($cityName) }}"
-        @if($item->start_latitude && $item->start_longitude)
-        ,"geo": {
-          "@@type": "GeoCoordinates",
-          "latitude": {{ (float) $item->start_latitude }},
-          "longitude": {{ (float) $item->start_longitude }}
-        }
-        @endif
-      }
-    }
-    </script>
-
-    <!-- Schema.org FAQPage -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@@type": "Question",
-          "name": "Bagaimana cara memasukkan file GPX {{ addslashes($item->title) }} ke jam Garmin?",
-          "acceptedAnswer": {
-            "@@type": "Answer",
-            "text": "Unduh file GPX di RuangLari dengan klik tombol Download GPX. Buka aplikasi Garmin Connect di smartphone, masuk ke menu More > Training & Planning > Courses > Import Course, pilih file GPX yang diunduh lalu klik Send to Device untuk menyinkronkan ke jam tangan Garmin Anda."
-          }
-        },
-        {
-          "@@type": "Question",
-          "name": "Bagaimana cara memasukkan file GPX ke jam tangan COROS?",
-          "acceptedAnswer": {
-            "@@type": "Answer",
-            "text": "Download file GPX di RuangLari, lalu buka file tersebut dengan aplikasi COROS. Klik Simpan ke Rute Saya (Save to My Routes), buka menu Profile > Route Library dan pilih Sync with Watch."
-          }
-        },
-        {
-          "@@type": "Question",
-          "name": "Apakah rute GPX ini bisa dipakai untuk navigasi lari offline?",
-          "acceptedAnswer": {
-            "@@type": "Answer",
-            "text": "Ya, file GPX ini dapat diunduh ke jam tangan GPS (Garmin, Coros, Suunto) untuk navigasi mandiri tanpa sinyal ponsel. Anda juga bisa mengaktifkan mode Offline di RuangLari untuk panduan GPS langsung di browser HP tanpa kuota data."
-          }
-        }
-      ]
-    }
-    </script>
 @endpush
 
 @section('content')
@@ -241,7 +166,7 @@
                         onclick="openSuggestTitleModal({{ $item->id }}, '{{ addslashes($item->title) }}', '{{ addslashes($cityName) }}')" 
                         class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-accent/40 text-slate-300 hover:text-accent text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
                         title="Sarankan Nama Rute Baru">
-                    <i class="fa-solid fa-pen-to-square text-[11px] text-accent"></i>
+                    <i class="fa-solid fa-pen-to-square text-[11px] text-[#FC4C02]"></i>
                     <span>Saran Nama</span>
                 </button>
                 <button type="button" onclick="shareGpxRoute()" class="px-2.5 py-1.5 rounded-md border border-slate-700/80 hover:border-slate-600 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer flex items-center gap-1.5">
@@ -275,33 +200,28 @@
                     Download GPX {{ $item->title }}
                 </h1>
 
-                <p class="text-slate-200 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
                     {{ $item->description ?? $item->notes ?? 'File rute GPX lari terverifikasi untuk Garmin, Coros, Suunto, dan Strava dengan profil elevasi dan panduan strategi pacing.' }}
                 </p>
             </div>
 
-            <!-- Clear Action Hierarchy (Optimized for 360px mobile) -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0">
-                <!-- Primary CTA: Download GPX -->
                 <a href="{{ route('gpx.download', $item->id) }}" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-2 shadow-sm cursor-pointer text-center">
                     <i class="fa-solid fa-download text-xs"></i>
                     <span>Download GPX</span>
                 </a>
 
                 <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto">
-                    <!-- Secondary CTA: Live Navigation -->
                     <button type="button" onclick="startLiveNavigation()" class="px-3 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-850 hover:bg-slate-800 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
                         <i class="fa-solid fa-location-arrow text-xs text-[#FC4C02]"></i>
                         <span>Navigasi</span>
                     </button>
 
-                    <!-- Offline Mode Button -->
                     <button type="button" id="btn-offline-cache-toggle" onclick="openOfflineCacheModal()" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-200 hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5 text-center cursor-pointer" title="Simpan Peta & Rute untuk Offline di Gunung">
-                        <i class="fa-solid fa-cloud-arrow-down text-[11px] text-white-400" id="icon-offline-btn"></i>
+                        <i class="fa-solid fa-cloud-arrow-down text-[11px] text-slate-300" id="icon-offline-btn"></i>
                         <span id="label-offline-btn">Offline</span>
                     </button>
 
-                    <!-- Minor Action: Route Editor -->
                     <a href="{{ route('tools.buat-rute-lari', ['gpx_id' => $item->id]) }}" class="px-3 py-2.5 rounded-lg border border-slate-750 hover:border-slate-700 text-slate-200 hover:text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5 text-center" title="Buka dan Edit di Route Builder">
                         <i class="fa-solid fa-draw-polygon text-[11px] text-[#FC4C02]"></i>
                         <span>Editor</span>
@@ -310,34 +230,34 @@
             </div>
         </div>
 
-        <!-- Consolidated Statistics Strip (Optimized for 360px mobile) -->
+        <!-- Consolidated Statistics Strip -->
         <div class="bg-[#111724] border border-slate-800/80 rounded-lg grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Jarak Total</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Jarak Total</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">{{ $formattedDist }}</span>
-                    <span class="text-xs text-slate-200 font-medium">km</span>
+                    <span class="text-xs text-slate-400 font-medium">km</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Elevasi Naik</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Naik</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">+{{ number_format($gainM) }}</span>
-                    <span class="text-xs text-slate-200 font-medium">m</span>
+                    <span class="text-xs text-slate-400 font-medium">m</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Elevasi Turun</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Elevasi Turun</span>
                 <div class="mt-0.5 sm:mt-1 flex items-baseline gap-1">
                     <span class="text-xl sm:text-2xl font-bold text-white tabular-nums">-{{ number_format($lossM) }}</span>
-                    <span class="text-xs text-slate-200 font-medium">m</span>
+                    <span class="text-xs text-slate-400 font-medium">m</span>
                 </div>
             </div>
 
             <div class="p-3 sm:p-4">
-                <span class="text-[11px] sm:text-xs font-medium text-slate-200 block">Kontributor</span>
+                <span class="text-[11px] sm:text-xs font-medium text-slate-400 block">Kontributor</span>
                 <div class="mt-0.5 sm:mt-1 truncate">
                     <span class="text-xs sm:text-sm font-semibold text-white block truncate">{{ $item->user?->name ?? 'RuangLari' }}</span>
                     <span class="text-[10px] sm:text-[11px] text-slate-500 block">{{ $item->created_at ? $item->created_at->format('d M Y') : 'Terverifikasi' }}</span>
@@ -346,176 +266,166 @@
         </div>
 
         <!-- Primary Map & Integrated Elevation Stage -->
-        <div class="bg-[#111724] border border-slate-800/80 rounded-lg overflow-hidden" id="gpx-map-card-wrap">
-            <!-- Map Sub-header with Navigation & Tools Toolbar -->
-            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+        <div class="bg-[#111724] border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl" id="gpx-map-card-wrap">
+            <!-- Map Sub-header with Mode Switchers -->
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-[#0c121e]">
                 <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span>
-                    <h2 class="font-bold text-white text-xs tracking-wide">Peta Jalur GPS</h2>
-                    
-                    <!-- Legend Tags -->
-                    <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-300 font-mono ml-2 pl-2 border-l border-slate-800">
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-white-500"></span> Start
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-[#FC4C02]"></span> Finish
-                        </span>
-                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#FC4C02] shadow-[0_0_8px_#FC4C02]"></span>
+                    <h2 class="font-bold text-white text-xs tracking-wide">Peta Interaktif Jalur GPX</h2>
                 </div>
 
                 <!-- Navigation Controls Toolbar -->
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <!-- Toggle KM Markers -->
-                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Tampilkan / Sembunyikan Marker KM">
+                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Tampilkan / Sembunyikan Marker KM">
                         <span class="w-3.5 h-3.5 rounded-full bg-[#FC4C02] text-white text-[8px] font-mono font-black flex items-center justify-center">1</span>
                         <span>KM</span>
-                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-mono font-bold">ON</span>
+                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">ON</span>
                     </button>
 
-                    <!-- Map Layer Switcher (Dark / Street / Satelit) -->
+                    <!-- Map Layer Switcher -->
                     <div class="relative inline-block" id="map-layer-dropdown-wrapper">
-                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Ganti Tampilan Peta">
+                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-layer-group text-[10px] text-[#FC4C02]"></i>
-                            <span id="label-active-map-layer" class="hidden xs:inline">Street</span>
+                            <span id="label-active-map-layer" class="hidden xs:inline">Dark</span>
                             <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
                         </button>
-                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800" style="background-color: #0b1220 !important; background: #0b1220 !important; opacity: 1 !important; z-index: 99999 !important;">
+                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800">
                             <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Dark Mode</span>
-                                <span class="layer-check-dark text-accent text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                                <span class="layer-check-dark text-[#FC4C02] text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
                             </button>
                             <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
-                                <span>Street Map</span>
-                                <span class="layer-check-street text-accent text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
+                                <span>Voyager Light</span>
+                                <span class="layer-check-street text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
                             </button>
                             <button type="button" onclick="setMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Satelit Topo</span>
-                                <span class="layer-check-satellite text-accent text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                                <span class="layer-check-satellite text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Locate Me (GPS) -->
-                    <button type="button" id="btn-map-locate-me" onclick="locateMeOnDetailMap()" class="px-2 sm:px-2.5 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Cari Lokasi Saya Sekarang">
-                        <i class="fa-solid fa-location-crosshairs text-[10px] text-accent"></i>
+                    <button type="button" id="btn-map-locate-me" onclick="locateMeOnDetailMap()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-location-crosshairs text-[10px] text-[#FC4C02]"></i>
                         <span class="hidden sm:inline">Lokasi Saya</span>
                     </button>
 
-                    <!-- Reset / Fit Bounds -->
-                    <button type="button" id="btn-map-fit-bounds" onclick="fitRouteBounds()" class="px-2 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm" title="Posisikan Ulang ke Seluruh Rute">
+                    <button type="button" id="btn-map-fit-bounds" onclick="fitRouteBounds()" class="px-2 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm">
                         <i class="fa-solid fa-expand text-[10px]"></i>
                         <span class="hidden md:inline">Fit</span>
                     </button>
 
-                    <!-- GPX Trail Animator Toggle Button -->
-                    <button type="button" id="btn-toggle-animator-panel" onclick="toggleGpxAnimator()" class="px-2.5 py-1 rounded bg-[#FC4C02] text-slate-950 font-bold text-[11px] hover:bg-accent/90 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Putar Animasi Rute">
-                        <i class="fa-solid fa-play text-[10px]"></i>
-                        <span>Animasi</span>
+                    <button type="button" id="btn-toggle-animator-panel" onclick="toggleGpxAnimator()" class="px-3 py-1 rounded-lg bg-[#FC4C02] text-white font-bold text-[11px] hover:bg-[#e04300] transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/30">
+                        <i class="fa-solid fa-play text-[10px]" id="icon-anim-toggle-btn"></i>
+                        <span>Flyover 3D</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Leaflet Map Container & Floating Replay HUD -->
+            <!-- Leaflet Map Canvas & Floating HUD -->
             <div class="relative overflow-hidden">
                 <div id="gpx-detail-map" class="relative"></div>
 
-                <!-- Floating Minimalist GPX Animator Replay HUD Overlay (No emojis, clean data layout) -->
-                <div id="gpx-animator-hud" class="hidden absolute bottom-3 left-3 right-3 z-[999] bg-[#0b1220]/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl space-y-2 transition-all">
-                    <!-- Telemetry Stats Line -->
-                    <div class="flex items-center justify-between gap-3 text-xs">
-                        <div class="flex items-baseline gap-2">
-                            <span class="font-mono text-white font-bold text-sm tracking-tight" id="anim-telemetry-km">0.00 km</span>
-                            <span class="text-slate-400 font-mono text-[11px]" id="anim-telemetry-total-km">/ {{ $formattedDist }} km</span>
+                <!-- Floating Live Telemetry HUD (Top-Right) -->
+                <div id="gpx-live-telemetry-hud" class="hidden absolute top-3 right-3 z-[990] bg-[#070B12]/90 backdrop-blur-md border border-slate-700/80 rounded-xl p-3 shadow-2xl space-y-2 max-w-[260px] sm:max-w-[300px]">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            LIVE SIMULASI
+                        </span>
+                        <span id="anim-telemetry-slope" class="text-[10px] font-mono font-bold text-slate-300">0.0% (Datar)</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center font-mono">
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[9px] text-slate-400 uppercase block">Ketinggian</span>
+                            <span id="anim-telemetry-elev" class="text-base font-black text-white">0 m</span>
                         </div>
-                        <div class="flex items-center gap-3 sm:gap-4 text-[11px] font-mono text-slate-300">
-                            <div>
-                                <span class="text-slate-400">Elev:</span>
-                                <span id="anim-telemetry-elev" class="text-white font-semibold ml-0.5">0 m</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400">Waktu:</span>
-                                <span id="anim-telemetry-time" class="text-white font-semibold ml-0.5">00:00:00</span>
-                            </div>
+                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                            <span class="text-[9px] text-slate-400 uppercase block">Jarak Rute</span>
+                            <span id="anim-telemetry-km" class="text-base font-black text-[#FC4C02]">0.00 km</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Progress Slider Scrubber -->
-                    <div class="relative flex items-center">
+                <!-- Floating Replay Controller HUD (Bottom) -->
+                <div id="gpx-animator-hud" class="hidden absolute bottom-3 left-3 right-3 z-[999] bg-[#070B12]/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-3 sm:p-4 shadow-2xl space-y-2.5 transition-all">
+                    <!-- Progress Scrubber Slider -->
+                    <div class="relative flex flex-col space-y-1">
                         <input type="range" id="anim-progress-slider" min="0" max="1000" value="0" step="1"
                             class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FC4C02] focus:outline-none"
                             oninput="onAnimSliderInput(this.value)">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                            <span>KM 0.0</span>
+                            <span id="anim-telemetry-time" class="text-slate-300 font-bold">00:00:00</span>
+                            <span>KM {{ $formattedDist }}</span>
+                        </div>
                     </div>
 
                     <!-- Bottom Controls Line -->
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-xs">
-                        <!-- Play / Pause & Reset -->
                         <div class="flex items-center gap-2">
-                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3 py-1 rounded bg-[#FC4C02] hover:bg-[#e04302] text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-play text-[10px]" id="icon-anim-play"></i>
+                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3.5 py-1.5 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/25">
+                                <i class="fa-solid fa-play text-[11px]" id="icon-anim-play"></i>
                                 <span id="label-anim-play">Play</span>
                             </button>
-                            <button type="button" onclick="restartAnimation()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
+                            <button type="button" onclick="restartAnimation()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left text-[10px]"></i>
                                 <span>Reset</span>
                             </button>
                         </div>
 
-                        <!-- Speed Buttons, Camera Follow & Close -->
+                        <!-- Speed Toggle & Camera Follow -->
                         <div class="flex items-center gap-1.5 sm:gap-2 font-mono text-[11px]">
-                            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded p-0.5" id="anim-speed-btn-group">
-                                <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
-                                <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
-                                <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
-                                <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
-                                <button type="button" onclick="setAnimSpeed(20)" class="anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="20">20x</button>
+                            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5" id="anim-speed-btn-group">
+                                <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
+                                <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
+                                <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
+                                <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
                             </div>
 
-                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1" title="Kamera otomatis mengikuti runner">
-                                <span class="hidden xs:inline">Kamera</span>
-                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-bold">ON</span>
+                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1">
+                                <span class="hidden xs:inline">Follow</span>
+                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">ON</span>
                             </button>
 
                             <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-1" title="Tutup Animasi">
-                                <i class="fa-solid fa-xmark text-xs"></i>
+                                <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Elevation Profile (Integrated directly underneath) -->
+            <!-- Elevation Profile (Synchronized with Map) -->
             <div class="p-4 bg-[#0D131F] border-t border-slate-800 space-y-2.5">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-200">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
                     <div class="flex items-center gap-1.5 font-medium text-slate-300">
                         <i class="fa-solid fa-chart-area text-[#FC4C02] text-[11px]"></i>
-                        <span>Profil Elevasi</span>
+                        <span>Profil Elevasi Rute</span>
                     </div>
                     <div class="flex items-center gap-3 font-mono text-[11px]">
-                        <span>Min: <strong id="elev-min-val" class="text-slate-200 font-semibold">0m</strong></span>
-                        <span>Max: <strong id="elev-max-val" class="text-slate-200 font-semibold">0m</strong></span>
-                        <span>Gain: <strong id="elev-gain-val" class="text-slate-200 font-semibold">+{{ round($gainM) }}m</strong></span>
+                        <span>Min: <strong id="elev-min-val" class="text-white font-semibold">0m</strong></span>
+                        <span>Max: <strong id="elev-max-val" class="text-white font-semibold">0m</strong></span>
+                        <span>Gain: <strong id="elev-gain-val" class="text-emerald-400 font-semibold">+{{ round($gainM) }}m</strong></span>
                     </div>
                 </div>
 
-                <!-- Elevation SVG Chart -->
                 <div class="relative w-full h-28 select-none" id="elevation-chart-container">
                     <svg id="gpx-elev-svg" class="w-full h-full block overflow-visible" preserveAspectRatio="none">
                         <defs>
                             <linearGradient id="elevGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#FC4C02" stop-opacity="0.2" />
+                                <stop offset="0%" stop-color="#FC4C02" stop-opacity="0.45" />
                                 <stop offset="100%" stop-color="#FC4C02" stop-opacity="0.0" />
                             </linearGradient>
                         </defs>
                         <path id="elev-area-path" fill="url(#elevGrad)" d="" />
-                        <path id="elev-line-path" fill="none" stroke="#FC4C02" stroke-width="1.8" stroke-linecap="round" d="" />
+                        <path id="elev-line-path" fill="none" stroke="#FC4C02" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="" />
                     </svg>
 
-                    <!-- Hover Tracker -->
-                    <div id="elev-hover-line" class="absolute top-0 bottom-0 w-[1px] bg-slate-300 pointer-events-none hidden"></div>
-                    <div id="elev-hover-dot" class="absolute w-2 h-2 rounded-full bg-white border border-[#FC4C02] pointer-events-none hidden -translate-x-1/2 -translate-y-1/2"></div>
-                    <div id="elev-tooltip" class="absolute hidden bg-[#0B0F17] border border-slate-700 text-white text-[11px] font-mono font-medium px-2 py-0.5 rounded shadow pointer-events-none z-20 whitespace-nowrap -top-7 -translate-x-1/2">
-                        <span id="elev-tooltip-km">0.0 KM</span> • <span id="elev-tooltip-m" class="text-[#FC4C02]">0m</span>
+                    <div id="elev-hover-line" class="absolute top-0 bottom-0 w-[1.5px] bg-[#FC4C02] pointer-events-none hidden border-r border-dashed border-white/40"></div>
+                    <div id="elev-hover-dot" class="absolute w-3 h-3 rounded-full bg-white border-2 border-[#FC4C02] pointer-events-none hidden -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-[#FC4C02]"></div>
+                    <div id="elev-tooltip" class="absolute hidden bg-[#070B12] border border-slate-700 text-white text-[11px] font-mono font-medium px-2 py-0.5 rounded shadow pointer-events-none z-20 whitespace-nowrap -top-7 -translate-x-1/2">
+                        <span id="elev-tooltip-km">0.0 KM</span> • <span id="elev-tooltip-m" class="text-[#FC4C02] font-bold">0m</span>
                     </div>
                 </div>
 
@@ -527,126 +437,108 @@
             </div>
         </div>
 
-        <!-- PACEPRO RACE STRATEGY PLANNER (Data-Focused Running Tool) -->
-        <section id="gpx-pacepro-section" class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 md:p-6 space-y-4 sm:space-y-5 overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800 pb-3 sm:pb-4 text-center sm:text-left">
+        <!-- PACEPRO RACE STRATEGY PLANNER -->
+        <section id="gpx-pacepro-section" class="bg-[#111724] border border-slate-800/80 rounded-2xl p-4 sm:p-6 space-y-5 overflow-hidden shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div>
-                    <h2 class="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight">
-                        PacePro™ Strategy Planner
+                    <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-[#FC4C02]"></i>
+                        <span>PacePro™ Strategy Planner</span>
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-200 mt-0.5">
+                    <p class="text-xs text-slate-400 mt-0.5">
                         Rencana target split per kilometer berdasarkan profil tanjakan rute dan tipe pacing yang dipilih.
                     </p>
                 </div>
 
-                <div class="flex items-center justify-center sm:justify-start gap-2 shrink-0">
-                    <span class="text-xs text-slate-200 font-medium">Strategi:</span>
-                    <span id="pp-strategy-badge" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs font-semibold text-white">Even Split (0%)</span>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xs text-slate-400 font-medium">Strategi:</span>
+                    <span id="pp-strategy-badge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-white">Even Split (0%)</span>
                 </div>
             </div>
 
-            <div class="grid lg:grid-cols-12 gap-4 sm:gap-5">
-                <!-- Left: Analytical Form Inputs -->
+            <div class="grid lg:grid-cols-12 gap-5">
                 <div class="lg:col-span-5 space-y-4">
-                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-3 sm:p-4 space-y-3.5 sm:space-y-4">
-                        <!-- Target Time -->
+                    <div class="bg-[#0D131F] border border-slate-800 rounded-xl p-4 space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1.5 text-center sm:text-left">
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">
                                 Target Waktu Selesai (Default Pace 5:00/km)
                             </label>
-                            <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                            <div class="grid grid-cols-3 gap-2">
                                 <div>
-                                    <input type="number" id="pp-time-h" min="0" max="23" value="{{ $defaultH }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Jam</span>
+                                    <input type="number" id="pp-time-h" min="0" max="23" value="{{ $defaultH }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Jam</span>
                                 </div>
                                 <div>
-                                    <input type="number" id="pp-time-m" min="0" max="59" value="{{ $defaultM }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Menit</span>
+                                    <input type="number" id="pp-time-m" min="0" max="59" value="{{ $defaultM }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Menit</span>
                                 </div>
                                 <div>
-                                    <input type="number" id="pp-time-s" min="0" max="59" value="{{ str_pad($defaultS, 2, '0', STR_PAD_LEFT) }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
-                                    <span class="text-[10px] text-slate-200 text-center block mt-1">Detik</span>
+                                    <input type="number" id="pp-time-s" min="0" max="59" value="{{ str_pad($defaultS, 2, '0', STR_PAD_LEFT) }}" class="w-full bg-[#111724] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-center text-white font-mono font-bold text-sm outline-none transition">
+                                    <span class="text-[10px] text-slate-400 text-center block mt-1">Detik</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Presets -->
                         <div>
-                            <span class="block text-[11px] font-medium text-slate-200 mb-1.5 text-center sm:text-left">Preset Target Pace:</span>
+                            <span class="block text-[11px] font-medium text-slate-400 mb-1.5">Preset Target Pace:</span>
                             <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-center">
-                                <button type="button" onclick="setPacePreset(4, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">4:30</button>
-                                <button type="button" onclick="setPacePreset(5, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">5:00</button>
-                                <button type="button" onclick="setPacePreset(5, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">5:30</button>
-                                <button type="button" onclick="setPacePreset(6, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">6:00</button>
-                                <button type="button" onclick="setPacePreset(6, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">6:30</button>
-                                <button type="button" onclick="setPacePreset(7, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 text-center cursor-pointer transition">7:00</button>
+                                <button type="button" onclick="setPacePreset(4, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">4:30</button>
+                                <button type="button" onclick="setPacePreset(5, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">5:00</button>
+                                <button type="button" onclick="setPacePreset(5, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">5:30</button>
+                                <button type="button" onclick="setPacePreset(6, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">6:00</button>
+                                <button type="button" onclick="setPacePreset(6, 30)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">6:30</button>
+                                <button type="button" onclick="setPacePreset(7, 0)" class="py-1 px-1 rounded bg-[#111724] hover:bg-slate-800 text-xs font-mono font-semibold text-slate-300 border border-slate-700 cursor-pointer transition">7:00</button>
                             </div>
                         </div>
 
-                        <!-- Split Strategy Slider -->
                         <div class="pt-2.5 border-t border-slate-800">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-xs font-semibold text-slate-300">Pacing Split</label>
                                 <span id="pp-strategy-label" class="text-xs font-semibold text-slate-200 font-mono">Even (0%)</span>
                             </div>
                             <input type="range" id="pp-strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                <span>Negative (-10%)</span>
-                                <span>Even (0%)</span>
-                                <span>Positive (+10%)</span>
-                            </div>
                         </div>
 
-                        <!-- Hill Strategy Slider -->
                         <div class="pt-2.5 border-t border-slate-800">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-xs font-semibold text-slate-300">Adaptasi Tanjakan</label>
                                 <span id="pp-hill-label" class="text-xs font-semibold text-[#FC4C02] font-mono">Normal (0)</span>
                             </div>
                             <input type="range" id="pp-hill-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                <span>Agresif (-10)</span>
-                                <span>Normal (0)</span>
-                                <span>Hemat (+10)</span>
-                            </div>
                         </div>
 
-                        <button type="button" id="pp-btn-generate" class="w-full py-2.5 px-3 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <button type="button" id="pp-btn-generate" class="w-full py-2.5 px-3 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
                             <i class="fa-solid fa-calculator text-[11px]"></i>
                             <span>Hitung Ulang Split</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Right: Clean Splits Table -->
                 <div class="lg:col-span-7 space-y-3">
-                    <!-- Summary Strip -->
-                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg p-2.5 sm:p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
-                        <div class="px-1 flex flex-col items-center justify-center">
-                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Avg Pace</span>
+                    <div class="bg-[#0D131F] border border-slate-800 rounded-xl p-3 grid grid-cols-3 divide-x divide-slate-800 text-center">
+                        <div class="px-1">
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-medium block">Avg Pace</span>
                             <span id="pp-avg-pace" class="text-xs sm:text-base font-bold font-mono text-[#FC4C02] mt-0.5 block truncate">5:00 /km</span>
                         </div>
-                        <div class="px-1 flex flex-col items-center justify-center">
-                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Target Waktu</span>
+                        <div class="px-1">
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-medium block">Target Waktu</span>
                             <span id="pp-target-total-time" class="text-xs sm:text-base font-bold font-mono text-white mt-0.5 block truncate">00:00:00</span>
                         </div>
-                        <div class="px-1 flex flex-col items-center justify-center">
-                            <span class="text-[10px] sm:text-xs text-slate-300 font-medium block">Total Jarak</span>
+                        <div class="px-1">
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-medium block">Total Jarak</span>
                             <span class="text-xs sm:text-base font-bold font-mono text-slate-200 mt-0.5 block truncate">{{ $formattedDist }} km</span>
                         </div>
                     </div>
 
-                    <!-- Splits Table -->
-                    <div class="bg-[#0D131F] border border-slate-800 rounded-lg overflow-hidden">
-                        <div class="px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#111724] border-b border-slate-800 flex items-center justify-between gap-2">
+                    <div class="bg-[#0D131F] border border-slate-800 rounded-xl overflow-hidden">
+                        <div class="px-3.5 py-2.5 bg-[#111724] border-b border-slate-800 flex items-center justify-between gap-2">
                             <span class="text-xs font-semibold text-slate-200 truncate">Tabel Split KM</span>
-
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <button type="button" id="pp-btn-copy" onclick="copyPaceStrategy()" class="px-2 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 transition cursor-pointer flex items-center gap-1">
+                                <button type="button" id="pp-btn-copy" onclick="copyPaceStrategy()" class="px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 transition cursor-pointer flex items-center gap-1">
                                     <i class="fa-regular fa-copy text-[10px]"></i>
                                     <span id="pp-copy-text">Salin</span>
                                 </button>
-                                <button type="button" id="pp-btn-csv" onclick="exportPaceCsv()" class="px-2 py-1 rounded bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 transition cursor-pointer flex items-center gap-1">
+                                <button type="button" id="pp-btn-csv" onclick="exportPaceCsv()" class="px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 transition cursor-pointer flex items-center gap-1">
                                     <i class="fa-solid fa-file-csv text-[10px] text-[#FC4C02]"></i>
                                     <span>CSV</span>
                                 </button>
@@ -676,18 +568,16 @@
 
         <!-- Route Notes & Details -->
         @if($item->description || $item->notes)
-            <div class="bg-[#111724] border border-slate-800/80 rounded-lg p-5 space-y-3">
+            <div class="bg-[#111724] border border-slate-800/80 rounded-2xl p-5 space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200 border-b border-slate-800 pb-2.5">
                     Informasi & Catatan Rute
                 </h3>
-                
                 <div class="text-slate-300 text-sm leading-relaxed space-y-2.5">
                     @if($item->description)
                         <p class="whitespace-pre-line">{{ $item->description }}</p>
                     @endif
-
                     @if($item->notes && $item->notes !== $item->description)
-                        <div class="p-3 rounded bg-[#0D131F] border border-slate-800 text-xs text-slate-200">
+                        <div class="p-3 rounded-xl bg-[#0D131F] border border-slate-800 text-xs text-slate-300">
                             <strong class="text-white block mb-0.5">Catatan Tambahan:</strong>
                             <p class="whitespace-pre-line">{{ $item->notes }}</p>
                         </div>
@@ -696,122 +586,16 @@
             </div>
         @endif
 
-        <!-- Smartwatch Sync Guide (Garmin, Coros, Strava) -->
-        <section class="bg-[#111724] border border-slate-800/80 rounded-lg p-3.5 sm:p-5 space-y-3.5 sm:space-y-4 overflow-hidden"
-                 x-data="{ activeTab: 'garmin' }">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 sm:pb-3.5">
-                <div>
-                    <h3 class="text-xs sm:text-sm font-bold text-white uppercase">Cara Memasukkan GPX ke Jam Tangan</h3>
-                    <span class="text-[11px] sm:text-xs text-slate-200">Panduan sinkronisasi ke aplikasi pendukung jam pelari.</span>
-                </div>
-
-                <!-- Clean Responsive Tabs -->
-                <div class="flex items-center gap-1 bg-[#0D131F] p-0.5 rounded border border-slate-800 w-full sm:w-auto">
-                    <button type="button" @click="activeTab = 'garmin'"
-                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'garmin' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
-                        Garmin
-                    </button>
-                    <button type="button" @click="activeTab = 'coros'"
-                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'coros' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
-                        Coros
-                    </button>
-                    <button type="button" @click="activeTab = 'strava'"
-                            class="flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1 rounded text-xs font-medium transition cursor-pointer"
-                            :class="activeTab === 'strava' ? 'bg-[#111724] text-white font-semibold shadow-sm' : 'text-slate-200 hover:text-white'">
-                        Strava
-                    </button>
-                </div>
-            </div>
-
-            <!-- Garmin Guide -->
-            <div x-show="activeTab === 'garmin'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
-                    <li><strong class="text-white">Download file GPX</strong> rute ini dengan menekan tombol <em>Download GPX</em> di atas.</li>
-                    <li>Buka aplikasi <strong class="text-white">Garmin Connect</strong> di smartphone Anda.</li>
-                    <li>Pilih menu <strong>More (&hellip;) &rarr; Training & Planning &rarr; Courses</strong>.</li>
-                    <li>Klik opsi <strong>Import Course / Import Course File</strong> dan pilih file GPX yang baru saja Anda download.</li>
-                    <li>Pilih tipe aktivitas (contoh: <em>Running / Trail Running</em>), lalu simpan rute (<em>Save</em>).</li>
-                    <li>Klik icon <strong>Send to Device</strong> di pojok kanan atas untuk menyinkronkan rute ke jam Garmin Anda.</li>
-                </ol>
-            </div>
-
-            <!-- Coros Guide -->
-            <div x-show="activeTab === 'coros'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
-                    <li><strong class="text-white">Download file GPX</strong> rute ini ke smartphone Anda.</li>
-                    <li>Buka file GPX yang terunduh dan pilih <strong>Open with COROS App</strong>.</li>
-                    <li>Aplikasi COROS akan otomatis menampilkan preview rute dan peta. Klik <strong>Save to My Routes</strong>.</li>
-                    <li>Buka menu <strong>Profile &rarr; Route Library</strong> di aplikasi COROS.</li>
-                    <li>Pilih rute tersebut dan klik <strong>Sync with Watch</strong> untuk mengunggahnya langsung ke jam Coros.</li>
-                </ol>
-            </div>
-
-            <!-- Strava Guide -->
-            <div x-show="activeTab === 'strava'" class="space-y-2 text-xs text-slate-300 leading-relaxed">
-                <ol class="space-y-1.5 list-decimal list-inside text-slate-200">
-                    <li>Download file GPX di RuangLari.</li>
-                    <li>Buka website <strong>Strava.com</strong> di browser komputer / HP.</li>
-                    <li>Buka menu <strong>Dashboard &rarr; My Routes &rarr; Create New Route</strong> &rarr; Pilih <strong>Upload GPX</strong>.</li>
-                    <li>Simpan rute di akun Strava Anda. Rute akan otomatis muncul di menu <em>Saved Routes</em> pada aplikasi mobile Strava Anda.</li>
-                </ol>
-            </div>
-        </section>
-
-        <!-- Related GPX Routes in the Same Region -->
-        @if(isset($related) && $related->count() > 0)
-            <div class="space-y-3.5 pt-3 border-t border-slate-800">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-sm font-bold text-white uppercase">Rute GPX Serupa di {{ $cityName }}</h3>
-                        <span class="text-xs text-slate-200">Rute lari lain di wilayah sekitarnya.</span>
-                    </div>
-                    <a href="{{ route('gpx.index', ['city' => $cityName]) }}" class="text-xs text-slate-200 hover:text-white transition font-medium">
-                        Rute {{ $cityName }} Lainnya &rarr;
-                    </a>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    @foreach($related as $rel)
-                        <a href="{{ route('gpx.show', $rel->slug ?: $rel->id) }}" class="group bg-[#111724] border border-slate-800 hover:border-slate-700 rounded-lg p-3.5 transition flex flex-col justify-between">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-200">
-                                    <span class="text-[#FC4C02] font-semibold">{{ $rel->city ?? 'Indonesia' }}</span>
-                                    <span class="text-white font-semibold">{{ number_format((float)($rel->distance_km ?? 0), 1) }} km</span>
-                                </div>
-
-                                <h4 class="text-sm font-medium text-slate-200 group-hover:text-white transition-colors line-clamp-1">
-                                    {{ $rel->title }}
-                                </h4>
-                            </div>
-
-                            <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-200">
-                                <span>+{{ round($rel->elevation_gain_m ?? 0) }}m</span>
-                                <span class="text-slate-300 font-semibold group-hover:text-[#FC4C02] transition-colors">Detail &rarr;</span>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
     </div>
 </div>
 
-<!-- ========================================================================= -->
-<!-- ========================================================================= -->
-<!-- FULLSCREEN RUNNING NAVIGATION HUD (Solid Opaque, High-Contrast Sports Tech) -->
-<!-- ========================================================================= -->
-<div id="gpx-nav-hud" class="fixed inset-0 z-[99990] bg-[#070B12] text-white flex flex-col hidden select-none font-sans overflow-hidden" style="background-color: #070B12 !important; background: #070B12 !important;">
-    
-    <!-- Top Solid Header Bar -->
-    <div class="nav-solid-header absolute top-0 left-0 right-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#070B12] border-b border-slate-800 flex items-center justify-between gap-3 shadow-2xl" style="background-color: #070B12 !important;">
-        <!-- Status & GPS Indicator -->
+<!-- Navigation HUD & Post Run Modal Partials -->
+<div id="gpx-nav-hud" class="fixed inset-0 z-[99990] bg-[#070B12] text-white flex flex-col hidden select-none font-sans overflow-hidden">
+    <div class="nav-solid-header absolute top-0 left-0 right-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#070B12] border-b border-slate-800 flex items-center justify-between gap-3 shadow-2xl">
         <div class="flex items-center gap-2 min-w-0 flex-1">
-            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-white-500 shrink-0"></div>
+            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
             <div class="min-w-0 flex-1">
-                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-200 block truncate" id="nav-status-label">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block truncate" id="nav-status-label">
                     Navigasi GPS Aktif
                 </span>
                 <h2 class="text-xs sm:text-sm font-bold text-white truncate" id="nav-status-title">
@@ -819,211 +603,56 @@
                 </h2>
             </div>
         </div>
-
-        <!-- Exit Navigation in Header -->
-        <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="closeLiveNavigation()" class="w-8 h-8 rounded-lg bg-[#111724] border border-slate-700 text-slate-300 hover:text-red-400 flex items-center justify-center transition cursor-pointer shadow" style="background-color: #111724 !important;" title="Keluar Navigasi">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-        </div>
+        <button type="button" onclick="closeLiveNavigation()" class="w-8 h-8 rounded-lg bg-[#111724] border border-slate-700 text-slate-300 hover:text-red-400 flex items-center justify-center transition cursor-pointer shadow" title="Keluar Navigasi">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
     </div>
 
-    <!-- Fullscreen Map Canvas -->
     <div id="nav-fullscreen-map" class="flex-1 w-full h-full relative z-10 pt-14 pb-64"></div>
 
-    <!-- Floating Map Actions Column (Mepet Kanan, Vertikal Turun ke Bawah, Top 120px) -->
-    <div class="fixed z-40 flex flex-col gap-2.5 items-end pointer-events-auto" style="top: 120px !important; right: 12px !important; z-index: 99999 !important;">
-        <!-- Google Maps Guide Link (visible when far from start) -->
-        <a id="nav-gmaps-link" href="#" target="_blank" class="hidden px-2.5 py-1.5 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-2xl transition border border-[#FC4C02]" title="Petunjuk Google Maps ke Titik Start">
-            <i class="fa-solid fa-diamond-turn-right text-xs"></i>
-            <span>Arahkan</span>
-        </a>
-
-        <!-- Return to Start Toggle Button -->
-        <button type="button" id="nav-btn-return-start" onclick="toggleNavReturnToStart()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-[#FC4C02] flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Navigasi Kembali ke Start">
-            <i id="nav-return-icon" class="fa-solid fa-arrow-rotate-left text-sm"></i>
-        </button>
-
-        <!-- Recenter / Focus Button -->
-        <button type="button" id="nav-btn-recenter" onclick="recenterNavMap()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-[#FC4C02] hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Kunci Posisi / Rute">
-            <i class="fa-solid fa-crosshairs text-base"></i>
-        </button>
-
-        <!-- Audio Toggle Button -->
-        <button type="button" id="nav-btn-audio" onclick="toggleNavAudio()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Suara Navigasi">
-            <i id="nav-audio-icon" class="fa-solid fa-volume-high text-xs text-[#FC4C02]"></i>
-        </button>
-
-        <!-- Reset Activity Button in HUD Floating Column -->
-        <button type="button" id="nav-btn-reset" onclick="resetLiveNavigationSession()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-amber-400 flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Reset Aktivitas Lari ke 0">
-            <i class="fa-solid fa-rotate-left text-sm"></i>
-        </button>
-
-        <!-- Offline Mode Status Button in HUD -->
-        <button type="button" id="nav-btn-offline-hud" onclick="openOfflineCacheModal()" class="w-10 h-10 rounded-xl bg-[#0B0F17] border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xl" style="background-color: #0B0F17 !important;" title="Status Mode Offline Peta">
-            <i id="nav-offline-icon-hud" class="fa-solid fa-cloud-arrow-down text-sm text-white"></i>
-        </button>
-    </div>
-
-    <!-- Bottom Running Dashboard Panel (SOLID OPAQUE CHARCOAL) -->
-    <div class="nav-solid-bottom absolute bottom-0 left-0 right-0 z-30 bg-[#0B0F17] border-t border-slate-800 p-4 sm:p-5 shadow-2xl" style="background-color: #0B0F17 !important; opacity: 1 !important;">
+    <div class="nav-solid-bottom absolute bottom-0 left-0 right-0 z-30 bg-[#0B0F17] border-t border-slate-800 p-4 sm:p-5 shadow-2xl">
         <div class="max-w-xl mx-auto space-y-3.5">
-            
-            <!-- Primary Giant Metrics Display -->
-            <div class="nav-metrics-box grid grid-cols-3 gap-3 text-center divide-x divide-slate-800 bg-[#111724] border border-slate-800 rounded-xl p-3.5 shadow-inner" style="background-color: #111724 !important;">
+            <div class="nav-metrics-box grid grid-cols-3 gap-3 text-center divide-x divide-slate-800 bg-[#111724] border border-slate-800 rounded-xl p-3.5 shadow-inner">
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Pace Saat Ini</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Pace Saat Ini</span>
                     <div class="mt-0.5">
                         <span id="nav-live-pace" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">--:--</span>
                         <span class="text-[10px] font-mono text-slate-500 block">/km</span>
                     </div>
                 </div>
-
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Jarak Lari</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Jarak Lari</span>
                     <div class="mt-0.5">
                         <span id="nav-actual-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">0.00</span>
                         <span class="text-[10px] font-mono text-slate-500 block">km</span>
                     </div>
                 </div>
-
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-200 block tracking-wider">Waktu Lari</span>
+                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Waktu Lari</span>
                     <div class="mt-0.5">
                         <span id="nav-running-time" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">00:00</span>
-                        <span class="text-[10px] font-mono text-slate-500 block" id="nav-eta-label">Durasi</span>
+                        <span class="text-[10px] font-mono text-slate-500 block">Durasi</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Route Progress Bar & Remaining Distance -->
             <div>
-                <div class="flex justify-between text-xs font-mono text-slate-200 mb-1.5">
+                <div class="flex justify-between text-xs font-mono text-slate-300 mb-1.5">
                     <span>Progress: <strong id="nav-progress-pct" class="text-white font-bold">0%</strong></span>
-                    <span>Sisa Rute: <strong id="nav-remaining-dist" class="text-[#FC4C02] font-bold">{{ $formattedDist }}</strong> km (<span id="nav-completed-dist" class="text-slate-400">0.00 / {{ $formattedDist }} km</span>)</span>
+                    <span>Sisa: <strong id="nav-remaining-dist" class="text-[#FC4C02] font-bold">{{ $formattedDist }}</strong> km</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div id="nav-progress-bar" class="h-full bg-[#FC4C02] transition-all duration-300 w-0"></div>
                 </div>
             </div>
 
-            <!-- Dynamic Action Buttons: Ready / Running / Paused State -->
             <div id="nav-action-buttons-wrap" class="pt-1">
-                <!-- State 1: READY (Waiting for user to press Start) -->
-                <div id="nav-actions-ready" class="w-full">
-                    <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
-                        <i class="fa-solid fa-play text-xs"></i>
-                        <span>Mulai Lari (Start)</span>
-                    </button>
-                </div>
-
-                <!-- State 2: RUNNING (Active Tracking) -->
-                <div id="nav-actions-running" class="hidden grid grid-cols-3 gap-2">
-                    <button type="button" onclick="pauseRunningSession()" class="col-span-1 py-3 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer border border-amber-500/40" title="Jeda Lari">
-                        <i class="fa-solid fa-pause text-xs"></i>
-                        <span>Jeda</span>
-                    </button>
-                    <button type="button" onclick="finishLiveNavigation()" class="col-span-2 py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
-                        <i class="fa-solid fa-flag-checkered text-xs"></i>
-                        <span>Selesai & Simpan</span>
-                    </button>
-                </div>
-
-                <!-- State 3: PAUSED (Paused Session) -->
-                <div id="nav-actions-paused" class="hidden grid grid-cols-3 gap-2">
-                    <button type="button" onclick="resumeRunningSession()" class="col-span-1 py-3 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer shadow-md">
-                        <i class="fa-solid fa-play text-xs"></i>
-                        <span>Lanjut</span>
-                    </button>
-                    <button type="button" onclick="resetLiveNavigationSession()" class="col-span-1 py-3 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer border border-slate-700">
-                        <i class="fa-solid fa-rotate-left text-xs"></i>
-                        <span>Reset</span>
-                    </button>
-                    <button type="button" onclick="finishLiveNavigation()" class="col-span-1 py-3 px-2 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
-                        <i class="fa-solid fa-flag-checkered text-xs"></i>
-                        <span>Selesai</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================================================= -->
-<!-- SOLID HIGH-CONTRAST POST-RUN SAVE MODAL (Strava-like) -->
-<!-- ========================================================================= -->
-<div id="post-run-modal" class="fixed inset-0 z-[999999] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden select-none" style="z-index: 999999 !important;">
-    <div class="post-run-card bg-[#0F172A] border border-slate-700 rounded-2xl max-w-md w-full p-4 sm:p-5 space-y-3.5 shadow-2xl text-slate-200" style="background-color: #0F172A !important;">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div>
-                <h3 class="text-sm sm:text-base font-bold text-white">Ringkasan Lari Selesai</h3>
-                <span class="text-[11px] text-slate-200">Aktivitas lari rute ini berhasil direkam.</span>
-            </div>
-            <button type="button" onclick="closePostRunModal()" class="text-slate-200 hover:text-white p-1 cursor-pointer">
-                <i class="fa-solid fa-xmark text-base"></i>
-            </button>
-        </div>
-
-        <!-- Solid Summary Metrics Strip -->
-        <div class="bg-[#1E293B] border border-slate-700 rounded-xl p-2.5 sm:p-3 grid grid-cols-4 divide-x divide-slate-700 text-center">
-            <div class="px-1">
-                <span class="text-[10px] text-slate-200 font-mono font-medium block">Jarak</span>
-                <span id="summary-distance" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">0.00 km</span>
-            </div>
-            <div class="px-1">
-                <span class="text-[10px] text-slate-200 font-mono font-medium block">Waktu</span>
-                <span id="summary-time" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">00:00</span>
-            </div>
-            <div class="px-1">
-                <span class="text-[10px] text-slate-200 font-mono font-medium block">Avg Pace</span>
-                <span id="summary-pace" class="text-xs sm:text-sm font-bold font-mono text-[#FC4C02] mt-0.5 block truncate">--:--</span>
-            </div>
-            <div class="px-1">
-                <span class="text-[10px] text-slate-200 font-mono font-medium block">Gain</span>
-                <span id="summary-gain" class="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 block truncate">+0m</span>
-            </div>
-        </div>
-
-        @auth
-            <!-- Save Activity Form for Authenticated Runner -->
-            <form id="save-activity-form" onsubmit="submitSaveActivity(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Judul Aktivitas</label>
-                    <input type="text" id="act-form-title" required class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-xs text-white outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Catatan Lari (Opsional)</label>
-                    <textarea id="act-form-notes" rows="2" placeholder="Bagaimana kondisi rute dan fisik Anda hari ini?" class="w-full bg-[#1E293B] border border-slate-700 focus:border-[#FC4C02] rounded-lg p-2 text-xs text-white outline-none resize-none"></textarea>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="act-form-public" checked class="rounded border-slate-700 bg-slate-800 text-[#FC4C02] focus:ring-0 cursor-pointer">
-                    <label for="act-form-public" class="text-xs text-slate-300 cursor-pointer">Tampilkan aktivitas ini di profil publik</label>
-                </div>
-
-                <button type="submit" id="btn-save-activity-submit" class="w-full py-2.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
-                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                    <span>Simpan Aktivitas ke Profil</span>
+                <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
+                    <i class="fa-solid fa-play text-xs"></i>
+                    <span>Mulai Lari (Start)</span>
                 </button>
-            </form>
-        @else
-            <!-- Guest Prompt -->
-            <div class="p-3.5 rounded-xl bg-[#1E293B] border border-slate-700 space-y-2.5 text-center">
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Masuk ke akun RuangLari Anda untuk menyimpan aktivitas ini ke profil, menghitung total KM mingguan, dan melihat analisis split.
-                </p>
-                <div class="flex items-center justify-center gap-2 pt-1">
-                    <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#e04300] transition">
-                        Masuk / Login
-                    </a>
-                    <button type="button" onclick="exportGpxSessionDirectly()" class="px-3 py-2 rounded-lg border border-slate-600 text-slate-300 text-xs font-semibold hover:text-white transition cursor-pointer">
-                        Download GPX Saja
-                    </button>
-                </div>
             </div>
-        @endauth
+        </div>
     </div>
 </div>
 
@@ -1039,63 +668,56 @@
         const totalElevationGain = {{ $gainM }};
         const routeTitle = "{{ addslashes($item->title) }}";
         const currentMasterGpxId = {{ $masterGpxId }};
-        const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
 
         let map = null;
         let polyline = null;
         let hoverMarker = null;
-        let routePoints = []; // Array of {lat, lng, ele, dist}
-        let elevationByKm = []; // Gain per KM
+        let routePoints = [];
+        let elevationByKm = [];
         let lastPaceTableData = [];
 
-        // Navigation Mode State
-        let navMap = null;
-        let navPolyline = null;
-        let navUserMarker = null;
-        let navAccuracyCircle = null;
-        let navReturnPolyline = null;
-        let navWatchId = null;
-        let navWakeLock = null;
-        let navAudioEnabled = true;
-        let navStartTime = null;
-        let navTimerInterval = null;
-        let navLastPassedKm = 0;
-        let navIsOffCourse = false;
-        let navUserPos = null;
-        let navLastSpokenTime = 0;
-        let navReturnMode = false;
-        let navHasCenteredOnUser = false;
-
-        // Navigation Session Control State (Strava/Garmin Ready -> Running -> Paused)
-        let navSessionState = 'ready'; // 'ready', 'running', 'paused'
-        let navAccumulatedElapsedSec = 0;
-        let navRunStartTimestamp = null;
-
-        // GPS Breadcrumbs Recording State (for Saving Activity)
-        let recordedGpsTrack = [];
-        let recordedActualDistanceKm = 0;
-        let recordedFinalSplits = [];
-        let recordedElevationGainM = 0;
-
-        // Map Layers & Navigation State
+        // Layers Multi-layer Neon
+        let baseRouteLine = null;
+        let animGlowLine = null;
+        let animActiveLine = null;
         let kmMarkersLayer = null;
         let showKmMarkers = true;
         let activeTileLayer = null;
         let baseTileLayers = {};
-        let userLocationMarker = null;
-        let userLocationCircle = null;
-        let userDistanceLine = null;
+
+        // Animation State
+        let isAnimPlaying = false;
+        let animProgressRatio = 0.0;
+        let animSpeedMultiplier = 5;
+        let animRafId = null;
+        let animLastTimestamp = null;
+        let animCameraFollow = true;
+        let animRunnerMarker = null;
+        let currentHeading = 0.0;
+        const animBaseDurationSeconds = 45;
 
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             initElevationProfile();
             initPacePro();
-            checkOfflineRouteStatus();
-            syncPendingActivities();
-            window.addEventListener('online', syncPendingActivities);
         });
 
-        // 1. Map Initialization (Strava Athletic Orange Theme + KM Split Markers + Layer Switcher)
+        // 1. Bearing & Rotation Calculations
+        function getBearing(lat1, lon1, lat2, lon2) {
+            const toRad = Math.PI / 180;
+            const toDeg = 180 / Math.PI;
+            const dLon = (lon2 - lon1) * toRad;
+            const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
+            const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) - Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
+            return (Math.atan2(y, x) * toDeg + 360) % 360;
+        }
+
+        function lerpAngle(fromAngle, toAngle, factor) {
+            let diff = ((toAngle - fromAngle + 540) % 360) - 180;
+            return (fromAngle + diff * factor + 360) % 360;
+        }
+
+        // 2. Map Initialization
         function initMap() {
             kmMarkersLayer = L.layerGroup();
 
@@ -1109,46 +731,34 @@
                 zoomControl: true,
                 scrollWheelZoom: false,
                 dragging: true,
-            }).setView([-6.2088, 106.8456], 12);
+            }).setView([-6.2088, 106.8456], 13);
 
-            activeTileLayer = baseTileLayers.street;
+            activeTileLayer = baseTileLayers.dark;
             activeTileLayer.addTo(map);
             kmMarkersLayer.addTo(map);
-
-            function parseCoordinatePoint(item, idx) {
-                if (!item) return null;
-                let lat = null, lng = null, ele = null, dist = null;
-                if (Array.isArray(item)) {
-                    lat = parseFloat(item[0]);
-                    lng = parseFloat(item[1]);
-                    if (item.length > 2 && item[2] !== null) ele = parseFloat(item[2]);
-                } else if (typeof item === 'object') {
-                    lat = parseFloat(item.lat !== undefined ? item.lat : (item.latitude !== undefined ? item.latitude : item[0]));
-                    lng = parseFloat(item.lng !== undefined ? item.lng : (item.lon !== undefined ? item.lon : (item.longitude !== undefined ? item.longitude : item[1])));
-                    if (item.ele !== undefined && item.ele !== null) ele = parseFloat(item.ele);
-                    if (item.dist !== undefined && item.dist !== null) dist = parseFloat(item.dist);
-                }
-                if (!isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng)) {
-                    return { lat: lat, lng: lng, ele: ele, dist: dist };
-                }
-                return null;
-            }
 
             let validCoords = [];
             let cumulativeKm = 0;
 
             if (Array.isArray(rawRouteCoords)) {
-                rawRouteCoords.forEach((pt, i) => {
-                    const parsed = parseCoordinatePoint(pt, i);
-                    if (parsed) {
-                        if (parsed.dist === null || parsed.dist === undefined) {
-                            if (validCoords.length > 0) {
-                                const prev = validCoords[validCoords.length - 1];
-                                cumulativeKm += calculateHaversine(prev.lat, prev.lng, parsed.lat, parsed.lng);
-                            }
-                            parsed.dist = cumulativeKm;
+                rawRouteCoords.forEach((pt) => {
+                    let lat = null, lng = null, ele = null;
+                    if (Array.isArray(pt)) {
+                        lat = parseFloat(pt[0]);
+                        lng = parseFloat(pt[1]);
+                        if (pt.length > 2) ele = parseFloat(pt[2]);
+                    } else if (typeof pt === 'object' && pt !== null) {
+                        lat = parseFloat(pt.lat || pt.latitude);
+                        lng = parseFloat(pt.lng || pt.lon || pt.longitude);
+                        ele = parseFloat(pt.ele || 0);
+                    }
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        if (validCoords.length > 0) {
+                            const prev = validCoords[validCoords.length - 1];
+                            cumulativeKm += calculateHaversine(prev.lat, prev.lng, lat, lng);
                         }
-                        validCoords.push(parsed);
+                        validCoords.push({ lat, lng, ele, dist: cumulativeKm });
                     }
                 });
             }
@@ -1158,266 +768,111 @@
             if (validCoords.length > 0) {
                 const latlngs = validCoords.map(p => [p.lat, p.lng]);
 
-                // Strava Athletic Orange Polyline (#FC4C02)
-                polyline = L.polyline(latlngs, {
-                    color: '#FC4C02',
-                    weight: 4,
-                    opacity: 0.95,
+                // Layer 1: Base Silent Path
+                baseRouteLine = L.polyline(latlngs, {
+                    color: '#334155',
+                    weight: 5,
+                    opacity: 0.8,
                     lineCap: 'round',
                     lineJoin: 'round',
                 }).addTo(map);
 
-                // Start Marker (white Green)
+                // Layer 2: Neon Glow Path (Pancaran Cahaya Tebal)
+                animGlowLine = L.polyline([], {
+                    color: '#FC4C02',
+                    weight: 12,
+                    opacity: 0.55,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                }).addTo(map);
+
+                // Layer 3: Neon Core Line (Inti Garis Tajam)
+                animActiveLine = L.polyline([], {
+                    color: '#FF7A45',
+                    weight: 4,
+                    opacity: 1.0,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                }).addTo(map);
+
+                // Start / Finish Markers
                 const startIcon = L.divIcon({
-                    className: 'custom-start-marker',
-                    html: '<div class="w-5 h-5 rounded-full bg-white-600 border border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
+                    html: '<div class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
-
-                // Finish Marker (Strava Orange)
                 const finishIcon = L.divIcon({
-                    className: 'custom-finish-marker',
-                    html: '<div class="w-5 h-5 rounded-full bg-[#FC4C02] border border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">F</div>',
+                    html: '<div class="w-5 h-5 rounded-full bg-[#FC4C02] border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">F</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
 
-                // KM Split Markers (1 km, 2 km, 3 km, ...)
+                L.marker(latlngs[0], { icon: startIcon }).addTo(map);
+                L.marker(latlngs[latlngs.length - 1], { icon: finishIcon }).addTo(map);
+
+                // KM Markers
                 const totalKmWhole = Math.floor(validCoords[validCoords.length - 1]?.dist || totalRouteDistance);
                 let currentTargetKm = 1;
-
                 validCoords.forEach((p) => {
                     if (currentTargetKm <= totalKmWhole && p.dist >= currentTargetKm) {
                         const kmBadgeIcon = L.divIcon({
-                            className: 'custom-km-marker',
-                            html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-mono font-black flex items-center justify-center select-none" style="box-shadow: 0 2px 8px rgba(0,0,0,0.6);">${currentTargetKm}</div>`,
+                            html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-mono font-black flex items-center justify-center shadow">${currentTargetKm}</div>`,
                             iconSize: [20, 20],
                             iconAnchor: [10, 10]
                         });
-
-                        const m = L.marker([p.lat, p.lng], { icon: kmBadgeIcon })
-                            .bindPopup(`<div style="font-family:sans-serif; font-size:12px; color:#0f172a;"><b>Kilometer ${currentTargetKm}</b><br><span style="color:#64748b;">${p.ele ? 'Ketinggian: ' + Math.round(p.ele) + 'm' : ''}</span></div>`);
-                        
-                        kmMarkersLayer.addLayer(m);
+                        L.marker([p.lat, p.lng], { icon: kmBadgeIcon }).addTo(kmMarkersLayer);
                         currentTargetKm++;
                     }
                 });
 
-                // Hover Tracker Marker
-                const hoverIcon = L.divIcon({
-                    className: 'custom-hover-marker',
-                    html: '<div class="w-3 h-3 rounded-full bg-[#FC4C02] border border-white shadow"></div>',
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
-                });
-
-                hoverMarker = L.marker(latlngs[0], { icon: hoverIcon, zIndexOffset: 1000 });
-
-                L.marker(latlngs[0], { icon: startIcon }).addTo(map).bindPopup('<b style="color:#000;">Titik Mulai (Start)</b>');
-                L.marker(latlngs[latlngs.length - 1], { icon: finishIcon }).addTo(map).bindPopup('<b style="color:#000;">Titik Selesai (Finish)</b>');
-
-                const bounds = polyline.getBounds();
-                if (bounds.isValid()) {
-                    map.fitBounds(bounds, { padding: [30, 30] });
-                } else {
-                    map.setView(latlngs[0], 13);
-                }
+                map.fitBounds(baseRouteLine.getBounds(), { padding: [35, 35] });
             }
         }
 
-        // Map Toolbar Action Handlers
-        function toggleKmMarkers() {
-            if (!map || !kmMarkersLayer) return;
-            showKmMarkers = !showKmMarkers;
-            const badge = document.getElementById('badge-km-toggle-state');
-            if (showKmMarkers) {
-                map.addLayer(kmMarkersLayer);
-                if (badge) {
-                    badge.textContent = 'ON';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-mono font-bold';
-                }
-            } else {
-                map.removeLayer(kmMarkersLayer);
-                if (badge) {
-                    badge.textContent = 'OFF';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-mono font-bold';
-                }
-            }
-        }
-
-        function toggleMapLayerMenu() {
-            const menu = document.getElementById('map-layer-menu');
-            if (menu) menu.classList.toggle('hidden');
-        }
-
-        document.addEventListener('click', function(e) {
-            const wrap = document.getElementById('map-layer-dropdown-wrapper');
-            const menu = document.getElementById('map-layer-menu');
-            if (wrap && menu && !wrap.contains(e.target)) {
-                menu.classList.add('hidden');
-            }
-        });
-
-        function setMapLayer(type) {
-            if (!map || !baseTileLayers[type]) return;
-            if (activeTileLayer) map.removeLayer(activeTileLayer);
-            activeTileLayer = baseTileLayers[type];
-            activeTileLayer.addTo(map);
-
-            const label = document.getElementById('label-active-map-layer');
-            if (label) {
-                label.textContent = type === 'dark' ? 'Dark' : (type === 'street' ? 'Street' : 'Satelit');
-            }
-
-            document.querySelectorAll('.layer-check-dark, .layer-check-street, .layer-check-satellite').forEach(el => el.classList.add('hidden'));
-            const activeCheck = document.querySelector('.layer-check-' + type);
-            if (activeCheck) activeCheck.classList.remove('hidden');
-
-            const menu = document.getElementById('map-layer-menu');
-            if (menu) menu.classList.add('hidden');
-        }
-
-        function fitRouteBounds() {
-            if (map && polyline) {
-                const b = polyline.getBounds();
-                if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
-            }
-        }
-
-        function locateMeOnDetailMap() {
-            if (!navigator.geolocation) {
-                alert('Geolocation tidak didukung oleh browser Anda.');
-                return;
-            }
-
-            const locateBtn = document.getElementById('btn-map-locate-me');
-            const originalBtnHtml = locateBtn ? locateBtn.innerHTML : '';
-            if (locateBtn) {
-                locateBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-[10px] text-accent"></i><span class="hidden sm:inline">Mencari...</span>';
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                function(pos) {
-                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
-                    const uLat = pos.coords.latitude;
-                    const uLng = pos.coords.longitude;
-                    const uAcc = pos.coords.accuracy;
-
-                    if (userLocationMarker && map.hasLayer(userLocationMarker)) map.removeLayer(userLocationMarker);
-                    if (userLocationCircle && map.hasLayer(userLocationCircle)) map.removeLayer(userLocationCircle);
-                    if (userDistanceLine && map.hasLayer(userDistanceLine)) map.removeLayer(userDistanceLine);
-
-                    // User pulsing location icon
-                    const userIcon = L.divIcon({
-                        className: 'custom-user-gps-marker',
-                        html: '<div class="relative flex items-center justify-center w-6 h-6"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white shadow"></span></div>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    });
-
-                    userLocationMarker = L.marker([uLat, uLng], { icon: userIcon, zIndexOffset: 1500 }).addTo(map);
-                    userLocationCircle = L.circle([uLat, uLng], { radius: uAcc, color: '#38bdf8', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.12 }).addTo(map);
-
-                    if (routePoints.length > 0) {
-                        const startPt = routePoints[0];
-                        const distToStartKm = calculateHaversine(uLat, uLng, startPt.lat, startPt.lng);
-
-                        userDistanceLine = L.polyline([[uLat, uLng], [startPt.lat, startPt.lng]], {
-                            color: '#38bdf8',
-                            weight: 2,
-                            dashArray: '4, 6',
-                            opacity: 0.8
-                        }).addTo(map);
-
-                        userLocationMarker.bindPopup(`
-                            <div style="font-family:sans-serif; font-size:12px; color:#0f172a; line-height:1.4;">
-                                <strong style="color:#0284c7;">Lokasi Anda Saat Ini</strong><br>
-                                <span>Akurasi GPS: ±${Math.round(uAcc)}m</span><br>
-                                <span style="font-weight:600; color:#FC4C02;">${distToStartKm.toFixed(2)} km</span> ke titik Start rute
-                            </div>
-                        `).openPopup();
-
-                        const groupBounds = L.latLngBounds([[uLat, uLng], [startPt.lat, startPt.lng]]);
-                        map.fitBounds(groupBounds, { padding: [50, 50] });
-                    } else {
-                        map.setView([uLat, uLng], 15);
-                    }
-                },
-                function(err) {
-                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
-                    alert('Gagal mendapatkan lokasi GPS: ' + err.message);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-
-        // =========================================================================
-        // GPX TRAIL ANIMATOR ENGINE (Interactive 2D Route Replay / Relive Style)
-        // =========================================================================
-        let isAnimPlaying = false;
-        let animProgressRatio = 0.0;
-        let animSpeedMultiplier = 5;
-        let animRafId = null;
-        let animLastTimestamp = null;
-        let animCameraFollow = true;
-        let animRunnerMarker = null;
-        let animProgressTrail = null;
-        const animBaseDurationSeconds = 60; // 60s total duration at 1x
-
+        // 3. Animation Engine (Flyover 3D Style)
         function initAnimatorLayers() {
             if (!map) return;
-            if (!animProgressTrail) {
-                animProgressTrail = L.polyline([], {
-                    color: '#FC4C02',
-                    weight: 5,
-                    opacity: 1.0,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                    zIndexOffset: 1200
-                }).addTo(map);
-            }
-
             if (!animRunnerMarker) {
-                const runnerIcon = L.divIcon({
-                    className: 'custom-anim-runner-marker',
-                    html: '<div class="relative flex items-center justify-center w-6 h-6"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FC4C02] opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FC4C02] border-2 border-white shadow-md"></span></div>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12]
+                const runnerBeaconIcon = L.divIcon({
+                    className: '',
+                    html: `
+                        <div class="runner-beacon">
+                            <div class="runner-beacon-ring"></div>
+                            <div class="runner-beacon-inner">
+                                <div class="runner-arrow-rotator">
+                                    <i class="fa-solid fa-location-arrow text-[11px] text-white -rotate-45"></i>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
                 });
                 const startPos = (routePoints && routePoints.length > 0) ? [routePoints[0].lat, routePoints[0].lng] : [-6.2088, 106.8456];
-                animRunnerMarker = L.marker(startPos, { icon: runnerIcon, zIndexOffset: 2000 }).addTo(map);
+                animRunnerMarker = L.marker(startPos, { icon: runnerBeaconIcon, zIndexOffset: 2000 }).addTo(map);
             }
         }
 
         function toggleGpxAnimator() {
             const hud = document.getElementById('gpx-animator-hud');
+            const teleHud = document.getElementById('gpx-live-telemetry-hud');
             if (!hud) return;
 
             const isCurrentlyOpen = !hud.classList.contains('hidden');
             if (isCurrentlyOpen) {
                 pauseAnimation();
                 hud.classList.add('hidden');
+                if (teleHud) teleHud.classList.add('hidden');
                 if (animRunnerMarker && map.hasLayer(animRunnerMarker)) map.removeLayer(animRunnerMarker);
-                if (animProgressTrail && map.hasLayer(animProgressTrail)) map.removeLayer(animProgressTrail);
+                if (animGlowLine) animGlowLine.setLatLngs([]);
+                if (animActiveLine) animActiveLine.setLatLngs([]);
                 animRunnerMarker = null;
-                animProgressTrail = null;
                 fitRouteBounds();
             } else {
                 hud.classList.remove('hidden');
+                if (teleHud) teleHud.classList.remove('hidden');
                 initAnimatorLayers();
                 renderAnimationState(animProgressRatio);
-                startAnimation();
-            }
-        }
-
-        function togglePlayPauseAnimation() {
-            if (isAnimPlaying) {
-                pauseAnimation();
-            } else {
-                if (animProgressRatio >= 1.0) {
-                    animProgressRatio = 0.0;
-                }
                 startAnimation();
             }
         }
@@ -1426,10 +881,9 @@
             initAnimatorLayers();
             isAnimPlaying = true;
             animLastTimestamp = null;
-
             const playIcon = document.getElementById('icon-anim-play');
             const playLabel = document.getElementById('label-anim-play');
-            if (playIcon) playIcon.className = 'fa-solid fa-pause text-[10px]';
+            if (playIcon) playIcon.className = 'fa-solid fa-pause text-[11px]';
             if (playLabel) playLabel.textContent = 'Pause';
 
             if (animRafId) cancelAnimationFrame(animRafId);
@@ -1438,14 +892,10 @@
 
         function pauseAnimation() {
             isAnimPlaying = false;
-            if (animRafId) {
-                cancelAnimationFrame(animRafId);
-                animRafId = null;
-            }
-
+            if (animRafId) cancelAnimationFrame(animRafId);
             const playIcon = document.getElementById('icon-anim-play');
             const playLabel = document.getElementById('label-anim-play');
-            if (playIcon) playIcon.className = 'fa-solid fa-play text-[10px]';
+            if (playIcon) playIcon.className = 'fa-solid fa-play text-[11px]';
             if (playLabel) playLabel.textContent = 'Play';
         }
 
@@ -1466,9 +916,9 @@
             document.querySelectorAll('#anim-speed-btn-group .anim-speed-btn').forEach(btn => {
                 const s = parseFloat(btn.getAttribute('data-speed'));
                 if (s === animSpeedMultiplier) {
-                    btn.className = 'anim-speed-btn px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer';
+                    btn.className = 'anim-speed-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer';
                 } else {
-                    btn.className = 'anim-speed-btn px-1.5 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer';
+                    btn.className = 'anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer';
                 }
             });
         }
@@ -1477,13 +927,8 @@
             animCameraFollow = !animCameraFollow;
             const badge = document.getElementById('badge-camera-follow');
             if (badge) {
-                if (animCameraFollow) {
-                    badge.textContent = 'ON';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-white-500/20 text-white-400 font-bold';
-                } else {
-                    badge.textContent = 'OFF';
-                    badge.className = 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold';
-                }
+                badge.textContent = animCameraFollow ? 'ON' : 'OFF';
+                badge.className = animCameraFollow ? 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold' : 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold';
             }
         }
 
@@ -1501,15 +946,10 @@
                 if (targetDist >= p1.dist && targetDist <= p2.dist) {
                     const span = (p2.dist - p1.dist) || 0.0001;
                     const frac = (targetDist - p1.dist) / span;
-
-                    const lat = p1.lat + (p2.lat - p1.lat) * frac;
-                    const lng = p1.lng + (p2.lng - p1.lng) * frac;
-                    const ele = (p1.ele !== null && p2.ele !== null) ? (p1.ele + (p2.ele - p1.ele) * frac) : (p1.ele || p2.ele || 0);
-
                     return {
-                        lat: lat,
-                        lng: lng,
-                        ele: ele,
+                        lat: p1.lat + (p2.lat - p1.lat) * frac,
+                        lng: p1.lng + (p2.lng - p1.lng) * frac,
+                        ele: (p1.ele !== null && p2.ele !== null) ? (p1.ele + (p2.ele - p1.ele) * frac) : (p1.ele || 0),
                         dist: targetDist,
                         index: i
                     };
@@ -1518,55 +958,66 @@
             return { ...routePoints[routePoints.length - 1], index: routePoints.length - 1 };
         }
 
-        function formatAnimTime(totalSeconds) {
-            const hrs = Math.floor(totalSeconds / 3600);
-            const mins = Math.floor((totalSeconds % 3600) / 60);
-            const secs = Math.floor(totalSeconds % 60);
-            if (hrs > 0) {
-                return String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-            }
-            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-        }
-
         function renderAnimationState(ratio) {
             const pt = getPointAtRatio(ratio);
             if (!pt) return;
 
-            // 1. Update Telemetry
+            // Telemetry values
             const kmEl = document.getElementById('anim-telemetry-km');
             const elevEl = document.getElementById('anim-telemetry-elev');
             const timeEl = document.getElementById('anim-telemetry-time');
             const slider = document.getElementById('anim-progress-slider');
+            const slopeEl = document.getElementById('anim-telemetry-slope');
 
             if (kmEl) kmEl.textContent = pt.dist.toFixed(2) + ' km';
             if (elevEl) elevEl.textContent = Math.round(pt.ele) + ' m';
             if (slider) slider.value = Math.round(ratio * 1000);
+            if (timeEl) timeEl.textContent = formatDurationTime(pt.dist * 300);
 
-            // Estimated run time at default ~5:00 min/km (300 sec/km)
-            const simulatedSecs = pt.dist * 300;
-            if (timeEl) timeEl.textContent = formatAnimTime(simulatedSecs);
-
-            // 2. Update Runner Marker Position
+            // Marker position & rotation
             if (animRunnerMarker) {
                 animRunnerMarker.setLatLng([pt.lat, pt.lng]);
+                const nextIdx = Math.min(routePoints.length - 1, pt.index + 1);
+                const pNext = routePoints[nextIdx];
+                if (pNext && (pNext.lat !== pt.lat || pNext.lng !== pt.lng)) {
+                    const targetBearing = getBearing(pt.lat, pt.lng, pNext.lat, pNext.lng);
+                    currentHeading = lerpAngle(currentHeading, targetBearing, 0.35);
+                    const markerEl = animRunnerMarker.getElement();
+                    if (markerEl) {
+                        const rotator = markerEl.querySelector('.runner-arrow-rotator');
+                        if (rotator) rotator.style.transform = `rotate(${currentHeading.toFixed(1)}deg)`;
+                    }
+
+                    // Slope indicator
+                    const dElev = pNext.ele - pt.ele;
+                    const dDist = Math.max(0.001, pNext.dist - pt.dist);
+                    const slope = ((dElev / (dDist * 1000)) * 100).toFixed(1);
+                    if (slopeEl) {
+                        if (slope > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slope}% (Naik)</span>`;
+                        else if (slope < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slope}% (Turun)</span>`;
+                        else slopeEl.innerHTML = `<span class="text-slate-400 font-bold">0.0% (Datar)</span>`;
+                    }
+                }
             }
 
-            // 3. Update Dynamic Trail Polyline
-            if (animProgressTrail && routePoints.length > 0) {
+            // Update Neon Multi-layer Polyline
+            if (routePoints.length > 0) {
                 const subPoints = [];
                 for (let i = 0; i <= pt.index; i++) {
                     subPoints.push([routePoints[i].lat, routePoints[i].lng]);
                 }
                 subPoints.push([pt.lat, pt.lng]);
-                animProgressTrail.setLatLngs(subPoints);
+
+                if (animGlowLine) animGlowLine.setLatLngs(subPoints);
+                if (animActiveLine) animActiveLine.setLatLngs(subPoints);
             }
 
-            // 4. Camera Follow
+            // Smooth Camera Follow
             if (animCameraFollow && map) {
-                map.panTo([pt.lat, pt.lng], { animate: true, duration: 0.1 });
+                map.panTo([pt.lat, pt.lng], { animate: false });
             }
 
-            // 5. Sync with Elevation Chart Tracker
+            // Chart Tracker Sync
             const container = document.getElementById('elevation-chart-container');
             const hoverLine = document.getElementById('elev-hover-line');
             const hoverDot = document.getElementById('elev-hover-dot');
@@ -1577,16 +1028,6 @@
                 hoverLine.classList.remove('hidden');
                 hoverDot.style.left = x + 'px';
                 hoverDot.classList.remove('hidden');
-            }
-
-            // 6. Sync with PacePro Split Table Highlight
-            const curKm = Math.min(Math.floor(pt.dist) + 1, Math.ceil(totalRouteDistance || 1));
-            document.querySelectorAll('[id^="pacepro-split-row-"]').forEach(row => {
-                row.classList.remove('bg-[#FC4C02]/20', 'border-l-2', 'border-[#FC4C02]');
-            });
-            const activeSplitRow = document.getElementById('pacepro-split-row-' + curKm);
-            if (activeSplitRow) {
-                activeSplitRow.classList.add('bg-[#FC4C02]/20', 'border-l-2', 'border-[#FC4C02]');
             }
         }
 
@@ -1611,208 +1052,57 @@
             animRafId = requestAnimationFrame(animLoop);
         }
 
-        // 2. Elevation Profile Graph
+        // 4. Elevation Profile Graph
         function initElevationProfile() {
             const svg = document.getElementById('gpx-elev-svg');
             const areaPath = document.getElementById('elev-area-path');
             const linePath = document.getElementById('elev-line-path');
             const container = document.getElementById('elevation-chart-container');
-            const minEl = document.getElementById('elev-min-val');
-            const maxEl = document.getElementById('elev-max-val');
-            const hoverLine = document.getElementById('elev-hover-line');
-            const hoverDot = document.getElementById('elev-hover-dot');
-            const tooltip = document.getElementById('elev-tooltip');
-            const tooltipKm = document.getElementById('elev-tooltip-km');
-            const tooltipM = document.getElementById('elev-tooltip-m');
-
             if (!container || !areaPath || !linePath) return;
 
-            let pointsWithEle = routePoints.filter(p => p.ele !== null && !isNaN(p.ele));
-
-            if (pointsWithEle.length < 5) {
-                const totalPts = routePoints.length || 50;
-                pointsWithEle = routePoints.map((p, idx) => {
-                    const progress = idx / totalPts;
-                    const simEle = 15 + Math.sin(progress * Math.PI * 3) * 10 + Math.cos(progress * Math.PI * 5) * 6;
-                    return {
-                        lat: p.lat,
-                        lng: p.lng,
-                        dist: p.dist || (progress * totalRouteDistance),
-                        ele: Math.max(5, Math.round(simEle))
-                    };
-                });
-            }
-
-            const elevations = pointsWithEle.map(p => p.ele);
+            const elevations = routePoints.map(p => p.ele || 0);
             const minElev = Math.min(...elevations);
             const maxElev = Math.max(...elevations);
             const elevRange = Math.max(maxElev - minElev, 10);
+            const maxDist = routePoints[routePoints.length - 1]?.dist || totalRouteDistance || 1;
 
-            if (minEl) minEl.textContent = Math.round(minElev) + 'm';
-            if (maxEl) maxEl.textContent = Math.round(maxElev) + 'm';
-
-            const maxDist = pointsWithEle[pointsWithEle.length - 1]?.dist || totalRouteDistance || 1;
-
-            function drawElevationSvg() {
+            function draw() {
                 const width = container.clientWidth || 800;
                 const height = container.clientHeight || 112;
                 svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-                const padTop = 8;
-                const padBottom = 8;
-                const chartHeight = height - padTop - padBottom;
+                let lineD = `M 0 ${height - 10}`;
+                let areaD = `M 0 ${height} L 0 ${height - 10}`;
 
-                const pathData = [];
-                pointsWithEle.forEach(p => {
+                routePoints.forEach((p, idx) => {
                     const x = (p.dist / maxDist) * width;
                     const normEle = (p.ele - minElev) / elevRange;
-                    const y = height - padBottom - (normEle * chartHeight);
-                    pathData.push({ x, y, dist: p.dist, ele: p.ele, lat: p.lat, lng: p.lng });
+                    const y = height - 10 - (normEle * (height - 20));
+                    lineD += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+                    areaD += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
                 });
 
-                if (pathData.length === 0) return;
-
-                let lineD = `M ${pathData[0].x.toFixed(1)} ${pathData[0].y.toFixed(1)}`;
-                for (let i = 1; i < pathData.length; i++) {
-                    lineD += ` L ${pathData[i].x.toFixed(1)} ${pathData[i].y.toFixed(1)}`;
-                }
-
-                const lastX = pathData[pathData.length - 1].x;
-                const areaD = lineD + ` L ${lastX.toFixed(1)} ${height} L 0 ${height} Z`;
-
+                areaD += ` L ${width} ${height} Z`;
                 linePath.setAttribute('d', lineD);
                 areaPath.setAttribute('d', areaD);
-
-                calculateElevationGainPerKm(pointsWithEle, maxDist);
             }
 
-            drawElevationSvg();
-            window.addEventListener('resize', drawElevationSvg);
-
-            // Interactive Elevation Hover
-            container.addEventListener('mousemove', function(e) {
-                const rect = container.getBoundingClientRect();
-                const mouseX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-                const hoverDist = (mouseX / rect.width) * maxDist;
-
-                let closest = pointsWithEle[0];
-                let minDiff = 999999;
-                for (let i = 0; i < pointsWithEle.length; i++) {
-                    const diff = Math.abs(pointsWithEle[i].dist - hoverDist);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closest = pointsWithEle[i];
-                    }
-                }
-
-                if (closest) {
-                    const normEle = (closest.ele - minElev) / elevRange;
-                    const height = container.clientHeight || 112;
-                    const chartHeight = height - 16;
-                    const y = height - 8 - (normEle * chartHeight);
-
-                    hoverLine.style.left = mouseX + 'px';
-                    hoverLine.classList.remove('hidden');
-
-                    hoverDot.style.left = mouseX + 'px';
-                    hoverDot.style.top = y + 'px';
-                    hoverDot.classList.remove('hidden');
-
-                    tooltip.style.left = mouseX + 'px';
-                    tooltip.classList.remove('hidden');
-                    tooltipKm.textContent = closest.dist.toFixed(2) + ' KM';
-                    tooltipM.textContent = Math.round(closest.ele) + 'm';
-
-                    if (map && hoverMarker && closest.lat && closest.lng) {
-                        if (!map.hasLayer(hoverMarker)) hoverMarker.addTo(map);
-                        hoverMarker.setLatLng([closest.lat, closest.lng]);
-                    }
-                }
-            });
-
-            container.addEventListener('mouseleave', function() {
-                hoverLine.classList.add('hidden');
-                hoverDot.classList.add('hidden');
-                tooltip.classList.add('hidden');
-                if (map && hoverMarker && map.hasLayer(hoverMarker)) {
-                    map.removeLayer(hoverMarker);
-                }
-            });
+            draw();
+            window.addEventListener('resize', draw);
         }
 
-        function calculateElevationGainPerKm(points, totalDist) {
-            const totalKm = Math.ceil(totalDist);
-            elevationByKm = [];
-            let currentKm = 1;
-            let kmGain = 0;
-            let lastEle = points[0] ? points[0].ele : 0;
-
-            points.forEach(p => {
-                if (p.dist >= currentKm) {
-                    elevationByKm.push(Math.round(kmGain));
-                    kmGain = 0;
-                    currentKm += 1;
-                }
-                if (p.ele > lastEle) {
-                    kmGain += (p.ele - lastEle);
-                }
-                lastEle = p.ele;
-            });
-            elevationByKm.push(Math.round(kmGain));
-        }
-
-        // 3. PacePro Engine
+        // 5. PacePro Calculations
         function initPacePro() {
-            const btnGenerate = document.getElementById('pp-btn-generate');
-            const sliderStrategy = document.getElementById('pp-strategy-slider');
-            const sliderHill = document.getElementById('pp-hill-slider');
-            const labelStrategy = document.getElementById('pp-strategy-label');
-            const labelHill = document.getElementById('pp-hill-label');
-            const badgeStrategy = document.getElementById('pp-strategy-badge');
-
-            if (sliderStrategy) {
-                sliderStrategy.addEventListener('input', function() {
-                    const val = parseInt(this.value, 10);
-                    let label = 'Even (0%)';
-                    if (val < 0) label = `Negative (${val}%)`;
-                    else if (val > 0) label = `Positive (+${val}%)`;
-                    
-                    if (labelStrategy) labelStrategy.textContent = label;
-                    if (badgeStrategy) badgeStrategy.textContent = label;
-                    calculatePaceProPlan();
-                });
-            }
-
-            if (sliderHill) {
-                sliderHill.addEventListener('input', function() {
-                    const val = parseInt(this.value, 10);
-                    let label = 'Normal (0)';
-                    if (val < 0) label = `Agresif (${val})`;
-                    else if (val > 0) label = `Hemat Tenaga (+${val})`;
-                    
-                    if (labelHill) labelHill.textContent = label;
-                    calculatePaceProPlan();
-                });
-            }
-
-            if (btnGenerate) {
-                btnGenerate.addEventListener('click', calculatePaceProPlan);
-            }
-
             calculatePaceProPlan();
+            document.getElementById('pp-btn-generate')?.addEventListener('click', calculatePaceProPlan);
         }
 
         function setPacePreset(min, sec) {
             const dist = totalRouteDistance || 10;
             const totalSec = (min * 60 + sec) * dist;
-            const h = Math.floor(totalSec / 3600);
-            const m = Math.floor((totalSec % 3600) / 60);
-            const s = Math.floor(totalSec % 60);
-
-            document.getElementById('pp-time-h').value = h;
-            document.getElementById('pp-time-m').value = m;
-            document.getElementById('pp-time-s').value = s;
-
+            document.getElementById('pp-time-h').value = Math.floor(totalSec / 3600);
+            document.getElementById('pp-time-m').value = Math.floor((totalSec % 3600) / 60);
+            document.getElementById('pp-time-s').value = Math.floor(totalSec % 60);
             calculatePaceProPlan();
         }
 
@@ -1820,1035 +1110,52 @@
             const h = parseInt(document.getElementById('pp-time-h')?.value || '0', 10) || 0;
             const m = parseInt(document.getElementById('pp-time-m')?.value || '0', 10) || 0;
             const s = parseInt(document.getElementById('pp-time-s')?.value || '0', 10) || 0;
-
             const totalTargetSec = (h * 3600) + (m * 60) + s;
             if (totalTargetSec <= 0) return;
 
             const totalDist = totalRouteDistance || 10;
             const avgPaceSec = totalTargetSec / totalDist;
+            document.getElementById('pp-avg-pace').textContent = formatPaceTime(avgPaceSec) + ' /km';
+            document.getElementById('pp-target-total-time').textContent = formatDurationTime(totalTargetSec);
 
-            const avgPaceEl = document.getElementById('pp-avg-pace');
-            const totalTimeEl = document.getElementById('pp-target-total-time');
             const tableBody = document.getElementById('pp-table-body');
-
-            if (avgPaceEl) avgPaceEl.textContent = formatPaceTime(avgPaceSec) + ' /km';
-            if (totalTimeEl) totalTimeEl.textContent = formatDurationTime(totalTargetSec);
             if (!tableBody) return;
-
             tableBody.innerHTML = '';
 
-            const stratVal = parseInt(document.getElementById('pp-strategy-slider')?.value || '0', 10) || 0;
-            const intensity = stratVal / 100;
-            const startFactor = 1 - intensity;
-            const endFactor = 1 + intensity;
-
-            const hillVal = parseInt(document.getElementById('pp-hill-slider')?.value || '0', 10) || 0;
-            const hillFactor = 1 + (hillVal / 20);
-
             const totalKm = Math.ceil(totalDist);
-            let rawSplits = [];
-            let rawSumSec = 0;
-
-            for (let km = 1; km <= totalKm; km++) {
-                let distInKm = 1;
-                if (km > totalDist) {
-                    distInKm = totalDist - (km - 1);
-                }
-
-                const progress = (km - 1) / (totalKm - 1 || 1);
-                const currentFactor = startFactor + (endFactor - startFactor) * progress;
-                let targetPaceSec = avgPaceSec * currentFactor;
-
-                const gain = elevationByKm[km - 1] || 0;
-                if (gain > 0) {
-                    targetPaceSec += (gain / 10) * 1.5 * hillFactor;
-                }
-
-                const splitTimeSec = targetPaceSec * distInKm;
-                rawSumSec += splitTimeSec;
-
-                rawSplits.push({
-                    km: km,
-                    dist: distInKm,
-                    rawTime: splitTimeSec,
-                    gain: gain
-                });
-            }
-
-            const timeDiff = totalTargetSec - rawSumSec;
-            const adjPerKm = timeDiff / totalDist;
             let cumSec = 0;
             lastPaceTableData = [];
 
-            rawSplits.forEach(s => {
-                const adjTime = Math.max(1, s.rawTime + (adjPerKm * s.dist));
-                cumSec += adjTime;
-                const pacePerKm = adjTime / s.dist;
+            for (let km = 1; km <= totalKm; km++) {
+                const splitDist = km > totalDist ? (totalDist - (km - 1)) : 1;
+                const splitSec = avgPaceSec * splitDist;
+                cumSec += splitSec;
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition-colors text-center';
-
-                const elevText = s.gain > 0 ? `+${s.gain}m` : '-';
-                const elevClass = s.gain > 15 ? 'text-[#FC4C02] font-semibold' : (s.gain > 0 ? 'text-slate-200' : 'text-slate-500');
-
                 tr.innerHTML = `
-                    <td class="py-2.5 px-1 sm:px-2 font-medium text-slate-300 text-center">${s.km}${s.dist < 0.99 ? `<span class="block text-[9px] text-slate-500 font-mono">${(s.dist * 1000).toFixed(0)}m</span>` : ''}</td>
-                    <td class="py-2.5 px-1 sm:px-2 text-white font-semibold text-center">${formatPaceTime(pacePerKm)}</td>
-                    <td class="py-2.5 px-1 sm:px-2 text-slate-300 text-center">${formatDurationTime(adjTime)}</td>
-                    <td class="py-2.5 px-1 sm:px-2 text-slate-200 text-center">${formatDurationTime(cumSec)}</td>
-                    <td class="py-2.5 px-1 sm:px-2 text-center ${elevClass}">${elevText}</td>
+                    <td class="py-2.5 px-2 font-medium text-slate-300">${km}</td>
+                    <td class="py-2.5 px-2 text-white font-semibold">${formatPaceTime(avgPaceSec)}</td>
+                    <td class="py-2.5 px-2 text-slate-300">${formatDurationTime(splitSec)}</td>
+                    <td class="py-2.5 px-2 text-slate-400">${formatDurationTime(cumSec)}</td>
+                    <td class="py-2.5 px-2 text-slate-500">-</td>
                 `;
                 tableBody.appendChild(tr);
-
-                lastPaceTableData.push({
-                    km: s.km,
-                    pace: formatPaceTime(pacePerKm),
-                    split: formatDurationTime(adjTime),
-                    cum: formatDurationTime(cumSec),
-                    elev: elevText
-                });
-            });
-        }
-
-        // =========================================================================
-        // 4. LIVE GPS NAVIGATION & ACTIVITY RECORDING ENGINE (Strava-like)
-        // =========================================================================
-        function startLiveNavigation() {
-            if (!navigator.geolocation) {
-                alert('Browser Anda tidak mendukung sensor geolokasi GPS.');
-                return;
-            }
-
-            const hudEl = document.getElementById('gpx-nav-hud');
-            if (hudEl) hudEl.classList.remove('hidden');
-
-            // Hide floating chat widget during running navigation
-            document.body.classList.add('gpx-nav-active');
-            const chatToggle = document.getElementById('chatbox-toggle');
-            if (chatToggle) chatToggle.style.setProperty('display', 'none', 'important');
-            const phChat = document.getElementById('ph-chatbox');
-            if (phChat) phChat.style.setProperty('display', 'none', 'important');
-
-            // Lock screen from sleeping
-            requestScreenWakeLock();
-
-            // Initialize Nav Map
-            if (!navMap) {
-                initNavMap();
-            } else {
-                navMap.invalidateSize();
-                if (navPolyline) navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
-            }
-
-            navStartTime = Date.now();
-            navLastPassedKm = 0;
-            navIsOffCourse = false;
-            navLastSpokenTime = 0;
-            navReturnMode = false;
-            navHasCenteredOnUser = false;
-
-            // Reset Session State to READY (Waiting for user to press Start)
-            navSessionState = 'ready';
-            navAccumulatedElapsedSec = 0;
-            navRunStartTimestamp = null;
-
-            // Reset Recorded Track
-            recordedGpsTrack = [];
-            recordedActualDistanceKm = 0;
-            recordedFinalSplits = [];
-            recordedElevationGainM = 0;
-
-            // Reset HUD Elements to 0
-            const actualDistEl = document.getElementById('nav-actual-dist');
-            const timeEl = document.getElementById('nav-running-time');
-            const progBar = document.getElementById('nav-progress-bar');
-            const progPctEl = document.getElementById('nav-progress-pct');
-            const compDistEl = document.getElementById('nav-completed-dist');
-            const remDistEl = document.getElementById('nav-remaining-dist');
-            const livePaceEl = document.getElementById('nav-live-pace');
-
-            if (actualDistEl) actualDistEl.textContent = '0.00';
-            if (timeEl) timeEl.textContent = '00:00';
-            if (progBar) progBar.style.width = '0%';
-            if (progPctEl) progPctEl.textContent = '0%';
-            if (compDistEl) compDistEl.textContent = `0.00 / ${totalRouteDistance.toFixed(2)} km`;
-            if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
-            if (livePaceEl) livePaceEl.textContent = '--:--';
-
-            // Clear Running Timer if active
-            if (navTimerInterval) {
-                clearInterval(navTimerInterval);
-                navTimerInterval = null;
-            }
-
-            // Set UI State to READY (Show "Mulai Lari" Button)
-            setNavUIState('ready');
-
-            // Voice Welcome
-            speakVoice(`GPS terhubung. Tekan tombol Mulai Lari saat Anda siap.`);
-
-            // Watch Position
-            navWatchId = navigator.geolocation.watchPosition(
-                handleNavGpsSuccess,
-                handleNavGpsError,
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 10000
-                }
-            );
-        }
-
-        function setNavUIState(state) {
-            navSessionState = state;
-            const wrapReady = document.getElementById('nav-actions-ready');
-            const wrapRunning = document.getElementById('nav-actions-running');
-            const wrapPaused = document.getElementById('nav-actions-paused');
-            const statusLabel = document.getElementById('nav-status-label');
-            const gpsInd = document.getElementById('nav-gps-indicator');
-
-            if (wrapReady) wrapReady.classList.toggle('hidden', state !== 'ready');
-            if (wrapRunning) wrapRunning.classList.toggle('hidden', state !== 'running');
-            if (wrapPaused) wrapPaused.classList.toggle('hidden', state !== 'paused');
-
-            if (state === 'ready') {
-                if (statusLabel) {
-                    statusLabel.textContent = 'GPS Siap — Tekan Mulai Lari';
-                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
-                }
-                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse shrink-0';
-            } else if (state === 'paused') {
-                if (statusLabel) {
-                    statusLabel.textContent = 'Sesi Dijeda (Paused)';
-                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
-                }
-                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 shrink-0';
+                lastPaceTableData.push({ km, pace: formatPaceTime(avgPaceSec), split: formatDurationTime(splitSec), cum: formatDurationTime(cumSec), elev: '-' });
             }
         }
 
-        function startRunningSession() {
-            setNavUIState('running');
-            navRunStartTimestamp = Date.now();
-            if (navTimerInterval) clearInterval(navTimerInterval);
-            navTimerInterval = setInterval(updateNavTimer, 1000);
-            speakVoice('Sesi lari dimulai. Selamat berlari!');
-        }
-
-        function pauseRunningSession() {
-            if (navRunStartTimestamp) {
-                navAccumulatedElapsedSec += Math.floor((Date.now() - navRunStartTimestamp) / 1000);
-            }
-            navRunStartTimestamp = null;
-            if (navTimerInterval) {
-                clearInterval(navTimerInterval);
-                navTimerInterval = null;
-            }
-            setNavUIState('paused');
-            speakVoice('Sesi lari dijeda.');
-        }
-
-        function resumeRunningSession() {
-            setNavUIState('running');
-            navRunStartTimestamp = Date.now();
-            if (navTimerInterval) clearInterval(navTimerInterval);
-            navTimerInterval = setInterval(updateNavTimer, 1000);
-            speakVoice('Sesi lari dilanjutkan.');
-        }
-
-        function initNavMap() {
-            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-
-            navMap = L.map('nav-fullscreen-map', {
-                zoomControl: false,
-                scrollWheelZoom: true,
-                dragging: true,
-            }).setView([-6.2088, 106.8456], 15);
-
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: 'abcd' }).addTo(navMap);
-
-            if (routePoints.length > 0) {
-                const latlngs = routePoints.map(p => [p.lat, p.lng]);
-                navPolyline = L.polyline(latlngs, {
-                    color: '#FC4C02',
-                    weight: 5,
-                    opacity: 0.95,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                }).addTo(navMap);
-
-                // Add KM Markers on Nav Map
-                const totalKmWhole = Math.floor(routePoints[routePoints.length - 1]?.dist || totalRouteDistance);
-                let curKm = 1;
-                routePoints.forEach(p => {
-                    if (curKm <= totalKmWhole && p.dist >= curKm) {
-                        const kmIcon = L.divIcon({
-                            className: 'nav-km-marker',
-                            html: `<div class="w-5 h-5 rounded-full bg-[#070B12] border border-slate-300 text-white text-[9px] font-mono font-bold flex items-center justify-center shadow">${curKm}</div>`,
-                            iconSize: [20, 20],
-                            iconAnchor: [10, 10]
-                        });
-                        L.marker([p.lat, p.lng], { icon: kmIcon }).addTo(navMap);
-                        curKm++;
-                    }
-                });
-
-                // User Location Marker (Blue Pulse Dot)
-                const userDotIcon = L.divIcon({
-                    className: 'nav-user-dot',
-                    html: `
-                        <div class="relative flex items-center justify-center w-7 h-7">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-60"></span>
-                            <span class="relative inline-flex rounded-full h-4 w-4 bg-blue-600 border border-white shadow-lg"></span>
-                        </div>
-                    `,
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                });
-
-                navUserMarker = L.marker(latlngs[0], { icon: userDotIcon, zIndexOffset: 2000 }).addTo(navMap);
-                navAccuracyCircle = L.circle(latlngs[0], { radius: 15, color: '#3b82f6', fillOpacity: 0.12, weight: 1 }).addTo(navMap);
-
-                navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
-            }
-        }
-
-        // GPS Kalman Filter for smooth navigation without spikes
-        class NavGpsKalmanFilter {
-            constructor(decay = 3) {
-                this.variance = -1;
-                this.minAccuracy = 1;
-                this.decay = decay;
-                this.lat = 0;
-                this.lng = 0;
-                this.timestamp = 0;
-            }
-
-            process(rawLat, rawLng, accuracy, timestamp) {
-                if (accuracy < this.minAccuracy) accuracy = this.minAccuracy;
-
-                if (this.variance < 0) {
-                    this.timestamp = timestamp;
-                    this.lat = rawLat;
-                    this.lng = rawLng;
-                    this.variance = accuracy * accuracy;
-                    return { lat: rawLat, lng: rawLng };
-                }
-
-                const durationMs = timestamp - this.timestamp;
-                if (durationMs > 0) {
-                    this.variance += (durationMs / 1000) * this.decay * this.decay;
-                    this.timestamp = timestamp;
-                }
-
-                const k = this.variance / (this.variance + accuracy * accuracy);
-                this.lat += k * (rawLat - this.lat);
-                this.lng += k * (rawLng - this.lng);
-                this.variance = (1 - k) * this.variance;
-
-                return { lat: this.lat, lng: this.lng };
-            }
-        }
-
-        const navKalmanFilter = new NavGpsKalmanFilter(3);
-
-        function handleNavGpsSuccess(pos) {
-            const rawLat = pos.coords.latitude;
-            const rawLng = pos.coords.longitude;
-            const ele = pos.coords.altitude || null;
-            const accuracy = pos.coords.accuracy || 10;
-            const speedMps = pos.coords.speed;
-            const now = Date.now();
-
-            // Reject poor accuracy GPS points (> 30 meters) if recorded track already started
-            if (accuracy > 30 && recordedGpsTrack.length > 0) {
-                return;
-            }
-
-            // Apply Kalman smoothing
-            const smoothed = navKalmanFilter.process(rawLat, rawLng, accuracy, now);
-            const lat = smoothed.lat;
-            const lng = smoothed.lng;
-
-            navUserPos = { lat, lng };
-
-            // Record Breadcrumb Point for Saving Activity ONLY when session is actively running
-            if (navSessionState === 'running') {
-                if (recordedGpsTrack.length > 0) {
-                    const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
-                    const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
-                    const timeDiffSec = (now - prev.time) / 1000;
-                    
-                    // Speed anomaly check: reject if speed > 40 km/h (teleportation/glitch)
-                    const segmentSpeedKmh = timeDiffSec > 0 ? (segmentDist / (timeDiffSec / 3600)) : 0;
-                    if (segmentSpeedKmh > 40) {
-                        return; // Ignore glitch jump
-                    }
-
-                    // Filter out tiny GPS drift (< 2.5 meters)
-                    if (segmentDist > 0.0025) {
-                        recordedActualDistanceKm += segmentDist;
-                        if (ele && prev.ele && ele > prev.ele) {
-                            recordedElevationGainM += (ele - prev.ele);
-                        }
-                        recordedGpsTrack.push({ lat, lng, ele, dist: recordedActualDistanceKm, time: now });
-                    }
-                } else {
-                    recordedGpsTrack.push({ lat, lng, ele, dist: 0, time: now });
-                }
-            }
-
-            if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
-            if (navAccuracyCircle) {
-                navAccuracyCircle.setLatLng([lat, lng]);
-                navAccuracyCircle.setRadius(Math.min(accuracy, 25));
-            }
-
-            // Calculate Distance to Start Point
-            const startPt = routePoints[0] || { lat, lng, dist: 0 };
-            const distToStartM = calculateHaversine(lat, lng, startPt.lat, startPt.lng) * 1000;
-
-            // Calculate Distance to nearest route point
-            let nearestPoint = routePoints[0];
-            let minDistanceM = 999999;
-
-            routePoints.forEach((p) => {
-                const distM = calculateHaversine(lat, lng, p.lat, p.lng) * 1000;
-                if (distM < minDistanceM) {
-                    minDistanceM = distM;
-                    nearestPoint = p;
-                }
-            });
-
-            const statusLabel = document.getElementById('nav-status-label');
-            const statusTitle = document.getElementById('nav-status-title');
-            const gpsInd = document.getElementById('nav-gps-indicator');
-            const gmapsLink = document.getElementById('nav-gmaps-link');
-
-            // 1. Return to Start Mode Active
-            if (navReturnMode) {
-                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-sky-400 shrink-0';
-                if (statusLabel) {
-                    statusLabel.textContent = 'Mode Kembali ke Start';
-                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 block truncate';
-                }
-                if (statusTitle) {
-                    const distKm = (distToStartM / 1000).toFixed(2);
-                    statusTitle.textContent = `${distKm} km menuju Start`;
-                }
-
-                // Update Return Guide Line
-                if (navMap) {
-                    if (!navReturnPolyline) {
-                        navReturnPolyline = L.polyline([[lat, lng], [startPt.lat, startPt.lng]], {
-                            color: '#38bdf8',
-                            weight: 4,
-                            dashArray: '8, 8',
-                            opacity: 0.95
-                        }).addTo(navMap);
-                    } else {
-                        navReturnPolyline.setLatLngs([[lat, lng], [startPt.lat, startPt.lng]]);
-                    }
-                }
-
-                if (distToStartM <= 30) {
-                    speakVoice('Anda telah tiba kembali di titik Start.');
-                    vibratePhone([200, 100, 200]);
-                    toggleNavReturnToStart();
-                }
-            } 
-            // 2. User is Far from GPX Route (> 250m)
-            else if (minDistanceM > 250) {
-                if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 shrink-0';
-                if (statusLabel) {
-                    statusLabel.textContent = 'Menuju Titik Start';
-                    statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
-                }
-                if (statusTitle) {
-                    const distKmFormatted = (distToStartM / 1000).toFixed(1);
-                    statusTitle.textContent = `${distKmFormatted} km dari Start`;
-                }
-
-                // Show Google Maps Direct Nav Link
-                if (gmapsLink) {
-                    gmapsLink.classList.remove('hidden');
-                    gmapsLink.href = `https://www.google.com/maps/dir/?api=1&destination=${startPt.lat},${startPt.lng}&travelmode=walking`;
-                }
-            }
-            // 3. User is At / On the GPX Route
-            else {
-                if (gmapsLink) gmapsLink.classList.add('hidden');
-
-                const isOffCourseNow = minDistanceM > 45;
-                if (isOffCourseNow) {
-                    if (!navIsOffCourse) {
-                        navIsOffCourse = true;
-                        if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-rose-500 animate-ping shrink-0';
-                        if (statusLabel) {
-                            statusLabel.textContent = 'Melenceng dari Jalur';
-                            statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block truncate';
-                        }
-                        if (statusTitle) {
-                            statusTitle.textContent = `${Math.round(minDistanceM)}m di luar jalur`;
-                        }
-
-                        vibratePhone([200, 100, 200]);
-                        speakVoice(`Peringatan, Anda melenceng ${Math.round(minDistanceM)} meter dari jalur rute.`);
-                    }
-                } else {
-                    if (navIsOffCourse) {
-                        navIsOffCourse = false;
-                        speakVoice(`Anda telah kembali ke jalur rute.`);
-                    }
-
-                    if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-white-500 shrink-0';
-                    if (statusLabel) {
-                        statusLabel.textContent = 'Di Jalur Rute';
-                        statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-white-400 block truncate';
-                    }
-                    if (statusTitle) {
-                        const currentKmProgress = nearestPoint.dist || 0;
-                        const nextKmTarget = Math.floor(currentKmProgress) + 1;
-                        if (nextKmTarget <= totalRouteDistance) {
-                            const distToNextKm = (nextKmTarget - currentKmProgress) * 1000;
-                            statusTitle.textContent = `${Math.round(distToNextKm)}m menuju KM ${nextKmTarget}`;
-                        } else {
-                            statusTitle.textContent = '{{ $item->title }}';
-                        }
-                    }
-
-                    const currentKmProgress = nearestPoint.dist || 0;
-                    const completedKmInt = Math.floor(currentKmProgress);
-                    if (completedKmInt > navLastPassedKm && completedKmInt > 0) {
-                        navLastPassedKm = completedKmInt;
-                        const remaining = (totalRouteDistance - currentKmProgress).toFixed(1);
-                        speakVoice(`Kilometer ${completedKmInt} terlewati. Sisa jarak ${remaining} kilometer.`);
-                        vibratePhone([150, 100]);
-                    }
-                }
-
-                // Smoothly center on user position when running on the route
-                if (navMap) {
-                    navMap.panTo([lat, lng], { animate: true, duration: 0.8 });
-                }
-            }
-
-            // Calculate Route Progress along GPX (only when user is on or near route <= 250m)
-            let routeProgressKm = 0;
-            if (minDistanceM <= 250) {
-                routeProgressKm = Math.min(totalRouteDistance, nearestPoint.dist || 0);
-            }
-            const remainingRouteDist = Math.max(0, totalRouteDistance - routeProgressKm);
-            const progressPct = Math.min(100, Math.round((routeProgressKm / totalRouteDistance) * 100));
-
-            const progBar = document.getElementById('nav-progress-bar');
-            const progPctEl = document.getElementById('nav-progress-pct');
-            const compDistEl = document.getElementById('nav-completed-dist');
-            const remDistEl = document.getElementById('nav-remaining-dist');
-            const actualDistEl = document.getElementById('nav-actual-dist');
-
-            if (progBar) progBar.style.width = `${progressPct}%`;
-            if (progPctEl) progPctEl.textContent = `${progressPct}%`;
-            if (compDistEl) compDistEl.textContent = `${routeProgressKm.toFixed(2)} / ${totalRouteDistance.toFixed(2)} km`;
-            if (remDistEl) remDistEl.textContent = remainingRouteDist.toFixed(2);
-            if (actualDistEl) actualDistEl.textContent = recordedActualDistanceKm.toFixed(2);
-
-            const livePaceEl = document.getElementById('nav-live-pace');
-            if (livePaceEl) {
-                if (speedMps && speedMps > 0.5) {
-                    const secPerKm = 1000 / speedMps;
-                    livePaceEl.textContent = formatPaceTime(secPerKm);
-                } else {
-                    livePaceEl.textContent = '--:--';
-                }
-            }
-        }
-
-        function handleNavGpsError(err) {
-            console.warn('Nav GPS Error:', err);
-            const gpsInd = document.getElementById('nav-gps-indicator');
-            const statusLabel = document.getElementById('nav-status-label');
-            const statusTitle = document.getElementById('nav-status-title');
-            if (gpsInd) gpsInd.className = 'w-3 h-3 rounded-full bg-amber-500 animate-pulse shrink-0';
-            if (statusLabel) {
-                statusLabel.textContent = 'Mencari Sinyal GPS...';
-                statusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block truncate';
-            }
-            if (statusTitle) {
-                statusTitle.textContent = 'Pastikan GPS HP Aktif';
-            }
-        }
-
-        function recenterNavMap() {
-            if (!navMap) return;
-            // Toggle view: if currently far, switch between user position and route
-            if (navUserPos && navHasCenteredOnUser) {
-                if (navPolyline) {
-                    navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
-                    navHasCenteredOnUser = false;
-                }
-            } else if (navUserPos) {
-                navMap.setView([navUserPos.lat, navUserPos.lng], 16, { animate: true });
-                navHasCenteredOnUser = true;
-            } else if (navPolyline) {
-                navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
-            }
-        }
-
-        function toggleNavReturnToStart() {
-            navReturnMode = !navReturnMode;
-            const btnIcon = document.getElementById('nav-return-icon');
-            const returnBtn = document.getElementById('nav-btn-return-start');
-
-            if (navReturnMode) {
-                if (returnBtn) returnBtn.classList.add('text-[#FC4C02]', 'border-[#FC4C02]');
-                speakVoice('Navigasi kembali ke titik start diaktifkan.');
-            } else {
-                if (returnBtn) returnBtn.classList.remove('text-[#FC4C02]', 'border-[#FC4C02]');
-                if (navReturnPolyline && navMap) {
-                    navMap.removeLayer(navReturnPolyline);
-                    navReturnPolyline = null;
-                }
-                speakVoice('Navigasi rute normal aktif.');
-            }
-
-            if (navUserPos) {
-                handleNavGpsSuccess({ coords: { latitude: navUserPos.lat, longitude: navUserPos.lng } });
-            }
-        }
-
-        function updateNavTimer() {
-            if (navSessionState !== 'running' || !navRunStartTimestamp) return;
-            const currentRunningSec = Math.floor((Date.now() - navRunStartTimestamp) / 1000);
-            const totalElapsedSec = navAccumulatedElapsedSec + currentRunningSec;
-            const timeEl = document.getElementById('nav-running-time');
-            if (timeEl) timeEl.textContent = formatDurationTime(totalElapsedSec);
-        }
-
-        function closeLiveNavigation() {
-            const hudEl = document.getElementById('gpx-nav-hud');
-            if (hudEl) hudEl.classList.add('hidden');
-
-            // Restore floating chat widget
-            document.body.classList.remove('gpx-nav-active');
-            const chatToggle = document.getElementById('chatbox-toggle');
-            if (chatToggle) chatToggle.style.removeProperty('display');
-            const phChat = document.getElementById('ph-chatbox');
-            if (phChat) phChat.style.removeProperty('display');
-
-            if (navWatchId) {
-                navigator.geolocation.clearWatch(navWatchId);
-                navWatchId = null;
-            }
-
-            if (navTimerInterval) {
-                clearInterval(navTimerInterval);
-                navTimerInterval = null;
-            }
-
-            navSessionState = 'ready';
-            navAccumulatedElapsedSec = 0;
-            navRunStartTimestamp = null;
-
-            if (navReturnPolyline && navMap) {
-                navMap.removeLayer(navReturnPolyline);
-                navReturnPolyline = null;
-            }
-
-            releaseScreenWakeLock();
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-        }
-
-        function resetLiveNavigationSession() {
-            if (!confirm('Reset sesi lari saat ini? Jarak lari, waktu tempuh, dan rekaman rute akan kembali ke 0.')) {
-                return;
-            }
-
-            navSessionState = 'ready';
-            navAccumulatedElapsedSec = 0;
-            navRunStartTimestamp = null;
-            if (navTimerInterval) {
-                clearInterval(navTimerInterval);
-                navTimerInterval = null;
-            }
-
-            recordedActualDistanceKm = 0;
-            recordedGpsTrack = [];
-            recordedElevationGainM = 0;
-            recordedFinalSplits = [];
-            navStartTime = Date.now();
-            navLastPassedKm = 0;
-            navIsOffCourse = false;
-
-            const actualDistEl = document.getElementById('nav-actual-dist');
-            const timeEl = document.getElementById('nav-running-time');
-            const progBar = document.getElementById('nav-progress-bar');
-            const progPctEl = document.getElementById('nav-progress-pct');
-            const compDistEl = document.getElementById('nav-completed-dist');
-            const remDistEl = document.getElementById('nav-remaining-dist');
-            const livePaceEl = document.getElementById('nav-live-pace');
-
-            if (actualDistEl) actualDistEl.textContent = '0.00';
-            if (timeEl) timeEl.textContent = '00:00';
-            if (progBar) progBar.style.width = '0%';
-            if (progPctEl) progPctEl.textContent = '0%';
-            if (compDistEl) compDistEl.textContent = `0.00 / ${totalRouteDistance.toFixed(2)} km`;
-            if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
-            if (livePaceEl) livePaceEl.textContent = '--:--';
-
-            setNavUIState('ready');
-            speakVoice('Sesi lari direset ke 0.');
-        }
-
-        // Finish Navigation & Open Post-Run Summary Modal
-        function finishLiveNavigation() {
-            if (!confirm('Apakah Anda ingin menyelesaikan sesi lari dan melihat ringkasan aktivitas?')) {
-                return;
-            }
-
-            const currentRunningSec = (navSessionState === 'running' && navRunStartTimestamp) 
-                ? Math.floor((Date.now() - navRunStartTimestamp) / 1000) 
-                : 0;
-            const elapsedSec = navAccumulatedElapsedSec + currentRunningSec;
-            closeLiveNavigation();
-
-            // Calculate Final Metrics
-            const finalDist = recordedActualDistanceKm > 0.05 ? recordedActualDistanceKm : totalRouteDistance;
-            const avgPaceSec = finalDist > 0 && elapsedSec > 0 ? Math.round(elapsedSec / finalDist) : 0;
-
-            // Generate Recorded Splits
-            recordedFinalSplits = [];
-            const wholeKm = Math.ceil(finalDist);
-            let cumSec = 0;
-            for (let k = 1; k <= wholeKm; k++) {
-                const segDist = k > finalDist ? (finalDist - (k - 1)) : 1;
-                const splitSec = Math.round(avgPaceSec * segDist);
-                cumSec += splitSec;
-                recordedFinalSplits.push({
-                    km: k,
-                    pace: formatPaceTime(avgPaceSec) + ' /km',
-                    split: formatDurationTime(splitSec),
-                    cum: formatDurationTime(cumSec),
-                    elev: '-'
-                });
-            }
-
-            // Populate Modal Metrics
-            document.getElementById('summary-distance').textContent = finalDist.toFixed(2) + ' km';
-            document.getElementById('summary-time').textContent = formatDurationTime(elapsedSec);
-            document.getElementById('summary-pace').textContent = formatPaceTime(avgPaceSec) + ' /km';
-            document.getElementById('summary-gain').textContent = '+' + Math.round(recordedElevationGainM) + 'm';
-
-            const titleInput = document.getElementById('act-form-title');
-            if (titleInput) {
-                titleInput.value = 'Lari di ' + routeTitle;
-            }
-
-            // Show Post-Run Modal
-            const modal = document.getElementById('post-run-modal');
-            if (modal) modal.classList.remove('hidden');
-
-            speakVoice('Selamat! Sesi lari Anda telah selesai.');
-        }
-
-        function closePostRunModal() {
-            const modal = document.getElementById('post-run-modal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function submitSaveActivity(e) {
-            e.preventDefault();
-
-            const title = document.getElementById('act-form-title')?.value || 'Aktivitas Lari';
-            const notes = document.getElementById('act-form-notes')?.value || '';
-            const isPublic = document.getElementById('act-form-public')?.checked ?? true;
-            const elapsedSec = navStartTime ? Math.floor((Date.now() - navStartTime) / 1000) : 60;
-            const finalDist = recordedActualDistanceKm > 0.05 ? recordedActualDistanceKm : totalRouteDistance;
-            const avgPaceSec = finalDist > 0 && elapsedSec > 0 ? Math.round(elapsedSec / finalDist) : 0;
-
-            const submitBtn = document.getElementById('btn-save-activity-submit');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> Menyimpan...';
-            }
-
-            const payload = {
-                title: title,
-                master_gpx_id: currentMasterGpxId,
-                distance_km: finalDist,
-                moving_time_s: elapsedSec,
-                elapsed_time_s: elapsedSec,
-                avg_pace_sec: avgPaceSec,
-                elevation_gain_m: recordedElevationGainM,
-                coordinates_json: recordedGpsTrack.length > 0 ? recordedGpsTrack : rawRouteCoords,
-                splits_json: recordedFinalSplits,
-                notes: notes,
-                is_public: isPublic ? 1 : 0
-            };
-
-            // If offline, queue directly to localStorage
-            if (!navigator.onLine) {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
-                }
-                queueActivityForOfflineSync(payload);
-                return;
-            }
-
-            fetch("{{ route('activities.store') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    alert(data.message || 'Gagal menyimpan aktivitas.');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
-                    }
-                }
-            })
-            .catch(err => {
-                console.warn('Network error during save, queueing offline:', err);
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs"></i> Simpan Aktivitas ke Profil';
-                }
-                // Fallback to offline queue
-                queueActivityForOfflineSync(payload);
-            });
-        }
-
-        function queueActivityForOfflineSync(payload) {
-            try {
-                const queueKey = 'ruanglari_pending_activities';
-                const queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
-                payload.offline_id = 'act_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                payload.queued_at = new Date().toISOString();
-                queue.push(payload);
-                localStorage.setItem(queueKey, JSON.stringify(queue));
-
-                closePostRunModal();
-
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Aktivitas Tersimpan di HP',
-                        html: `
-                            <div class="text-left space-y-2.5 text-xs text-slate-300">
-                                <p class="leading-relaxed">
-                                    Karena sedang offline, sesi lari <strong class="text-white">${payload.title}</strong> (${payload.distance_km.toFixed(2)} km) telah diamankan di memori lokal HP Anda.
-                                </p>
-                                <div class="p-3 rounded-xl bg-[#111724] border border-slate-800 text-xs text-emerald-400 flex items-center gap-2" style="background-color: #111724 !important;">
-                                    <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
-                                    <span>Akan otomatis diunggah ke database saat HP terhubung ke internet.</span>
-                                </div>
-                            </div>
-                        `,
-                        background: '#0c121e',
-                        color: '#fff',
-                        confirmButtonColor: '#334155',
-                        confirmButtonText: 'Tutup',
-                        showCancelButton: true,
-                        cancelButtonText: 'Download File GPX',
-                        cancelButtonColor: '#1e293b',
-                        customClass: {
-                            confirmButton: 'text-white font-bold',
-                            cancelButton: 'text-slate-300 font-semibold'
-                        }
-                    }).then((result) => {
-                        if (result.dismiss === Swal.DismissReason.cancel) {
-                            exportRecordedGpxDirectly();
-                        }
-                    });
-                } else {
-                    alert(`Aktivitas "${payload.title}" aman tersimpan di memori HP. Akan otomatis tersinkronisasi ke profil saat ada sinyal internet.`);
-                }
-            } catch (err) {
-                console.error('Queue save error:', err);
-                alert('Gagal menyimpan aktivitas ke memori offline HP.');
-            }
-        }
-
-        async function syncPendingActivities() {
-            if (!navigator.onLine) return;
-            const queueKey = 'ruanglari_pending_activities';
-            let queue = [];
-            try {
-                queue = JSON.parse(localStorage.getItem(queueKey) || '[]');
-            } catch (e) {
-                queue = [];
-            }
-            if (queue.length === 0) return;
-
-            console.log(`[RuangLari Offline Sync] Sinkronisasi ${queue.length} aktivitas tertunda...`);
-            const remainingQueue = [];
-
-            for (const act of queue) {
-                try {
-                    const res = await fetch("{{ route('activities.store') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(act)
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        console.log(`[RuangLari Offline Sync] Berhasil sync: ${act.title}`);
-                        if (typeof Swal !== 'undefined') {
-                            const Toast = Swal.mixin({
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 5000,
-                                timerProgressBar: true,
-                                background: '#0c121e',
-                                color: '#fff'
-                            });
-                            Toast.fire({
-                                icon: 'success',
-                                title: `Aktivitas "${act.title}" (${act.distance_km} km) berhasil disinkronkan ke profil!`
-                            });
-                        }
-                    } else {
-                        remainingQueue.push(act);
-                    }
-                } catch (e) {
-                    console.warn(`[RuangLari Offline Sync] Gagal sync aktivitas:`, e);
-                    remainingQueue.push(act);
-                }
-            }
-
-            localStorage.setItem(queueKey, JSON.stringify(remainingQueue));
-        }
-
-        function exportRecordedGpxDirectly() {
-            const track = recordedGpsTrack.length > 0 ? recordedGpsTrack : rawRouteCoords;
-            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="RuangLari.com"><trk><name>' + routeTitle + '</name><trkseg>\n';
-            track.forEach(p => {
-                const lat = p.lat !== undefined ? p.lat : p[0];
-                const lng = p.lng !== undefined ? p.lng : p[1];
-                const ele = p.ele !== undefined ? p.ele : (p[2] || 0);
-                xml += `  <trkpt lat="${lat}" lon="${lng}"><ele>${ele}</ele></trkpt>\n`;
-            });
-            xml += '</trkseg></trk></gpx>';
-
-            const blob = new Blob([xml], { type: 'application/gpx+xml;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Aktivitas_${slugify(routeTitle)}.gpx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function toggleNavAudio() {
-            navAudioEnabled = !navAudioEnabled;
-            const icon = document.getElementById('nav-audio-icon');
-            if (icon) {
-                if (navAudioEnabled) {
-                    icon.className = 'fa-solid fa-volume-high text-xs text-[#FC4C02]';
-                    speakVoice('Suara navigasi aktif.');
-                } else {
-                    icon.className = 'fa-solid fa-volume-xmark text-xs text-slate-500';
-                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-                }
-            }
-        }
-
-        function speakVoice(text) {
-            if (!navAudioEnabled) return;
-            const now = Date.now();
-            if (now - navLastSpokenTime < 2500) return;
-            navLastSpokenTime = now;
-
-            try {
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'id-ID';
-                    utterance.rate = 1.05;
-                    utterance.pitch = 1.0;
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    playToneBeep(520, 180);
-                }
-            } catch (e) {
-                playToneBeep(520, 180);
-            }
-        }
-
-        function playToneBeep(freq, duration) {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq || 440;
-                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration / 1000));
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + (duration / 1000));
-            } catch (e) {}
-        }
-
-        function vibratePhone(pattern) {
-            try {
-                if (navigator.vibrate) navigator.vibrate(pattern);
-            } catch (e) {}
-        }
-
-        async function requestScreenWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    navWakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (e) {
-                console.log('Screen WakeLock:', e);
-            }
-        }
-
-        function releaseScreenWakeLock() {
-            if (navWakeLock) {
-                navWakeLock.release().catch(() => {});
-                navWakeLock = null;
-            }
-        }
-
-        // =========================================================================
-        // Helper Calculation Functions
-        // =========================================================================
+        // Helpers
         function calculateHaversine(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
         }
 
         function formatPaceTime(seconds) {
-            if (isNaN(seconds) || !isFinite(seconds) || seconds <= 0 || seconds > 3600) return '--:--';
+            if (isNaN(seconds) || seconds <= 0) return '--:--';
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return `${m}:${String(s).padStart(2, '0')}`;
@@ -2858,305 +1165,44 @@
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = Math.floor(seconds % 60);
-            if (h > 0) {
-                return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function toggleKmMarkers() {
+            showKmMarkers = !showKmMarkers;
+            if (showKmMarkers) map.addLayer(kmMarkersLayer);
+            else map.removeLayer(kmMarkersLayer);
+            const badge = document.getElementById('badge-km-toggle-state');
+            if (badge) {
+                badge.textContent = showKmMarkers ? 'ON' : 'OFF';
+                badge.className = showKmMarkers ? 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold' : 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-mono font-bold';
             }
-            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
-        function copyPaceStrategy() {
-            if (!lastPaceTableData || lastPaceTableData.length === 0) return;
-            const title = "{{ addslashes($item->title) }}";
-            let text = `STRATEGI PACEPRO: ${title}\n`;
-            text += `Jarak: ${totalRouteDistance.toFixed(2)} km | Elevasi: +${totalElevationGain}m\n`;
-            text += `Target: ${document.getElementById('pp-target-total-time')?.textContent || ''} (Avg Pace: ${document.getElementById('pp-avg-pace')?.textContent || ''})\n\n`;
-            text += `KM | Pace | Split | Waktu Kumulatif\n`;
-            text += `---------------------------------\n`;
-            lastPaceTableData.forEach(r => {
-                text += `KM ${r.km} : ${r.pace}/km | Split ${r.split} | ${r.cum}\n`;
-            });
-            text += `\nRuangLari PacePro: ${window.location.href}`;
-
-            navigator.clipboard.writeText(text).then(() => {
-                const btnText = document.getElementById('pp-copy-text');
-                if (btnText) {
-                    btnText.textContent = 'Tersalin!';
-                    setTimeout(() => btnText.textContent = 'Salin', 2500);
-                }
-            });
+        function toggleMapLayerMenu() {
+            document.getElementById('map-layer-menu')?.classList.toggle('hidden');
         }
 
-        function exportPaceCsv() {
-            if (!lastPaceTableData || lastPaceTableData.length === 0) return;
-            let csv = 'KM,Target Pace,Waktu Split,Waktu Kumulatif,Elevasi\n';
-            lastPaceTableData.forEach(r => {
-                csv += `${r.km},"${r.pace}","/km","${r.split}","${r.cum}","${r.elev}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `PacePro_${slugify("{{ $item->title }}")}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        function setMapLayer(type) {
+            if (!map || !baseTileLayers[type]) return;
+            if (activeTileLayer) map.removeLayer(activeTileLayer);
+            activeTileLayer = baseTileLayers[type];
+            activeTileLayer.addTo(map);
+            document.getElementById('label-active-map-layer').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            document.querySelectorAll('.layer-check-dark, .layer-check-street, .layer-check-satellite').forEach(el => el.classList.add('hidden'));
+            document.querySelector('.layer-check-' + type)?.classList.remove('hidden');
+            document.getElementById('map-layer-menu')?.classList.add('hidden');
         }
 
-        function slugify(text) {
-            return text.toString().toLowerCase()
-                .replace(/\s+/g, '_')
-                .replace(/[^\w\-]+/g, '')
-                .replace(/\-\-+/g, '_');
+        function fitRouteBounds() {
+            if (map && baseRouteLine) map.fitBounds(baseRouteLine.getBounds(), { padding: [35, 35] });
         }
 
         function shareGpxRoute() {
             if (navigator.share) {
-                navigator.share({
-                    title: "{{ e($item->title) }}",
-                    text: "{{ e($pageDesc) }}",
-                    url: window.location.href,
-                }).catch(() => {});
+                navigator.share({ title: "{{ e($item->title) }}", url: window.location.href }).catch(() => {});
             } else {
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    alert('Link rute GPX berhasil disalin ke clipboard!');
-                });
-            }
-        }
-
-        // ==========================================
-        // OFFLINE ROUTE & MAP TILES CACHING ENGINE
-        // ==========================================
-        const OFFLINE_CACHE_NAME = 'ruanglari-gpx-offline-v1';
-        const OFFLINE_STORAGE_KEY = 'ruanglari_gpx_offline_' + currentMasterGpxId;
-
-        function checkOfflineRouteStatus() {
-            try {
-                const saved = localStorage.getItem(OFFLINE_STORAGE_KEY);
-                const btnIcon = document.getElementById('icon-offline-btn');
-                const btnLabel = document.getElementById('label-offline-btn');
-                const navBtnIcon = document.getElementById('nav-offline-icon-hud');
-                const statusBanner = document.getElementById('offline-status-banner');
-                const statusIcon = document.getElementById('offline-status-icon');
-                const statusTitle = document.getElementById('offline-status-title');
-                const statusDesc = document.getElementById('offline-status-desc');
-                const btnDelete = document.getElementById('btn-delete-offline-cache');
-                const btnStart = document.getElementById('btn-start-offline-download');
-                const btnStartText = document.getElementById('btn-start-offline-text');
-
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    const savedDate = new Date(data.savedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-                    
-                    if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-circle-check text-[11px] text-emerald-400';
-                    }
-                    if (btnLabel) {
-                        btnLabel.textContent = 'Offline Siap';
-                        btnLabel.className = 'text-emerald-400 font-semibold';
-                    }
-                    if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-circle-check text-sm text-emerald-400';
-                    }
-                    if (statusBanner) {
-                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-[#111724] border-emerald-500/40 text-emerald-300';
-                    }
-                    if (statusIcon) {
-                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-emerald-400';
-                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-                    }
-                    if (statusTitle) {
-                        statusTitle.textContent = 'Status: Tersimpan di HP (Offline Siap)';
-                    }
-                    if (statusDesc) {
-                        statusDesc.textContent = `Peta & rute (${data.tileCount || 0} tile) tersimpan sejak ${savedDate}. Siap digunakan di gunung tanpa internet.`;
-                    }
-                    if (btnDelete) {
-                        btnDelete.classList.remove('hidden');
-                    }
-                    if (btnStart) {
-                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-md';
-                    }
-                    if (btnStartText) {
-                        btnStartText.textContent = 'Perbarui Cache Offline';
-                    }
-                } else {
-                    if (btnIcon) {
-                        btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-white';
-                    }
-                    if (btnLabel) {
-                        btnLabel.textContent = 'Offline';
-                        btnLabel.className = 'text-slate-200';
-                    }
-                    if (navBtnIcon) {
-                        navBtnIcon.className = 'fa-solid fa-cloud-arrow-down text-sm text-white';
-                    }
-                    if (statusBanner) {
-                        statusBanner.className = 'p-3.5 rounded-xl border flex items-start gap-3 text-xs bg-[#111724] border-slate-800';
-                    }
-                    if (statusIcon) {
-                        statusIcon.className = 'mt-0.5 text-base shrink-0 text-amber-400';
-                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
-                    }
-                    if (statusTitle) {
-                        statusTitle.textContent = 'Status: Belum Tersimpan Offline';
-                    }
-                    if (statusDesc) {
-                        statusDesc.textContent = 'Unduh data lintasan & tile peta resolusi tinggi saat masih ada Wi-Fi/sinyal di basecamp.';
-                    }
-                    if (btnDelete) {
-                        btnDelete.classList.add('hidden');
-                    }
-                    if (btnStart) {
-                        btnStart.className = 'px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer border border-slate-700 shadow-md';
-                    }
-                    if (btnStartText) {
-                        btnStartText.textContent = 'Simpan Rute Sekarang';
-                    }
-                }
-            } catch (e) {
-                console.warn('Offline cache status check error:', e);
-            }
-        }
-
-        function openOfflineCacheModal() {
-            checkOfflineRouteStatus();
-            const modal = document.getElementById('modal-gpx-offline-cache');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeOfflineCacheModal() {
-            const modal = document.getElementById('modal-gpx-offline-cache');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function latLngToTile(lat, lng, zoom) {
-            const n = Math.pow(2, zoom);
-            const rad = lat * Math.PI / 180;
-            const x = Math.floor((lng + 180) / 360 * n);
-            const y = Math.floor((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n);
-            return { x, y, z: zoom };
-        }
-
-        function generateRouteTileUrls() {
-            if (!routePoints || routePoints.length === 0) return [];
-
-            const tileSet = new Set();
-            const zoomLevels = [13, 14, 15, 16];
-            const subdomains = ['a', 'b', 'c', 'd'];
-
-            // Sample points along route to avoid excessive memory
-            const sampleStep = Math.max(1, Math.floor(routePoints.length / 80));
-            const sampledPoints = [];
-            for (let i = 0; i < routePoints.length; i += sampleStep) {
-                sampledPoints.push(routePoints[i]);
-            }
-            if (routePoints.length > 0) sampledPoints.push(routePoints[routePoints.length - 1]);
-
-            zoomLevels.forEach(z => {
-                sampledPoints.forEach(p => {
-                    const center = latLngToTile(p.lat, p.lng, z);
-                    for (let dx = -1; dx <= 1; dx++) {
-                        for (let dy = -1; dy <= 1; dy++) {
-                            const sub = subdomains[Math.abs((center.x + dx + center.y + dy)) % subdomains.length];
-                            const tileKey = `${z}/${center.x + dx}/${center.y + dy}`;
-                            tileSet.add(`https://${sub}.basemaps.cartocdn.com/rastertiles/voyager/${tileKey}.png`);
-                        }
-                    }
-                });
-            });
-
-            return Array.from(tileSet);
-        }
-
-        async function startOfflineRouteCaching() {
-            if (!('caches' in window)) {
-                alert('Browser ini tidak mendukung Cache Storage. Gunakan Chrome, Safari, atau Firefox versi terbaru.');
-                return;
-            }
-
-            const urls = generateRouteTileUrls();
-            if (urls.length === 0) {
-                alert('Tidak ada koordinat rute yang dapat diunduh.');
-                return;
-            }
-
-            const progressWrap = document.getElementById('offline-progress-wrap');
-            const progressBar = document.getElementById('offline-progress-bar');
-            const progressPercent = document.getElementById('offline-progress-percent');
-            const progressDetail = document.getElementById('offline-progress-detail');
-            const progressCount = document.getElementById('offline-progress-count');
-            const btnStart = document.getElementById('btn-start-offline-download');
-
-            if (progressWrap) progressWrap.classList.remove('hidden');
-            if (btnStart) btnStart.disabled = true;
-
-            try {
-                const cache = await caches.open(OFFLINE_CACHE_NAME);
-                let completed = 0;
-                const total = urls.length;
-
-                // Concurrent fetch in chunks
-                const batchSize = 6;
-                for (let i = 0; i < total; i += batchSize) {
-                    const chunk = urls.slice(i, i + batchSize);
-                    await Promise.all(chunk.map(async url => {
-                        try {
-                            const match = await cache.match(url);
-                            if (!match) {
-                                const response = await fetch(url, { mode: 'cors' });
-                                if (response.ok) {
-                                    await cache.put(url, response);
-                                }
-                            }
-                        } catch (err) {
-                            // Non-blocking single tile error
-                        }
-                        completed++;
-                        const pct = Math.round((completed / total) * 100);
-                        if (progressBar) progressBar.style.width = pct + '%';
-                        if (progressPercent) progressPercent.textContent = pct + '%';
-                        if (progressCount) progressCount.textContent = `${completed} / ${total}`;
-                        if (progressDetail) progressDetail.textContent = `Menyimpan tile peta (${pct}%)...`;
-                    }));
-                }
-
-                // Save Route Metadata & Geometry in localStorage
-                localStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify({
-                    id: currentMasterGpxId,
-                    title: routeTitle,
-                    savedAt: Date.now(),
-                    tileCount: total,
-                    pointsCount: routePoints.length,
-                    distanceKm: totalRouteDistance,
-                    elevationGain: totalElevationGain
-                }));
-
-                checkOfflineRouteStatus();
-
-                if (progressDetail) progressDetail.textContent = '100% Selesai! Peta offline siap dipakai di gunung.';
-                setTimeout(() => {
-                    if (progressWrap) progressWrap.classList.add('hidden');
-                }, 2000);
-
-            } catch (err) {
-                console.error('Offline caching error:', err);
-                alert('Gagal menyimpan beberapa data offline. Pastikan memori browser Anda mencukupi.');
-            } finally {
-                if (btnStart) btnStart.disabled = false;
-            }
-        }
-
-        async function deleteOfflineRouteCache() {
-            if (!confirm('Hapus data peta & rute offline untuk rute ini?')) return;
-
-            try {
-                localStorage.removeItem(OFFLINE_STORAGE_KEY);
-                checkOfflineRouteStatus();
-                alert('Cache rute offline berhasil dibersihkan.');
-            } catch (e) {
-                console.error(e);
+                navigator.clipboard.writeText(window.location.href).then(() => alert('Link berhasil disalin!'));
             }
         }
     </script>
