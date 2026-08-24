@@ -293,16 +293,16 @@
                             <span id="label-active-map-layer" class="hidden xs:inline">Voyager Light</span>
                             <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
                         </button>
-                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0b1220] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800">
-                            <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800" style="background-color: #0c121e !important; opacity: 1 !important;">
+                            <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Voyager Light</span>
                                 <span class="layer-check-street text-[#FC4C02] text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
                             </button>
-                            <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                            <button type="button" onclick="setMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Dark Mode</span>
                                 <span class="layer-check-dark text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
                             </button>
-                            <button type="button" onclick="setMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800/80 hover:text-white flex items-center justify-between cursor-pointer transition">
+                            <button type="button" onclick="setMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Satelit Topo</span>
                                 <span class="layer-check-satellite text-[#FC4C02] text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
                             </button>
@@ -330,24 +330,64 @@
             <div class="relative overflow-hidden">
                 <div id="gpx-detail-map" class="relative"></div>
 
-                <!-- Floating Live Telemetry HUD (Top-Right) -->
-                <div id="gpx-live-telemetry-hud" class="hidden absolute top-3 right-3 z-[990] bg-[#070B12]/90 backdrop-blur-md border border-slate-700/80 rounded-xl p-3 shadow-2xl space-y-2 max-w-[260px] sm:max-w-[300px]">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            LIVE SIMULASI
+                <!-- Floating Live Telemetry HUD (Top-Right) matching UI reference -->
+                <div id="gpx-live-telemetry-hud" class="hidden absolute top-3 right-3 sm:top-4 sm:right-4 z-[990] bg-[#070B12] border border-slate-700/90 rounded-[20px] p-3.5 sm:p-4 shadow-2xl space-y-3 w-[290px] sm:w-[320px] text-white select-none pointer-events-auto" style="background-color: #070B12 !important; opacity: 1 !important;">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+                            <span class="text-xs font-bold font-mono tracking-wider text-slate-200 uppercase">LIVE TELEMETRY</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-950/80 text-emerald-400 text-[10px] font-bold tracking-wider uppercase font-mono">
+                            2D EXPLORER
                         </span>
-                        <span id="anim-telemetry-slope" class="text-[10px] font-mono font-bold text-slate-300">0.0% (Datar)</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-center font-mono">
-                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                            <span class="text-[9px] text-slate-400 uppercase block">Ketinggian</span>
-                            <span id="anim-telemetry-elev" class="text-base font-black text-white">0 m</span>
+
+                    <!-- Main Elevation & Gauge Row -->
+                    <div class="flex items-center justify-between gap-3 pt-0.5">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                                <i class="fa-solid fa-chart-line text-[#FC4C02] text-xs"></i>
+                                <span>Ketinggian Rute</span>
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span id="anim-telemetry-elev" class="text-3xl sm:text-4xl font-black text-white tracking-tight font-mono">0</span>
+                                <span class="text-xs sm:text-sm font-semibold text-slate-400">m mdpl</span>
+                            </div>
                         </div>
-                        <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                            <span class="text-[9px] text-slate-400 uppercase block">Jarak Rute</span>
-                            <span id="anim-telemetry-km" class="text-base font-black text-[#FC4C02]">0.00 km</span>
+
+                        <!-- Gauge Box -->
+                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 px-3 flex flex-col items-center justify-center shrink-0 w-16 sm:w-20">
+                            <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase font-mono mb-1.5">GAUGE</span>
+                            <div class="w-3.5 h-11 bg-slate-800 rounded-full p-0.5 relative overflow-hidden flex flex-col justify-end">
+                                <div id="anim-gauge-bar" class="w-full bg-gradient-to-t from-emerald-500 via-yellow-400 to-[#FC4C02] rounded-full transition-all duration-150" style="height: 30%;"></div>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- 2 Sub Metric Cards -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Distance Card -->
+                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2.5 space-y-1">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">JARAK TEMPUH</span>
+                            <div class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                                <span id="anim-telemetry-km" class="text-white">0.00</span> / {{ $formattedDist }} KM
+                            </div>
+                        </div>
+
+                        <!-- Slope Card -->
+                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2.5 space-y-1">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">KEMIRINGAN</span>
+                            <div id="anim-telemetry-slope" class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                                — 0.0% (Datar)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Status Banner -->
+                    <div class="bg-[#111724] border border-slate-800 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold text-slate-200">
+                        <i class="fa-solid fa-flag text-rose-500 text-xs shrink-0"></i>
+                        <span id="anim-telemetry-status-text" class="truncate">Lintasan Lari KM 0.0 — Bersiap!</span>
                     </div>
                 </div>
 
@@ -975,11 +1015,23 @@
             const timeEl = document.getElementById('anim-telemetry-time');
             const slider = document.getElementById('anim-progress-slider');
             const slopeEl = document.getElementById('anim-telemetry-slope');
+            const gaugeBar = document.getElementById('anim-gauge-bar');
+            const statusEl = document.getElementById('anim-telemetry-status-text');
 
-            if (kmEl) kmEl.textContent = pt.dist.toFixed(2) + ' km';
-            if (elevEl) elevEl.textContent = Math.round(pt.ele) + ' m';
+            if (kmEl) kmEl.textContent = pt.dist.toFixed(2);
+            if (elevEl) elevEl.textContent = Math.round(pt.ele);
             if (slider) slider.value = Math.round(ratio * 1000);
             if (timeEl) timeEl.textContent = formatDurationTime(pt.dist * 300);
+
+            // Gauge Bar Calculation (0 - 100% relative to min/max elevation)
+            if (gaugeBar && routePoints && routePoints.length > 0) {
+                const allEles = routePoints.map(p => p.ele || 0);
+                const minE = Math.min(...allEles);
+                const maxE = Math.max(...allEles);
+                const rangeE = Math.max(1, maxE - minE);
+                const pct = Math.max(8, Math.min(100, Math.round(((pt.ele - minE) / rangeE) * 100)));
+                gaugeBar.style.height = `${pct}%`;
+            }
 
             // Marker position & rotation
             if (animRunnerMarker) {
@@ -995,14 +1047,27 @@
                         if (rotator) rotator.style.transform = `rotate(${currentHeading.toFixed(1)}deg)`;
                     }
 
-                    // Slope indicator
+                    // Slope calculation & Status Message
                     const dElev = pNext.ele - pt.ele;
                     const dDist = Math.max(0.001, pNext.dist - pt.dist);
-                    const slope = ((dElev / (dDist * 1000)) * 100).toFixed(1);
+                    const slopeVal = parseFloat(((dElev / (dDist * 1000)) * 100).toFixed(1));
                     if (slopeEl) {
-                        if (slope > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slope}% (Naik)</span>`;
-                        else if (slope < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slope}% (Turun)</span>`;
-                        else slopeEl.innerHTML = `<span class="text-slate-400 font-bold">0.0% (Datar)</span>`;
+                        if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}% (Naik)</span>`;
+                        else if (slopeVal < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}% (Turun)</span>`;
+                        else slopeEl.innerHTML = `<span class="text-slate-300 font-bold">— 0.0% (Datar)</span>`;
+                    }
+
+                    if (statusEl) {
+                        const curKm = pt.dist.toFixed(1);
+                        if (ratio >= 0.98) {
+                            statusEl.textContent = `Finish Line! Rute Selesai!`;
+                        } else if (slopeVal > 3.0) {
+                            statusEl.textContent = `Tanjakan KM ${curKm} — Atur Pace & Napas!`;
+                        } else if (slopeVal < -3.0) {
+                            statusEl.textContent = `Turunan KM ${curKm} — Manfaatkan Gravitasi!`;
+                        } else {
+                            statusEl.textContent = `Lintasan Lari KM ${curKm} — Terus Melaju!`;
+                        }
                     }
                 }
             }
