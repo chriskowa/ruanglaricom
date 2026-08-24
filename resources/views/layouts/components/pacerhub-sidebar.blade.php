@@ -261,6 +261,15 @@
                                 </a>
                             </li>
                             <li>
+                                <button type="button" onclick="openGlobalPbModal()" class="{{ $linkBaseClass }} {{ $inactiveClass }} w-full text-left">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-neon"><i class="fas fa-stopwatch"></i></span>
+                                    <span class="flex items-center justify-between w-full">
+                                        <span>Update PB</span>
+                                        <span class="text-[9px] bg-neon/15 text-neon border border-neon/30 px-1.5 py-0.5 rounded-full font-bold">Rekor</span>
+                                    </span>
+                                </button>
+                            </li>
+                            <li>
                                 @if(auth()->user()->strava_access_token)
                                     <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan koneksi (Unauthorize) Strava?');" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}" title="Klik untuk melepaskan otorisasi Strava">
                                         <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
@@ -581,3 +590,5 @@
     @endauth
 
 </aside>
+
+@include('layouts.partials.update-pb-modal')

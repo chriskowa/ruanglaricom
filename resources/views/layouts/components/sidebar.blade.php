@@ -64,6 +64,10 @@
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
+                    <li><a class="ai-icon text-neon" href="javascript:void(0)" onclick="openGlobalPbModal()" aria-expanded="false">
+                        <i class="flaticon-381-clock text-neon"></i>
+                        <span class="nav-text font-bold">Update PB</span>
+                    </a></li>
                     <li><a class="ai-icon text-[#FC4C02]" href="{{ route('runner.strava.connect') }}" aria-expanded="false">
                         <i class="fab fa-strava text-[#FC4C02]"></i>
                         <span class="nav-text">Koneksi Strava</span>
