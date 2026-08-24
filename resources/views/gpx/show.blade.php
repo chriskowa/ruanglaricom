@@ -812,28 +812,27 @@
             if (validCoords.length > 0) {
                 const latlngs = validCoords.map(p => [p.lat, p.lng]);
 
-                // Layer 1: Base Silent Path
+                // Main Route: Bold Strava Athletic Orange (#FC4C02)
                 baseRouteLine = L.polyline(latlngs, {
-                    color: '#334155',
-                    weight: 5,
-                    opacity: 0.8,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                }).addTo(map);
-
-                // Layer 2: Neon Glow Path (Pancaran Cahaya Tebal)
-                animGlowLine = L.polyline([], {
                     color: '#FC4C02',
-                    weight: 12,
-                    opacity: 0.55,
+                    weight: 5,
+                    opacity: 0.95,
                     lineCap: 'round',
                     lineJoin: 'round',
                 }).addTo(map);
 
-                // Layer 3: Neon Core Line (Inti Garis Tajam)
+                // Animation Replay Highlights
+                animGlowLine = L.polyline([], {
+                    color: '#FFE600',
+                    weight: 8,
+                    opacity: 0.75,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                }).addTo(map);
+
                 animActiveLine = L.polyline([], {
-                    color: '#FF7A45',
-                    weight: 4,
+                    color: '#FFFFFF',
+                    weight: 3,
                     opacity: 1.0,
                     lineCap: 'round',
                     lineJoin: 'round',
@@ -924,6 +923,17 @@
             }
         }
 
+        function togglePlayPauseAnimation() {
+            if (isAnimPlaying) {
+                pauseAnimation();
+            } else {
+                if (animProgressRatio >= 1.0) {
+                    animProgressRatio = 0.0;
+                }
+                startAnimation();
+            }
+        }
+
         function startAnimation() {
             initAnimatorLayers();
             isAnimPlaying = true;
@@ -992,7 +1002,7 @@
                 const p2 = routePoints[i + 1];
                 if (targetDist >= p1.dist && targetDist <= p2.dist) {
                     const span = (p2.dist - p1.dist) || 0.0001;
-                    const frac = (targetDist - p1.dist) / span;
+                    const frac = Math.max(0, Math.min(1, (targetDist - p1.dist) / span));
                     return {
                         lat: p1.lat + (p2.lat - p1.lat) * frac,
                         lng: p1.lng + (p2.lng - p1.lng) * frac,
@@ -1028,16 +1038,45 @@
                 const allEles = routePoints.map(p => p.ele || 0);
                 const minE = Math.min(...allEles);
                 const maxE = Math.max(...allEles);
-                const rangeE = Math.max(1, maxE - minE);
+                const rangeE = Math.max(5, maxE - minE);
                 const pct = Math.max(8, Math.min(100, Math.round(((pt.ele - minE) / rangeE) * 100)));
                 gaugeBar.style.height = `${pct}%`;
+            }
+
+            // Slope Calculation & Dynamic Status Message
+            const prevIdx = Math.max(0, pt.index - 1);
+            const nextIdx = Math.min(routePoints.length - 1, pt.index + 1);
+            const pPrev = routePoints[prevIdx];
+            const pNext = routePoints[nextIdx];
+
+            if (pNext && pPrev) {
+                const dElev = (pNext.ele || 0) - (pPrev.ele || 0);
+                const dDist = Math.max(0.005, (pNext.dist || 0) - (pPrev.dist || 0));
+                const slopeVal = parseFloat(((dElev / (dDist * 1000)) * 100).toFixed(1));
+
+                if (slopeEl) {
+                    if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}% (Naik)</span>`;
+                    else if (slopeVal < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}% (Turun)</span>`;
+                    else slopeEl.innerHTML = `<span class="text-slate-300 font-bold">— 0.0% (Datar)</span>`;
+                }
+
+                if (statusEl) {
+                    const curKm = pt.dist.toFixed(1);
+                    if (ratio >= 0.98) {
+                        statusEl.textContent = `Finish Line! Rute Selesai!`;
+                    } else if (slopeVal > 3.0) {
+                        statusEl.textContent = `Tanjakan KM ${curKm} — Atur Pace & Napas!`;
+                    } else if (slopeVal < -3.0) {
+                        statusEl.textContent = `Turunan KM ${curKm} — Manfaatkan Gravitasi!`;
+                    } else {
+                        statusEl.textContent = `Lintasan Lari KM ${curKm} — Terus Melaju!`;
+                    }
+                }
             }
 
             // Marker position & rotation
             if (animRunnerMarker) {
                 animRunnerMarker.setLatLng([pt.lat, pt.lng]);
-                const nextIdx = Math.min(routePoints.length - 1, pt.index + 1);
-                const pNext = routePoints[nextIdx];
                 if (pNext && (pNext.lat !== pt.lat || pNext.lng !== pt.lng)) {
                     const targetBearing = getBearing(pt.lat, pt.lng, pNext.lat, pNext.lng);
                     currentHeading = lerpAngle(currentHeading, targetBearing, 0.35);
@@ -1045,29 +1084,6 @@
                     if (markerEl) {
                         const rotator = markerEl.querySelector('.runner-arrow-rotator');
                         if (rotator) rotator.style.transform = `rotate(${currentHeading.toFixed(1)}deg)`;
-                    }
-
-                    // Slope calculation & Status Message
-                    const dElev = pNext.ele - pt.ele;
-                    const dDist = Math.max(0.001, pNext.dist - pt.dist);
-                    const slopeVal = parseFloat(((dElev / (dDist * 1000)) * 100).toFixed(1));
-                    if (slopeEl) {
-                        if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}% (Naik)</span>`;
-                        else if (slopeVal < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}% (Turun)</span>`;
-                        else slopeEl.innerHTML = `<span class="text-slate-300 font-bold">— 0.0% (Datar)</span>`;
-                    }
-
-                    if (statusEl) {
-                        const curKm = pt.dist.toFixed(1);
-                        if (ratio >= 0.98) {
-                            statusEl.textContent = `Finish Line! Rute Selesai!`;
-                        } else if (slopeVal > 3.0) {
-                            statusEl.textContent = `Tanjakan KM ${curKm} — Atur Pace & Napas!`;
-                        } else if (slopeVal < -3.0) {
-                            statusEl.textContent = `Turunan KM ${curKm} — Manfaatkan Gravitasi!`;
-                        } else {
-                            statusEl.textContent = `Lintasan Lari KM ${curKm} — Terus Melaju!`;
-                        }
                     }
                 }
             }
@@ -1290,6 +1306,373 @@
             } else {
                 navigator.clipboard.writeText(window.location.href).then(() => alert('Link berhasil disalin!'));
             }
+        }
+
+        function locateMeOnDetailMap() {
+            if (!navigator.geolocation) {
+                alert('Geolocation tidak didukung oleh browser Anda.');
+                return;
+            }
+
+            const locateBtn = document.getElementById('btn-map-locate-me');
+            const originalBtnHtml = locateBtn ? locateBtn.innerHTML : '';
+            if (locateBtn) {
+                locateBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-[10px] text-[#FC4C02]"></i><span class="hidden sm:inline">Mencari...</span>';
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
+                    const uLat = pos.coords.latitude;
+                    const uLng = pos.coords.longitude;
+                    const uAcc = pos.coords.accuracy;
+
+                    if (userLocationMarker && map.hasLayer(userLocationMarker)) map.removeLayer(userLocationMarker);
+                    if (userLocationCircle && map.hasLayer(userLocationCircle)) map.removeLayer(userLocationCircle);
+                    if (userDistanceLine && map.hasLayer(userDistanceLine)) map.removeLayer(userDistanceLine);
+
+                    const userIcon = L.divIcon({
+                        className: 'border-0 bg-transparent',
+                        html: '<div class="relative flex items-center justify-center w-6 h-6"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-500 border-2 border-white shadow"></span></div>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    userLocationMarker = L.marker([uLat, uLng], { icon: userIcon, zIndexOffset: 1500 }).addTo(map);
+                    userLocationCircle = L.circle([uLat, uLng], { radius: uAcc, color: '#38bdf8', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.12 }).addTo(map);
+
+                    if (routePoints.length > 0) {
+                        const startPt = routePoints[0];
+                        const distToStartKm = calculateHaversine(uLat, uLng, startPt.lat, startPt.lng);
+
+                        userDistanceLine = L.polyline([[uLat, uLng], [startPt.lat, startPt.lng]], {
+                            color: '#38bdf8',
+                            weight: 2,
+                            dashArray: '4, 6',
+                            opacity: 0.8
+                        }).addTo(map);
+
+                        userLocationMarker.bindPopup(`
+                            <div style="font-family:sans-serif; font-size:12px; color:#0f172a; line-height:1.4;">
+                                <strong style="color:#0284c7;">Lokasi Anda Saat Ini</strong><br>
+                                <span>Akurasi GPS: ±${Math.round(uAcc)}m</span><br>
+                                <span style="font-weight:600; color:#FC4C02;">${distToStartKm.toFixed(2)} km</span> ke titik Start rute
+                            </div>
+                        `).openPopup();
+
+                        const groupBounds = L.latLngBounds([[uLat, uLng], [startPt.lat, startPt.lng]]);
+                        map.fitBounds(groupBounds, { padding: [50, 50] });
+                    } else {
+                        map.setView([uLat, uLng], 15);
+                    }
+                },
+                function(err) {
+                    if (locateBtn) locateBtn.innerHTML = originalBtnHtml;
+                    alert('Gagal mendapatkan lokasi GPS: ' + err.message);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // =========================================================================
+        // LIVE GPS NAVIGATION ENGINE (HUD & Run Tracking)
+        // =========================================================================
+        let navMap = null;
+        let navPolyline = null;
+        let navUserMarker = null;
+        let navAccuracyCircle = null;
+        let navWatchId = null;
+        let navWakeLock = null;
+        let navTimerInterval = null;
+        let navSessionState = 'ready';
+        let navRunStartTimestamp = null;
+        let navAccumulatedElapsedSec = 0;
+        let recordedActualDistanceKm = 0;
+        let recordedGpsTrack = [];
+        let userLocationMarker = null;
+        let userLocationCircle = null;
+        let userDistanceLine = null;
+
+        function startLiveNavigation() {
+            if (!navigator.geolocation) {
+                alert('Browser Anda tidak mendukung sensor geolokasi GPS.');
+                return;
+            }
+
+            const hudEl = document.getElementById('gpx-nav-hud');
+            if (hudEl) hudEl.classList.remove('hidden');
+
+            document.body.classList.add('gpx-nav-active');
+            const chatToggle = document.getElementById('chatbox-toggle');
+            if (chatToggle) chatToggle.style.setProperty('display', 'none', 'important');
+            const phChat = document.getElementById('ph-chatbox');
+            if (phChat) phChat.style.setProperty('display', 'none', 'important');
+
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen').then(lock => { navWakeLock = lock; }).catch(() => {});
+            }
+
+            if (!navMap) {
+                initNavMap();
+            } else {
+                navMap.invalidateSize();
+                if (navPolyline) navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
+            }
+
+            navSessionState = 'ready';
+            navAccumulatedElapsedSec = 0;
+            navRunStartTimestamp = null;
+            recordedActualDistanceKm = 0;
+            recordedGpsTrack = [];
+
+            const actualDistEl = document.getElementById('nav-actual-dist');
+            const timeEl = document.getElementById('nav-running-time');
+            const progBar = document.getElementById('nav-progress-bar');
+            const progPctEl = document.getElementById('nav-progress-pct');
+            const remDistEl = document.getElementById('nav-remaining-dist');
+            const livePaceEl = document.getElementById('nav-live-pace');
+
+            if (actualDistEl) actualDistEl.textContent = '0.00';
+            if (timeEl) timeEl.textContent = '00:00';
+            if (progBar) progBar.style.width = '0%';
+            if (progPctEl) progPctEl.textContent = '0%';
+            if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
+            if (livePaceEl) livePaceEl.textContent = '--:--';
+
+            if (navWatchId) navigator.geolocation.clearWatch(navWatchId);
+            navWatchId = navigator.geolocation.watchPosition(
+                handleNavGpsSuccess,
+                handleNavGpsError,
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            );
+        }
+
+        function initNavMap() {
+            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+            navMap = L.map('nav-fullscreen-map', {
+                zoomControl: false,
+                scrollWheelZoom: true,
+                dragging: true,
+            }).setView([-6.2088, 106.8456], 15);
+
+            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: 'abcd' }).addTo(navMap);
+
+            if (routePoints.length > 0) {
+                const latlngs = routePoints.map(p => [p.lat, p.lng]);
+                navPolyline = L.polyline(latlngs, {
+                    color: '#FC4C02',
+                    weight: 5,
+                    opacity: 0.95,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                }).addTo(navMap);
+
+                const userDotIcon = L.divIcon({
+                    className: 'border-0 bg-transparent',
+                    html: `
+                        <div class="relative flex items-center justify-center w-7 h-7">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-60"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-blue-600 border-2 border-white shadow-lg"></span>
+                        </div>
+                    `,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                navUserMarker = L.marker(latlngs[0], { icon: userDotIcon, zIndexOffset: 2000 }).addTo(navMap);
+                navAccuracyCircle = L.circle(latlngs[0], { radius: 15, color: '#3b82f6', fillOpacity: 0.12, weight: 1 }).addTo(navMap);
+
+                navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
+            }
+        }
+
+        function handleNavGpsSuccess(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy || 10;
+            const speedMps = pos.coords.speed;
+            const now = Date.now();
+
+            if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
+            if (navAccuracyCircle) {
+                navAccuracyCircle.setLatLng([lat, lng]);
+                navAccuracyCircle.setRadius(Math.min(accuracy, 25));
+            }
+
+            if (navSessionState === 'running') {
+                if (recordedGpsTrack.length > 0) {
+                    const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
+                    const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
+                    if (segmentDist > 0.002) {
+                        recordedActualDistanceKm += segmentDist;
+                        recordedGpsTrack.push({ lat, lng, dist: recordedActualDistanceKm, time: now });
+                    }
+                } else {
+                    recordedGpsTrack.push({ lat, lng, dist: 0, time: now });
+                }
+            }
+
+            let nearestPoint = routePoints[0];
+            let minDistanceM = 999999;
+
+            routePoints.forEach((p) => {
+                const distM = calculateHaversine(lat, lng, p.lat, p.lng) * 1000;
+                if (distM < minDistanceM) {
+                    minDistanceM = distM;
+                    nearestPoint = p;
+                }
+            });
+
+            const routeProgressKm = Math.min(totalRouteDistance, nearestPoint?.dist || 0);
+            const remainingRouteDist = Math.max(0, totalRouteDistance - routeProgressKm);
+            const progressPct = Math.min(100, Math.round((routeProgressKm / totalRouteDistance) * 100));
+
+            const progBar = document.getElementById('nav-progress-bar');
+            const progPctEl = document.getElementById('nav-progress-pct');
+            const remDistEl = document.getElementById('nav-remaining-dist');
+            const actualDistEl = document.getElementById('nav-actual-dist');
+            const livePaceEl = document.getElementById('nav-live-pace');
+
+            if (progBar) progBar.style.width = `${progressPct}%`;
+            if (progPctEl) progPctEl.textContent = `${progressPct}%`;
+            if (remDistEl) remDistEl.textContent = remainingRouteDist.toFixed(2);
+            if (actualDistEl) actualDistEl.textContent = recordedActualDistanceKm.toFixed(2);
+
+            if (livePaceEl) {
+                if (speedMps && speedMps > 0.5) {
+                    const secPerKm = 1000 / speedMps;
+                    livePaceEl.textContent = formatPaceTime(secPerKm);
+                } else {
+                    livePaceEl.textContent = '--:--';
+                }
+            }
+
+            if (navMap) navMap.panTo([lat, lng], { animate: true, duration: 0.5 });
+        }
+
+        function handleNavGpsError(err) {
+            console.warn('Nav GPS Error:', err);
+        }
+
+        function startRunningSession() {
+            navSessionState = 'running';
+            navRunStartTimestamp = Date.now();
+            if (navTimerInterval) clearInterval(navTimerInterval);
+            navTimerInterval = setInterval(() => {
+                const currentSec = Math.floor((Date.now() - navRunStartTimestamp) / 1000);
+                const totalSec = navAccumulatedElapsedSec + currentSec;
+                const timeEl = document.getElementById('nav-running-time');
+                if (timeEl) timeEl.textContent = formatDurationTime(totalSec);
+            }, 1000);
+
+            const wrap = document.getElementById('nav-action-buttons-wrap');
+            if (wrap) {
+                wrap.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="pauseRunningSession()" class="py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-pause text-xs"></i>
+                            <span>Jeda</span>
+                        </button>
+                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                            <i class="fa-solid fa-flag-checkered text-xs"></i>
+                            <span>Selesai</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function pauseRunningSession() {
+            if (navRunStartTimestamp) {
+                navAccumulatedElapsedSec += Math.floor((Date.now() - navRunStartTimestamp) / 1000);
+            }
+            navRunStartTimestamp = null;
+            if (navTimerInterval) clearInterval(navTimerInterval);
+            navSessionState = 'paused';
+
+            const wrap = document.getElementById('nav-action-buttons-wrap');
+            if (wrap) {
+                wrap.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="startRunningSession()" class="py-3 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-play text-xs"></i>
+                            <span>Lanjut</span>
+                        </button>
+                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                            <i class="fa-solid fa-flag-checkered text-xs"></i>
+                            <span>Selesai</span>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function closeLiveNavigation() {
+            const hudEl = document.getElementById('gpx-nav-hud');
+            if (hudEl) hudEl.classList.add('hidden');
+
+            document.body.classList.remove('gpx-nav-active');
+            const chatToggle = document.getElementById('chatbox-toggle');
+            if (chatToggle) chatToggle.style.removeProperty('display');
+            const phChat = document.getElementById('ph-chatbox');
+            if (phChat) phChat.style.removeProperty('display');
+
+            if (navWatchId) {
+                navigator.geolocation.clearWatch(navWatchId);
+                navWatchId = null;
+            }
+            if (navTimerInterval) {
+                clearInterval(navTimerInterval);
+                navTimerInterval = null;
+            }
+            if (navWakeLock) {
+                navWakeLock.release().catch(() => {});
+                navWakeLock = null;
+            }
+
+            const wrap = document.getElementById('nav-action-buttons-wrap');
+            if (wrap) {
+                wrap.innerHTML = `
+                    <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Mulai Lari (Start)</span>
+                    </button>
+                `;
+            }
+        }
+
+        function copyPaceStrategy() {
+            if (!lastPaceTableData || lastPaceTableData.length === 0) return;
+            let txt = `Rencana Pacing PacePro - ${routeTitle} (${totalRouteDistance.toFixed(2)} km)\n`;
+            txt += `KM | Target Pace | Waktu Split | Kumulatif\n`;
+            lastPaceTableData.forEach(r => {
+                txt += `KM ${r.km} | ${r.pace} | ${r.split} | ${r.cum}\n`;
+            });
+            navigator.clipboard.writeText(txt).then(() => {
+                const btn = document.getElementById('pp-copy-text');
+                if (btn) {
+                    btn.textContent = 'Disalin!';
+                    setTimeout(() => { btn.textContent = 'Salin'; }, 2000);
+                }
+            });
+        }
+
+        function exportPaceCsv() {
+            if (!lastPaceTableData || lastPaceTableData.length === 0) return;
+            let csv = "KM,Target Pace,Split Time,Cumulative Time\n";
+            lastPaceTableData.forEach(r => {
+                csv += `${r.km},"${r.pace}","${r.split}","${r.cum}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pacepro-${routeTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 @endpush
