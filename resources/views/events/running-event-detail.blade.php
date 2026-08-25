@@ -3,6 +3,34 @@
 @section('title', $event->name . ' - Jadwal Lari')
 @section('description', Str::limit(strip_tags($event->short_description ?? $event->full_description), 150))
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    .detail-map-pin-glow {
+        box-shadow: 0 0 25px rgba(249, 115, 22, 0.7), 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+    .detail-custom-leaflet-popup .leaflet-popup-content-wrapper {
+        background: #0c121e !important;
+        color: #f1f5f9 !important;
+        border-radius: 1rem !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+        padding: 12px 16px !important;
+    }
+    .detail-custom-leaflet-popup .leaflet-popup-content {
+        margin: 0 !important;
+        line-height: 1.4 !important;
+    }
+    .detail-custom-leaflet-popup .leaflet-popup-tip {
+        background: #0c121e !important;
+        border: 1px solid #334155 !important;
+    }
+    .leaflet-control-attribution {
+        display: none !important;
+    }
+</style>
+@endpush
+
 @section('content')
 @if(!empty($isPreviewMode))
 <div class="fixed top-0 inset-x-0 z-[99999] bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-black px-4 py-2.5 text-center text-xs sm:text-sm shadow-2xl flex items-center justify-center gap-3">
@@ -104,6 +132,137 @@
                         prose-img:rounded-2xl prose-img:shadow-xl">
                         {!! $event->sanitized_description_html !!}
                     </article>
+                </div>
+
+                <!-- Location Map Section (Peta Lokasi) -->
+                @php
+                    $cityCoordinatesFallback = [
+                        'jakarta' => [-6.2088, 106.8456],
+                        'dki jakarta' => [-6.2088, 106.8456],
+                        'bandung' => [-6.9175, 107.6191],
+                        'surabaya' => [-7.2575, 112.7521],
+                        'yogyakarta' => [-7.7956, 110.3695],
+                        'jogja' => [-7.7956, 110.3695],
+                        'sleman' => [-7.7167, 110.3556],
+                        'bantul' => [-7.8933, 110.3347],
+                        'semarang' => [-6.9667, 110.4167],
+                        'bogor' => [-6.5971, 106.8060],
+                        'tangerang' => [-6.1783, 106.6319],
+                        'tangerang selatan' => [-6.2888, 106.7179],
+                        'bekasi' => [-6.2383, 106.9756],
+                        'depok' => [-6.4025, 106.7942],
+                        'malang' => [-7.9666, 112.6326],
+                        'bali' => [-8.6705, 115.2126],
+                        'denpasar' => [-8.6705, 115.2126],
+                        'badung' => [-8.5819, 115.1771],
+                        'solo' => [-7.5755, 110.8243],
+                        'surakarta' => [-7.5755, 110.8243],
+                        'medan' => [3.5952, 98.6722],
+                        'makassar' => [-5.1477, 119.4327],
+                        'balikpapan' => [-1.2379, 116.8529],
+                        'samarinda' => [-0.5022, 117.1536],
+                        'batam' => [1.1301, 104.0529],
+                        'palembang' => [-2.9761, 104.7754],
+                        'pekanbaru' => [0.5071, 101.4478],
+                        'lampung' => [-5.4500, 105.2667],
+                        'bandar lampung' => [-5.4500, 105.2667],
+                        'padang' => [-0.9471, 100.4172],
+                        'pontianak' => [-0.0263, 109.3425],
+                        'banjarmasin' => [-3.3194, 114.5908],
+                        'manado' => [1.4748, 124.8421],
+                        'mataram' => [-8.5833, 116.1167],
+                        'lombok' => [-8.5833, 116.1167],
+                        'kupang' => [-10.1772, 123.6070],
+                        'cirebon' => [-6.7320, 108.5523],
+                        'tasikmalaya' => [-7.3274, 108.2207],
+                        'sukabumi' => [-6.9277, 106.9300],
+                        'magelang' => [-7.4706, 110.2178],
+                    ];
+
+                    $hasExactCoordinates = !empty($event->location_lat) && !empty($event->location_lng);
+                    $detailMapLat = $event->location_lat ?: ($event->rpc_latitude ?: ($event->city?->latitude ?? null));
+                    $detailMapLng = $event->location_lng ?: ($event->rpc_longitude ?: ($event->city?->longitude ?? null));
+
+                    if (!$detailMapLat || !$detailMapLng) {
+                        $cityNameLower = strtolower(trim($event->city?->name ?? ''));
+                        if (!$cityNameLower && $event->location_name) {
+                            $cityNameLower = strtolower(trim($event->location_name));
+                        }
+                        foreach ($cityCoordinatesFallback as $k => $coords) {
+                            if (str_contains($cityNameLower, $k)) {
+                                $detailMapLat = $coords[0];
+                                $detailMapLng = $coords[1];
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!$detailMapLat || !$detailMapLng) {
+                        $detailMapLat = -6.2088;
+                        $detailMapLng = 106.8456;
+                    }
+
+                    $detailZoom = $hasExactCoordinates ? 16 : 13;
+                    $venueTitle = $event->location_name ?: ($event->city?->name ?: 'Lokasi Start Event');
+                    $venueAddr = $event->location_address ?: ($event->city?->name ?? 'Indonesia');
+                @endphp
+
+                <div class="pt-8 space-y-4">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-2xl font-black text-white uppercase tracking-tight">Peta Lokasi</h3>
+                        <div class="h-px flex-1 bg-slate-800"></div>
+                    </div>
+
+                    <div class="relative bg-[#0c121e] border border-slate-800 rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden">
+                        <div class="relative rounded-2xl overflow-hidden border border-slate-800/90">
+                            <!-- Floating Map Layer Switcher (Top Right, matching reference design) -->
+                            <div class="absolute top-3 right-3 z-[500] bg-[#0c121e]/90 border border-slate-700 rounded-2xl p-1 shadow-2xl flex items-center gap-1 backdrop-blur-md">
+                                <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#f97316] text-white shadow-sm" title="Open Street Map">
+                                    <i class="fa-solid fa-map text-[11px]"></i>
+                                    <span class="hidden sm:inline">Open Street</span>
+                                </button>
+                                <button type="button" onclick="setDetailEventMapLayer('satellite')" id="btn-detail-layer-satellite" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Satelit Esri">
+                                    <i class="fa-solid fa-globe text-[11px]"></i>
+                                    <span class="hidden sm:inline">Satelit</span>
+                                </button>
+                                <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Sederhana (Voyager)">
+                                    <i class="fa-solid fa-map-pin text-[11px]"></i>
+                                    <span class="hidden sm:inline">Sederhana</span>
+                                </button>
+                                <button type="button" onclick="setDetailEventMapLayer('dark')" id="btn-detail-layer-dark" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Gelap Tactical">
+                                    <i class="fa-solid fa-moon text-[11px]"></i>
+                                    <span class="hidden sm:inline">Gelap</span>
+                                </button>
+                            </div>
+
+                            <!-- Map Canvas -->
+                            <div id="event-detail-location-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-[#090D16]"></div>
+                        </div>
+
+                        <!-- Bottom Coordinate & Direction Bar -->
+                        <div class="mt-3.5 pt-3 border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+                            <div class="flex items-center gap-2 text-slate-300">
+                                <div class="w-6 h-6 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-location-crosshairs text-[11px]"></i>
+                                </div>
+                                <span>Koordinat: <strong class="font-mono text-white">{{ number_format($detailMapLat, 6) }}, {{ number_format($detailMapLng, 6) }}</strong></span>
+                                @if(!empty($event->location_name))
+                                    <span class="text-slate-500 hidden sm:inline">&bull;</span>
+                                    <span class="text-slate-400 hidden sm:inline truncate max-w-xs">{{ $event->location_name }}</span>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ $detailMapLat }},{{ $detailMapLng }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-700 inline-flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-neon"></i>
+                                    <span>Buka di Google Maps</span>
+                                </a>
+                                <button type="button" onclick="recenterEventDetailLocationMap()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition border border-slate-700 inline-flex items-center gap-1 shadow-sm" title="Pusatkan Peta">
+                                    <i class="fa-solid fa-expand text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Race Categories Grid -->
@@ -454,6 +613,115 @@
             btn.addEventListener('click', () => submitRating(Number(btn.dataset.rating || 0)));
         });
     })();
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    let detailEventMap = null;
+    let detailEventTileLayers = {};
+    let detailEventActiveLayer = null;
+    const detailEventLat = {{ $detailMapLat }};
+    const detailEventLng = {{ $detailMapLng }};
+    const detailEventZoom = {{ $detailZoom }};
+    const detailEventName = @json($event->name);
+    const detailEventLocation = @json($venueTitle);
+
+    function initEventDetailLocationMap() {
+        const mapEl = document.getElementById('event-detail-location-map');
+        if (!mapEl || detailEventMap) return;
+
+        detailEventTileLayers = {
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }),
+            satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 18,
+                attribution: 'Esri'
+            }),
+            voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: 'CARTO'
+            }),
+            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: 'CARTO'
+            })
+        };
+
+        detailEventMap = L.map('event-detail-location-map', {
+            zoomControl: true,
+            scrollWheelZoom: false,
+            dragging: true,
+        }).setView([detailEventLat, detailEventLng], detailEventZoom);
+
+        // Default active layer: Open Street Map (OSM) as requested
+        detailEventActiveLayer = detailEventTileLayers.osm;
+        detailEventActiveLayer.addTo(detailEventMap);
+
+        // Custom Marker Pin (Orange badge with glow and runner icon matching reference design)
+        const locationPin = L.divIcon({
+            className: 'border-0 bg-transparent',
+            html: `
+                <div class="relative flex items-center justify-center cursor-pointer group">
+                    <div class="w-11 h-11 rounded-full border-[3px] border-white bg-gradient-to-tr from-amber-500 to-orange-500 detail-map-pin-glow flex items-center justify-center text-white text-base font-black transition-transform transform group-hover:scale-110">
+                        <i class="fa-solid fa-person-running"></i>
+                    </div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-orange-500 absolute -bottom-1 shadow-md"></div>
+                </div>
+            `,
+            iconSize: [44, 48],
+            iconAnchor: [22, 46],
+            popupAnchor: [0, -46]
+        });
+
+        const marker = L.marker([detailEventLat, detailEventLng], { icon: locationPin }).addTo(detailEventMap);
+
+        const popupContent = `
+            <div class="detail-custom-leaflet-popup font-sans text-xs space-y-1.5">
+                <div class="font-black text-white text-sm leading-tight">${detailEventName}</div>
+                <div class="text-slate-300 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-location-dot text-orange-400"></i>
+                    <span>${detailEventLocation}</span>
+                </div>
+                <div class="pt-1.5">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${detailEventLat},${detailEventLng}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] inline-flex items-center gap-1 transition shadow-sm">
+                        <i class="fa-solid fa-diamond-turn-right text-[10px]"></i>
+                        <span>Petunjuk Arah</span>
+                    </a>
+                </div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent, { maxWidth: 280, className: 'detail-custom-leaflet-popup' });
+    }
+
+    function setDetailEventMapLayer(type) {
+        if (!detailEventMap || !detailEventTileLayers[type]) return;
+        if (detailEventActiveLayer) detailEventMap.removeLayer(detailEventActiveLayer);
+        detailEventActiveLayer = detailEventTileLayers[type];
+        detailEventActiveLayer.addTo(detailEventMap);
+
+        document.querySelectorAll('.btn-detail-map-layer').forEach(btn => {
+            btn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800';
+        });
+
+        const activeBtn = document.getElementById('btn-detail-layer-' + type);
+        if (activeBtn) {
+            activeBtn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#f97316] text-white shadow-sm';
+        }
+    }
+
+    function recenterEventDetailLocationMap() {
+        if (!detailEventMap) return;
+        detailEventMap.setView([detailEventLat, detailEventLng], detailEventZoom, { animate: true });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initEventDetailLocationMap();
+    });
 </script>
 @endpush
 

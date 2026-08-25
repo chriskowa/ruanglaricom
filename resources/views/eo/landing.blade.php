@@ -71,7 +71,7 @@
                     </a>
                     <a href="#fitur-utama" class="w-full sm:w-auto px-8 sm:px-10 py-4 rounded-xl bg-[#0E1A2D] hover:bg-[#111F35] text-white font-bold text-sm uppercase tracking-wider transition-all backdrop-blur-md flex items-center justify-center gap-2">
                         <span>Pelajari Fitur Platform</span>
-                        <i class="fa-solid fa-arrow-down text-xs text-[#B8FF00]"></i>
+                        <i class="fa-solid fa-arrow-down text-xs text-white"></i>
                     </a>
                 </div>
 
@@ -113,10 +113,10 @@
                 <!-- Dashboard Preview Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="hidden md:block col-span-1 border-r border-[#1F2D44] pr-4 space-y-3">
-                        <div class="h-8 bg-[#B8FF00]/10 border border-[#B8FF00]/30 rounded-xl w-full flex items-center px-3 text-[11px] font-bold text-[#B8FF00]">⚡ Event Registration Page</div>
-                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">📊 Laporan &amp; Data Peserta</div>
-                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">🎟️ Kupon Diskon &amp; Promo</div>
-                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400">📱 Pengirim WA Blaster</div>
+                        <div class="h-8 bg-[#B8FF00]/10 border border-[#B8FF00]/30 rounded-xl w-full flex items-center px-3 text-[11px] font-bold text-[#B8FF00]"><i class="fa-solid fa-file-invoice text-white mr-2"></i> Event Registration Page</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400"><i class="fa-solid fa-chart-line text-white mr-2"></i> Laporan &amp; Data Peserta</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400"><i class="fa-solid fa-ticket text-white mr-2"></i> Kupon Diskon &amp; Promo</div>
+                        <div class="h-7 bg-[#08111F] rounded-lg w-full flex items-center px-3 text-[10px] text-slate-400"><i class="fa-brands fa-whatsapp text-white mr-2"></i> Pengirim WA Blaster</div>
                     </div>
                     
                     <div class="col-span-1 md:col-span-3 space-y-4">
@@ -138,7 +138,7 @@
                         <div class="bg-[#08111F] rounded-2xl border border-[#1F2D44] p-4 space-y-2.5">
                             <div class="flex items-center justify-between text-xs font-bold text-slate-300 pb-2 border-b border-[#1F2D44]">
                                 <span>Live Registration Feed</span>
-                                <span class="text-[10px] text-[#B8FF00] font-mono">● Instant Updates</span>
+                                <span class="text-[10px] text-[#B8FF00] font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-white inline-block"></span> Instant Updates</span>
                             </div>
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-900">
@@ -186,22 +186,22 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Challenge 1 -->
-                <div class="p-8 rounded-3xl bg-[#08111F] border border-red-500/30 relative">
-                    <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mb-6 text-xl">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+                <div class="p-8 rounded-3xl bg-[#08111F] border border-slate-700 relative">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-white flex items-center justify-center mb-6 text-xl">
+                        <i class="fa-solid fa-triangle-exclamation text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-3">Cara Lama (Penuh Masalah)</h3>
                     <ul class="space-y-2.5 text-xs text-slate-400 leading-relaxed">
                         <li class="flex items-start gap-2">
-                            <span class="text-red-400 font-bold">✕</span>
+                            <i class="fa-solid fa-xmark text-white font-bold text-xs mt-0.5 shrink-0"></i>
                             <span>Input manual via Google Form yang rawan rekap ganda &amp; kacau.</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-red-400 font-bold">✕</span>
+                            <i class="fa-solid fa-xmark text-white font-bold text-xs mt-0.5 shrink-0"></i>
                             <span>Konfirmasi bukti transfer manual satu per satu hingga larut malam.</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-red-400 font-bold">✕</span>
+                            <i class="fa-solid fa-xmark text-white font-bold text-xs mt-0.5 shrink-0"></i>
                             <span>Biaya mahal buat website custom di agency ($500 - $2000).</span>
                         </li>
                     </ul>
@@ -210,8 +210,8 @@
                 <!-- Solution Arrow -->
                 <div class="p-8 rounded-3xl bg-[#0E1A2D] border border-[#B8FF00]/40 relative shadow-xl shadow-[#B8FF00]/5 flex flex-col justify-between md:col-span-2">
                     <div>
-                        <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 border border-[#B8FF00]/30 text-[#B8FF00] flex items-center justify-center mb-6 text-xl">
-                            <i class="fa-solid fa-bolt"></i>
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-white flex items-center justify-center mb-6 text-xl">
+                            <i class="fa-solid fa-bolt text-white"></i>
                         </div>
                         <h3 class="text-white font-extrabold text-2xl mb-3">Solusi RuangLari EO (Serba Otomatis)</h3>
                         <p class="text-slate-300 text-sm leading-relaxed mb-6">
@@ -220,19 +220,19 @@
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                             <div class="flex items-center gap-2 text-slate-200">
-                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <i class="fa-solid fa-circle-check text-white"></i>
                                 <span>Form Pendaftaran Multi-Kategori (5K, 10K, HM, FM)</span>
                             </div>
                             <div class="flex items-center gap-2 text-slate-200">
-                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <i class="fa-solid fa-circle-check text-white"></i>
                                 <span>Pembayaran Otomatis (VA, QRIS, E-Wallet)</span>
                             </div>
                             <div class="flex items-center gap-2 text-slate-200">
-                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <i class="fa-solid fa-circle-check text-white"></i>
                                 <span>Kupon Promo &amp; Diskon Khusus Komunitas</span>
                             </div>
                             <div class="flex items-center gap-2 text-slate-200">
-                                <i class="fa-solid fa-circle-check text-[#B8FF00]"></i>
+                                <i class="fa-solid fa-circle-check text-white"></i>
                                 <span>Export Data Peserta ke Excel 1-Klik</span>
                             </div>
                         </div>
@@ -240,8 +240,9 @@
 
                     <div class="mt-8 pt-6 border-t border-[#1F2D44] flex items-center justify-between">
                         <span class="text-xs text-[#B8FF00] font-bold uppercase tracking-wider">Tanpa Biaya Langganan Bulanan</span>
-                        <a href="{{ route('register', ['role' => 'eo']) }}" class="px-6 py-3 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-xs uppercase tracking-wider transition-all">
-                            Buat Event Sekarang →
+                        <a href="{{ route('register', ['role' => 'eo']) }}" class="px-6 py-3 rounded-xl bg-[#B8FF00] hover:bg-[#9FE000] text-[#08111F] font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5">
+                            <span>Buat Event Sekarang</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
                         </a>
                     </div>
                 </div>
@@ -260,54 +261,54 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Feature 1 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-[#B8FF00] flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-desktop text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-desktop text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Registration Page Instan</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Tampilan landing page event yang futuristik, responsif di HP/Desktop, dan siap dipublikasikan ke media sosial.</p>
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-qrcode text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-qrcode text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">E-Ticket QR Code &amp; BIB</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Peserta otomatis mendapatkan E-Ticket QR Code resmi dan nomor BIB unik setelah pembayaran lunas.</p>
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-cyan-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-brands fa-whatsapp text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Notifikasi WA Blaster</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Pesan konfirmasi registrasi, nomor BIB, dan pengingat jadwal lari otomatis dikirimkan ke WhatsApp peserta.</p>
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-amber-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-tags text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-tags text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Multi-Kupon &amp; Promo</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Buat kode kupon diskon komunitas (nominal/persen) dengan fitur pencarian AJAX &amp; pembatasan kuota.</p>
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-file-excel text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-file-excel text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Export Data Excel / CSV</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Unduh data lengkap peserta (ukuran jersey, kontak darurat, golongan darah) sekali klik untuk persiapan Race Pack Collection.</p>
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-[#B8FF00]/40 transition duration-300 group">
-                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-rose-400 flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                        <i class="fa-solid fa-shield-halved text-lg"></i>
+                <div class="rounded-3xl border border-[#1F2D44] bg-[#0E1A2D]/60 p-7 hover:border-slate-600 transition duration-300 group">
+                    <div class="w-12 h-12 rounded-2xl bg-[#08111F] border border-[#1F2D44] text-white flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-shield-halved text-lg text-white"></i>
                     </div>
                     <h3 class="text-white font-extrabold text-lg mb-2">Keamanan &amp; Anti Oversell</h3>
                     <p class="text-slate-400 text-xs leading-relaxed">Kontrol kuota real-time yang mencegah tiket terjual melebihi batas (oversell) secara akurat.</p>

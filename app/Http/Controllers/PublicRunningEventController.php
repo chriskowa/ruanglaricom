@@ -17,10 +17,12 @@ class PublicRunningEventController extends Controller
     {
         $query = Event::whereIn('event_kind', ['directory', 'managed'])
             ->published()
-            ->upcoming()
             ->with(['city', 'raceType', 'raceDistances', 'categories']);
 
+        $hasSpecificTimeFilter = false;
+
         if ($request->filled('month')) {
+            $hasSpecificTimeFilter = true;
             if (preg_match('/^\d{4}-\d{2}$/', $request->month)) {
                 $parts = explode('-', $request->month);
                 $query->whereYear('start_at', $parts[0])
@@ -31,7 +33,13 @@ class PublicRunningEventController extends Controller
         }
 
         if ($request->filled('year')) {
+            $hasSpecificTimeFilter = true;
             $query->whereYear('start_at', $request->year);
+        }
+
+        // Default to Upcoming (hari ini ke depan) agar event race hari ini tidak hilang dan user hanya melihat event aktif
+        if (!$hasSpecificTimeFilter && $request->get('time') !== 'all') {
+            $query->whereDate('start_at', '>=', today());
         }
 
         if ($request->filled('city_id')) {
@@ -72,12 +80,106 @@ class PublicRunningEventController extends Controller
         // Sorting
         $query->orderBy('start_at', 'asc');
 
+        // Prepare map events for Interactive Explorer Map
+        $cityCoordinatesFallback = [
+            'jakarta' => [-6.2088, 106.8456],
+            'dki jakarta' => [-6.2088, 106.8456],
+            'bandung' => [-6.9175, 107.6191],
+            'surabaya' => [-7.2575, 112.7521],
+            'yogyakarta' => [-7.7956, 110.3695],
+            'jogja' => [-7.7956, 110.3695],
+            'semarang' => [-6.9667, 110.4167],
+            'bogor' => [-6.5971, 106.8060],
+            'tangerang' => [-6.1783, 106.6319],
+            'tangerang selatan' => [-6.2888, 106.7179],
+            'bekasi' => [-6.2383, 106.9756],
+            'depok' => [-6.4025, 106.7942],
+            'malang' => [-7.9666, 112.6326],
+            'bali' => [-8.6705, 115.2126],
+            'denpasar' => [-8.6705, 115.2126],
+            'badung' => [-8.5819, 115.1771],
+            'solo' => [-7.5755, 110.8243],
+            'surakarta' => [-7.5755, 110.8243],
+            'medan' => [3.5952, 98.6722],
+            'makassar' => [-5.1477, 119.4327],
+            'balikpapan' => [-1.2379, 116.8529],
+            'samarinda' => [-0.5022, 117.1536],
+            'batam' => [1.1301, 104.0529],
+            'palembang' => [-2.9761, 104.7754],
+            'pekanbaru' => [0.5071, 101.4478],
+            'lampung' => [-5.4500, 105.2667],
+            'bandar lampung' => [-5.4500, 105.2667],
+            'padang' => [-0.9471, 100.4172],
+            'pontianak' => [-0.0263, 109.3425],
+            'banjarmasin' => [-3.3194, 114.5908],
+            'manado' => [1.4748, 124.8421],
+            'mataram' => [-8.5833, 116.1167],
+            'lombok' => [-8.5833, 116.1167],
+            'kupang' => [-10.1772, 123.6070],
+            'cirebon' => [-6.7320, 108.5523],
+            'tasikmalaya' => [-7.3274, 108.2207],
+            'sukabumi' => [-6.9277, 106.9300],
+            'magelang' => [-7.4706, 110.2178],
+        ];
+
+        $mapEvents = (clone $query)
+            ->reorder()
+            ->get()
+            ->map(function ($event) use ($cityCoordinatesFallback) {
+                $lat = $event->location_lat ?: ($event->rpc_latitude ?: ($event->city?->latitude ?? null));
+                $lng = $event->location_lng ?: ($event->rpc_longitude ?: ($event->city?->longitude ?? null));
+
+                if (!$lat || !$lng) {
+                    $cityNameLower = strtolower(trim($event->city?->name ?? ''));
+                    if (!$cityNameLower && $event->location_name) {
+                        $cityNameLower = strtolower(trim($event->location_name));
+                    }
+                    foreach ($cityCoordinatesFallback as $k => $coords) {
+                        if (str_contains($cityNameLower, $k)) {
+                            $lat = $coords[0];
+                            $lng = $coords[1];
+                            break;
+                        }
+                    }
+                }
+
+                if (!$lat || !$lng) {
+                    return null;
+                }
+
+                $distances = $event->raceDistances->pluck('name')->toArray();
+                if (empty($distances) && $event->categories) {
+                    $distances = $event->categories->pluck('name')->toArray();
+                }
+
+                return [
+                    'id' => $event->id,
+                    'name' => $event->name,
+                    'slug' => $event->slug,
+                    'url' => $event->public_url,
+                    'hero_image' => $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp'),
+                    'start_at' => $event->start_at ? $event->start_at->translatedFormat('d M Y') : null,
+                    'city' => $event->city?->name ?: ($event->location_name ?: 'Indonesia'),
+                    'location_name' => $event->location_name ?: ($event->city?->name ?: ''),
+                    'race_type' => $event->raceType?->name ?: 'Road Run',
+                    'race_type_id' => $event->race_type_id,
+                    'distances' => $distances,
+                    'is_featured' => (bool) $event->is_featured,
+                    'lat' => (float) $lat,
+                    'lng' => (float) $lng,
+                ];
+            })
+            ->filter()
+            ->values();
+
         if ($request->ajax()) {
             $events = $query->paginate(10);
 
             return response()->json([
                 'html' => view('events.partials.list', compact('events'))->render(),
                 'pagination' => (string) $events->links(),
+                'mapEvents' => $mapEvents,
+                'total' => $events->total(),
             ]);
         }
 
@@ -105,7 +207,7 @@ class PublicRunningEventController extends Controller
 
         $events = $query->paginate(10);
 
-        return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents'));
+        return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents', 'mapEvents'));
     }
 
     public function show($slug)

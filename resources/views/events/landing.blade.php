@@ -239,6 +239,95 @@
         </div>
     </div>
 
+    <!-- Interactive Explorer Map Section (Minimizable, Marker Clustering, RuangLari Palette) -->
+    <div id="events-explorer-map-section" class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up">
+        <div class="bg-[#0c121e] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
+            <!-- Header bar with Minimize/Expand toggle -->
+            <div class="px-4 sm:px-5 py-3.5 bg-[#090D16] border-b border-slate-800 flex items-center justify-between gap-3 cursor-pointer select-none" id="btn-toggle-events-map">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-neon shadow-[0_0_10px_#ccff00] animate-pulse shrink-0"></span>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-sm sm:text-base font-black text-white tracking-tight uppercase">Peta Sebaran Event Lari Indonesia</h2>
+                            <span id="events-map-count" class="px-2 py-0.5 rounded-md bg-neon/15 text-neon border border-neon/30 text-[11px] font-mono font-bold">
+                                {{ count($mapEvents ?? []) }} Event Terdaftar
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi lokasi event lari di seluruh Indonesia. Klik marker untuk melihat jadwal & detail pendaftaran.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0" onclick="event.stopPropagation()">
+                    <!-- Map Theme / Layer Switcher Dropdown -->
+                    <div class="relative inline-block z-50" id="events-map-layer-dropdown-wrap">
+                        <button type="button" id="btn-toggle-events-map-layer" onclick="toggleEventsMapLayerMenu()" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-layer-group text-[11px] text-neon"></i>
+                            <span id="label-events-active-layer" class="hidden xs:inline">Voyager</span>
+                            <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                        </button>
+                        <div id="events-map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[150px] text-xs divide-y divide-slate-800" style="background-color: #0c121e !important; opacity: 1 !important;">
+                            <button type="button" onclick="setEventsMapLayer('voyager')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Voyager</span>
+                                <span class="events-layer-check-voyager text-neon text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setEventsMapLayer('osm')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>OSM Street</span>
+                                <span class="events-layer-check-osm text-neon text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setEventsMapLayer('dark')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Dark Tactical</span>
+                                <span class="events-layer-check-dark text-neon text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                            <button type="button" onclick="setEventsMapLayer('satellite')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
+                                <span>Satelit Esri</span>
+                                <span class="events-layer-check-satellite text-neon text-[11px] font-bold hidden"><i class="fa-solid fa-check"></i></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-events-map-locate-me" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Deteksi Lokasi Saya">
+                        <i class="fa-solid fa-location-crosshairs text-[11px] text-neon"></i>
+                        <span class="hidden sm:inline">Lokasi Saya</span>
+                    </button>
+                    <button type="button" id="btn-events-map-recenter" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Pusatkan Peta ke Seluruh Event">
+                        <i class="fa-solid fa-expand text-[11px]"></i>
+                        <span class="hidden sm:inline">Pusatkan</span>
+                    </button>
+                    <button type="button" id="btn-events-map-minimize-toggle" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Sembunyikan / Tampilkan Peta">
+                        <span id="label-events-map-toggle" class="text-xs font-medium hidden xs:inline">Sembunyikan</span>
+                        <i id="icon-events-map-toggle" class="fa-solid fa-chevron-up transition-transform duration-300 text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Container Wrapper -->
+            <div id="events-map-collapse-wrap" class="relative transition-all duration-300">
+                <div id="events-explorer-map" class="w-full h-[360px] sm:h-[420px] md:h-[480px] z-0 bg-[#090D16]"></div>
+
+                <!-- Interactive Map Legend & Quick Type Filter Overlay -->
+                <div id="events-map-type-filter-overlay" class="absolute bottom-3 left-3 z-[400] bg-[#0c121e] border border-slate-700 rounded-xl p-1.5 text-xs text-slate-300 shadow-2xl pointer-events-auto flex items-center gap-1.5 overflow-x-auto max-w-[calc(100%-24px)] no-scrollbar" style="background-color: #0c121e !important;">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1 shrink-0">Filter:</span>
+                    <button type="button" onclick="setEventsMapTypeFilter('')" class="btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border bg-slate-800 text-white font-bold border-slate-600 shrink-0" data-map-type="">
+                        Semua
+                    </button>
+                    @if(isset($raceTypes) && $raceTypes->isNotEmpty())
+                        @foreach($raceTypes as $rType)
+                            @php
+                                $isTrail = str_contains(strtolower($rType->name), 'trail');
+                                $isUltra = str_contains(strtolower($rType->name), 'ultra') || str_contains(strtolower($rType->name), 'marathon');
+                                $dotColor = $isTrail ? 'bg-emerald-400' : ($isUltra ? 'bg-orange-500' : 'bg-neon');
+                            @endphp
+                            <button type="button" onclick="setEventsMapTypeFilter('{{ $rType->id }}')" class="btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border text-slate-300 hover:text-white border-transparent shrink-0 flex items-center gap-1.5" data-map-type="{{ $rType->id }}">
+                                <span class="w-2 h-2 rounded-full {{ $dotColor }}"></span>
+                                <span>{{ $rType->name }}</span>
+                            </button>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Section -->
     <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up" data-aos-delay="100">
         <div class="bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-6 shadow-xl">
@@ -803,6 +892,9 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -825,12 +917,87 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #B8FF00;
     }
+    .leaflet-control-attribution, .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo {
+        display: none !important;
+    }
+    /* Marker Cluster Styling */
+    .events-cluster-wrapper {
+        background: transparent !important;
+        border: none !important;
+    }
+    .events-map-cluster {
+        width: 100%;
+        height: 100%;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-family: monospace;
+        font-size: 12px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+        border: 2.5px solid #0c121e;
+        transition: transform 0.15s ease;
+    }
+    .events-map-cluster:hover {
+        transform: scale(1.1);
+    }
+    .events-cluster-small {
+        background: #ccff00;
+        color: #020617;
+    }
+    .events-cluster-medium {
+        background: #38bdf8;
+        color: #020617;
+    }
+    .events-cluster-large {
+        background: #f97316;
+        color: #ffffff;
+    }
+
+    /* Custom Leaflet Event Popup Styling */
+    .events-custom-leaflet-popup .leaflet-popup-content-wrapper {
+        background: #0c121e !important;
+        color: #f1f5f9 !important;
+        border-radius: 1rem !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+    .events-custom-leaflet-popup .leaflet-popup-content {
+        margin: 0 !important;
+        line-height: 1.4 !important;
+        min-width: 250px;
+        max-width: 290px;
+    }
+    .events-custom-leaflet-popup .leaflet-popup-tip {
+        background: #0c121e !important;
+        border: 1px solid #334155 !important;
+    }
+    .events-custom-leaflet-popup a.leaflet-popup-close-button {
+        color: #ffffff !important;
+        background: rgba(12, 18, 30, 0.8) !important;
+        border-radius: 9999px !important;
+        width: 24px !important;
+        height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        top: 8px !important;
+        right: 8px !important;
+        z-index: 20 !important;
+        border: 1px solid #334155 !important;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
+    window.initialMapEvents = {!! json_encode($mapEvents ?? []) !!};
+
     function getV3Token(action, callback) {
         if (window.loadRecaptcha) {
             window.loadRecaptcha(action).then(function(token) {
@@ -856,7 +1023,329 @@
         });
     }
 
+    // ==========================================
+    // INTERACTIVE EVENTS EXPLORER MAP ENGINE
+    // ==========================================
+    let eventsMap = null;
+    let eventsClusterGroup = null;
+    let eventsUserLocationMarker = null;
+    let currentMapEventsData = window.initialMapEvents || [];
+    let eventsBaseTileLayers = {};
+    let eventsActiveTileLayer = null;
+
+    function initEventsExplorerMap() {
+        const mapContainer = document.getElementById('events-explorer-map');
+        if (!mapContainer || eventsMap) return;
+
+        // Base Layers definitions (Google Maps-like styles)
+        eventsBaseTileLayers = {
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }),
+            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }),
+            voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }),
+            satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 18,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            })
+        };
+
+        eventsMap = L.map('events-explorer-map', {
+            zoomControl: true,
+            scrollWheelZoom: false,
+            dragging: true,
+        }).setView([-2.5489, 118.0149], 5); // Center of Indonesia
+
+        eventsActiveTileLayer = eventsBaseTileLayers.voyager;
+        eventsActiveTileLayer.addTo(eventsMap);
+
+        eventsClusterGroup = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            maxClusterRadius: 45,
+            spiderfyOnMaxZoom: true,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                let clusterClass = 'events-cluster-small';
+                if (count > 20) clusterClass = 'events-cluster-large';
+                else if (count > 8) clusterClass = 'events-cluster-medium';
+
+                return L.divIcon({
+                    html: `<div class="events-map-cluster ${clusterClass}"><span>${count}</span></div>`,
+                    className: 'events-cluster-wrapper',
+                    iconSize: L.point(36, 36)
+                });
+            }
+        });
+
+        eventsMap.addLayer(eventsClusterGroup);
+        renderEventsOnMap(currentMapEventsData);
+
+        // Map Minimizer Toggle
+        const toggleBtn = document.getElementById('btn-toggle-events-map');
+        const minimizeBtn = document.getElementById('btn-events-map-minimize-toggle');
+        const collapseWrap = document.getElementById('events-map-collapse-wrap');
+        const labelToggle = document.getElementById('label-events-map-toggle');
+        const iconToggle = document.getElementById('icon-events-map-toggle');
+
+        function toggleMapVisibility() {
+            if (!collapseWrap) return;
+            const isHidden = collapseWrap.classList.contains('hidden');
+            if (isHidden) {
+                collapseWrap.classList.remove('hidden');
+                if (labelToggle) labelToggle.textContent = 'Sembunyikan';
+                if (iconToggle) iconToggle.className = 'fa-solid fa-chevron-up transition-transform duration-300 text-[10px]';
+                setTimeout(() => { if (eventsMap) eventsMap.invalidateSize(); }, 200);
+            } else {
+                collapseWrap.classList.add('hidden');
+                if (labelToggle) labelToggle.textContent = 'Tampilkan Peta';
+                if (iconToggle) iconToggle.className = 'fa-solid fa-chevron-down transition-transform duration-300 text-[10px]';
+            }
+        }
+
+        if (minimizeBtn) minimizeBtn.addEventListener('click', toggleMapVisibility);
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                if (e.target.closest('button')) return;
+                toggleMapVisibility();
+            });
+        }
+
+        // Recenter Button
+        const recenterBtn = document.getElementById('btn-events-map-recenter');
+        if (recenterBtn) {
+            recenterBtn.addEventListener('click', function() {
+                fitEventsMapBounds();
+            });
+        }
+
+        // Locate Me Button
+        const locateBtn = document.getElementById('btn-events-map-locate-me');
+        if (locateBtn) {
+            locateBtn.addEventListener('click', function() {
+                locateUserOnEventsMap();
+            });
+        }
+    }
+
+    function toggleEventsMapLayerMenu() {
+        document.getElementById('events-map-layer-menu')?.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('events-map-layer-dropdown-wrap');
+        const menu = document.getElementById('events-map-layer-menu');
+        if (wrap && menu && !wrap.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+
+    function setEventsMapLayer(type) {
+        if (!eventsMap || !eventsBaseTileLayers[type]) return;
+        if (eventsActiveTileLayer) eventsMap.removeLayer(eventsActiveTileLayer);
+        eventsActiveTileLayer = eventsBaseTileLayers[type];
+        eventsActiveTileLayer.addTo(eventsMap);
+
+        const labelMap = {
+            'osm': 'OSM Street',
+            'dark': 'Dark Tactical',
+            'voyager': 'Voyager',
+            'satellite': 'Satelit Esri'
+        };
+        const labelEl = document.getElementById('label-events-active-layer');
+        if (labelEl) labelEl.textContent = labelMap[type] || type;
+
+        document.querySelectorAll('.events-layer-check-osm, .events-layer-check-dark, .events-layer-check-voyager, .events-layer-check-satellite').forEach(el => el.classList.add('hidden'));
+        document.querySelector('.events-layer-check-' + type)?.classList.remove('hidden');
+        document.getElementById('events-map-layer-menu')?.classList.add('hidden');
+    }
+
+    function renderEventsOnMap(eventsList) {
+        if (!eventsClusterGroup) return;
+        eventsClusterGroup.clearLayers();
+
+        const countBadge = document.getElementById('events-map-count');
+        if (countBadge) {
+            countBadge.textContent = `${eventsList.length} Event Terdaftar`;
+        }
+
+        if (!eventsList || eventsList.length === 0) {
+            return;
+        }
+
+        const validMarkers = [];
+
+        eventsList.forEach(event => {
+            if (!event.lat || !event.lng) return;
+
+            const isTrail = event.race_type && event.race_type.toLowerCase().includes('trail');
+            const isUltra = event.race_type && (event.race_type.toLowerCase().includes('ultra') || event.race_type.toLowerCase().includes('marathon'));
+            const pinBg = isTrail ? '#10b981' : (isUltra ? '#f97316' : '#ccff00');
+            const pinColor = isTrail || isUltra ? '#ffffff' : '#020617';
+
+            const customPinIcon = L.divIcon({
+                className: 'border-0 bg-transparent',
+                html: `
+                    <div class="relative group cursor-pointer">
+                        <div class="w-8 h-8 rounded-full border-2 border-[#0c121e] shadow-xl flex items-center justify-center font-black text-xs transition-transform transform group-hover:scale-110" style="background-color: ${pinBg}; color: ${pinColor};">
+                            <i class="fa-solid fa-person-running text-xs"></i>
+                        </div>
+                        <div class="w-2 h-2 rounded-full mx-auto -mt-1 shadow-md" style="background-color: ${pinBg};"></div>
+                    </div>
+                `,
+                iconSize: [32, 36],
+                iconAnchor: [16, 36],
+                popupAnchor: [0, -36]
+            });
+
+            const marker = L.marker([event.lat, event.lng], { icon: customPinIcon });
+
+            let distanceBadgesHtml = '';
+            if (Array.isArray(event.distances) && event.distances.length > 0) {
+                distanceBadgesHtml = '<div class="flex flex-wrap gap-1 mt-2">' + 
+                    event.distances.map(d => `<span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-750 text-[9px] font-mono font-bold text-slate-200 uppercase">${d}</span>`).join('') +
+                    '</div>';
+            }
+
+            const popupHtml = `
+                <div class="events-custom-leaflet-popup font-sans text-xs">
+                    <div class="relative aspect-video overflow-hidden bg-slate-900">
+                        <img src="${event.hero_image}" alt="${event.name}" class="w-full h-full object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0c121e] via-transparent to-transparent"></div>
+                        <span class="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-bold uppercase rounded bg-[#0c121e]/90 text-neon border border-neon/30">
+                            ${event.race_type || 'Event Lari'}
+                        </span>
+                    </div>
+                    <div class="p-3.5 space-y-2">
+                        <h4 class="font-black text-white text-sm tracking-tight leading-tight line-clamp-2 hover:text-neon transition">
+                            <a href="${event.url}">${event.name}</a>
+                        </h4>
+                        <div class="space-y-1 text-slate-300 text-[11px] font-medium">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar text-neon text-[10px]"></i>
+                                <span>${event.start_at || 'Segera Hadir'}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-neon text-[10px]"></i>
+                                <span class="truncate">${event.location_name || event.city}</span>
+                            </div>
+                        </div>
+                        ${distanceBadgesHtml}
+                        <div class="pt-2">
+                            <a href="${event.url}" class="w-full py-2 px-3 rounded-lg bg-neon hover:bg-lime-300 text-dark font-black text-xs uppercase tracking-wider text-center block transition shadow-sm">
+                                Lihat Detail Event
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            marker.bindPopup(popupHtml, { maxWidth: 300, minWidth: 260, className: 'events-custom-leaflet-popup' });
+            eventsClusterGroup.addLayer(marker);
+            validMarkers.push(marker);
+        });
+
+        if (validMarkers.length > 0) {
+            fitEventsMapBounds();
+        }
+    }
+
+    function fitEventsMapBounds() {
+        if (!eventsMap || !eventsClusterGroup) return;
+        const bounds = eventsClusterGroup.getBounds();
+        if (bounds.isValid()) {
+            eventsMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 14 });
+        } else {
+            eventsMap.setView([-2.5489, 118.0149], 5);
+        }
+    }
+
+    function setEventsMapTypeFilter(typeId) {
+        document.querySelectorAll('.btn-event-map-pill').forEach(btn => {
+            const bType = btn.getAttribute('data-map-type');
+            if (bType === String(typeId)) {
+                btn.className = 'btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border bg-slate-800 text-white font-bold border-slate-600 shrink-0 flex items-center gap-1.5';
+            } else {
+                btn.className = 'btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border text-slate-300 hover:text-white border-transparent shrink-0 flex items-center gap-1.5';
+            }
+        });
+
+        const form = document.getElementById('filter-form');
+        if (form) {
+            const select = form.querySelector('select[name="race_type_id"]');
+            if (select) {
+                select.value = typeId;
+            }
+        }
+
+        // Sync quick filter buttons
+        document.querySelectorAll('.quick-filter-btn[data-filter-type="type"]').forEach(b => {
+            if (b.getAttribute('data-value') === String(typeId)) {
+                b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-neon text-dark border-neon shadow-sm shadow-neon/10";
+            } else {
+                b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white";
+            }
+        });
+
+        // Trigger AJAX fetch
+        if (window.fetchEventsGlobal) {
+            window.fetchEventsGlobal();
+        }
+    }
+
+    function locateUserOnEventsMap() {
+        if (!navigator.geolocation) {
+            alert('Geolocation tidak didukung oleh browser Anda.');
+            return;
+        }
+
+        const locateBtn = document.getElementById('btn-events-map-locate-me');
+        const origHtml = locateBtn ? locateBtn.innerHTML : '';
+        if (locateBtn) {
+            locateBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-[10px] text-neon"></i><span class="hidden sm:inline">Mencari...</span>';
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                if (locateBtn) locateBtn.innerHTML = origHtml;
+                const uLat = pos.coords.latitude;
+                const uLng = pos.coords.longitude;
+
+                if (eventsUserLocationMarker && eventsMap.hasLayer(eventsUserLocationMarker)) {
+                    eventsMap.removeLayer(eventsUserLocationMarker);
+                }
+
+                const userPin = L.divIcon({
+                    className: 'border-0 bg-transparent',
+                    html: '<div class="relative flex items-center justify-center w-7 h-7"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-sky-500 border-2 border-white shadow-xl"></span></div>',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                eventsUserLocationMarker = L.marker([uLat, uLng], { icon: userPin, zIndexOffset: 3000 }).addTo(eventsMap);
+                eventsUserLocationMarker.bindPopup('<strong class="text-sky-400">Lokasi Anda Saat Ini</strong>').openPopup();
+
+                eventsMap.setView([uLat, uLng], 11, { animate: true });
+            },
+            function(err) {
+                if (locateBtn) locateBtn.innerHTML = origHtml;
+                alert('Gagal mendeteksi lokasi GPS: ' + err.message);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        initEventsExplorerMap();
+
         const form = document.getElementById('filter-form');
         const container = document.getElementById('events-container');
         const paginationContainer = document.getElementById('pagination-container');
@@ -888,12 +1377,20 @@
                 container.innerHTML = data.html;
                 paginationContainer.innerHTML = data.pagination;
                 attachPaginationListeners();
+
+                // Dynamically refresh map events
+                if (data.mapEvents) {
+                    currentMapEventsData = data.mapEvents;
+                    renderEventsOnMap(data.mapEvents);
+                }
             })
             .finally(() => {
                 container.classList.remove('opacity-50');
                 loading.classList.add('hidden');
             });
         }
+
+        window.fetchEventsGlobal = fetchEvents;
 
         function attachPaginationListeners() {
             document.querySelectorAll('#pagination-container a').forEach(link => {
@@ -947,6 +1444,15 @@
                     }
                     document.querySelectorAll('.quick-filter-btn[data-filter-type="type"]').forEach(b => {
                         b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-600 hover:text-white";
+                    });
+
+                    // Sync map filter pills
+                    document.querySelectorAll('.btn-event-map-pill').forEach(mp => {
+                        if (mp.getAttribute('data-map-type') === String(value)) {
+                            mp.className = 'btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border bg-slate-800 text-white font-bold border-slate-600 shrink-0 flex items-center gap-1.5';
+                        } else {
+                            mp.className = 'btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border text-slate-300 hover:text-white border-transparent shrink-0 flex items-center gap-1.5';
+                        }
                     });
                 }
                 
