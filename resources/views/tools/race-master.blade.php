@@ -436,33 +436,44 @@
                     </div>
                 </div>
 
-                <!-- Face Photo Capture & Biometric Enrollment Bar -->
+                <!-- Face Photo Capture & Multi-Angle Biometric Enrollment Bar -->
                 <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+                        <div class="w-14 h-14 rounded-full border-2 border-indigo-500 overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner relative">
                             <img v-if="newFacePhoto" :src="newFacePhoto" class="w-full h-full object-cover" alt="Avatar">
-                            <i v-else class="fa-solid fa-user text-slate-400 text-lg"></i>
+                            <i v-else class="fa-solid fa-user text-slate-400 text-xl"></i>
+                            <span v-if="enrolledAngleCount > 0" class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center border border-white dark:border-slate-900">
+                                @{{ enrolledAngleCount }}
+                            </span>
                         </div>
                         <div>
-                            <div class="text-xs font-bold text-slate-900 dark:text-white">Foto Wajah Peserta</div>
-                            <div v-if="faceModelLoading" class="text-[11px] text-indigo-500 font-medium flex items-center gap-1">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span>Biometrik Wajah AI Multi-Angle</span>
+                                <span v-if="enrolledAngleCount === 3" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                    3 Sudut (Optimal)
+                                </span>
+                                <span v-else-if="enrolledAngleCount > 0" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                                    @{{ enrolledAngleCount }} Sudut
+                                </span>
+                            </div>
+                            <div v-if="faceModelLoading" class="text-[11px] text-indigo-500 font-medium flex items-center gap-1 mt-0.5">
                                 <i class="fa-solid fa-circle-notch fa-spin"></i> Memuat AI Face Model...
                             </div>
-                            <div v-else-if="newFaceProcessing" class="text-[11px] text-indigo-500 font-medium flex items-center gap-1">
+                            <div v-else-if="newFaceProcessing" class="text-[11px] text-indigo-500 font-medium flex items-center gap-1 mt-0.5">
                                 <i class="fa-solid fa-circle-notch fa-spin"></i> Mengekstrak Biometrik Wajah...
                             </div>
-                            <div v-else-if="newFaceDescriptor" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check"></i> Biometrik Wajah Terdaftar (AI Ready)
+                            <div v-else-if="enrolledAngleCount > 0" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                                <i class="fa-solid fa-circle-check"></i> Terdaftar @{{ enrolledAngleCount }} Sudut (Depan, Kanan, Kiri) - Siap Deteksi
                             </div>
-                            <div v-else class="text-[11px] text-slate-500 dark:text-slate-400">
-                                Opsional: Foto wajah untuk pengenalan otomatis saat finish
+                            <div v-else class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                Ambil 3 sudut (depan, serong kanan, serong kiri) agar deteksi saat finish tetap akurat dari samping.
                             </div>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="openFaceCaptureModal" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm">
-                            <i class="fa-solid fa-camera"></i> Ambil Foto (Kamera)
+                        <button type="button" @click="openFaceCaptureModal('front')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm">
+                            <i class="fa-solid fa-camera"></i> Ambil 3 Sudut (Kamera)
                         </button>
                         <label class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition">
                             <i class="fa-solid fa-upload"></i> Upload
@@ -508,8 +519,11 @@
                                             <img v-if="p.photoUrl" :src="p.photoUrl" class="w-full h-full object-cover" alt="Foto">
                                             <i v-else class="fa-solid fa-user text-slate-400 text-xs"></i>
                                         </div>
-                                        <span v-if="p.faceDescriptor" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                                            Face AI
+                                        <span v-if="Array.isArray(p.faceDescriptors) && p.faceDescriptors.length >= 3" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                            3 Sudut AI
+                                        </span>
+                                        <span v-else-if="p.faceDescriptor || (Array.isArray(p.faceDescriptors) && p.faceDescriptors.length > 0)" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                                            1 Sudut AI
                                         </span>
                                         <span v-else class="text-[10px] text-slate-400">
                                             Tanpa Wajah
@@ -688,17 +702,65 @@
                 </button>
             </div>
 
-            <!-- Quick Manual BIB Timing & Detector Engine Bar -->
+            <!-- Quick Manual BIB Timing & Rapid Entry Engine Bar -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm transition-colors space-y-3">
+                
+                <!-- Rapid Spotter Helper Controls: Prefix Lock & Auto-Submit -->
+                <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800 text-xs">
+                    <!-- Prefix Lock Pills -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Kunci Prefix BIB:</span>
+                        <button type="button" @click="lockedBibPrefix = ''"
+                            :class="lockedBibPrefix === '' ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700">
+                            Tanpa Prefix
+                        </button>
+                        <button v-for="pf in ['1', '2', '3', '5']" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
+                            :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
+                            Prefix @{{ pf }}xxxx
+                        </button>
+                    </div>
+
+                    <!-- Auto-Submit on Fixed Digits -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Auto-Enter Saat:</span>
+                        <button type="button" @click="autoSubmitDigits = 0"
+                            :class="autoSubmitDigits === 0 ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700">
+                            Tekan Enter
+                        </button>
+                        <button type="button" @click="autoSubmitDigits = 3"
+                            :class="autoSubmitDigits === 3 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-3 terketik (Zero-Enter)">
+                            3 Digit
+                        </button>
+                        <button type="button" @click="autoSubmitDigits = 4"
+                            :class="autoSubmitDigits === 4 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-4 terketik (Zero-Enter)">
+                            4 Digit
+                        </button>
+                        <button type="button" @click="autoSubmitDigits = 5"
+                            :class="autoSubmitDigits === 5 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-5 terketik (Zero-Enter)">
+                            5 Digit
+                        </button>
+                    </div>
+                </div>
+
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     <!-- Left: Manual BIB Entry Input -->
                     <div class="flex-1">
                         <form @submit.prevent="recordManualBib" class="flex items-center gap-2">
                             <div class="relative flex-1">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
-                                <input id="manualBibInputEl" v-model="manualBibInput" type="text" autocomplete="off"
-                                    placeholder="Input Manual No. BIB (tekan Enter untuk catat langsung)..." 
-                                    class="w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal transition">
+                                <span v-if="lockedBibPrefix" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
+                                    [@{{ lockedBibPrefix }}] #
+                                </span>
+                                <span v-else class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
+                                <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
+                                    :placeholder="lockedBibPrefix ? `Ketik sisa angka (contoh: 245 untuk #${lockedBibPrefix}0245)...` : 'Ketik No. BIB (bisa rombongan: 10245 10246 20015)...'" 
+                                    :class="lockedBibPrefix ? 'pl-16' : 'pl-8'"
+                                    class="w-full pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
                             </div>
                             <button type="submit" :disabled="!timer.running" 
                                 class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center gap-2">
@@ -706,11 +768,20 @@
                                 <span>Catat Finish (Enter)</span>
                             </button>
                         </form>
+
+                        <!-- Live Runner Match Preview -->
+                        <div v-if="liveMatchedRunner" class="mt-1.5 flex items-center gap-2 text-xs font-mono">
+                            <span class="text-slate-400">Cocok:</span>
+                            <span class="font-bold text-slate-900 dark:text-white">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
+                            <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'">
+                                (@{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }})
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Right: Detector Method Quick Preset Switcher -->
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mr-1">Metode Detektor:</span>
+                    <div class="flex items-center gap-1.5 flex-wrap shrink-0">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mr-1">Metode Sensor:</span>
                         <button type="button" @click="setDetectorPreset('all')" 
                             :class="currentDetectorPreset === 'all' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                             class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
@@ -1095,30 +1166,124 @@
 
     </main>
 
-    <!-- Face Capture Webcam Modal for Participant Enrollment -->
+    <!-- Face Capture Webcam Modal for Multi-Angle Participant Enrollment -->
     <div v-if="faceCaptureModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" @click.self="closeFaceCaptureModal">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-md shadow-2xl relative text-white">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-base font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-camera text-indigo-400"></i> Ambil Foto Wajah Peserta
-                </h3>
-                <button type="button" @click="closeFaceCaptureModal" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-lg shadow-2xl relative text-white space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+                <div>
+                    <h3 class="text-base font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-indigo-400"></i> Perekaman Biometrik Multi-Angle
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Ambil 3 sudut wajah pelari agar akurat saat melewati finish gate.</p>
+                </div>
+                <button type="button" @click="closeFaceCaptureModal" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Angle Step Selector Tabs -->
+            <div class="grid grid-cols-3 gap-2 text-xs">
+                <button type="button" @click="faceEnrollStep = 'front'"
+                    :class="faceEnrollStep === 'front' ? 'bg-indigo-600 text-white font-bold ring-2 ring-indigo-400' : (newFacePhotos.front ? 'bg-emerald-950 border border-emerald-600 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-400')"
+                    class="py-2 px-2 rounded-xl text-center transition flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-1 text-[11px]">
+                        <i v-if="newFacePhotos.front" class="fa-solid fa-check text-emerald-400"></i>
+                        <span>1. Depan (0°)</span>
+                    </div>
+                    <span class="text-[10px] opacity-75">Tatap Lurus</span>
+                </button>
+
+                <button type="button" @click="faceEnrollStep = 'right'"
+                    :class="faceEnrollStep === 'right' ? 'bg-indigo-600 text-white font-bold ring-2 ring-indigo-400' : (newFacePhotos.right ? 'bg-emerald-950 border border-emerald-600 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-400')"
+                    class="py-2 px-2 rounded-xl text-center transition flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-1 text-[11px]">
+                        <i v-if="newFacePhotos.right" class="fa-solid fa-check text-emerald-400"></i>
+                        <span>2. Kanan (30°)</span>
+                    </div>
+                    <span class="text-[10px] opacity-75">Serong Kanan</span>
+                </button>
+
+                <button type="button" @click="faceEnrollStep = 'left'"
+                    :class="faceEnrollStep === 'left' ? 'bg-indigo-600 text-white font-bold ring-2 ring-indigo-400' : (newFacePhotos.left ? 'bg-emerald-950 border border-emerald-600 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-400')"
+                    class="py-2 px-2 rounded-xl text-center transition flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-1 text-[11px]">
+                        <i v-if="newFacePhotos.left" class="fa-solid fa-check text-emerald-400"></i>
+                        <span>3. Kiri (30°)</span>
+                    </div>
+                    <span class="text-[10px] opacity-75">Serong Kiri</span>
+                </button>
             </div>
             
-            <div class="relative bg-black aspect-square rounded-xl overflow-hidden mb-4 flex items-center justify-center border border-slate-800">
+            <div class="relative bg-black aspect-video rounded-xl overflow-hidden flex items-center justify-center border border-slate-800">
                 <video id="faceCaptureVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                <!-- Oval Face Guide Marker -->
-                <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div class="w-48 h-60 rounded-[50%] border-2 border-dashed border-indigo-400/80 bg-indigo-500/10"></div>
+                
+                <!-- Dynamic Angle Guide Visual Overlay -->
+                <div class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                    <div class="w-40 h-52 rounded-[50%] border-2 border-dashed border-indigo-400/80 bg-indigo-500/10 transition-all duration-300"
+                        :class="{
+                            'translate-x-0': faceEnrollStep === 'front',
+                            'translate-x-6 rotate-6': faceEnrollStep === 'right',
+                            '-translate-x-6 -rotate-6': faceEnrollStep === 'left'
+                        }">
+                    </div>
+                    
+                    <!-- Angle Instructions Tag -->
+                    <div class="absolute bottom-3 px-3 py-1 rounded-full bg-black/80 border border-slate-700 text-xs font-bold text-slate-200">
+                        <span v-if="faceEnrollStep === 'front'">Instruksi: Posisikan wajah lurus menatap kamera</span>
+                        <span v-else-if="faceEnrollStep === 'right'">Instruksi: Tolehkan wajah sedikit ke kanan (30°)</span>
+                        <span v-else-if="faceEnrollStep === 'left'">Instruksi: Tolehkan wajah sedikit ke kiri (30°)</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <button type="button" @click="closeFaceCaptureModal" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
-                    Batal
+            <!-- Captured Angle Preview Strip -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="p-1.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img v-if="newFacePhotos.front" :src="newFacePhotos.front" class="w-full h-full object-cover" alt="Depan">
+                        <i v-else class="fa-solid fa-user text-slate-600 text-xs"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[11px] font-bold text-white truncate">Depan</div>
+                        <div class="text-[10px]" :class="newFacePhotos.front ? 'text-emerald-400 font-bold' : 'text-slate-500'">
+                            @{{ newFacePhotos.front ? 'Tercatat' : 'Kosong' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-1.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img v-if="newFacePhotos.right" :src="newFacePhotos.right" class="w-full h-full object-cover" alt="Kanan">
+                        <i v-else class="fa-solid fa-user text-slate-600 text-xs"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[11px] font-bold text-white truncate">Serong Kanan</div>
+                        <div class="text-[10px]" :class="newFacePhotos.right ? 'text-emerald-400 font-bold' : 'text-slate-500'">
+                            @{{ newFacePhotos.right ? 'Tercatat' : 'Kosong' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-1.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img v-if="newFacePhotos.left" :src="newFacePhotos.left" class="w-full h-full object-cover" alt="Kiri">
+                        <i v-else class="fa-solid fa-user text-slate-600 text-xs"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[11px] font-bold text-white truncate">Serong Kiri</div>
+                        <div class="text-[10px]" :class="newFacePhotos.left ? 'text-emerald-400 font-bold' : 'text-slate-500'">
+                            @{{ newFacePhotos.left ? 'Tercatat' : 'Kosong' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                <button type="button" @click="closeFaceCaptureModal" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+                    Selesai
                 </button>
-                <button type="button" @click="snapFacePhoto" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg">
-                    <i class="fa-solid fa-camera"></i> Jepret Foto
+                <button type="button" @click="snapFaceAngle" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Jepret Sudut @{{ faceEnrollStep === 'front' ? 'Depan' : (faceEnrollStep === 'right' ? 'Kanan' : 'Kiri') }}</span>
                 </button>
             </div>
         </div>
@@ -1236,14 +1401,24 @@
             const inputBib = ref(null);
             const mobileMenuOpen = ref(false);
 
-            // Face Biometrics State
+            // Face Biometrics State (Multi-Angle)
             const newFacePhoto = ref('');
-            const newFaceDescriptor = ref(null);
+            const newFacePhotos = ref({ front: '', right: '', left: '' });
+            const newFaceDescriptors = ref({ front: null, right: null, left: null });
+            const faceEnrollStep = ref('front'); // 'front' | 'right' | 'left'
             const newFaceProcessing = ref(false);
             const faceModelLoading = ref(false);
             const faceCaptureModalOpen = ref(false);
             let faceCaptureStream = null;
             let faceModelsLoaded = false;
+
+            const enrolledAngleCount = computed(() => {
+                let c = 0;
+                if (newFacePhotos.value.front) c++;
+                if (newFacePhotos.value.right) c++;
+                if (newFacePhotos.value.left) c++;
+                return c;
+            });
             
             // Core Data Structure
             const participants = ref([]); 
@@ -1278,7 +1453,10 @@
                 stationMode: 'master', // 'master' | 'satellite'
             });
 
+            // Manual BIB Rapid Entry & Validation State
             const manualBibInput = ref('');
+            const lockedBibPrefix = ref('');
+            const autoSubmitDigits = ref(0);
             const manualValidationAlert = ref({
                 show: false,
                 type: '', // 'error' | 'warning' | 'success' | 'info'
@@ -1948,7 +2126,8 @@
                 return null;
             };
 
-            const openFaceCaptureModal = async () => {
+            const openFaceCaptureModal = async (step = 'front') => {
+                faceEnrollStep.value = step;
                 faceCaptureModalOpen.value = true;
                 await loadFaceApiModels();
                 nextTick(async () => {
@@ -1974,7 +2153,7 @@
                 faceCaptureModalOpen.value = false;
             };
 
-            const snapFacePhoto = async () => {
+            const snapFaceAngle = async () => {
                 const video = document.getElementById('faceCaptureVideo');
                 if (!video) return;
                 
@@ -1990,14 +2169,27 @@
                 ctx.drawImage(video, sx, sy, minSide, minSide, 0, 0, 320, 320);
 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                newFacePhoto.value = dataUrl;
-                closeFaceCaptureModal();
+                const currentStep = faceEnrollStep.value;
+
+                newFacePhotos.value[currentStep] = dataUrl;
+                if (currentStep === 'front' || !newFacePhoto.value) {
+                    newFacePhoto.value = dataUrl;
+                }
 
                 newFaceProcessing.value = true;
                 const desc = await extractFaceDescriptorFromImage(canvas);
                 newFaceProcessing.value = false;
                 if (desc) {
-                    newFaceDescriptor.value = desc;
+                    newFaceDescriptors.value[currentStep] = desc;
+                }
+
+                // Advance to next angle step
+                if (currentStep === 'front') {
+                    faceEnrollStep.value = 'right';
+                } else if (currentStep === 'right') {
+                    faceEnrollStep.value = 'left';
+                } else if (currentStep === 'left') {
+                    closeFaceCaptureModal();
                 }
             };
 
@@ -2008,6 +2200,7 @@
                 reader.onload = async (evt) => {
                     const dataUrl = evt.target.result;
                     newFacePhoto.value = dataUrl;
+                    newFacePhotos.value.front = dataUrl;
                     newFaceProcessing.value = true;
                     
                     const img = new Image();
@@ -2015,7 +2208,7 @@
                         const desc = await extractFaceDescriptorFromImage(img);
                         newFaceProcessing.value = false;
                         if (desc) {
-                            newFaceDescriptor.value = desc;
+                            newFaceDescriptors.value.front = desc;
                         }
                     };
                     img.src = dataUrl;
@@ -2025,7 +2218,8 @@
 
             const clearNewFacePhoto = () => {
                 newFacePhoto.value = '';
-                newFaceDescriptor.value = null;
+                newFacePhotos.value = { front: '', right: '', left: '' };
+                newFaceDescriptors.value = { front: null, right: null, left: null };
             };
 
             const addParticipant = () => {
@@ -2047,12 +2241,20 @@
                     predictedMs = (h * 3600 * 1000) + (m * 60 * 1000) + (s * 1000);
                 }
 
+                const descriptorsList = [
+                    newFaceDescriptors.value.front,
+                    newFaceDescriptors.value.right,
+                    newFaceDescriptors.value.left
+                ].filter(Boolean);
+
                 participants.value.push({
                     id: crypto.randomUUID(),
                     bib: bibValue,
                     name: newName.value,
                     photoUrl: newFacePhoto.value || '',
-                    faceDescriptor: newFaceDescriptor.value || null,
+                    facePhotos: { ...newFacePhotos.value },
+                    faceDescriptor: newFaceDescriptors.value.front || (descriptorsList[0] || null),
+                    faceDescriptors: descriptorsList,
                     predictedTimeMs: predictedMs,
                     laps: [],
                     status: 'ready',
@@ -2068,8 +2270,7 @@
                 newPredictedHH.value = '';
                 newPredictedMM.value = '';
                 newPredictedSS.value = '';
-                newFacePhoto.value = '';
-                newFaceDescriptor.value = null;
+                clearNewFacePhoto();
                 saveState();
                 nextTick(() => inputBib.value.focus());
             };
@@ -2669,67 +2870,133 @@
                 manualValidationAlert.value.show = false;
             };
 
+            const liveMatchedRunner = computed(() => {
+                const raw = String(manualBibInput.value || '').trim();
+                if (!raw || raw.includes(' ') || raw.includes(',')) return null;
+
+                let testBib = raw;
+                if (lockedBibPrefix.value && !testBib.startsWith(lockedBibPrefix.value)) {
+                    testBib = lockedBibPrefix.value + testBib;
+                }
+
+                let p = participants.value.find(item => String(item.bib).trim().toLowerCase() === testBib.toLowerCase());
+                if (p) return p;
+
+                if (raw.length >= 2) {
+                    const candidates = participants.value.filter(item => String(item.bib).trim().endsWith(raw));
+                    if (candidates.length === 1) return candidates[0];
+                }
+                return null;
+            });
+
+            const onManualBibKeyup = (e) => {
+                if (e.key === 'Enter') return;
+                const raw = String(manualBibInput.value || '').trim();
+                if (!raw || raw.includes(' ') || raw.includes(',')) return;
+
+                if (autoSubmitDigits.value > 0) {
+                    const digits = raw.replace(/\D/g, '');
+                    let targetLen = autoSubmitDigits.value;
+                    if (lockedBibPrefix.value && !raw.startsWith(lockedBibPrefix.value)) {
+                        targetLen = Math.max(1, autoSubmitDigits.value - lockedBibPrefix.value.length);
+                    }
+                    if (digits.length === targetLen) {
+                        recordManualBib();
+                    }
+                }
+            };
+
             const recordManualBib = () => {
-                const bibStr = String(manualBibInput.value || '').trim();
-                if (!bibStr) return;
+                const raw = String(manualBibInput.value || '').trim();
+                if (!raw) return;
 
                 if (!timer.value.running) {
                     showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
                     return;
                 }
 
-                // Match by exact BIB number or matching string (case-insensitive)
-                const p = participants.value.find(item => String(item.bib).trim().toLowerCase() === bibStr.toLowerCase());
-                
-                if (!p) {
-                    showDuplicateAlert('error', `Nomor BIB #${bibStr} tidak ditemukan dalam daftar peserta!`);
-                    return;
-                }
+                // Support batch rombongan separated by space or comma (e.g. "10245 10246 20015")
+                const tokens = raw.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
+                if (!tokens.length) return;
 
-                // Anti-Duplicate & Status Check
-                if (p.status === 'finished') {
-                    showDuplicateAlert('warning', `DUPLIKAT DITOLAK: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
-                    manualBibInput.value = '';
-                    return;
-                }
+                tokens.forEach(token => {
+                    let bibStr = token;
+                    // Apply prefix lock if active
+                    if (lockedBibPrefix.value && !bibStr.startsWith(lockedBibPrefix.value)) {
+                        const candidate = lockedBibPrefix.value + bibStr;
+                        if (participants.value.some(p => String(p.bib).trim().toLowerCase() === candidate.toLowerCase())) {
+                            bibStr = candidate;
+                        } else if (autoSubmitDigits.value > 0 && (lockedBibPrefix.value + bibStr).length < autoSubmitDigits.value) {
+                            const padLen = autoSubmitDigits.value - lockedBibPrefix.value.length;
+                            const padded = lockedBibPrefix.value + bibStr.padStart(padLen, '0');
+                            if (participants.value.some(p => String(p.bib).trim().toLowerCase() === padded.toLowerCase())) {
+                                bibStr = padded;
+                            } else {
+                                bibStr = candidate;
+                            }
+                        } else {
+                            bibStr = candidate;
+                        }
+                    }
 
-                if (p.status === 'dnf') {
-                    showDuplicateAlert('error', `BIB #${p.bib} (${p.name}) berstatus DNF (Did Not Finish)!`, p);
-                    manualBibInput.value = '';
-                    return;
-                }
+                    // Match participant
+                    let p = participants.value.find(item => String(item.bib).trim().toLowerCase() === bibStr.toLowerCase());
 
-                if (raceSettings.value.raceMode === 'single') {
-                    recordLap(p.id, 'manual_input');
-                    p.status = 'finished';
-                    triggerTvFinisherFlash(p);
-                    showDuplicateAlert('success', `FINISH TERCATAT: BIB #${p.bib} (${p.name}) • Waktu: ${formatTime(p.totalTime)}`, p);
-                } else {
-                    // Multi-Lap mode
-                    const now = Date.now();
-                    const cooldownMs = (raceSettings.value.minLapCooldownSec || 15) * 1000;
-                    if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
-                        const remainingSec = Math.ceil((cooldownMs - (now - p.lastScanTime)) / 1000);
-                        showDuplicateAlert('warning', `BIB #${p.bib} (${p.name}) masih dalam cooldown lap (${remainingSec} detik tersisa)!`, p);
-                        manualBibInput.value = '';
+                    // Suffix matching fallback (e.g. runner 10245 when typing 245)
+                    if (!p && bibStr.length >= 2) {
+                        const matches = participants.value.filter(item => 
+                            String(item.bib).trim().endsWith(bibStr) && item.status !== 'finished'
+                        );
+                        if (matches.length === 1) {
+                            p = matches[0];
+                        }
+                    }
+
+                    if (!p) {
+                        showDuplicateAlert('error', `Nomor BIB #${bibStr} tidak ditemukan dalam daftar peserta!`);
                         return;
                     }
-                    recordLap(p.id, 'manual_input');
-                    if (p.laps.length >= raceSettings.value.targetLaps) {
+
+                    // Anti-Duplicate Check
+                    if (p.status === 'finished') {
+                        showDuplicateAlert('warning', `DUPLIKAT DITOLAK: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
+                        return;
+                    }
+
+                    if (p.status === 'dnf') {
+                        showDuplicateAlert('error', `BIB #${p.bib} (${p.name}) berstatus DNF (Did Not Finish)!`, p);
+                        return;
+                    }
+
+                    if (raceSettings.value.raceMode === 'single') {
+                        recordLap(p.id, 'manual_input');
                         p.status = 'finished';
                         triggerTvFinisherFlash(p);
-                        showDuplicateAlert('success', `FINAL FINISH (Lap ${p.laps.length}): BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                        showDuplicateAlert('success', `FINISH TERCATAT: BIB #${p.bib} (${p.name}) • Waktu: ${formatTime(p.totalTime)}`, p);
                     } else {
-                        showDuplicateAlert('info', `LAP ${p.laps.length}/${raceSettings.value.targetLaps} TERCATAT: BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                        const now = Date.now();
+                        const cooldownMs = (raceSettings.value.minLapCooldownSec || 15) * 1000;
+                        if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
+                            const remainingSec = Math.ceil((cooldownMs - (now - p.lastScanTime)) / 1000);
+                            showDuplicateAlert('warning', `BIB #${p.bib} (${p.name}) masih dalam cooldown lap (${remainingSec} detik tersisa)!`, p);
+                            return;
+                        }
+                        recordLap(p.id, 'manual_input');
+                        if (p.laps.length >= raceSettings.value.targetLaps) {
+                            p.status = 'finished';
+                            triggerTvFinisherFlash(p);
+                            showDuplicateAlert('success', `FINAL FINISH (Lap ${p.laps.length}): BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                        } else {
+                            showDuplicateAlert('info', `LAP ${p.laps.length}/${raceSettings.value.targetLaps} TERCATAT: BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                        }
                     }
-                }
+                });
 
                 manualBibInput.value = '';
-                // Keep input focused for next rapid entry
                 setTimeout(() => {
                     const el = document.getElementById('manualBibInputEl');
                     if (el) el.focus();
-                }, 50);
+                }, 30);
             };
 
             const recordLap = (id, source = 'manual') => {
@@ -3082,7 +3349,7 @@
                     } catch (e) {}
                 }
 
-                // Engine 3: Face Recognition AI (Biometrics)
+                // Engine 3: Face Recognition AI (Biometrics with Multi-Angle Support)
                 if (!detectedBib && raceSettings.value.enableFaceAi && faceModelsLoaded) {
                     try {
                         const [bx, by, bw, bh] = bbox;
@@ -3103,13 +3370,19 @@
                             let minDistance = 0.54; // Euclidean distance threshold
                             
                             participants.value.forEach(p => {
-                                if (p.faceDescriptor && Array.isArray(p.faceDescriptor)) {
-                                    const dist = faceapi.euclideanDistance(liveDesc, p.faceDescriptor);
-                                    if (dist < minDistance) {
-                                        minDistance = dist;
-                                        bestMatch = p;
+                                const targetDescriptors = Array.isArray(p.faceDescriptors) && p.faceDescriptors.length > 0
+                                    ? p.faceDescriptors
+                                    : (p.faceDescriptor ? [p.faceDescriptor] : []);
+
+                                targetDescriptors.forEach(desc => {
+                                    if (Array.isArray(desc)) {
+                                        const dist = faceapi.euclideanDistance(liveDesc, desc);
+                                        if (dist < minDistance) {
+                                            minDistance = dist;
+                                            bestMatch = p;
+                                        }
                                     }
-                                }
+                                });
                             });
 
                             if (bestMatch) {
@@ -3934,10 +4207,12 @@
                 eoEvents, eoEventsLoading, selectedEoEventId, selectedEoCategoryId, importingEoParticipants, selectedEoEvent,
                 onEoEventChange, importEoEventParticipants,
                 cameraSettingsOpen, raceSettings,
-                manualBibInput, manualValidationAlert, setDetectorPreset, currentDetectorPreset, recordManualBib, dismissAlert, showDuplicateAlert, playBuzzer,
+                manualBibInput, lockedBibPrefix, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
+                manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay,
-                newFacePhoto, newFaceDescriptor, newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
-                openFaceCaptureModal, closeFaceCaptureModal, snapFacePhoto, onFacePhotoUpload, clearNewFacePhoto,
+                newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
+                newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
+                openFaceCaptureModal, closeFaceCaptureModal, snapFaceAngle, onFacePhotoUpload, clearNewFacePhoto,
                 liveFinishFeed, assignBibModalOpen, selectedUnassignedFinish,
                 handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp,
                 handleCanvasTouchStart, handleCanvasTouchMove, handleCanvasTouchEnd,
