@@ -1060,9 +1060,18 @@
                 keyboard: false,
             }).setView([-6.200000, 106.816666], 12);
 
-            // Auto center to real user location on load via Geolocation API
-            if (navigator.geolocation) {
+            var initialQs = new URLSearchParams(window.location.search || '');
+            var hasInitialRoute = !!(
+                (window.INITIAL_GPX_DATA && Array.isArray(window.INITIAL_GPX_DATA.coordinates) && window.INITIAL_GPX_DATA.coordinates.length > 0) ||
+                initialQs.has('gpx_id') ||
+                initialQs.has('gpx_slug') ||
+                initialQs.has('pts')
+            );
+
+            // Auto center to real user location on load via Geolocation API only if no initial route requested
+            if (navigator.geolocation && !hasInitialRoute) {
                 navigator.geolocation.getCurrentPosition(function(pos) {
+                    if (points && points.length > 0) return;
                     var userLat = pos.coords.latitude;
                     var userLng = pos.coords.longitude;
                     map.setView([userLat, userLng], 15);
@@ -1762,19 +1771,31 @@
                 if (!map) return;
                 try {
                     map.invalidateSize();
-                    if (typeof routeLayer !== 'undefined' && routeLayer.getLayers().length > 0) {
+                    if (typeof routeLayer !== 'undefined' && routeLayer && routeLayer.getLayers().length > 0) {
                         var bounds = routeLayer.getBounds();
                         if (bounds && bounds.isValid()) {
-                            map.fitBounds(bounds.pad(0.18));
+                            map.fitBounds(bounds.pad(0.15));
+                            return;
+                        }
+                    }
+                    if (routePoints && routePoints.length >= 2) {
+                        var latlngs = routePoints.map(function(p) { return [p.lat, p.lng]; });
+                        var b = L.latLngBounds(latlngs);
+                        if (b && b.isValid()) {
+                            map.fitBounds(b.pad(0.15));
                             return;
                         }
                     }
                     if (points && points.length >= 2) {
-                        var latlngs = points.map(function(p) { return [p.lat, p.lng]; });
-                        var b = L.latLngBounds(latlngs);
-                        if (b && b.isValid()) {
-                            map.fitBounds(b.pad(0.18));
+                        var latlngs2 = points.map(function(p) { return [p.lat, p.lng]; });
+                        var b2 = L.latLngBounds(latlngs2);
+                        if (b2 && b2.isValid()) {
+                            map.fitBounds(b2.pad(0.15));
+                            return;
                         }
+                    }
+                    if (points && points.length === 1 && points[0]) {
+                        map.setView([points[0].lat, points[0].lng], 16);
                     }
                 } catch (e) {
                     console.warn('fitRoute failed:', e);
@@ -2106,13 +2127,13 @@
                     setStatus('Data koordinat rute tidak tersedia');
                     return;
                 }
-                points = coordsArray.map(function(pt) {
+                var parsedPts = coordsArray.map(function(pt) {
                     var lat = Array.isArray(pt) ? pt[0] : (pt.lat !== undefined ? pt.lat : (pt.latitude !== undefined ? pt.latitude : null));
                     var lng = Array.isArray(pt) ? pt[1] : (pt.lng !== undefined ? pt.lng : (pt.longitude !== undefined ? pt.longitude : null));
                     return {
                         lat: parseFloat(lat),
                         lng: parseFloat(lng),
-                        mode: (els.followRoad && els.followRoad.checked) ? 'osrm' : 'direct',
+                        mode: 'direct',
                         segment: [],
                         iconType: ''
                     };
@@ -2120,9 +2141,34 @@
                     return !isNaN(p.lat) && !isNaN(p.lng) && isFinite(p.lat) && isFinite(p.lng);
                 });
 
-                if (points.length === 0) {
+                if (parsedPts.length === 0) {
                     setStatus('Koordinat tidak valid');
                     return;
+                }
+
+                if (parsedPts.length > 120) {
+                    routePoints = decimatePoints(parsedPts, 3000);
+                    points = decimatePoints(routePoints, 60);
+                    for (var i = 0; i < points.length; i++) {
+                        points[i].mode = 'direct';
+                        if (i > 0) {
+                            var startIdx = routePoints.indexOf(points[i-1]);
+                            var endIdx = routePoints.indexOf(points[i]);
+                            if (endIdx < startIdx) endIdx = routePoints.indexOf(points[i], startIdx);
+                            if (startIdx !== -1 && endIdx !== -1) {
+                                points[i].segment = routePoints.slice(startIdx, endIdx + 1);
+                            } else {
+                                points[i].segment = [points[i-1], points[i]];
+                            }
+                        } else {
+                            points[i].segment = [];
+                        }
+                    }
+                } else {
+                    points = parsedPts;
+                    for (var j = 1; j < points.length; j++) {
+                        points[j].segment = [points[j-1], points[j]];
+                    }
                 }
 
                 if (els.name && title) els.name.value = title;
@@ -2130,7 +2176,10 @@
                 rebuildMarkers();
                 updateStats();
                 updateElevation();
-                if (points.length >= 2) fitRoute();
+                fitRoute();
+                setTimeout(function() { map.invalidateSize(); fitRoute(); }, 100);
+                setTimeout(function() { map.invalidateSize(); fitRoute(); }, 400);
+                setTimeout(function() { map.invalidateSize(); fitRoute(); }, 1000);
                 setStatus('Rute GPX ' + (title ? ('"' + title + '" ') : '') + 'berhasil dimuat ke editor');
                 pushState();
             }
@@ -2577,13 +2626,13 @@
                 if (window.INITIAL_GPX_DATA && Array.isArray(window.INITIAL_GPX_DATA.coordinates) && window.INITIAL_GPX_DATA.coordinates.length > 0) {
                     scrollToMap();
                     loadGpxCoordinates(window.INITIAL_GPX_DATA.coordinates, window.INITIAL_GPX_DATA.title);
-                    setTimeout(function () {
-                        map.invalidateSize();
-                        fitRoute();
-                    }, 500);
-                } else if (qs.has('gpx_id') || qs.has('gpx_slug')) {
-                    var gpxParam = qs.get('gpx_id') || qs.get('gpx_slug');
-                    fetch('{{ route("gpx.published.json") }}?q=' + encodeURIComponent(gpxParam))
+                } else if (qs.has('gpx_id') || qs.has('gpx_slug') || qs.has('q')) {
+                    var gpxId = qs.get('gpx_id');
+                    var gpxSlug = qs.get('gpx_slug');
+                    var fetchUrl = gpxId 
+                        ? '{{ route("gpx.published.json") }}?id=' + encodeURIComponent(gpxId)
+                        : (gpxSlug ? '{{ route("gpx.published.json") }}?slug=' + encodeURIComponent(gpxSlug) : '{{ route("gpx.published.json") }}?q=' + encodeURIComponent(qs.get('q') || ''));
+                    fetch(fetchUrl)
                         .then(function(res) { return res.json(); })
                         .then(function(data) {
                             if (data.success && data.items && data.items.length > 0) {
@@ -2591,7 +2640,6 @@
                                 if (itm.coordinates_json && itm.coordinates_json.length > 0) {
                                     scrollToMap();
                                     loadGpxCoordinates(itm.coordinates_json, itm.title);
-                                    setTimeout(function() { map.invalidateSize(); fitRoute(); }, 500);
                                 }
                             }
                         }).catch(function(e) {

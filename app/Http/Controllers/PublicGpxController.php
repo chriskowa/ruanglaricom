@@ -292,10 +292,21 @@ class PublicGpxController extends Controller
             ->with('user:id,name')
             ->where('is_published', true);
 
-        if ($request->filled('q')) {
-            $search = $request->input('q');
+        if ($request->filled('id')) {
+            $query->where('id', $request->input('id'));
+        } elseif ($request->filled('gpx_id')) {
+            $query->where('id', $request->input('gpx_id'));
+        } elseif ($request->filled('slug') || $request->filled('gpx_slug')) {
+            $slug = $request->input('slug') ?: $request->input('gpx_slug');
+            $query->where('slug', $slug);
+        } elseif ($request->filled('q')) {
+            $search = trim($request->input('q'));
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
+                if (is_numeric($search)) {
+                    $q->where('id', (int) $search);
+                }
+                $q->orWhere('slug', $search)
+                  ->orWhere('title', 'like', "%{$search}%")
                   ->orWhere('city', 'like', "%{$search}%");
             });
         }
