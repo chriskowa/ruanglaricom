@@ -218,10 +218,12 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/sessions/{session}/certificates', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateCertificates'])->name('tools.race-master.api.sessions.certificates.generate');
     Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
     Route::post('/sessions/{session}/poster/{participant}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateParticipantPoster'])->name('tools.race-master.api.sessions.poster.participant');
+    Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
 });
 
 Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
+    Route::get('/{slug}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.public.live-sync');
     Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
     Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
 });

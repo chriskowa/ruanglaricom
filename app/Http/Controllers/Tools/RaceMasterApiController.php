@@ -610,6 +610,163 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function liveSync(Request $request, $sessionIdentifier)
+    {
+        $session = RaceSession::query()
+            ->where('id', $sessionIdentifier)
+            ->orWhere('slug', $sessionIdentifier)
+            ->with(['race'])
+            ->first();
+
+        if (! $session) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session tidak ditemukan.',
+            ], 404);
+        }
+
+        $now = now();
+        $startedAt = $session->started_at ? Carbon::parse($session->started_at) : null;
+        $elapsedMs = 0;
+        $startedAtMs = null;
+        if ($startedAt) {
+            $startedAtMs = (int) ($startedAt->getTimestamp() * 1000 + (int) ($startedAt->micro / 1000));
+            if ($session->ended_at) {
+                $elapsedMs = (int) ($startedAt->diffInMilliseconds(Carbon::parse($session->ended_at)));
+            } else {
+                $elapsedMs = (int) ($startedAt->diffInMilliseconds($now));
+            }
+        }
+
+        $sinceId = (int) $request->query('since_id', 0);
+
+        // DELTA / INCREMENTAL SYNC (Ultra fast, < 1ms, < 1KB)
+        if ($sinceId > 0) {
+            $newLaps = RaceSessionLap::query()
+                ->where('race_session_id', $session->id)
+                ->where('id', '>', $sinceId)
+                ->orderBy('id', 'asc')
+                ->with(['raceSessionParticipant'])
+                ->get();
+
+            $maxLapId = $newLaps->max('id') ?: $sinceId;
+
+            return response()->json([
+                'success' => true,
+                'is_delta' => true,
+                'max_lap_id' => $maxLapId,
+                'server_now_ms' => (int) ($now->getTimestamp() * 1000 + (int) ($now->micro / 1000)),
+                'session' => [
+                    'id' => $session->id,
+                    'is_running' => !empty($session->started_at) && empty($session->ended_at),
+                    'started_at_ms' => $startedAtMs,
+                    'ended_at' => $session->ended_at?->toISOString(),
+                    'elapsed_ms' => $elapsedMs,
+                ],
+                'new_laps' => $newLaps->map(function ($l) {
+                    $recMs = $l->recorded_at ? (int) ($l->recorded_at->getTimestamp() * 1000 + (int) ($l->recorded_at->micro / 1000)) : null;
+                    return [
+                        'id' => $l->id,
+                        'bib' => $l->raceSessionParticipant?->bib_number,
+                        'name' => $l->raceSessionParticipant?->name,
+                        'lap_number' => $l->lap_number,
+                        'lap_time_ms' => $l->lap_time_ms,
+                        'total_time_ms' => $l->total_time_ms,
+                        'position' => $l->position,
+                        'recorded_at' => $l->recorded_at?->toISOString(),
+                        'recorded_at_ms' => $recMs,
+                    ];
+                })->values()->all(),
+            ]);
+        }
+
+        // FULL INITIAL SYNC (Sent only once on room join)
+        $participants = RaceSessionParticipant::query()
+            ->where('race_id', $session->race_id)
+            ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC, bib_number ASC')
+            ->get();
+
+        $laps = RaceSessionLap::query()
+            ->where('race_session_id', $session->id)
+            ->orderBy('recorded_at', 'desc')
+            ->with(['raceSessionParticipant'])
+            ->get();
+
+        $maxLapId = (int) ($laps->max('id') ?: 0);
+
+        // Map participant stats
+        $participantStats = [];
+        foreach ($participants as $p) {
+            $pLaps = $laps->where('race_session_participant_id', $p->id)->sortBy('lap_number')->values();
+            $lastLap = $pLaps->last();
+            $totalTime = $lastLap ? (int) $lastLap->total_time_ms : 0;
+            $status = 'ready';
+            if ($session->ended_at) {
+                $status = $pLaps->count() > 0 ? 'finished' : 'dnf';
+            } elseif ($pLaps->count() > 0) {
+                $status = 'finished';
+            } elseif ($session->started_at) {
+                $status = 'running';
+            }
+
+            $participantStats[] = [
+                'id' => $p->id,
+                'bib' => $p->bib_number,
+                'name' => $p->name,
+                'laps' => $pLaps->map(fn($l) => [
+                    'lap' => $l->lap_number,
+                    'time' => $l->lap_time_ms,
+                    'totalTime' => $l->total_time_ms,
+                ])->all(),
+                'status' => $status,
+                'totalTime' => $totalTime,
+            ];
+        }
+
+        $standings = $this->computeStandings($session);
+
+        return response()->json([
+            'success' => true,
+            'is_delta' => false,
+            'max_lap_id' => $maxLapId,
+            'server_now' => $now->toISOString(),
+            'server_now_ms' => (int) ($now->getTimestamp() * 1000 + (int) ($now->micro / 1000)),
+            'session' => [
+                'id' => $session->id,
+                'race_id' => $session->race_id,
+                'slug' => $session->slug,
+                'category' => $session->category,
+                'distance_km' => $session->distance_km,
+                'started_at' => $session->started_at?->toISOString(),
+                'started_at_ms' => $startedAtMs,
+                'ended_at' => $session->ended_at?->toISOString(),
+                'elapsed_ms' => $elapsedMs,
+                'is_running' => !empty($session->started_at) && empty($session->ended_at),
+                'public_results_url' => $session->slug ? route('tools.race-master.results', ['slug' => $session->slug]) : null,
+            ],
+            'race' => [
+                'id' => $session->race?->id,
+                'name' => $session->race?->name,
+                'logo_url' => $session->race?->logo_url ? Storage::disk('public')->url($session->race->logo_url) : null,
+            ],
+            'participants' => $participantStats,
+            'standings' => $standings,
+            'recent_laps' => $laps->take(25)->map(function ($l) {
+                $recMs = $l->recorded_at ? (int) ($l->recorded_at->getTimestamp() * 1000 + (int) ($l->recorded_at->micro / 1000)) : null;
+                return [
+                    'id' => $l->id,
+                    'bib' => $l->raceSessionParticipant?->bib_number,
+                    'name' => $l->raceSessionParticipant?->name,
+                    'lap_number' => $l->lap_number,
+                    'total_time_ms' => $l->total_time_ms,
+                    'position' => $l->position,
+                    'recorded_at' => $l->recorded_at?->toISOString(),
+                    'recorded_at_ms' => $recMs,
+                ];
+            })->values()->all(),
+        ]);
+    }
+
     public function generateCertificates(Request $request, RaceSession $session)
     {
         if (! $session->ended_at) {

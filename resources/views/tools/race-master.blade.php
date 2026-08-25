@@ -253,6 +253,65 @@
     <main class="max-w-7xl mx-auto p-4">
 
         <div v-if="currentView === 'setup'" class="space-y-6 animate-fade-in">
+            <!-- Multi-Admin Live Session / Room Sync Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs"><i class="fa-solid fa-satellite-dish"></i></span>
+                            Sinkronisasi Multi-Admin (Live Room Sync)
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Hubungkan Admin 1 (TV Display), Admin 2 (Kamera Gate), Admin 3 (Spotter Numpad), dan Admin 4 (Marshal) ke sesi balap yang sama dari laptop/HP masing-masing.
+                        </p>
+                    </div>
+                    <div v-if="sessionSyncActive" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Live Sync Aktif</span>
+                        <span class="text-[10px] opacity-70">(@{{ sessionSyncLastUpdated }})</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Left: Current Active Room & Share Link -->
+                    <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 font-mono font-black text-base px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white truncate">
+                                @{{ sessionSlug || currentSessionId || 'Belum ada sesi aktif' }}
+                            </div>
+                            <button type="button" @click="copySessionShareUrl" :disabled="!sessionSlug && !currentSessionId" 
+                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition shrink-0 flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i>
+                                <span>Salin Link Sesi</span>
+                            </button>
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                            Bagikan link sesi ini ke laptop TV atau admin lain agar jam dan data finisher tersinkronisasi otomatis.
+                        </div>
+                    </div>
+
+                    <!-- Right: Join Other Session by Room Code / URL -->
+                    <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Gabung ke Sesi Lain (Satellite Admin):</div>
+                        <form @submit.prevent="joinLiveSession(sessionRoomInput)" class="flex items-center gap-2">
+                            <input v-model="sessionRoomInput" type="text" placeholder="Masukkan Kode / Slug Sesi..." 
+                                class="flex-1 px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition shrink-0 flex items-center gap-1.5 border border-slate-700">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                <span>Gabung Sesi</span>
+                            </button>
+                        </form>
+                        <div v-if="sessionSyncError" class="text-xs text-red-500 font-bold">
+                            @{{ sessionSyncError }}
+                        </div>
+                        <div v-else class="text-[11px] text-slate-500 dark:text-slate-400">
+                            Untuk laptop TV atau admin kedua yang ingin bergabung ke sesi lomba yang sudah dibuat master.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hubungkan dengan Event EO RuangLari -->
             <div v-if="isAuthenticated" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -1228,6 +1287,14 @@
                 name: '',
                 time: ''
             });
+
+            // Multi-Admin Live Room Sync State
+            const sessionRoomInput = ref('');
+            const sessionSyncActive = ref(false);
+            const sessionSyncLastUpdated = ref(null);
+            const sessionSyncError = ref('');
+            let sessionSyncTimer = null;
+            let lastSeenLapIdSet = new Set();
 
             // TV / Jumbotron Display State (Admin 1)
             const tvDisplayOpen = ref(false);
@@ -2211,9 +2278,190 @@
                                 if (p.status === 'ready') p.status = 'running';
                             });
                             saveState();
+                            startLiveSyncPolling();
                         })
                         .catch((e) => alert(e?.message || 'Gagal simpan race ke database.'));
                 }
+            };
+
+            const copySessionShareUrl = () => {
+                const slug = sessionSlug.value || currentSessionId.value;
+                if (!slug) {
+                    alert('Sesi belum dibuat / dimulai. Silakan mulai sesi lomba terlebih dahulu.');
+                    return;
+                }
+                const url = `${window.location.origin}${window.location.pathname}?session=${encodeURIComponent(slug)}`;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert('Link Sesi berhasil disalin!\nBuka link ini di Laptop TV (Admin 1), Kamera Gate (Admin 2), Spotter (Admin 3) untuk sinkronisasi otomatis.');
+                    }).catch(() => {
+                        prompt('Salin Link Sesi untuk Admin lain:', url);
+                    });
+                } else {
+                    prompt('Salin Link Sesi untuk Admin lain:', url);
+                }
+            };
+
+            const maxSyncedLapId = ref(0);
+
+            const joinLiveSession = async (slugOrId) => {
+                const target = String(slugOrId || sessionRoomInput.value || '').trim();
+                if (!target) return;
+
+                sessionSyncError.value = '';
+                try {
+                    let endpoint = `${apiBase}/sessions/${encodeURIComponent(target)}/live-sync`;
+                    let res = await fetch(endpoint, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) {
+                        endpoint = `${apiBase}/public/${encodeURIComponent(target)}/live-sync`;
+                        res = await fetch(endpoint, {
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                    }
+
+                    if (!res.ok) throw new Error('Sesi tidak ditemukan di server.');
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.message || 'Gagal sinkronisasi sesi.');
+
+                    // Track maximum synced lap ID for subsequent lightweight delta syncs
+                    maxSyncedLapId.value = data.max_lap_id || 0;
+
+                    // Apply Race & Session Info
+                    currentSessionId.value = data.session.id;
+                    sessionSlug.value = data.session.slug || sessionSlug.value;
+                    currentRaceId.value = data.session.race_id;
+                    if (data.race?.name) raceName.value = data.race.name;
+                    if (data.session.category) raceCategory.value = data.session.category;
+                    if (data.session.distance_km) raceDistanceKm.value = data.session.distance_km;
+                    if (data.session.public_results_url) publicResultsUrl.value = data.session.public_results_url;
+
+                    // Sync Participants from Server
+                    if (Array.isArray(data.participants) && data.participants.length > 0) {
+                        const existingMap = new Map(participants.value.map(p => [String(p.bib).trim(), p]));
+                        const merged = data.participants.map(sp => {
+                            const local = existingMap.get(String(sp.bib).trim());
+                            return {
+                                id: local ? local.id : crypto.randomUUID(),
+                                bib: String(sp.bib).trim(),
+                                name: sp.name || (local ? local.name : `Runner ${sp.bib}`),
+                                photoUrl: local ? local.photoUrl : '',
+                                faceDescriptor: local ? local.faceDescriptor : null,
+                                predictedTimeMs: local ? local.predictedTimeMs : null,
+                                laps: Array.isArray(sp.laps) ? sp.laps : (local ? local.laps : []),
+                                status: sp.status || 'ready',
+                                totalTime: sp.totalTime || 0,
+                                recentlyScanned: false,
+                                lastScanTime: 0
+                            };
+                        });
+                        participants.value = merged;
+                    }
+
+                    // Sync Server Clock Time
+                    if (data.session.is_running && data.session.started_at_ms) {
+                        const now = Date.now();
+                        timer.value.startTime = data.session.started_at_ms;
+                        timer.value.elapsed = Math.max(0, now - data.session.started_at_ms);
+                        if (!timer.value.running) {
+                            timer.value.running = true;
+                            if (timer.value.interval) clearInterval(timer.value.interval);
+                            timer.value.interval = setInterval(() => {
+                                timer.value.elapsed = Date.now() - timer.value.startTime;
+                            }, 50);
+                        }
+                    } else if (data.session.ended_at) {
+                        timer.value.running = false;
+                        if (timer.value.interval) clearInterval(timer.value.interval);
+                        timer.value.elapsed = data.session.elapsed_ms || 0;
+                    }
+
+                    sessionSyncActive.value = true;
+                    sessionSyncLastUpdated.value = new Date().toLocaleTimeString();
+
+                    startLiveSyncPolling();
+                    saveState();
+                } catch (e) {
+                    sessionSyncError.value = e.message || 'Gagal terhubung ke sesi.';
+                    console.error('Session sync error:', e);
+                }
+            };
+
+            const pollLiveSync = async () => {
+                const target = sessionSlug.value || currentSessionId.value;
+                if (!target || !sessionSyncActive.value) return;
+
+                try {
+                    // Send since_id parameter for ultra-lightweight delta sync (< 1ms, < 1KB)
+                    let endpoint = `${apiBase}/sessions/${encodeURIComponent(String(target))}/live-sync?since_id=${maxSyncedLapId.value}`;
+                    let res = await fetch(endpoint, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) {
+                        endpoint = `${apiBase}/public/${encodeURIComponent(String(target))}/live-sync?since_id=${maxSyncedLapId.value}`;
+                        res = await fetch(endpoint, {
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                    }
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success) {
+                            sessionSyncLastUpdated.value = new Date().toLocaleTimeString();
+                            
+                            // Clock Sync
+                            if (data.session.is_running && data.session.started_at_ms) {
+                                timer.value.startTime = data.session.started_at_ms;
+                                if (!timer.value.running) {
+                                    timer.value.running = true;
+                                    if (timer.value.interval) clearInterval(timer.value.interval);
+                                    timer.value.interval = setInterval(() => {
+                                        timer.value.elapsed = Date.now() - timer.value.startTime;
+                                    }, 50);
+                                }
+                            } else if (data.session.ended_at && timer.value.running) {
+                                timer.value.running = false;
+                                if (timer.value.interval) clearInterval(timer.value.interval);
+                                timer.value.elapsed = data.session.elapsed_ms;
+                            }
+
+                            // Process Delta New Laps
+                            if (data.is_delta && Array.isArray(data.new_laps)) {
+                                if (data.max_lap_id) {
+                                    maxSyncedLapId.value = Math.max(maxSyncedLapId.value, data.max_lap_id);
+                                }
+
+                                data.new_laps.forEach(lap => {
+                                    if (!lastSeenLapIdSet.has(lap.id)) {
+                                        lastSeenLapIdSet.add(lap.id);
+                                        const p = participants.value.find(item => String(item.bib).trim() === String(lap.bib).trim());
+                                        if (p) {
+                                            p.status = 'finished';
+                                            p.totalTime = lap.total_time_ms;
+                                            if (!p.laps.some(l => l.lap === lap.lap_number)) {
+                                                p.laps.push({
+                                                    lap: lap.lap_number,
+                                                    time: lap.lap_time_ms,
+                                                    totalTime: lap.total_time_ms
+                                                });
+                                            }
+                                            triggerTvFinisherFlash(p);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Background sync poll error:', e);
+                }
+            };
+
+            const startLiveSyncPolling = () => {
+                sessionSyncActive.value = true;
+                if (sessionSyncTimer) clearInterval(sessionSyncTimer);
+                sessionSyncTimer = setInterval(pollLiveSync, 1500);
             };
 
             const pauseRace = () => {
@@ -2267,10 +2515,14 @@
                 if (confirm('Reset timer dan semua hasil?')) {
                     pauseRace();
                     timer.value.elapsed = 0;
+                    maxSyncedLapId.value = 0;
+                    lastSeenLapIdSet.clear();
                     participants.value.forEach(p => {
                         p.laps = [];
                         p.status = 'ready';
                         p.totalTime = 0;
+                        p.recentlyScanned = false;
+                        p.lastScanTime = 0;
                     });
                     currentRaceId.value = null;
                     currentSessionId.value = null;
@@ -3487,8 +3739,18 @@
                 loadEoEvents();
                 refreshCameraDevices();
                 window.addEventListener('keydown', onKeydown);
-                // Preload AI Model in background
                 loadAiModel();
+
+                // Check URL parameter ?session=XXXX for multi-device sync
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomSession = urlParams.get('session');
+                if (roomSession) {
+                    sessionSlug.value = roomSession;
+                    sessionRoomInput.value = roomSession;
+                    joinLiveSession(roomSession);
+                } else if (sessionSlug.value || currentSessionId.value) {
+                    startLiveSyncPolling();
+                }
             });
 
             onBeforeUnmount(() => {
@@ -3496,6 +3758,7 @@
                 stopAutoMultiScan();
                 window.removeEventListener('keydown', onKeydown);
                 if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
+                if (sessionSyncTimer) clearInterval(sessionSyncTimer);
                 if (ocrWorker) {
                     ocrWorker.terminate();
                     ocrWorker = null;
@@ -3679,6 +3942,8 @@
                 handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp,
                 handleCanvasTouchStart, handleCanvasTouchMove, handleCanvasTouchEnd,
                 setLinePreset, switchCameraDevice, switchCameraMode,
+                sessionRoomInput, sessionSyncActive, sessionSyncLastUpdated, sessionSyncError,
+                copySessionShareUrl, joinLiveSession, startLiveSyncPolling,
                 openAssignBibModal, confirmAssignBib
             };
         }
