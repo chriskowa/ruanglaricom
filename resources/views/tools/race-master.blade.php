@@ -65,9 +65,6 @@
             .no-print { display: none !important; }
         }
 
-        /* Custom UI Tweaks */
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05); }
-        .dark .glass-panel { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.05); }
         .scanner-active { border: 4px solid #10B981; }
         
         .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
@@ -75,9 +72,129 @@
         [v-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100">
+<body class="bg-slate-100 text-slate-900 min-h-screen transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
 
 <div id="app" :class="{'dark': isDarkMode}" v-cloak>
+
+    <!-- TV / JUMBOTRON BROADCAST FULLSCREEN OVERLAY (ADMIN 1) -->
+    <div v-if="tvDisplayOpen" class="fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden font-sans" style="background-color: #000000 !important; color: #ffffff !important;">
+        <!-- Top Status Bar -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-5">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center font-black text-lg text-white">
+                    <span v-if="!raceLogoPreviewUrl">RL</span>
+                    <img v-else :src="raceLogoPreviewUrl" class="w-full h-full object-contain rounded-2xl" alt="Logo">
+                </div>
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Live Race Display</div>
+                    <div class="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight truncate max-w-xl">
+                        @{{ raceName || 'Ruang Lari Official Race' }}
+                    </div>
+                </div>
+                <div class="ml-2 px-3.5 py-1 rounded-xl bg-indigo-600 text-white font-oswald text-lg font-black uppercase">
+                    @{{ raceCategory }}
+                </div>
+            </div>
+
+            <!-- Mini Live Stat Pills -->
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <div class="text-[10px] font-bold uppercase text-slate-400">Total Peserta</div>
+                    <div class="text-xl font-black text-white">@{{ participants.length }}</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <div class="text-[10px] font-bold uppercase text-emerald-400">Sudah Finish</div>
+                    <div class="text-xl font-black text-emerald-400">@{{ finishedCount }}</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <div class="text-[10px] font-bold uppercase text-indigo-400">On Track</div>
+                    <div class="text-xl font-black text-indigo-400">@{{ runningCount }}</div>
+                </div>
+                <div v-if="dnfCount > 0" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-center">
+                    <div class="text-[10px] font-bold uppercase text-red-400">DNF</div>
+                    <div class="text-xl font-black text-red-400">@{{ dnfCount }}</div>
+                </div>
+                <button type="button" @click="closeTvDisplay" class="ml-3 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 transition" title="Tutup TV Mode (Esc)">
+                    <i class="fa-solid fa-compress text-sm"></i>
+                    <span>Tutup (Esc)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center: Giant Race Clock + Live Finisher Hero Flash -->
+        <div class="flex-1 flex flex-col items-center justify-center my-auto py-6 relative">
+            
+            <!-- Main Giant Clock -->
+            <div class="text-center">
+                <div class="text-xs sm:text-sm font-bold uppercase tracking-[0.3em] text-slate-400 mb-3">
+                    OFFICIAL RACE TIME
+                </div>
+                <div class="font-mono-numbers text-7xl sm:text-8xl md:text-9xl lg:text-[11rem] font-black text-white tracking-wider leading-none py-2">
+                    @{{ formattedTime }}
+                </div>
+            </div>
+
+            <!-- Realtime Finisher Flash Hero Overlay (appears on crossing) -->
+            <transition enter-active-class="transition duration-300 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-200 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
+                <div v-if="tvLatestFinisher" class="absolute inset-x-4 max-w-3xl mx-auto p-6 rounded-3xl bg-slate-900 border-2 border-emerald-500 shadow-2xl text-center animate-fade-in" style="background-color: #0f172a !important;">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        BARU SAJA FINISH
+                    </div>
+                    <div class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
+                        <span class="text-indigo-400 font-oswald mr-2">#@{{ tvLatestFinisher.bib }}</span>
+                        @{{ tvLatestFinisher.name }}
+                    </div>
+                    <div class="mt-3 flex items-center justify-center gap-6 text-sm sm:text-lg font-mono">
+                        <span class="text-slate-200">Waktu: <strong class="text-emerald-400">@{{ tvLatestFinisher.time }}</strong></span>
+                        <span v-if="tvLatestFinisher.rank" class="text-slate-200">Peringkat: <strong class="text-white">#@{{ tvLatestFinisher.rank }}</strong></span>
+                    </div>
+                </div>
+            </transition>
+        </div>
+
+        <!-- Bottom: Top 5 Live Leaderboard Strip -->
+        <div class="border-t border-slate-800 pt-5">
+            <div class="flex items-center justify-between mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <span>Top 5 Finisher Leaderboard</span>
+                </div>
+                <div class="text-[11px] font-mono text-slate-400">Live Auto-Update</div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <div v-for="(p, idx) in top5Results" :key="p.id" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0"
+                        :class="{
+                            'bg-amber-400 text-slate-950': idx === 0,
+                            'bg-slate-300 text-slate-950': idx === 1,
+                            'bg-amber-700 text-white': idx === 2,
+                            'bg-slate-800 text-slate-300': idx > 2
+                        }">
+                        @{{ idx + 1 }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-white text-xs truncate">
+                            <span class="text-indigo-400 font-oswald mr-1">#@{{ p.bib }}</span>
+                            @{{ p.name }}
+                        </div>
+                        <div class="text-[11px] font-mono text-emerald-400 font-bold mt-0.5">
+                            @{{ formatTime(p.totalTime) }}
+                        </div>
+                    </div>
+                </div>
+                <!-- Empty Placeholder if < 5 finishers -->
+                <div v-for="i in Math.max(0, 5 - top5Results.length)" :key="'empty-'+i" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center gap-3 opacity-40">
+                    <div class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">
+                        @{{ top5Results.length + i }}
+                    </div>
+                    <div class="text-xs text-slate-400 font-mono">Menunggu Finisher...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <header class="bg-white shadow-sm sticky top-0 z-50 no-print dark:bg-slate-800 dark:border-b dark:border-slate-700 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center relative">
             <div class="flex items-center gap-2">
@@ -93,6 +210,10 @@
                     <button @click="currentView = 'bibs'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='bibs', 'text-slate-500 dark:text-slate-400': currentView!=='bibs'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">BIBs</button>
                     <button @click="currentView = 'race'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='race', 'text-slate-500 dark:text-slate-400': currentView!=='race'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Race</button>
                     <button @click="currentView = 'results'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='results', 'text-slate-500 dark:text-slate-400': currentView!=='results'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Results</button>
+                    <button @click="openTvDisplay" class="px-3 py-1.5 rounded-md text-sm font-bold transition-all whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-sm ml-1">
+                        <i class="fa-solid fa-tv text-xs"></i>
+                        <span>Layar TV</span>
+                    </button>
                 </div>
 
                 <!-- Dark Mode Toggle -->
@@ -121,6 +242,9 @@
                  </button>
                  <button @click="currentView = 'results'; mobileMenuOpen = false" :class="currentView==='results' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'" class="block w-full text-left px-4 py-3 rounded-xl font-medium transition-colors">
                     <i class="fa-solid fa-list-ol w-6"></i> Results
+                 </button>
+                 <button @click="openTvDisplay(); mobileMenuOpen = false" class="block w-full text-left px-4 py-3 rounded-xl font-bold transition-colors text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30">
+                    <i class="fa-solid fa-tv w-6"></i> Mode Layar TV (Fullscreen)
                  </button>
              </div>
         </div>
@@ -224,12 +348,37 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div>
                         <h2 class="text-lg font-bold text-slate-900 dark:text-white">2. Tambah Peserta & Biometrik Wajah</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftarkan peserta beserta foto wajah untuk deteksi AI otomatis saat melewati garis finish.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftarkan peserta secara manual satu per satu, impor massal via file CSV, atau gunakan biometrik wajah AI.</p>
+                    </div>
+                </div>
+
+                <!-- CSV Batch Import Action Box -->
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-file-csv text-indigo-600 dark:text-indigo-400 text-base"></i>
+                            <span>Impor Massal Peserta via CSV</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Punya daftar peserta di Excel / Spreadsheet? Download format CSV, isi kolomnya, lalu upload langsung ke sini.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                        <button type="button" @click="downloadCsvSample" class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition border border-slate-300 dark:border-slate-700" title="Download Template CSV">
+                            <i class="fa-solid fa-download text-xs"></i>
+                            <span>Download Sample CSV</span>
+                        </button>
+                        <label class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition shadow-sm" title="Upload File CSV Peserta">
+                            <i class="fa-solid fa-file-import text-xs"></i>
+                            <span>Upload File CSV</span>
+                            <input type="file" accept=".csv,text/csv" @change="onCsvUpload" class="hidden">
+                        </label>
                     </div>
                 </div>
 
                 <!-- Face Photo Capture & Biometric Enrollment Bar -->
-                <div class="p-4 bg-slate-50 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner">
                             <img v-if="newFacePhoto" :src="newFacePhoto" class="w-full h-full object-cover" alt="Avatar">
@@ -400,33 +549,151 @@
 
         <div v-if="currentView === 'race'" class="space-y-4">
             
-            <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-xl sticky top-[70px] z-40 flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Race Timer & Control Console -->
+            <div class="bg-white dark:bg-[#0c121e] text-slate-900 dark:text-white rounded-2xl p-5 border-2 border-slate-200 dark:border-slate-800 shadow-sm sticky top-[70px] z-40 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
                 <div class="text-center md:text-left">
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-widest">Race Timer</div>
-                    <div class="font-mono-numbers text-5xl md:text-6xl font-black text-white tracking-wider">
+                    <div class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Official Race Clock</div>
+                    <div class="font-mono-numbers text-5xl md:text-6xl font-black text-slate-950 dark:text-white tracking-wider">
                         @{{ formattedTime }}
                     </div>
                 </div>
 
-                <div class="flex gap-3 flex-wrap justify-center md:justify-end">
-                    <button v-if="!timer.running" @click="startRace" class="bg-green-500 hover:bg-green-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-green-900/50 transition transform hover:scale-105 flex-shrink-0" title="Start/Resume">
-                        <i class="fa-solid fa-play text-xl md:text-2xl"></i>
+                <div class="flex items-center gap-2 flex-wrap justify-center md:justify-end">
+                    <button v-if="!timer.running" @click="startRace" 
+                        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Start/Resume Timer">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Start Timer</span>
                     </button>
-                    <button v-if="timer.running" @click="pauseRace" class="bg-yellow-500 hover:bg-yellow-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-yellow-900/50 transition transform hover:scale-105 flex-shrink-0" title="Pause Timer">
-                        <i class="fa-solid fa-pause text-xl md:text-2xl"></i>
+                    <button v-if="timer.running" @click="pauseRace" 
+                        class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Pause Timer">
+                        <i class="fa-solid fa-pause text-xs"></i>
+                        <span>Pause</span>
                     </button>
-                    <button v-if="timer.elapsed > 0" @click="finishRace" class="bg-red-600 hover:bg-red-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50 transition transform hover:scale-105 flex-shrink-0" title="Finish Sesi">
-                        <i class="fa-solid fa-flag-checkered text-xl md:text-2xl"></i>
+                    <button v-if="timer.elapsed > 0" @click="finishRace" 
+                        class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Finish Sesi">
+                        <i class="fa-solid fa-flag-checkered text-xs"></i>
+                        <span>Finish Sesi</span>
                     </button>
-                    <button @click="resetRace" class="bg-slate-700 hover:bg-slate-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition flex-shrink-0" title="Reset Total">
-                        <i class="fa-solid fa-rotate-right"></i>
+                    <button @click="resetRace" 
+                        class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center gap-1.5 transition" title="Reset Total Timer">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                        <span>Reset</span>
                     </button>
-                    <button v-show="camera.active" @click="captureScan" :disabled="camera.busy" :class="camera.busy ? 'bg-slate-600' : 'bg-yellow-500 hover:bg-yellow-600'" class="text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-105 flex-shrink-0" title="Capture (Spasi)">
-                        <i class="fa-solid fa-camera text-xl md:text-2xl"></i>
+                    <button @click="toggleScanner" 
+                        :class="camera.active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'" 
+                        class="px-3.5 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition" title="Buka/Tutup Kamera AI">
+                        <i class="fa-solid fa-camera text-xs"></i>
+                        <span>@{{ camera.active ? 'Tutup Kamera' : 'Buka Kamera' }}</span>
                     </button>
-                    <button @click="toggleScanner" :class="camera.active ? 'bg-indigo-500 ring-2 ring-white' : 'bg-slate-700'" class="md:ml-4 hover:bg-indigo-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition flex-shrink-0" title="Toggle Camera">
-                        <i class="fa-solid fa-qrcode"></i>
+                    <button @click="openTvDisplay" 
+                        class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Tampilkan Layar TV Fullscreen (Admin 1)">
+                        <i class="fa-solid fa-tv text-xs"></i>
+                        <span>Layar TV</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Instant Notification & Duplicate Validation Alert Banner -->
+            <div v-if="manualValidationAlert.show" class="rounded-2xl p-4 transition-all shadow-xl flex items-start justify-between gap-3 animate-fade-in"
+                :class="{
+                    'bg-red-950 border-2 border-red-600 text-red-100': manualValidationAlert.type === 'error',
+                    'bg-amber-950 border-2 border-amber-500 text-amber-100': manualValidationAlert.type === 'warning',
+                    'bg-emerald-950 border-2 border-emerald-500 text-emerald-100': manualValidationAlert.type === 'success',
+                    'bg-indigo-950 border-2 border-indigo-500 text-indigo-100': manualValidationAlert.type === 'info'
+                }">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                        :class="{
+                            'bg-red-600 text-white': manualValidationAlert.type === 'error',
+                            'bg-amber-500 text-slate-950': manualValidationAlert.type === 'warning',
+                            'bg-emerald-500 text-slate-950': manualValidationAlert.type === 'success',
+                            'bg-indigo-500 text-white': manualValidationAlert.type === 'info'
+                        }">
+                        <i class="fa-solid" :class="{
+                            'fa-triangle-exclamation': manualValidationAlert.type === 'warning' || manualValidationAlert.type === 'error',
+                            'fa-check': manualValidationAlert.type === 'success',
+                            'fa-info': manualValidationAlert.type === 'info'
+                        }"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm sm:text-base leading-tight">
+                            @{{ manualValidationAlert.message }}
+                        </div>
+                        <div v-if="manualValidationAlert.bib" class="text-xs opacity-80 mt-1 font-mono">
+                            BIB: #@{{ manualValidationAlert.bib }} <span v-if="manualValidationAlert.name">• Nama: @{{ manualValidationAlert.name }}</span> <span v-if="manualValidationAlert.time">• Waktu Tercatat: @{{ manualValidationAlert.time }}</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" @click="dismissAlert" class="text-slate-400 hover:text-white p-1 text-base shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quick Manual BIB Timing & Detector Engine Bar -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm transition-colors space-y-3">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <!-- Left: Manual BIB Entry Input -->
+                    <div class="flex-1">
+                        <form @submit.prevent="recordManualBib" class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
+                                <input id="manualBibInputEl" v-model="manualBibInput" type="text" autocomplete="off"
+                                    placeholder="Input Manual No. BIB (tekan Enter untuk catat langsung)..." 
+                                    class="w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal transition">
+                            </div>
+                            <button type="submit" :disabled="!timer.running" 
+                                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center gap-2">
+                                <i class="fa-solid fa-stopwatch"></i>
+                                <span>Catat Finish (Enter)</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Detector Method Quick Preset Switcher -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mr-1">Metode Detektor:</span>
+                        <button type="button" @click="setDetectorPreset('all')" 
+                            :class="currentDetectorPreset === 'all' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
+                            Semua (Hybrid)
+                        </button>
+                        <button type="button" @click="setDetectorPreset('qr')" 
+                            :class="currentDetectorPreset === 'qr' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
+                            QR Code
+                        </button>
+                        <button type="button" @click="setDetectorPreset('ocr')" 
+                            :class="currentDetectorPreset === 'ocr' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
+                            Nomor BIB
+                        </button>
+                        <button type="button" @click="setDetectorPreset('face')" 
+                            :class="currentDetectorPreset === 'face' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
+                            Face AI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Checkboxes Row for Granular Control -->
+                <div class="flex items-center gap-4 flex-wrap pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
+                    <span class="font-bold text-[11px] uppercase text-slate-400">Aktifkan Sensor:</span>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
+                        <input type="checkbox" v-model="raceSettings.enableQr" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                        <span>QR Code Scanner</span>
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
+                        <input type="checkbox" v-model="raceSettings.enableOcr" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                        <span>OCR Angka BIB Dada</span>
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
+                        <input type="checkbox" v-model="raceSettings.enableFaceAi" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                        <span>Face AI Recognition</span>
+                    </label>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium ml-auto">
+                        <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                        <span>Audio Beep</span>
+                    </label>
                 </div>
             </div>
 
@@ -606,38 +873,42 @@
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 pt-4">
                 <div v-for="p in activeParticipants" :key="p.id" 
-                     class="relative bg-white rounded-xl shadow-sm border-2 transition-all duration-200 cursor-pointer hover:border-indigo-400 group select-none dark:bg-slate-800 dark:border-slate-700 dark:hover:border-indigo-500"
-                     :class="{'border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900': p.recentlyScanned, 'border-slate-200 dark:border-slate-700': !p.recentlyScanned}"
+                     class="relative bg-white dark:bg-[#0c121e] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-200 cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-500 group select-none overflow-hidden"
+                     :class="{'border-indigo-500 ring-2 ring-indigo-500/30': p.recentlyScanned}"
                      @click="recordLap(p.id, 'manual')">
                     
-                    <button @click.stop="markDNF(p.id)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 p-1 z-10 dark:text-slate-600 dark:hover:text-red-400" title="DNF (Did Not Finish)">
-                        <i class="fa-solid fa-circle-xmark text-xl"></i>
+                    <button @click.stop="markDNF(p.id)" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1 z-10 dark:text-slate-500 dark:hover:text-red-400" title="Tandai DNF (Did Not Finish)">
+                        <i class="fa-solid fa-circle-xmark text-lg"></i>
                     </button>
 
                     <div class="p-4 flex flex-col items-center text-center h-full justify-between">
-                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold mb-2 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition dark:bg-slate-700 dark:text-slate-400 dark:group-hover:bg-indigo-900/50 dark:group-hover:text-indigo-300">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-black text-xs mb-2 group-hover:bg-indigo-600 group-hover:text-white transition">
                             @{{ getInitials(p.name) }}
                         </div>
 
-                        <div class="font-oswald font-bold text-4xl text-slate-800 dark:text-white">@{{ p.bib }}</div>
-                        <div class="text-sm font-medium text-slate-600 line-clamp-1 w-full dark:text-slate-300">@{{ p.name }}</div>
+                        <div class="font-oswald font-black text-3xl sm:text-4xl text-slate-900 dark:text-white tracking-tight">
+                            #@{{ p.bib }}
+                        </div>
+                        <div class="text-xs font-semibold text-slate-600 dark:text-slate-300 line-clamp-1 w-full mt-1">
+                            @{{ p.name }}
+                        </div>
 
-                        <div class="mt-3 w-full pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-center dark:border-slate-700">
+                        <div class="mt-3 w-full pt-3 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-2 text-center">
                             <div>
-                                <div class="text-[10px] text-slate-400 uppercase">Laps</div>
-                                <div class="font-bold text-indigo-600 text-lg dark:text-indigo-400">@{{ p.laps.length }}</div>
+                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Laps</div>
+                                <div class="font-black text-indigo-600 dark:text-indigo-400 text-base">@{{ p.laps.length }}</div>
                             </div>
                             <div>
-                                <div class="text-[10px] text-slate-400 uppercase">Last</div>
-                                <div class="font-mono text-xs font-medium text-slate-600 mt-1">
+                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Last Lap</div>
+                                <div class="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300 mt-0.5">
                                     @{{ getLastLapTime(p) }}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="p.recentlyScanned" class="absolute inset-0 bg-indigo-500/10 rounded-xl pointer-events-none flex items-center justify-center">
-                        <span class="bg-indigo-600 text-white text-xs px-2 py-1 rounded font-bold animate-ping">RECORDED</span>
+                    <div v-if="p.recentlyScanned" class="absolute inset-0 bg-indigo-600/20 rounded-2xl pointer-events-none flex items-center justify-center">
+                        <span class="bg-indigo-600 text-white text-[10px] px-2.5 py-1 rounded-lg font-black tracking-wider animate-pulse">RECORDED</span>
                     </div>
                 </div>
             </div>
@@ -661,40 +932,40 @@
                 <div class="overflow-x-auto">
                     <!-- Mobile Stack View -->
                     <div class="md:hidden space-y-4 p-4">
-                        <div v-for="(p, idx) in sortedResults" :key="p.id" class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                        <div v-for="(p, idx) in sortedResults" :key="p.id" class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex items-center gap-3">
-                                     <span v-if="p.status === 'finished'" :class="{'text-yellow-500': idx===0, 'text-slate-500 dark:text-slate-400': idx > 0}" class="font-bold text-lg">#@{{ idx + 1 }}</span>
+                                     <span v-if="p.status === 'finished'" :class="{'text-amber-500 font-black': idx===0, 'text-slate-500 dark:text-slate-400': idx > 0}" class="font-bold text-lg">#@{{ idx + 1 }}</span>
                                      <span v-else class="text-slate-400">-</span>
                                      <div>
-                                         <div class="font-oswald font-bold text-xl dark:text-white">@{{ p.bib }}</div>
-                                         <div class="text-sm font-medium text-slate-600 dark:text-slate-300">@{{ p.name }}</div>
+                                         <div class="font-oswald font-bold text-xl text-slate-900 dark:text-white">@{{ p.bib }}</div>
+                                         <div class="text-sm font-semibold text-slate-700 dark:text-slate-300">@{{ p.name }}</div>
                                      </div>
                                 </div>
                                 <div class="text-right">
-                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded font-bold dark:bg-red-900/30 dark:text-red-400">DNF</span>
-                                    <span v-else-if="p.status === 'finished'" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold dark:bg-green-900/30 dark:text-green-400">FINISH</span>
-                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500">RUNNING</span>
+                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-red-950 dark:text-red-300 dark:border dark:border-red-800">DNF</span>
+                                    <span v-else-if="p.status === 'finished'" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800">FINISH</span>
+                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-3 gap-2 py-3 border-t border-slate-200 dark:border-slate-600 mt-2">
+                            <div class="grid grid-cols-3 gap-2 py-3 border-t border-slate-200 dark:border-slate-800 mt-2">
                                 <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase">Laps</div>
-                                    <div class="font-bold text-slate-700 dark:text-slate-200">@{{ p.laps.length }}</div>
+                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Laps</div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">@{{ p.laps.length }}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase">Total Time</div>
-                                    <div class="font-mono font-bold text-indigo-600 dark:text-indigo-400">@{{ formatTime(p.totalTime) }}</div>
+                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Total Time</div>
+                                    <div class="font-mono font-bold text-indigo-700 dark:text-indigo-400">@{{ formatTime(p.totalTime) }}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase">Pace</div>
-                                    <div class="font-mono text-slate-600 dark:text-slate-400">@{{ formatPace(p) }}</div>
+                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Pace</div>
+                                    <div class="font-mono text-slate-700 dark:text-slate-300">@{{ formatPace(p) }}</div>
                                 </div>
                             </div>
 
-                            <div v-if="p.status === 'finished'" class="flex gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-600 justify-end no-print">
-                                <button @click="openMediaModal('certificate', p)" class="flex-1 bg-slate-800 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors">
+                            <div v-if="p.status === 'finished'" class="flex gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 justify-end no-print">
+                                <button @click="openMediaModal('certificate', p)" class="flex-1 bg-slate-900 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors">
                                     <i class="fa-solid fa-file-pdf"></i> Cert
                                 </button>
                                 <button @click="openMediaModal('poster', p)" class="flex-1 bg-pink-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-pink-700 transition-colors">
@@ -706,7 +977,7 @@
 
                     <!-- Desktop Table View -->
                     <table class="w-full text-left hidden md:table">
-                        <thead class="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/50 dark:border-slate-700">
+                        <thead class="bg-slate-50 border-b border-slate-200 dark:bg-slate-950 dark:border-slate-800">
                             <tr>
                                 <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Rank</th>
                                 <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">BIB</th>
@@ -718,31 +989,31 @@
                                 <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center no-print dark:text-slate-400">Media</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                            <tr v-for="(p, idx) in sortedResults" :key="p.id" :class="{'bg-green-50 dark:bg-green-900/20': idx < 3 && p.status === 'finished'}" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr v-for="(p, idx) in sortedResults" :key="p.id" :class="{'bg-emerald-50/50 dark:bg-emerald-950/40': idx < 3 && p.status === 'finished'}" class="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
                                 <td class="p-4 font-bold text-slate-400 dark:text-slate-500">
-                                    <span v-if="p.status === 'finished'" :class="{'text-yellow-500 text-xl': idx===0, 'text-slate-500 dark:text-slate-400': idx > 2}">#@{{ idx + 1 }}</span>
+                                    <span v-if="p.status === 'finished'" :class="{'text-amber-500 font-black text-xl': idx===0, 'text-slate-500 dark:text-slate-400': idx > 2}">#@{{ idx + 1 }}</span>
                                     <span v-else>-</span>
                                 </td>
-                                <td class="p-4 font-oswald font-bold text-lg dark:text-white">@{{ p.bib }}</td>
-                                <td class="p-4 font-medium dark:text-slate-200">@{{ p.name }}</td>
+                                <td class="p-4 font-oswald font-bold text-lg text-slate-900 dark:text-white">@{{ p.bib }}</td>
+                                <td class="p-4 font-semibold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
                                 <td class="p-4 text-center">
-                                    <span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold dark:bg-slate-700 dark:text-slate-300">@{{ p.laps.length }}</span>
+                                    <span class="bg-slate-100 px-2.5 py-1 rounded text-xs font-bold dark:bg-slate-800 dark:text-slate-300">@{{ p.laps.length }}</span>
                                 </td>
                                 <td class="p-4 text-right font-mono font-bold text-indigo-700 dark:text-indigo-400">
                                     @{{ formatTime(p.totalTime) }}
                                 </td>
-                                <td class="p-4 text-right font-mono text-slate-700 dark:text-slate-400">@{{ formatPace(p) }}</td>
+                                <td class="p-4 text-right font-mono text-slate-700 dark:text-slate-300">@{{ formatPace(p) }}</td>
                                 <td class="p-4 text-center">
-                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded font-bold dark:bg-red-900/30 dark:text-red-400">DNF</span>
-                                    <span v-else-if="p.status === 'finished'" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold dark:bg-green-900/30 dark:text-green-400">FINISH</span>
-                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500">RUNNING</span>
+                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-red-950 dark:text-red-300 dark:border dark:border-red-800">DNF</span>
+                                    <span v-else-if="p.status === 'finished'" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800">FINISH</span>
+                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
                                 </td>
                                 <td class="p-4 text-center no-print flex justify-center gap-2">
-                                    <button v-if="p.status === 'finished'" @click="openMediaModal('certificate', p)" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-black text-white flex items-center justify-center transition shadow-sm dark:bg-slate-700 dark:hover:bg-slate-600" title="Generate E-Certificate">
+                                    <button v-if="p.status === 'finished'" @click="openMediaModal('certificate', p)" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-black text-white flex items-center justify-center transition shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700" title="Generate E-Certificate">
                                         <i class="fa-solid fa-file-pdf"></i>
                                     </button>
-                                    <button v-if="p.status === 'finished'" @click="openMediaModal('poster', p)" class="w-8 h-8 rounded-full bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center transition shadow-sm" title="Generate Poster IG Story">
+                                    <button v-if="p.status === 'finished'" @click="openMediaModal('poster', p)" class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center transition shadow-sm" title="Generate Poster IG Story">
                                         <i class="fa-brands fa-instagram"></i>
                                     </button>
                                 </td>
@@ -753,10 +1024,10 @@
             </div>
             
             <div v-if="dnfParticipants.length > 0" class="mt-8">
-                <h3 class="text-red-500 font-bold mb-2">Did Not Finish (DNF)</h3>
-                <div class="bg-red-50 rounded-xl p-4 border border-red-100 dark:bg-red-900/10 dark:border-red-900/30">
-                    <div v-for="p in dnfParticipants" class="text-red-700 text-sm flex gap-4 dark:text-red-400">
-                        <span class="font-bold w-12">@{{ p.bib }}</span>
+                <h3 class="text-red-600 dark:text-red-400 font-bold mb-2">Did Not Finish (DNF)</h3>
+                <div class="bg-red-50 rounded-xl p-4 border border-red-200 dark:bg-red-950 dark:border-red-800">
+                    <div v-for="p in dnfParticipants" class="text-red-800 text-sm flex gap-4 dark:text-red-300 font-semibold">
+                        <span class="font-bold w-12 font-oswald">#@{{ p.bib }}</span>
                         <span>@{{ p.name }}</span>
                     </div>
                 </div>
@@ -941,10 +1212,95 @@
                 raceMode: 'single', // 'single' | 'multi_lap'
                 targetLaps: 1,
                 minLapCooldownSec: 30,
-                enableFaceAi: true,
+                enableQr: true,
                 enableOcr: true,
+                enableFaceAi: true,
                 enableBeep: true,
                 stationMode: 'master', // 'master' | 'satellite'
+            });
+
+            const manualBibInput = ref('');
+            const manualValidationAlert = ref({
+                show: false,
+                type: '', // 'error' | 'warning' | 'success' | 'info'
+                message: '',
+                bib: '',
+                name: '',
+                time: ''
+            });
+
+            // TV / Jumbotron Display State (Admin 1)
+            const tvDisplayOpen = ref(false);
+            const tvLatestFinisher = ref(null);
+
+            const finishedCount = computed(() => participants.value.filter(p => p.status === 'finished').length);
+            const runningCount = computed(() => participants.value.filter(p => p.status === 'running' || p.status === 'ready' || !p.status).length);
+            const dnfCount = computed(() => participants.value.filter(p => p.status === 'dnf').length);
+            const top5Results = computed(() => sortedResults.value.filter(p => p.status === 'finished').slice(0, 5));
+
+            const openTvDisplay = () => {
+                tvDisplayOpen.value = true;
+                try {
+                    if (document.documentElement && document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                } catch (e) {}
+            };
+
+            const closeTvDisplay = () => {
+                tvDisplayOpen.value = false;
+                try {
+                    if (document.fullscreenElement && document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                } catch (e) {}
+            };
+
+            const triggerTvFinisherFlash = (participant) => {
+                if (!participant) return;
+                const rank = participants.value.filter(item => item.status === 'finished').length;
+                tvLatestFinisher.value = {
+                    bib: participant.bib,
+                    name: participant.name,
+                    time: formatTime(participant.totalTime),
+                    rank: rank,
+                    timestamp: Date.now()
+                };
+                setTimeout(() => {
+                    if (tvLatestFinisher.value && Date.now() - tvLatestFinisher.value.timestamp >= 5000) {
+                        tvLatestFinisher.value = null;
+                    }
+                }, 5500);
+            };
+
+            const setDetectorPreset = (preset) => {
+                if (preset === 'all') {
+                    raceSettings.value.enableQr = true;
+                    raceSettings.value.enableOcr = true;
+                    raceSettings.value.enableFaceAi = true;
+                } else if (preset === 'qr') {
+                    raceSettings.value.enableQr = true;
+                    raceSettings.value.enableOcr = false;
+                    raceSettings.value.enableFaceAi = false;
+                } else if (preset === 'ocr') {
+                    raceSettings.value.enableQr = false;
+                    raceSettings.value.enableOcr = true;
+                    raceSettings.value.enableFaceAi = false;
+                } else if (preset === 'face') {
+                    raceSettings.value.enableQr = false;
+                    raceSettings.value.enableOcr = false;
+                    raceSettings.value.enableFaceAi = true;
+                }
+                saveState();
+            };
+
+            const currentDetectorPreset = computed(() => {
+                const { enableQr, enableOcr, enableFaceAi } = raceSettings.value;
+                if (enableQr && enableOcr && enableFaceAi) return 'all';
+                if (enableQr && !enableOcr && !enableFaceAi) return 'qr';
+                if (!enableQr && enableOcr && !enableFaceAi) return 'ocr';
+                if (!enableQr && !enableOcr && enableFaceAi) return 'face';
+                return 'custom';
             });
 
             const camera = ref({
@@ -1651,6 +2007,135 @@
                 nextTick(() => inputBib.value.focus());
             };
 
+            const downloadCsvSample = () => {
+                const csvContent = "bib,nama,prediksi_waktu\n101,Budi Santoso,00:25:30\n102,Siti Rahma,00:28:15\n103,Ahmad Fauzi,00:22:40\n104,Dewi Lestari,00:31:10\n105,Rian Hidayat,00:19:50\n";
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'sample_peserta_racemaster.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            };
+
+            const onCsvUpload = (e) => {
+                const file = e?.target?.files?.[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    importCsvText(text);
+                    if (e.target) e.target.value = '';
+                };
+                reader.onerror = () => {
+                    alert('Gagal membaca file CSV.');
+                };
+                reader.readAsText(file);
+            };
+
+            const importCsvText = (text) => {
+                if (!text || !text.trim()) {
+                    alert('File CSV kosong.');
+                    return;
+                }
+
+                const lines = text.split(/\r\n|\n|\r/).map(l => l.trim()).filter(Boolean);
+                if (lines.length <= 1) {
+                    alert('File CSV tidak memiliki baris data peserta.');
+                    return;
+                }
+
+                const firstLine = lines[0];
+                const delimiter = firstLine.includes(';') ? ';' : ',';
+                const rawHeaders = firstLine.split(delimiter).map(h => h.trim().toLowerCase().replace(/[\"\'\s_]/g, ''));
+                
+                let bibIdx = rawHeaders.findIndex(h => h.includes('bib') || h === 'no' || h === 'nomor');
+                let nameIdx = rawHeaders.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('peserta'));
+                let predIdx = rawHeaders.findIndex(h => h.includes('prediksi') || h.includes('waktu') || h.includes('target') || h.includes('time'));
+
+                if (bibIdx === -1) bibIdx = 0;
+                if (nameIdx === -1) nameIdx = 1;
+                if (predIdx === -1 && rawHeaders.length > 2) predIdx = 2;
+
+                let addedCount = 0;
+                let skippedDuplicateCount = 0;
+                let invalidCount = 0;
+
+                const existingBibSet = new Set(participants.value.map(p => String(p.bib).trim()));
+                const newEntries = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split(delimiter).map(cell => cell.trim().replace(/^[\"']|[\"']$/g, ''));
+                    if (row.length < 2) continue;
+
+                    const rawBib = row[bibIdx] ?? '';
+                    const rawName = row[nameIdx] ?? '';
+                    const rawPred = predIdx !== -1 ? (row[predIdx] ?? '') : '';
+
+                    const bib = String(rawBib).trim();
+                    const name = String(rawName).trim();
+
+                    if (!bib || !name) {
+                        invalidCount++;
+                        continue;
+                    }
+
+                    if (existingBibSet.has(bib)) {
+                        skippedDuplicateCount++;
+                        continue;
+                    }
+
+                    let predictedMs = null;
+                    if (rawPred) {
+                        const timeParts = rawPred.split(':').map(p => parseInt(p, 10));
+                        if (timeParts.length === 3 && !timeParts.some(isNaN)) {
+                            predictedMs = (timeParts[0] * 3600 * 1000) + (timeParts[1] * 60 * 1000) + (timeParts[2] * 1000);
+                        } else if (timeParts.length === 2 && !timeParts.some(isNaN)) {
+                            predictedMs = (timeParts[0] * 60 * 1000) + (timeParts[1] * 1000);
+                        }
+                    }
+
+                    existingBibSet.add(bib);
+                    newEntries.push({
+                        id: crypto.randomUUID(),
+                        bib: bib,
+                        name: name,
+                        photoUrl: '',
+                        faceDescriptor: null,
+                        predictedTimeMs: predictedMs,
+                        laps: [],
+                        status: 'ready',
+                        totalTime: 0,
+                        recentlyScanned: false,
+                        lastScanTime: 0
+                    });
+                    addedCount++;
+                }
+
+                if (newEntries.length > 0) {
+                    participants.value.push(...newEntries);
+                    participants.value.sort((a, b) => {
+                        const numA = parseInt(a.bib, 10);
+                        const numB = parseInt(b.bib, 10);
+                        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                        return a.bib.localeCompare(b.bib);
+                    });
+                    saveState();
+                }
+
+                let summaryMsg = `Berhasil mengimpor ${addedCount} peserta dari file CSV.`;
+                if (skippedDuplicateCount > 0) {
+                    summaryMsg += ` (${skippedDuplicateCount} nomor BIB dilewati karena sudah ada).`;
+                }
+                if (invalidCount > 0) {
+                    summaryMsg += ` (${invalidCount} baris tidak valid dilewati).`;
+                }
+                alert(summaryMsg);
+            };
+
             const removeParticipant = (index) => {
                 if(confirm('Hapus peserta ini?')) {
                     participants.value.splice(index, 1);
@@ -1882,19 +2367,147 @@
                 };
             })();
 
+            const playBuzzer = (() => {
+                let ctx = null;
+                return () => {
+                    try {
+                        if (!ctx) {
+                            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                            if (!AudioCtx) return;
+                            ctx = new AudioCtx();
+                        }
+                        if (ctx.state === 'suspended') ctx.resume();
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.type = 'sawtooth';
+                        o.frequency.value = 220;
+                        g.gain.setValueAtTime(0.0001, ctx.currentTime);
+                        g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+                        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+                        o.connect(g);
+                        g.connect(ctx.destination);
+                        o.start();
+                        o.stop(ctx.currentTime + 0.26);
+                    } catch (e) {}
+                };
+            })();
+
+            const showDuplicateAlert = (type, message, participant = null) => {
+                manualValidationAlert.value = {
+                    show: true,
+                    type: type,
+                    message: message,
+                    bib: participant ? participant.bib : '',
+                    name: participant ? participant.name : '',
+                    time: participant && participant.totalTime ? formatTime(participant.totalTime) : ''
+                };
+                if (type === 'warning' || type === 'error') {
+                    playBuzzer();
+                } else if (type === 'success') {
+                    playBeep();
+                }
+                setTimeout(() => {
+                    if (manualValidationAlert.value.message === message) {
+                        manualValidationAlert.value.show = false;
+                    }
+                }, 6000);
+            };
+
+            const dismissAlert = () => {
+                manualValidationAlert.value.show = false;
+            };
+
+            const recordManualBib = () => {
+                const bibStr = String(manualBibInput.value || '').trim();
+                if (!bibStr) return;
+
+                if (!timer.value.running) {
+                    showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
+                    return;
+                }
+
+                // Match by exact BIB number or matching string (case-insensitive)
+                const p = participants.value.find(item => String(item.bib).trim().toLowerCase() === bibStr.toLowerCase());
+                
+                if (!p) {
+                    showDuplicateAlert('error', `Nomor BIB #${bibStr} tidak ditemukan dalam daftar peserta!`);
+                    return;
+                }
+
+                // Anti-Duplicate & Status Check
+                if (p.status === 'finished') {
+                    showDuplicateAlert('warning', `DUPLIKAT DITOLAK: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
+                    manualBibInput.value = '';
+                    return;
+                }
+
+                if (p.status === 'dnf') {
+                    showDuplicateAlert('error', `BIB #${p.bib} (${p.name}) berstatus DNF (Did Not Finish)!`, p);
+                    manualBibInput.value = '';
+                    return;
+                }
+
+                if (raceSettings.value.raceMode === 'single') {
+                    recordLap(p.id, 'manual_input');
+                    p.status = 'finished';
+                    triggerTvFinisherFlash(p);
+                    showDuplicateAlert('success', `FINISH TERCATAT: BIB #${p.bib} (${p.name}) • Waktu: ${formatTime(p.totalTime)}`, p);
+                } else {
+                    // Multi-Lap mode
+                    const now = Date.now();
+                    const cooldownMs = (raceSettings.value.minLapCooldownSec || 15) * 1000;
+                    if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
+                        const remainingSec = Math.ceil((cooldownMs - (now - p.lastScanTime)) / 1000);
+                        showDuplicateAlert('warning', `BIB #${p.bib} (${p.name}) masih dalam cooldown lap (${remainingSec} detik tersisa)!`, p);
+                        manualBibInput.value = '';
+                        return;
+                    }
+                    recordLap(p.id, 'manual_input');
+                    if (p.laps.length >= raceSettings.value.targetLaps) {
+                        p.status = 'finished';
+                        triggerTvFinisherFlash(p);
+                        showDuplicateAlert('success', `FINAL FINISH (Lap ${p.laps.length}): BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                    } else {
+                        showDuplicateAlert('info', `LAP ${p.laps.length}/${raceSettings.value.targetLaps} TERCATAT: BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
+                    }
+                }
+
+                manualBibInput.value = '';
+                // Keep input focused for next rapid entry
+                setTimeout(() => {
+                    const el = document.getElementById('manualBibInputEl');
+                    if (el) el.focus();
+                }, 50);
+            };
+
             const recordLap = (id, source = 'manual') => {
                 if (!timer.value.running) {
-                    // alert('Start timer dulu!');
+                    showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
                     return;
                 }
 
                 const p = participants.value.find(p => p.id === id);
-                if (!p || p.status !== 'running') return;
+                if (!p) return;
 
-                // Debounce 3s to prevent double scan
+                if (p.status === 'finished') {
+                    showDuplicateAlert('warning', `DUPLIKAT: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
+                    return;
+                }
+
+                if (p.status === 'dnf') {
+                    showDuplicateAlert('error', `BIB #${p.bib} (${p.name}) tercatat DNF!`, p);
+                    return;
+                }
+
+                // Debounce / Cooldown to prevent double scan
                 const now = Date.now();
-                if (now - (p.lastScanTime || 0) < 3000) {
-                    console.log('Debounced scan for ' + p.bib);
+                const cooldownMs = (raceSettings.value.raceMode === 'multi_lap' ? (raceSettings.value.minLapCooldownSec || 15) : 3) * 1000;
+                if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
+                    if (raceSettings.value.raceMode === 'multi_lap') {
+                        const rem = Math.ceil((cooldownMs - (now - p.lastScanTime)) / 1000);
+                        showDuplicateAlert('warning', `BIB #${p.bib} dalam masa cooldown lap (${rem}s tersisa)!`, p);
+                    }
+                    console.log('Debounced/Cooldown scan for ' + p.bib);
                     return;
                 }
                 
@@ -1903,6 +2516,10 @@
                 p.laps.push(now);
                 p.lastScanTime = now;
                 p.totalTime = timer.value.elapsed;
+
+                if (raceSettings.value.raceMode === 'single' || p.laps.length >= (raceSettings.value.targetLaps || 1)) {
+                    p.status = 'finished';
+                }
 
                 if (currentSessionId.value) {
                     queueEnqueueLap(String(p.bib ?? '').trim(), Math.max(0, Math.floor(p.totalTime || 0)), new Date(now).toISOString());
@@ -1913,8 +2530,8 @@
                 p.recentlyScanned = true;
                 setTimeout(() => p.recentlyScanned = false, 2000);
 
-                if (source === 'scanner') {
-                    camera.value.lastScanMsg = `Scanned: ${p.bib} (${p.name})`;
+                if (source === 'scanner' || source === 'ai_vision' || source === 'manual_input') {
+                    camera.value.lastScanMsg = `Tercatat: #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`;
                 }
                 saveState();
             };
@@ -2192,13 +2809,15 @@
                 let matchMethod = '';
 
                 // Engine 1: QR Code Scanner
-                try {
-                    const bibs = await decodeMultipleFromVideoFrame(video);
-                    if (bibs && bibs.length > 0) {
-                        detectedBib = bibs[0];
-                        matchMethod = 'qr';
-                    }
-                } catch (e) {}
+                if (raceSettings.value.enableQr) {
+                    try {
+                        const bibs = await decodeMultipleFromVideoFrame(video);
+                        if (bibs && bibs.length > 0) {
+                            detectedBib = bibs[0];
+                            matchMethod = 'qr';
+                        }
+                    } catch (e) {}
+                }
 
                 // Engine 2: OCR Digit Matcher
                 if (!detectedBib && raceSettings.value.enableOcr) {
@@ -2260,29 +2879,38 @@
                     if (raceSettings.value.raceMode === 'single') {
                         if (participant.status === 'finished') {
                             camera.value.lastScanMsg = `BIB #${participant.bib} sudah Finish sebelumnya (${formatTime(participant.totalTime)})`;
+                            showDuplicateAlert('warning', `DUPLIKAT: BIB #${participant.bib} (${participant.name}) SUDAH FINISH sebelumnya pada ${formatTime(participant.totalTime)}!`, participant);
                             return;
                         }
                         recordLap(participant.id, 'ai_vision');
                         participant.status = 'finished';
+                        triggerTvFinisherFlash(participant);
                         camera.value.lastScanMsg = `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                        showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
                     } else {
                         // Multi-Lap Mode with Cooldown Filter
                         const now = Date.now();
                         const cooldownMs = raceSettings.value.minLapCooldownSec * 1000;
                         if (participant.lastScanTime && (now - participant.lastScanTime < cooldownMs)) {
+                            const rem = Math.ceil((cooldownMs - (now - participant.lastScanTime)) / 1000);
                             camera.value.lastScanMsg = `BIB #${participant.bib} dalam masa cooldown putaran`;
+                            showDuplicateAlert('warning', `BIB #${participant.bib} (${participant.name}) masih dalam cooldown lap (${rem}s tersisa)!`, participant);
                             return;
                         }
                         recordLap(participant.id, 'ai_vision');
                         if (participant.laps.length >= raceSettings.value.targetLaps) {
                             participant.status = 'finished';
+                            triggerTvFinisherFlash(participant);
                             camera.value.lastScanMsg = `FINISH ${tag} (Lap ${participant.laps.length}): BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                            showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
                         } else {
                             camera.value.lastScanMsg = `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`;
+                            showDuplicateAlert('info', `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`, participant);
                         }
                     }
                 } else if (detectedBib) {
                     camera.value.lastScanMsg = `Crossing: Unknown BIB #${detectedBib} • ${formattedTimeStr}`;
+                    showDuplicateAlert('error', `Crossing terdeteksi BIB #${detectedBib}, namun tidak ada di daftar peserta!`);
                 } else {
                     camera.value.lastScanMsg = `Crossing terdeteksi • Waktu: ${formattedTimeStr}`;
                 }
@@ -2838,6 +3466,10 @@
             };
 
             const onKeydown = (e) => {
+                if (e.key === 'Escape' && tvDisplayOpen.value) {
+                    closeTvDisplay();
+                    return;
+                }
                 if (currentView.value !== 'race') return;
                 if (!camera.value.active) return;
                 if (camera.value.busy) return;
@@ -3025,6 +3657,7 @@
                 raceCategory, categories, raceDistanceKm, publicResultsUrl, sessionSlug, newName, newBib, newPredictedHH, newPredictedMM, newPredictedSS, mobileMenuOpen, inputName, inputBib,
                 participants, timer, camera, formattedTime, certificatesByBib,
                 focusName, addParticipant, removeParticipant, goToBibs, printBibs,
+                downloadCsvSample, onCsvUpload, importCsvText,
                 startRace, pauseRace, finishRace, resetRace, toggleScanner, captureScan,
                 activeParticipants, sortedResults, dnfParticipants,
                 recordLap, markDNF, getLastLapTime, getInitials, formatTime,
@@ -3038,6 +3671,8 @@
                 eoEvents, eoEventsLoading, selectedEoEventId, selectedEoCategoryId, importingEoParticipants, selectedEoEvent,
                 onEoEventChange, importEoEventParticipants,
                 cameraSettingsOpen, raceSettings,
+                manualBibInput, manualValidationAlert, setDetectorPreset, currentDetectorPreset, recordManualBib, dismissAlert, showDuplicateAlert, playBuzzer,
+                tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay,
                 newFacePhoto, newFaceDescriptor, newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
                 openFaceCaptureModal, closeFaceCaptureModal, snapFacePhoto, onFacePhotoUpload, clearNewFacePhoto,
                 liveFinishFeed, assignBibModalOpen, selectedUnassignedFinish,
