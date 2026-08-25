@@ -215,19 +215,19 @@
 
                     <div class="relative bg-[#0c121e] border border-slate-800 rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden">
                         <div class="relative rounded-2xl overflow-hidden border border-slate-800/90">
-                            <!-- Floating Map Layer Switcher (Top Right, matching reference design) -->
-                            <div class="absolute top-3 right-3 z-[500] bg-[#0c121e]/90 border border-slate-700 rounded-2xl p-1 shadow-2xl flex items-center gap-1 backdrop-blur-md">
-                                <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#f97316] text-white shadow-sm" title="Open Street Map">
+                            <!-- Floating Map Layer Switcher (Top Right, Solid Opaque Container) -->
+                            <div id="detail-map-layer-toolbar" class="absolute top-3 right-3 z-[500] bg-[#0c121e] border border-slate-700 rounded-2xl p-1 shadow-2xl flex items-center gap-1" style="background-color: #0c121e !important;">
+                                <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 bg-neon text-dark shadow-sm" title="Sederhana (Voyager)">
+                                    <i class="fa-solid fa-map-pin text-[11px]"></i>
+                                    <span class="hidden sm:inline">Sederhana</span>
+                                </button>
+                                <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Open Street Map">
                                     <i class="fa-solid fa-map text-[11px]"></i>
                                     <span class="hidden sm:inline">Open Street</span>
                                 </button>
                                 <button type="button" onclick="setDetailEventMapLayer('satellite')" id="btn-detail-layer-satellite" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Satelit Esri">
                                     <i class="fa-solid fa-globe text-[11px]"></i>
                                     <span class="hidden sm:inline">Satelit</span>
-                                </button>
-                                <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Sederhana (Voyager)">
-                                    <i class="fa-solid fa-map-pin text-[11px]"></i>
-                                    <span class="hidden sm:inline">Sederhana</span>
                                 </button>
                                 <button type="button" onclick="setDetailEventMapLayer('dark')" id="btn-detail-layer-dark" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Gelap Tactical">
                                     <i class="fa-solid fa-moon text-[11px]"></i>
@@ -657,24 +657,24 @@
             dragging: true,
         }).setView([detailEventLat, detailEventLng], detailEventZoom);
 
-        // Default active layer: Open Street Map (OSM) as requested
-        detailEventActiveLayer = detailEventTileLayers.osm;
+        // Default active layer: Voyager (Sederhana) as requested
+        detailEventActiveLayer = detailEventTileLayers.voyager;
         detailEventActiveLayer.addTo(detailEventMap);
 
-        // Custom Marker Pin (Orange badge with glow and runner icon matching reference design)
+        // Custom Marker Pin (Neon Green Pin matching Landing Jadwal Lari)
         const locationPin = L.divIcon({
             className: 'border-0 bg-transparent',
             html: `
-                <div class="relative flex items-center justify-center cursor-pointer group">
-                    <div class="w-11 h-11 rounded-full border-[3px] border-white bg-gradient-to-tr from-amber-500 to-orange-500 detail-map-pin-glow flex items-center justify-center text-white text-base font-black transition-transform transform group-hover:scale-110">
-                        <i class="fa-solid fa-person-running"></i>
+                <div class="relative group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full border-2 border-[#0c121e] shadow-xl flex items-center justify-center font-black text-xs transition-transform transform group-hover:scale-110" style="background-color: #ccff00; color: #020617;">
+                        <i class="fa-solid fa-person-running text-sm"></i>
                     </div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-orange-500 absolute -bottom-1 shadow-md"></div>
+                    <div class="w-2.5 h-2.5 rounded-full mx-auto -mt-1 shadow-md" style="background-color: #ccff00;"></div>
                 </div>
             `,
-            iconSize: [44, 48],
-            iconAnchor: [22, 46],
-            popupAnchor: [0, -46]
+            iconSize: [36, 40],
+            iconAnchor: [18, 40],
+            popupAnchor: [0, -40]
         });
 
         const marker = L.marker([detailEventLat, detailEventLng], { icon: locationPin }).addTo(detailEventMap);
@@ -683,11 +683,11 @@
             <div class="detail-custom-leaflet-popup font-sans text-xs space-y-1.5">
                 <div class="font-black text-white text-sm leading-tight">${detailEventName}</div>
                 <div class="text-slate-300 text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-location-dot text-orange-400"></i>
+                    <i class="fa-solid fa-location-dot text-neon"></i>
                     <span>${detailEventLocation}</span>
                 </div>
                 <div class="pt-1.5">
-                    <a href="https://www.google.com/maps/search/?api=1&query=${detailEventLat},${detailEventLng}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] inline-flex items-center gap-1 transition shadow-sm">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${detailEventLat},${detailEventLng}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-neon hover:bg-lime-300 text-dark font-black text-[11px] inline-flex items-center gap-1 transition shadow-sm">
                         <i class="fa-solid fa-diamond-turn-right text-[10px]"></i>
                         <span>Petunjuk Arah</span>
                     </a>
@@ -710,7 +710,7 @@
 
         const activeBtn = document.getElementById('btn-detail-layer-' + type);
         if (activeBtn) {
-            activeBtn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-[#f97316] text-white shadow-sm';
+            activeBtn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
         }
     }
 
