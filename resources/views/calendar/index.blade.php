@@ -34,12 +34,12 @@
             </h1>
             
             <div class="flex justify-center mb-6 gap-4 items-center flex-col md:flex-row">
-                <div class="bg-card p-1 rounded-xl border border-slate-700 inline-flex shadow-2xl">
-                    <button @click="switchTab('calendar')" :class="activeTab === 'calendar' ? 'bg-slate-700 text-neon shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+                <div class="bg-card p-1 rounded-xl border border-slate-700 inline-flex shadow-2xl w-full sm:w-auto max-w-sm">
+                    <button @click="switchTab('calendar')" :class="activeTab === 'calendar' ? 'bg-slate-700 text-neon shadow-lg' : 'text-slate-400 hover:text-white'" class="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         RACE CALENDAR
                     </button>
-                    <button @click="switchTab('strava')" :class="activeTab === 'strava' ? 'bg-[#FC4C02] text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+                    <button @click="switchTab('strava')" :class="activeTab === 'strava' ? 'bg-[#FC4C02] text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                         STRAVA
                     </button>
@@ -70,13 +70,13 @@
                 <div class="bg-card border border-slate-700 p-8 rounded-2xl text-center max-w-md">
                     <svg class="w-16 h-16 text-[#FC4C02] mx-auto mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                     <div class="text-[10px] font-mono text-[#FC4C02] uppercase tracking-widest mb-1">Integration</div>
-                    <h3 class="text-xl font-black text-white italic tracking-tight uppercase mb-2">Connect Strava</h3>
-                    <p class="text-slate-400 mb-6">Untuk lihat aktivitas & analisis Strava di RuangLari, kamu harus login dulu.</p>
                     @auth
+                        <p class="text-slate-400 mb-6">Hubungkan akun Strava Anda untuk melihat ringkasan aktivitas, statistik sepatu, dan membuat poster lari.</p>
                         <a href="{{ route('calendar.strava.connect', ['return_to' => '/calendar#strava']) }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center gap-2">
                             Connect with Strava
                         </a>
                     @else
+                        <p class="text-slate-400 mb-6">Untuk melihat aktivitas & analisis Strava di RuangLari, silakan login terlebih dahulu.</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <a href="{{ route('calendar.strava.connect', ['return_to' => '/calendar#strava']) }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center justify-center gap-2">
                                 Login untuk Connect
@@ -248,26 +248,26 @@
                                     <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">Race Potential (Est)</p>
                                     <div class="h-px bg-slate-700 flex-1"></div>
                                 </div>
-                                <div class="grid grid-cols-4 gap-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                                     <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
                                          <div class="absolute top-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div>
                                          <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">5K</p>
-                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['5k'] }}</p>
+                                         <p class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['5k'] }}</p>
                                     </div>
                                     <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
                                          <div class="absolute top-0 left-0 w-full h-0.5 bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
                                          <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">10K</p>
-                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['10k'] }}</p>
+                                         <p class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['10k'] }}</p>
                                     </div>
                                     <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
                                          <div class="absolute top-0 left-0 w-full h-0.5 bg-amber-500 shadow-[0_0_10px_#f59e0b]"></div>
                                          <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">HM</p>
-                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['21k'] }}</p>
+                                         <p class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['21k'] }}</p>
                                     </div>
                                     <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
                                          <div class="absolute top-0 left-0 w-full h-0.5 bg-rose-500 shadow-[0_0_10px_#f43f5e]"></div>
                                          <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">FM</p>
-                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['42k'] }}</p>
+                                         <p class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['42k'] }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1208,13 +1208,13 @@
                     <div v-for="activity in paginatedActivities" :key="activity.id" 
                         class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50 cursor-pointer relative"
                         @click="showActivityDetail(activity)">
-                            <div class="flex items-center gap-4 w-full md:w-1/3">
-                                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400">
+                            <div class="flex items-center gap-4 w-full md:w-1/3 pr-12 md:pr-0">
+                                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400 shrink-0">
                                     <svg v-if="activity.type === 'Run'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                     <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-white line-clamp-1">
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-white truncate">
                                         <span class="hover:text-[#FC4C02] hover:underline transition relative z-10 cursor-pointer">
                                             @{{ activity.name }}
                                         </span>
@@ -1223,9 +1223,9 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2 w-full md:w-1/2 md:pl-6 border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0">
-                                <div><p class="text-[10px] text-slate-500 uppercase">Dist</p><p class="text-lg font-mono font-bold">@{{ ((activity.distance || 0) / 1000).toFixed(2) }} km</p></div>
-                                <div><p class="text-[10px] text-slate-500 uppercase">Time</p><p class="text-lg font-mono font-bold">@{{ formatDuration(activity.moving_time) }}</p></div>
-                                <div><p class="text-[10px] text-slate-500 uppercase">Pace</p><p class="text-lg font-mono font-bold text-[#FC4C02]">@{{ calculatePace(activity.moving_time, activity.distance) }}</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase font-semibold">Dist</p><p class="text-base sm:text-lg font-mono font-bold text-white">@{{ ((activity.distance || 0) / 1000).toFixed(2) }} km</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase font-semibold">Time</p><p class="text-base sm:text-lg font-mono font-bold text-white">@{{ formatDuration(activity.moving_time) }}</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase font-semibold">Pace</p><p class="text-base sm:text-lg font-mono font-bold text-[#FC4C02]">@{{ calculatePace(activity.moving_time, activity.distance) }}</p></div>
                             </div>
                             <div class="absolute top-4 right-4 z-10">
                                 <button @click.stop="shareActivityPoster(activity)" :disabled="posterLoading" class="bg-slate-700/80 hover:bg-neon hover:text-slate-900 text-white p-2 rounded-lg transition shadow-lg group-hover:scale-105 backdrop-blur-sm" title="Generate Poster">
@@ -1708,9 +1708,14 @@
                 window.addEventListener('resize', this.updatePosterIsMobile);
 
                 // Check Strava Token
+                const localToken = localStorage.getItem('strava_access_token');
                 if (this.isAuthenticated && this.serverStravaToken) {
                     this.isStravaConnected = true;
                     this.apiConfig.stravaToken = this.serverStravaToken;
+                    localStorage.setItem('strava_access_token', this.serverStravaToken);
+                } else if (localToken) {
+                    this.isStravaConnected = true;
+                    this.apiConfig.stravaToken = localToken;
                 } else {
                     this.isStravaConnected = false;
                     this.apiConfig.stravaToken = null;
@@ -2123,8 +2128,10 @@
                         const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', { headers });
                         
                         if(athleteRes.status === 401 || athleteRes.status === 403) {
-                            // Token expired, revoked, or forbidden
-                            this.disconnectStrava();
+                            // Token expired or needs re-authentication
+                            localStorage.removeItem('strava_access_token');
+                            this.isStravaConnected = false;
+                            this.apiConfig.stravaToken = null;
                             return;
                         }
                         

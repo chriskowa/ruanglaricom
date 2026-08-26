@@ -119,21 +119,29 @@ class CalendarController extends Controller
 
     public function stravaConnect(Request $request)
     {
-        $clientId = \App\Models\Admin\StravaConfig::first()->client_id ?? env('STRAVA_CLIENT_ID');
-
         $returnTo = $request->string('return_to')->toString();
-        if ($returnTo !== '' && str_starts_with($returnTo, '/') && ! str_starts_with($returnTo, '//')) {
-            session(['strava_return_to' => $returnTo]);
-        } else {
-            session()->forget('strava_return_to');
+        if ($returnTo === '' || ! str_starts_with($returnTo, '/') || str_starts_with($returnTo, '//')) {
+            $returnTo = route('calendar.public').'#strava';
         }
+
+        // If user is already authenticated and has a valid Strava token, don't force re-authorization
+        if (auth()->check()) {
+            $validToken = app(StravaApiService::class)->getValidAccessToken(auth()->user());
+            if ($validToken) {
+                return redirect($returnTo)->with('success', 'Akun Strava Anda sudah terhubung.');
+            }
+        }
+
+        session(['strava_return_to' => $returnTo]);
+
+        $clientId = \App\Models\Admin\StravaConfig::first()->client_id ?? env('STRAVA_CLIENT_ID');
 
         $query = http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => route('calendar.strava.callback'),
             'response_type' => 'code',
             'scope' => 'activity:read_all,profile:read_all,activity:write',
-            'approval_prompt' => 'force',
+            'approval_prompt' => 'auto',
         ]);
 
         return redirect('https://www.strava.com/oauth/authorize?'.$query);

@@ -273,7 +273,7 @@
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="programs.data && programs.data.length === 0" class="text-center py-20 bg-slate-900/50 rounded-3xl border border-dashed border-slate-800">
+            <div v-else-if="programs.data && programs.data.length === 0" class="text-center py-20 bg-slate-900 rounded-3xl border border-dashed border-slate-800">
                 <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
@@ -286,19 +286,18 @@
 
             <!-- Program Grid -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <div v-for="program in programs.data" :key="program.id" :class="['group bg-slate-900/50 backdrop-blur-sm border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col', program.is_challenge ? 'border-neon shadow-[0_0_30px_rgba(57,255,20,0.3)] shadow-neon/50' : 'border-slate-800 hover:border-neon/50 hover:shadow-xl hover:shadow-neon/5']">
+                <div v-for="program in programs.data" :key="program.id" :class="['group bg-slate-900 border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col', program.is_challenge ? 'border-neon shadow-lg shadow-neon/10' : 'border-slate-800 hover:border-slate-700 hover:shadow-xl']">
                     
                     <!-- Image -->
-                    <div class="relative h-48 overflow-hidden">
-                        <img :src="program.image_url || '{{ asset('images/product/program lari ruang lari.webp') }}'" :alt="program.title" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+                    <div class="relative h-48 overflow-hidden bg-slate-950">
+                        <img :src="program.image_url || '{{ asset('images/product/program lari ruang lari.webp') }}'" :alt="program.title" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                         
                         <!-- Badges -->
                         <div class="absolute top-3 right-3 flex flex-col gap-2 items-end">
-                            <span class="px-3 py-1 rounded-full bg-slate-900/90 backdrop-blur text-xs font-bold text-white border border-slate-700">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-950/90 text-xs font-bold text-white border border-slate-700">
                                 @{{ formatCategory(program.distance_target) }}
                             </span>
-                            <span :class="getDifficultyColor(program.difficulty)" class="px-3 py-1 rounded-full text-xs font-bold text-dark border border-transparent">
+                            <span :class="getDifficultyColor(program.difficulty)" class="px-2.5 py-1 rounded-lg text-xs font-bold text-dark border border-transparent">
                                 @{{ program.difficulty }}
                             </span>
                         </div>
@@ -309,10 +308,10 @@
                         <!-- Coach Info -->
                         <div class="flex items-center gap-2 mb-3">
                             <img :src="getCoachAvatar(program.coach)" class="w-6 h-6 rounded-full object-cover border border-slate-600">
-                            <span class="text-xs text-slate-400">Coach @{{ program.coach?.name || 'Unknown' }}</span>
+                            <span class="text-xs text-slate-400 font-medium">Coach @{{ program.coach?.name || 'Unknown' }}</span>
                         </div>
 
-                        <h3 class="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-neon transition-colors">
+                        <h3 class="text-base sm:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-neon transition-colors leading-snug">
                             <a :href="'/programs/' + program.slug">@{{ program.title }}</a>
                         </h3>
 
@@ -325,27 +324,28 @@
                         </div>
 
                         <!-- Stats Row -->
-                        <div class="grid grid-cols-2 gap-2 mb-4 py-3 border-y border-slate-800">
-                            <div class="text-center border-r border-slate-800">
-                                <p class="text-[10px] text-slate-500 uppercase">Duration</p>
+                        <div class="grid grid-cols-2 gap-2 mb-4 py-3 border-y border-slate-800/80">
+                            <div class="text-center border-r border-slate-800/80">
+                                <p class="text-[10px] text-slate-500 uppercase font-semibold">Duration</p>
                                 <p class="text-sm font-bold text-white">@{{ program.duration_weeks }} Weeks</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-[10px] text-slate-500 uppercase">Sessions</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-semibold">Sessions</p>
                                 <p class="text-sm font-bold text-white">@{{ program.sessions_per_week }}/week</p>
                             </div>
                         </div>
 
                         <!-- Footer -->
-                        <div class="mt-auto flex items-center justify-between gap-4">
-                            <div>
-                                <p class="text-xs text-slate-500">Price</p>
-                                <p class="text-xl font-black text-white">
+                        <div class="mt-auto pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Price</p>
+                                <p class="text-base sm:text-lg font-black text-white whitespace-nowrap truncate tracking-tight">
                                     @{{ formatPrice(program.price) }}
                                 </p>
                             </div>
-                            <a :href="'/programs/' + program.slug" class="px-4 py-2 bg-white text-dark font-bold rounded-lg hover:bg-neon transition-colors text-sm">
-                                View Details
+                            <a :href="'/programs/' + program.slug" class="shrink-0 px-3.5 py-2 bg-white text-dark font-extrabold rounded-xl hover:bg-neon transition-all text-xs flex items-center gap-1.5 shadow-sm">
+                                <span>Detail</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
                         </div>
                     </div>

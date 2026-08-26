@@ -295,6 +295,17 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('calendar.public') }}#strava" class="{{ $linkBaseClass }} {{ request()->is('calendar*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
+                                    <span class="flex items-center justify-between w-full">
+                                        <span>Strava Activity</span>
+                                        @if(auth()->user()->strava_access_token)
+                                            <span class="text-[9px] bg-[#FC4C02]/20 text-[#FC4C02] border border-[#FC4C02]/40 px-1.5 py-0.5 rounded-full font-bold">Sync</span>
+                                        @endif
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('activities.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('activities.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-running"></i></span>
                                     <span class="flex items-center justify-between w-full">

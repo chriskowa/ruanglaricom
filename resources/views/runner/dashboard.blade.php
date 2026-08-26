@@ -20,8 +20,41 @@
 
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17] bg-gradient-to-b from-[#060a17] via-[#0d162d] to-[#060a17]">
-    <div class="max-w-7xl mx-auto">
-        <div class="mt-6 md:mt-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-800/80 pb-4">
+    <div class="max-w-7xl mx-auto" x-data="dashboardComponent()">
+        <!-- Top Status / Quick Info Strip (Run Points, Date/Time, Next Workout, WA Toggle) -->
+        <div class="mt-4 md:mt-6 flex flex-wrap items-center gap-2">
+            <!-- Run Points Badge -->
+            <a href="{{ route('gpx.index') }}" title="Unggah GPX rute lari untuk mendapatkan poin & tukar reward" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-500/40 text-xs font-bold text-white hover:border-amber-400 transition shadow-sm">
+                <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+                <span class="text-slate-300">Run Points:</span>
+                <span class="text-neon font-black font-mono">{{ number_format(auth()->user()->run_points ?? 0) }} PTS</span>
+            </a>
+
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700/60 text-xs text-slate-300">
+                <span class="text-slate-400">Hari ini</span>
+                <span id="runner-dashboard-date" class="font-bold text-white"></span>
+                <span class="text-slate-600">•</span>
+                <span id="runner-dashboard-time" class="font-mono text-slate-300"></span>
+            </div>
+            @if(!empty($nextWorkout))
+                <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
+                    <span class="font-bold">Next</span>
+                    <span class="text-slate-200">{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</span>
+                    @if(!empty($nextWorkout['distance'])) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
+                    <span class="text-slate-400">•</span>
+                    <span class="text-slate-200">{{ $nextWorkout['date_label'] ?? '' }}</span>
+                </button>
+            @endif
+
+            <!-- WhatsApp Daily Program Toggle Switch -->
+            <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-green-500/10 border-green-500/30 text-green-300 hover:bg-green-500/15' : 'bg-slate-900 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
+                <i class="fab fa-whatsapp text-sm" :class="isReceiveWa ? 'text-green-400' : 'text-slate-500'"></i>
+                <span>Program Harian WA: </span>
+                <span class="font-black uppercase text-[10px]" :class="isReceiveWa ? 'text-green-400' : 'text-slate-400'" x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"></span>
+            </button>
+        </div>
+
+        <div class="mt-4 md:mt-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-800/80 pb-4">
             <div class="min-w-0">
                 <div class="text-neon font-mono text-xs tracking-widest uppercase">{{ $greeting }}, Runner</div>
                 <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter truncate">{{ strtoupper(auth()->user()->name) }}</h1>
@@ -39,12 +72,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                         <span class="hidden sm:inline">My Program</span>
-                    </button>
-                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Strava</span>
                     </button>
                     <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -87,40 +114,8 @@
             </div>
         </div>
 
-        <!-- Tab Content Overview (Alpine.js component wrapper) -->
+        <!-- Tab Content Overview -->
         <div id="tab-content-overview" class="tab-content mt-6">
-            <div x-data="dashboardComponent()">
-                <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <!-- Run Points Badge -->
-                    <a href="{{ route('gpx.index') }}" title="Unggah GPX rute lari untuk mendapatkan poin & tukar reward" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/40 text-xs font-bold text-white hover:border-amber-400 transition shadow-sm">
-                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
-                        <span class="text-slate-300">Run Points:</span>
-                        <span class="text-neon font-black font-mono">{{ number_format(auth()->user()->run_points ?? 0) }} PTS</span>
-                    </a>
-
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-300">
-                        <span class="text-slate-400">Hari ini</span>
-                        <span id="runner-dashboard-date" class="font-bold text-white"></span>
-                        <span class="text-slate-600">•</span>
-                        <span id="runner-dashboard-time" class="font-mono text-slate-300"></span>
-                    </div>
-                    @if(!empty($nextWorkout))
-                        <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
-                            <span class="font-bold">Next</span>
-                            <span class="text-slate-200">{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</span>
-                            @if(!empty($nextWorkout['distance'])) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
-                            <span class="text-slate-400">•</span>
-                            <span class="text-slate-200">{{ $nextWorkout['date_label'] ?? '' }}</span>
-                        </button>
-                    @endif
-
-                    <!-- WhatsApp Daily Program Toggle Switch -->
-                    <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-green-500/10 border-green-500/30 text-green-300 hover:bg-green-500/15' : 'bg-slate-900/50 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
-                        <i class="fab fa-whatsapp text-sm" :class="isReceiveWa ? 'text-green-400' : 'text-slate-500'"></i>
-                        <span>Program Harian WA: </span>
-                        <span class="font-black uppercase text-[10px]" :class="isReceiveWa ? 'text-green-400' : 'text-slate-400'" x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"></span>
-                    </button>
-                </div>
 
         @if (session('success'))
             <div class="mt-6 p-4 rounded-2xl bg-green-900/30 border border-green-500/30 text-green-200">
@@ -1238,23 +1233,17 @@
          x-cloak>
         <div :class="notification?.type === 'error' ? 'bg-red-950 border-red-500/40 text-red-200' : 'bg-green-950 border-green-500/40 text-green-200'" 
              class="p-4 rounded-xl border backdrop-blur-md shadow-2xl flex items-start gap-3">
-            <span class="text-base" x-text="notification?.type === 'error' ? '⚠️' : '✅'"></span>
+            <i :class="notification?.type === 'error' ? 'fas fa-exclamation-circle text-rose-400 text-sm' : 'fas fa-check-circle text-neon text-sm'"></i>
             <div class="flex-1 text-xs font-semibold leading-snug" x-text="notification?.message"></div>
             <button @click="notification = null" class="text-slate-400 hover:text-slate-200">✕</button>
         </div>
     </div>
 
-            </div> <!-- closes x-data="dashboardComponent()" -->
         </div> <!-- closes id="tab-content-overview" -->
 
         <!-- Tab Content Calendar (Vue.js component wrapper) -->
         <div id="tab-content-calendar" class="tab-content mt-6 hidden">
             @include('runner.calendar.html')
-        </div>
-        
-        <!-- Tab Content Strava (Iframe loader) -->
-        <div id="tab-content-strava" class="tab-content mt-6 hidden">
-            <iframe id="strava-iframe" data-src="/calendar?embed=1#strava" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
         </div>
 
         <!-- Tab Content Calculator (Iframe loader) -->
@@ -2056,14 +2045,6 @@
             }, 100);
         }
 
-        // Lazy load Strava iframe
-        if (tabName === 'strava') {
-            const iframe = document.getElementById('strava-iframe');
-            if (iframe && !iframe.getAttribute('src')) {
-                iframe.setAttribute('src', iframe.getAttribute('data-src'));
-            }
-        }
-
         // Lazy load Calculator iframe
         if (tabName === 'calculator') {
             const iframe = document.getElementById('calculator-iframe');
@@ -2079,8 +2060,6 @@
         const tab = urlParams.get('tab');
         if (tab === 'calendar') {
             switchTab('calendar');
-        } else if (tab === 'strava') {
-            switchTab('strava');
         } else if (tab === 'calculator') {
             switchTab('calculator');
         } else if (tab === 'marketplace') {
@@ -2092,16 +2071,6 @@
 
     // Listen for iframe height adjustments to make it look native
     window.addEventListener('message', function(e) {
-        if (e.data && e.data.type === 'resize-iframe') {
-            const iframe = document.getElementById('strava-iframe');
-            if (iframe && e.data.height) {
-                const newHeight = e.data.height + 10;
-                const currentHeight = parseInt(iframe.style.height) || 0;
-                if (Math.abs(currentHeight - newHeight) > 15) {
-                    iframe.style.height = newHeight + 'px';
-                }
-            }
-        }
         if (e.data && e.data.type === 'resize-iframe-calculator') {
             const iframe = document.getElementById('calculator-iframe');
             if (iframe && e.data.height) {

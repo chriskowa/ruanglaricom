@@ -11,22 +11,33 @@ class StravaApiService
 {
     public function getValidAccessToken(User $user): ?string
     {
-        if (! $user->strava_access_token || ! $user->strava_refresh_token) {
-            Log::debug('Strava: No token/refresh for user', ['user_id' => $user->id]);
+        if (! $user->strava_access_token) {
+            Log::debug('Strava: No access token for user', ['user_id' => $user->id]);
             return null;
+        }
+
+        // If token is not expired yet (or no expiry set), return current access token
+        $isExpired = $user->strava_expires_at && $user->strava_expires_at->lte(now()->addMinute());
+        if (! $isExpired) {
+            return $user->strava_access_token;
+        }
+
+        // Token is expired, check if we have refresh token and config to refresh it
+        if (! $user->strava_refresh_token) {
+            Log::debug('Strava: Token expired but no refresh token', ['user_id' => $user->id]);
+            return $user->strava_access_token;
         }
 
         $config = StravaConfig::first();
         $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
         $clientSecret = $config->client_secret ?? env('STRAVA_CLIENT_SECRET');
         if (! $clientId || ! $clientSecret) {
-            Log::error('Strava: Missing client_id or client_secret config');
-            return null;
+            Log::error('Strava: Missing client_id or client_secret config for refresh');
+            return $user->strava_access_token;
         }
 
         $accessToken = $user->strava_access_token;
-        if ($user->strava_expires_at && $user->strava_expires_at->lte(now()->addMinute())) {
-            Log::info('Strava: Token expired, refreshing...', ['user_id' => $user->id]);
+        Log::info('Strava: Token expired, refreshing...', ['user_id' => $user->id]);
 
             $refresh = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
                 'client_id' => $clientId,
