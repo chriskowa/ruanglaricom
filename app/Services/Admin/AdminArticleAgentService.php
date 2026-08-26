@@ -10,11 +10,13 @@ use App\Models\ArticleAgent;
 use App\Models\Article;
 use App\Lib\TavilyClient;
 use App\Services\OpenAiService;
+use App\Services\Blog\InternalLinkService;
 
 class AdminArticleAgentService
 {
     private OpenAiService $openai;
     private ?TavilyClient $tavily;
+    private InternalLinkService $internalLinkService;
 
     private string $modelBrainstorm = 'gpt-5.6';
     private string $modelSummary    = 'gpt-4o-mini';
@@ -63,9 +65,10 @@ TEXT;
      */
     private const TOP_ARTICLES_CACHE_HOURS = 3;
 
-    public function __construct()
+    public function __construct(?InternalLinkService $internalLinkService = null)
     {
         $this->openai = new OpenAiService();
+        $this->internalLinkService = $internalLinkService ?? new InternalLinkService();
 
         // Catatan: env() sengaja TIDAK dipanggil langsung di sini. Setelah
         // `php artisan config:cache` di production, env() di luar file config
@@ -77,7 +80,7 @@ TEXT;
 
     /**
      * Langkah 1: Input Topik (AI Brainstorming)
-     * Menghasilkan 10 ide artikel berdasarkan topik + strategi SEO.
+     * Menghasilkan 10 ide artikel berdasarkan topik + strategi SEO & Google Discover 2026.
      */
     public function step1_inputTopic(array $input): array
     {
@@ -102,13 +105,19 @@ TEXT;
             $topArticles = $this->getTopArticles($site, 50);
         }
 
-        //* 1. Susun Base Prompt
-        $prompt = "Kamu adalah seorang Redaktur Utama & Ahli Strategi Konten SEO senior untuk Ruang Lari.\n" .
+        //* 1. Susun Base Prompt dengan Aturan Mutlak Algoritma Google Discover 2026
+        $prompt = "Kamu adalah seorang Redaktur Utama & Ahli Strategi Konten SEO/Google Discover senior untuk Ruang Lari.\n" .
                   "Input berikut berasal dari user yang memberikan topik lari atau cuplikan berita realtime / isu viral dari Threads, Instagram, atau media berita terkini:\n" .
                   "=== INPUT BERITA / TOPIK ===\n" .
                   "{$fullTopicInput}\n" .
                   "===========================\n\n" .
-                  "Tugasmu: Analisis topik/berita realtime tersebut dan hasilkan 10 ide artikel berita SEO yang tajam, faktual (gaya Kompas), informatif, dan memiliki nilai jurnalistik tinggi bagi komunitas lari.\n\n";
+                  "Tugasmu: Analisis topik/berita realtime tersebut dan hasilkan 10 ide artikel berita & panduan SEO yang tajam, faktual (gaya jurnalisme Kompas.com / media olahraga terpercaya), informatif, dan memiliki nilai edukasi tinggi bagi pelari.\n\n" .
+                  "ATURAN MUTLAK PEMBUATAN JUDUL SESUAI ALGORITMA GOOGLE DISCOVER TERBARU:\n" .
+                  "1. LARANGAN CURIOSITY GAP MENIPU: Dilarang keras menahan atau menyembunyikan informasi kunci hanya untuk memancing klik (DILARANG: 'Ternyata Ini...', 'Gak Nyangka...', 'Inilah Alasannya...', 'Jangan Lakukan Ini Sebelum...', 'Ini Rahasianya...'). Tuliskan fakta, solusi, atau subjek intinya secara langsung dan transparan.\n" .
+                  "2. LARANGAN FRASA HIPERBOLA & EMOSIONAL EKSTREM: DILARANG menggunakan kata-kata sensasional, berlebihan, atau bombastis (DILARANG: 'Bikin Gempar', 'Bikin Melongo', 'Bikin Syok', 'Rahasia Terbesar', 'Wajib Tahu!', 'Mengejutkan', 'Heboh', 'Bikin Merinding').\n" .
+                  "3. KESESUAIAN MUTLAK JUDUL DAN ISI (100% CONTENT MATCH): Judul harus secara akurat, jujur, dan spesifik mencerminkan substansi data/fakta yang akan dibahas.\n" .
+                  "4. STANDAR E-E-A-T & OTORITAS TINGGI: Gunakan gaya bahasa jurnalistik berbobot, berbasis sains olahraga, medis lari, atau fakta berita nyata dengan entitas jelas (nama event, jenis cedera, teknik latihan, durasi, dll).\n" .
+                  "5. MENCEGAH PENALTI DOMAIN TINGKAT SISTEM: Hindari manipulasi CTR murahan. Klik tinggi harus diraih lewat 'clear value proposition', aktualitas berita, dan kejelasan manfaat bagi pembaca, bukan jebakan penasaran.\n\n";
 
         //* 2. Inject Referensi & Strategi
         if ($strategy !== 'free' && !empty($topArticles)) {
@@ -129,17 +138,17 @@ TEXT;
                     $prompt .= "Gunakan daftar referensi di atas sebagai 'Pillar'. Buat 10 ide artikel turunan (cluster content) dari topik '{$topic}' yang bisa mendalami referensi tersebut dan sangat relevan untuk dipasang internal link menuju daftar referensi.\n\n";
                     break;
                 case 'formula': //! "Tiru Formula Judul Teratas"
-                    $prompt .= "Analisis pola psikologis (misal: listicle, FOMO, how-to) dari daftar referensi di atas. Terapkan formula penulisan judul dan angle sukses tersebut ke 10 ide artikel baru untuk topik '{$topic}'.\n\n";
+                    $prompt .= "Analisis pola struktur judul informatif dan sukses dari daftar referensi di atas. Terapkan prinsip kejelasan informasi dan angle sukses tersebut ke 10 ide artikel baru untuk topik '{$topic}' dengan tetap mematuhi aturan anti-clickbait Google Discover.\n\n";
                     break;
             }
         }
 
         //* 3. Format Output JSON Strict
         $prompt .= "Untuk setiap ide, berikan:\n" .
-                   "1. Judul yang memancing klik (CTR tinggi)\n" .
+                   "1. Judul informatif, bernilai tinggi, dan akurat (patuhi 100% aturan Google Discover di atas)\n" .
                    "2. Kata kunci utama (Focus Keyword / Target Ranking Utama)\n" .
                    "3. Kata kunci pendukung/turunan (Secondary Keywords / LSI, 3-5 kata kunci relevan, pisahkan koma)\n" .
-                   "4. Ringkasan singkat isi konten (Maksimal 2 kalimat).\n\n" .
+                   "4. Ringkasan singkat isi konten (Maksimal 2 kalimat yang faktual dan selaras 100% dengan judul).\n\n" .
                    "KEMBALIKAN HASILNYA HANYA SEBAGAI ARRAY JSON objek dengan kunci persis seperti ini: 'title', 'keyword', 'secondary_keywords', 'summary'. Jangan sertakan format markdown, backticks (```json), atau teks pengantar apa pun di luar JSON.";
 
         //* 4. Hit LLM
@@ -323,18 +332,31 @@ TEXT;
         }
 
         $selectedData = $query->selected_option_data;
+        $titleTopic   = $selectedData['title'] ?? '';
+        $focusKw      = $selectedData['keyword'] ?? '';
+
+        //? Cari target internal link yang relevan dengan topik & kata kunci
+        $internalLinkTargets     = $this->internalLinkService->getRelevantTargets($titleTopic, $focusKw, null, 8);
+        $internalLinkInstruction = $this->internalLinkService->formatPromptInstruction($internalLinkTargets);
+
         $systemPrompt = "Aku ingin Kamu menjawab hanya dalam bahasa Indonesia.\n" .
-                        "Aku ingin Kamu bertindak sebagai Jurnalis Utama & Penulis SEO Senior untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n" .
-                        "Tugas Kamu adalah menyusun artikel berita SEO yang dimulai dengan Judul SEO {$selectedData['title']}.\n\n" .
-                        "ATURAN GAYA PENULISAN BERITA (KOMPAS STYLE):\n" .
-                        "- Paragraf pertama (Lead Berita): Mulai langsung dengan fakta utama berprinsip 5W+1H (Apa, Siapa, Kapan, Di mana, Mengapa, Bagaimana) yang jelas dan memikat.\n" .
+                        "Aku ingin Kamu bertindak sebagai Jurnalis Utama & Penulis SEO/Google Discover Senior untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n" .
+                        "Tugas Kamu adalah menyusun artikel berita/panduan yang dimulai dengan Judul: {$titleTopic}.\n\n" .
+                        "ATURAN GAYA PENULISAN BERITA & DISCOVER (KOMPAS STYLE & E-E-A-T 2026):\n" .
+                        "- Paragraf pertama (Lead Berita): Mulai langsung dengan fakta utama berprinsip 5W+1H (Apa, Siapa, Kapan, Di mana, Mengapa, Bagaimana) yang jelas, padat, dan transparan.\n" .
                         "- Nada Jurnalistik & Bersumber: Gunakan kalimat aktif, lugas, obyektif, faktual, dan bersumber (sebutkan rujukan secara eksplisit jika ada rincian kutipan, data, atau cuplikan dari Threads/Instagram/berita terkini, misal: 'Berdasarkan laporan...', 'Sebagaimana diungkapkan dalam...'). JANGAN mengarang data atau hoaks.\n" .
                         "- Kedalaman & Edukasi: Hubungkan isu/berita realtime tersebut dengan panduan praktis, riset ilmiah, atau dampaknya bagi dunia lari.\n" .
-                        "- Panjang & Struktur: 400 hingga 1200 kata. Setiap subjudul minimal 2 paragraf. 1 paragraf 2-4 kalimat. 1 kalimat maksimal 20-25 kata.\n" .
+                        "- Panjang & Struktur: 500 hingga 1300 kata. Setiap subjudul minimal 2 paragraf. 1 paragraf 2-4 kalimat. 1 kalimat maksimal 20-25 kata.\n" .
                         "- Keterbacaan & Optimasi SEO 2026: Sisipkan Focus Keyword secara alami di judul, paragraf pembuka (lead), dan minimal 1 sub-heading. Distribusikan Secondary Keywords secara alami ke dalam sub-heading (<h2>/<h3>) dan tubuh konten tanpa keyword stuffing.\n" .
                         "- Jangan menambahkan kata 'Kesimpulan' atau 'Penutup' sebagai subjudul kaku di akhir artikel.\n\n" .
-                        self::HTML_STRUCTURE_RULES_ID . "\n" .
-                        "Selain itu, buatlah meta title SEO (maksimal 60 karakter, mengandung focus keyword, gaya click-worthy khas media berita nasional), meta deskripsi SEO maksimal 150 karakter, excerpt 1-2 kalimat ringkas, dan slug pendek.\n\n" .
+                        "PEDOMAN JUDUL & META TITLE (GOOGLE DISCOVER ANTI-CLICKBAIT):\n" .
+                        "- 100% Content Match: Judul & Meta Title wajib selaras mutlak dengan substansi artikel.\n" .
+                        "- Dilarang Curiosity Gap yang Menipu & Frasa Hiperbola (DILARANG: 'Ternyata Ini...', 'Gak Nyangka...', 'Bikin Gempar', 'Rahasia Terbesar', dll).\n" .
+                        "- Meta title maksimal 60 karakter (mengandung Focus Keyword, lugas, kredibel).\n" .
+                        "- Meta description maksimal 150 karakter (faktual, merangkum intisari artikel tanpa clickbait).\n" .
+                        "- Excerpt 1-2 kalimat ringkas dan padat.\n\n" .
+                        self::HTML_STRUCTURE_RULES_ID . "\n\n" .
+                        ($internalLinkInstruction !== '' ? "{$internalLinkInstruction}\n\n" : '') .
                         "INSTRUKSI PROMPT GAMBAR (WAJIB):\n" .
                         "- Pada setiap sub-heading (<h2>), buatkan Prompt Gambar terkait topik tersebut.\n" .
                         "- Buatkan juga 1 Prompt Gambar Cover di bagian paling atas artikel (tepat di atas paragraf pertama).\n" .
@@ -352,8 +374,8 @@ TEXT;
 
         $sourcesBlock = $this->extractSourceLinks($query->research_raw_tavily);
 
-        $userPrompt = "Title: {$selectedData['title']}\n" .
-                      "Focus Keyword: {$selectedData['keyword']}\n" .
+        $userPrompt = "Title: {$titleTopic}\n" .
+                      "Focus Keyword: {$focusKw}\n" .
                       (!empty($selectedData['secondary_keywords']) ? "Secondary Keywords (LSI): {$selectedData['secondary_keywords']}\n" : '') .
                       "Text to Rewrite:\n{$query->research_summary}\n" .
                       ($sourcesBlock !== '' ? "\n{$sourcesBlock}\n" : '');
@@ -364,16 +386,18 @@ TEXT;
         $decoded = $this->parseAiJson($rawResponse);
 
         if (!is_array($decoded) || empty($decoded['content'])) {
-            // Gagal parse jadi JSON valid dengan 'content' terisi.
-            // Jangan diam-diam simpan raw string ke kolom yang dibaca sebagai JSON di step lain
-            // (applyToArticle, step3_doWriteEn) — itu bikin artikel kesimpan kosong tanpa error jelas.
             throw new Exception("Gagal parse hasil artikel dari AI menjadi JSON valid. Raw: " . substr($rawResponse, 0, 200));
         }
 
-        $decoded['title']   = $selectedData['title'] ?? '';
-        $decoded['keyword'] = $selectedData['keyword'] ?? '';
+        $decoded['title']   = $titleTopic;
+        $decoded['keyword'] = $focusKw;
         if (empty($decoded['secondary_keywords']) && !empty($selectedData['secondary_keywords'])) {
             $decoded['secondary_keywords'] = $selectedData['secondary_keywords'];
+        }
+
+        //? Post-processing: Pastikan ada 2-3 internal link alami yang terpasang di konten HTML
+        if (!empty($internalLinkTargets)) {
+            $decoded['content'] = $this->internalLinkService->injectInternalLinks($decoded['content'], $internalLinkTargets, 3);
         }
 
         $query->update(['generated_article_content' => json_encode($decoded)]);

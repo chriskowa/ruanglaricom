@@ -419,7 +419,7 @@
                         <option value="free">Bebas (langsung brainstorm)</option>
                         <option value="gap">Cari Celah Baru (hindari topik serupa)</option>
                         <option value="cluster">Pillar & Cluster (topik turunan)</option>
-                        <option value="formula">Tiru Formula Judul Teratas</option>
+                        <option value="formula">Formula Google Discover 2026 (E-E-A-T & Anti-Clickbait)</option>
                     </select>
                 </div>
                 <button type="button" onclick="aaBrainstorm()" id="aa-btn-brainstorm" class="mt-2 w-full py-3 rounded-xl bg-neon text-dark font-bold hover:bg-neon/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-neon/10 text-sm">

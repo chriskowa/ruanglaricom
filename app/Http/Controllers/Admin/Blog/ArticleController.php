@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\BlogCategory;
 use App\Models\BlogTag;
 use App\Services\OpenAiService;
+use App\Services\Blog\InternalLinkService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,10 +15,12 @@ use Illuminate\Support\Str;
 class ArticleController extends Controller
 {
     protected $aiService;
+    protected $internalLinkService;
 
-    public function __construct(OpenAiService $aiService)
+    public function __construct(OpenAiService $aiService, InternalLinkService $internalLinkService)
     {
         $this->aiService = $aiService;
+        $this->internalLinkService = $internalLinkService;
     }
 
     public function index()
@@ -27,9 +30,6 @@ class ArticleController extends Controller
         return view('admin.blog.articles.index', compact('articles'));
     }
 
-    /**
-     * Generate article using AI.
-     */
     /**
      * Generate article using AI.
      */
@@ -53,13 +53,20 @@ class ArticleController extends Controller
 
             $topic = $request->topic;
             $url   = $request->url;
+
+            $internalLinkTargets = $this->internalLinkService->getRelevantTargets($topic, '', null, 6);
+            $internalLinkInstruction = $this->internalLinkService->formatPromptInstruction($internalLinkTargets);
             
-            $systemPrompt = "Anda adalah jurnalis dan penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n\n"
-                . "Aturan Penulisan Berita & Artikel:\n"
+            $systemPrompt = "Anda adalah jurnalis dan penulis SEO/Google Discover senior (Bahasa Indonesia) untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n\n"
+                . "Aturan Penulisan Berita & Google Discover 2026:\n"
                 . "- Faktual & Berimbang: Tulislah berita/artikel dengan gaya jurnalistik faktual (5W+1H pada lead berita). Jangan mengarang data/hoaks. Jika ada cuplikan berita dari Threads/Instagram/Media, olah menjadi liputan jurnalistik yang terstruktur, rapi, dan bersumber.\n"
-                . "- SEO 2026-Friendly: Fokus intent, E-E-A-T, dan keterbacaan mobile.\n"
-                . "- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Gunakan <h2> dan <h3>. Paragraf 2–4 kalimat.\n"
-                . "- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).\n"
+                . "- ATURAN MUTLAK JUDUL & GOOGLE DISCOVER:\n"
+                . "  1. 100% Content Match: Judul wajib selaras mutlak dan mencerminkan substansi tulisan secara jujur.\n"
+                . "  2. Larangan Curiosity Gap Menipu: Jangan sembunyikan informasi kunci demi memicu klik (DILARANG: 'Ternyata Ini...', 'Gak Nyangka...', 'Inilah Alasannya...', 'Rahasia Terbesar...').\n"
+                . "  3. Larangan Frasa Hiperbola: DILARANG menggunakan kata sensasional (DILARANG: 'Bikin Gempar', 'Bikin Melongo', 'Bikin Syok', 'Wajib Tahu!', 'Heboh').\n"
+                . "  4. Standar E-E-A-T & Kredibilitas: Judul jelas, informatif, dan berbobot dengan entitas spesifik.\n"
+                . "- Struktur HTML: JANGAN gunakan <h1> di content (judul halaman sudah H1). Gunakan <h2> dan <h3>. Paragraf 2–4 kalimat. Gunakan <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>.\n"
+                . ($internalLinkInstruction !== '' ? "{$internalLinkInstruction}\n\n" : '')
                 . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
                 . "INSTRUKSI PROMPT GAMBAR (WAJIB):\n"
                 . "- Pada setiap sub-heading (<h2>) dan bagian atas artikel (cover), buatkan marker prompt gambar [Gambar: Deskripsi visual...].\n"
@@ -69,10 +76,10 @@ class ArticleController extends Controller
                 . ($url ? "- URL referensi: {$url}\n" : "")
                 . "Output HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
                 . "{\n"
-                . "  \"seo_title\": \"... (<= 60 karakter)\",\n"
+                . "  \"seo_title\": \"... (<= 60 karakter, informatif, patuhi aturan anti-clickbait Google Discover)\",\n"
                 . "  \"focus_keyword\": \"... (1 kata kunci utama target ranking)\",\n"
                 . "  \"secondary_keywords\": \"... (3-5 kata kunci turunan/LSI, pisahkan koma)\",\n"
-                . "  \"meta_description\": \"... (140-160 karakter)\",\n"
+                . "  \"meta_description\": \"... (140-160 karakter, ringkasan faktual tanpa clickbait)\",\n"
                 . "  \"excerpt\": \"... (ringkas 1-2 kalimat)\",\n"
                 . "  \"content\": \"... (HTML body, tanpa <h1>)\",\n"
                 . "  \"slug\": \"... (slug pendek)\",\n"
@@ -99,6 +106,10 @@ class ArticleController extends Controller
                     'message' => 'AI returned invalid JSON format.',
                     'raw' => $response
                 ], 500);
+            }
+
+            if (!empty($data['content']) && !empty($internalLinkTargets)) {
+                $data['content'] = $this->internalLinkService->injectInternalLinks($data['content'], $internalLinkTargets, 3);
             }
 
             if (isset($data['slug'])) {
