@@ -773,7 +773,7 @@
                                     </button>
                                 </div>
                                 <!-- Autocomplete Results Dropdown -->
-                                <div id="map-search-results" class="absolute left-0 right-0 top-full mt-1.5 bg-[#111724] border border-slate-700 rounded-xl shadow-2xl z-50 max-h-52 overflow-y-auto hidden divide-y divide-slate-800"></div>
+                                <div id="map-search-results" class="absolute left-0 right-0 top-full mt-1.5 bg-black border border-slate-700 rounded-xl shadow-2xl z-50 max-h-52 overflow-y-auto hidden divide-y divide-slate-800"></div>
                             </div>
 
                             <!-- Leaflet Map Container -->

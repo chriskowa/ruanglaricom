@@ -8,7 +8,7 @@
 - **NO Emojis Anywhere**: Never use emojis (no 🏃‍♂️, 🏔️, 💨, ⚡, 🚀, ⏱️, etc.) in UI templates, alerts, popups, buttons, or placeholder texts. Use clean, professional text or standard FontAwesome icons sparingly.
 - **Minimalist & Purposeful Icons**: Do not over-clutter interfaces with icons on every single label or button. Keep icon usage minimal and purposeful.
 - **Solid Colors Only (No Gradients, No Transparent/Blurry Overlays)**:
-  - Use solid, crisp background colors (e.g., solid `#0c121e`, `#111724`, `#090D16`, `#070B12`).
+  - Use solid, crisp background colors (e.g., solid `#0c121e`, black, `#090D16`, `#070B12`).
   - Do not use background gradients (`bg-gradient-to-...`) or semi-transparent washed-out backgrounds (`bg-slate-900/40`, `backdrop-blur-sm`).
   - Modals and cards must be 100% solid and opaque with clear borders (`border-slate-700` or `border-slate-800`).
 - **High Contrast & Legible Typography**:
