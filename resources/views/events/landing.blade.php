@@ -29,7 +29,7 @@
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-none">
                     Jadwal Lari <span class="text-neon">2026</span> Indonesia
                 </h1>
-                <div class="text-slate-400 text-base md:text-lg space-y-4 leading-relaxed max-w-3xl mx-auto lg:mx-0">
+                <div class="text-slate-100 text-base md:text-lg space-y-4 leading-relaxed max-w-3xl mx-auto lg:mx-0">
                     <p>
                         Temukan jadwal lari 2026 di Indonesia dalam satu kalender lengkap. Ruang Lari menyajikan informasi event lari terbaru, mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, ultra run, hingga virtual run. Setiap event dilengkapi dengan tanggal pelaksanaan, lokasi, kategori jarak, status pendaftaran, dan tautan menuju halaman resmi pendaftaran.
                     </p>
@@ -108,7 +108,7 @@
                                                 {{ $event->is_featured ? 'Featured Event' : 'Event Pilihan' }}
                                             </span>
                                             @if($event->raceType)
-                                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                <span class="text-[9px] font-bold text-slate-100 uppercase tracking-widest">
                                                     {{ $event->raceType->name }}
                                                 </span>
                                             @endif
@@ -128,7 +128,7 @@
                                                 <span>{{ $event->start_at ? $event->start_at->translatedFormat('d M Y') : '' }}</span>
                                             </div>
                                             <span class="text-slate-650 hidden sm:inline">•</span>
-                                            <div class="flex items-center gap-1 truncate max-w-[200px] text-slate-400">
+                                            <div class="flex items-center gap-1 truncate max-w-[200px] text-slate-100">
                                                 <svg class="w-3.5 h-3.5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -253,7 +253,7 @@
                                 {{ count($mapEvents ?? []) }} Event Terdaftar
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi lokasi event lari di seluruh Indonesia. Klik marker untuk melihat jadwal & detail pendaftaran.</p>
+                        <p class="text-xs text-slate-100 hidden sm:block">Jelajahi lokasi event lari di seluruh Indonesia. Klik marker untuk melihat jadwal & detail pendaftaran.</p>
                     </div>
                 </div>
 
@@ -263,7 +263,7 @@
                         <button type="button" id="btn-toggle-events-map-layer" onclick="toggleEventsMapLayerMenu()" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-layer-group text-[11px] text-neon"></i>
                             <span id="label-events-active-layer" class="hidden xs:inline">Voyager</span>
-                            <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+                            <i class="fa-solid fa-chevron-down text-[8px] text-slate-100"></i>
                         </button>
                         <div id="events-map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[150px] text-xs divide-y divide-slate-800" style="background-color: #0c121e !important; opacity: 1 !important;">
                             <button type="button" onclick="setEventsMapLayer('voyager')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
@@ -306,7 +306,7 @@
 
                 <!-- Interactive Map Legend & Quick Type Filter Overlay -->
                 <div id="events-map-type-filter-overlay" class="absolute bottom-3 left-3 z-[400] bg-[#0c121e] border border-slate-700 rounded-xl p-1.5 text-xs text-slate-300 shadow-2xl pointer-events-auto flex items-center gap-1.5 overflow-x-auto max-w-[calc(100%-24px)] no-scrollbar" style="background-color: #0c121e !important;">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1 shrink-0">Filter:</span>
+                    <span class="text-[10px] text-slate-100 font-bold uppercase tracking-wider px-1 shrink-0">Filter:</span>
                     <button type="button" onclick="setEventsMapTypeFilter('')" class="btn-event-map-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border bg-slate-800 text-white font-bold border-slate-600 shrink-0" data-map-type="">
                         Semua
                     </button>
@@ -343,7 +343,7 @@
                 <!-- Search -->
                 <div class="lg:col-span-1">
                     <div class="flex justify-between items-end mb-1">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Event</label>
+                        <label class="block text-xs font-bold text-slate-100 uppercase tracking-wider">Cari Event</label>
                         <button type="button" id="mobile-filter-toggle" class="md:hidden text-neon text-xs font-bold flex items-center gap-1 hover:text-white transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
                             Filter
@@ -357,7 +357,7 @@
 
                 <!-- Month & Year -->
                 <div class="mobile-filter-item hidden md:block">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Waktu</label>
+                    <label class="block text-xs font-bold text-slate-100 uppercase tracking-wider mb-1">Waktu</label>
                     <div class="flex gap-2">
                         @php
                             $selectedMonth = request('month');
@@ -387,7 +387,7 @@
 
                 <!-- City -->
                 <div class="mobile-filter-item hidden md:block">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lokasi</label>
+                    <label class="block text-xs font-bold text-slate-100 uppercase tracking-wider mb-1">Lokasi</label>
                     <select name="city_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Kota</option>
                         @foreach($cities as $city)
@@ -398,7 +398,7 @@
 
                 <!-- Race Type -->
                 <div class="mobile-filter-item hidden md:block">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jenis Lomba</label>
+                    <label class="block text-xs font-bold text-slate-100 uppercase tracking-wider mb-1">Jenis Lomba</label>
                     <select name="race_type_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Jenis</option>
                         @foreach($raceTypes as $type)
@@ -409,7 +409,7 @@
 
                 <!-- Distance -->
                 <div class="mobile-filter-item hidden md:block">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Kategori Jarak</label>
+                    <label class="block text-xs font-bold text-slate-100 uppercase tracking-wider mb-1">Kategori Jarak</label>
                     <select name="race_distance_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Jarak</option>
                         @foreach($raceDistances as $distance)
@@ -428,18 +428,18 @@
                 Semua Jarak
             </button>
             @foreach($raceDistances as $distance)
-                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="distance" data-value="{{ $distance->id }}">
+                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-100 hover:border-slate-600 hover:text-white" data-filter-type="distance" data-value="{{ $distance->id }}">
                     {{ $distance->name }}
                 </button>
             @endforeach
             
             <div class="h-6 w-px bg-slate-800 self-center mx-2"></div>
             
-            <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="">
+            <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-100 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="">
                 Semua Jenis
             </button>
             @foreach($raceTypes as $type)
-                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="{{ $type->id }}">
+                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-100 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="{{ $type->id }}">
                     {{ $type->name }}
                 </button>
             @endforeach
@@ -463,7 +463,7 @@
         <!-- Loading State -->
         <div id="loading-indicator" class="hidden py-12 text-center">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-neon"></div>
-            <p class="mt-2 text-slate-400 text-sm">Memuat jadwal...</p>
+            <p class="mt-2 text-slate-100 text-sm">Memuat jadwal...</p>
         </div>
     </div>
 
@@ -607,7 +607,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div x-show="active === {{ $i }}" x-collapse x-cloak class="px-6 pb-5 pt-2 text-slate-400 border-t border-slate-800/50 leading-relaxed text-sm md:text-base">
+                        <div x-show="active === {{ $i }}" x-collapse x-cloak class="px-6 pb-5 pt-2 text-slate-100 border-t border-slate-800/50 leading-relaxed text-sm md:text-base">
                             <p>{{ $faq['a'] }}</p>
                         </div>
                     </div>
@@ -631,7 +631,7 @@
                         <h3 class="text-lg sm:text-2xl font-black text-white tracking-tight">AJUKAN EVENT LARI BARU</h3>
                     </div>
                 </div>
-                <button type="button" id="btn-close-submit-event" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                <button type="button" id="btn-close-submit-event" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-100 hover:text-white flex items-center justify-center transition-colors">
                     <i class="fas fa-times text-base"></i>
                 </button>
             </div>
@@ -656,7 +656,7 @@
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Event <span class="text-neon">*</span></label>
+                                <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Nama Event <span class="text-neon">*</span></label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
                                         <i class="fas fa-flag"></i>
@@ -667,17 +667,17 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal Event <span class="text-neon">*</span></label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Tanggal Event <span class="text-neon">*</span></label>
                                     <input type="date" name="event_date" id="submit_event_date" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" required>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam Mulai</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Jam Mulai</label>
                                     <input type="time" value="05:00" name="start_time" id="submit_event_time" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                                 </div>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jenis Lomba</label>
+                                <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Jenis Lomba</label>
                                 <select name="race_type_id" id="submit_event_race_type_id" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                                     <option value="">Pilih Jenis Lomba</option>
                                     @foreach($raceTypes as $type)
@@ -705,7 +705,7 @@
                                         <i class="fas fa-cloud-upload-alt text-xl"></i>
                                     </div>
                                     <p class="text-sm font-bold text-white">Drag & drop banner event di sini</p>
-                                    <p class="text-xs text-slate-400 mt-1">atau <span class="text-neon font-semibold underline">klik untuk menelusuri file</span></p>
+                                    <p class="text-xs text-slate-100 mt-1">atau <span class="text-neon font-semibold underline">klik untuk menelusuri file</span></p>
                                 </div>
 
                                 <div id="banner-dropzone-preview" class="hidden">
@@ -741,7 +741,7 @@
                             </div>
 
                             <div class="pt-2">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tambah Jarak Custom (jika belum ada)</label>
+                                <label class="text-[11px] font-bold text-slate-100 uppercase tracking-wider block mb-1">Tambah Jarak Custom (jika belum ada)</label>
                                 <input type="text" name="custom_distances" id="submit_event_custom_distances" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="Contoh: 7K, 100K, 50 mil (pisahkan koma)">
                             </div>
                         </div>
@@ -781,11 +781,11 @@
                                 <div id="event-map" class="w-full h-44 rounded-xl border border-slate-700/80 bg-slate-950 z-0"></div>
                                 <div id="map-geocoding-status" class="absolute bottom-2 left-2 bg-[#0c121e] text-[10px] font-mono text-neon px-2.5 py-1 rounded-lg border border-slate-800 z-10 empty:hidden"></div>
                             </div>
-                            <p class="text-[11px] text-slate-400">Ketik pencarian lokasi di atas atau klik langsung pada peta untuk mengisi otomatis kota dan alamat.</p>
+                            <p class="text-[11px] text-slate-100">Ketik pencarian lokasi di atas atau klik langsung pada peta untuk mengisi otomatis kota dan alamat.</p>
 
                             <div class="space-y-3">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kota / Kabupaten</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Kota / Kabupaten</label>
                                     <select name="city_id" id="submit_event_city_id" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                                         <option value="">Pilih Kota</option>
                                         @foreach($cities as $city)
@@ -795,12 +795,12 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Lokasi / Venue <span class="text-neon">*</span></label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Nama Lokasi / Venue <span class="text-neon">*</span></label>
                                     <input type="text" name="location_name" id="submit_event_location" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Contoh: Gelora Bung Karno" required>
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alamat Lengkap</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Alamat Lengkap</label>
                                     <input type="text" name="location_address" id="submit_event_address" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Alamat / titik kumpul">
                                 </div>
                             </div>
@@ -815,7 +815,7 @@
 
                             <div class="space-y-3">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran Resmi</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Link Pendaftaran Resmi</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs font-mono">
                                             <i class="fas fa-link"></i>
@@ -826,7 +826,7 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Media Sosial / Instagram</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Link Media Sosial / Instagram</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
                                             <i class="fab fa-instagram"></i>
@@ -847,28 +847,28 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama EO / Penyelenggara</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Nama EO / Penyelenggara</label>
                                     <input type="text" name="organizer_name" id="submit_event_organizer_name" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Komunitas / EO">
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kontak Penyelenggara</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Kontak Penyelenggara</label>
                                     <input type="text" name="organizer_contact" id="submit_event_organizer_contact" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="WA / Email Kontak">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Kamu</label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Nama Kamu</label>
                                     <input type="text" name="contributor_name" id="submit_event_contributor_name" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Nama Pengaju">
                                 </div>
                                 <div class="space-y-1.5">
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Kamu <span class="text-neon">*</span></label>
+                                    <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Email Kamu <span class="text-neon">*</span></label>
                                     <input type="email" name="contributor_email" id="submit_event_contributor_email" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="email@kamu.com" required>
                                 </div>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan Tambahan</label>
+                                <label class="text-xs font-bold text-slate-100 uppercase tracking-wider">Catatan Tambahan</label>
                                 <textarea name="notes" id="submit_event_notes" rows="2" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="Info kuota, syarat pendaftaran, dll"></textarea>
                             </div>
 
@@ -894,7 +894,7 @@
 
             <!-- Modal Footer -->
             <div class="px-4 sm:px-8 py-3.5 sm:py-4 border-t border-slate-800 bg-[#08111F] flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
-                <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+                <div class="text-xs text-slate-100 flex items-center gap-1.5">
                     <i class="fas fa-shield-alt text-neon"></i>
                     <span>Verifikasi OTP wajib sebelum pengajuan event.</span>
                 </div>
@@ -1308,7 +1308,7 @@
             if (b.getAttribute('data-value') === String(typeId)) {
                 b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-neon text-dark border-neon shadow-sm shadow-neon/10";
             } else {
-                b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white";
+                b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-100 hover:border-slate-600 hover:text-white";
             }
         });
 
@@ -1452,7 +1452,7 @@
                         select.value = value;
                     }
                     document.querySelectorAll('.quick-filter-btn[data-filter-type="distance"]').forEach(b => {
-                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white";
+                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-100 hover:border-slate-600 hover:text-white";
                     });
                 } else if (type === 'type') {
                     const select = form.querySelector('select[name="race_type_id"]');
@@ -1460,7 +1460,7 @@
                         select.value = value;
                     }
                     document.querySelectorAll('.quick-filter-btn[data-filter-type="type"]').forEach(b => {
-                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-600 hover:text-white";
+                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-850 text-slate-100 hover:border-slate-600 hover:text-white";
                     });
 
                     // Sync map filter pills
@@ -1692,7 +1692,7 @@
         function renderSearchResults(items) {
             if (!searchResults) return;
             if (!items || items.length === 0) {
-                searchResults.innerHTML = '<div class="px-4 py-3 text-xs text-slate-400 text-center font-medium">Lokasi tidak ditemukan. Coba ketik nama lain.</div>';
+                searchResults.innerHTML = '<div class="px-4 py-3 text-xs text-slate-100 text-center font-medium">Lokasi tidak ditemukan. Coba ketik nama lain.</div>';
                 searchResults.classList.remove('hidden');
                 return;
             }
@@ -1706,7 +1706,7 @@
                 html += '<div class="min-w-0 flex-1">';
                 html += '<div class="text-xs font-bold text-white truncate">' + nameEsc + '</div>';
                 if (detailEsc) {
-                    html += '<div class="text-[11px] text-slate-400 truncate mt-0.5">' + detailEsc + '</div>';
+                    html += '<div class="text-[11px] text-slate-100 truncate mt-0.5">' + detailEsc + '</div>';
                 }
                 html += '</div>';
                 html += '</button>';
