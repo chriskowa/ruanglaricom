@@ -216,16 +216,16 @@ class EventRegistrationController extends Controller
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success' => true,
-                        'message' => 'Registrasi berhasil! Metode pembayaran COD.',
+                        'message' => 'Registrasi COD berhasil dikirim! Menunggu verifikasi dan persetujuan (approval) panitia.',
                         'payment_gateway' => 'cod',
                         'payment_status' => $transaction->payment_status,
                         'transaction_id' => $transaction->id,
                         'registration_id' => $transaction->public_ref,
-                        'redirect_url' => route('events.show', $slug).'?payment=success',
+                        'redirect_url' => route('events.show', $slug).'?payment=cod_pending',
                     ]);
                 }
 
-                return redirect()->route('events.show', $slug)->with('success', 'Registrasi berhasil!')->with('payment', 'success');
+                return redirect()->route('events.show', $slug)->with('success', 'Registrasi COD berhasil dikirim! Menunggu persetujuan panitia.')->with('payment', 'cod_pending');
             }
 
             // If AJAX request, return JSON

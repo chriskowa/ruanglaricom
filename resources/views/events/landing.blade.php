@@ -750,23 +750,38 @@
                     <!-- RIGHT COLUMN: Location Map, Links & Contact -->
                     <div class="space-y-6">
                         <!-- Section: Geolocation & Map -->
-                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3.5">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-map-marked-alt text-neon text-sm"></i>
-                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Lokasi</h4>
+                                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Lokasi Event</h4>
                                 </div>
                                 <button type="button" id="btn-geolocation" class="px-3 py-1 rounded-xl bg-neon/15 hover:bg-neon/25 text-neon border border-neon/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-sm">
-                                    <i class="fas fa-crosshairs"></i> My Location
+                                    <i class="fas fa-crosshairs"></i> Lokasi Saya
                                 </button>
+                            </div>
+
+                            <!-- Search Location Input on Top of Map -->
+                            <div class="relative">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
+                                        <i class="fas fa-search" id="map-search-icon"></i>
+                                    </div>
+                                    <input type="text" id="submit_map_search_input" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-neon transition-all" placeholder="Cari nama tempat, gedung, atau venue..." autocomplete="off">
+                                    <button type="button" id="btn-clear-map-search" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-white text-xs hidden" title="Hapus pencarian">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <!-- Autocomplete Results Dropdown -->
+                                <div id="map-search-results" class="absolute left-0 right-0 top-full mt-1.5 bg-[#111724] border border-slate-700 rounded-xl shadow-2xl z-50 max-h-52 overflow-y-auto hidden divide-y divide-slate-800"></div>
                             </div>
 
                             <!-- Leaflet Map Container -->
                             <div class="relative">
                                 <div id="event-map" class="w-full h-44 rounded-xl border border-slate-700/80 bg-slate-950 z-0"></div>
-                                <div id="map-geocoding-status" class="absolute bottom-2 left-2 bg-slate-950/80 backdrop-blur text-[10px] font-mono text-neon px-2.5 py-1 rounded-lg border border-slate-800 z-10 empty:hidden"></div>
+                                <div id="map-geocoding-status" class="absolute bottom-2 left-2 bg-[#0c121e] text-[10px] font-mono text-neon px-2.5 py-1 rounded-lg border border-slate-800 z-10 empty:hidden"></div>
                             </div>
-                            <p class="text-[11px] text-slate-400">Klik lokasi pada peta atau tombol diatas untuk deteksi kota & alamat otomatis.</p>
+                            <p class="text-[11px] text-slate-400">Ketik pencarian lokasi di atas atau klik langsung pada peta untuk mengisi otomatis kota dan alamat.</p>
 
                             <div class="space-y-3">
                                 <div class="space-y-1.5">
@@ -803,10 +818,11 @@
                                     <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran Resmi</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs font-mono">
-                                            http
+                                            <i class="fas fa-link"></i>
                                         </div>
-                                        <input type="url" name="registration_link" id="submit_event_registration_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-12 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="https://...">
+                                        <input type="text" inputmode="url" name="registration_link" id="submit_event_registration_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all placeholder:text-slate-500" placeholder="https://... atau website pendaftaran">
                                     </div>
+                                    <p class="text-[11px] text-slate-500">Otomatis ditambahkan https:// jika belum ada.</p>
                                 </div>
 
                                 <div class="space-y-1.5">
@@ -815,8 +831,9 @@
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
                                             <i class="fab fa-instagram"></i>
                                         </div>
-                                        <input type="url" name="social_media_link" id="submit_event_social_media_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all" placeholder="https://instagram.com/...">
+                                        <input type="text" inputmode="url" name="social_media_link" id="submit_event_social_media_link" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon transition-all placeholder:text-slate-500" placeholder="https://instagram.com/... atau @username">
                                     </div>
+                                    <p class="text-[11px] text-slate-500">Bisa isi username (@akun) atau link Instagram/sosmed.</p>
                                 </div>
                             </div>
                         </div>
@@ -1538,7 +1555,7 @@
             }
         }
 
-        function setMapLocation(lat, lng, fetchAddress) {
+        function setMapLocation(lat, lng, fetchAddress, overrideVenue, overrideAddr) {
             if (!submitMap) return;
             if (submitMarker) {
                 submitMarker.setLatLng([lat, lng]);
@@ -1546,6 +1563,16 @@
                 submitMarker = L.marker([lat, lng]).addTo(submitMap);
             }
             submitMap.panTo([lat, lng]);
+
+            var locInput = document.getElementById('submit_event_location');
+            var addrInput = document.getElementById('submit_event_address');
+
+            if (overrideVenue && locInput) {
+                locInput.value = overrideVenue;
+            }
+            if (overrideAddr && addrInput) {
+                addrInput.value = overrideAddr;
+            }
 
             if (fetchAddress) {
                 var statusEl = document.getElementById('map-geocoding-status');
@@ -1574,26 +1601,24 @@
                                 }
                                 if (cityStr) autoMatchCity(cityStr);
 
-                                var addrInput = document.getElementById('submit_event_address');
-                                if (addrInput && !addrInput.value.trim()) {
+                                if (addrInput && (!addrInput.value.trim() || !overrideAddr)) {
                                     addrInput.value = placeName;
                                 }
-                                var locInput = document.getElementById('submit_event_location');
-                                if (locInput && !locInput.value.trim()) {
+                                if (locInput && (!locInput.value.trim() || !overrideVenue)) {
                                     locInput.value = text;
                                 }
                             }
                         })
                         .catch(function () {
-                            fallbackNominatimGeocode(lat, lng, statusEl);
+                            fallbackNominatimGeocode(lat, lng, statusEl, overrideVenue, overrideAddr);
                         });
                 } else {
-                    fallbackNominatimGeocode(lat, lng, statusEl);
+                    fallbackNominatimGeocode(lat, lng, statusEl, overrideVenue, overrideAddr);
                 }
             }
         }
 
-        function fallbackNominatimGeocode(lat, lng, statusEl) {
+        function fallbackNominatimGeocode(lat, lng, statusEl, overrideVenue, overrideAddr) {
             fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
@@ -1606,11 +1631,11 @@
                         var road = addr.road || addr.pedestrian || addr.suburb || '';
                         var display = data.display_name || '';
                         var addrInput = document.getElementById('submit_event_address');
-                        if (addrInput && !addrInput.value.trim()) {
+                        if (addrInput && (!addrInput.value.trim() || !overrideAddr)) {
                             addrInput.value = road ? (road + (rawCity ? ', ' + rawCity : '')) : display;
                         }
                         var locInput = document.getElementById('submit_event_location');
-                        if (locInput && !locInput.value.trim() && (addr.building || addr.amenity || addr.leisure || addr.shop)) {
+                        if (locInput && (!locInput.value.trim() || !overrideVenue) && (addr.building || addr.amenity || addr.leisure || addr.shop)) {
                             locInput.value = addr.building || addr.amenity || addr.leisure || addr.shop || '';
                         }
                     }
@@ -1635,6 +1660,236 @@
                 }
             }
         }
+
+        // Location Search Input above Map Handler
+        var searchInput = document.getElementById('submit_map_search_input');
+        var searchResults = document.getElementById('map-search-results');
+        var clearSearchBtn = document.getElementById('btn-clear-map-search');
+        var searchIcon = document.getElementById('map-search-icon');
+        var searchDebounceTimer = null;
+
+        function setSearching(isSearching) {
+            if (!searchIcon) return;
+            if (isSearching) {
+                searchIcon.className = 'fas fa-spinner fa-spin text-neon';
+            } else {
+                searchIcon.className = 'fas fa-search text-slate-500';
+            }
+        }
+
+        function hideSearchResults() {
+            if (searchResults) {
+                searchResults.classList.add('hidden');
+                searchResults.innerHTML = '';
+            }
+        }
+
+        function escapeHtml(text) {
+            var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text || '').replace(/[&<>"']/g, function (m) { return map[m]; });
+        }
+
+        function renderSearchResults(items) {
+            if (!searchResults) return;
+            if (!items || items.length === 0) {
+                searchResults.innerHTML = '<div class="px-4 py-3 text-xs text-slate-400 text-center font-medium">Lokasi tidak ditemukan. Coba ketik nama lain.</div>';
+                searchResults.classList.remove('hidden');
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item, idx) {
+                var nameEsc = escapeHtml(item.name);
+                var detailEsc = escapeHtml(item.detail || '');
+                html += '<button type="button" class="w-full text-left px-3.5 py-2.5 hover:bg-slate-800 transition-colors flex items-start gap-2.5 group cursor-pointer location-search-item" data-index="' + idx + '">';
+                html += '<i class="fas fa-map-marker-alt text-neon text-xs mt-1 shrink-0"></i>';
+                html += '<div class="min-w-0 flex-1">';
+                html += '<div class="text-xs font-bold text-white truncate">' + nameEsc + '</div>';
+                if (detailEsc) {
+                    html += '<div class="text-[11px] text-slate-400 truncate mt-0.5">' + detailEsc + '</div>';
+                }
+                html += '</div>';
+                html += '</button>';
+            });
+
+            searchResults.innerHTML = html;
+            searchResults.classList.remove('hidden');
+
+            var buttons = searchResults.querySelectorAll('.location-search-item');
+            buttons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(this.getAttribute('data-index'), 10);
+                    var selected = items[idx];
+                    if (selected) {
+                        selectLocationResult(selected);
+                    }
+                });
+            });
+        }
+
+        function selectLocationResult(item) {
+            initSubmitEventMap();
+            hideSearchResults();
+            if (searchInput) {
+                searchInput.value = item.name;
+                if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+            }
+
+            var lat = parseFloat(item.lat);
+            var lng = parseFloat(item.lng);
+
+            if (submitMap && !isNaN(lat) && !isNaN(lng)) {
+                if (submitMarker) {
+                    submitMarker.setLatLng([lat, lng]);
+                } else {
+                    submitMarker = L.marker([lat, lng]).addTo(submitMap);
+                }
+                submitMap.setView([lat, lng], 16);
+            }
+
+            var locInput = document.getElementById('submit_event_location');
+            if (locInput) {
+                locInput.value = item.name;
+            }
+
+            var addrInput = document.getElementById('submit_event_address');
+            if (addrInput && item.detail) {
+                addrInput.value = item.detail;
+            }
+
+            if (item.city) {
+                autoMatchCity(item.city);
+            }
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setMapLocation(lat, lng, true, item.name, item.detail);
+            }
+        }
+
+        function queryLocationSearch(query) {
+            query = (query || '').trim();
+            if (!query || query.length < 2) {
+                hideSearchResults();
+                setSearching(false);
+                return;
+            }
+
+            setSearching(true);
+
+            if (mapboxToken) {
+                var mapboxUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json?access_token=' + mapboxToken + '&country=id&autocomplete=true&limit=5&types=poi,address,place,locality,neighborhood';
+                fetch(mapboxUrl)
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        setSearching(false);
+                        if (data && data.features && data.features.length > 0) {
+                            var items = data.features.map(function (f) {
+                                var cityStr = '';
+                                if (f.context) {
+                                    f.context.forEach(function (ctx) {
+                                        if (ctx.id.indexOf('place.') === 0 || ctx.id.indexOf('district.') === 0) {
+                                            cityStr = ctx.text;
+                                        }
+                                    });
+                                }
+                                return {
+                                    name: f.text || f.place_name,
+                                    detail: f.place_name,
+                                    lat: f.center[1],
+                                    lng: f.center[0],
+                                    city: cityStr
+                                };
+                            });
+                            renderSearchResults(items);
+                        } else {
+                            fallbackNominatimSearch(query);
+                        }
+                    })
+                    .catch(function () {
+                        fallbackNominatimSearch(query);
+                    });
+            } else {
+                fallbackNominatimSearch(query);
+            }
+        }
+
+        function fallbackNominatimSearch(query) {
+            var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=id&limit=5&q=' + encodeURIComponent(query);
+            fetch(url)
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    setSearching(false);
+                    if (data && data.length > 0) {
+                        var items = data.map(function (d) {
+                            var rawCity = '';
+                            if (d.address) {
+                                rawCity = d.address.city || d.address.town || d.address.city_district || d.address.county || d.address.state_district || '';
+                            }
+                            var name = d.name || (d.display_name ? d.display_name.split(',')[0] : 'Lokasi');
+                            return {
+                                name: name,
+                                detail: d.display_name,
+                                lat: parseFloat(d.lat),
+                                lng: parseFloat(d.lon),
+                                city: rawCity
+                            };
+                        });
+                        renderSearchResults(items);
+                    } else {
+                        renderSearchResults([]);
+                    }
+                })
+                .catch(function () {
+                    setSearching(false);
+                    renderSearchResults([]);
+                });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var val = this.value;
+                if (clearSearchBtn) {
+                    if (val) clearSearchBtn.classList.remove('hidden');
+                    else clearSearchBtn.classList.add('hidden');
+                }
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(function () {
+                    queryLocationSearch(val);
+                }, 350);
+            });
+
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchDebounceTimer);
+                    var firstItem = searchResults ? searchResults.querySelector('.location-search-item') : null;
+                    if (firstItem) {
+                        firstItem.click();
+                    } else if (this.value.trim()) {
+                        queryLocationSearch(this.value.trim());
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSearchResults();
+                }
+            });
+        }
+
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function () {
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                }
+                hideSearchResults();
+                clearSearchBtn.classList.add('hidden');
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (searchInput && searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                hideSearchResults();
+            }
+        });
 
         // Geolocation Button Handler
         var geoBtn = document.getElementById('btn-geolocation');
@@ -1749,6 +2004,9 @@
             otpIdEl.value = '';
             otpCodeEl.value = '';
             startedAtEl.value = String(Date.now());
+            if (searchInput) searchInput.value = '';
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+            hideSearchResults();
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
 
@@ -1760,6 +2018,9 @@
 
         function closeModal() {
             if (!modal) return;
+            if (searchInput) searchInput.value = '';
+            if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+            hideSearchResults();
             modal.classList.add('hidden');
             document.body.style.overflow = '';
         }
@@ -1840,9 +2101,64 @@
             });
         }
 
+        var regLinkEl = document.getElementById('submit_event_registration_link');
+        var socLinkEl = document.getElementById('submit_event_social_media_link');
+
+        function normalizeRegistrationUrl(val) {
+            if (!val) return '';
+            val = String(val).trim();
+            if (!val) return '';
+            val = val.replace(/^https?:?\/{0,2}/i, '');
+            return 'https://' + val.replace(/^\/+/, '');
+        }
+
+        function normalizeInstagramUrl(val) {
+            if (!val) return '';
+            val = String(val).trim();
+            if (!val) return '';
+            if (val.startsWith('@')) {
+                return 'https://instagram.com/' + val.substring(1).trim();
+            }
+            var igMatch = val.match(/^(?:https?:?\/{0,2})?(?:www\.)?instagram\.com\/(.+)$/i);
+            if (igMatch) {
+                return 'https://instagram.com/' + igMatch[1].replace(/^\/+/, '');
+            }
+            if (!/^https?:\/\//i.test(val)) {
+                if (val.includes('.') || val.includes('/')) {
+                    return 'https://' + val;
+                }
+                return 'https://instagram.com/' + val;
+            }
+            return val;
+        }
+
+        if (regLinkEl) {
+            regLinkEl.addEventListener('blur', function () {
+                if (this.value) {
+                    this.value = normalizeRegistrationUrl(this.value);
+                }
+            });
+        }
+
+        if (socLinkEl) {
+            socLinkEl.addEventListener('blur', function () {
+                if (this.value) {
+                    this.value = normalizeInstagramUrl(this.value);
+                }
+            });
+        }
+
         if (submitBtn) {
             submitBtn.addEventListener('click', function () {
                 clearAlert();
+
+                if (regLinkEl && regLinkEl.value) {
+                    regLinkEl.value = normalizeRegistrationUrl(regLinkEl.value);
+                }
+                if (socLinkEl && socLinkEl.value) {
+                    socLinkEl.value = normalizeInstagramUrl(socLinkEl.value);
+                }
+
                 var payload = getPayload();
 
                 if (!payload.get('otp_id')) {

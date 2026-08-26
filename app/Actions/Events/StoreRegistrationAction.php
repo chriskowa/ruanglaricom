@@ -180,6 +180,17 @@ class StoreRegistrationAction
 
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');
 
+        // For COD payment method, photo upload is mandatory
+        if ($paymentMethod === 'cod') {
+            foreach ($validated['participants'] as $pIdx => $pItem) {
+                if (empty($pItem['photo'])) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$pIdx}.photo" => ["Untuk pembayaran COD (Bayar di Tempat), peserta wajib mengunggah foto identitas/wajah."],
+                    ]);
+                }
+            }
+        }
+
         // Calculate Addons Price (Per Participant)
         $totalAddonsPrice = 0;
         $participantsWithAddons = []; // Map participant index -> addons data
@@ -316,9 +327,6 @@ class StoreRegistrationAction
         $now = now();
 
         foreach ($validated['participants'] as $index => $participant) {
-            // Check for existing active registration (pending or paid)
-            // We removed the database unique constraint to allow retries on failed/expired transactions,
-            // so we must enforce the "one active registration per category" rule here.
             $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
                 ->where('id_card', $participant['id_card'])
                 ->whereHas('transaction', function ($query) use ($event) {
@@ -348,155 +356,91 @@ class StoreRegistrationAction
         }
 
         // Calculate total and validate quota with atomic locks
-        DB::beginTransaction();
-        try {
-            $categoryLocks = [];
-            $categories = [];
-            $categoryPriceInfo = [];
+        $categoryLocks = [];
+        $categories = [];
+        $categoryPriceInfo = []; // Map category_id -> ['price' => X, 'type' => 'early|regular|late']
 
-            // Acquire locks for all categories
-            foreach (array_keys($categoryQuantities) as $categoryId) {
-                $lockKey = "event:category:{$categoryId}";
-                $lock = Cache::lock($lockKey, 5); // 5 second timeout
+        try {
+            foreach ($categoryQuantities as $categoryId => $quantity) {
+                $lockKey = "category_quota_lock:{$categoryId}";
+                $lock = Cache::lock($lockKey, 10);
 
                 if (! $lock->get()) {
-                    throw new \Exception('Gagal memperoleh lock untuk kategori. Silakan coba lagi.');
+                    throw new \Exception('Sistem sedang sibuk, silakan coba lagi');
                 }
 
-                $categoryLocks[$categoryId] = $lock;
+                $categoryLocks[] = $lock;
 
-                // Lock category row for update
-                $category = RaceCategory::lockForUpdate()->findOrFail($categoryId);
+                $category = RaceCategory::find($categoryId);
+                if (! $category) {
+                    throw new \Exception('Kategori tidak ditemukan');
+                }
+
                 $categories[$categoryId] = $category;
 
-                // Check quota
-                $quantity = $categoryQuantities[$categoryId];
-
-                // Calculate remaining quota (optimized with index)
-                $registeredCount = Participant::where('race_category_id', $categoryId)
-                    ->whereHas('transaction', function ($query) {
-                        $query->whereIn('payment_status', ['paid', 'cod']);
-                    })
-                    ->count();
-
-                $remainingQuota = $category->quota ? ($category->quota - $registeredCount) : 999999;
-
-                if ($category->quota && $remainingQuota < $quantity) {
-                    // Release all locks
-                    foreach ($categoryLocks as $lock) {
-                        $lock->release();
-                    }
-                    throw new \Exception("Kuota kategori '{$category->name}' tidak mencukupi. Sisa: {$remainingQuota}");
-                }
-
-                // Calculate price based on registration period
-                $priceInfo = $this->getCategoryPrice($category, $now);
-                $categoryPriceInfo[$categoryId] = $priceInfo;
-                $price = (int) ($priceInfo['price'] ?? 0);
-
-                // Promo Buy X Get 1 Free
-                $paidQuantity = $quantity;
-                $isBuyXGet1Active = false;
-                if ($event->promo_buy_x && $event->promo_buy_x > 0) {
-                    $bundleSize = $event->promo_buy_x + 1;
-                    $freeCount = floor($quantity / $bundleSize);
-                    if ($freeCount > 0) {
-                        $isBuyXGet1Active = true;
-                    }
-                    $paidQuantity = $quantity - $freeCount;
-                }
-
-                $totalOriginal += $price * $paidQuantity;
-            }
-
-            // Validate Jersey Sizes and Quotas if Jersey is enabled
-            if ($event->premium_amenities['jersey']['enabled'] ?? false) {
-                // 1. Group requested quantities by size
-                $jerseyQuantities = [];
-                foreach ($validated['participants'] as $participant) {
-                    $size = strtoupper(trim($participant['jersey_size'] ?? ''));
-                    if (empty($size)) {
-                        throw new \Exception('Ukuran jersey wajib diisi.');
-                    }
-                    if (! in_array($size, $event->jersey_sizes ?? [])) {
-                        throw new \Exception("Ukuran jersey '{$size}' tidak tersedia untuk event ini.");
-                    }
-                    if (! isset($jerseyQuantities[$size])) {
-                        $jerseyQuantities[$size] = 0;
-                    }
-                    $jerseyQuantities[$size]++;
-                }
-
-                // 2. Load jersey stock record and perform checks
-                $jerseyStock = $event->jerseyStock()->lockForUpdate()->first();
-                if ($jerseyStock) {
-                    foreach ($jerseyQuantities as $size => $qty) {
-                        $col = strtolower($size);
-                        // If quota is set (not null)
-                        if (isset($jerseyStock->$col) && $jerseyStock->$col !== null) {
-                            $quota = (int) $jerseyStock->$col;
-
-                            // Count already registered for this size
-                            $registeredSizeCount = Participant::whereNotNull('jersey_size')
-                                ->whereRaw('UPPER(jersey_size) = ?', [$size])
-                                ->whereHas('transaction', function ($q) use ($event) {
-                                    $q->where('event_id', $event->id)
-                                      ->whereIn('payment_status', ['paid', 'cod']);
-                                })
-                                ->count();
-
-                            $remainingJerseyStock = $quota - $registeredSizeCount;
-                            if ($remainingJerseyStock < $qty) {
-                                // Release category locks first
-                                foreach ($categoryLocks as $lock) {
-                                    $lock->release();
-                                }
-                                throw new \Exception("Stok jersey ukuran '{$size}' tidak mencukupi. Sisa: {$remainingJerseyStock}");
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Add Addons Total
-            $totalOriginal += $totalAddonsPrice;
-
-            // Apply coupon discount with concurrency check
-            if ($coupon) {
-                if ($isBuyXGet1Active && ! $coupon->is_stackable) {
-                    throw new \Exception('Kupon ini tidak dapat digabungkan dengan promo Buy X Get Y.');
-                }
-
-                if ($coupon->max_uses) {
-                    $couponLock = Cache::lock('coupon_usage:'.$coupon->id, 5); // 5s timeout
-                    if (! $couponLock->get()) {
-                        throw new \Exception('Sedang memverifikasi kupon, silakan coba lagi.');
-                    }
-
-                    // Check used_count + pending transactions (from last 1 hour)
-                    $pendingCount = $coupon->transactions()
-                        ->where('payment_status', 'pending')
-                        ->where('created_at', '>', now()->subMinutes(60))
+                // Validate quota if set
+                if ($category->quota !== null) {
+                    $paidCount = Participant::where('race_category_id', $categoryId)
+                        ->whereHas('transaction', function ($query) {
+                            $query->whereIn('payment_status', ['paid', 'cod']);
+                        })
                         ->count();
 
-                    if (($coupon->used_count + $pendingCount) >= $coupon->max_uses) {
-                        $couponLock->release();
-                        throw new \Exception('Kuota kupon sudah habis (termasuk yang sedang menunggu pembayaran).');
+                    if (($paidCount + $quantity) > $category->quota) {
+                        $available = max(0, $category->quota - $paidCount);
+                        throw new \Exception("Kuota untuk kategori {$category->name} tidak mencukupi (sisa: {$available})");
                     }
                 }
 
-                // Strict validation with actual amount and user
+                // Determine price type and price based on dates
+                $price = $category->price_regular;
+                $priceType = 'regular';
+
+                // Check Early Bird
+                if ($category->early_bird_end_at && $now->lte($category->early_bird_end_at) && $category->price_early) {
+                    $price = $category->price_early;
+                    $priceType = 'early';
+                }
+                // Check Late Bird
+                elseif ($category->late_bird_start_at && $now->gte($category->late_bird_start_at) && $category->price_late) {
+                    $price = $category->price_late;
+                    $priceType = 'late';
+                }
+
+                $categoryPriceInfo[$categoryId] = [
+                    'price' => $price,
+                    'type' => $priceType,
+                ];
+
+                $totalOriginal += ($price * $quantity);
+            }
+
+            // Include addons in total original
+            $totalOriginal += $totalAddonsPrice;
+
+            // Calculate discount if coupon is present
+            if ($coupon) {
+                $couponLockKey = "coupon_usage_lock:{$coupon->id}";
+                $couponLock = Cache::lock($couponLockKey, 10);
+
+                if (! $couponLock->get()) {
+                    throw new \Exception('Sistem sedang sibuk memproses kupon, silakan coba lagi');
+                }
+
+                // Double check coupon validity under lock
                 if (! $coupon->canBeUsed($event->id, $totalOriginal, auth()->id())) {
-                    if (isset($couponLock)) {
-                        $couponLock->release();
-                    }
-                    throw new \Exception('Kupon tidak valid untuk transaksi ini (cek minimum pembelian atau batas penggunaan).');
+                    throw new \Exception('Kupon sudah tidak dapat digunakan');
                 }
 
                 $discountAmount = $coupon->applyDiscount($totalOriginal);
+
+                // Increment coupon usage count immediately under lock
+                $coupon->increment('used_count');
             }
 
-            // Calculate Platform Fee
+            // Start Database Transaction
+            DB::beginTransaction();
+
             $totalParticipants = count($validated['participants']);
             $platformFeePerParticipant = $event->platform_fee ?? 0;
 
@@ -565,7 +509,7 @@ class StoreRegistrationAction
                     }
                 }
 
-                $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
+                $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
 
                 // Create participant
                 Participant::create([
@@ -610,7 +554,7 @@ class StoreRegistrationAction
             // Load participants with category for Midtrans
             $transaction->load(['participants.category']);
 
-            $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
+            $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
 
             if ($isZeroAmount) {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
@@ -648,83 +592,30 @@ class StoreRegistrationAction
                         'midtrans_order_id' => $snapResult['order_id'],
                         'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
                     ]);
+
                     Cache::put($idKey, $transaction->id, now()->addMinutes(10));
+
+                    return $transaction;
                 } else {
-                    $transaction->update(['payment_status' => 'failed']);
-                    throw new \Exception('Gagal membuat token pembayaran: '.($snapResult['message'] ?? 'Unknown error'));
+                    throw new \Exception($snapResult['error'] ?? 'Gagal membuat transaksi pembayaran');
                 }
             }
-
-            return $transaction;
-
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Release all locks in case of exception
-            if (isset($categoryLocks)) {
-                foreach ($categoryLocks as $lock) {
-                    $lock->release();
-                }
+            // Release all locks on error
+            foreach ($categoryLocks as $lock) {
+                $lock->release();
             }
             if (isset($couponLock) && $couponLock) {
+                // Rollback coupon usage if it was incremented
+                if ($coupon) {
+                    $coupon->decrement('used_count');
+                }
                 $couponLock->release();
             }
 
-            Log::error('StoreRegistrationAction failed', [
-                'event_id' => $event->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
             throw $e;
         }
-    }
-
-    /**
-     * Get category price based on priority (Early > Regular)
-     * Logic:
-     * 1. If Early Price > 0 AND Valid (Date & Quota), use Early.
-     * 2. Else, use Regular.
-     */
-    private function getCategoryPrice(RaceCategory $category, $now): array
-    {
-        $early = (int) ($category->price_early ?? 0);
-        $regular = (int) ($category->price_regular ?? 0);
-        $late = (int) ($category->price_late ?? 0); // Fallback if needed, but Regular is standard
-
-        // 1. Check Early Bird
-        if ($early > 0) {
-            $isEarlyValid = true;
-
-            // Check Date
-            if ($category->early_bird_end_at && $now->greaterThan($category->early_bird_end_at)) {
-                $isEarlyValid = false;
-            }
-
-            // Check Quota
-            if ($isEarlyValid && $category->early_bird_quota) {
-                $earlySold = Participant::where('race_category_id', $category->id)
-                    ->where('price_type', 'early')
-                    ->whereHas('transaction', function ($q) {
-                        $q->whereIn('payment_status', ['pending', 'paid', 'cod']);
-                    })
-                    ->count();
-
-                if ($earlySold >= $category->early_bird_quota) {
-                    $isEarlyValid = false;
-                }
-            }
-
-            if ($isEarlyValid) {
-                return ['price' => $early, 'type' => 'early'];
-            }
-        }
-
-        // 2. Fallback to Late if Regular is 0 (optional logic from previous code) or just Regular
-        if ($late > 0 && $regular === 0) {
-            return ['price' => $late, 'type' => 'late'];
-        }
-
-        return ['price' => $regular, 'type' => 'regular'];
     }
 }

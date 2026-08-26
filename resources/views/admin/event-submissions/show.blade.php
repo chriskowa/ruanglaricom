@@ -26,7 +26,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <div class="bg-[#111724] border border-slate-700 rounded-2xl p-6">
                     @if($submission->banner)
                         <div class="mb-6 rounded-xl overflow-hidden border border-slate-700 relative group">
                             <img src="{{ Storage::url($submission->banner) }}" alt="Banner Event" class="w-full h-auto object-cover max-h-[400px]">
@@ -91,7 +91,7 @@
             </div>
 
             <div class="space-y-6">
-                <div class="bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <div class="bg-[#111724] border border-slate-700 rounded-2xl p-6">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</div>
                     <div class="mt-2">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black border {{ $submission->badge_class }}">{{ strtoupper($submission->status) }}</span>
@@ -114,27 +114,28 @@
                 </div>
 
                 @if($submission->status === 'pending')
-                    <div class="bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 space-y-4">
-                        <form action="{{ route('admin.event-submissions.approve', $submission) }}" method="POST" class="space-y-3">
+                    <div class="bg-[#111724] border border-slate-700 rounded-2xl p-6 space-y-5">
+                        <form action="{{ route('admin.event-submissions.approve', $submission) }}" method="POST" class="space-y-3 pb-5 border-b border-slate-800">
                             @csrf
                             <div>
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Approve</div>
-                                <textarea name="review_note" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Catatan admin (opsional)"></textarea>
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Setujui Pengajuan</div>
+                                <textarea name="review_note" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-neon text-sm" placeholder="Catatan persetujuan (opsional)"></textarea>
                             </div>
                             <label class="inline-flex items-center gap-2 text-sm text-slate-200">
-                                <input type="checkbox" name="publish" value="1" class="rounded bg-slate-900 border-slate-700" checked>
-                                Publish langsung
+                                <input type="checkbox" name="publish" value="1" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-0" checked>
+                                Publish langsung ke jadwal lari
                             </label>
-                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">Approve & Buat Event</button>
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm">Approve & Buat Event</button>
                         </form>
 
                         <form action="{{ route('admin.event-submissions.reject', $submission) }}" method="POST" class="space-y-3">
                             @csrf
                             <div>
-                                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Reject</div>
-                                <textarea name="review_note" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-red-400" placeholder="Wajib isi alasan penolakan" required></textarea>
+                                <div class="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Tolak Pengajuan</div>
+                                <p class="text-xs text-slate-400 mb-2">Alasan penolakan akan otomatis dikirimkan ke email pengaju ({{ $submission->contributor_email }}).</p>
+                                <textarea name="review_note" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:border-red-500 text-sm" placeholder="Tulis alasan penolakan secara jelas..." required></textarea>
                             </div>
-                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-500 transition">Reject</button>
+                            <button type="submit" class="w-full px-4 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-500 transition text-sm">Tolak & Kirim Email ke Pengaju</button>
                         </form>
                     </div>
                 @endif

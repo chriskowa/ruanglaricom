@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventSubmission;
+use App\Mail\EventSubmissionRejectedMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class EventSubmissionController extends Controller
@@ -121,15 +124,15 @@ class EventSubmissionController extends Controller
 
         if (!empty($submission->contributor_email)) {
             try {
-                \Illuminate\Support\Facades\Mail::to($submission->contributor_email)->send(
-                    new \App\Mail\EventSubmissionRejectedMail($submission)
+                Mail::to($submission->contributor_email)->send(
+                    new EventSubmissionRejectedMail($submission)
                 );
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Gagal mengirim email penolakan event submission: ' . $e->getMessage());
+                Log::error('Gagal mengirim email penolakan event submission: ' . $e->getMessage());
             }
         }
 
-        return redirect()->route('admin.event-submissions.index')->with('success', 'Submission ditolak.');
+        return redirect()->route('admin.event-submissions.index')->with('success', 'Submission ditolak dan email pemberitahuan telah dikirim ke pengaju.');
     }
 
     private function uniqueSlug(string $name): string

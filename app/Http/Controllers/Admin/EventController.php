@@ -106,6 +106,14 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
+        $rawRegLink = $request->input('registration_link');
+        $rawSocLink = $request->input('social_media_link') ?? $request->input('instagram_link');
+
+        $request->merge([
+            'registration_link' => $this->normalizeRegistrationUrl($rawRegLink),
+            'social_media_link' => $this->normalizeInstagramUrl($rawSocLink),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'banner_image' => 'nullable|string',
@@ -192,6 +200,14 @@ class EventController extends Controller
 
     public function update(Request $request, Event $event)
     {
+        $rawRegLink = $request->input('registration_link');
+        $rawSocLink = $request->input('social_media_link') ?? $request->input('instagram_link');
+
+        $request->merge([
+            'registration_link' => $this->normalizeRegistrationUrl($rawRegLink),
+            'social_media_link' => $this->normalizeInstagramUrl($rawSocLink),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'banner_image' => 'nullable|string',
@@ -828,5 +844,44 @@ class EventController extends Controller
         ]);
 
         return $newDistance->id;
+    }
+
+    private function normalizeRegistrationUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+        $url = trim($url);
+        if ($url === '') {
+            return null;
+        }
+        if (preg_match('~^https?:?/{0,2}(.+)~i', $url, $matches)) {
+            $url = $matches[1];
+        }
+        return 'https://' . ltrim($url, '/');
+    }
+
+    private function normalizeInstagramUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+        $url = trim($url);
+        if ($url === '') {
+            return null;
+        }
+        if (str_starts_with($url, '@')) {
+            return 'https://instagram.com/' . ltrim($url, '@');
+        }
+        if (preg_match('~^(?:https?:?/{0,2})?(?:www\.)?instagram\.com/(.+)$~i', $url, $matches)) {
+            return 'https://instagram.com/' . ltrim($matches[1], '/');
+        }
+        if (!preg_match('~^https?://~i', $url)) {
+            if (str_contains($url, '.') || str_contains($url, '/')) {
+                return 'https://' . $url;
+            }
+            return 'https://instagram.com/' . $url;
+        }
+        return $url;
     }
 }
