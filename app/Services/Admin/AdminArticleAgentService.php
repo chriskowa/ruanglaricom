@@ -537,46 +537,55 @@ TEXT;
         }
 
         $selected = $session->selected_option_data ?? [];
-        $title    = $generated['title'] ?? $selected['title'] ?? $session->user_input_topic ?? 'Untitled';
-        $slug     = !empty($generated['slug']) ? Str::slug($generated['slug']) : Str::slug($title);
+        $title    = $this->normalizeToString($generated['title'] ?? $selected['title'] ?? $session->user_input_topic ?? 'Untitled', ' ');
+        $rawSlug  = $generated['slug'] ?? null;
+        $slug     = !empty($rawSlug) ? Str::slug($this->normalizeToString($rawSlug, '-')) : Str::slug($title ?? 'article');
 
         // Gunakan konten yang sudah direplace dengan <img> jika dikirim dari modal.
         // Fallback berjenjang agar kolom 'content' (NOT NULL) tidak pernah null:
         // 1) override dari modal, 2) key 'content' dari JSON, 3) raw hasil AI, 4) string kosong.
         if ($contentOverride !== null && $contentOverride !== '') {
-            $content = $contentOverride;
+            $content = is_array($contentOverride) ? json_encode($contentOverride) : (string) $contentOverride;
         } elseif (!empty($generated['content'])) {
-            $content = $generated['content'];
+            $content = is_array($generated['content']) ? json_encode($generated['content']) : (string) $generated['content'];
         } elseif (is_string($session->generated_article_content) && $session->generated_article_content !== '') {
             $content = $session->generated_article_content;
         } else {
             $content = '';
         }
 
+        $focusKeyword       = $this->normalizeToString($selected['keyword'] ?? $generated['focus_keyword'] ?? null);
+        $secondaryKeywords  = $this->normalizeToString($generated['secondary_keywords'] ?? $selected['secondary_keywords'] ?? null);
+        $metaKeywords       = $this->normalizeToString($generated['meta_keywords'] ?? $focusKeyword);
+
         $data = [
-            'title'            => $title,
-            'slug'             => $slug,
-            'excerpt'          => $generated['excerpt'] ?? $generated['meta_description'] ?? null,
-            'content'          => $content,
-            'meta_title'       => $generated['meta_title'] ?? null,
-            'meta_description' => $generated['meta_description'] ?? null,
-            'focus_keyword'    => $selected['keyword'] ?? null,
-            'secondary_keywords' => $generated['secondary_keywords'] ?? null,
-            'meta_keywords'    => $selected['keyword'] ?? null,
-            'status'           => 'draft',
-            'user_id'          => auth()->id(),
+            'title'              => $title,
+            'slug'               => $slug,
+            'excerpt'            => $this->normalizeToString($generated['excerpt'] ?? $generated['meta_description'] ?? null, ' '),
+            'content'            => $content,
+            'meta_title'         => $this->normalizeToString($generated['meta_title'] ?? null, ' '),
+            'meta_description'   => $this->normalizeToString($generated['meta_description'] ?? null, ' '),
+            'focus_keyword'      => $focusKeyword,
+            'secondary_keywords' => $secondaryKeywords,
+            'meta_keywords'      => $metaKeywords,
+            'status'             => 'draft',
+            'user_id'            => auth()->id(),
         ];
 
         // Isi versi EN jika sudah digenerate.
         if (!empty($generatedEn['content'])) {
-            $data['title_en']            = $generatedEn['title'] ?? null;
-            $data['excerpt_en']          = $generatedEn['excerpt'] ?? $generatedEn['meta_description'] ?? null;
-            $data['content_en']          = $generatedEn['content'];
-            $data['meta_title_en']       = $generatedEn['meta_title'] ?? $generatedEn['title'] ?? null;
-            $data['meta_description_en'] = $generatedEn['meta_description'] ?? null;
-            $data['focus_keyword_en']    = $selected['keyword'] ?? null;
-            $data['secondary_keywords_en'] = $generatedEn['secondary_keywords'] ?? null;
-            $data['meta_keywords_en']    = $selected['keyword'] ?? null;
+            $focusKeywordEn      = $this->normalizeToString($selected['keyword'] ?? $generatedEn['focus_keyword'] ?? null);
+            $secondaryKeywordsEn = $this->normalizeToString($generatedEn['secondary_keywords'] ?? null);
+            $metaKeywordsEn      = $this->normalizeToString($generatedEn['meta_keywords'] ?? $focusKeywordEn);
+
+            $data['title_en']              = $this->normalizeToString($generatedEn['title'] ?? null, ' ');
+            $data['excerpt_en']            = $this->normalizeToString($generatedEn['excerpt'] ?? $generatedEn['meta_description'] ?? null, ' ');
+            $data['content_en']            = is_array($generatedEn['content']) ? json_encode($generatedEn['content']) : (string) $generatedEn['content'];
+            $data['meta_title_en']         = $this->normalizeToString($generatedEn['meta_title'] ?? $generatedEn['title'] ?? null, ' ');
+            $data['meta_description_en']   = $this->normalizeToString($generatedEn['meta_description'] ?? null, ' ');
+            $data['focus_keyword_en']      = $focusKeywordEn;
+            $data['secondary_keywords_en'] = $secondaryKeywordsEn;
+            $data['meta_keywords_en']      = $metaKeywordsEn;
         }
 
         if ($articleId) {
@@ -589,6 +598,30 @@ TEXT;
         $session->update(['id_parent' => $article->id]);
 
         return $article;
+    }
+
+    /**
+     * Pastikan nilai selalu berupa string bersih (mencegah error "Array to string conversion" saat disimpan ke MySQL).
+     */
+    private function normalizeToString(mixed $value, string $glue = ', '): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            $flat = [];
+            array_walk_recursive($value, function ($v) use (&$flat) {
+                if ($v !== null && $v !== '') {
+                    $flat[] = trim((string) $v);
+                }
+            });
+            $flat = array_filter($flat, fn($v) => $v !== '');
+            return !empty($flat) ? implode($glue, $flat) : null;
+        }
+
+        $str = trim((string) $value);
+        return $str !== '' ? $str : null;
     }
 
     /**

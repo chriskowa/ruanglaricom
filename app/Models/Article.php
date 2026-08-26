@@ -177,4 +177,34 @@ class Article extends Model
 
         return $this->canonical_url;
     }
+
+    public function setSecondaryKeywordsAttribute($value): void
+    {
+        $this->attributes['secondary_keywords'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
+
+    public function setSecondaryKeywordsEnAttribute($value): void
+    {
+        $this->attributes['secondary_keywords_en'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
+
+    public function setMetaKeywordsAttribute($value): void
+    {
+        $this->attributes['meta_keywords'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
+
+    public function setMetaKeywordsEnAttribute($value): void
+    {
+        $this->attributes['meta_keywords_en'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
+
+    public function setFocusKeywordAttribute($value): void
+    {
+        $this->attributes['focus_keyword'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
+
+    public function setFocusKeywordEnAttribute($value): void
+    {
+        $this->attributes['focus_keyword_en'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
+    }
 }
