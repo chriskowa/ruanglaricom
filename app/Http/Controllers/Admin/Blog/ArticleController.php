@@ -70,7 +70,7 @@ class ArticleController extends Controller
                 . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
                 . "INSTRUKSI PROMPT GAMBAR (WAJIB):\n"
                 . "- Pada setiap sub-heading (<h2>) dan bagian atas artikel (cover), buatkan marker prompt gambar [Gambar: Deskripsi visual...].\n"
-                . "- GAYA PROMPT GAMBAR: Subjek/objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.\n\n"
+                . "- GAYA PROMPT GAMBAR: Subjek orang Indonesia natural & realistis (candid photo, ekspresi wajar santai, bukan pose kaku/3D AI sintetis), skema warna netral (neutral muted tones, earth tones tanpa oversaturation), look soft & natural, kontras normal tidak terlalu kuat (gentle tonal rolloff, bayangan lembut), sharpen normal to low (bebas oversharpening), tekstur kulit halus alami (smooth delicate natural skin pores), lighting alami/hangat (Grok Imagine style), ratio landscape 3:2.\n\n"
                 . "Input:\n"
                 . "- Topik / Berita Realtime: {$topic}\n"
                 . ($url ? "- URL referensi: {$url}\n" : "")

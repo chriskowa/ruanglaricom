@@ -365,10 +365,12 @@ TEXT;
                         "- Jangan gunakan tanda kurung biasa, HARUS diawali dan diakhiri dengan tanda kurung siku [ dan ].\n" .
                         "- KETENTUAN GAYA VISUAL PROMPT GAMBAR:\n" .
                         "  * Subjek/Objek: Orang Indonesia natural, realistis, dan autentik (candid photo, ekspresi wajar khas Indonesia, gestur santai, bukan pose kaku atau model AI sintetis/plastik).\n" .
-                        "  * Aspect Ratio: Wajib rasio 3:2 (landscape 3:2).\n" .
-                        "  * Lighting/Pencahayaan: Alami & organik (soft natural daylight, warm ambient light, bayangan realistis seperti gaya visual Grok Imagine).\n" .
-                        "  * Detail & Finishing: Real photorealistic, tekstur kulit alami (smooth natural skin pores), tanpa oversharpening, tidak kaku, tanpa efek 3D CGI/render AI kaku.\n" .
-                        "  * Tulis deskripsi visual di dalam [Gambar: ...] secara detail dalam bahasa Inggris (atau campuran ID/EN) yang spesifik menyebutkan subjek orang Indonesia, ekspresi candid, lokasi, pencahayaan alami, dan gaya fotografi realistis ratio 3:2.\n\n" .
+                        "  * Skema Warna: Palet warna netral (neutral color palette, muted natural tones, earth tones, warna bersih tanpa oversaturation).\n" .
+                        "  * Look & Mood: Sangat soft dan natural (cinematic soft realism, suasana tenang dan estetis).\n" .
+                        "  * Kontras: Kontras normal tidak terlalu kuat (balanced normal contrast, gentle tonal rolloff, bayangan lembut alami tanpa area hitam pekat berlebihan).\n" .
+                        "  * Ketajaman & Tekstur: Sharpen normal to low (ketajaman lembut optik lensa nyata, bebas oversharpening), tekstur kulit lebih halus alami (smooth delicate natural skin pores, soft clean natural skin texture, tidak ada efek plastik 3D render).\n" .
+                        "  * Lighting & Ratio: Soft natural daylight / diffuse gentle ambient lighting (gaya visual Grok Imagine yang hangat & tenang), Aspect Ratio wajib 3:2 (landscape 3:2).\n" .
+                        "  * Tulis deskripsi visual di dalam [Gambar: ...] secara detail dalam bahasa Inggris (atau campuran ID/EN) yang spesifik menyebutkan subjek orang Indonesia, ekspresi candid, lokasi, warna netral (neutral muted tones), pencahayaan soft natural, kontras normal yang lembut, sharpen normal to low, dan tekstur kulit halus alami ratio 3:2.\n\n" .
                         "Return format: JSON object dengan keys: 'content' (HTML body), 'meta_title', 'meta_description', 'excerpt', 'slug', 'secondary_keywords'.\n" .
                         "IMPORTANT: Pastikan semua double quote di dalam 'content' ter-escape agar JSON valid.";
 
@@ -781,9 +783,11 @@ TEXT;
                         "- Format must be exactly: [Gambar: detailed visual description...]\n" .
                         "- VISUAL STYLE REQUIREMENTS:\n" .
                         "  * Subject: Authentic, natural, realistic Indonesian people (natural skin tones, relaxed candid expressions, realistic Indonesian features, avoiding stiff AI model poses).\n" .
-                        "  * Aspect Ratio: 3:2 aspect ratio.\n" .
-                        "  * Lighting: Soft natural sunlight, organic shadows, warm photorealistic daylight (Grok Imagine style lighting).\n" .
-                        "  * Texture & Details: Real candid photography look, natural skin texture, no oversharpening, no plastic 3D AI render look.\n\n" .
+                        "  * Color Palette: Neutral color palette, muted natural tones, earth tones, clean colors without oversaturation.\n" .
+                        "  * Look & Mood: Soft and natural look, cinematic soft realism, calm and aesthetic atmosphere.\n" .
+                        "  * Contrast: Balanced normal contrast (not too strong, gentle tonal rolloff, soft natural shadows without harsh crushing blacks).\n" .
+                        "  * Sharpness & Skin Texture: Normal to low sharpness (soft optical lens clarity, zero oversharpening), smooth delicate natural skin pores, soft clean natural skin texture (no plastic 3D CGI or fake AI render look).\n" .
+                        "  * Lighting & Ratio: Soft natural daylight, diffuse gentle warm ambient light (Grok Imagine aesthetic), 3:2 landscape aspect ratio.\n\n" .
 
                         "Return format: JSON object with keys: 'title', 'excerpt', 'content', 'meta_title', 'meta_description', 'focus_keyword', 'secondary_keywords', 'meta_keywords'.\n" .
                         "IMPORTANT: Ensure all double quotes inside 'content' are escaped so the JSON is valid.";

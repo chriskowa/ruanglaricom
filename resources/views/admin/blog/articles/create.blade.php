@@ -712,7 +712,7 @@ Aturan Penulisan Berita & Artikel:
 
 Instruksi Prompt Gambar:
 - Buatkan marker prompt gambar [Gambar: Deskripsi visual...] di atas paragraf 1 (cover) dan di bawah <h2>.
-- Style Prompt Gambar: Objek orang Indonesia natural & realistis (candid photorealistic, wajar & santai, bukan pose kaku/3D AI sintetis), ratio 3:2, lighting alami/hangat (Grok Imagine style), tekstur kulit alami tanpa oversharpening.
+- Style Prompt Gambar: Subjek orang Indonesia natural & realistis (candid photo, santai wajar), skema warna netral (neutral muted tones tanpa oversaturation), look soft & natural, kontras normal tidak terlalu kuat (bayangan lembut), sharpen normal to low (bebas oversharpening), tekstur kulit halus alami (smooth delicate natural skin pores), lighting alami hangat (Grok Imagine style), ratio 3:2.
 
 Input:
 - Topik / Berita Realtime: {topic}
