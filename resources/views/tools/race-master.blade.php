@@ -2081,6 +2081,7 @@
 
             // TV / Jumbotron Display State (Admin 1)
             const tvDisplayOpen = ref(false);
+            const isFullscreen = ref(false);
             const tvLatestFinisher = ref(null);
 
             const finishedCount = computed(() => participants.value.filter(p => p.status === 'finished').length);
@@ -2088,11 +2089,31 @@
             const dnfCount = computed(() => participants.value.filter(p => p.status === 'dnf').length);
             const top5Results = computed(() => sortedResults.value.filter(p => p.status === 'finished').slice(0, 5));
 
+            const toggleTvFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().then(() => {
+                        isFullscreen.value = true;
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().then(() => {
+                            isFullscreen.value = false;
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                }
+            };
+
             const openTvDisplay = () => {
                 tvDisplayOpen.value = true;
                 try {
-                    if (document.documentElement && document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen().catch(() => {});
+                    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().then(() => {
+                            isFullscreen.value = true;
+                        }).catch(() => {});
                     }
                 } catch (e) {}
             };
@@ -2101,9 +2122,28 @@
                 tvDisplayOpen.value = false;
                 try {
                     if (document.fullscreenElement && document.exitFullscreen) {
-                        document.exitFullscreen().catch(() => {});
+                        document.exitFullscreen().then(() => {
+                            isFullscreen.value = false;
+                        }).catch(() => {});
                     }
                 } catch (e) {}
+            };
+
+            const copyTvDisplayUrl = async () => {
+                const slug = sessionSlug.value || currentSessionId.value;
+                if (!slug) {
+                    alert('Belum ada sesi aktif. Start race atau buat sesi terlebih dahulu.');
+                    return;
+                }
+                const origin = window.location.origin;
+                const pathname = window.location.pathname;
+                const tvUrl = `${origin}${pathname}?session=${encodeURIComponent(slug)}&mode=tv`;
+                try {
+                    await navigator.clipboard.writeText(tvUrl);
+                    alert('URL Layar TV disalin!\nBuka link ini di laptop/layar TV untuk langsung masuk ke mode fullscreen otomatis.');
+                } catch (e) {
+                    prompt('Salin link Layar TV ini:', tvUrl);
+                }
             };
 
             const triggerTvFinisherFlash = (participant) => {
@@ -5057,80 +5097,7 @@
                 } catch (e) {}
             };
 
-            // TV Display State & Methods
-            const tvDisplayOpen = ref(false);
-            const isFullscreen = ref(false);
 
-            const tvLatestFinisher = computed(() => {
-                const finished = participants.value.filter(p => p.status === 'finished');
-                if (finished.length === 0) return null;
-                return [...finished].sort((a, b) => (b.lastLapTime || b.totalTime) - (a.lastLapTime || a.totalTime))[0];
-            });
-
-            const finishedCount = computed(() => participants.value.filter(p => p.status === 'finished').length);
-            const runningCount = computed(() => participants.value.filter(p => p.status === 'running' || p.status === 'ready' || !p.status).length);
-            const dnfCount = computed(() => participants.value.filter(p => p.status === 'dnf').length);
-
-            const top5Results = computed(() => {
-                return sortedResults.value.filter(p => p.status === 'finished').slice(0, 5);
-            });
-
-            const toggleTvFullscreen = () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().then(() => {
-                        isFullscreen.value = true;
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen().then(() => {
-                            isFullscreen.value = false;
-                        }).catch(err => {
-                            console.log(err);
-                        });
-                    }
-                }
-            };
-
-            const openTvDisplay = () => {
-                tvDisplayOpen.value = true;
-                try {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().then(() => {
-                            isFullscreen.value = true;
-                        }).catch(() => {});
-                    }
-                } catch(e) {}
-            };
-
-            const closeTvDisplay = () => {
-                tvDisplayOpen.value = false;
-                try {
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen().then(() => {
-                            isFullscreen.value = false;
-                        }).catch(() => {});
-                    }
-                } catch(e) {}
-            };
-
-            const copyTvDisplayUrl = async () => {
-                const slug = sessionSlug.value || currentSessionId.value;
-                if (!slug) {
-                    alert('Belum ada sesi aktif. Start race atau buat sesi terlebih dahulu.');
-                    return;
-                }
-                const origin = window.location.origin;
-                const pathname = window.location.pathname;
-                const tvUrl = `${origin}${pathname}?session=${encodeURIComponent(slug)}&mode=tv`;
-                try {
-                    await navigator.clipboard.writeText(tvUrl);
-                    alert('URL Layar TV disalin!\nBuka link ini di laptop/layar TV untuk langsung masuk ke mode fullscreen otomatis.');
-                } catch (e) {
-                    prompt('Salin link Layar TV ini:', tvUrl);
-                }
-            };
 
             return {
                 currentView, raceName, existingRaces, selectExistingRace, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
