@@ -563,6 +563,26 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function publicStoreLap(Request $request, $slug)
+    {
+        $session = RaceSession::query()
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
+            ->firstOrFail();
+
+        return $this->storeLap($request, $session);
+    }
+
+    public function publicStoreLapsBulk(Request $request, $slug)
+    {
+        $session = RaceSession::query()
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
+            ->firstOrFail();
+
+        return $this->storeLapsBulk($request, $session);
+    }
+
     public function finishSession(Request $request, RaceSession $session)
     {
         if (! $session->ended_at) {

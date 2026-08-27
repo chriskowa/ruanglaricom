@@ -1952,18 +1952,29 @@
 
             const queueFlush = async () => {
                 if (queueFlushBusy.value) return;
-                if (!currentSessionId.value) return;
+                const sess = sessionSlug.value || currentSessionId.value;
+                if (!sess) return;
                 if (!lapQueue.value.length) return;
                 if (!navigator.onLine) return;
 
                 queueFlushBusy.value = true;
                 try {
                     const batch = lapQueue.value.slice(0, 50);
-                    await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(currentSessionId.value))}/laps/bulk`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ laps: batch }),
-                    });
+                    let res = null;
+                    try {
+                        res = await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(sess))}/laps/bulk`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ laps: batch }),
+                        });
+                    } catch (err) {
+                        // Fallback to public endpoint for guest/assistant without login
+                        res = await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(sess))}/laps/bulk`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ laps: batch }),
+                        });
+                    }
                     lapQueue.value = lapQueue.value.slice(batch.length);
                     queueSave();
                 } catch (e) {
@@ -2047,6 +2058,24 @@
                     hydrating = false;
                 }
             };
+
+            // Auto-join session if session parameter exists in URL (e.g. /tools/race-master?session=vj9umczohn)
+            const checkUrlSession = () => {
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    const sess = params.get('session') || params.get('room');
+                    if (sess) {
+                        sessionRoomInput.value = sess;
+                        joinLiveSession(sess);
+                    }
+                } catch (e) {}
+            };
+
+            loadState();
+            queueLoad();
+            loadExistingRaces();
+            loadEoEvents();
+            checkUrlSession();
 
             // EO Events Integration & Autocomplete
             const eoEventSearchQuery = ref('');

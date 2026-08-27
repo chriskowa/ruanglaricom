@@ -195,7 +195,7 @@ Route::get('/tools/trackmaster', function () {
     return view('tools.trackmaster');
 })->name('tools.trackmaster');
 
-Route::middleware(['auth', 'role:admin|eo'])->get('/tools/race-master', function () {
+Route::get('/tools/race-master', function () {
     return view('tools.race-master');
 })->name('tools.race-master');
 
@@ -224,6 +224,8 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
 Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
     Route::get('/{slug}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.public.live-sync');
+    Route::post('/{slug}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLap'])->name('tools.race-master.api.public.laps.store');
+    Route::post('/{slug}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLapsBulk'])->name('tools.race-master.api.public.laps.bulk');
     Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
     Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
 });
