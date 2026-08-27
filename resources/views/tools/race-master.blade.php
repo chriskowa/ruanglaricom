@@ -756,7 +756,7 @@
                 
                 <!-- Rapid Spotter Helper Controls: Prefix Lock & Auto-Submit -->
                 <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800 text-xs">
-                    <!-- Prefix Lock Pills -->
+                    <!-- Prefix Quick Pills (Auto-detected & Manual) -->
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <span class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Kunci Prefix BIB:</span>
                         <button type="button" @click="lockedBibPrefix = ''"
@@ -764,11 +764,24 @@
                             class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700">
                             Tanpa Prefix
                         </button>
-                        <button v-for="pf in ['1', '2', '3', '5']" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
-                            :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
-                            Prefix @{{ pf }}xxxx
-                        </button>
+                        
+                        <!-- Auto-detected Prefixes from Registered Participants (e.g. M, F, 10K) -->
+                        <template v-if="detectedBibPrefixes.length > 0">
+                            <button v-for="pf in detectedBibPrefixes" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
+                                :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
+                                Prefix @{{ pf }}
+                            </button>
+                        </template>
+
+                        <!-- Fallback Standard Category Pills if no alphabetic prefixes detected -->
+                        <template v-else>
+                            <button v-for="pf in ['M', 'F', '1', '2']" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
+                                :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
+                                Prefix @{{ pf }}
+                            </button>
+                        </template>
                     </div>
 
                     <!-- Auto-Submit on Fixed Digits -->
@@ -798,33 +811,69 @@
                 </div>
 
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    <!-- Left: Manual BIB Entry Input -->
+                    <!-- Left: Manual BIB Entry Input with Inline Prefix -->
                     <div class="flex-1">
-                        <form @submit.prevent="recordManualBib" class="flex items-center gap-2">
-                            <div class="relative flex-1">
-                                <span v-if="lockedBibPrefix" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
-                                    [@{{ lockedBibPrefix }}] #
-                                </span>
-                                <span v-else class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
-                                <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
-                                    :placeholder="lockedBibPrefix ? `Ketik sisa angka (contoh: 245 untuk #${lockedBibPrefix}0245)...` : 'Ketik No. BIB (bisa rombongan: 10245 10246 20015)...'" 
-                                    :class="lockedBibPrefix ? 'pl-16' : 'pl-8'"
-                                    class="w-full pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
+                        <form @submit.prevent="recordManualBib" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            
+                            <!-- Inline Prefix Input -->
+                            <div class="w-full sm:w-36 shrink-0 relative">
+                                <label class="block sm:hidden text-[10px] font-bold text-slate-400 uppercase mb-0.5">Prefix</label>
+                                <div class="relative flex items-center">
+                                    <input 
+                                        v-model="lockedBibPrefix" 
+                                        @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
+                                        type="text" 
+                                        placeholder="Prefix (M/F)" 
+                                        maxlength="8"
+                                        title="Prefix BIB (misal M untuk Male, F untuk Female, 10K, dll)"
+                                        class="w-full pl-3 pr-7 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs transition"
+                                    >
+                                    <button 
+                                        v-if="lockedBibPrefix" 
+                                        type="button" 
+                                        @click="lockedBibPrefix = ''"
+                                        class="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                                        title="Kosongkan prefix"
+                                    >
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- Main BIB Number Input -->
+                            <div class="relative flex-1">
+                                <label class="block sm:hidden text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nomor BIB</label>
+                                <div class="relative flex items-center">
+                                    <span v-if="lockedBibPrefix" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
+                                        [@{{ lockedBibPrefix }}] #
+                                    </span>
+                                    <span v-else class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
+                                    <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
+                                        :placeholder="lockedBibPrefix ? `Ketik nomor saja (contoh: 1001 untuk #${lockedBibPrefix}1001)...` : 'Ketik No. BIB (bisa rombongan: M1001 F1001 20015)...'" 
+                                        :class="lockedBibPrefix ? 'pl-20 sm:pl-24' : 'pl-8'"
+                                        class="w-full pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
                             <button type="submit" :disabled="!timer.running" 
-                                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center gap-2">
+                                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-stopwatch"></i>
                                 <span>Catat Finish (Enter)</span>
                             </button>
                         </form>
 
-                        <!-- Live Runner Match Preview -->
+                        <!-- Live Runner Match Preview & Ambiguity Warning -->
                         <div v-if="liveMatchedRunner" class="mt-1.5 flex items-center gap-2 text-xs font-mono">
                             <span class="text-slate-400">Cocok:</span>
                             <span class="font-bold text-slate-900 dark:text-white">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
                             <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'">
                                 (@{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }})
                             </span>
+                        </div>
+                        <div v-else-if="ambiguousRunners && ambiguousRunners.length > 1" class="mt-1.5 flex items-center gap-2 text-xs text-amber-500 font-mono">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Ditemukan @{{ ambiguousRunners.length }} pelari dengan nomor tersebut (@{{ ambiguousRunners.map(r => '#' + r.bib + ' ' + r.name).join(', ') }}). Silakan pilih Prefix di sebelah kiri.</span>
                         </div>
                     </div>
 
@@ -3234,23 +3283,99 @@
                 manualValidationAlert.value.show = false;
             };
 
+            // Auto-detected unique prefixes from registered participants (e.g. M1001 -> 'M', F1001 -> 'F', 10K-001 -> '10K')
+            const detectedBibPrefixes = computed(() => {
+                const prefixSet = new Set();
+                participants.value.forEach(p => {
+                    const bib = String(p.bib ?? '').trim();
+                    if (!bib) return;
+
+                    // Match leading letters/categories before numbers
+                    const matchCategory = bib.match(/^(\d+[kK][-_]?)/);
+                    if (matchCategory && matchCategory[1]) {
+                        const clean = matchCategory[1].replace(/[-_]$/, '').toUpperCase();
+                        prefixSet.add(clean);
+                    } else {
+                        const matchLetter = bib.match(/^([A-Za-z]+[-_]?)/);
+                        if (matchLetter && matchLetter[1]) {
+                            const clean = matchLetter[1].replace(/[-_]$/, '').toUpperCase();
+                            if (clean.length >= 1 && clean.length <= 6) {
+                                prefixSet.add(clean);
+                            }
+                        }
+                    }
+                });
+
+                return Array.from(prefixSet).sort();
+            });
+
+            // Smart BIB Resolution Engine (supports prefix matching, casing, separators, and suffix fallback)
+            const resolveParticipantByBib = (rawQuery, activePrefix = '') => {
+                const cleanRaw = String(rawQuery || '').trim();
+                if (!cleanRaw) return null;
+                const cleanPrefix = String(activePrefix || '').trim().toUpperCase();
+
+                // 1. If prefix is active and raw input does not already start with prefix
+                if (cleanPrefix) {
+                    const cleanRawUpper = cleanRaw.toUpperCase();
+                    if (!cleanRawUpper.startsWith(cleanPrefix)) {
+                        // Direct prefix concatenation: e.g. 'M' + '1001' => 'M1001'
+                        const directTarget = (cleanPrefix + cleanRaw).toUpperCase();
+                        let found = participants.value.find(p => String(p.bib).trim().toUpperCase() === directTarget);
+                        if (found) return found;
+
+                        // Check with separator tolerance (e.g. 'M-1001' or 'M 1001')
+                        const normalizedTarget = directTarget.replace(/[-_\s]/g, '');
+                        found = participants.value.find(p => {
+                            const bNorm = String(p.bib).trim().toUpperCase().replace(/[-_\s]/g, '');
+                            return bNorm === normalizedTarget;
+                        });
+                        if (found) return found;
+
+                        // Check zero-padding if autoSubmitDigits is active
+                        if (autoSubmitDigits.value > 0) {
+                            const padLen = Math.max(1, autoSubmitDigits.value);
+                            const rawDigits = cleanRaw.replace(/\D/g, '');
+                            const padded = cleanPrefix + rawDigits.padStart(padLen, '0');
+                            found = participants.value.find(p => String(p.bib).trim().toUpperCase() === padded.toUpperCase());
+                            if (found) return found;
+                        }
+                    }
+                }
+
+                // 2. Exact match on raw query directly (e.g. typed 'M1001' or '1001')
+                let foundExact = participants.value.find(p => String(p.bib).trim().toUpperCase() === cleanRaw.toUpperCase());
+                if (foundExact) return foundExact;
+
+                // 3. Suffix match fallback (e.g. runner M10245 when typing 245 with prefix M)
+                if (cleanRaw.length >= 2) {
+                    const candidates = participants.value.filter(p => {
+                        const bibUpper = String(p.bib).trim().toUpperCase();
+                        if (cleanPrefix && !bibUpper.startsWith(cleanPrefix)) return false;
+                        return bibUpper.endsWith(cleanRaw.toUpperCase());
+                    });
+                    if (candidates.length === 1) return candidates[0];
+                }
+
+                return null;
+            };
+
             const liveMatchedRunner = computed(() => {
                 const raw = String(manualBibInput.value || '').trim();
                 if (!raw || raw.includes(' ') || raw.includes(',')) return null;
 
-                let testBib = raw;
-                if (lockedBibPrefix.value && !testBib.startsWith(lockedBibPrefix.value)) {
-                    testBib = lockedBibPrefix.value + testBib;
-                }
+                return resolveParticipantByBib(raw, lockedBibPrefix.value);
+            });
 
-                let p = participants.value.find(item => String(item.bib).trim().toLowerCase() === testBib.toLowerCase());
-                if (p) return p;
+            const ambiguousRunners = computed(() => {
+                const raw = String(manualBibInput.value || '').trim();
+                if (!raw || lockedBibPrefix.value || raw.includes(' ') || raw.includes(',')) return [];
+                if (raw.length < 2) return [];
 
-                if (raw.length >= 2) {
-                    const candidates = participants.value.filter(item => String(item.bib).trim().endsWith(raw));
-                    if (candidates.length === 1) return candidates[0];
-                }
-                return null;
+                return participants.value.filter(p => {
+                    const b = String(p.bib).trim().toUpperCase();
+                    return b === raw.toUpperCase() || b.endsWith(raw.toUpperCase());
+                });
             });
 
             const onManualBibKeyup = (e) => {
@@ -3260,11 +3385,7 @@
 
                 if (autoSubmitDigits.value > 0) {
                     const digits = raw.replace(/\D/g, '');
-                    let targetLen = autoSubmitDigits.value;
-                    if (lockedBibPrefix.value && !raw.startsWith(lockedBibPrefix.value)) {
-                        targetLen = Math.max(1, autoSubmitDigits.value - lockedBibPrefix.value.length);
-                    }
-                    if (digits.length === targetLen) {
+                    if (digits.length === autoSubmitDigits.value) {
                         recordManualBib();
                     }
                 }
@@ -3279,45 +3400,18 @@
                     return;
                 }
 
-                // Support batch rombongan separated by space or comma (e.g. "10245 10246 20015")
+                // Support batch rombongan separated by space or comma (e.g. "1001 1002 1003" or "M1001 F1001")
                 const tokens = raw.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
                 if (!tokens.length) return;
 
                 tokens.forEach(token => {
-                    let bibStr = token;
-                    // Apply prefix lock if active
-                    if (lockedBibPrefix.value && !bibStr.startsWith(lockedBibPrefix.value)) {
-                        const candidate = lockedBibPrefix.value + bibStr;
-                        if (participants.value.some(p => String(p.bib).trim().toLowerCase() === candidate.toLowerCase())) {
-                            bibStr = candidate;
-                        } else if (autoSubmitDigits.value > 0 && (lockedBibPrefix.value + bibStr).length < autoSubmitDigits.value) {
-                            const padLen = autoSubmitDigits.value - lockedBibPrefix.value.length;
-                            const padded = lockedBibPrefix.value + bibStr.padStart(padLen, '0');
-                            if (participants.value.some(p => String(p.bib).trim().toLowerCase() === padded.toLowerCase())) {
-                                bibStr = padded;
-                            } else {
-                                bibStr = candidate;
-                            }
-                        } else {
-                            bibStr = candidate;
-                        }
-                    }
-
-                    // Match participant
-                    let p = participants.value.find(item => String(item.bib).trim().toLowerCase() === bibStr.toLowerCase());
-
-                    // Suffix matching fallback (e.g. runner 10245 when typing 245)
-                    if (!p && bibStr.length >= 2) {
-                        const matches = participants.value.filter(item => 
-                            String(item.bib).trim().endsWith(bibStr) && item.status !== 'finished'
-                        );
-                        if (matches.length === 1) {
-                            p = matches[0];
-                        }
-                    }
+                    const p = resolveParticipantByBib(token, lockedBibPrefix.value);
 
                     if (!p) {
-                        showDuplicateAlert('error', `Nomor BIB #${bibStr} tidak ditemukan dalam daftar peserta!`);
+                        const searchAttempt = lockedBibPrefix.value && !token.toUpperCase().startsWith(lockedBibPrefix.value.toUpperCase())
+                            ? `${lockedBibPrefix.value}${token}`
+                            : token;
+                        showDuplicateAlert('error', `Nomor BIB #${searchAttempt} tidak ditemukan dalam daftar peserta!`);
                         return;
                     }
 
@@ -4658,7 +4752,7 @@
                 eoEventSearchQuery, eoDropdownOpen, eoAutocompleteContainer, filteredEoEvents, onEoSearchInput, selectEoEvent, clearSelectedEoEvent,
                 onEoEventChange, importEoEventParticipants,
                 cameraSettingsOpen, raceSettings,
-                manualBibInput, lockedBibPrefix, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
+                manualBibInput, lockedBibPrefix, detectedBibPrefixes, ambiguousRunners, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
