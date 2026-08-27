@@ -253,7 +253,7 @@
 
         <div v-if="currentView === 'setup'" class="space-y-6 animate-fade-in">
             <!-- Multi-Admin Live Session / Room Sync Card -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -264,7 +264,7 @@
                             Hubungkan Admin 1 (TV Display), Admin 2 (Kamera Gate), Admin 3 (Spotter Numpad), dan Admin 4 (Marshal) ke sesi balap yang sama dari laptop/HP masing-masing.
                         </p>
                     </div>
-                    <div v-if="sessionSyncActive" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800">
+                    <div v-if="sessionSyncActive" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800 self-start sm:self-auto">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                         <span>Live Sync Aktif</span>
                         <span class="text-[10px] opacity-70">(@{{ sessionSyncLastUpdated }})</span>
@@ -273,30 +273,40 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Left: Current Active Room & Share Link -->
-                    <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                    <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
                         <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</div>
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 font-mono font-black text-base px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white truncate">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <div class="flex-1 font-mono font-black text-sm sm:text-base px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white truncate">
                                 @{{ sessionSlug || currentSessionId || 'Belum ada sesi aktif' }}
                             </div>
-                            <button type="button" @click="copySessionShareUrl" :disabled="!sessionSlug && !currentSessionId" 
-                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition shrink-0 flex items-center gap-1.5">
-                                <i class="fa-solid fa-copy"></i>
-                                <span>Salin Link Sesi</span>
-                            </button>
+                            <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                                <button type="button" @click="copySessionShareUrl" :disabled="!sessionSlug && !currentSessionId" 
+                                    class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>Salin Sesi</span>
+                                </button>
+                                <button type="button" @click="copyTvDisplayUrl" :disabled="!sessionSlug && !currentSessionId" 
+                                    class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link yang otomatis fullscreen untuk layar TV">
+                                    <i class="fa-solid fa-tv"></i>
+                                    <span>URL TV Display</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                            Bagikan link sesi ini ke laptop TV atau admin lain agar jam dan data finisher tersinkronisasi otomatis.
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                            <span>Link TV Display akan langsung membuka layar TV fullscreen saat dibuka.</span>
+                            <button v-if="sessionSlug || currentSessionId" type="button" @click="openTvDisplay" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                                Buka TV Sekarang &rarr;
+                            </button>
                         </div>
                     </div>
 
                     <!-- Right: Join Other Session by Room Code / URL -->
-                    <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                    <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
                         <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Gabung ke Sesi Lain (Satellite Admin):</div>
-                        <form @submit.prevent="joinLiveSession(sessionRoomInput)" class="flex items-center gap-2">
+                        <form @submit.prevent="joinLiveSession(sessionRoomInput)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input v-model="sessionRoomInput" type="text" placeholder="Masukkan Kode / Slug Sesi..." 
                                 class="flex-1 px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500">
-                            <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition shrink-0 flex items-center gap-1.5 border border-slate-700">
+                            <button type="submit" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition shrink-0 flex items-center justify-center gap-1.5 border border-slate-700">
                                 <i class="fa-solid fa-right-to-bracket"></i>
                                 <span>Gabung Sesi</span>
                             </button>
@@ -312,7 +322,7 @@
             </div>
 
             <!-- Hubungkan dengan Event EO RuangLari -->
-            <div v-if="isAuthenticated" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+            <div v-if="isAuthenticated" class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -401,67 +411,70 @@
                 </div>
 
                 <div v-if="selectedEoEventId" class="mt-4 flex justify-end">
-                    <button type="button" @click="importEoEventParticipants" :disabled="importingEoParticipants" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-bold text-xs flex items-center gap-2 transition-colors">
+                    <button type="button" @click="importEoEventParticipants" :disabled="importingEoParticipants" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors">
                         <i v-if="importingEoParticipants" class="fa-solid fa-circle-notch fa-spin"></i>
                         <i v-else class="fa-solid fa-file-import"></i>
-                        Impor Peserta ke Race Master
+                        <span>Impor Peserta ke Race Master</span>
                     </button>
                 </div>
             </div>
 
-            <div v-if="existingRaces.length > 0" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
-                <h2 class="text-lg font-bold mb-4 text-slate-900 dark:text-white">Load Existing Race</h2>
-                 <select @change="selectExistingRace($event.target.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+            <div v-if="existingRaces.length > 0" class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+                <h2 class="text-base sm:text-lg font-bold mb-3 text-slate-900 dark:text-white">Load Existing Race</h2>
+                 <select @change="selectExistingRace($event.target.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
                     <option value="">-- Pilih Race Sebelumnya --</option>
                     <option v-for="r in existingRaces" :value="r.id">@{{ r.name }} (@{{ r.created_at }})</option>
                 </select>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
-                <h2 class="text-lg font-bold mb-4 text-slate-900 dark:text-white">1. Konfigurasi Race</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 1. Konfigurasi Race -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+                <h2 class="text-base sm:text-lg font-bold mb-4 text-slate-900 dark:text-white">1. Konfigurasi Race</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Nama Race</label>
-                        <input v-model="raceName" placeholder="Minimal 3 karakter" type="text" maxlength="100" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
-                        <div class="mt-1 text-xs text-slate-400">Disimpan ke database saat Start Race.</div>
+                        <label class="block text-xs sm:text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Nama Race</label>
+                        <input v-model="raceName" placeholder="Minimal 3 karakter" type="text" maxlength="100" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+                        <div class="mt-1 text-[11px] text-slate-400">Disimpan ke database saat Start Race.</div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Logo Race (PNG/JPG, max 2MB, min 200x200)</label>
-                        <input @change="onLogoChange" type="file" accept="image/png,image/jpeg" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+                        <label class="block text-xs sm:text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Logo Race (PNG/JPG, max 2MB)</label>
+                        <input @change="onLogoChange" type="file" accept="image/png,image/jpeg" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
                         <div v-if="raceLogoPreviewUrl" class="mt-2 flex items-center gap-3">
-                            <img :src="raceLogoPreviewUrl" class="w-12 h-12 rounded-lg object-cover border border-slate-200 dark:border-slate-700" alt="Logo preview">
+                            <img :src="raceLogoPreviewUrl" class="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700" alt="Logo preview">
                             <div class="text-xs text-slate-500 dark:text-slate-400 truncate">@{{ raceLogoFileName }}</div>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Kategori Jarak</label>
-                        <select v-model="raceCategory" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+                        <label class="block text-xs sm:text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Kategori Jarak</label>
+                        <select v-model="raceCategory" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
                             <option v-for="cat in categories" :value="cat">@{{ cat }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Jarak (KM)</label>
-                        <input v-model="raceDistanceKm" placeholder="Contoh: 5, 10, 21.1, 42.195" type="number" step="0.001" min="0.1" max="999.999" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
-                        <div class="mt-1 text-xs text-slate-400">Dipakai untuk hitung pace/kecepatan pada poster.</div>
+                        <label class="block text-xs sm:text-sm font-medium text-slate-500 mb-1 dark:text-slate-400">Jarak (KM)</label>
+                        <input v-model="raceDistanceKm" placeholder="Contoh: 5, 10, 21.1, 42.195" type="number" step="0.001" min="0.1" max="999.999" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+                        <div class="mt-1 text-[11px] text-slate-400">Dipakai untuk hitung pace/kecepatan pada poster.</div>
                     </div>
-                    <div class="flex items-end">
-                        <div class="text-sm text-slate-500 bg-slate-50 p-3 rounded-xl w-full dark:bg-slate-900 dark:text-slate-400 transition-colors">
-                            Total Peserta: <span class="font-bold text-indigo-600 text-lg dark:text-indigo-400">@{{ participants.length }}</span>
+                    <div class="sm:col-span-2">
+                        <div class="text-sm text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 flex items-center justify-between">
+                            <span class="font-medium">Total Peserta Terdaftar:</span>
+                            <span class="font-black text-indigo-600 text-lg dark:text-indigo-400 font-mono">@{{ participants.length }} Peserta</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+            <!-- 2. Tambah Peserta & Biometrik Wajah -->
+            <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">2. Tambah Peserta & Biometrik Wajah</h2>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">2. Tambah Peserta & Biometrik Wajah</h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftarkan peserta secara manual satu per satu, impor massal via file CSV, atau gunakan biometrik wajah AI.</p>
                     </div>
                 </div>
 
                 <!-- CSV Batch Import Action Box -->
-                <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <i class="fa-solid fa-file-csv text-indigo-600 dark:text-indigo-400 text-base"></i>
@@ -472,31 +485,31 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0 flex-wrap">
-                        <button type="button" @click="downloadCsvSample" class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition border border-slate-300 dark:border-slate-700" title="Download Template CSV">
+                    <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
+                        <button type="button" @click="downloadCsvSample" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition border border-slate-300 dark:border-slate-700" title="Download Template CSV">
                             <i class="fa-solid fa-download text-xs"></i>
-                            <span>Download Sample CSV</span>
+                            <span>Download CSV</span>
                         </button>
-                        <label class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition shadow-sm" title="Upload File CSV Peserta">
+                        <label class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition shadow-sm" title="Upload File CSV Peserta">
                             <i class="fa-solid fa-file-import text-xs"></i>
-                            <span>Upload File CSV</span>
+                            <span>Upload CSV</span>
                             <input type="file" accept=".csv,text/csv" @change="onCsvUpload" class="hidden">
                         </label>
                     </div>
                 </div>
 
                 <!-- Face Photo Capture & Multi-Angle Biometric Enrollment Bar -->
-                <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 mb-4 space-y-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-14 h-14 rounded-full border-2 border-indigo-500 overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner relative">
+                        <div class="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-inner relative">
                             <img v-if="newFacePhoto" :src="newFacePhoto" class="w-full h-full object-cover" alt="Avatar">
-                            <i v-else class="fa-solid fa-user text-slate-400 text-xl"></i>
-                            <span v-if="enrolledAngleCount > 0" class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center border border-white dark:border-slate-900">
+                            <i v-else class="fa-solid fa-user text-slate-400 text-base"></i>
+                            <span v-if="enrolledAngleCount > 0" class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-black flex items-center justify-center border border-white dark:border-slate-900">
                                 @{{ enrolledAngleCount }}
                             </span>
                         </div>
-                        <div>
-                            <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                                 <span>Biometrik Wajah AI Multi-Angle</span>
                                 <span v-if="enrolledAngleCount === 3" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                                     3 Sudut (Optimal)
@@ -512,55 +525,102 @@
                                 <i class="fa-solid fa-circle-notch fa-spin"></i> Mengekstrak Biometrik Wajah...
                             </div>
                             <div v-else-if="enrolledAngleCount > 0" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
-                                <i class="fa-solid fa-circle-check"></i> Terdaftar @{{ enrolledAngleCount }} Sudut (Depan, Kanan, Kiri) - Siap Deteksi
+                                <i class="fa-solid fa-circle-check"></i> Terdaftar @{{ enrolledAngleCount }} Sudut (Depan, Kanan, Kiri)
                             </div>
                             <div v-else class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                Ambil 3 sudut (depan, serong kanan, serong kiri) agar deteksi saat finish tetap akurat dari samping.
+                                Ambil 3 sudut (depan, kanan, kiri) agar deteksi saat finish tetap akurat.
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="openFaceCaptureModal('front')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm">
-                            <i class="fa-solid fa-camera"></i> Ambil 3 Sudut (Kamera)
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button type="button" @click="openFaceCaptureModal('front')" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+                            <i class="fa-solid fa-camera"></i> <span>Kamera (3 Sudut)</span>
                         </button>
-                        <label class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition">
-                            <i class="fa-solid fa-upload"></i> Upload
+                        <label class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition">
+                            <i class="fa-solid fa-upload"></i> <span>Upload Foto</span>
                             <input type="file" accept="image/*" @change="onFacePhotoUpload" class="hidden">
                         </label>
-                        <button v-if="newFacePhoto" type="button" @click="clearNewFacePhoto" class="px-2.5 py-2 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs transition" title="Hapus Foto">
+                        <button v-if="newFacePhoto" type="button" @click="clearNewFacePhoto" class="px-3 py-2 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs transition" title="Hapus Foto">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="flex flex-col md:flex-row gap-3 mb-6">
-                    <input v-model="newBib" @keyup.enter="focusName" ref="inputBib" placeholder="No. BIB (Contoh: 101)" type="number" class="w-full md:w-1/4 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors">
-                    <input v-model="newName" @keyup.enter="addParticipant" ref="inputName" placeholder="Nama Peserta" type="text" class="w-full md:w-2/4 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-lg dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors">
-                    <div class="w-full md:w-1/4 flex gap-1 items-center">
-                        <input v-model="newPredictedHH" @keyup.enter="addParticipant" placeholder="HH" type="number" min="0" max="99" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Jam">
-                        <span class="text-slate-400 font-bold">:</span>
-                        <input v-model="newPredictedMM" @keyup.enter="addParticipant" placeholder="MM" type="number" min="0" max="59" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Menit">
-                        <span class="text-slate-400 font-bold">:</span>
-                        <input v-model="newPredictedSS" @keyup.enter="addParticipant" placeholder="SS" type="number" min="0" max="59" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Detik">
+                <!-- Single Participant Input Form -->
+                <div class="space-y-3 mb-5 p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Nomor BIB</label>
+                            <input v-model="newBib" @keyup.enter="focusName" ref="inputBib" placeholder="Contoh: 1001 atau M-1001" type="text" class="w-full p-2.5 sm:p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-base dark:bg-slate-900 dark:border-slate-700 dark:text-white transition">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Nama Lengkap Peserta</label>
+                            <input v-model="newName" @keyup.enter="addParticipant" ref="inputName" placeholder="Ketik nama pelari..." type="text" class="w-full p-2.5 sm:p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold text-base dark:bg-slate-900 dark:border-slate-700 dark:text-white transition">
+                        </div>
                     </div>
-                    <button @click="addParticipant" class="w-full md:w-1/4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-indigo-200 dark:shadow-none">
-                        <i class="fa-solid fa-plus mr-2"></i> Tambah
-                    </button>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Prediksi Waktu (Jam : Menit : Detik)</label>
+                            <div class="flex gap-1.5 items-center">
+                                <input v-model="newPredictedHH" @keyup.enter="addParticipant" placeholder="HH" type="number" min="0" max="99" class="w-full p-2.5 sm:p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-center dark:bg-slate-900 dark:border-slate-700 dark:text-white transition" title="Jam">
+                                <span class="text-slate-400 font-bold">:</span>
+                                <input v-model="newPredictedMM" @keyup.enter="addParticipant" placeholder="MM" type="number" min="0" max="59" class="w-full p-2.5 sm:p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-center dark:bg-slate-900 dark:border-slate-700 dark:text-white transition" title="Menit">
+                                <span class="text-slate-400 font-bold">:</span>
+                                <input v-model="newPredictedSS" @keyup.enter="addParticipant" placeholder="SS" type="number" min="0" max="59" class="w-full p-2.5 sm:p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-center dark:bg-slate-900 dark:border-slate-700 dark:text-white transition" title="Detik">
+                            </div>
+                        </div>
+
+                        <button @click="addParticipant" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Tambah Peserta</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="overflow-auto max-h-96 rounded-xl border border-slate-100 dark:border-slate-700">
+                <!-- Participant Cards on Mobile -->
+                <div class="sm:hidden space-y-2.5 max-h-96 overflow-y-auto pr-0.5">
+                    <div v-for="(p, index) in participants" :key="p.id" class="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center border border-slate-300 dark:border-slate-600 shrink-0">
+                                <img v-if="p.photoUrl" :src="p.photoUrl" class="w-full h-full object-cover" alt="Foto">
+                                <i v-else class="fa-solid fa-user text-slate-400 text-xs"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">#@{{ p.bib }}</span>
+                                    <span class="font-bold text-slate-900 dark:text-white text-sm truncate">@{{ p.name }}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                    <span>Prediksi: @{{ p.predictedTimeMs ? formatTime(p.predictedTimeMs) : '-' }}</span>
+                                    <span v-if="Array.isArray(p.faceDescriptors) && p.faceDescriptors.length >= 3" class="text-emerald-500 font-bold">• 3 Sudut AI</span>
+                                    <span v-else-if="p.faceDescriptor" class="text-indigo-400 font-bold">• 1 Sudut AI</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="removeParticipant(index)" class="w-8 h-8 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center shrink-0 transition" title="Hapus">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    <div v-if="participants.length === 0" class="p-8 text-center text-slate-400 text-xs">
+                        Belum ada peserta terdaftar.
+                    </div>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden sm:block overflow-auto max-h-96 rounded-xl border border-slate-100 dark:border-slate-700">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
-                            <tr class="text-slate-400 text-sm border-b border-slate-100 dark:border-slate-700">
-                                <th class="p-3 font-medium">Foto / Face AI</th>
-                                <th class="p-3 font-medium">BIB</th>
-                                <th class="p-3 font-medium">Nama</th>
-                                <th class="p-3 font-medium">Prediksi</th>
-                                <th class="p-3 font-medium">Aksi</th>
+                            <tr class="text-slate-400 text-xs uppercase border-b border-slate-100 dark:border-slate-700">
+                                <th class="p-3 font-bold">Foto / Face AI</th>
+                                <th class="p-3 font-bold">BIB</th>
+                                <th class="p-3 font-bold">Nama</th>
+                                <th class="p-3 font-bold">Prediksi</th>
+                                <th class="p-3 font-bold text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
                             <tr v-for="(p, index) in participants" :key="p.id" class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                 <td class="p-3">
                                     <div class="flex items-center gap-2">
@@ -579,11 +639,11 @@
                                         </span>
                                     </div>
                                 </td>
-                                <td class="p-3 font-oswald font-bold text-xl dark:text-white">@{{ p.bib }}</td>
-                                <td class="p-3 font-medium dark:text-slate-200">@{{ p.name }}</td>
-                                <td class="p-3 font-mono text-sm text-slate-600 dark:text-slate-400">@{{ p.predictedTimeMs ? formatTime(p.predictedTimeMs) : '-' }}</td>
-                                <td class="p-3">
-                                    <button @click="removeParticipant(index)" class="text-red-400 hover:text-red-600 transition-colors"><i class="fa-solid fa-trash"></i></button>
+                                <td class="p-3 font-mono font-bold text-base dark:text-white">@{{ p.bib }}</td>
+                                <td class="p-3 font-bold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
+                                <td class="p-3 font-mono text-xs text-slate-600 dark:text-slate-400">@{{ p.predictedTimeMs ? formatTime(p.predictedTimeMs) : '-' }}</td>
+                                <td class="p-3 text-center">
+                                    <button @click="removeParticipant(index)" class="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>
                                 </td>
                             </tr>
                             <tr v-if="participants.length === 0">
@@ -595,8 +655,9 @@
             </div>
             
             <div class="flex justify-end mt-4">
-                <button @click="goToBibs" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-medium hover:bg-black transition">
-                    Lanjut: Generate BIB <i class="fa-solid fa-arrow-right ml-2"></i>
+                <button @click="goToBibs" class="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 px-6 py-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2">
+                    <span>Lanjut: Generate BIB</span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -670,48 +731,61 @@
         </div>
 
         <div v-if="currentView === 'race'" class="space-y-4">
-            
             <!-- Race Timer & Control Console -->
-            <div class="bg-white dark:bg-[#0c121e] text-slate-900 dark:text-white rounded-2xl p-5 border-2 border-slate-200 dark:border-slate-800 shadow-sm sticky top-[70px] z-40 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
-                <div class="text-center md:text-left">
-                    <div class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Official Race Clock</div>
-                    <div class="font-mono-numbers text-5xl md:text-6xl font-black text-slate-950 dark:text-white tracking-wider">
-                        @{{ formattedTime }}
+            <div class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm sticky top-[68px] z-40 space-y-3 transition-colors">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="text-center sm:text-left">
+                        <div class="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-widest">Official Race Clock</div>
+                        <div class="font-mono text-4xl sm:text-5xl md:text-6xl font-black text-slate-950 dark:text-white tracking-wider">
+                            @{{ formattedTime }}
+                        </div>
                     </div>
-                </div>
 
-                <div class="flex items-center gap-2 flex-wrap justify-center md:justify-end">
-                    <button v-if="!timer.running" @click="startRace" 
-                        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" :title="timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer'">
-                        <i class="fa-solid fa-play text-xs"></i>
-                        <span>@{{ timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer' }}</span>
-                    </button>
-                    <button v-if="timer.running" @click="pauseRace" 
-                        class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Pause Timer">
-                        <i class="fa-solid fa-pause text-xs"></i>
-                        <span>Pause</span>
-                    </button>
-                    <button v-if="timer.elapsed > 0" @click="finishRace" 
-                        class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Finish Sesi">
-                        <i class="fa-solid fa-flag-checkered text-xs"></i>
-                        <span>Finish Sesi</span>
-                    </button>
-                    <button @click="resetRace" 
-                        class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center gap-1.5 transition" title="Reset Total Timer">
-                        <i class="fa-solid fa-rotate-right text-xs"></i>
-                        <span>Reset</span>
-                    </button>
-                    <button @click="toggleScanner" 
-                        :class="camera.active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'" 
-                        class="px-3.5 py-2.5 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition" title="Buka/Tutup Kamera AI">
-                        <i class="fa-solid fa-camera text-xs"></i>
-                        <span>@{{ camera.active ? 'Tutup Kamera' : 'Buka Kamera' }}</span>
-                    </button>
-                    <button @click="openTvDisplay" 
-                        class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Tampilkan Layar TV Fullscreen (Admin 1)">
-                        <i class="fa-solid fa-tv text-xs"></i>
-                        <span>Layar TV</span>
-                    </button>
+                    <!-- Action Controls -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                        <!-- Primary Start/Pause Button -->
+                        <button v-if="!timer.running" @click="startRace" 
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm" :title="timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer'">
+                            <i class="fa-solid fa-play text-xs"></i>
+                            <span>@{{ timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer' }}</span>
+                        </button>
+                        <button v-if="timer.running" @click="pauseRace" 
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm" title="Pause Timer">
+                            <i class="fa-solid fa-pause text-xs"></i>
+                            <span>Pause</span>
+                        </button>
+
+                        <!-- Secondary Actions Grid -->
+                        <div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
+                            <button @click="resetRace" 
+                                class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition" title="Reset Total Timer">
+                                <i class="fa-solid fa-rotate-right text-xs"></i>
+                                <span>Reset</span>
+                            </button>
+                            <button @click="toggleScanner" 
+                                :class="camera.active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'" 
+                                class="px-3 py-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition" title="Buka/Tutup Kamera AI">
+                                <i class="fa-solid fa-camera text-xs"></i>
+                                <span>Kamera</span>
+                            </button>
+                            <button @click="openTvDisplay" 
+                                class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm" title="Tampilkan Layar TV Fullscreen (Admin 1)">
+                                <i class="fa-solid fa-tv text-xs"></i>
+                                <span>Layar TV</span>
+                            </button>
+                            <button type="button" @click="copyTvDisplayUrl" 
+                                class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition" title="Salin URL Layar TV (Otomatis Fullscreen)">
+                                <i class="fa-solid fa-share-nodes text-xs"></i>
+                                <span>Salin URL TV</span>
+                            </button>
+                        </div>
+                        
+                        <button v-if="timer.elapsed > 0" @click="finishRace" 
+                            class="w-full sm:w-auto px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm" title="Finish Sesi">
+                            <i class="fa-solid fa-flag-checkered text-xs"></i>
+                            <span>Finish Sesi</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -742,7 +816,7 @@
                             @{{ manualValidationAlert.message }}
                         </div>
                         <div v-if="manualValidationAlert.bib" class="text-xs opacity-80 mt-1 font-mono">
-                            BIB: #@{{ manualValidationAlert.bib }} <span v-if="manualValidationAlert.name">• Nama: @{{ manualValidationAlert.name }}</span> <span v-if="manualValidationAlert.time">• Waktu Tercatat: @{{ manualValidationAlert.time }}</span>
+                            BIB: #@{{ manualValidationAlert.bib }} <span v-if="manualValidationAlert.name">• Nama: @{{ manualValidationAlert.name }}</span> <span v-if="manualValidationAlert.time">• Waktu: @{{ manualValidationAlert.time }}</span>
                         </div>
                     </div>
                 </div>
@@ -752,166 +826,178 @@
             </div>
 
             <!-- Quick Manual BIB Timing & Rapid Entry Engine Bar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm transition-colors space-y-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm transition-colors space-y-3.5">
                 
-                <!-- Rapid Spotter Helper Controls: Prefix Lock & Auto-Submit -->
-                <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800 text-xs">
-                    <!-- Prefix Quick Pills (Auto-detected & Manual) -->
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Kunci Prefix BIB:</span>
-                        <button type="button" @click="lockedBibPrefix = ''"
-                            :class="lockedBibPrefix === '' ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700">
-                            Tanpa Prefix
-                        </button>
-                        
-                        <!-- Auto-detected Prefixes from Registered Participants (e.g. M, F, 10K) -->
-                        <template v-if="detectedBibPrefixes.length > 0">
-                            <button v-for="pf in detectedBibPrefixes" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
-                                :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                                class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
-                                Prefix @{{ pf }}
+                <!-- Rapid Spotter Helper Controls: Prefix Lock & Auto-Submit (Swipeable on Mobile) -->
+                <div class="space-y-2 pb-3 border-b border-slate-100 dark:border-slate-800 text-xs">
+                    <!-- Prefix Selection Row -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase shrink-0">Prefix:</span>
+                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                            <button type="button" @click="lockedBibPrefix = ''"
+                                :class="lockedBibPrefix === '' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition shrink-0 border border-transparent dark:border-slate-700">
+                                Tanpa Prefix
                             </button>
-                        </template>
-
-                        <!-- Fallback Standard Category Pills if no alphabetic prefixes detected -->
-                        <template v-else>
-                            <button v-for="pf in ['M', 'F', '1', '2']" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
-                                :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                                class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold">
-                                Prefix @{{ pf }}
-                            </button>
-                        </template>
-                    </div>
-
-                    <!-- Auto-Submit on Fixed Digits -->
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Auto-Enter Saat:</span>
-                        <button type="button" @click="autoSubmitDigits = 0"
-                            :class="autoSubmitDigits === 0 ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700">
-                            Tekan Enter
-                        </button>
-                        <button type="button" @click="autoSubmitDigits = 3"
-                            :class="autoSubmitDigits === 3 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-3 terketik (Zero-Enter)">
-                            3 Digit
-                        </button>
-                        <button type="button" @click="autoSubmitDigits = 4"
-                            :class="autoSubmitDigits === 4 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-4 terketik (Zero-Enter)">
-                            4 Digit
-                        </button>
-                        <button type="button" @click="autoSubmitDigits = 5"
-                            :class="autoSubmitDigits === 5 ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-                            class="px-2.5 py-1 rounded-lg transition border border-transparent dark:border-slate-700 font-mono font-bold" title="Langsung catat saat digit ke-5 terketik (Zero-Enter)">
-                            5 Digit
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    <!-- Left: Manual BIB Entry Input with Inline Compact Prefix -->
-                    <div class="flex-1">
-                        <form @submit.prevent="recordManualBib" class="flex items-center gap-2">
                             
-                            <!-- Compact Inline Prefix Input -->
-                            <div class="w-20 sm:w-24 shrink-0 relative">
-                                <input 
-                                    v-model="lockedBibPrefix" 
-                                    @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
-                                    type="text" 
-                                    placeholder="Prefix" 
-                                    maxlength="6"
-                                    title="Prefix BIB (misal M, F, 10K, dll)"
-                                    class="w-full px-2.5 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs text-center transition"
-                                >
-                                <button 
-                                    v-if="lockedBibPrefix" 
-                                    type="button" 
-                                    @click="lockedBibPrefix = ''"
-                                    class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
-                                    title="Kosongkan prefix"
-                                >
-                                    <i class="fa-solid fa-xmark"></i>
+                            <template v-if="detectedBibPrefixes.length > 0">
+                                <button v-for="pf in detectedBibPrefixes" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
+                                    :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition shrink-0 border border-transparent dark:border-slate-700">
+                                    @{{ pf }}
                                 </button>
-                            </div>
-
-                            <!-- Main BIB Number Input -->
-                            <div class="relative flex-1">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
-                                <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
-                                    :placeholder="lockedBibPrefix ? `Ketik nomor saja (contoh: 1001 untuk #${lockedBibPrefix}-1001)...` : 'Ketik No. BIB (bisa rombongan: 1001 1002 1003)...'" 
-                                    class="w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
-                            </div>
-
-                            <!-- Submit Button -->
-                            <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
-                                class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-stopwatch"></i>
-                                <span>Catat Finish (Enter)</span>
-                            </button>
-                        </form>
-
-                        <!-- Live Runner Match Preview & Ambiguity Warning -->
-                        <div v-if="liveMatchedRunner" class="mt-1.5 flex items-center gap-2 text-xs font-mono">
-                            <span class="text-slate-400">Cocok:</span>
-                            <span class="font-bold text-slate-900 dark:text-white">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
-                            <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'">
-                                (@{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }})
-                            </span>
-                        </div>
-                        <div v-else-if="ambiguousRunners && ambiguousRunners.length > 1" class="mt-1.5 flex items-center gap-2 text-xs text-amber-500 font-mono">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span>Ditemukan @{{ ambiguousRunners.length }} pelari dengan nomor tersebut (@{{ ambiguousRunners.map(r => '#' + r.bib + ' ' + r.name).join(', ') }}). Silakan pilih Prefix di sebelah kiri.</span>
+                            </template>
+                            <template v-else>
+                                <button v-for="pf in ['M', 'F', '1', '2']" :key="pf" type="button" @click="lockedBibPrefix = (lockedBibPrefix === pf ? '' : pf)"
+                                    :class="lockedBibPrefix === pf ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition shrink-0 border border-transparent dark:border-slate-700">
+                                    @{{ pf }}
+                                </button>
+                            </template>
                         </div>
                     </div>
 
-                    <!-- Right: Detector Method Quick Preset Switcher -->
-                    <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mr-1">Metode Sensor:</span>
-                        <button type="button" @click="setDetectorPreset('all')" 
-                            :class="currentDetectorPreset === 'all' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
-                            Semua (Hybrid)
-                        </button>
-                        <button type="button" @click="setDetectorPreset('qr')" 
-                            :class="currentDetectorPreset === 'qr' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
-                            QR Code
-                        </button>
-                        <button type="button" @click="setDetectorPreset('ocr')" 
-                            :class="currentDetectorPreset === 'ocr' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
-                            Nomor BIB
-                        </button>
-                        <button type="button" @click="setDetectorPreset('face')" 
-                            :class="currentDetectorPreset === 'face' ? 'bg-indigo-600 text-white font-bold shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
-                            class="px-2.5 py-1.5 rounded-lg text-xs transition border border-transparent dark:border-slate-700">
-                            Face AI
-                        </button>
+                    <!-- Auto-Submit Row -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase shrink-0">Auto-Enter:</span>
+                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                            <button type="button" @click="autoSubmitDigits = 0"
+                                :class="autoSubmitDigits === 0 ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition shrink-0 border border-transparent dark:border-slate-700">
+                                Tekan Enter
+                            </button>
+                            <button v-for="d in [3, 4, 5]" :key="d" type="button" @click="autoSubmitDigits = (autoSubmitDigits === d ? 0 : d)"
+                                :class="autoSubmitDigits === d ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition shrink-0 border border-transparent dark:border-slate-700">
+                                @{{ d }} Digit
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Custom Checkboxes Row for Granular Control -->
-                <div class="flex items-center gap-4 flex-wrap pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                    <span class="font-bold text-[11px] uppercase text-slate-400">Aktifkan Sensor:</span>
-                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
-                        <input type="checkbox" v-model="raceSettings.enableQr" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                        <span>QR Code Scanner</span>
-                    </label>
-                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
-                        <input type="checkbox" v-model="raceSettings.enableOcr" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                        <span>OCR Angka BIB Dada</span>
-                    </label>
-                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium">
-                        <input type="checkbox" v-model="raceSettings.enableFaceAi" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                        <span>Face AI Recognition</span>
-                    </label>
-                    <label class="inline-flex items-center gap-1.5 cursor-pointer font-medium ml-auto">
-                        <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-slate-100 dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                        <span>Audio Beep</span>
-                    </label>
+                <!-- Main Manual BIB Input Form (Ergonomic Stack on Mobile, Inline on Desktop) -->
+                <form @submit.prevent="recordManualBib" class="space-y-2.5">
+                    <div class="flex items-center gap-2">
+                        <!-- Compact Prefix Box -->
+                        <div class="w-20 sm:w-24 shrink-0 relative">
+                            <input 
+                                v-model="lockedBibPrefix" 
+                                @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
+                                type="text" 
+                                placeholder="Prefix" 
+                                maxlength="6"
+                                title="Prefix BIB"
+                                class="w-full px-2 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs text-center transition"
+                            >
+                            <button 
+                                v-if="lockedBibPrefix" 
+                                type="button" 
+                                @click="lockedBibPrefix = ''"
+                                class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                                title="Kosongkan prefix"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <!-- Main BIB Number Input -->
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
+                            <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
+                                :placeholder="lockedBibPrefix ? `Ketik nomor saja (misal: 1001)...` : 'Ketik No. BIB (misal: 1001)...'" 
+                                class="w-full pl-7 pr-3 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans placeholder:text-xs transition">
+                        </div>
+
+                        <!-- Desktop Inline Submit Button -->
+                        <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
+                            class="hidden sm:flex px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 items-center justify-center gap-2">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <span>Catat Finish (Enter)</span>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Full-Width Submit Button -->
+                    <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
+                        class="sm:hidden w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-stopwatch"></i>
+                        <span>Catat Finish (Enter)</span>
+                    </button>
+                </form>
+
+                <!-- Live Runner Match Preview & Ambiguity Warning -->
+                <div v-if="liveMatchedRunner" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+                    <div class="flex items-center gap-1.5 truncate">
+                        <span class="text-slate-400">Cocok:</span>
+                        <span class="font-bold text-slate-900 dark:text-white truncate">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
+                    </div>
+                    <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'" class="shrink-0 ml-2">
+                        @{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }}
+                    </span>
+                </div>
+                <div v-else-if="ambiguousRunners && ambiguousRunners.length > 1" class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-400 font-mono space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Ditemukan @{{ ambiguousRunners.length }} pelari dengan nomor tersebut:</span>
+                    </div>
+                    <div class="text-[11px] text-slate-300">
+                        @{{ ambiguousRunners.map(r => '#' + r.bib + ' ' + r.name).join(', ') }}. Silakan pilih Prefix di atas.
+                    </div>
+                </div>
+
+                <!-- Collapsible Sensor & Scanner Drawer -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="sensorSettingsOpen = !sensorSettingsOpen" class="w-full flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 py-1 hover:text-slate-800 dark:hover:text-slate-200 transition">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders text-indigo-500"></i>
+                            <span>Pengaturan Sensor & Scanner</span>
+                        </span>
+                        <i class="fa-solid transition-transform text-slate-400" :class="sensorSettingsOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </button>
+
+                    <div v-if="sensorSettingsOpen" class="mt-2.5 p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-slate-400 uppercase text-[10px] mr-1">Preset:</span>
+                            <button type="button" @click="setDetectorPreset('all')" 
+                                :class="currentDetectorPreset === 'all' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition">
+                                Semua (Hybrid)
+                            </button>
+                            <button type="button" @click="setDetectorPreset('qr')" 
+                                :class="currentDetectorPreset === 'qr' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition">
+                                QR Code
+                            </button>
+                            <button type="button" @click="setDetectorPreset('ocr')" 
+                                :class="currentDetectorPreset === 'ocr' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition">
+                                Nomor BIB
+                            </button>
+                            <button type="button" @click="setDetectorPreset('face')" 
+                                :class="currentDetectorPreset === 'face' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
+                                class="px-2.5 py-1 rounded-lg text-xs transition">
+                                Face AI
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" v-model="raceSettings.enableQr" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                                <span>QR Scanner</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" v-model="raceSettings.enableOcr" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                                <span>OCR BIB Dada</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" v-model="raceSettings.enableFaceAi" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                                <span>Face AI</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                                <span>Audio Beep</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1365,117 +1451,164 @@
             </div>
         </div>
 
-        <div v-if="currentView === 'results'" class="animate-fade-in">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-2xl font-bold dark:text-white">Hasil Race: @{{ raceCategory }}</h2>
-                <div class="flex gap-2 no-print flex-wrap justify-center">
-                    <button @click="currentView = 'race'" class="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 transition-colors">Kembali ke Timer</button>
-                    <button v-if="publicResultsUrl || sessionSlug" @click="copyResultsLink" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors">Share Link</button>
-                    <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Print Hasil</button>
+        <div v-if="currentView === 'results'" class="space-y-4 animate-fade-in">
+            <!-- Results Header & Actions Bar -->
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                <div>
+                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hasil Akhir Perlombaan</div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">@{{ raceName || 'Race Master Pro' }} • @{{ raceCategory }}</h2>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:flex items-center gap-2 no-print">
+                    <button @click="currentView = 'race'" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition border border-slate-300 dark:border-slate-700">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Timer</span>
+                    </button>
+                    <button v-if="publicResultsUrl || sessionSlug" @click="copyResultsLink" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span>Share Link</span>
+                    </button>
+                    <button onclick="window.print()" class="col-span-2 sm:col-span-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print Hasil</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden dark:bg-slate-800 dark:border-slate-700 transition-colors">
-                <div class="overflow-x-auto">
-                    <!-- Mobile Stack View -->
-                    <div class="md:hidden space-y-4 p-4">
-                        <div v-for="(p, idx) in sortedResults" :key="p.id" class="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="flex items-center gap-3">
-                                     <span v-if="p.status === 'finished'" :class="{'text-amber-500 font-black': idx===0, 'text-slate-500 dark:text-slate-400': idx > 0}" class="font-bold text-lg">#@{{ idx + 1 }}</span>
-                                     <span v-else class="text-slate-400">-</span>
-                                     <div>
-                                         <div class="font-oswald font-bold text-xl text-slate-900 dark:text-white">@{{ p.bib }}</div>
-                                         <div class="text-sm font-semibold text-slate-700 dark:text-slate-300">@{{ p.name }}</div>
-                                     </div>
+            <!-- Results Data Container -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                <!-- Mobile Finisher Stack View -->
+                <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    <div v-for="(p, idx) in sortedResults" :key="p.id" class="p-4 space-y-3" :class="{'bg-amber-50/30 dark:bg-amber-950/20': idx === 0 && p.status === 'finished'}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <!-- Finisher Rank Badge -->
+                                <div v-if="p.status === 'finished'" class="w-8 h-8 rounded-xl font-bold flex items-center justify-center shrink-0 text-sm shadow-sm"
+                                    :class="{
+                                        'bg-amber-500 text-slate-950 font-black': idx === 0,
+                                        'bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-white': idx === 1,
+                                        'bg-amber-700 text-white': idx === 2,
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs': idx > 2
+                                    }">
+                                    @{{ idx + 1 }}
                                 </div>
-                                <div class="text-right">
-                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-red-950 dark:text-red-300 dark:border dark:border-red-800">DNF</span>
-                                    <span v-else-if="p.status === 'finished'" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800">FINISH</span>
-                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
+                                <div v-else class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                                    -
                                 </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-3 gap-2 py-3 border-t border-slate-200 dark:border-slate-800 mt-2">
-                                <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Laps</div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200">@{{ p.laps.length }}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Total Time</div>
-                                    <div class="font-mono font-bold text-indigo-700 dark:text-indigo-400">@{{ formatTime(p.totalTime) }}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase font-bold">Pace</div>
-                                    <div class="font-mono text-slate-700 dark:text-slate-300">@{{ formatPace(p) }}</div>
+
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">#@{{ p.bib }}</span>
+                                        <span class="font-bold text-base text-slate-900 dark:text-white truncate">@{{ p.name }}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                                        Total @{{ p.laps ? p.laps.length : 0 }} Putaran
+                                    </div>
                                 </div>
                             </div>
 
-                            <div v-if="p.status === 'finished'" class="flex gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 justify-end no-print">
-                                <button @click="openMediaModal('certificate', p)" class="flex-1 bg-slate-900 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors">
-                                    <i class="fa-solid fa-file-pdf"></i> Cert
-                                </button>
-                                <button @click="openMediaModal('poster', p)" class="flex-1 bg-pink-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-pink-700 transition-colors">
-                                    <i class="fa-brands fa-instagram"></i> Poster
-                                </button>
+                            <span v-if="p.status === 'dnf'" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800 shrink-0">
+                                DNF
+                            </span>
+                            <span v-else-if="p.status === 'finished'" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                                FINISH
+                            </span>
+                            <span v-else class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 shrink-0">
+                                RUNNING
+                            </span>
+                        </div>
+
+                        <!-- 3-Column Performance Stats -->
+                        <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Waktu Finish</div>
+                                <div class="font-mono font-black text-sm text-indigo-600 dark:text-indigo-400">
+                                    @{{ p.totalTime ? formatTime(p.totalTime) : '-' }}
+                                </div>
                             </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-bold text-slate-400">Average Pace</div>
+                                <div class="font-mono font-bold text-sm text-slate-800 dark:text-slate-200">
+                                    @{{ formatPace(p) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons for E-Cert & IG Poster -->
+                        <div v-if="p.status === 'finished'" class="grid grid-cols-2 gap-2 pt-1 no-print">
+                            <button @click="openMediaModal('certificate', p)" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>E-Certificate</span>
+                            </button>
+                            <button @click="openMediaModal('poster', p)" class="py-2 px-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-brands fa-instagram"></i>
+                                <span>Poster IG</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Desktop Table View -->
-                    <table class="w-full text-left hidden md:table">
-                        <thead class="bg-slate-50 border-b border-slate-200 dark:bg-slate-950 dark:border-slate-800">
-                            <tr>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Rank</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">BIB</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Nama</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center dark:text-slate-400">Laps</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right dark:text-slate-400">Total Time</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right dark:text-slate-400">Pace</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center dark:text-slate-400">Status</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center no-print dark:text-slate-400">Media</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr v-for="(p, idx) in sortedResults" :key="p.id" :class="{'bg-emerald-50/50 dark:bg-emerald-950/40': idx < 3 && p.status === 'finished'}" class="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                                <td class="p-4 font-bold text-slate-400 dark:text-slate-500">
-                                    <span v-if="p.status === 'finished'" :class="{'text-amber-500 font-black text-xl': idx===0, 'text-slate-500 dark:text-slate-400': idx > 2}">#@{{ idx + 1 }}</span>
-                                    <span v-else>-</span>
-                                </td>
-                                <td class="p-4 font-oswald font-bold text-lg text-slate-900 dark:text-white">@{{ p.bib }}</td>
-                                <td class="p-4 font-semibold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
-                                <td class="p-4 text-center">
-                                    <span class="bg-slate-100 px-2.5 py-1 rounded text-xs font-bold dark:bg-slate-800 dark:text-slate-300">@{{ p.laps.length }}</span>
-                                </td>
-                                <td class="p-4 text-right font-mono font-bold text-indigo-700 dark:text-indigo-400">
-                                    @{{ formatTime(p.totalTime) }}
-                                </td>
-                                <td class="p-4 text-right font-mono text-slate-700 dark:text-slate-300">@{{ formatPace(p) }}</td>
-                                <td class="p-4 text-center">
-                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-red-950 dark:text-red-300 dark:border dark:border-red-800">DNF</span>
-                                    <span v-else-if="p.status === 'finished'" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800">FINISH</span>
-                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
-                                </td>
-                                <td class="p-4 text-center no-print flex justify-center gap-2">
-                                    <button v-if="p.status === 'finished'" @click="openMediaModal('certificate', p)" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-black text-white flex items-center justify-center transition shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700" title="Generate E-Certificate">
-                                        <i class="fa-solid fa-file-pdf"></i>
-                                    </button>
-                                    <button v-if="p.status === 'finished'" @click="openMediaModal('poster', p)" class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center transition shadow-sm" title="Generate Poster IG Story">
-                                        <i class="fa-brands fa-instagram"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div v-if="sortedResults.length === 0" class="p-8 text-center text-slate-400 text-xs">
+                        Belum ada data hasil perlombaan.
+                    </div>
                 </div>
+
+                <!-- Desktop Table View -->
+                <table class="w-full text-left hidden md:table">
+                    <thead class="bg-slate-50 border-b border-slate-200 dark:bg-slate-950 dark:border-slate-800">
+                        <tr>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Rank</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">BIB</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Nama</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center dark:text-slate-400">Laps</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right dark:text-slate-400">Total Time</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right dark:text-slate-400">Pace</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center dark:text-slate-400">Status</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center no-print dark:text-slate-400">Media</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                        <tr v-for="(p, idx) in sortedResults" :key="p.id" :class="{'bg-emerald-50/50 dark:bg-emerald-950/40': idx < 3 && p.status === 'finished'}" class="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                            <td class="p-4 font-bold text-slate-400 dark:text-slate-500">
+                                <span v-if="p.status === 'finished'" :class="{'text-amber-500 font-black text-xl': idx===0, 'text-slate-500 dark:text-slate-400': idx > 2}">#@{{ idx + 1 }}</span>
+                                <span v-else>-</span>
+                            </td>
+                            <td class="p-4 font-mono font-bold text-base text-slate-900 dark:text-white">@{{ p.bib }}</td>
+                            <td class="p-4 font-bold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
+                            <td class="p-4 text-center">
+                                <span class="bg-slate-100 px-2.5 py-1 rounded text-xs font-bold dark:bg-slate-800 dark:text-slate-300">@{{ p.laps.length }}</span>
+                            </td>
+                            <td class="p-4 text-right font-mono font-bold text-indigo-700 dark:text-indigo-400">
+                                @{{ formatTime(p.totalTime) }}
+                            </td>
+                            <td class="p-4 text-right font-mono text-slate-700 dark:text-slate-300">@{{ formatPace(p) }}</td>
+                            <td class="p-4 text-center">
+                                <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-red-950 dark:text-red-300 dark:border dark:border-red-800">DNF</span>
+                                <span v-else-if="p.status === 'finished'" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-lg font-bold dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800">FINISH</span>
+                                <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
+                            </td>
+                            <td class="p-4 text-center no-print flex justify-center gap-2">
+                                <button v-if="p.status === 'finished'" @click="openMediaModal('certificate', p)" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-black text-white flex items-center justify-center transition shadow-sm dark:bg-slate-800 dark:hover:bg-slate-700" title="Generate E-Certificate">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </button>
+                                <button v-if="p.status === 'finished'" @click="openMediaModal('poster', p)" class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center transition shadow-sm" title="Generate Poster IG Story">
+                                    <i class="fa-brands fa-instagram"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             
-            <div v-if="dnfParticipants.length > 0" class="mt-8">
-                <h3 class="text-red-600 dark:text-red-400 font-bold mb-2">Did Not Finish (DNF)</h3>
-                <div class="bg-red-50 rounded-xl p-4 border border-red-200 dark:bg-red-950 dark:border-red-800">
-                    <div v-for="p in dnfParticipants" class="text-red-800 text-sm flex gap-4 dark:text-red-300 font-semibold">
-                        <span class="font-bold w-12 font-oswald">#@{{ p.bib }}</span>
-                        <span>@{{ p.name }}</span>
+            <!-- DNF Section -->
+            <div v-if="dnfParticipants.length > 0" class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 space-y-2">
+                <h3 class="text-red-700 dark:text-red-400 font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Did Not Finish (DNF) - @{{ dnfParticipants.length }} Peserta</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div v-for="p in dnfParticipants" :key="p.id" class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-red-200 dark:border-red-800 flex items-center gap-2 text-xs">
+                        <span class="font-mono font-bold text-red-600 dark:text-red-400">#@{{ p.bib }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 truncate">@{{ p.name }}</span>
                     </div>
                 </div>
             </div>
@@ -1672,6 +1805,160 @@
                     <button v-if="mediaFile && canNativeShare" @click="shareMedia" class="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors">
                         Share
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Live TV Display Screen Overlay -->
+    <div v-if="tvDisplayOpen" class="fixed inset-0 z-[200] bg-slate-950 text-white flex flex-col justify-between p-4 sm:p-8 select-none font-sans overflow-y-auto">
+        <!-- Top TV Header Bar -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800/80 gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-stopwatch text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">RuangLari Race Master Live</div>
+                    <div class="text-lg sm:text-2xl font-black text-white flex items-center gap-2">
+                        <span>@{{ raceName || 'Race Master Pro' }}</span>
+                        <span class="px-2.5 py-0.5 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-700/60 text-xs font-bold uppercase">
+                            @{{ raceCategory }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV Screen Controls: Start, Pause, Finish, Reset, Fullscreen, Close -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <!-- Start / Resume Timer -->
+                <button v-if="!timer.running" @click="startRace" 
+                    class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-lg" :title="timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer'">
+                    <i class="fa-solid fa-play text-xs"></i>
+                    <span>@{{ timer.elapsed > 0 ? 'Resume' : 'Start Timer' }}</span>
+                </button>
+
+                <!-- Pause Timer -->
+                <button v-if="timer.running" @click="pauseRace" 
+                    class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-lg" title="Pause Timer">
+                    <i class="fa-solid fa-pause text-xs"></i>
+                    <span>Pause</span>
+                </button>
+
+                <!-- Finish Sesi -->
+                <button v-if="timer.elapsed > 0" @click="finishRace" 
+                    class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-lg" title="Finish Sesi">
+                    <i class="fa-solid fa-flag-checkered text-xs"></i>
+                    <span>Finish Sesi</span>
+                </button>
+
+                <!-- Reset Timer -->
+                <button @click="resetRace" 
+                    class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center gap-1.5 transition border border-slate-700" title="Reset Total Timer">
+                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+
+                <!-- Toggle Fullscreen -->
+                <button @click="toggleTvFullscreen" 
+                    class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition border border-slate-700" title="Toggle Fullscreen">
+                    <i class="fa-solid" :class="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+                    <span class="hidden sm:inline">@{{ isFullscreen ? 'Keluar Fullscreen' : 'Fullscreen' }}</span>
+                </button>
+
+                <!-- Close TV Display -->
+                <button @click="closeTvDisplay" 
+                    class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition border border-slate-700" title="Tutup Layar TV">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span class="hidden sm:inline">Tutup</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center TV Hero: Massive Official Race Clock -->
+        <div class="my-auto py-6 text-center space-y-6">
+            <div class="space-y-1">
+                <div class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-400">Official Race Clock</div>
+                <div class="font-mono text-6xl sm:text-8xl md:text-9xl font-black text-white tracking-widest drop-shadow-2xl">
+                    @{{ formattedTime }}
+                </div>
+            </div>
+
+            <!-- 4 Summary Stat Tiles -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto">
+                <div class="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 text-center">
+                    <div class="text-[11px] font-bold text-slate-400 uppercase">Total Peserta</div>
+                    <div class="text-2xl sm:text-3xl font-mono font-black text-white mt-0.5">@{{ participants.length }}</div>
+                </div>
+                <div class="p-3.5 bg-emerald-950/80 rounded-2xl border border-emerald-700/60 text-center">
+                    <div class="text-[11px] font-bold text-emerald-400 uppercase">Sudah Finish</div>
+                    <div class="text-2xl sm:text-3xl font-mono font-black text-emerald-300 mt-0.5">@{{ finishedCount }}</div>
+                </div>
+                <div class="p-3.5 bg-indigo-950/80 rounded-2xl border border-indigo-700/60 text-center">
+                    <div class="text-[11px] font-bold text-indigo-400 uppercase">Sedang Berlari</div>
+                    <div class="text-2xl sm:text-3xl font-mono font-black text-indigo-300 mt-0.5">@{{ runningCount }}</div>
+                </div>
+                <div class="p-3.5 bg-red-950/80 rounded-2xl border border-red-700/60 text-center">
+                    <div class="text-[11px] font-bold text-red-400 uppercase">DNF</div>
+                    <div class="text-2xl sm:text-3xl font-mono font-black text-red-300 mt-0.5">@{{ dnfCount }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom TV Section: Latest Finisher + Top 5 Leaderboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-800/80">
+            <!-- Left: Latest Finisher Live Alert -->
+            <div class="p-4 sm:p-5 bg-slate-900 rounded-2xl border-2 border-emerald-500 shadow-xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Finisher Terbaru (Live)</span>
+                    </div>
+                    <span v-if="tvLatestFinisher" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                        Finish Berhasil
+                    </span>
+                </div>
+
+                <div v-if="tvLatestFinisher" class="space-y-1.5 pt-1">
+                    <div class="flex items-center gap-2.5">
+                        <span class="font-mono text-2xl sm:text-3xl font-black text-emerald-400">#@{{ tvLatestFinisher.bib }}</span>
+                        <span class="text-xl sm:text-2xl font-black text-white truncate">@{{ tvLatestFinisher.name }}</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs sm:text-sm font-mono text-slate-300">
+                        <span>Waktu: <strong class="text-white text-base">@{{ formatTime(tvLatestFinisher.totalTime) }}</strong></span>
+                        <span>• Pace: <strong class="text-white">@{{ formatPace(tvLatestFinisher) }}</strong></span>
+                    </div>
+                </div>
+                <div v-else class="text-slate-500 text-xs py-3 font-medium">
+                    Menunggu pelari pertama melintasi garis finish...
+                </div>
+            </div>
+
+            <!-- Right: Top 5 Leaderboard -->
+            <div class="p-4 sm:p-5 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Top 5 Leaderboard</div>
+                <div class="space-y-1.5">
+                    <div v-for="(p, idx) in top5Results" :key="p.id" class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-6 h-6 rounded-lg font-black flex items-center justify-center shrink-0 text-xs"
+                                :class="{
+                                    'bg-amber-500 text-slate-950': idx === 0,
+                                    'bg-slate-300 text-slate-950': idx === 1,
+                                    'bg-amber-700 text-white': idx === 2,
+                                    'bg-slate-800 text-slate-400': idx > 2
+                                }">
+                                @{{ idx + 1 }}
+                            </span>
+                            <span class="font-mono font-bold text-indigo-400">#@{{ p.bib }}</span>
+                            <span class="font-bold text-white truncate">@{{ p.name }}</span>
+                        </div>
+                        <div class="font-mono font-black text-emerald-400 shrink-0 ml-2">
+                            @{{ formatTime(p.totalTime) }}
+                        </div>
+                    </div>
+                    <div v-if="top5Results.length === 0" class="text-slate-500 text-xs py-3 font-medium">
+                        Belum ada finisher di leaderboard.
+                    </div>
                 </div>
             </div>
         </div>
@@ -1893,6 +2180,7 @@
             const selectedUnassignedFinish = ref(null);
 
             const certificatesByBib = ref({});
+            const sensorSettingsOpen = ref(false);
             const posterBackgroundFile = ref(null);
             const posterUrl = ref('');
             const posterFile = ref(null);
@@ -4516,25 +4804,34 @@
                 }
             };
 
-            onMounted(() => {
+            onMounted(async () => {
                 loadState();
                 queueLoad();
-                loadExistingRaces();
-                loadEoEvents();
+                await loadExistingRaces();
+                await loadEoEvents();
                 refreshCameraDevices();
                 window.addEventListener('keydown', onKeydown);
                 window.addEventListener('click', handleClickOutsideEo);
+                document.addEventListener('fullscreenchange', () => {
+                    isFullscreen.value = !!document.fullscreenElement;
+                });
                 loadAiModel();
 
                 // Check URL parameter ?session=XXXX for multi-device sync
                 const urlParams = new URLSearchParams(window.location.search);
                 const roomSession = urlParams.get('session');
+                const modeParam = urlParams.get('mode') || urlParams.get('view');
                 if (roomSession) {
                     sessionSlug.value = roomSession;
                     sessionRoomInput.value = roomSession;
                     joinLiveSession(roomSession);
                 } else if (sessionSlug.value || currentSessionId.value) {
                     startLiveSyncPolling();
+                }
+
+                if (modeParam === 'tv') {
+                    // Otomatis buka Layar TV fullscreen saat URL mode=tv diakses
+                    openTvDisplay();
                 }
             });
 
@@ -4760,13 +5057,80 @@
                 } catch (e) {}
             };
 
-            onMounted(async () => {
-                loadState();
-                queueLoad();
-                await loadExistingRaces();
-                await loadEoEvents();
-                checkUrlSession();
+            // TV Display State & Methods
+            const tvDisplayOpen = ref(false);
+            const isFullscreen = ref(false);
+
+            const tvLatestFinisher = computed(() => {
+                const finished = participants.value.filter(p => p.status === 'finished');
+                if (finished.length === 0) return null;
+                return [...finished].sort((a, b) => (b.lastLapTime || b.totalTime) - (a.lastLapTime || a.totalTime))[0];
             });
+
+            const finishedCount = computed(() => participants.value.filter(p => p.status === 'finished').length);
+            const runningCount = computed(() => participants.value.filter(p => p.status === 'running' || p.status === 'ready' || !p.status).length);
+            const dnfCount = computed(() => participants.value.filter(p => p.status === 'dnf').length);
+
+            const top5Results = computed(() => {
+                return sortedResults.value.filter(p => p.status === 'finished').slice(0, 5);
+            });
+
+            const toggleTvFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().then(() => {
+                        isFullscreen.value = true;
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().then(() => {
+                            isFullscreen.value = false;
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                }
+            };
+
+            const openTvDisplay = () => {
+                tvDisplayOpen.value = true;
+                try {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().then(() => {
+                            isFullscreen.value = true;
+                        }).catch(() => {});
+                    }
+                } catch(e) {}
+            };
+
+            const closeTvDisplay = () => {
+                tvDisplayOpen.value = false;
+                try {
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen().then(() => {
+                            isFullscreen.value = false;
+                        }).catch(() => {});
+                    }
+                } catch(e) {}
+            };
+
+            const copyTvDisplayUrl = async () => {
+                const slug = sessionSlug.value || currentSessionId.value;
+                if (!slug) {
+                    alert('Belum ada sesi aktif. Start race atau buat sesi terlebih dahulu.');
+                    return;
+                }
+                const origin = window.location.origin;
+                const pathname = window.location.pathname;
+                const tvUrl = `${origin}${pathname}?session=${encodeURIComponent(slug)}&mode=tv`;
+                try {
+                    await navigator.clipboard.writeText(tvUrl);
+                    alert('URL Layar TV disalin!\nBuka link ini di laptop/layar TV untuk langsung masuk ke mode fullscreen otomatis.');
+                } catch (e) {
+                    prompt('Salin link Layar TV ini:', tvUrl);
+                }
+            };
 
             return {
                 currentView, raceName, existingRaces, selectExistingRace, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
@@ -4790,10 +5154,10 @@
                 eoEvents, eoEventsLoading, selectedEoEventId, selectedEoCategoryId, importingEoParticipants, selectedEoEvent,
                 eoEventSearchQuery, eoDropdownOpen, eoAutocompleteContainer, filteredEoEvents, onEoSearchInput, selectEoEvent, clearSelectedEoEvent,
                 onEoEventChange, importEoEventParticipants,
-                cameraSettingsOpen, raceSettings,
+                cameraSettingsOpen, raceSettings, sensorSettingsOpen,
                 manualBibInput, lockedBibPrefix, detectedBibPrefixes, ambiguousRunners, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
-                tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay,
+                tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay, toggleTvFullscreen, isFullscreen, copyTvDisplayUrl,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
                 newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
                 openFaceCaptureModal, closeFaceCaptureModal, snapFaceAngle, onFacePhotoUpload, clearNewFacePhoto,
