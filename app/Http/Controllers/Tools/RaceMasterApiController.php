@@ -303,52 +303,91 @@ class RaceMasterApiController extends Controller
 
     public function upsertParticipants(Request $request, Race $race)
     {
-        $validated = $request->validate([
-            'participants' => 'required|array|min:1|max:2000',
-            'participants.*.bib_number' => 'required|string|max:32',
-            'participants.*.name' => 'required|string|max:255',
-            'participants.*.predicted_time_ms' => 'nullable|integer|min:0|max:86400000',
-            'participants.*.participant_id' => 'nullable|integer|exists:participants,id',
-        ]);
+        try {
+            $validated = $request->validate([
+                'participants' => 'required|array|min:1|max:2000',
+                'participants.*.bib_number' => 'required|string|max:32',
+                'participants.*.name' => 'required|string|max:255',
+                'participants.*.predicted_time_ms' => 'nullable|integer|min:0|max:86400000',
+                'participants.*.participant_id' => 'nullable',
+            ]);
 
-        $items = collect($validated['participants'])
-            ->map(function ($p) {
-                return [
-                    'participant_id' => $p['participant_id'] ?? null,
-                    'bib_number' => trim((string) $p['bib_number']),
-                    'name' => trim((string) $p['name']),
-                    'predicted_time_ms' => array_key_exists('predicted_time_ms', $p) ? $p['predicted_time_ms'] : null,
-                ];
-            })
-            ->filter(fn ($p) => $p['bib_number'] !== '' && $p['name'] !== '')
-            ->values();
+            $validParticipantIds = [];
+            $rawParticipantIds = collect($validated['participants'])
+                ->pluck('participant_id')
+                ->filter(fn ($id) => is_numeric($id) && (int) $id > 0)
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
 
-        $createdOrUpdated = [];
-
-        DB::transaction(function () use ($race, $items, &$createdOrUpdated) {
-            foreach ($items as $p) {
-                $row = RaceSessionParticipant::updateOrCreate(
-                    ['race_id' => $race->id, 'bib_number' => $p['bib_number']],
-                    [
-                        'participant_id' => $p['participant_id'],
-                        'name' => $p['name'],
-                        'predicted_time_ms' => $p['predicted_time_ms'],
-                    ]
-                );
-
-                $createdOrUpdated[] = [
-                    'id' => $row->id,
-                    'bib_number' => $row->bib_number,
-                    'name' => $row->name,
-                    'predicted_time_ms' => $row->predicted_time_ms,
-                ];
+            if (! empty($rawParticipantIds)) {
+                $validParticipantIds = DB::table('participants')
+                    ->whereIn('id', $rawParticipantIds)
+                    ->pluck('id')
+                    ->all();
             }
-        }, 3);
 
-        return response()->json([
-            'success' => true,
-            'participants' => $createdOrUpdated,
-        ]);
+            $items = collect($validated['participants'])
+                ->map(function ($p) use ($validParticipantIds) {
+                    $pid = isset($p['participant_id']) && is_numeric($p['participant_id']) ? (int) $p['participant_id'] : null;
+                    if ($pid && ! in_array($pid, $validParticipantIds, true)) {
+                        $pid = null;
+                    }
+
+                    return [
+                        'participant_id' => $pid,
+                        'bib_number' => trim((string) $p['bib_number']),
+                        'name' => trim((string) $p['name']),
+                        'predicted_time_ms' => array_key_exists('predicted_time_ms', $p) && is_numeric($p['predicted_time_ms']) ? (int) $p['predicted_time_ms'] : null,
+                    ];
+                })
+                ->filter(fn ($p) => $p['bib_number'] !== '' && $p['name'] !== '')
+                ->values();
+
+            $createdOrUpdated = [];
+
+            DB::transaction(function () use ($race, $items, &$createdOrUpdated) {
+                foreach ($items as $p) {
+                    $row = RaceSessionParticipant::updateOrCreate(
+                        ['race_id' => $race->id, 'bib_number' => $p['bib_number']],
+                        [
+                            'participant_id' => $p['participant_id'],
+                            'name' => $p['name'],
+                            'predicted_time_ms' => $p['predicted_time_ms'],
+                        ]
+                    );
+
+                    $createdOrUpdated[] = [
+                        'id' => $row->id,
+                        'bib_number' => $row->bib_number,
+                        'name' => $row->name,
+                        'predicted_time_ms' => $row->predicted_time_ms,
+                    ];
+                }
+            }, 3);
+
+            return response()->json([
+                'success' => true,
+                'participants' => $createdOrUpdated,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi peserta gagal: ' . implode(', ', \Illuminate\Support\Arr::flatten($ve->errors())),
+                'errors' => $ve->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('RaceMaster upsertParticipants error: ' . $e->getMessage(), [
+                'race_id' => $race->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan data peserta: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function startSession(Request $request, Race $race)
@@ -356,6 +395,7 @@ class RaceMasterApiController extends Controller
         $validated = $request->validate([
             'category' => 'nullable|string|max:100',
             'distance_km' => 'nullable|numeric|min:0.1|max:999.999',
+            'start_timer_now' => 'nullable|boolean',
         ]);
 
         $slug = null;
@@ -369,12 +409,14 @@ class RaceMasterApiController extends Controller
             }
         }
 
+        $startTimer = $request->has('start_timer_now') ? $request->boolean('start_timer_now') : true;
+
         $session = RaceSession::create([
             'race_id' => $race->id,
             'slug' => $slug,
             'category' => $validated['category'] ?? null,
             'distance_km' => isset($validated['distance_km']) ? (float) $validated['distance_km'] : null,
-            'started_at' => now(),
+            'started_at' => $startTimer ? now() : null,
             'created_by' => Auth::id(),
         ]);
 
@@ -388,6 +430,33 @@ class RaceMasterApiController extends Controller
                 'public_results_url' => $session->slug ? route('tools.race-master.results', ['slug' => $session->slug]) : null,
             ],
         ]);
+    }
+
+    public function startSessionTimer(Request $request, RaceSession $session)
+    {
+        if (! $session->started_at) {
+            $session->started_at = now();
+            $session->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'session' => [
+                'id' => $session->id,
+                'slug' => $session->slug,
+                'started_at' => $session->started_at?->toISOString(),
+            ],
+        ]);
+    }
+
+    public function publicStartSessionTimer(Request $request, $slug)
+    {
+        $session = RaceSession::query()
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
+            ->firstOrFail();
+
+        return $this->startSessionTimer($request, $session);
     }
 
     public function storeLap(Request $request, RaceSession $session)

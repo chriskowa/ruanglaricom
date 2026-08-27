@@ -274,24 +274,41 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Left: Current Active Room & Share Link -->
                     <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</div>
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</div>
+                            <button v-if="!sessionSlug && !currentSessionId" type="button" @click="initializeRaceSession(false)" :disabled="initializingSession"
+                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                <i v-if="initializingSession" class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                <i v-else class="fa-solid fa-play text-xs"></i>
+                                <span>@{{ initializingSession ? 'Menyiapkan...' : 'Buat Sesi Sekarang' }}</span>
+                            </button>
+                        </div>
+
+                        <div v-if="sessionSlug || currentSessionId" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <div class="flex-1 font-mono font-black text-sm sm:text-base px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white truncate">
-                                @{{ sessionSlug || currentSessionId || 'Belum ada sesi aktif' }}
+                                @{{ sessionSlug || currentSessionId }}
                             </div>
                             <div class="grid grid-cols-2 sm:flex items-center gap-2">
-                                <button type="button" @click="copySessionShareUrl" :disabled="!sessionSlug && !currentSessionId" 
-                                    class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
+                                <button type="button" @click="copySessionShareUrl" 
+                                    class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
                                     <i class="fa-solid fa-copy"></i>
                                     <span>Salin Sesi</span>
                                 </button>
-                                <button type="button" @click="copyTvDisplayUrl" :disabled="!sessionSlug && !currentSessionId" 
-                                    class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link yang otomatis fullscreen untuk layar TV">
+                                <button type="button" @click="copyTvDisplayUrl" 
+                                    class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link yang otomatis fullscreen untuk layar TV">
                                     <i class="fa-solid fa-tv"></i>
                                     <span>URL TV Display</span>
                                 </button>
                             </div>
                         </div>
+                        <div v-else class="text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                            <span>Sesi belum dibuat. Buat sesi terlebih dahulu untuk membagikan link ke Layar TV & Admin sebelum timer jalan.</span>
+                            <button type="button" @click="initializeRaceSession(false)" :disabled="initializingSession" 
+                                class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shrink-0">
+                                Buat Sesi
+                            </button>
+                        </div>
+
                         <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
                             <span>Link TV Display akan langsung membuka layar TV fullscreen saat dibuka.</span>
                             <button v-if="sessionSlug || currentSessionId" type="button" @click="openTvDisplay" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
@@ -879,7 +896,7 @@
                 <form @submit.prevent="recordManualBib" class="space-y-2.5">
                     <div class="flex items-center gap-2">
                         <!-- Compact Prefix Box -->
-                        <div class="w-20 sm:w-24 shrink-0 relative">
+                        <div class="w-20 sm:w-28 shrink-0 relative">
                             <input 
                                 v-model="lockedBibPrefix" 
                                 @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
@@ -887,7 +904,7 @@
                                 placeholder="Prefix" 
                                 maxlength="6"
                                 title="Prefix BIB"
-                                class="w-full px-2 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs text-center transition"
+                                class="w-full px-2 py-3.5 sm:py-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-black font-mono text-sm sm:text-base uppercase rounded-2xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs text-center transition"
                             >
                             <button 
                                 v-if="lockedBibPrefix" 
@@ -900,17 +917,18 @@
                             </button>
                         </div>
 
-                        <!-- Main BIB Number Input -->
+                        <!-- Main BIB Number Input with Large Touch Target & Mobile Numpad Keyboard -->
                         <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
-                            <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
-                                :placeholder="lockedBibPrefix ? `Ketik nomor saja (misal: 1001)...` : 'Ketik No. BIB (misal: 1001)...'" 
-                                class="w-full pl-7 pr-3 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans placeholder:text-xs transition">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-base font-bold">#</span>
+                            <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" 
+                                type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+                                :placeholder="lockedBibPrefix ? `Nomor BIB ${lockedBibPrefix}...` : 'Ketik No. BIB atau Nama...'" 
+                                class="w-full pl-9 pr-4 py-3.5 sm:py-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-black font-mono text-lg sm:text-xl rounded-2xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans placeholder:text-xs sm:placeholder:text-sm transition shadow-inner">
                         </div>
 
                         <!-- Desktop Inline Submit Button -->
                         <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
-                            class="hidden sm:flex px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 items-center justify-center gap-2">
+                            class="hidden sm:flex px-6 py-3.5 sm:py-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm rounded-2xl shadow transition shrink-0 items-center justify-center gap-2">
                             <i class="fa-solid fa-stopwatch"></i>
                             <span>Catat Finish (Enter)</span>
                         </button>
@@ -918,14 +936,35 @@
 
                     <!-- Mobile Full-Width Submit Button -->
                     <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
-                        class="sm:hidden w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition flex items-center justify-center gap-2">
+                        class="sm:hidden w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-base rounded-2xl shadow transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-stopwatch"></i>
                         <span>Catat Finish (Enter)</span>
                     </button>
                 </form>
 
-                <!-- Live Runner Match Preview & Ambiguity Warning -->
-                <div v-if="liveMatchedRunner" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
+                <!-- Flexible Live Suggestions List (Quick Tap to Finish) -->
+                <div v-if="quickBibSuggestions.length > 0" class="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 animate-fade-in">
+                    <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1 flex items-center justify-between">
+                        <span>Hasil Pencarian Peserta (@{{ quickBibSuggestions.length }}):</span>
+                        <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Tap nama untuk langsung catat</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button v-for="p in quickBibSuggestions" :key="p.id" type="button" @click="selectSuggestion(p)"
+                            class="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition text-left text-xs shadow-sm active:scale-[0.98]">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">#@{{ p.bib }}</span>
+                                <span class="font-bold text-slate-900 dark:text-white truncate">@{{ p.name }}</span>
+                            </div>
+                            <span class="text-[10px] font-mono shrink-0 ml-2 font-bold px-2 py-0.5 rounded-lg"
+                                :class="p.status === 'finished' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800' : (p.status === 'dnf' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border border-red-300 dark:border-red-800' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800')">
+                                @{{ p.status === 'finished' ? formatTime(p.totalTime) : (p.status === 'dnf' ? 'DNF' : 'Berlari') }}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Runner Match Preview (When exact/single candidate matched) -->
+                <div v-else-if="liveMatchedRunner" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
                     <div class="flex items-center gap-1.5 truncate">
                         <span class="text-slate-400">Cocok:</span>
                         <span class="font-bold text-slate-900 dark:text-white truncate">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
@@ -2750,24 +2789,30 @@
             const syncParticipantsToDb = async () => {
                 if (!currentRaceId.value) return;
                 if (!participants.value.length) return;
-                const payload = {
-                    participants: participants.value.map(p => ({
-                        bib_number: String(p.bib ?? '').trim(),
-                        name: String(p.name ?? '').trim(),
-                        predicted_time_ms: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
-                    })),
-                };
-                await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}/participants/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
+                try {
+                    const payload = {
+                        participants: participants.value.map(p => ({
+                            bib_number: String(p.bib ?? '').trim(),
+                            name: String(p.name ?? '').trim(),
+                            predicted_time_ms: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
+                        })),
+                    };
+                    await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}/participants/bulk`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                } catch (e) {
+                    console.warn('Sync participants notice:', e?.message);
+                }
             };
 
-            const ensureSessionInDb = async () => {
+            const ensureSessionInDb = async (startTimerNow = false) => {
                 if (!currentRaceId.value) return null;
                 if (currentSessionId.value) return currentSessionId.value;
-                const payload = {};
+                const payload = {
+                    start_timer_now: startTimerNow
+                };
                 const category = String(raceCategory.value || '').trim();
                 if (category) payload.category = category;
                 const dist = String(raceDistanceKm.value || '').trim();
@@ -2775,14 +2820,37 @@
 
                 const data = await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}/sessions`, {
                     method: 'POST',
-                    headers: Object.keys(payload).length ? { 'Content-Type': 'application/json' } : undefined,
-                    body: Object.keys(payload).length ? JSON.stringify(payload) : undefined,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
                 });
                 currentSessionId.value = data?.session?.id || null;
                 sessionSlug.value = data?.session?.slug || sessionSlug.value;
                 publicResultsUrl.value = data?.session?.public_results_url || publicResultsUrl.value;
                 saveState();
                 return currentSessionId.value;
+            };
+
+            const initializingSession = ref(false);
+
+            const initializeRaceSession = async (startTimerNow = false) => {
+                if (initializingSession.value) return;
+                initializingSession.value = true;
+                try {
+                    const nameTrim = String(raceName.value || '').trim();
+                    if (!nameTrim) raceName.value = `Race ${raceCategory.value}`;
+                    await ensureRaceInDb();
+                    await syncParticipantsToDb();
+                    await ensureSessionInDb(startTimerNow);
+                    startLiveSyncPolling();
+                    if (!startTimerNow) {
+                        alert('Sesi Balap Berhasil Dibuat!\n\nLink Sesi dan URL TV Display sekarang sudah aktif dan siap dibagikan.\nTimer belum berjalan (00:00:00). Anda dapat menekan "Start Timer" kapan pun lomba dimulai.');
+                    }
+                } catch (e) {
+                    console.error('Initialize session error:', e);
+                    alert(e?.message || 'Gagal menyiapkan sesi balap.');
+                } finally {
+                    initializingSession.value = false;
+                }
             };
 
             const parseTimeInputToMs = (raw) => {
@@ -3201,39 +3269,53 @@
                 saveState();
             });
 
-            // Timer Logic
+            // Timer Logic - Starts INSTANTLY with zero delay (0ms)
             const startRace = () => {
                 if (!timer.value.running) {
-                    Promise.resolve()
-                        .then(async () => {
+                    const now = Date.now();
+                    timer.value.startTime = now - timer.value.elapsed;
+                    timer.value.running = true;
+                    timer.value.paused = false;
+                    if (timer.value.interval) clearInterval(timer.value.interval);
+                    timer.value.interval = setInterval(() => {
+                        timer.value.elapsed = Date.now() - timer.value.startTime;
+                    }, 50); // 50ms update rate
+
+                    if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
+                    queueFlushInterval.value = setInterval(() => {
+                        queueFlush();
+                    }, 2000);
+
+                    participants.value.forEach(p => {
+                        if (p.status === 'ready' || !p.status) p.status = 'running';
+                    });
+                    saveState();
+
+                    // Background async sync (does NOT block or delay timer)
+                    (async () => {
+                        try {
                             const nameTrim = String(raceName.value || '').trim();
                             if (!nameTrim) raceName.value = `Race ${raceCategory.value}`;
                             await ensureRaceInDb();
                             await syncParticipantsToDb();
-                            await ensureSessionInDb();
-                        })
-                        .then(() => {
-                            const now = Date.now();
-                            timer.value.startTime = now - timer.value.elapsed;
-                            timer.value.running = true;
-                            timer.value.paused = false;
-                            if (timer.value.interval) clearInterval(timer.value.interval);
-                            timer.value.interval = setInterval(() => {
-                                timer.value.elapsed = Date.now() - timer.value.startTime;
-                            }, 50); // 50ms update rate
+                            await ensureSessionInDb(true);
 
-                            if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
-                            queueFlushInterval.value = setInterval(() => {
-                                queueFlush();
-                            }, 2000);
-
-                            participants.value.forEach(p => {
-                                if (p.status === 'ready') p.status = 'running';
-                            });
-                            saveState();
+                            // If session already existed, tell backend timer has started
+                            const slug = sessionSlug.value || currentSessionId.value;
+                            if (slug) {
+                                try {
+                                    await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(slug))}/start-timer`, { method: 'POST' });
+                                } catch (e) {
+                                    try {
+                                        await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(slug))}/start-timer`, { method: 'POST' });
+                                    } catch (_) {}
+                                }
+                            }
                             startLiveSyncPolling();
-                        })
-                        .catch((e) => alert(e?.message || 'Gagal simpan race ke database.'));
+                        } catch (e) {
+                            console.warn('Background sync on timer start:', e);
+                        }
+                    })();
                 }
             };
 
@@ -3707,19 +3789,56 @@
                     if (foundPrefixed) return foundPrefixed;
                 }
 
-                // 4. Suffix / Number match fallback
+                // 4. Flexible candidate matching (starts with, includes digits, or prefix)
                 const rawDigits = cleanRaw.replace(/\D/g, '');
-                if (rawDigits.length >= 1) {
-                    const candidates = participants.value.filter(p => {
-                        const bibUpper = String(p.bib).trim().toUpperCase();
-                        if (cleanPrefix && !bibUpper.replace(/[-_\s]/g, '').startsWith(cleanPrefix)) return false;
-                        const bDigits = bibUpper.replace(/\D/g, '');
-                        return bDigits === rawDigits || bDigits.endsWith(rawDigits);
-                    });
-                    if (candidates.length === 1) return candidates[0];
+                const candidates = participants.value.filter(p => {
+                    const bibUpper = String(p.bib).trim().toUpperCase();
+                    if (cleanPrefix && !bibUpper.replace(/[-_\s]/g, '').startsWith(cleanPrefix)) return false;
+                    const bDigits = bibUpper.replace(/\D/g, '');
+                    if (rawDigits && (bDigits === rawDigits || bDigits.startsWith(rawDigits) || bDigits.endsWith(rawDigits))) return true;
+                    return bibUpper.startsWith(cleanRaw.toUpperCase()) || bibUpper.includes(cleanRaw.toUpperCase());
+                });
+
+                if (candidates.length === 1) return candidates[0];
+
+                // If multiple candidates, check for exact digit match
+                if (rawDigits) {
+                    const exactDigit = candidates.find(p => String(p.bib).trim().replace(/\D/g, '') === rawDigits);
+                    if (exactDigit) return exactDigit;
                 }
 
                 return null;
+            };
+
+            const quickBibSuggestions = computed(() => {
+                const raw = String(manualBibInput.value || '').trim();
+                if (!raw) return [];
+                const cleanPrefix = String(lockedBibPrefix.value || '').trim().toUpperCase();
+                const queryUpper = raw.toUpperCase();
+                const digitsOnly = raw.replace(/\D/g, '');
+
+                return participants.value.filter(p => {
+                    const bUpper = String(p.bib).trim().toUpperCase();
+                    const nUpper = String(p.name).toUpperCase();
+                    const bDigits = bUpper.replace(/\D/g, '');
+
+                    if (cleanPrefix && !bUpper.replace(/[-_\s]/g, '').startsWith(cleanPrefix)) {
+                        return false;
+                    }
+
+                    return bUpper === queryUpper ||
+                           bUpper.startsWith(queryUpper) ||
+                           (digitsOnly && bDigits.startsWith(digitsOnly)) ||
+                           (digitsOnly && bDigits.includes(digitsOnly)) ||
+                           bUpper.includes(queryUpper) ||
+                           nUpper.includes(queryUpper);
+                }).slice(0, 6);
+            });
+
+            const selectSuggestion = (p) => {
+                if (!p) return;
+                manualBibInput.value = p.bib;
+                recordManualBib();
             };
 
             const liveMatchedRunner = computed(() => {
@@ -5123,6 +5242,7 @@
                 onEoEventChange, importEoEventParticipants,
                 cameraSettingsOpen, raceSettings, sensorSettingsOpen,
                 manualBibInput, lockedBibPrefix, detectedBibPrefixes, ambiguousRunners, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
+                quickBibSuggestions, selectSuggestion,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay, toggleTvFullscreen, isFullscreen, copyTvDisplayUrl,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
@@ -5134,6 +5254,7 @@
                 setLinePreset, switchCameraDevice, switchCameraMode,
                 sessionRoomInput, sessionSyncActive, sessionSyncLastUpdated, sessionSyncError,
                 copySessionShareUrl, joinLiveSession, startLiveSyncPolling,
+                initializingSession, initializeRaceSession,
                 openAssignBibModal, confirmAssignBib
             };
         }

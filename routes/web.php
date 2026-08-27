@@ -214,6 +214,7 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/races/{race}/sessions', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSession'])->name('tools.race-master.api.races.sessions.start');
     Route::post('/sessions/{session}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLap'])->name('tools.race-master.api.sessions.laps.store');
     Route::post('/sessions/{session}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLapsBulk'])->name('tools.race-master.api.sessions.laps.bulk');
+    Route::post('/sessions/{session}/start-timer', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSessionTimer'])->name('tools.race-master.api.sessions.start-timer');
     Route::post('/sessions/{session}/finish', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'finishSession'])->name('tools.race-master.api.sessions.finish');
     Route::post('/sessions/{session}/certificates', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateCertificates'])->name('tools.race-master.api.sessions.certificates.generate');
     Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
@@ -224,6 +225,7 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
 Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
     Route::get('/{slug}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.public.live-sync');
+    Route::post('/{slug}/start-timer', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStartSessionTimer'])->name('tools.race-master.api.public.start-timer');
     Route::post('/{slug}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLap'])->name('tools.race-master.api.public.laps.store');
     Route::post('/{slug}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLapsBulk'])->name('tools.race-master.api.public.laps.bulk');
     Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
