@@ -1318,10 +1318,11 @@ class RaceMasterApiController extends Controller
         $ms = max(0, $ms);
         $cs = (int) floor(($ms % 1000) / 10);
         $totalSeconds = (int) floor($ms / 1000);
-        $minutes = intdiv($totalSeconds, 60);
+        $hours = intdiv($totalSeconds, 3600);
+        $minutes = intdiv($totalSeconds % 3600, 60);
         $seconds = $totalSeconds % 60;
 
-        return sprintf('%d:%02d.%02d', $minutes, $seconds, $cs);
+        return sprintf('%02d:%02d:%02d.%02d', $hours, $minutes, $seconds, $cs);
     }
 
     private function storeLogo($file): string

@@ -1361,19 +1361,19 @@ class CalendarController extends Controller
         if ($feeling || $notes) {
             try {
                 $today = now()->toDateString();
-                $enrollment = \App\Models\ProgramEnrollment::where('user_id', $user->id)
+                $enrollment = \App\Models\ProgramEnrollment::where('runner_id', $user->id)
                     ->whereIn('status', ['active', 'in_progress'])
                     ->latest()
                     ->first();
 
-                if ($enrollment) {
+                if ($enrollment && $enrollment->start_date) {
+                    $sessionDay = max(1, (int) $enrollment->start_date->diffInDays(now()->startOfDay()) + 1);
                     $tracking = \App\Models\ProgramSessionTracking::firstOrNew([
-                        'program_enrollment_id' => $enrollment->id,
-                        'date' => $today,
+                        'enrollment_id' => $enrollment->id,
+                        'session_day' => $sessionDay,
                     ]);
-                    $tracking->user_id = $user->id;
                     if ($feeling) $tracking->feeling = $feeling;
-                    if ($notes) $tracking->runner_notes = $notes;
+                    if ($notes) $tracking->notes = $notes;
                     $tracking->save();
                 }
             } catch (\Exception $e) {

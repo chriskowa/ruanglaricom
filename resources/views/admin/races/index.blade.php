@@ -15,8 +15,12 @@
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">RACE MANAGEMENT</h1>
                 <p class="text-slate-400 mt-1">CRUD race, link hasil, dan manage participant.</p>
             </div>
-            <div class="flex gap-3 w-full md:w-auto">
-                <a href="{{ route('admin.races.create') }}" class="w-full md:w-auto inline-flex justify-center items-center px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-all">
+            <div class="flex gap-2.5 w-full md:w-auto flex-wrap">
+                <a href="{{ route('admin.race-sessions.index') }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2.5 rounded-xl text-sm font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all">
+                    <i class="fa-solid fa-stopwatch mr-2 text-xs"></i>
+                    Manajemen Sesi Balap
+                </a>
+                <a href="{{ route('admin.races.create') }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-all">
                     <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                     New Race
                 </a>

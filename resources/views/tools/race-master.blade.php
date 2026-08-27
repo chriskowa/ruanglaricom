@@ -122,21 +122,21 @@
         </div>
 
         <!-- Center: Giant Race Clock + Live Finisher Hero Flash -->
-        <div class="flex-1 flex flex-col items-center justify-center my-auto py-6 relative">
+        <div class="flex-1 flex flex-col items-center justify-center my-auto py-4 sm:py-6 relative w-full overflow-hidden">
             
             <!-- Main Giant Clock -->
-            <div class="text-center">
-                <div class="text-xs sm:text-sm font-bold uppercase tracking-[0.3em] text-slate-400 mb-3">
+            <div class="text-center w-full max-w-full px-2 sm:px-4">
+                <div class="text-xs sm:text-sm md:text-base font-bold uppercase tracking-[0.35em] text-slate-400 mb-2 sm:mb-4">
                     OFFICIAL RACE TIME
                 </div>
-                <div class="font-mono-numbers text-7xl sm:text-8xl md:text-9xl lg:text-[11rem] font-black text-white tracking-wider leading-none py-2">
+                <div class="font-mono-numbers font-black text-white tracking-tight sm:tracking-normal md:tracking-wider leading-none select-none" style="font-size: clamp(4.2rem, 13vw, 17rem); line-height: 0.95;">
                     @{{ formattedTime }}
                 </div>
             </div>
 
             <!-- Realtime Finisher Flash Hero Overlay (appears on crossing) -->
             <transition enter-active-class="transition duration-300 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-200 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-                <div v-if="tvLatestFinisher" class="absolute inset-x-4 max-w-3xl mx-auto p-6 rounded-3xl bg-slate-900 border-2 border-emerald-500 shadow-2xl text-center animate-fade-in" style="background-color: #0f172a !important;">
+                <div v-if="tvLatestFinisher" class="absolute inset-x-4 max-w-3xl mx-auto p-6 rounded-3xl bg-slate-900 border-2 border-emerald-500 shadow-2xl text-center animate-fade-in z-20" style="background-color: #0f172a !important;">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-600">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         BARU SAJA FINISH
@@ -157,7 +157,6 @@
         <div class="border-t border-slate-800 pt-5">
             <div class="flex items-center justify-between mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
                     <span>Top 5 Finisher Leaderboard</span>
                 </div>
                 <div class="text-[11px] font-mono text-slate-400">Live Auto-Update</div>
@@ -330,14 +329,64 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 relative" ref="eoAutocompleteContainer">
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1 dark:text-slate-400">Pilih Event EO</label>
-                        <select v-model="selectedEoEventId" @change="onEoEventChange" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
-                            <option value="">-- Pilih Event Anda --</option>
-                            <option v-for="ev in eoEvents" :key="ev.id" :value="ev.id">
-                                @{{ ev.name }} (@{{ ev.start_at || 'Belum ada tanggal' }})
-                            </option>
-                        </select>
+                        <div class="relative">
+                            <div class="relative flex items-center">
+                                <input 
+                                    v-model="eoEventSearchQuery"
+                                    @focus="eoDropdownOpen = true"
+                                    @input="onEoSearchInput"
+                                    type="text" 
+                                    placeholder="Ketik untuk mencari event EO..." 
+                                    class="w-full p-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-sm dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors"
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    v-if="selectedEoEventId || eoEventSearchQuery" 
+                                    type="button" 
+                                    @click="clearSelectedEoEvent"
+                                    class="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1"
+                                    title="Hapus pilihan"
+                                >
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                                <div v-else class="absolute right-3 text-slate-400 pointer-events-none text-xs">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                            </div>
+
+                            <!-- Autocomplete Dropdown List -->
+                            <div 
+                                v-if="eoDropdownOpen" 
+                                class="absolute z-50 left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl divide-y divide-slate-100 dark:divide-slate-800"
+                            >
+                                <div 
+                                    v-for="ev in filteredEoEvents" 
+                                    :key="ev.id" 
+                                    @click="selectEoEvent(ev)"
+                                    class="p-3 hover:bg-indigo-50 dark:hover:bg-slate-800 cursor-pointer transition flex items-center justify-between gap-2"
+                                    :class="{'bg-indigo-50 dark:bg-slate-800 font-bold text-indigo-700 dark:text-indigo-400': selectedEoEventId == ev.id}"
+                                >
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                            @{{ ev.name }}
+                                        </div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                            <span>Tanggal: @{{ ev.start_at || 'Belum ada tanggal' }}</span>
+                                            <span v-if="ev.location">• @{{ ev.location }}</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="ev.categories && ev.categories.length" class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
+                                        @{{ ev.categories.length }} Kategori
+                                    </div>
+                                </div>
+
+                                <div v-if="filteredEoEvents.length === 0" class="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
+                                    Tidak ada event yang sesuai dengan pencarian "@{{ eoEventSearchQuery }}".
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div v-if="selectedEoEvent">
@@ -633,9 +682,9 @@
 
                 <div class="flex items-center gap-2 flex-wrap justify-center md:justify-end">
                     <button v-if="!timer.running" @click="startRace" 
-                        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Start/Resume Timer">
+                        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" :title="timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer'">
                         <i class="fa-solid fa-play text-xs"></i>
-                        <span>Start Timer</span>
+                        <span>@{{ timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer' }}</span>
                     </button>
                     <button v-if="timer.running" @click="pauseRace" 
                         class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 transition shadow-sm" title="Pause Timer">
@@ -1001,8 +1050,128 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 pt-4">
-                <div v-for="p in activeParticipants" :key="p.id" 
+            <!-- Race Tab Quick Search, Status Filter & View Controls -->
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 transition-colors">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input 
+                            v-model="raceSearchQuery" 
+                            type="text" 
+                            placeholder="Cari No. BIB atau Nama pelari..." 
+                            class="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                        >
+                        <button 
+                            v-if="raceSearchQuery" 
+                            type="button" 
+                            @click="raceSearchQuery = ''" 
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                            title="Hapus pencarian"
+                        >
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Status Filter Tabs -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button 
+                            type="button" 
+                            @click="raceStatusFilter = 'on_track'"
+                            :class="raceStatusFilter === 'on_track' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-3 py-2 rounded-xl text-xs transition border border-transparent dark:border-slate-700 flex items-center gap-1.5"
+                        >
+                            <span>On Track</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10px] bg-black/20 font-mono">@{{ runningCount }}</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="raceStatusFilter = 'finished'"
+                            :class="raceStatusFilter === 'finished' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-3 py-2 rounded-xl text-xs transition border border-transparent dark:border-slate-700 flex items-center gap-1.5"
+                        >
+                            <span>Sudah Finish</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10px] bg-black/20 font-mono">@{{ finishedCount }}</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            @click="raceStatusFilter = 'all'"
+                            :class="raceStatusFilter === 'all' ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950 font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-3 py-2 rounded-xl text-xs transition border border-transparent dark:border-slate-700 flex items-center gap-1.5"
+                        >
+                            <span>Semua</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10px] bg-black/20 font-mono">@{{ participants.length }}</span>
+                        </button>
+
+                        <button 
+                            v-if="dnfCount > 0"
+                            type="button" 
+                            @click="raceStatusFilter = 'dnf'"
+                            :class="raceStatusFilter === 'dnf' ? 'bg-red-600 text-white font-bold shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                            class="px-3 py-2 rounded-xl text-xs transition border border-transparent dark:border-slate-700 flex items-center gap-1.5"
+                        >
+                            <span>DNF</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10px] bg-black/20 font-mono">@{{ dnfCount }}</span>
+                        </button>
+                    </div>
+
+                    <!-- View Switcher & Page Size Selector -->
+                    <div class="flex items-center gap-2">
+                        <!-- Grid vs Table View -->
+                        <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
+                            <button 
+                                type="button" 
+                                @click="raceViewMode = 'grid'" 
+                                :class="raceViewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'" 
+                                class="px-2.5 py-1 rounded-lg text-xs transition" 
+                                title="Tampilan Kartu Grid"
+                            >
+                                <i class="fa-solid fa-grip"></i>
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="raceViewMode = 'table'" 
+                                :class="raceViewMode === 'table' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'" 
+                                class="px-2.5 py-1 rounded-lg text-xs transition" 
+                                title="Tampilan Tabel Ringkas"
+                            >
+                                <i class="fa-solid fa-list"></i>
+                            </button>
+                        </div>
+
+                        <!-- Per Page Selector -->
+                        <select 
+                            v-model.number="racePageSize" 
+                            class="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 outline-none"
+                        >
+                            <option :value="24">24 / hal</option>
+                            <option :value="48">48 / hal</option>
+                            <option :value="96">96 / hal</option>
+                            <option :value="9999">Semua</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Info Subtext -->
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+                    <div>
+                        Menampilkan <strong class="text-slate-900 dark:text-white">@{{ paginatedRaceParticipants.length }}</strong> dari <strong class="text-slate-900 dark:text-white">@{{ filteredRaceParticipants.length }}</strong> pelari
+                        <span v-if="raceSearchQuery"> (difilter dari "@{{ raceSearchQuery }}")</span>
+                    </div>
+                    <div v-if="raceTotalPages > 1" class="font-mono">
+                        Hal @{{ raceCurrentPage }} / @{{ raceTotalPages }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode 1: Grid Cards -->
+            <div v-if="raceViewMode === 'grid' && paginatedRaceParticipants.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 pt-2">
+                <div v-for="p in paginatedRaceParticipants" :key="p.id" 
                      class="relative bg-white dark:bg-[#0c121e] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all duration-200 cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-500 group select-none overflow-hidden"
                      :class="{'border-indigo-500 ring-2 ring-indigo-500/30': p.recentlyScanned}"
                      @click="recordLap(p.id, 'manual')">
@@ -1043,8 +1212,117 @@
                 </div>
             </div>
 
-            <div class="mt-8 text-center text-slate-400 text-sm">
-                Klik kartu untuk tambah lap manual, atau gunakan kamera QR Scanner.
+            <!-- Mode 2: Compact Table View (Super fast for 500+ runners) -->
+            <div v-if="raceViewMode === 'table' && paginatedRaceParticipants.length > 0" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm pt-2">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase font-bold text-[11px]">
+                            <tr>
+                                <th class="p-3">BIB</th>
+                                <th class="p-3">Nama Pelari</th>
+                                <th class="p-3 text-center">Laps</th>
+                                <th class="p-3 text-right">Waktu Terakhir</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Aksi Cepat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr v-for="p in paginatedRaceParticipants" :key="p.id" 
+                                class="hover:bg-indigo-50/40 dark:hover:bg-slate-800/60 transition-colors"
+                                :class="{'bg-indigo-50/60 dark:bg-indigo-950/30': p.recentlyScanned}">
+                                <td class="p-3 font-oswald font-bold text-base text-slate-900 dark:text-white">
+                                    #@{{ p.bib }}
+                                </td>
+                                <td class="p-3 font-semibold text-slate-800 dark:text-slate-200">
+                                    @{{ p.name }}
+                                </td>
+                                <td class="p-3 text-center">
+                                    <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+                                        @{{ p.laps.length }}
+                                    </span>
+                                </td>
+                                <td class="p-3 text-right font-mono font-bold text-slate-700 dark:text-slate-300">
+                                    @{{ getLastLapTime(p) }}
+                                </td>
+                                <td class="p-3 text-center">
+                                    <span v-if="p.status === 'dnf'" class="px-2 py-0.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-bold text-[10px]">DNF</span>
+                                    <span v-else-if="p.status === 'finished'" class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[10px]">FINISH</span>
+                                    <span v-else class="px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-bold text-[10px]">ON TRACK</span>
+                                </td>
+                                <td class="p-3 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button type="button" @click="recordLap(p.id, 'manual')" 
+                                            class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-1 shadow-sm"
+                                            title="Catat Lap / Finish">
+                                            <i class="fa-solid fa-plus text-[10px]"></i>
+                                            <span>Lap</span>
+                                        </button>
+                                        <button v-if="p.status !== 'dnf'" type="button" @click="markDNF(p.id)" 
+                                            class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition text-xs"
+                                            title="Tandai DNF">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="paginatedRaceParticipants.length === 0" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center text-slate-400">
+                <div class="text-sm font-semibold">Tidak ada pelari yang cocok dengan filter atau pencarian.</div>
+                <button v-if="raceSearchQuery || raceStatusFilter !== 'all'" type="button" @click="raceSearchQuery = ''; raceStatusFilter = 'all'" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 font-bold underline">
+                    Reset Filter & Pencarian
+                </button>
+            </div>
+
+            <!-- Pagination Controls Bar -->
+            <div v-if="raceTotalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                    Menampilkan halaman <strong class="text-slate-900 dark:text-white">@{{ raceCurrentPage }}</strong> dari <strong class="text-slate-900 dark:text-white">@{{ raceTotalPages }}</strong>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button 
+                        type="button" 
+                        @click="prevRacePage" 
+                        :disabled="raceCurrentPage <= 1" 
+                        class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1"
+                    >
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        <span>Sebelumnya</span>
+                    </button>
+
+                    <!-- Page Number Buttons -->
+                    <template v-for="page in raceTotalPages" :key="page">
+                        <button 
+                            v-if="page === 1 || page === raceTotalPages || (page >= raceCurrentPage - 2 && page <= raceCurrentPage + 2)"
+                            type="button" 
+                            @click="setRacePage(page)" 
+                            :class="raceCurrentPage === page ? 'bg-indigo-600 text-white font-black' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'" 
+                            class="w-8 h-8 rounded-xl text-xs font-bold transition flex items-center justify-center"
+                        >
+                            @{{ page }}
+                        </button>
+                        <span v-else-if="page === raceCurrentPage - 3 || page === raceCurrentPage + 3" class="px-1 text-slate-400 text-xs">...</span>
+                    </template>
+
+                    <button 
+                        type="button" 
+                        @click="nextRacePage" 
+                        :disabled="raceCurrentPage >= raceTotalPages" 
+                        class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1"
+                    >
+                        <span>Berikutnya</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center text-slate-400 text-xs">
+                Klik kartu atau tombol Lap untuk catat waktu manual, atau gunakan kamera Line-Crossing / Numpad Spotter.
             </div>
         </div>
 
@@ -1427,6 +1705,7 @@
             // Timer
             const timer = ref({
                 running: false,
+                paused: false,
                 startTime: null,
                 elapsed: 0,
                 interval: null
@@ -1730,7 +2009,50 @@
                 }
             };
 
-            // EO Events Integration
+            // EO Events Integration & Autocomplete
+            const eoEventSearchQuery = ref('');
+            const eoDropdownOpen = ref(false);
+            const eoAutocompleteContainer = ref(null);
+
+            const filteredEoEvents = computed(() => {
+                const q = (eoEventSearchQuery.value || '').trim().toLowerCase();
+                if (!q) return eoEvents.value;
+                return eoEvents.value.filter(e => {
+                    const name = (e.name || '').toLowerCase();
+                    const startAt = (e.start_at || '').toLowerCase();
+                    const loc = (e.location || '').toLowerCase();
+                    return name.includes(q) || startAt.includes(q) || loc.includes(q);
+                });
+            });
+
+            const onEoSearchInput = () => {
+                eoDropdownOpen.value = true;
+                if (!eoEventSearchQuery.value) {
+                    selectedEoEventId.value = '';
+                }
+            };
+
+            const selectEoEvent = (ev) => {
+                if (!ev) return;
+                selectedEoEventId.value = ev.id;
+                eoEventSearchQuery.value = `${ev.name}${ev.start_at ? ' (' + ev.start_at + ')' : ''}`;
+                eoDropdownOpen.value = false;
+                onEoEventChange();
+            };
+
+            const clearSelectedEoEvent = () => {
+                selectedEoEventId.value = '';
+                eoEventSearchQuery.value = '';
+                selectedEoCategoryId.value = 'all';
+                eoDropdownOpen.value = false;
+            };
+
+            const handleClickOutsideEo = (e) => {
+                if (eoAutocompleteContainer.value && !eoAutocompleteContainer.value.contains(e.target)) {
+                    eoDropdownOpen.value = false;
+                }
+            };
+
             const selectedEoEvent = computed(() => {
                 return eoEvents.value.find(e => e.id == selectedEoEventId.value) || null;
             });
@@ -1742,6 +2064,12 @@
                     const data = await apiFetchJson(`${apiBase}/eo-events`);
                     if (data && data.events) {
                         eoEvents.value = data.events;
+                        if (selectedEoEventId.value) {
+                            const found = data.events.find(e => e.id == selectedEoEventId.value);
+                            if (found && !eoEventSearchQuery.value) {
+                                eoEventSearchQuery.value = `${found.name}${found.start_at ? ' (' + found.start_at + ')' : ''}`;
+                            }
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to load EO events:', e);
@@ -2466,6 +2794,8 @@
                             const now = Date.now();
                             timer.value.startTime = now - timer.value.elapsed;
                             timer.value.running = true;
+                            timer.value.paused = false;
+                            if (timer.value.interval) clearInterval(timer.value.interval);
                             timer.value.interval = setInterval(() => {
                                 timer.value.elapsed = Date.now() - timer.value.startTime;
                             }, 50); // 50ms update rate
@@ -2565,6 +2895,7 @@
                         const now = Date.now();
                         timer.value.startTime = data.session.started_at_ms;
                         timer.value.elapsed = Math.max(0, now - data.session.started_at_ms);
+                        timer.value.paused = false;
                         if (!timer.value.running) {
                             timer.value.running = true;
                             if (timer.value.interval) clearInterval(timer.value.interval);
@@ -2574,7 +2905,9 @@
                         }
                     } else if (data.session.ended_at) {
                         timer.value.running = false;
+                        timer.value.paused = true;
                         if (timer.value.interval) clearInterval(timer.value.interval);
+                        timer.value.interval = null;
                         timer.value.elapsed = data.session.elapsed_ms || 0;
                     }
 
@@ -2611,10 +2944,10 @@
                         if (data && data.success) {
                             sessionSyncLastUpdated.value = new Date().toLocaleTimeString();
                             
-                            // Clock Sync
+                            // Clock Sync (Only start if not running and not paused)
                             if (data.session.is_running && data.session.started_at_ms) {
-                                timer.value.startTime = data.session.started_at_ms;
-                                if (!timer.value.running) {
+                                if (!timer.value.running && !timer.value.paused) {
+                                    timer.value.startTime = data.session.started_at_ms;
                                     timer.value.running = true;
                                     if (timer.value.interval) clearInterval(timer.value.interval);
                                     timer.value.interval = setInterval(() => {
@@ -2623,7 +2956,9 @@
                                 }
                             } else if (data.session.ended_at && timer.value.running) {
                                 timer.value.running = false;
+                                timer.value.paused = true;
                                 if (timer.value.interval) clearInterval(timer.value.interval);
+                                timer.value.interval = null;
                                 timer.value.elapsed = data.session.elapsed_ms;
                             }
 
@@ -2666,9 +3001,11 @@
             };
 
             const pauseRace = () => {
-                if (timer.value.running) {
-                    clearInterval(timer.value.interval);
+                if (timer.value.running || !timer.value.paused) {
+                    if (timer.value.interval) clearInterval(timer.value.interval);
+                    timer.value.interval = null;
                     timer.value.running = false;
+                    timer.value.paused = true;
                     if (queueFlushInterval.value) {
                         clearInterval(queueFlushInterval.value);
                         queueFlushInterval.value = null;
@@ -2714,8 +3051,29 @@
 
             const resetRace = () => {
                 if (confirm('Reset timer dan semua hasil?')) {
-                    pauseRace();
+                    if (timer.value.interval) clearInterval(timer.value.interval);
+                    timer.value.interval = null;
+                    timer.value.running = false;
+                    timer.value.paused = false;
                     timer.value.elapsed = 0;
+                    timer.value.startTime = null;
+
+                    if (queueFlushInterval.value) {
+                        clearInterval(queueFlushInterval.value);
+                        queueFlushInterval.value = null;
+                    }
+
+                    if (sessionSyncTimer) {
+                        clearInterval(sessionSyncTimer);
+                        sessionSyncTimer = null;
+                    }
+                    sessionSyncActive.value = false;
+                    sessionSlug.value = '';
+                    currentSessionId.value = null;
+                    currentRaceId.value = null;
+                    publicResultsUrl.value = '';
+                    sessionRoomInput.value = '';
+
                     maxSyncedLapId.value = 0;
                     lastSeenLapIdSet.clear();
                     participants.value.forEach(p => {
@@ -2725,8 +3083,6 @@
                         p.recentlyScanned = false;
                         p.lastScanTime = 0;
                     });
-                    currentRaceId.value = null;
-                    currentSessionId.value = null;
                     raceLogoUrl.value = '';
                     certificatesByBib.value = {};
                     if (raceLogoPreviewUrl.value && raceLogoPreviewUrl.value.startsWith('blob:')) {
@@ -2750,11 +3106,19 @@
             });
 
             const formatTime = (ms) => {
-                const date = new Date(ms);
-                const m = date.getUTCHours() * 60 + date.getUTCMinutes();
-                const s = date.getUTCSeconds();
-                const cs = Math.floor(date.getUTCMilliseconds() / 10);
-                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${cs.toString().padStart(2, '0')}`;
+                if (!ms || ms < 0 || isNaN(ms)) return '00:00:00.00';
+                const totalSeconds = Math.floor(ms / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                const centiseconds = Math.floor((ms % 1000) / 10);
+
+                const hStr = hours.toString().padStart(2, '0');
+                const mStr = minutes.toString().padStart(2, '0');
+                const sStr = seconds.toString().padStart(2, '0');
+                const csStr = centiseconds.toString().padStart(2, '0');
+
+                return `${hStr}:${mStr}:${sStr}.${csStr}`;
             };
 
             const formatPace = (p) => {
@@ -3134,7 +3498,7 @@
                 }
             };
 
-            // AI Model Loader (COCO-SSD with MobileNet)
+            // AI Model Loader (COCO-SSD with MobileNet & TensorFlow ready check)
             const loadAiModel = async () => {
                 if (cocoModel) {
                     camera.value.aiModelReady = true;
@@ -3143,14 +3507,36 @@
                 if (typeof cocoSsd === 'undefined') return null;
                 camera.value.aiModelLoading = true;
                 try {
+                    if (typeof tf !== 'undefined') {
+                        if (typeof tf.setBackend === 'function') {
+                            await tf.setBackend('webgl').catch(async () => {
+                                await tf.setBackend('cpu').catch(() => {});
+                            });
+                        }
+                        if (typeof tf.ready === 'function') {
+                            await tf.ready();
+                        }
+                    }
                     cocoModel = await cocoSsd.load({ base: 'mobilenet_v2' });
                     camera.value.aiModelReady = true;
                     camera.value.aiModelLoading = false;
                     return cocoModel;
                 } catch (e) {
-                    console.error('Failed to load COCO-SSD:', e);
-                    camera.value.aiModelLoading = false;
-                    return null;
+                    console.warn('First attempt to load COCO-SSD failed, trying fallback:', e);
+                    try {
+                        if (typeof tf !== 'undefined') {
+                            if (typeof tf.setBackend === 'function') await tf.setBackend('cpu').catch(() => {});
+                            if (typeof tf.ready === 'function') await tf.ready();
+                        }
+                        cocoModel = await cocoSsd.load();
+                        camera.value.aiModelReady = true;
+                        camera.value.aiModelLoading = false;
+                        return cocoModel;
+                    } catch (err2) {
+                        console.error('Failed to load COCO-SSD:', err2);
+                        camera.value.aiModelLoading = false;
+                        return null;
+                    }
                 }
             };
 
@@ -4012,6 +4398,7 @@
                 loadEoEvents();
                 refreshCameraDevices();
                 window.addEventListener('keydown', onKeydown);
+                window.addEventListener('click', handleClickOutsideEo);
                 loadAiModel();
 
                 // Check URL parameter ?session=XXXX for multi-device sync
@@ -4030,12 +4417,72 @@
                 stopAiCamera();
                 stopAutoMultiScan();
                 window.removeEventListener('keydown', onKeydown);
+                window.removeEventListener('click', handleClickOutsideEo);
                 if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
                 if (sessionSyncTimer) clearInterval(sessionSyncTimer);
                 if (ocrWorker) {
                     ocrWorker.terminate();
                     ocrWorker = null;
                 }
+            });
+
+            // Race Tab Pagination & Fast Filter State
+            const raceSearchQuery = ref('');
+            const raceStatusFilter = ref('on_track'); // 'on_track' | 'all' | 'finished' | 'dnf'
+            const raceViewMode = ref('grid'); // 'grid' | 'table'
+            const racePageSize = ref(24);
+            const raceCurrentPage = ref(1);
+
+            const filteredRaceParticipants = computed(() => {
+                let list = participants.value;
+
+                // Status filter
+                if (raceStatusFilter.value === 'on_track') {
+                    list = list.filter(p => p.status === 'running' || p.status === 'ready' || !p.status);
+                } else if (raceStatusFilter.value === 'finished') {
+                    list = list.filter(p => p.status === 'finished');
+                } else if (raceStatusFilter.value === 'dnf') {
+                    list = list.filter(p => p.status === 'dnf');
+                }
+
+                // Search query filter (BIB or Name)
+                const q = (raceSearchQuery.value || '').trim().toLowerCase();
+                if (q) {
+                    list = list.filter(p => {
+                        const bib = String(p.bib ?? '').toLowerCase();
+                        const name = String(p.name ?? '').toLowerCase();
+                        return bib.includes(q) || name.includes(q);
+                    });
+                }
+
+                return list;
+            });
+
+            const raceTotalPages = computed(() => {
+                if (racePageSize.value >= 9999) return 1;
+                return Math.max(1, Math.ceil(filteredRaceParticipants.value.length / racePageSize.value));
+            });
+
+            const paginatedRaceParticipants = computed(() => {
+                if (racePageSize.value >= 9999) return filteredRaceParticipants.value;
+                const start = (raceCurrentPage.value - 1) * racePageSize.value;
+                return filteredRaceParticipants.value.slice(start, start + racePageSize.value);
+            });
+
+            const prevRacePage = () => {
+                if (raceCurrentPage.value > 1) raceCurrentPage.value--;
+            };
+
+            const nextRacePage = () => {
+                if (raceCurrentPage.value < raceTotalPages.value) raceCurrentPage.value++;
+            };
+
+            const setRacePage = (page) => {
+                raceCurrentPage.value = Math.max(1, Math.min(page, raceTotalPages.value));
+            };
+
+            Vue.watch([raceSearchQuery, raceStatusFilter, racePageSize], () => {
+                raceCurrentPage.value = 1;
             });
 
             // Computed
@@ -4196,6 +4643,9 @@
                 downloadCsvSample, onCsvUpload, importCsvText,
                 startRace, pauseRace, finishRace, resetRace, toggleScanner, captureScan,
                 activeParticipants, sortedResults, dnfParticipants,
+                raceSearchQuery, raceStatusFilter, raceViewMode, racePageSize, raceCurrentPage,
+                filteredRaceParticipants, raceTotalPages, paginatedRaceParticipants,
+                prevRacePage, nextRacePage, setRacePage,
                 recordLap, markDNF, getLastLapTime, getInitials, formatTime,
                 formatPace, getDeltaMs, formatDelta, getPointsInfo,
                 isAuthenticated,
@@ -4205,6 +4655,7 @@
                 openMediaModal, closeMediaModal, onMediaBgChange, generateMedia, shareMedia,
                 canNativeShare,
                 eoEvents, eoEventsLoading, selectedEoEventId, selectedEoCategoryId, importingEoParticipants, selectedEoEvent,
+                eoEventSearchQuery, eoDropdownOpen, eoAutocompleteContainer, filteredEoEvents, onEoSearchInput, selectEoEvent, clearSelectedEoEvent,
                 onEoEventChange, importEoEventParticipants,
                 cameraSettingsOpen, raceSettings,
                 manualBibInput, lockedBibPrefix, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,

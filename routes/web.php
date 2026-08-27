@@ -881,11 +881,12 @@ Route::middleware('auth')->group(function () {
         Route::put('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'update'])->name('races.participants.update');
         Route::delete('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'destroy'])->name('races.participants.destroy');
 
-        Route::post('races/{race}/sessions', [App\Http\Controllers\Admin\RaceController::class, 'storeSession'])->name('races.sessions.store');
-        Route::post('races/{race}/sessions/{session}/start', [App\Http\Controllers\Admin\RaceController::class, 'startSession'])->name('races.sessions.start');
-        Route::post('races/{race}/sessions/{session}/finish', [App\Http\Controllers\Admin\RaceController::class, 'finishSession'])->name('races.sessions.finish');
-        Route::post('races/{race}/sessions/{session}/reset', [App\Http\Controllers\Admin\RaceController::class, 'resetSession'])->name('races.sessions.reset');
-        Route::delete('races/{race}/sessions/{session}', [App\Http\Controllers\Admin\RaceController::class, 'destroySession'])->name('races.sessions.destroy');
+        // Race Sessions Management & Cleanup
+        Route::get('race-sessions', [App\Http\Controllers\Admin\RaceSessionController::class, 'index'])->name('race-sessions.index');
+        Route::delete('race-sessions/{session}', [App\Http\Controllers\Admin\RaceSessionController::class, 'destroy'])->name('race-sessions.destroy');
+        Route::post('race-sessions/{session}/reset', [App\Http\Controllers\Admin\RaceSessionController::class, 'reset'])->name('race-sessions.reset');
+        Route::post('race-sessions/bulk-destroy', [App\Http\Controllers\Admin\RaceSessionController::class, 'bulkDestroy'])->name('race-sessions.bulk-destroy');
+        Route::post('race-sessions/clean-empty', [App\Http\Controllers\Admin\RaceSessionController::class, 'cleanEmpty'])->name('race-sessions.clean-empty');
     });
 
     // Admin routes

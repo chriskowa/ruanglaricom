@@ -133,6 +133,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.race-sessions.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.race-sessions.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-stopwatch"></i></span>
+                                    <span>Sesi Balap (Sessions)</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.users.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.users.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-users"></i></span>
                                     <span>Manage Users</span>
