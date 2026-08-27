@@ -2071,12 +2071,6 @@
                 } catch (e) {}
             };
 
-            loadState();
-            queueLoad();
-            loadExistingRaces();
-            loadEoEvents();
-            checkUrlSession();
-
             // EO Events Integration & Autocomplete
             const eoEventSearchQuery = ref('');
             const eoDropdownOpen = ref(false);
@@ -4765,6 +4759,14 @@
                     });
                 } catch (e) {}
             };
+
+            onMounted(async () => {
+                loadState();
+                queueLoad();
+                await loadExistingRaces();
+                await loadEoEvents();
+                checkUrlSession();
+            });
 
             return {
                 currentView, raceName, existingRaces, selectExistingRace, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
