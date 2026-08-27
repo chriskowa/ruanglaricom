@@ -811,52 +811,42 @@
                 </div>
 
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    <!-- Left: Manual BIB Entry Input with Inline Prefix -->
+                    <!-- Left: Manual BIB Entry Input with Inline Compact Prefix -->
                     <div class="flex-1">
-                        <form @submit.prevent="recordManualBib" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <form @submit.prevent="recordManualBib" class="flex items-center gap-2">
                             
-                            <!-- Inline Prefix Input -->
-                            <div class="w-full sm:w-36 shrink-0 relative">
-                                <label class="block sm:hidden text-[10px] font-bold text-slate-400 uppercase mb-0.5">Prefix</label>
-                                <div class="relative flex items-center">
-                                    <input 
-                                        v-model="lockedBibPrefix" 
-                                        @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
-                                        type="text" 
-                                        placeholder="Prefix (M/F)" 
-                                        maxlength="8"
-                                        title="Prefix BIB (misal M untuk Male, F untuk Female, 10K, dll)"
-                                        class="w-full pl-3 pr-7 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs transition"
-                                    >
-                                    <button 
-                                        v-if="lockedBibPrefix" 
-                                        type="button" 
-                                        @click="lockedBibPrefix = ''"
-                                        class="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
-                                        title="Kosongkan prefix"
-                                    >
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </div>
+                            <!-- Compact Inline Prefix Input -->
+                            <div class="w-20 sm:w-24 shrink-0 relative">
+                                <input 
+                                    v-model="lockedBibPrefix" 
+                                    @input="lockedBibPrefix = lockedBibPrefix.toUpperCase()"
+                                    type="text" 
+                                    placeholder="Prefix" 
+                                    maxlength="6"
+                                    title="Prefix BIB (misal M, F, 10K, dll)"
+                                    class="w-full px-2.5 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-sm uppercase rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-sans placeholder:text-xs text-center transition"
+                                >
+                                <button 
+                                    v-if="lockedBibPrefix" 
+                                    type="button" 
+                                    @click="lockedBibPrefix = ''"
+                                    class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                                    title="Kosongkan prefix"
+                                >
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                             </div>
 
                             <!-- Main BIB Number Input -->
                             <div class="relative flex-1">
-                                <label class="block sm:hidden text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nomor BIB</label>
-                                <div class="relative flex items-center">
-                                    <span v-if="lockedBibPrefix" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
-                                        [@{{ lockedBibPrefix }}] #
-                                    </span>
-                                    <span v-else class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
-                                    <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
-                                        :placeholder="lockedBibPrefix ? `Ketik nomor saja (contoh: 1001 untuk #${lockedBibPrefix}1001)...` : 'Ketik No. BIB (bisa rombongan: M1001 F1001 20015)...'" 
-                                        :class="lockedBibPrefix ? 'pl-20 sm:pl-24' : 'pl-8'"
-                                        class="w-full pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
-                                </div>
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-bold">#</span>
+                                <input id="manualBibInputEl" v-model="manualBibInput" @keyup="onManualBibKeyup" type="text" autocomplete="off"
+                                    :placeholder="lockedBibPrefix ? `Ketik nomor saja (contoh: 1001 untuk #${lockedBibPrefix}-1001)...` : 'Ketik No. BIB (bisa rombongan: 1001 1002 1003)...'" 
+                                    class="w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-bold font-mono text-base rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none placeholder:text-slate-400 placeholder:font-normal placeholder:font-sans transition">
                             </div>
 
                             <!-- Submit Button -->
-                            <button type="submit" :disabled="!timer.running" 
+                            <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
                                 class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow transition shrink-0 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-stopwatch"></i>
                                 <span>Catat Finish (Enter)</span>
@@ -2694,12 +2684,47 @@
                 }
 
                 const firstLine = lines[0];
-                const delimiter = firstLine.includes(';') ? ';' : ',';
-                const rawHeaders = firstLine.split(delimiter).map(h => h.trim().toLowerCase().replace(/[\"\'\s_]/g, ''));
+
+                // Auto-detect delimiter (Tab \t, Semicolon ;, Comma ,, Pipe |)
+                const tabCount = (firstLine.match(/\t/g) || []).length;
+                const semiCount = (firstLine.match(/;/g) || []).length;
+                const commaCount = (firstLine.match(/,/g) || []).length;
+                const pipeCount = (firstLine.match(/\|/g) || []).length;
+
+                let delimiter = ',';
+                const maxDelimCount = Math.max(tabCount, semiCount, commaCount, pipeCount);
+                if (maxDelimCount > 0) {
+                    if (maxDelimCount === tabCount) delimiter = '\t';
+                    else if (maxDelimCount === semiCount) delimiter = ';';
+                    else if (maxDelimCount === pipeCount) delimiter = '|';
+                    else delimiter = ',';
+                }
+
+                const splitRow = (line) => {
+                    if (delimiter === '\t') {
+                        return line.split('\t').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                    }
+                    if (delimiter === '|') {
+                        return line.split('|').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                    }
+                    const regex = new RegExp('(?:^|' + delimiter + ')(?:"([^"]*(?:""[^"]*)*)"|([^"' + delimiter + ']*))', 'g');
+                    const row = [];
+                    let match;
+                    while ((match = regex.exec(line)) !== null) {
+                        let value = match[1] !== undefined ? match[1].replace(/""/g, '"') : match[2];
+                        row.push((value || '').trim());
+                    }
+                    if (row.length === 0) {
+                        return line.split(delimiter).map(c => c.trim().replace(/^["']|["']$/g, ''));
+                    }
+                    return row;
+                };
+
+                const rawHeaders = splitRow(firstLine).map(h => h.toLowerCase().replace(/["'\s_]/g, ''));
                 
-                let bibIdx = rawHeaders.findIndex(h => h.includes('bib') || h === 'no' || h === 'nomor');
-                let nameIdx = rawHeaders.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('peserta'));
-                let predIdx = rawHeaders.findIndex(h => h.includes('prediksi') || h.includes('waktu') || h.includes('target') || h.includes('time'));
+                let bibIdx = rawHeaders.findIndex(h => h.includes('bib') || h === 'no' || h === 'nomor' || h.includes('dada') || h === 'id');
+                let nameIdx = rawHeaders.findIndex(h => h.includes('nama') || h.includes('name') || h.includes('peserta') || h.includes('runner') || h.includes('atlet'));
+                let predIdx = rawHeaders.findIndex(h => h.includes('prediksi') || h.includes('waktu') || h.includes('target') || h.includes('time') || h.includes('pace') || h.includes('estimasi'));
 
                 if (bibIdx === -1) bibIdx = 0;
                 if (nameIdx === -1) nameIdx = 1;
@@ -2709,11 +2734,11 @@
                 let skippedDuplicateCount = 0;
                 let invalidCount = 0;
 
-                const existingBibSet = new Set(participants.value.map(p => String(p.bib).trim()));
+                const existingBibSet = new Set(participants.value.map(p => String(p.bib).trim().toUpperCase()));
                 const newEntries = [];
 
                 for (let i = 1; i < lines.length; i++) {
-                    const row = lines[i].split(delimiter).map(cell => cell.trim().replace(/^[\"']|[\"']$/g, ''));
+                    const row = splitRow(lines[i]);
                     if (row.length < 2) continue;
 
                     const rawBib = row[bibIdx] ?? '';
@@ -2728,7 +2753,7 @@
                         continue;
                     }
 
-                    if (existingBibSet.has(bib)) {
+                    if (existingBibSet.has(bib.toUpperCase())) {
                         skippedDuplicateCount++;
                         continue;
                     }
@@ -2743,7 +2768,7 @@
                         }
                     }
 
-                    existingBibSet.add(bib);
+                    existingBibSet.add(bib.toUpperCase());
                     newEntries.push({
                         id: crypto.randomUUID(),
                         bib: bib,
@@ -2763,10 +2788,7 @@
                 if (newEntries.length > 0) {
                     participants.value.push(...newEntries);
                     participants.value.sort((a, b) => {
-                        const numA = parseInt(a.bib, 10);
-                        const numB = parseInt(b.bib, 10);
-                        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-                        return a.bib.localeCompare(b.bib);
+                        return String(a.bib).localeCompare(String(b.bib), undefined, { numeric: true, sensitivity: 'base' });
                     });
                     saveState();
                 }
@@ -3313,46 +3335,35 @@
             const resolveParticipantByBib = (rawQuery, activePrefix = '') => {
                 const cleanRaw = String(rawQuery || '').trim();
                 if (!cleanRaw) return null;
-                const cleanPrefix = String(activePrefix || '').trim().toUpperCase();
+                const cleanPrefix = String(activePrefix || '').trim().toUpperCase().replace(/[-_]$/, '');
 
-                // 1. If prefix is active and raw input does not already start with prefix
-                if (cleanPrefix) {
-                    const cleanRawUpper = cleanRaw.toUpperCase();
-                    if (!cleanRawUpper.startsWith(cleanPrefix)) {
-                        // Direct prefix concatenation: e.g. 'M' + '1001' => 'M1001'
-                        const directTarget = (cleanPrefix + cleanRaw).toUpperCase();
-                        let found = participants.value.find(p => String(p.bib).trim().toUpperCase() === directTarget);
-                        if (found) return found;
-
-                        // Check with separator tolerance (e.g. 'M-1001' or 'M 1001')
-                        const normalizedTarget = directTarget.replace(/[-_\s]/g, '');
-                        found = participants.value.find(p => {
-                            const bNorm = String(p.bib).trim().toUpperCase().replace(/[-_\s]/g, '');
-                            return bNorm === normalizedTarget;
-                        });
-                        if (found) return found;
-
-                        // Check zero-padding if autoSubmitDigits is active
-                        if (autoSubmitDigits.value > 0) {
-                            const padLen = Math.max(1, autoSubmitDigits.value);
-                            const rawDigits = cleanRaw.replace(/\D/g, '');
-                            const padded = cleanPrefix + rawDigits.padStart(padLen, '0');
-                            found = participants.value.find(p => String(p.bib).trim().toUpperCase() === padded.toUpperCase());
-                            if (found) return found;
-                        }
-                    }
-                }
-
-                // 2. Exact match on raw query directly (e.g. typed 'M1001' or '1001')
+                // 1. Exact match on raw query directly (e.g. typed 'F-1001', 'F1001', or '1001')
                 let foundExact = participants.value.find(p => String(p.bib).trim().toUpperCase() === cleanRaw.toUpperCase());
                 if (foundExact) return foundExact;
 
-                // 3. Suffix match fallback (e.g. runner M10245 when typing 245 with prefix M)
-                if (cleanRaw.length >= 2) {
+                // 2. Normalized match (ignoring hyphens, underscores, spaces)
+                const rawNorm = cleanRaw.toUpperCase().replace(/[-_\s]/g, '');
+                let foundNorm = participants.value.find(p => String(p.bib).trim().toUpperCase().replace(/[-_\s]/g, '') === rawNorm);
+                if (foundNorm) return foundNorm;
+
+                // 3. If prefix is active
+                if (cleanPrefix) {
+                    const targetNorm = (cleanPrefix + rawNorm).toUpperCase();
+                    let foundPrefixed = participants.value.find(p => {
+                        const bNorm = String(p.bib).trim().toUpperCase().replace(/[-_\s]/g, '');
+                        return bNorm === targetNorm;
+                    });
+                    if (foundPrefixed) return foundPrefixed;
+                }
+
+                // 4. Suffix / Number match fallback
+                const rawDigits = cleanRaw.replace(/\D/g, '');
+                if (rawDigits.length >= 1) {
                     const candidates = participants.value.filter(p => {
                         const bibUpper = String(p.bib).trim().toUpperCase();
-                        if (cleanPrefix && !bibUpper.startsWith(cleanPrefix)) return false;
-                        return bibUpper.endsWith(cleanRaw.toUpperCase());
+                        if (cleanPrefix && !bibUpper.replace(/[-_\s]/g, '').startsWith(cleanPrefix)) return false;
+                        const bDigits = bibUpper.replace(/\D/g, '');
+                        return bDigits === rawDigits || bDigits.endsWith(rawDigits);
                     });
                     if (candidates.length === 1) return candidates[0];
                 }
@@ -3395,12 +3406,12 @@
                 const raw = String(manualBibInput.value || '').trim();
                 if (!raw) return;
 
-                if (!timer.value.running) {
+                if (!timer.value.running && timer.value.elapsed === 0) {
                     showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
                     return;
                 }
 
-                // Support batch rombongan separated by space or comma (e.g. "1001 1002 1003" or "M1001 F1001")
+                // Support batch rombongan separated by space or comma (e.g. "1001 1002 1003" or "F-1001 M-1001")
                 const tokens = raw.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
                 if (!tokens.length) return;
 
@@ -3409,7 +3420,7 @@
 
                     if (!p) {
                         const searchAttempt = lockedBibPrefix.value && !token.toUpperCase().startsWith(lockedBibPrefix.value.toUpperCase())
-                            ? `${lockedBibPrefix.value}${token}`
+                            ? `${lockedBibPrefix.value}-${token}`
                             : token;
                         showDuplicateAlert('error', `Nomor BIB #${searchAttempt} tidak ditemukan dalam daftar peserta!`);
                         return;
@@ -3426,27 +3437,13 @@
                         return;
                     }
 
-                    if (raceSettings.value.raceMode === 'single') {
-                        recordLap(p.id, 'manual_input');
-                        p.status = 'finished';
+                    recordLap(p.id, 'manual_input');
+
+                    if (p.status === 'finished') {
                         triggerTvFinisherFlash(p);
                         showDuplicateAlert('success', `FINISH TERCATAT: BIB #${p.bib} (${p.name}) • Waktu: ${formatTime(p.totalTime)}`, p);
                     } else {
-                        const now = Date.now();
-                        const cooldownMs = (raceSettings.value.minLapCooldownSec || 15) * 1000;
-                        if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
-                            const remainingSec = Math.ceil((cooldownMs - (now - p.lastScanTime)) / 1000);
-                            showDuplicateAlert('warning', `BIB #${p.bib} (${p.name}) masih dalam cooldown lap (${remainingSec} detik tersisa)!`, p);
-                            return;
-                        }
-                        recordLap(p.id, 'manual_input');
-                        if (p.laps.length >= raceSettings.value.targetLaps) {
-                            p.status = 'finished';
-                            triggerTvFinisherFlash(p);
-                            showDuplicateAlert('success', `FINAL FINISH (Lap ${p.laps.length}): BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
-                        } else {
-                            showDuplicateAlert('info', `LAP ${p.laps.length}/${raceSettings.value.targetLaps} TERCATAT: BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
-                        }
+                        showDuplicateAlert('info', `LAP ${p.laps.length}/${raceSettings.value.targetLaps} TERCATAT: BIB #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`, p);
                     }
                 });
 
@@ -3458,13 +3455,13 @@
             };
 
             const recordLap = (id, source = 'manual') => {
-                if (!timer.value.running) {
+                const p = participants.value.find(p => p.id === id);
+                if (!p) return;
+
+                if (!timer.value.running && timer.value.elapsed === 0) {
                     showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
                     return;
                 }
-
-                const p = participants.value.find(p => p.id === id);
-                if (!p) return;
 
                 if (p.status === 'finished') {
                     showDuplicateAlert('warning', `DUPLIKAT: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
@@ -3490,12 +3487,15 @@
                 
                 playBeep();
 
+                if (!Array.isArray(p.laps)) p.laps = [];
                 p.laps.push(now);
                 p.lastScanTime = now;
                 p.totalTime = timer.value.elapsed;
 
                 if (raceSettings.value.raceMode === 'single' || p.laps.length >= (raceSettings.value.targetLaps || 1)) {
                     p.status = 'finished';
+                } else {
+                    p.status = 'running';
                 }
 
                 if (currentSessionId.value) {
@@ -3514,14 +3514,22 @@
             };
 
             const getLastLapTime = (p) => {
-                if (p.laps.length === 0) return '-';
-                // Calculate split from last lap
-                // Simple version: just show total time of last lap
-                // Or: show split time? Let's show split.
-                const lastLapTimestamp = p.laps[p.laps.length - 1];
-                // Find lap time relative to start
-                const relativeTime = lastLapTimestamp - timer.value.startTime;
-                return formatTime(relativeTime);
+                if (!p) return '-';
+                if (typeof p.totalTime === 'number' && p.totalTime > 0) {
+                    return formatTime(p.totalTime);
+                }
+                if (Array.isArray(p.laps) && p.laps.length > 0) {
+                    const lastLap = p.laps[p.laps.length - 1];
+                    if (typeof lastLap === 'object' && lastLap !== null && typeof lastLap.totalTime === 'number') {
+                        return formatTime(lastLap.totalTime);
+                    }
+                    if (typeof lastLap === 'number') {
+                        if (timer.value.startTime && lastLap >= timer.value.startTime) {
+                            return formatTime(lastLap - timer.value.startTime);
+                        }
+                    }
+                }
+                return '-';
             };
 
             const markDNF = (id) => {
