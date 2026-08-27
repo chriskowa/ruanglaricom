@@ -1016,12 +1016,12 @@
                     scrollWheelZoom: true
                 }).setView(defaultCenter, defaultZoom);
 
-                // CARTO Light (Positron) Tile Layer
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 20,
-    subdomains: 'abcd',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(explorerMap);
+                // OpenStreetMap Standard Tile Layer (Free, No API Key Required)
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    subdomains: ['a', 'b', 'c'],
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(explorerMap);
 
                 // Initialize Marker Cluster Group with custom styling
                 explorerClusterGroup = L.markerClusterGroup({
@@ -2408,9 +2408,9 @@
                                 attributionControl: false
                             }).setView([coords[0][0], coords[0][1]], 13);
                             
-                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 maxZoom: 19,
-                                subdomains: 'abcd'
+                                subdomains: ['a', 'b', 'c']
                             }).addTo(previewMap);
                         } else {
                             previewMap.setView([coords[0][0], coords[0][1]], 13);

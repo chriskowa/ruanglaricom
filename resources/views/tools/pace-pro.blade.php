@@ -817,14 +817,14 @@
                             : 'https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
                     }
                     return light 
-                        ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' 
-                        : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                        ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' 
+                        : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
                 };
 
                 var getTileOpts = function(light) {
                     var opts = {
                         maxZoom: 19,
-                        attribution: mapboxToken ? '&copy; Mapbox &copy; OpenStreetMap' : '&copy; OpenStreetMap &copy; CARTO',
+                        attribution: mapboxToken ? '&copy; Mapbox &copy; OpenStreetMap' : '&copy; OpenStreetMap',
                     };
                     if (mapboxToken) {
                         opts.tileSize = 512;

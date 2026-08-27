@@ -291,7 +291,7 @@
         });
 
         function initFreeRunMap() {
-            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
             runMap = L.map('free-run-map', {
                 zoomControl: false,
@@ -299,7 +299,7 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 16);
 
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: 'abcd' }).addTo(runMap);
+            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }).addTo(runMap);
 
             // Breadcrumb Polyline (#FC4C02)
             runPolyline = L.polyline([], {

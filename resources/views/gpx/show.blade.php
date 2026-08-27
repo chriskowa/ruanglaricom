@@ -766,9 +766,9 @@
             kmMarkersLayer = L.layerGroup();
 
             baseTileLayers = {
-                dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }),
-                street: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }),
-                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 })
+                dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' }),
+                street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }),
+                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' })
             };
 
             map = L.map('gpx-detail-map', {
@@ -1448,7 +1448,7 @@
         }
 
         function initNavMap() {
-            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
             navMap = L.map('nav-fullscreen-map', {
                 zoomControl: false,
@@ -1456,7 +1456,7 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 15);
 
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: 'abcd' }).addTo(navMap);
+            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }).addTo(navMap);
 
             if (routePoints.length > 0) {
                 const latlngs = routePoints.map(p => [p.lat, p.lng]);

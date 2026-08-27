@@ -247,7 +247,7 @@
         });
 
         function initActivityMap() {
-            const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
             const map = L.map('activity-map', {
                 zoomControl: true,
@@ -255,7 +255,7 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 13);
 
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }).addTo(map);
 
             if (Array.isArray(activityCoords) && activityCoords.length > 0) {
                 const latlngs = [];

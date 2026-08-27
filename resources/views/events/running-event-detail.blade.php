@@ -633,21 +633,21 @@
         detailEventTileLayers = {
             osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
+                subdomains: ['a', 'b', 'c'],
                 attribution: '&copy; OpenStreetMap'
             }),
             satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 18,
                 attribution: 'Esri'
             }),
-            voyager: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            voyager: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: 'CARTO'
+                subdomains: ['a', 'b', 'c'],
+                attribution: 'OpenStreetMap'
             }),
-            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: 'CARTO'
+                attribution: 'Esri'
             })
         };
 
