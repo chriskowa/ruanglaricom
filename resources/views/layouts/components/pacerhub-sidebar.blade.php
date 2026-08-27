@@ -1,7 +1,7 @@
 @php
     $lightMode = $lightMode ?? false;
-    $inactiveClass = $lightMode ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' : 'text-slate-300 hover:text-white hover:bg-slate-900/60';
-    $activeClass = $lightMode ? 'text-slate-900 bg-slate-100 font-semibold' : 'text-primary bg-slate-900/80 font-semibold';
+    $inactiveClass = $lightMode ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' : 'text-slate-300 hover:text-white hover:bg-slate-900';
+    $activeClass = $lightMode ? 'text-slate-900 bg-slate-100 font-semibold' : 'text-white bg-slate-900 border border-slate-800 font-semibold';
     $linkBaseClass = 'group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150';
 @endphp
 
@@ -254,89 +254,116 @@
                                 </a>
                             </li>
                         @elseif(auth()->user()->isRunner())
-                            <li>
-                                <a href="{{ route('runner.dashboard') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.dashboard') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-th-large"></i></span>
-                                    <span>Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <button type="button" onclick="openGlobalPbModal()" class="{{ $linkBaseClass }} {{ $inactiveClass }} w-full text-left">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-neon"><i class="fas fa-stopwatch"></i></span>
-                                    <span class="flex items-center justify-between w-full">
-                                        <span>Update PB</span>
-                                        <span class="text-[9px] bg-neon/15 text-neon border border-neon/30 px-1.5 py-0.5 rounded-full font-bold">Rekor</span>
+                            @php
+                                $isTrainingActive = request()->routeIs('runner.dashboard', 'runner.calendar*', 'runner.programs*', 'calculator');
+                                $isActivityActive = request()->routeIs('activities.*', 'runner.analysis-requests.*', 'runner.gpx.*', 'runner.strava.*') || request()->is('calendar*');
+                            @endphp
+
+                            <!-- GRUP: LATIHAN & PERFORMA -->
+                            <li class="space-y-1" x-data="{ open: {{ $isTrainingActive ? 'true' : 'false' }} }">
+                                <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fas fa-person-running text-xs text-white"></i>
+                                        <span>Latihan & Performa</span>
                                     </span>
+                                    <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
                                 </button>
+                                <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
+                                    <li>
+                                        <a href="{{ route('runner.dashboard') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.dashboard') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-th-large"></i></span>
+                                            <span class="text-white">Dashboard</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button type="button" onclick="openGlobalPbModal()" class="{{ $linkBaseClass }} {{ $inactiveClass }} w-full text-left">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-stopwatch"></i></span>
+                                            <span class="flex items-center justify-between w-full">
+                                                <span class="text-white">Update PB</span>
+                                                <span class="text-[9px] bg-slate-800 text-white border border-slate-700 px-1.5 py-0.5 rounded-full font-bold">Rekor</span>
+                                            </span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('runner.calendar') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.calendar.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-calendar-alt"></i></span>
+                                            <span class="text-white">Kalender Latihan</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('runner.programs') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.programs*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-clipboard-list"></i></span>
+                                            <span class="text-white">Program Latihan</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('calculator') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('calculator') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-calculator"></i></span>
+                                            <span class="text-white">Kalkulator Pace</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <li>
-                                @if(auth()->user()->strava_access_token)
-                                    <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan koneksi (Unauthorize) Strava?');" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}" title="Klik untuk melepaskan otorisasi Strava">
-                                        <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
-                                        <span class="flex items-center justify-between w-full">
-                                            <span>Strava Connected</span>
-                                            <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-bold group-hover:bg-rose-500/20 group-hover:text-rose-400 group-hover:border-rose-500/30 transition">Disconnect</span>
-                                        </span>
-                                    </a>
-                                @else
-                                    <a href="{{ route('runner.strava.connect') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}">
-                                        <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
-                                        <span class="flex items-center justify-between w-full">
-                                            <span>Koneksi Strava</span>
-                                            <span class="text-[9px] bg-[#FC4C02]/20 text-[#FC4C02] border border-[#FC4C02]/40 px-1.5 py-0.5 rounded-full font-bold">Connect</span>
-                                        </span>
-                                    </a>
-                                @endif
-                            </li>
-                            <li>
-                                <a href="{{ route('runner.calendar') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.calendar.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calendar-alt"></i></span>
-                                    <span>Calendar</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('calendar.public') }}#strava" class="{{ $linkBaseClass }} {{ request()->is('calendar*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform text-[#FC4C02]"><i class="fab fa-strava"></i></span>
-                                    <span class="flex items-center justify-between w-full">
-                                        <span>Strava Activity</span>
+
+                            <!-- GRUP: AKTIVITAS & RUTE -->
+                            <li class="space-y-1 pt-1" x-data="{ open: {{ $isActivityActive ? 'true' : 'false' }} }">
+                                <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
+                                    <span class="flex items-center gap-2.5">
+                                        <i class="fas fa-route text-xs text-white"></i>
+                                        <span>Aktivitas & Rute</span>
+                                    </span>
+                                    <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                                </button>
+                                <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
+                                    <li>
+                                        <a href="{{ route('activities.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('activities.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-running"></i></span>
+                                            <span class="text-white">Aktivitas Lari</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('calendar.public') }}#strava" class="{{ $linkBaseClass }} {{ request()->is('calendar*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fab fa-strava"></i></span>
+                                            <span class="flex items-center justify-between w-full">
+                                                <span class="text-white">Strava Activity</span>
+                                                @if(auth()->user()->strava_access_token)
+                                                    <span class="text-[9px] bg-slate-800 text-white border border-slate-700 px-1.5 py-0.5 rounded-full font-bold">Sync</span>
+                                                @endif
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li>
                                         @if(auth()->user()->strava_access_token)
-                                            <span class="text-[9px] bg-[#FC4C02]/20 text-[#FC4C02] border border-[#FC4C02]/40 px-1.5 py-0.5 rounded-full font-bold">Sync</span>
+                                            <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan koneksi (Unauthorize) Strava?');" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}" title="Klik untuk melepaskan otorisasi Strava">
+                                                <span class="w-5 text-center text-xs text-white"><i class="fab fa-strava"></i></span>
+                                                <span class="flex items-center justify-between w-full">
+                                                    <span class="text-white">Strava Connected</span>
+                                                    <span class="text-[9px] bg-slate-800 text-white border border-slate-700 px-1.5 py-0.5 rounded-full font-bold group-hover:bg-rose-900 group-hover:border-rose-700 transition">Disconnect</span>
+                                                </span>
+                                            </a>
+                                        @else
+                                            <a href="{{ route('runner.strava.connect') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.strava.*') ? $activeClass : $inactiveClass }}">
+                                                <span class="w-5 text-center text-xs text-white"><i class="fab fa-strava"></i></span>
+                                                <span class="flex items-center justify-between w-full">
+                                                    <span class="text-white">Koneksi Strava</span>
+                                                    <span class="text-[9px] bg-slate-800 text-white border border-slate-700 px-1.5 py-0.5 rounded-full font-bold">Connect</span>
+                                                </span>
+                                            </a>
                                         @endif
-                                    </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('activities.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('activities.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-running"></i></span>
-                                    <span class="flex items-center justify-between w-full">
-                                        <span>Aktivitas Lari</span>                                        
-                                    </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('calculator') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('calculator') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calculator"></i></span>
-                                    <span>Calculator</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('runner.programs') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.programs') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-clipboard-list"></i></span>
-                                    <span>Programs</span>
-                                </a>
-                            </li>
-                           
-                            <li>
-                                <a href="{{ route('runner.analysis-requests.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.analysis-requests.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-person-running"></i></span>
-                                    <span>Analisis Lari</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('runner.gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.gpx.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-map-marked-alt"></i></span>
-                                    <span>My GPX</span>
-                                </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('runner.analysis-requests.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.analysis-requests.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-chart-line"></i></span>
+                                            <span class="text-white">Analisis Lari</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('runner.gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.gpx.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-map-marked-alt"></i></span>
+                                            <span class="text-white">My GPX</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         @elseif(auth()->user()->isEventOrganizer())
                             <li>
@@ -431,67 +458,84 @@
                 @endif
 
                 <!-- SECTION: FINANCE -->
-                <li>
-                    <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Finance</li>
+                @php
+                    $isFinanceActive = request()->routeIs('wallet.*');
+                @endphp
+                <li class="space-y-1 pt-1" x-data="{ open: {{ $isFinanceActive ? 'true' : 'false' }} }">
+                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fas fa-wallet text-xs text-white"></i>
+                            <span>Keuangan</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
                         <li>
                             <a href="{{ route('wallet.index', ['action' => 'deposit']) }}" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'deposit' ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet"></i></span>
-                                <span>Deposit</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-arrow-down"></i></span>
+                                <span class="text-white">Deposit</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'withdraw' ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-money-bill-transfer"></i></span>
-                                <span>Withdraw</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-arrow-up"></i></span>
+                                <span class="text-white">Withdraw</span>
                             </a>
                         </li>
                     </ul>
                 </li>
 
                 <!-- SECTION: COMMERCE -->
-                <li>
-                    <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Commerce</li>
-                        
+                @php
+                    $isCommerceActive = request()->routeIs('marketplace.*', 'admin.marketplace.*');
+                @endphp
+                <li class="space-y-1 pt-1" x-data="{ open: {{ $isCommerceActive ? 'true' : 'false' }} }">
+                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fas fa-shopping-bag text-xs text-white"></i>
+                            <span>Marketplace</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
                         @if(auth()->user()->isAdmin())
                             <li>
                                 <a href="{{ route('admin.marketplace.categories.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.marketplace.categories.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-tags"></i></span>
-                                    <span>Categories</span>
+                                    <span class="w-5 text-center text-xs text-white"><i class="fas fa-tags"></i></span>
+                                    <span class="text-white">Categories</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('admin.marketplace.brands.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.marketplace.brands.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-copyright"></i></span>
-                                    <span>Brands</span>
+                                    <span class="w-5 text-center text-xs text-white"><i class="fas fa-copyright"></i></span>
+                                    <span class="text-white">Brands</span>
                                 </a>
                             </li>
                         @endif
 
                         <li>
                             <a href="{{ route('marketplace.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.index') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-shopping-bag"></i></span>
-                                    <span>Marketplace</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-store"></i></span>
+                                <span class="text-white">Katalog Produk</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('marketplace.orders.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.orders.*') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-shopping-cart"></i></span>
-                                <span>My Orders</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-shopping-cart"></i></span>
+                                <span class="text-white">Pesanan Saya</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('marketplace.wishlist.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.wishlist.*') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-heart"></i></span>
-                                <span>Wishlist Saya</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-heart"></i></span>
+                                <span class="text-white">Wishlist Saya</span>
                             </a>
                         </li>
                         @if(auth()->user()->is_seller)
                             <li>
                                 <a href="{{ route('marketplace.seller.products.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.seller.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-store"></i></span>
-                                    <span>Seller Dashboard</span>
+                                    <span class="w-5 text-center text-xs text-white"><i class="fas fa-store-alt"></i></span>
+                                    <span class="text-white">Seller Dashboard</span>
                                 </a>
                             </li>
                         @endif
@@ -499,27 +543,36 @@
                 </li>
 
                 <!-- SECTION: COMMUNITY -->
-                <li>
-                    <ul class="space-y-1">
-                        <li class="px-3 mb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Community</li>
+                @php
+                    $isCommunityActive = request()->routeIs('feed.*', 'chat.*', 'notifications.*');
+                @endphp
+                <li class="space-y-1 pt-1" x-data="{ open: {{ $isCommunityActive ? 'true' : 'false' }} }">
+                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fas fa-users text-xs text-white"></i>
+                            <span>Komunitas</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
                         <li>
                             <a href="{{ route('feed.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('feed.index') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-hashtag"></i></span>
-                                <span>Community</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-hashtag"></i></span>
+                                <span class="text-white">Feed Komunitas</span>
                             </a>
                         </li>
                         @if(auth()->user()->role !== 'eo')
                             <li>
                                 <a href="{{ route('chat.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('chat.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-comments"></i></span>
-                                    <span>Messages</span>
+                                    <span class="w-5 text-center text-xs text-white"><i class="fas fa-comments"></i></span>
+                                    <span class="text-white">Pesan & Chat</span>
                                 </a>
                             </li>
                         @endif
                         <li>
                             <a href="{{ route('notifications.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('notifications.*') ? $activeClass : $inactiveClass }}">
-                                <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-bell"></i></span>
-                                <span>Notifications</span>
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-bell"></i></span>
+                                <span class="text-white">Notifikasi</span>
                             </a>
                         </li>
                     </ul>

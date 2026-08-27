@@ -82,6 +82,7 @@ class User extends Authenticatable
         'pb_10k',
         'pb_hm',
         'pb_fm',
+        'pb_cooper',
         'pb_balke',
         'audit_history',
         'weekly_volume',
@@ -436,6 +437,17 @@ class User extends Authenticatable
                 } catch (\Exception $e) {
                     continue;
                 }
+            }
+        }
+
+        // Cooper Test 12-Minute Run (in meters)
+        if ($this->pb_cooper) {
+            try {
+                $cooperVdot = $daniels->calculateVDOT((string) $this->pb_cooper, 'cooper12');
+                if ($cooperVdot > $bestVdot) {
+                    $bestVdot = $cooperVdot;
+                }
+            } catch (\Exception $e) {
             }
         }
 

@@ -37,42 +37,37 @@ class StravaApiService
         }
 
         $accessToken = $user->strava_access_token;
-        Log::info('Strava: Token expired, refreshing...', ['user_id' => $user->id]);
+        $refresh = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $user->strava_refresh_token,
+        ]);
 
-            $refresh = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret,
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $user->strava_refresh_token,
+        if (! $refresh->successful()) {
+            Log::error('Strava: Token refresh failed', [
+                'user_id' => $user->id,
+                'status' => $refresh->status(),
+                'body' => $refresh->json() ?? $refresh->body(),
             ]);
-
-            if (! $refresh->successful()) {
-                Log::error('Strava: Token refresh failed', [
-                    'user_id' => $user->id,
-                    'status' => $refresh->status(),
-                    'body' => $refresh->json() ?? $refresh->body(),
-                ]);
-                return null;
-            }
-
-            $tokenData = $refresh->json();
-            $accessToken = data_get($tokenData, 'access_token');
-            if (! $accessToken) {
-                Log::error('Strava: Refresh response missing access_token', [
-                    'user_id' => $user->id,
-                    'response' => $tokenData,
-                ]);
-                return null;
-            }
-
-            Log::info('Strava: Token refreshed successfully', ['user_id' => $user->id]);
-
-            $user->update([
-                'strava_access_token' => $accessToken,
-                'strava_refresh_token' => data_get($tokenData, 'refresh_token', $user->strava_refresh_token),
-                'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
-            ]);
+            return null;
         }
+
+        $tokenData = $refresh->json();
+        $accessToken = data_get($tokenData, 'access_token');
+        if (! $accessToken) {
+            Log::error('Strava: Refresh response missing access_token', [
+                'user_id' => $user->id,
+                'response' => $tokenData,
+            ]);
+            return null;
+        }
+
+        $user->update([
+            'strava_access_token' => $accessToken,
+            'strava_refresh_token' => data_get($tokenData, 'refresh_token', $user->strava_refresh_token),
+            'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
+        ]);
 
         return $accessToken;
     }

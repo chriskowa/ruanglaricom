@@ -1335,7 +1335,11 @@ class CalendarController extends Controller
             'pb_10k' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
             'pb_hm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
             'pb_fm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_cooper' => 'nullable|integer|min:0|max:10000',
             'pb_balke' => 'nullable|integer|min:0|max:10000',
+            'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
+            'physical_notes' => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         $user = auth()->user();
@@ -1344,8 +1348,38 @@ class CalendarController extends Controller
         $oldVdot = (float) ($user->vdot ?? 0);
         $oldEquivTimes = $user->equivalent_race_times ?? [];
 
-        $user->update($validated);
+        $userPbUpdates = collect($validated)->only(['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm', 'pb_cooper', 'pb_balke'])->toArray();
+        if (!empty($userPbUpdates)) {
+            $user->update($userPbUpdates);
+        }
         $user->refresh();
+
+        $notes = $validated['physical_notes'] ?? ($validated['notes'] ?? null);
+        $feeling = $validated['feeling'] ?? null;
+
+        // If runner has feeling or notes, save/update today's session tracking
+        if ($feeling || $notes) {
+            try {
+                $today = now()->toDateString();
+                $enrollment = \App\Models\ProgramEnrollment::where('user_id', $user->id)
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->latest()
+                    ->first();
+
+                if ($enrollment) {
+                    $tracking = \App\Models\ProgramSessionTracking::firstOrNew([
+                        'program_enrollment_id' => $enrollment->id,
+                        'date' => $today,
+                    ]);
+                    $tracking->user_id = $user->id;
+                    if ($feeling) $tracking->feeling = $feeling;
+                    if ($notes) $tracking->runner_notes = $notes;
+                    $tracking->save();
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to save session feeling in updatePb: ' . $e->getMessage());
+            }
+        }
 
         $newVdot = (float) ($user->vdot ?? 0);
         $newEquivTimes = $user->equivalent_race_times ?? [];
@@ -1381,7 +1415,7 @@ class CalendarController extends Controller
 
             // Determine performance level
             $level = $this->getVdotLevel($newVdot);
-            $changeLabel = $vdotDiff > 0 ? '⬆ Meningkat' : ($vdotDiff < 0 ? '⬇ Menurun' : '→ Tidak Berubah');
+            $changeLabel = $vdotDiff > 0 ? 'Meningkat' : ($vdotDiff < 0 ? 'Menurun' : 'Stabil');
 
             // Training pace descriptions
             $newPaces = $user->training_paces;
@@ -1426,7 +1460,7 @@ class CalendarController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Personal Best updated',
+            'message' => 'Personal Best & Progress berhasil diperbarui.',
             'vdot' => $user->vdot,
             'paces' => $user->training_paces,
             'equivalent_race_times' => $user->equivalent_race_times,
@@ -1453,12 +1487,12 @@ class CalendarController extends Controller
      */
     private function getVdotLevel(float $vdot): array
     {
-        if ($vdot >= 75) return ['label' => 'Elite', 'icon' => '🏆', 'color' => 'yellow'];
-        if ($vdot >= 60) return ['label' => 'Sub-Elite', 'icon' => '⭐', 'color' => 'purple'];
-        if ($vdot >= 50) return ['label' => 'Advanced', 'icon' => '🔥', 'color' => 'orange'];
-        if ($vdot >= 40) return ['label' => 'Intermediate', 'icon' => '💪', 'color' => 'blue'];
-        if ($vdot >= 30) return ['label' => 'Beginner+', 'icon' => '🌱', 'color' => 'green'];
-        return ['label' => 'Beginner', 'icon' => '🚶', 'color' => 'slate'];
+        if ($vdot >= 75) return ['label' => 'Elite', 'color' => 'yellow'];
+        if ($vdot >= 60) return ['label' => 'Sub-Elite', 'color' => 'purple'];
+        if ($vdot >= 50) return ['label' => 'Advanced', 'color' => 'orange'];
+        if ($vdot >= 40) return ['label' => 'Intermediate', 'color' => 'blue'];
+        if ($vdot >= 30) return ['label' => 'Beginner+', 'color' => 'green'];
+        return ['label' => 'Beginner', 'color' => 'slate'];
     }
 
     /**

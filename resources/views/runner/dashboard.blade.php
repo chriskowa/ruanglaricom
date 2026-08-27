@@ -19,9 +19,9 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17] bg-gradient-to-b from-[#060a17] via-[#0d162d] to-[#060a17]">
+<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
     <div class="max-w-7xl mx-auto" x-data="dashboardComponent()">
-        <!-- Top Status / Quick Info Strip (Run Points, Date/Time, Next Workout, WA Toggle) -->
+        <!-- Top Status / Quick Info Strip (Run Points, Date/Time, Next Workout, WA Toggle, Check-In & PB) -->
         <div class="mt-4 md:mt-6 flex flex-wrap items-center gap-2">
             <!-- Run Points Badge -->
             <a href="{{ route('gpx.index') }}" title="Unggah GPX rute lari untuk mendapatkan poin & tukar reward" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-500/40 text-xs font-bold text-white hover:border-amber-400 transition shadow-sm">
@@ -36,9 +36,17 @@
                 <span class="text-slate-600">•</span>
                 <span id="runner-dashboard-time" class="font-mono text-slate-300"></span>
             </div>
+
+            <!-- Check-in Progress & Update PB Quick Trigger -->
+            <button onclick="openGlobalPbModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-neon/50 text-xs font-bold text-white hover:bg-neon hover:text-black transition shadow-sm" title="Check-in kondisi fisik & perbarui Personal Best / Parameter Test">
+                <i class="fa-solid fa-heart-pulse text-neon group-hover:text-black text-xs"></i>
+                <span>Check-in & Update PB</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-200 border border-slate-700">VDOT {{ number_format(auth()->user()->vdot ?? 35, 1) }}</span>
+            </button>
+
             @if(!empty($nextWorkout))
-                <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
-                    <span class="font-bold">Next</span>
+                <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700/60 text-xs text-slate-300 hover:border-neon/40 transition">
+                    <span class="font-bold text-neon">Next</span>
                     <span class="text-slate-200">{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</span>
                     @if(!empty($nextWorkout['distance'])) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
                     <span class="text-slate-400">•</span>
@@ -47,7 +55,7 @@
             @endif
 
             <!-- WhatsApp Daily Program Toggle Switch -->
-            <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-green-500/10 border-green-500/30 text-green-300 hover:bg-green-500/15' : 'bg-slate-900 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
+            <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-slate-900 border-green-500/50 text-green-300 hover:bg-slate-800' : 'bg-slate-900 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
                 <i class="fab fa-whatsapp text-sm" :class="isReceiveWa ? 'text-green-400' : 'text-slate-500'"></i>
                 <span>Program Harian WA: </span>
                 <span class="font-black uppercase text-[10px]" :class="isReceiveWa ? 'text-green-400' : 'text-slate-400'" x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"></span>
