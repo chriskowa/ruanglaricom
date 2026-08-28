@@ -630,25 +630,17 @@
         const mapEl = document.getElementById('event-detail-location-map');
         if (!mapEl || detailEventMap) return;
 
+        const mapboxToken = "{{ config('services.mapbox.token') }}";
         detailEventTileLayers = {
-            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                subdomains: ['a', 'b', 'c'],
-                attribution: '&copy; OpenStreetMap'
-            }),
-            satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 18,
-                attribution: 'Esri'
-            }),
-            voyager: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                subdomains: ['a', 'b', 'c'],
-                attribution: 'OpenStreetMap'
-            }),
-            dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 19,
-                attribution: 'Esri'
-            })
+            outdoors: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' })
+                : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }),
+            satellite: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' }),
+            dark: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' })
         };
 
         detailEventMap = L.map('event-detail-location-map', {
@@ -657,8 +649,8 @@
             dragging: true,
         }).setView([detailEventLat, detailEventLng], detailEventZoom);
 
-        // Default active layer: Voyager (Sederhana) as requested
-        detailEventActiveLayer = detailEventTileLayers.voyager;
+        // Default active layer: Outdoors
+        detailEventActiveLayer = detailEventTileLayers.outdoors;
         detailEventActiveLayer.addTo(detailEventMap);
 
         // Custom Marker Pin (Neon Green Pin matching Landing Jadwal Lari)

@@ -1016,12 +1016,22 @@
                     scrollWheelZoom: true
                 }).setView(defaultCenter, defaultZoom);
 
-                // OpenStreetMap Standard Tile Layer (Free, No API Key Required)
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    subdomains: ['a', 'b', 'c'],
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(explorerMap);
+                // Mapbox Outdoors / Streets Tile Layer
+                const mapboxToken = "{{ config('services.mapbox.token') }}";
+                if (mapboxToken) {
+                    L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                        tileSize: 512,
+                        zoomOffset: -1,
+                        maxZoom: 19,
+                        attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    }).addTo(explorerMap);
+                } else {
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        maxZoom: 20,
+                        subdomains: ['a', 'b', 'c', 'd'],
+                        attribution: '&copy; CARTO &copy; OpenStreetMap'
+                    }).addTo(explorerMap);
+                }
 
                 // Initialize Marker Cluster Group with custom styling
                 explorerClusterGroup = L.markerClusterGroup({
@@ -2408,10 +2418,20 @@
                                 attributionControl: false
                             }).setView([coords[0][0], coords[0][1]], 13);
                             
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                maxZoom: 19,
-                                subdomains: ['a', 'b', 'c']
-                            }).addTo(previewMap);
+                            const mapboxToken = "{{ config('services.mapbox.token') }}";
+                            if (mapboxToken) {
+                                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                                    tileSize: 512,
+                                    zoomOffset: -1,
+                                    maxZoom: 19,
+                                    attribution: '&copy; Mapbox'
+                                }).addTo(previewMap);
+                            } else {
+                                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                                    maxZoom: 20,
+                                    subdomains: ['a', 'b', 'c', 'd']
+                                }).addTo(previewMap);
+                            }
                         } else {
                             previewMap.setView([coords[0][0], coords[0][1]], 13);
                         }

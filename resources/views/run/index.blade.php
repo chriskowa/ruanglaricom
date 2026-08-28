@@ -291,7 +291,7 @@
         });
 
         function initFreeRunMap() {
-            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
 
             runMap = L.map('free-run-map', {
                 zoomControl: false,
@@ -299,7 +299,20 @@
                 dragging: true,
             }).setView([-6.2088, 106.8456], 16);
 
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }).addTo(runMap);
+            if (mapboxToken) {
+                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                    tileSize: 512,
+                    zoomOffset: -1,
+                    maxZoom: 19,
+                    attribution: '&copy; Mapbox &copy; OpenStreetMap'
+                }).addTo(runMap);
+            } else {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    attribution: '&copy; CARTO &copy; OpenStreetMap'
+                }).addTo(runMap);
+            }
 
             // Breadcrumb Polyline (#FC4C02)
             runPolyline = L.polyline([], {

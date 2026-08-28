@@ -1114,11 +1114,12 @@
 
                 outdoors.addTo(map);
             } else {
-                var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap',
+                var osm = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    attribution: '&copy; OpenStreetMap &copy; CARTO',
                 });
-                baseLayers = { "OpenStreetMap": osm };
+                baseLayers = { "Peta Lari (CARTO)": osm };
                 osm.addTo(map);
             }
 
@@ -4879,11 +4880,19 @@
                                 attributionControl: false
                             });
                             
-                            // OpenStreetMap standard tiles (Free, no API key required)
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                maxZoom: 19,
-                                subdomains: ['a', 'b', 'c']
-                            }).addTo(previewMap);
+                            if (window.RL_MAPBOX_TOKEN) {
+                                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + window.RL_MAPBOX_TOKEN, {
+                                    tileSize: 512,
+                                    zoomOffset: -1,
+                                    maxZoom: 19,
+                                    attribution: '&copy; Mapbox'
+                                }).addTo(previewMap);
+                            } else {
+                                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                                    maxZoom: 20,
+                                    subdomains: ['a', 'b', 'c', 'd']
+                                }).addTo(previewMap);
+                            }
                         }
 
                         if (previewPolyline) {

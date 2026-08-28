@@ -2290,9 +2290,21 @@
                     if (mapEl) {
                         const map = L.map(mapId);
                         
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        }).addTo(map);
+                        const mapboxToken = "{{ config('services.mapbox.token') }}";
+                        if (mapboxToken) {
+                            L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                                tileSize: 512,
+                                zoomOffset: -1,
+                                maxZoom: 19,
+                                attribution: '&copy; Mapbox &copy; OpenStreetMap'
+                            }).addTo(map);
+                        } else {
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                                maxZoom: 20,
+                                subdomains: ['a', 'b', 'c', 'd'],
+                                attribution: '&copy; CARTO &copy; OpenStreetMap'
+                            }).addTo(map);
+                        }
 
                         new L.GPX(gpxUrl, {
                             async: true,

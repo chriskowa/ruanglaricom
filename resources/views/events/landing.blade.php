@@ -1055,25 +1055,17 @@
         if (!mapContainer || eventsMap) return;
 
         // Base Layers definitions (Google Maps-like styles)
+        const mapboxToken = "{{ config('services.mapbox.token') }}";
         eventsBaseTileLayers = {
-            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                subdomains: ['a', 'b', 'c'],
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }),
-            dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 19,
-                attribution: 'Tiles &copy; Esri'
-            }),
-            voyager: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                subdomains: ['a', 'b', 'c'],
-                attribution: '&copy; OpenStreetMap'
-            }),
-            satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 18,
-                attribution: 'Tiles &copy; Esri'
-            })
+            outdoors: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' })
+                : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }),
+            dark: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }),
+            satellite: mapboxToken
+                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Tiles &copy; Esri' })
         };
 
         eventsMap = L.map('events-explorer-map', {
@@ -1082,7 +1074,7 @@
             dragging: true,
         }).setView([-2.5489, 118.0149], 5); // Center of Indonesia
 
-        eventsActiveTileLayer = eventsBaseTileLayers.voyager;
+        eventsActiveTileLayer = eventsBaseTileLayers.outdoors;
         eventsActiveTileLayer.addTo(eventsMap);
 
         eventsClusterGroup = L.markerClusterGroup({
@@ -1534,14 +1526,15 @@
 
                 var tileUrl = mapboxToken
                     ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
-                    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
                 var tileAttr = mapboxToken
                     ? '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    : '&copy; OpenStreetMap';
+                    : '&copy; CARTO &copy; OpenStreetMap';
 
                 L.tileLayer(tileUrl, {
                     maxZoom: 19,
+                    subdomains: mapboxToken ? undefined : ['a', 'b', 'c', 'd'],
                     tileSize: mapboxToken ? 512 : 256,
                     zoomOffset: mapboxToken ? -1 : 0,
                     attribution: tileAttr

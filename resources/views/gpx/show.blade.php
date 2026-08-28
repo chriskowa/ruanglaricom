@@ -765,10 +765,17 @@
         function initMap() {
             kmMarkersLayer = L.layerGroup();
 
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
             baseTileLayers = {
-                dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' }),
-                street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }),
-                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' })
+                dark: mapboxToken
+                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                    : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' }),
+                street: mapboxToken
+                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' })
+                    : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }),
+                satellite: mapboxToken
+                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
+                    : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' })
             };
 
             map = L.map('gpx-detail-map', {
@@ -1448,15 +1455,27 @@
         }
 
         function initNavMap() {
-            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
             navMap = L.map('nav-fullscreen-map', {
                 zoomControl: false,
                 scrollWheelZoom: true,
                 dragging: true,
             }).setView([-6.2088, 106.8456], 15);
 
-            L.tileLayer(tileUrl, { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap' }).addTo(navMap);
+            if (mapboxToken) {
+                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                    tileSize: 512,
+                    zoomOffset: -1,
+                    maxZoom: 19,
+                    attribution: '&copy; Mapbox &copy; OpenStreetMap'
+                }).addTo(navMap);
+            } else {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20,
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    attribution: '&copy; CARTO &copy; OpenStreetMap'
+                }).addTo(navMap);
+            }
 
             if (routePoints.length > 0) {
                 const latlngs = routePoints.map(p => [p.lat, p.lng]);

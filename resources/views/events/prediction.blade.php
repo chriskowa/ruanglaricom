@@ -175,7 +175,12 @@
             const strategyText = document.getElementById('strategyText');
 
             const map = L.map('routeMap', { zoomControl: true });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
+            if (mapboxToken) {
+                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' }).addTo(map);
+            } else {
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }).addTo(map);
+            }
             map.setView([-6.2, 106.8], 11);
 
             let poly = null;
