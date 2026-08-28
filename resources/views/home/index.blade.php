@@ -44,7 +44,7 @@
                             <span class="text-[#B8FF00]">BATAS.</span>
                         </h1>
                         
-                        <p class="text-[#94A3B8] text-base md:text-lg mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
+                        <p class="text-[#ebebeb] text-base md:text-lg mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
                             Rancang program lari terukur berbasis VDOT, temukan jadwal event lari di seluruh Indonesia, kelola progres latihan, dan raih target finish terbaikmu bersama RuangLari.
                         </p>
                         
@@ -52,7 +52,7 @@
                             <a href="#vdot-section" onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});" class="px-8 sm:px-9 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform text-center shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm flex items-center justify-center cursor-pointer">
                                 <span>Buat Program Lari</span>
                             </a>
-                            <a href="#events" class="px-8 sm:px-9 py-4 border border-[#1F2D44] bg-[#0E1A2D]/80 text-[#F8FAFC] font-black rounded-xl hover:bg-[#111F35] hover:border-[#94A3B8] hover:scale-105 transition transform text-center uppercase tracking-wider text-sm flex items-center justify-center cursor-pointer">
+                            <a href="#events" class="px-8 sm:px-9 py-4 border border-[#1F2D44] bg-[#0E1A2D]/80 text-[#F8FAFC] font-black rounded-xl hover:bg-[#111F35] hover:border-[#ebebeb] hover:scale-105 transition transform text-center uppercase tracking-wider text-sm flex items-center justify-center cursor-pointer">
                                 <span>Jelajahi Event</span>
                             </a>
                         </div>
@@ -62,7 +62,7 @@
                                 <div class="flex text-white text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-[#94A3B8]"><span class="text-white font-bold">1000+</span> Pelari Telah Bergabung</p>
+                                <p class="text-sm text-[#ebebeb]"><span class="text-white font-bold">1000+</span> Pelari Telah Bergabung</p>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
                                                     <div class="min-w-0 flex-1">
                                                         <p class="text-[10px] text-[#B8FF00] uppercase tracking-widest font-black mb-1">{{ $s['eyebrow'] }}</p>
                                                         <h3 class="text-base md:text-lg font-bold text-white leading-tight line-clamp-2">{{ $s['title'] }}</h3>
-                                                        <div class="mt-2 text-xs text-[#94A3B8] space-y-1">
+                                                        <div class="mt-2 text-xs text-[#ebebeb] space-y-1">
                                                             @if(!empty($s['meta_1']))
                                                                 <div class="flex items-center gap-2">
                                                                     <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Tanggal:' : 'Terbit:' }}</span>
@@ -319,7 +319,7 @@
                             Buat Program Lari Mu Sesuai Kemampuan & <span class="text-[#B8FF00]">Target Terbaikmu</span>
                         </h2>
                         
-                        <p class="text-[#94A3B8] text-base sm:text-lg leading-relaxed">
+                        <p class="text-[#ebebeb] text-base sm:text-lg leading-relaxed">
                             Sistem latihan ilmiah berbasis Algoritma VDOT Jack Daniels untuk peningkatan performa terukur, beban kardio proporsional, serta pemulihan optimal tanpa risiko cedera.
                         </p>
                         
@@ -331,7 +331,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-white font-bold text-sm mb-1">Target Pace Ilmiah & Akurat</h4>
-                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Kecepatan setiap sesi latihan (Easy, Tempo, Interval) dihitung dari hasil PB atau Time Trial terbaru.</p>
+                                    <p class="text-[#ebebeb] text-xs leading-relaxed">Kecepatan setiap sesi latihan (Easy, Tempo, Interval) dihitung dari hasil PB atau Time Trial terbaru.</p>
                                 </div>
                             </div>
                             
@@ -341,7 +341,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-white font-bold text-sm mb-1">Beban Kardio Bertahap & Mencegah Overtraining</h4>
-                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Peningkatan volume mingguan secara terkontrol menjaga kestabilan adaptasi jantung dan otot.</p>
+                                    <p class="text-[#ebebeb] text-xs leading-relaxed">Peningkatan volume mingguan secara terkontrol menjaga kestabilan adaptasi jantung dan otot.</p>
                                 </div>
                             </div>
                             
@@ -351,7 +351,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-white font-bold text-sm mb-1">Fleksibel & Otomatis ke Kalender Lari</h4>
-                                    <p class="text-[#94A3B8] text-xs leading-relaxed">Pilih jumlah hari latihan per minggu dan langsung simpan ke kalender pribadi kamu.</p>
+                                    <p class="text-[#ebebeb] text-xs leading-relaxed">Pilih jumlah hari latihan per minggu dan langsung simpan ke kalender pribadi kamu.</p>
                                 </div>
                             </div>
                         </div>
@@ -378,7 +378,7 @@
                             <!-- Form Inputs -->
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Jarak Parameter / PB Terakhir</label>
+                                    <label class="block text-xs font-bold text-[#ebebeb] uppercase tracking-wider mb-2">Jarak Parameter / PB Terakhir</label>
                                     <select id="vdot_widget_distance" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#B8FF00] font-medium transition-all">
                                         <option value="5K">5K (5 Kilometer)</option>
                                         <option value="10K">10K (10 Kilometer)</option>
@@ -391,28 +391,28 @@
                                 
                                 <!-- Time Input (for Standard Distances) -->
                                 <div id="vdot_time_input_group">
-                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Waktu PB / Catatan Waktu</label>
+                                    <label class="block text-xs font-bold text-[#ebebeb] uppercase tracking-wider mb-2">Waktu PB / Catatan Waktu</label>
                                     <div class="grid grid-cols-3 gap-2">
                                         <div>
                                             <input type="number" id="vdot_widget_h" min="0" max="23" placeholder="Jam" value="0" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
-                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Jam</span>
+                                            <span class="text-[10px] text-[#ebebeb] text-center block mt-1">Jam</span>
                                         </div>
                                         <div>
                                             <input type="number" id="vdot_widget_m" min="0" max="59" placeholder="Menit" value="25" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
-                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Menit</span>
+                                            <span class="text-[10px] text-[#ebebeb] text-center block mt-1">Menit</span>
                                         </div>
                                         <div>
                                             <input type="number" id="vdot_widget_s" min="0" max="59" placeholder="Detik" value="00" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-3 py-2.5 text-center text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
-                                            <span class="text-[10px] text-[#94A3B8] text-center block mt-1">Detik</span>
+                                            <span class="text-[10px] text-[#ebebeb] text-center block mt-1">Detik</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Distance Input (for Cooper 12 / Balke 15 Tests) -->
                                 <div id="vdot_meters_input_group" class="hidden">
-                                    <label class="block text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Jarak Tempuh (Meter)</label>
+                                    <label class="block text-xs font-bold text-[#ebebeb] uppercase tracking-wider mb-2">Jarak Tempuh (Meter)</label>
                                     <input type="number" id="vdot_widget_meters" min="500" max="10000" placeholder="Contoh: 2800" class="w-full bg-[#08111F] border border-[#1F2D44] rounded-xl px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-[#B8FF00] transition-all">
-                                    <span class="text-[10px] text-[#94A3B8] block mt-1">Masukkan total jarak lari yang dicapai dalam waktu tes.</span>
+                                    <span class="text-[10px] text-[#ebebeb] block mt-1">Masukkan total jarak lari yang dicapai dalam waktu tes.</span>
                                 </div>
                                 
                                 <button type="button" id="btn-vdot-calculate" class="w-full py-3 rounded-xl bg-[#B8FF00] hover:bg-[#CDFF4D] border border-[#B8FF00] text-black font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#B8FF00]/20">
@@ -425,11 +425,11 @@
                             <div id="vdot_widget_result" class="hidden p-4 rounded-2xl bg-[#08111F] border border-[#1F2D44] space-y-4 transition-all duration-500 ease-out transform opacity-0 translate-y-4">
                                 <div class="flex items-center justify-between border-b border-[#1F2D44] pb-3">
                                     <div>
-                                        <span class="text-[10px] text-[#94A3B8] font-mono uppercase block">Skor VDOT:</span>
+                                        <span class="text-[10px] text-[#ebebeb] font-mono uppercase block">Skor VDOT:</span>
                                         <span id="vdot_score_display" class="text-2xl font-black text-[#B8FF00] font-mono">42.5</span>
                                     </div>
                                     <div class="text-right">
-                                        <span class="text-[10px] text-[#94A3B8] font-mono uppercase block">Level Pelari:</span>
+                                        <span class="text-[10px] text-[#ebebeb] font-mono uppercase block">Level Pelari:</span>
                                         <span id="vdot_fitness_level" class="text-xs font-bold text-white uppercase bg-[#0E1A2D] px-2.5 py-1 rounded-lg border border-[#1F2D44] block mt-0.5">Intermediate</span>
                                     </div>
                                 </div>
@@ -439,7 +439,7 @@
                                     <button type="button" id="vdot_tab_paces_btn" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer">
                                         Pace Latihan
                                     </button>
-                                    <button type="button" id="vdot_tab_races_btn" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer">
+                                    <button type="button" id="vdot_tab_races_btn" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#ebebeb] hover:text-white transition-all text-center cursor-pointer">
                                         Target Race
                                     </button>
                                 </div>
@@ -530,14 +530,14 @@
                     <div data-aos="fade-right">
                         <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Kalender Race</span>
                         <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Event Lari Mendatang</h2>
-                        <p class="text-[#94A3B8] mt-2 max-w-xl text-base">Jelajahi kalender race lari terbaru di Indonesia dan daftar langsung secara online.</p>
+                        <p class="text-[#ebebeb] mt-2 max-w-xl text-base">Jelajahi kalender race lari terbaru di Indonesia dan daftar langsung secara online.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 sm:gap-4" data-aos="fade-left">
                         <a href="{{ route('events.index') }}?submit=1" class="px-5 py-2.5 rounded-full bg-[#B8FF00] text-[#08111F] font-black text-sm hover:bg-lime-300 transition-all inline-flex items-center gap-2 shadow-lg shadow-[#B8FF00]/20 hover:scale-105">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
                             Submit Event Lari
                         </a>
-                        <a href="{{ route('events.index') }}" class="group flex items-center gap-2 text-[#94A3B8] hover:text-white transition font-bold border-b border-[#1F2D44] hover:border-white pb-1 text-sm py-1">
+                        <a href="{{ route('events.index') }}" class="group flex items-center gap-2 text-[#ebebeb] hover:text-white transition font-bold border-b border-[#1F2D44] hover:border-white pb-1 text-sm py-1">
                             Lihat Semua Event 
                             <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                         </a>
@@ -583,7 +583,7 @@
                             Database Rute <span class="text-[#B8FF00]">GPX</span> Lari Indonesia
                         </h2>
 
-                        <p class="text-[#94A3B8] text-base md:text-lg leading-relaxed">
+                        <p class="text-[#ebebeb] text-base md:text-lg leading-relaxed">
                             Unduh ribuan jalur lari terverifikasi di seluruh Indonesia untuk road, trail running, dan track. File GPX siap pakai dan disinkronkan langsung ke smartwatch Anda.
                         </p>
 
@@ -595,7 +595,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Navigasi GPS & Mode Offline di Gunung</h4>
-                                    <p class="text-xs text-[#94A3B8] leading-relaxed">Panduan rute turn-by-turn dan peta tetap dapat diakses di HP tanpa memerlukan sinyal internet.</p>
+                                    <p class="text-xs text-[#ebebeb] leading-relaxed">Panduan rute turn-by-turn dan peta tetap dapat diakses di HP tanpa memerlukan sinyal internet.</p>
                                 </div>
                             </div>
 
@@ -605,7 +605,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Sinkronisasi Instan ke Jam Lari</h4>
-                                    <p class="text-xs text-[#94A3B8] leading-relaxed">File format GPX 1.1 standar kompatibel dengan Garmin Connect, Coros App, Suunto, dan Strava.</p>
+                                    <p class="text-xs text-[#ebebeb] leading-relaxed">File format GPX 1.1 standar kompatibel dengan Garmin Connect, Coros App, Suunto, dan Strava.</p>
                                 </div>
                             </div>
 
@@ -615,7 +615,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Buat & Rancang Rute Sendiri</h4>
-                                    <p class="text-xs text-[#94A3B8] leading-relaxed">Gunakan tool Buat Rute Lari untuk mengukur jarak, elevasi gain, dan membagikannya ke komunitas.</p>
+                                    <p class="text-xs text-[#ebebeb] leading-relaxed">Gunakan tool Buat Rute Lari untuk mengukur jarak, elevasi gain, dan membagikannya ke komunitas.</p>
                                 </div>
                             </div>
                         </div>
@@ -646,7 +646,7 @@
                 <div class="text-center mb-16" data-aos="fade-up">
                     <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Ekosistem Ruang Lari</span>
                     <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Satu Ekosistem untuk Pelari</h2>
-                    <p class="text-[#94A3B8] mt-3 max-w-2xl mx-auto text-base">Kami mengintegrasikan seluruh kebutuhan pelari mulai dari tools latihan, kalender event, komunitas, hingga gear pendukung.</p>
+                    <p class="text-[#ebebeb] mt-3 max-w-2xl mx-auto text-base">Kami mengintegrasikan seluruh kebutuhan pelari mulai dari tools latihan, kalender event, komunitas, hingga gear pendukung.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -658,22 +658,22 @@
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pantau & Tingkatkan Latihan</h3>
-                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Tingkatkan performa larimu dengan kalkulator pace, training plan custom, serta bimbingan dari coach TrackMaster Pro.</p>
+                            <p class="text-[#ebebeb] text-sm leading-relaxed mb-6">Tingkatkan performa larimu dengan kalkulator pace, training plan custom, serta bimbingan dari coach TrackMaster Pro.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
-                            <a href="{{ route('gpx.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('gpx.index') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Database Rute GPX</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
-                            <a href="{{ route('calendar.public') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('calendar.public') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Kalender Lari</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
-                            <a href="{{ route('calculator') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('calculator') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Pace Calculator</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
-                            <a href="{{ route('programs.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('programs.index') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Program Latihan</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
@@ -687,14 +687,14 @@
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Terhubung dengan Komunitas</h3>
-                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Terhubung dengan ribuan pelari se-Indonesia, temukan profil rekan pelari, dan booking pacer resmi untuk target race Anda.</p>
+                            <p class="text-[#ebebeb] text-sm leading-relaxed mb-6">Terhubung dengan ribuan pelari se-Indonesia, temukan profil rekan pelari, dan booking pacer resmi untuk target race Anda.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
-                            <a href="{{ route('users.runners') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('users.runners') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Profil Pelari</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
-                            <a href="{{ route('pacer.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('pacer.index') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Booking Pacers</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
@@ -708,10 +708,10 @@
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pendaftaran Event Lari</h3>
-                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Nikmati kemudahan registrasi event lari nasional yang aman, praktis, dengan konfirmasi e-ticket instan via e-mail.</p>
+                            <p class="text-[#ebebeb] text-sm leading-relaxed mb-6">Nikmati kemudahan registrasi event lari nasional yang aman, praktis, dengan konfirmasi e-ticket instan via e-mail.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
-                            <a href="{{ route('events.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('events.index') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Cari Event Lari</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
@@ -725,10 +725,10 @@
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
                             <h3 class="text-xl font-bold text-white mb-3 leading-tight">Marketplace Running Gear</h3>
-                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Temukan perlengkapan lari berkualitas dari brand terpercaya, atau titipkan gear lari pre-loved Anda lewat sistem konsinyasi kami.</p>
+                            <p class="text-[#ebebeb] text-sm leading-relaxed mb-6">Temukan perlengkapan lari berkualitas dari brand terpercaya, atau titipkan gear lari pre-loved Anda lewat sistem konsinyasi kami.</p>
                         </div>
                         <div class="pt-6 border-t border-[#1F2D44] space-y-2">
-                            <a href="{{ route('marketplace.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                            <a href="{{ route('marketplace.index') }}" class="flex items-center justify-between text-xs text-[#ebebeb] hover:text-[#B8FF00] font-bold transition">
                                 <span>Jual Beli Gear</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
                             </a>
@@ -758,7 +758,7 @@
                             <span class="text-[#B8FF00]">Terdekat Anda!</span>
                         </h2>
                         
-                        <p class="text-[#94A3B8] text-base md:text-lg mb-8 leading-relaxed font-normal">
+                        <p class="text-[#ebebeb] text-base md:text-lg mb-8 leading-relaxed font-normal">
                             Ingin lari pagi di GBK atau sore hari di Malang Kayutangan tapi tidak ada teman? Dengan fitur <strong>Cari Teman Lari</strong>, Anda bisa menemukan pelari terdekat di kota Anda, membuat jadwal lari bersama, dan mengobrol secara langsung dalam obrolan grup. 
                         </p>
 
@@ -770,7 +770,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Pemetaan Real-time</h4>
-                                    <p class="text-xs text-[#94A3B8]">Lihat rute lari aktif dan lokasi pelari lain di kota Anda secara interaktif di atas peta.</p>
+                                    <p class="text-xs text-[#ebebeb]">Lihat rute lari aktif dan lokasi pelari lain di kota Anda secara interaktif di atas peta.</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-3">
@@ -779,7 +779,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Jodoh Lari (Match Buddy)</h4>
-                                    <p class="text-xs text-[#94A3B8]">Masukkan preferensi target jarak dan pace Anda untuk dicocokkan otomatis dengan teman lari yang sesuai.</p>
+                                    <p class="text-xs text-[#ebebeb]">Masukkan preferensi target jarak dan pace Anda untuk dicocokkan otomatis dengan teman lari yang sesuai.</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-3">
@@ -788,7 +788,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-white mb-0.5">Obrolan Grup Lari</h4>
-                                    <p class="text-xs text-[#94A3B8]">Koordinasikan tempat berkumpul, barang bawaan, dan obrolan persiapan lari secara langsung di dalam thread.</p>
+                                    <p class="text-xs text-[#ebebeb]">Koordinasikan tempat berkumpul, barang bawaan, dan obrolan persiapan lari secara langsung di dalam thread.</p>
                                 </div>
                             </div>
                         </div>
@@ -815,7 +815,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <h5 class="text-xs font-bold text-white">100% Aman & Terverifikasi</h5>
-                                        <p class="text-[10px] text-[#94A3B8] mt-0.5">Gabung dengan komunitas pelari terverifikasi di wilayah sekitar Anda.</p>
+                                        <p class="text-[10px] text-[#ebebeb] mt-0.5">Gabung dengan komunitas pelari terverifikasi di wilayah sekitar Anda.</p>
                                     </div>
                                 </div>
                             </div>
@@ -837,7 +837,7 @@
                         <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">
                             Kelola Event Lari Tanpa Ribet
                         </h2>
-                        <p class="text-[#94A3B8] mt-4 text-base leading-relaxed">
+                        <p class="text-[#ebebeb] mt-4 text-base leading-relaxed">
                             Sistem ticketing dan registrasi advanced yang dibuat khusus untuk event lari. Dilengkapi manajemen kuota real-time, kode promo fleksibel, add-on jersey, serta integrasi e-ticket dan WhatsApp blast.
                         </p>
                     </div>
@@ -857,7 +857,7 @@
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Kuota & Kategori Real-time</h3>
-                        <p class="text-[#94A3B8] text-sm leading-relaxed">Atur kuota, early bird, slot per kategori secara dinamis dengan status real-time untuk menghindari over-booking.</p>
+                        <p class="text-[#ebebeb] text-sm leading-relaxed">Atur kuota, early bird, slot per kategori secara dinamis dengan status real-time untuk menghindari over-booking.</p>
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="100">
@@ -865,7 +865,7 @@
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5 5.5L4 19l5.5-5.5M14 9l5.5-5.5L20 4l-5.5 5.5M6 6l12 12" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Promo, Kupon, & Jersey Add-on</h3>
-                        <p class="text-[#94A3B8] text-sm leading-relaxed">Kelola kode promo komunitas, diskon progresif, ukuran jersey, bib number custom, hingga opsi merchandise dalam satu formulir.</p>
+                        <p class="text-[#ebebeb] text-sm leading-relaxed">Kelola kode promo komunitas, diskon progresif, ukuran jersey, bib number custom, hingga opsi merchandise dalam satu formulir.</p>
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="200">
@@ -873,7 +873,7 @@
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v1c0 1.105 1.343 2 3 2s3 .895 3 2v1c0 1.105-1.343 2-3 2m0-14v2m0 16v2m9-10a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Pembayaran Online Otomatis</h3>
-                        <p class="text-[#94A3B8] text-sm leading-relaxed">Integrasi Virtual Account, E-Wallet (Gopay/QRIS), dan Kartu Kredit dengan verifikasi instan tanpa perlu konfirmasi manual.</p>
+                        <p class="text-[#ebebeb] text-sm leading-relaxed">Integrasi Virtual Account, E-Wallet (Gopay/QRIS), dan Kartu Kredit dengan verifikasi instan tanpa perlu konfirmasi manual.</p>
                     </div>
 
                     <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="300">
@@ -881,7 +881,7 @@
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">Dashboard Rekap & Race Day Ops</h3>
-                        <p class="text-[#94A3B8] text-sm leading-relaxed">Ekspor data peserta berformat Excel untuk tim timer (BIB tagging) dan kelola check-in kehadiran secara live saat race day.</p>
+                        <p class="text-[#ebebeb] text-sm leading-relaxed">Ekspor data peserta berformat Excel untuk tim timer (BIB tagging) dan kelola check-in kehadiran secara live saat race day.</p>
                     </div>
                 </div>
             </div>
@@ -906,7 +906,7 @@
                     <h2 class="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">
                         Weekly <span class="text-[#B8FF00]">Leaderboard</span>
                     </h2>
-                    <p class="text-[#94A3B8] max-w-2xl mx-auto text-base">
+                    <p class="text-[#ebebeb] max-w-2xl mx-auto text-base">
                         Pantau performa terbaik minggu ini dari member <a href="https://www.strava.com/clubs/1859982" target="_blank" class="text-[#B8FF00] hover:underline font-bold">Ruang Lari Club</a> di Strava. Gabungkan catatan larimu dan tantang dirimu untuk masuk papan peringkat teratas!
                     </p>
                 </div>
@@ -995,7 +995,7 @@
                 const badgeSz      = isCenter ? `text-xs px-2 py-0.5` : `text-[9px] px-1.5 py-0.5`;
                 const badgeText    = isCenter ? 'MVP' : '#1';
                 const nameSize     = isCenter ? `text-lg` : `text-base`;
-                const subColor     = isCenter ? `text-[#B8FF00]` : `text-[#94A3B8]`;
+                const subColor     = isCenter ? `text-[#B8FF00]` : `text-[#ebebeb]`;
                 const statSize     = isCenter ? `text-4xl` : `text-3xl`;
                 const barColor     = isCenter ? `bg-gradient-to-r from-[#B8FF00] to-emerald-400` : `bg-${color}-500`;
                 const barH         = isCenter ? `h-3` : `h-2`;
@@ -1025,7 +1025,7 @@
                         </div>
                         <div class="mt-4">
                             <div class="flex items-end justify-between mb-2">
-                                <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">${label.split(' ')[0]}</span>
+                                <span class="text-[#ebebeb] text-xs uppercase tracking-wider font-bold">${label.split(' ')[0]}</span>
                                 <span class="${statSize} font-black text-white">${value} <span class="text-xs text-slate-500 font-normal">${unit}</span></span>
                             </div>
                             <div class="w-full ${barH} bg-[#111F35] rounded-full overflow-hidden">
@@ -1044,7 +1044,7 @@
                         grid.innerHTML = `
                             <div class="col-span-3 text-center py-10">
                                 <div class="inline-block p-8 rounded-3xl bg-[#0E1A2D] border border-[#1F2D44] max-w-md">
-                                    <p class="text-[#94A3B8] mb-6 leading-relaxed">Belum ada data aktivitas lari minggu ini dari klub Strava. Jadilah yang pertama!</p>
+                                    <p class="text-[#ebebeb] mb-6 leading-relaxed">Belum ada data aktivitas lari minggu ini dari klub Strava. Jadilah yang pertama!</p>
                                     <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#FC4C02] text-white font-bold rounded-xl hover:bg-[#E34402] transition uppercase text-xs tracking-wider">Hubungkan Strava</a>
                                 </div>
                             </div>`;
@@ -1069,9 +1069,9 @@
                     <div>
                         <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Tips & Edukasi</span>
                         <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">News & Articles</h2>
-                        <p class="text-[#94A3B8] mt-2 max-w-xl text-base">Ikuti tips latihan lari terbaru, review sepatu, nutrisi olahraga, dan cerita inspiratif dari pelari Indonesia.</p>
+                        <p class="text-[#ebebeb] mt-2 max-w-xl text-base">Ikuti tips latihan lari terbaru, review sepatu, nutrisi olahraga, dan cerita inspiratif dari pelari Indonesia.</p>
                     </div>
-                    <a href="{{ url('/blog') }}" class="text-sm font-bold text-[#94A3B8] hover:text-white transition flex items-center gap-2 border-b border-transparent hover:border-white pb-1 shrink-0">
+                    <a href="{{ url('/blog') }}" class="text-sm font-bold text-[#ebebeb] hover:text-white transition flex items-center gap-2 border-b border-transparent hover:border-white pb-1 shrink-0">
                         Lihat Artikel Terbaru <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </a>
                 </div>
@@ -1092,7 +1092,7 @@
         --color-surface-2: #111F35;
         --color-border: #1F2D44;
         --color-text-primary: #F8FAFC;
-        --color-text-secondary: #94A3B8;
+        --color-text-secondary: #ebebeb;
         --color-lime: #B8FF00;
         --color-lime-hover: #9FE000;
     }
@@ -1374,7 +1374,7 @@
                         </div>
                     </div>
                     <div class="px-6 pb-6 pt-4 border-t border-[#1F2D44] flex items-center justify-between">
-                        <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="text-xs text-[#94A3B8] group-hover:text-white font-bold uppercase tracking-wider transition flex items-center gap-2">
+                        <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="text-xs text-[#ebebeb] group-hover:text-white font-bold uppercase tracking-wider transition flex items-center gap-2">
                             Baca Selengkapnya
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                         </a>
@@ -1396,7 +1396,7 @@
             c.innerHTML='';
             
             if(!events||events.length===0){
-                c.innerHTML='<div class="col-span-2 text-center text-[#94A3B8] py-16 border border-dashed border-[#1F2D44] rounded-3xl bg-[#0E1A2D]">Belum ada event mendatang.</div>';
+                c.innerHTML='<div class="col-span-2 text-center text-[#ebebeb] py-16 border border-dashed border-[#1F2D44] rounded-3xl bg-[#0E1A2D]">Belum ada event mendatang.</div>';
                 return;
             }
             
@@ -1418,7 +1418,7 @@
                         distanceBadges += `<span class="bg-[#111F35] text-[#B8FF00] border border-[#1F2D44] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">${dist}</span>`;
                     });
                 } else {
-                    distanceBadges = `<span class="bg-[#111F35] text-[#94A3B8] border border-[#1F2D44] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Run</span>`;
+                    distanceBadges = `<span class="bg-[#111F35] text-[#ebebeb] border border-[#1F2D44] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Run</span>`;
                 }
 
                 card.innerHTML=`
@@ -1445,11 +1445,11 @@
                         <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#B8FF00] transition line-clamp-2 leading-snug">${ev.name}</h3>
                         
                         <div class="space-y-2 mb-6">
-                            <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
+                            <div class="flex items-center gap-2 text-sm text-[#ebebeb]">
                                 <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 <span class="truncate">${ev.location||'TBA'}</span>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
+                            <div class="flex items-center gap-2 text-sm text-[#ebebeb]">
                                 <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 <span>${ev.time||'TBA'} WIB</span>
                             </div>
@@ -1524,13 +1524,13 @@
         if (tabPacesBtn && tabRacesBtn) {
             tabPacesBtn.addEventListener('click', function() {
                 tabPacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer";
-                tabRacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer";
+                tabRacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#ebebeb] hover:text-white transition-all text-center cursor-pointer";
                 tabPacesContent.classList.remove('hidden');
                 tabRacesContent.classList.add('hidden');
             });
             tabRacesBtn.addEventListener('click', function() {
                 tabRacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-white bg-[#1F2D44] transition-all text-center cursor-pointer";
-                tabPacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#94A3B8] hover:text-white transition-all text-center cursor-pointer";
+                tabPacesBtn.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-[#ebebeb] hover:text-white transition-all text-center cursor-pointer";
                 tabRacesContent.classList.remove('hidden');
                 tabPacesContent.classList.add('hidden');
             });
