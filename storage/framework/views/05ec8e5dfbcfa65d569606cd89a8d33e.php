@@ -70,7 +70,7 @@
                     <li><a href="<?php echo e(route('marketplace.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Marketplace Shoes & Gear</a></li>
                     <li><a href="<?php echo e(route('gpx.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Database GPX</a></li>
                     <li><a href="<?php echo e(route('register')); ?>?role=eo" class="hover:text-white hover:translate-x-1 inline-block transition">Registrasi Organizer (EO)</a></li>
-                    <li><a href="<?php echo e(route('vcard.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">RuangLari Digital V-Card</a></li>
+                    <li><a href="<?php echo e(route('vcard.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Contact Us</a></li>
                 </ul>
             </div>
 

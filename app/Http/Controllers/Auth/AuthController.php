@@ -99,37 +99,6 @@ class AuthController extends Controller
                     ->with('success', 'Akun belum terverifikasi. Silakan masukkan kode OTP yang dikirim.');
             }
 
-            // Cek Status Membership EO
-            if ($user->role === 'eo' && ! $user->isMembershipActive()) {
-                // Cari transaksi pending
-                $pendingTx = $user->membershipTransactions()
-                    ->where('status', 'pending')
-                    ->latest()
-                    ->first();
-
-                if ($pendingTx) {
-                    if ($request->wantsJson()) {
-                        return response()->json([
-                            'success' => true,
-                            'redirect_url' => route('eo.membership.payment', $pendingTx->id),
-                        ]);
-                    }
-
-                    return redirect()->route('eo.membership.payment', $pendingTx->id);
-                }
-
-                // Jika tidak ada transaksi pending tapi membership tidak aktif (expired atau belum beli)
-                if ($request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'redirect_url' => route('eo.packages.index'),
-                    ]);
-                }
-
-                return redirect()->route('eo.packages.index')
-                    ->with('warning', 'Masa aktif paket Anda telah habis atau belum aktif. Silakan pilih paket.');
-            }
-
             $dashboard = match ($user->role) {
                 'admin' => route('admin.dashboard'),
                 'coach' => route('coach.dashboard'),

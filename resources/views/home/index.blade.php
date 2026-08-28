@@ -21,12 +21,10 @@
                     <!-- Hero Text -->
                     <div class="text-center md:text-left order-2 md:order-1">
                         <!-- Desktop Badge -->
-                        <div class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/20 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-8">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B8FF00] opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#B8FF00]"></span>
-                            </span>
-                            Dari Pelari Untuk Pelari
+                        <div class="hidden md:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0E1A2D] border border-[#1F2D44] text-xs font-medium text-[#ebebeb] mb-8">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#B8FF00]"></span>
+                            <span class="text-[#B8FF00] font-bold uppercase tracking-wider text-[11px]">Ekosistem Lari</span>                            
+                            <span class="text-slate-300">Dari Pelari Untuk Pelari</span>
                         </div>
 
                         <!-- Mobile Quick Action Buttons -->
