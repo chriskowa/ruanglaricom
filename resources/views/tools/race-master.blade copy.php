@@ -1025,7 +1025,7 @@
                             </label>
                             <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                                 <input type="checkbox" v-model="raceSettings.enableOcr" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                                <span>OCR Angka BIB</span>
+                                <span>OCR BIB Dada</span>
                             </label>
                             <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                                 <input type="checkbox" v-model="raceSettings.enableFaceAi" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
@@ -1035,15 +1035,6 @@
                                 <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500">
                                 <span>Audio Beep</span>
                             </label>
-                        </div>
-
-                        <!-- FAST GLOBAL OCR: fixed full-frame mode -->
-                        <div v-if="raceSettings.enableOcr" class="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
-                            <span class="font-bold text-slate-600 dark:text-slate-400">Mode OCR:</span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold">
-                                <i class="fa-solid fa-bolt"></i>
-                                Global Full Frame • Fast Scan ~450 ms
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -1138,11 +1129,11 @@
                         <div class="sm:col-span-2 md:col-span-4 flex flex-wrap items-center gap-4 pt-1 border-t border-slate-800">
                             <label class="inline-flex items-center gap-2 cursor-pointer text-xs">
                                 <input type="checkbox" v-model="raceSettings.enableFaceAi" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                                <span>AI Face Recognition (Biometrik)</span>
+                                <span>AI Face Recognition (Biometrik Wajah)</span>
                             </label>
                             <label class="inline-flex items-center gap-2 cursor-pointer text-xs">
                                 <input type="checkbox" v-model="raceSettings.enableOcr" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
-                                <span>OCR Angka BIB</span>
+                                <span>OCR Deteksi Angka BIB Dada</span>
                             </label>
                             <label class="inline-flex items-center gap-2 cursor-pointer text-xs">
                                 <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
@@ -1154,14 +1145,6 @@
                                 <button type="button" @click="setLinePreset('vertical')" class="px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 text-slate-300 font-medium border border-slate-700">Tegak</button>
                                 <button type="button" @click="setLinePreset('horizontal')" class="px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 text-slate-300 font-medium border border-slate-700">Datar</button>
                             </div>
-                        </div>
-
-                        <!-- Camera Console FAST GLOBAL OCR -->
-                        <div v-if="raceSettings.enableOcr" class="sm:col-span-2 md:col-span-4 flex items-center justify-between flex-wrap gap-2 text-xs pt-1 border-t border-slate-800">
-                            <span class="text-slate-400 font-bold text-[11px]">OCR Scanner:</span>
-                            <span class="text-emerald-400 font-bold text-[11px]">
-                                Full Frame • Runtime Pattern • Fuzzy Top-1 • No Voting
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -1221,15 +1204,9 @@
                                     <span v-if="item.name">@{{ item.name }}</span>
                                 </div>
                                 <div class="text-[11px] font-mono text-slate-400 mt-0.5">@{{ item.timeFormatted }}</div>
-                                <div class="mt-0.5 flex items-center gap-1 flex-wrap text-[9px] font-bold uppercase">
-                                    <span v-if="item.matchMethod" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">@{{ item.matchMethod }}</span>
-                                    <span v-if="item.ocrConfidence > 0" class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">OCR @{{ Math.round(item.ocrConfidence) }}%</span>
-                                    <span v-if="item.ambiguous" class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">Ambigu</span>
-                                    <span v-if="!item.participantId" class="px-1.5 py-0.5 rounded bg-red-950 text-red-300">Perlu Verifikasi</span>
-                                </div>
-
-                                <button v-if="!item.participantId" type="button" @click="openAssignBibModal(item)" class="mt-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors w-full">
-                                    Verifikasi / Tetapkan BIB
+                                
+                                <button v-if="!item.bib" type="button" @click="openAssignBibModal(item)" class="mt-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors w-full">
+                                    Tetapkan BIB
                                 </button>
                             </div>
                         </div>
@@ -2036,20 +2013,7 @@
             // Data
             // Tesseract / OCR State
             let ocrWorker = null;
-            let ocrWorkerInitPromise = null;
             let ocrBusy = false;
-            let ocrQueue = Promise.resolve();
-            let ocrQueueDepth = 0;
-
-            // FAST GLOBAL OCR ----------------------------------------------------------
-            // OCR is intentionally independent from COCO-SSD/person tracking.
-            // The whole camera frame is scanned on a global throttle. As soon as a BIB-like
-            // pattern is found, the best participant match is processed immediately.
-            const OCR_GLOBAL_INTERVAL_MS = 450; // target: 400-600 ms
-            const OCR_GLOBAL_MAX_WIDTH = 960;   // speed-first full-frame OCR
-            let globalOcrTimer = null;
-            let globalOcrInFlight = false;
-            let ocrWorkerProfileSignature = '';
 
             const currentView = ref('setup'); // setup, bibs, race, results
             const raceName = ref('');
@@ -2131,7 +2095,6 @@
                 enableFaceAi: true,
                 enableBeep: true,
                 stationMode: 'master', // 'master' | 'satellite'
-                ocrScope: 'full_frame', // FAST GLOBAL OCR always scans the whole frame
             });
 
             // Manual BIB Rapid Entry & Validation State
@@ -2446,7 +2409,7 @@
                     if (parsed && Array.isArray(parsed.participants)) {
                         participants.value = parsed.participants.map(p => ({
                             id: p.id || crypto.randomUUID(),
-                            bib: normalizeBib(p.bib) || String(p.bib ?? '').trim().toUpperCase(),
+                            bib: String(p.bib ?? '').trim(),
                             name: String(p.name ?? ''),
                             predictedTimeMs: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
                             laps: Array.isArray(p.laps) ? p.laps : [],
@@ -2587,7 +2550,7 @@
 
                         participants.value = data.participants.map(p => ({
                             id: p.id || crypto.randomUUID(),
-                            bib: normalizeBib(p.bib) || String(p.bib ?? '').trim().toUpperCase(),
+                            bib: String(p.bib ?? '').trim(),
                             name: String(p.name ?? '').trim(),
                             photoUrl: p.photo_url || '',
                             faceDescriptor: null,
@@ -2630,7 +2593,6 @@
 
             // Methods
             const loadExistingRaces = async () => {
-                if (!isAuthenticated) return;
                 try {
                     const data = await apiFetchJson(`${apiBase}/races`);
                     if (data && data.success) {
@@ -2642,7 +2604,7 @@
             };
 
             const selectExistingRace = async (raceId) => {
-                if (!isAuthenticated || !raceId) return;
+                if (!raceId) return;
                 try {
                     const data = await apiFetchJson(`${apiBase}/races/${raceId}`);
                     if (data && data.success) {
@@ -2696,7 +2658,7 @@
 
                                 return {
                                     id: p.id || crypto.randomUUID(),
-                                    bib: normalizeBib(p.bib) || String(p.bib ?? '').trim().toUpperCase(),
+                                    bib: String(p.bib ?? '').trim(),
                                     name: String(p.name ?? ''),
                                     predictedTimeMs: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
                                     laps: hasLaps ? p.laps : [],
@@ -3048,18 +3010,13 @@
 
             const addParticipant = () => {
                 if (!newBib.value || !newName.value) return;
-
-                const bibValue = normalizeBib(newBib.value);
-                if (!bibValue) {
-                    alert('Format BIB tidak valid. Gunakan 4 digit (contoh 1001) atau F/M + 4 digit (contoh F-1001, F 1001, M-1001).');
-                    return;
-                }
-
-                // Duplicate check uses canonical BIB, so F 1001 / F1001 / F-1001 are identical.
-                if (participants.value.find(p => normalizeBib(p.bib) === bibValue)) {
+                // Check duplicate BIB
+                if (participants.value.find(p => p.bib == newBib.value)) {
                     alert('Nomor BIB sudah ada!');
                     return;
                 }
+                
+                const bibValue = String(newBib.value).trim();
                 
                 // Parse HH:MM:SS
                 const h = parseInt(newPredictedHH.value) || 0;
@@ -3092,7 +3049,7 @@
                 });
                 
                 // Sort by BIB
-                participants.value.sort(compareBibs);
+                participants.value.sort((a,b) => parseInt(a.bib) - parseInt(b.bib));
                 
                 newBib.value = '';
                 newName.value = '';
@@ -3105,7 +3062,7 @@
             };
 
             const downloadCsvSample = () => {
-                const csvContent = "bib,nama,prediksi_waktu\n1001,Budi Santoso,00:25:30\nF-1002,Siti Rahma,00:28:15\nM-1003,Ahmad Fauzi,00:22:40\nF-1004,Dewi Lestari,00:31:10\n1005,Rian Hidayat,00:19:50\n";
+                const csvContent = "bib,nama,prediksi_waktu\n101,Budi Santoso,00:25:30\n102,Siti Rahma,00:28:15\n103,Ahmad Fauzi,00:22:40\n104,Dewi Lestari,00:31:10\n105,Rian Hidayat,00:19:50\n";
                 const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -3196,7 +3153,7 @@
                 let skippedDuplicateCount = 0;
                 let invalidCount = 0;
 
-                const existingBibSet = new Set(participants.value.map(p => normalizeBib(p.bib)).filter(Boolean));
+                const existingBibSet = new Set(participants.value.map(p => String(p.bib).trim().toUpperCase()));
                 const newEntries = [];
 
                 for (let i = 1; i < lines.length; i++) {
@@ -3207,7 +3164,7 @@
                     const rawName = row[nameIdx] ?? '';
                     const rawPred = predIdx !== -1 ? (row[predIdx] ?? '') : '';
 
-                    const bib = normalizeBib(rawBib);
+                    const bib = String(rawBib).trim();
                     const name = String(rawName).trim();
 
                     if (!bib || !name) {
@@ -3215,7 +3172,7 @@
                         continue;
                     }
 
-                    if (existingBibSet.has(bib)) {
+                    if (existingBibSet.has(bib.toUpperCase())) {
                         skippedDuplicateCount++;
                         continue;
                     }
@@ -3230,7 +3187,7 @@
                         }
                     }
 
-                    existingBibSet.add(bib);
+                    existingBibSet.add(bib.toUpperCase());
                     newEntries.push({
                         id: crypto.randomUUID(),
                         bib: bib,
@@ -3249,7 +3206,9 @@
 
                 if (newEntries.length > 0) {
                     participants.value.push(...newEntries);
-                    participants.value.sort(compareBibs);
+                    participants.value.sort((a, b) => {
+                        return String(a.bib).localeCompare(String(b.bib), undefined, { numeric: true, sensitivity: 'base' });
+                    });
                     saveState();
                 }
 
@@ -3415,13 +3374,12 @@
 
                     // Sync Participants from Server
                     if (Array.isArray(data.participants) && data.participants.length > 0) {
-                        const existingMap = new Map(participants.value.map(p => [normalizeBib(p.bib) || String(p.bib).trim().toUpperCase(), p]));
+                        const existingMap = new Map(participants.value.map(p => [String(p.bib).trim(), p]));
                         const merged = data.participants.map(sp => {
-                            const serverBib = normalizeBib(sp.bib) || String(sp.bib).trim().toUpperCase();
-                            const local = existingMap.get(serverBib);
+                            const local = existingMap.get(String(sp.bib).trim());
                             return {
                                 id: local ? local.id : crypto.randomUUID(),
-                                bib: serverBib,
+                                bib: String(sp.bib).trim(),
                                 name: sp.name || (local ? local.name : `Runner ${sp.bib}`),
                                 photoUrl: local ? local.photoUrl : '',
                                 faceDescriptor: local ? local.faceDescriptor : null,
@@ -3678,371 +3636,31 @@
                 return `${m}:${String(s).padStart(2, '0')}/km`;
             };
 
-            // Race Logic -------------------------------------------------------------
-            // Race Logic -------------------------------------------------------------
-            // Canonical BIB format:
-            //   101                   -> 101
-            //   1001                  -> 1001
-            //   F1001 / F 1001 / F-1001 -> F-1001
-            //   M1003 / M 1003 / M-1003 -> M-1003
-            // Supports 1 to 6 digits with optional prefix (e.g. F-1001, M-101, HM-501, 1001, 101)
-            const canonicalizeBibToken = (value) => {
-                let s = String(value ?? '')
-                    .toUpperCase()
-                    .replace(/[–—−_]/g, '-')
-                    .replace(/^#/, '')
-                    .trim();
-                if (!s) return '';
-
-                // Remove separators between prefix and digits (e.g. F-1001 or HM 501)
-                const prefixed = s.match(/^([A-Z]{1,3})\s*-?\s*(\d{1,6})$/i);
-                if (prefixed) return `${prefixed[1].toUpperCase()}-${prefixed[2]}`;
-
-                const plain = s.match(/^(\d{1,6})$/);
-                if (plain) return plain[1];
-
-                if (/^[A-Z0-9-]{1,10}$/.test(s)) return s;
-                return '';
-            };
-
+            // Race Logic
             const normalizeBib = (raw) => {
-                let s = String(raw ?? '').trim();
+                const s = String(raw ?? '').trim();
                 if (!s) return '';
-
-                // QR can contain JSON such as {"bib":"F-1001"}.
                 try {
                     const obj = JSON.parse(s);
-                    if (obj && (obj.bib !== undefined || obj.BIB !== undefined || obj.number !== undefined)) {
+                    if (obj && (obj.bib || obj.BIB || obj.number)) {
                         const v = obj.bib ?? obj.BIB ?? obj.number;
-                        return normalizeBib(v);
+                        return String(v ?? '').trim();
                     }
                 } catch (e) {}
 
-                // QR can also contain a URL with ?bib=F-1001 or /F-1001.
                 try {
-                    if (/^https?:\/\//i.test(s)) {
+                    if (s.startsWith('http://') || s.startsWith('https://')) {
                         const u = new URL(s);
                         const qp = u.searchParams.get('bib') || u.searchParams.get('BIB');
-                        if (qp) return normalizeBib(qp);
+                        if (qp) return String(qp).trim();
                         const last = u.pathname.split('/').filter(Boolean).pop();
-                        if (last) {
-                            const fromPath = normalizeBib(decodeURIComponent(last));
-                            if (fromPath) return fromPath;
-                        }
+                        if (last) return String(last).trim();
                     }
                 } catch (e) {}
 
-                const direct = canonicalizeBibToken(s);
-                if (direct) return direct;
-
-                // Tolerate surrounding text from QR payload
-                const normalizedText = s.toUpperCase().replace(/[–—−_]/g, '-');
-                const prefixed = normalizedText.match(/(?:^|[^A-Z0-9])([A-Z]{1,3})\s*-?\s*(\d{1,6})(?=$|[^0-9])/i);
-                if (prefixed) return `${prefixed[1].toUpperCase()}-${prefixed[2]}`;
-
-                const plain = normalizedText.match(/(?:^|[^0-9])(\d{1,6})(?=$|[^0-9])/);
-                if (plain) return plain[1];
-                return '';
-            };
-
-            const compareBibs = (a, b) => {
-                const aa = normalizeBib(a?.bib ?? a) || String(a?.bib ?? a ?? '');
-                const bb = normalizeBib(b?.bib ?? b) || String(b?.bib ?? b ?? '');
-                const an = parseInt((aa.match(/(\d+)$/) || [0, '999999'])[1], 10);
-                const bn = parseInt((bb.match(/(\d+)$/) || [0, '999999'])[1], 10);
-                if (an !== bn) return an - bn;
-                return aa.localeCompare(bb);
-            };
-
-            // Resolve a normalized BIB against participant data.
-            const resolveBibCandidate = (raw) => {
-                const bib = normalizeBib(raw);
-                if (!bib) return { bib: '', participant: null, ambiguous: false, candidates: [] };
-
-                const exact = participants.value.find(p => normalizeBib(p.bib) === bib);
-                if (exact) {
-                    return { bib: normalizeBib(exact.bib) || exact.bib, participant: exact, ambiguous: false, candidates: [exact] };
-                }
-
-                const digits = bib.replace(/\D/g, '');
-                if (digits) {
-                    const suffixMatches = participants.value.filter(p => {
-                        const pb = normalizeBib(p.bib);
-                        const pbDigits = pb.replace(/\D/g, '');
-                        return pbDigits === digits;
-                    });
-                    if (suffixMatches.length === 1) {
-                        const participant = suffixMatches[0];
-                        return { bib: normalizeBib(participant.bib) || participant.bib, participant, ambiguous: false, candidates: suffixMatches };
-                    }
-                    if (suffixMatches.length > 1) {
-                        return { bib, participant: null, ambiguous: true, candidates: suffixMatches };
-                    }
-                }
-
-                return { bib, participant: null, ambiguous: false, candidates: [] };
-            };
-
-            const findParticipantByBib = (raw) => resolveBibCandidate(raw).participant;
-
-            // Parse common OCR confusions in digits.
-            const ocrCharToDigit = (ch) => {
-                const c = String(ch || '').toUpperCase();
-                if (/\d/.test(c)) return c;
-                if (['O', 'Q', 'D'].includes(c)) return '0';
-                if (['I', 'L', '|'].includes(c)) return '1';
-                if (c === 'Z') return '2';
-                if (c === 'S') return '5';
-                if (c === 'G') return '6';
-                if (c === 'B') return '8';
-                return '';
-            };
-
-            const normalizeOcrPrefix = (value) => String(value ?? '')
-                .toUpperCase()
-                .replace(/[^A-Z0-9]/g, '');
-
-            const getBibRuntimeProfile = () => {
-                const entries = [];
-
-                participants.value.forEach((participant, index) => {
-                    const rawBib = String(participant?.bib ?? '')
-                        .toUpperCase()
-                        .replace(/[–—−_]/g, '-')
-                        .trim();
-
-                    if (!rawBib) return;
-
-                    // Derive structure from the ACTUAL participant data:
-                    // trailing digits = race number, everything before it = optional prefix/separator.
-                    const match = rawBib.match(/^(.*?)(\d+)$/);
-                    if (!match) return;
-
-                    const digits = match[2];
-                    const left = match[1] || '';
-                    const sepMatch = left.match(/([-\s]+)$/);
-                    const separatorRaw = sepMatch ? sepMatch[1] : '';
-                    const prefixRaw = sepMatch ? left.slice(0, -separatorRaw.length) : left;
-                    const prefix = normalizeOcrPrefix(prefixRaw);
-
-                    let separator = '';
-                    if (separatorRaw.includes('-')) separator = '-';
-                    else if (/\s/.test(separatorRaw)) separator = ' ';
-
-                    entries.push({
-                        participant,
-                        index,
-                        rawBib,
-                        prefix,
-                        digits,
-                        digitLength: digits.length,
-                        separator,
-                        key: `${prefix}${digits}`,
-                    });
-                });
-
-                const digitLengths = [...new Set(entries.map(e => e.digitLength))]
-                    .filter(n => n >= 1 && n <= 8)
-                    .sort((a, b) => a - b);
-
-                const prefixes = [...new Set(entries.map(e => e.prefix).filter(Boolean))]
-                    .sort((a, b) => a.length - b.length || a.localeCompare(b));
-
-                const separators = [...new Set(entries
-                    .filter(e => e.prefix)
-                    .map(e => e.separator || 'attached'))];
-
-                const signature = entries
-                    .map(e => `${e.prefix}:${e.digits}:${e.separator}`)
-                    .join('|');
-
-                return {
-                    entries,
-                    digitLengths,
-                    prefixes,
-                    separators,
-                    signature,
-                    maxPrefixLength: Math.max(1, ...prefixes.map(p => p.length)),
-                };
-            };
-
-            const levenshteinDistance = (a, b) => {
-                const s = String(a ?? '');
-                const t = String(b ?? '');
-                if (s === t) return 0;
-                if (!s.length) return t.length;
-                if (!t.length) return s.length;
-
-                let prev = new Array(t.length + 1);
-                let curr = new Array(t.length + 1);
-                for (let j = 0; j <= t.length; j++) prev[j] = j;
-
-                for (let i = 1; i <= s.length; i++) {
-                    curr[0] = i;
-                    for (let j = 1; j <= t.length; j++) {
-                        const cost = s[i - 1] === t[j - 1] ? 0 : 1;
-                        curr[j] = Math.min(
-                            curr[j - 1] + 1,
-                            prev[j] + 1,
-                            prev[j - 1] + cost
-                        );
-                    }
-                    [prev, curr] = [curr, prev];
-                }
-                return prev[t.length];
-            };
-
-            const translateOcrDigits = (value) => {
-                const chars = [...String(value ?? '').toUpperCase()];
-                const out = chars.map(ocrCharToDigit).join('');
-                return out;
-            };
-
-            const extractRuntimeOcrCandidates = (rawText, profile = getBibRuntimeProfile()) => {
-                let text = String(rawText ?? '')
-                    .toUpperCase()
-                    .replace(/[–—−_]/g, '-')
-                    .replace(/[\r\n\t]+/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
-                if (!text || !profile.entries.length || !profile.digitLengths.length) return [];
-
-                // OCR confusable characters allowed in numeric positions.
-                const digitChars = '0-9OQDIL|ZSGB';
-                const results = [];
-                const seen = new Set();
-
-                const addCandidate = (prefixRaw, digitsRaw, source, separatorRaw = '') => {
-                    const digits = translateOcrDigits(digitsRaw);
-                    if (!digits || digits.length !== String(digitsRaw).length) return;
-                    if (!profile.digitLengths.includes(digits.length)) return;
-
-                    const prefix = normalizeOcrPrefix(prefixRaw);
-                    let separator = '';
-                    if (String(separatorRaw).includes('-')) separator = '-';
-                    else if (/\s/.test(String(separatorRaw))) separator = ' ';
-                    const key = `${prefix}|${digits}|${separator}|${source}`;
-                    if (seen.has(key)) return;
-                    seen.add(key);
-
-                    results.push({
-                        prefix,
-                        digits,
-                        separator,
-                        source,
-                        raw: prefix ? `${prefixRaw}-${digitsRaw}` : String(digitsRaw),
-                    });
-                };
-
-                for (const len of profile.digitLengths) {
-                    // Prefix + number. Prefix expression is intentionally permissive;
-                    // the fuzzy matcher below decides which ACTUAL participant is closest.
-                    if (profile.prefixes.length) {
-                        const maxPf = Math.min(8, Math.max(1, profile.maxPrefixLength + 1));
-                        const prefixedRe = new RegExp(
-                            `(?:^|[^A-Z0-9])([A-Z0-9]{1,${maxPf}})([\\s-]*)([${digitChars}]{${len}})(?=$|[^A-Z0-9])`,
-                            'g'
-                        );
-                        let m;
-                        while ((m = prefixedRe.exec(text)) !== null) {
-                            addCandidate(m[1], m[3], 'prefixed', m[2]);
-                            if (m.index === prefixedRe.lastIndex) prefixedRe.lastIndex++;
-                        }
-                    }
-
-                    // Plain numeric BIB. This remains valid even when the database also has prefixes:
-                    // fuzzy ranking will choose the closest participant.
-                    const plainRe = new RegExp(
-                        `(?:^|[^A-Z0-9])([${digitChars}]{${len}})(?=$|[^A-Z0-9])`,
-                        'g'
-                    );
-                    let p;
-                    while ((p = plainRe.exec(text)) !== null) {
-                        addCandidate('', p[1], 'plain');
-                        if (p.index === plainRe.lastIndex) plainRe.lastIndex++;
-                    }
-                }
-
-                return results;
-            };
-
-            const scoreOcrCandidateAgainstEntry = (candidate, entry) => {
-                const digitDistance = levenshteinDistance(candidate.digits, entry.digits);
-                const prefixDistance = candidate.prefix || entry.prefix
-                    ? levenshteinDistance(candidate.prefix, entry.prefix)
-                    : 0;
-
-                let score = 100;
-                score -= digitDistance * 26;
-                score -= Math.abs(candidate.digits.length - entry.digits.length) * 18;
-                score -= prefixDistance * 9;
-
-                if (candidate.digits === entry.digits) score += 35;
-                if (candidate.prefix && candidate.prefix === entry.prefix) score += 20;
-                if (!candidate.prefix && !entry.prefix) score += 12;
-                if (!candidate.prefix && entry.prefix) score -= 4;
-                if (candidate.prefix && !entry.prefix) score -= 10;
-
-                if (candidate.prefix && entry.prefix) {
-                    const candSep = candidate.separator || 'attached';
-                    const entrySep = entry.separator || 'attached';
-                    if (candSep === entrySep) score += 4;
-                }
-
-                // "Search-like" bonus: compact OCR key occurs inside the participant key or vice versa.
-                const candidateKey = `${candidate.prefix}${candidate.digits}`;
-                const entryKey = `${entry.prefix}${entry.digits}`;
-                if (candidateKey && entryKey &&
-                    (candidateKey.includes(entryKey) || entryKey.includes(candidateKey))) {
-                    score += 12;
-                }
-
-                return score;
-            };
-
-            // OCR-specific "search like" matching.
-            // No exact-match requirement and no multi-frame voting: top-1 wins immediately.
-            const findBestOcrParticipantMatch = (rawText) => {
-                const profile = getBibRuntimeProfile();
-                if (!profile.entries.length) return null;
-
-                const candidates = extractRuntimeOcrCandidates(rawText, profile);
-                if (!candidates.length) return null;
-
-                let best = null;
-
-                for (const candidate of candidates) {
-                    for (const entry of profile.entries) {
-                        // Comparing same digit-length first keeps the search fast and avoids absurd matches.
-                        if (candidate.digits.length !== entry.digitLength) continue;
-
-                        const score = scoreOcrCandidateAgainstEntry(candidate, entry);
-                        if (!best || score > best.score ||
-                            (score === best.score && entry.index < best.entry.index)) {
-                            best = { candidate, entry, score };
-                        }
-                    }
-                }
-
-                if (!best) return null;
-
-                return {
-                    participant: best.entry.participant,
-                    bib: String(best.entry.participant.bib ?? best.entry.rawBib),
-                    score: best.score,
-                    candidateBib: best.candidate.prefix
-                        ? `${best.candidate.prefix}-${best.candidate.digits}`
-                        : best.candidate.digits,
-                    candidate: best.candidate,
-                    profile,
-                };
-            };
-
-            // Kept as a compact compatibility wrapper for any existing OCR call sites.
-            const parseOcrBibText = (rawText) => {
-                const best = findBestOcrParticipantMatch(rawText);
-                return best?.bib || '';
+                const m = s.match(/\d{1,10}/);
+                if (m) return m[0];
+                return s;
             };
 
             const playBeep = (() => {
@@ -4306,32 +3924,27 @@
                 }, 30);
             };
 
-            const recordLap = (id, source = 'manual', timing = null) => {
+            const recordLap = (id, source = 'manual') => {
                 const p = participants.value.find(p => p.id === id);
-                if (!p) return false;
+                if (!p) return;
 
                 if (!timer.value.running && timer.value.elapsed === 0) {
                     showDuplicateAlert('error', 'Timer belum berjalan! Silakan mulai timer race terlebih dahulu.');
-                    return false;
+                    return;
                 }
 
                 if (p.status === 'finished') {
                     showDuplicateAlert('warning', `DUPLIKAT: BIB #${p.bib} (${p.name}) SUDAH FINISH sebelumnya pada ${formatTime(p.totalTime)}!`, p);
-                    return false;
+                    return;
                 }
 
                 if (p.status === 'dnf') {
                     showDuplicateAlert('error', `BIB #${p.bib} (${p.name}) tercatat DNF!`, p);
-                    return false;
+                    return;
                 }
 
-                // IMPORTANT: use the actual crossing timestamp, not the time after OCR/Face AI completes.
-                const now = Number.isFinite(timing?.capturedAt) ? timing.capturedAt : Date.now();
-                const elapsedMs = Number.isFinite(timing?.elapsedMs)
-                    ? Math.max(0, timing.elapsedMs)
-                    : Math.max(0, timer.value.elapsed || 0);
-
                 // Debounce / Cooldown to prevent double scan
+                const now = Date.now();
                 const cooldownMs = (raceSettings.value.raceMode === 'multi_lap' ? (raceSettings.value.minLapCooldownSec || 15) : 3) * 1000;
                 if (p.lastScanTime && (now - p.lastScanTime < cooldownMs)) {
                     if (raceSettings.value.raceMode === 'multi_lap') {
@@ -4339,16 +3952,15 @@
                         showDuplicateAlert('warning', `BIB #${p.bib} dalam masa cooldown lap (${rem}s tersisa)!`, p);
                     }
                     console.log('Debounced/Cooldown scan for ' + p.bib);
-                    return false;
+                    return;
                 }
-
+                
                 playBeep();
 
                 if (!Array.isArray(p.laps)) p.laps = [];
                 p.laps.push(now);
                 p.lastScanTime = now;
-                p.lastScanSource = source;
-                p.totalTime = elapsedMs;
+                p.totalTime = timer.value.elapsed;
 
                 if (raceSettings.value.raceMode === 'single' || p.laps.length >= (raceSettings.value.targetLaps || 1)) {
                     p.status = 'finished';
@@ -4360,15 +3972,15 @@
                     queueEnqueueLap(String(p.bib ?? '').trim(), Math.max(0, Math.floor(p.totalTime || 0)), new Date(now).toISOString());
                     queueFlush();
                 }
-
+                
+                // Highlight effect
                 p.recentlyScanned = true;
                 setTimeout(() => p.recentlyScanned = false, 2000);
 
-                if (source === 'scanner' || source === 'ai_vision' || source === 'ocr_global' || source === 'manual_input' || source === 'manual_assign') {
+                if (source === 'scanner' || source === 'ai_vision' || source === 'manual_input') {
                     camera.value.lastScanMsg = `Tercatat: #${p.bib} (${p.name}) • ${formatTime(p.totalTime)}`;
                 }
                 saveState();
-                return true;
             };
 
             const getLastLapTime = (p) => {
@@ -4589,471 +4201,114 @@
                 return true;
             };
 
-            // Strong OCR Scanner for Race BIB ---------------------------------------
-            const buildRuntimeOcrWhitelist = (profile = getBibRuntimeProfile()) => {
-                const prefixChars = [...new Set(profile.prefixes.join('').split(''))].join('');
-                // Keep common OCR-confusion characters available because the fuzzy parser
-                // intentionally converts O/I/L/Q/etc. in numeric positions.
-                return `0123456789${prefixChars}OQDILZSGB-| `;
-            };
-
-            const ensureOcrWorker = async () => {
-                if (ocrWorker) return ocrWorker;
-                if (ocrWorkerInitPromise) return ocrWorkerInitPromise;
-
-                ocrWorkerInitPromise = (async () => {
-                    const worker = await Tesseract.createWorker('eng');
-                    const profile = getBibRuntimeProfile();
-                    await worker.setParameters({
-                        tessedit_char_whitelist: buildRuntimeOcrWhitelist(profile),
-                        tessedit_pageseg_mode: '11', // Sparse text: scan BIB anywhere in the full frame
-                        preserve_interword_spaces: '1',
-                        user_defined_dpi: '220',
-                    });
-                    ocrWorkerProfileSignature = profile.signature;
-                    ocrWorker = worker;
-                    return worker;
-                })();
-
-                try {
-                    return await ocrWorkerInitPromise;
-                } finally {
-                    ocrWorkerInitPromise = null;
-                }
-            };
-
-            const syncOcrWorkerToParticipantData = async (worker) => {
-                const profile = getBibRuntimeProfile();
-                if (profile.signature !== ocrWorkerProfileSignature) {
-                    await worker.setParameters({
-                        tessedit_char_whitelist: buildRuntimeOcrWhitelist(profile),
-                        tessedit_pageseg_mode: '11',
-                        preserve_interword_spaces: '1',
-                        user_defined_dpi: '220',
-                    });
-                    ocrWorkerProfileSignature = profile.signature;
-                }
-                return profile;
-            };
-
-            // Global Otsu Threshold Calculation (legacy helper for non-global OCR modes)
-            const computeOtsuThreshold = (grayArray, totalPixels) => {
-                const hist = new Int32Array(256);
-                for (let i = 0; i < totalPixels; i++) {
-                    hist[grayArray[i]]++;
-                }
-
-                let sum = 0;
-                for (let i = 0; i < 256; i++) sum += i * hist[i];
-
-                let sumB = 0;
-                let wB = 0;
-                let wF = 0;
-                let maxVar = 0;
-                let threshold = 128;
-
-                for (let t = 0; t < 256; t++) {
-                    wB += hist[t];
-                    if (wB === 0) continue;
-                    wF = totalPixels - wB;
-                    if (wF === 0) break;
-
-                    sumB += t * hist[t];
-                    const mB = sumB / wB;
-                    const mF = (sum - sumB) / wF;
-                    const varBetween = wB * wF * (mB - mF) * (mB - mF);
-
-                    if (varBetween > maxVar) {
-                        maxVar = varBetween;
-                        threshold = t;
-                    }
-                }
-                return threshold;
-            };
-
-            // Capture torso / full body / full frame area, upscale, and apply solid Otsu thresholding.
-            const prepareBibOcrCanvas = (video, bbox, variant = 'otsu') => {
-                if (!video?.videoWidth || !video?.videoHeight) return null;
-
-                let cropX = 0, cropY = 0, cropW = video.videoWidth, cropH = video.videoHeight;
-                const scope = raceSettings.value.ocrScope || 'torso';
-
-                if (scope === 'full_frame' || !Array.isArray(bbox)) {
-                    cropX = 0;
-                    cropY = 0;
-                    cropW = video.videoWidth;
-                    cropH = video.videoHeight;
-                } else if (scope === 'full_body') {
-                    const [bx, by, bw, bh] = bbox;
-                    cropX = Math.max(0, bx - bw * 0.1);
-                    cropY = Math.max(0, by - bh * 0.05);
-                    cropW = Math.max(1, Math.min(video.videoWidth - cropX, bw * 1.2));
-                    cropH = Math.max(1, Math.min(video.videoHeight - cropY, bh * 1.1));
-                } else {
-                    // Torso / Chest area with generous coverage (middle of runner body)
-                    const [bx, by, bw, bh] = bbox;
-                    cropX = Math.max(0, bx - bw * 0.05);
-                    cropY = Math.max(0, by + bh * 0.10);
-                    cropW = Math.max(1, Math.min(video.videoWidth - cropX, bw * 1.10));
-                    cropH = Math.max(1, Math.min(video.videoHeight - cropY, bh * 0.65));
-                }
-
-                const targetW = 720;
-                const targetH = 480;
-                const canvas = document.createElement('canvas');
-                canvas.width = targetW;
-                canvas.height = targetH;
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-                // Fill white background padding so numbers don't clip at edges
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, targetW, targetH);
-
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(video, cropX, cropY, cropW, cropH, 20, 20, targetW - 40, targetH - 40);
-
-                if (variant === 'raw') return canvas;
-
-                const imgData = ctx.getImageData(0, 0, targetW, targetH);
-                const data = imgData.data;
-                const numPixels = targetW * targetH;
-                const gray = new Uint8Array(numPixels);
-
-                for (let i = 0, px = 0; i < data.length; i += 4, px++) {
-                    gray[px] = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-                }
-
-                if (variant === 'gray') {
-                    // Contrast-stretched grayscale
-                    let minG = 255, maxG = 0;
-                    for (let px = 0; px < numPixels; px++) {
-                        if (gray[px] < minG) minG = gray[px];
-                        if (gray[px] > maxG) maxG = gray[px];
-                    }
-                    const range = Math.max(1, maxG - minG);
-                    for (let px = 0, i = 0; px < numPixels; px++, i += 4) {
-                        const normalized = Math.round(((gray[px] - minG) / range) * 255);
-                        data[i] = data[i + 1] = data[i + 2] = normalized;
-                        data[i + 3] = 255;
-                    }
-                } else {
-                    // Global Otsu thresholding: preserves thick black solid strokes without hollowing!
-                    const threshold = computeOtsuThreshold(gray, numPixels);
-                    for (let px = 0, i = 0; px < numPixels; px++, i += 4) {
-                        const val = gray[px] < threshold ? 0 : 255;
-                        data[i] = data[i + 1] = data[i + 2] = val;
-                        data[i + 3] = 255;
-                    }
-                }
-
-                ctx.putImageData(imgData, 0, 0);
-                return canvas;
-            };
-
-            const prepareGlobalOcrCanvas = (video) => {
-                if (!video?.videoWidth || !video?.videoHeight) return null;
-
-                const scale = Math.min(1, OCR_GLOBAL_MAX_WIDTH / video.videoWidth);
-                const targetW = Math.max(320, Math.round(video.videoWidth * scale));
-                const targetH = Math.max(180, Math.round(video.videoHeight * scale));
-
-                const canvas = document.createElement('canvas');
-                canvas.width = targetW;
-                canvas.height = targetH;
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'medium';
-                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, targetW, targetH);
-
-                // One fast contrast-stretched grayscale pass. No dual-pass OCR and no per-person crop.
-                const imgData = ctx.getImageData(0, 0, targetW, targetH);
-                const data = imgData.data;
-                let minG = 255;
-                let maxG = 0;
-
-                for (let i = 0; i < data.length; i += 4) {
-                    const g = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-                    if (g < minG) minG = g;
-                    if (g > maxG) maxG = g;
-                    data[i] = g; // temporarily store gray in R channel
-                }
-
-                const range = Math.max(24, maxG - minG);
-                for (let i = 0; i < data.length; i += 4) {
-                    const g = data[i];
-                    let v = Math.round(((g - minG) / range) * 255);
-                    // Mild contrast boost, intentionally cheaper than adaptive thresholding.
-                    v = Math.max(0, Math.min(255, Math.round((v - 128) * 1.18 + 128)));
-                    data[i] = data[i + 1] = data[i + 2] = v;
-                    data[i + 3] = 255;
-                }
-
-                ctx.putImageData(imgData, 0, 0);
-                return canvas;
-            };
-
-            // Serialize access to the single Tesseract worker. Crop is captured before entering this queue,
-            // so queued OCR still processes the correct runner/frame.
-            const runOcrQueued = async (task, force = false) => {
-                if (!force && ocrQueueDepth >= 2) return null;
-                ocrQueueDepth++;
-                const run = ocrQueue.then(async () => {
-                    ocrBusy = true;
-                    try {
-                        return await task();
-                    } finally {
-                        ocrBusy = false;
-                    }
-                });
-                ocrQueue = run.catch(() => null);
-                try {
-                    return await run;
-                } finally {
-                    ocrQueueDepth = Math.max(0, ocrQueueDepth - 1);
-                }
-            };
-
-            const captureGlobalOcrSnapshot = (video) => {
-                try {
-                    if (!video?.videoWidth || !video?.videoHeight) return '';
-                    const canvas = document.createElement('canvas');
-                    const w = 320;
-                    const h = Math.max(180, Math.round(w * video.videoHeight / video.videoWidth));
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, w, h);
-                    return canvas.toDataURL('image/jpeg', 0.72);
-                } catch (e) {
-                    return '';
-                }
-            };
-
-            const scanFullFrameOcr = async (video) => {
+            // High-Performance OCR Digit Matcher for Torso/BIB Numbers
+            const ocrScanTorso = async (video, bbox) => {
                 if (!raceSettings.value.enableOcr) return null;
                 if (typeof Tesseract === 'undefined') return null;
-                if (!video?.videoWidth || !video?.videoHeight) return null;
-
-                // Lock the time of the FRAME before Tesseract starts.
-                const capturedAt = Date.now();
-                const elapsedMs = timer.value.running && timer.value.startTime
-                    ? Math.max(0, capturedAt - timer.value.startTime)
-                    : Math.max(0, timer.value.elapsed || 0);
-
-                const frameCanvas = prepareGlobalOcrCanvas(video);
-                if (!frameCanvas) return null;
-
-                return runOcrQueued(async () => {
-                    try {
-                        const worker = await ensureOcrWorker();
-                        await syncOcrWorkerToParticipantData(worker);
-
-                        // ONE OCR pass only. Speed is preferred over multi-pass accuracy.
-                        const res = await worker.recognize(frameCanvas);
-                        const rawText = String(res?.data?.text || '').trim();
-                        if (!rawText) return null;
-
-                        const best = findBestOcrParticipantMatch(rawText);
-                        if (!best?.participant) return null;
-
-                        return {
-                            ...best,
-                            rawText,
-                            confidence: Number(res?.data?.confidence || 0),
-                            capturedAt,
-                            elapsedMs,
-                        };
-                    } catch (e) {
-                        console.warn('Global OCR BIB error:', e);
-                        return null;
-                    }
-                }, false);
-            };
-
-            const processGlobalOcrResult = (video, result) => {
-                const participant = result?.participant;
-                if (!participant) return false;
-
-                const capturedAt = Number.isFinite(result.capturedAt) ? result.capturedAt : Date.now();
-                const elapsedMs = Number.isFinite(result.elapsedMs)
-                    ? result.elapsedMs
-                    : Math.max(0, timer.value.elapsed || 0);
-
-                // Silent anti-duplicate guard because the global OCR may see the same BIB
-                // on several consecutive frames.
-                if (raceSettings.value.raceMode === 'single' && participant.status === 'finished') {
-                    return false;
-                }
-
-                if (raceSettings.value.raceMode === 'multi_lap') {
-                    const cooldownMs = (raceSettings.value.minLapCooldownSec || 15) * 1000;
-                    if (participant.lastScanTime && capturedAt - participant.lastScanTime < cooldownMs) {
-                        return false;
-                    }
-                }
-
-                const timingLock = { capturedAt, elapsedMs };
-                const recorded = recordLap(participant.id, 'ocr_global', timingLock);
-                if (!recorded) return false;
-
-                const scoreText = Number.isFinite(result.score) ? ` • match ${Math.round(result.score)}` : '';
-                const confidenceText = Number.isFinite(result.confidence)
-                    ? ` • OCR ${Math.round(result.confidence)}%`
-                    : '';
-
-                if (participant.status === 'finished') {
-                    triggerTvFinisherFlash(participant);
-                    camera.value.lastScanMsg =
-                        `FINISH [OCR FAST]: BIB #${participant.bib} (${participant.name}) • ${formatTime(participant.totalTime)}${confidenceText}${scoreText}`;
-                    showDuplicateAlert(
-                        'success',
-                        `FINISH [OCR FAST]: BIB #${participant.bib} (${participant.name}) • ${formatTime(participant.totalTime)}`,
-                        participant
-                    );
-                } else {
-                    camera.value.lastScanMsg =
-                        `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} [OCR FAST]: BIB #${participant.bib} • ${formatTime(participant.totalTime)}${confidenceText}${scoreText}`;
-                    showDuplicateAlert(
-                        'info',
-                        `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} [OCR FAST]: BIB #${participant.bib}`,
-                        participant
-                    );
-                }
-
-                liveFinishFeed.value.unshift({
-                    id: crypto.randomUUID(),
-                    capturedAt,
-                    timestampMs: elapsedMs,
-                    timeFormatted: formatTime(elapsedMs),
-                    bib: participant.bib,
-                    name: participant.name,
-                    snapshot: captureGlobalOcrSnapshot(video),
-                    participantId: participant.id,
-                    matchMethod: 'ocr_global',
-                    ocrConfidence: Number(result.confidence || 0),
-                    ocrMatchScore: Number(result.score || 0),
-                    ocrRawText: result.rawText || '',
-                    ocrCandidate: result.candidateBib || '',
-                    ambiguous: false,
-                });
-
-                if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
-                return true;
-            };
-
-            const runGlobalOcrTick = async () => {
-                if (globalOcrInFlight) return;
-                if (!camera.value.active || !raceSettings.value.enableOcr) return;
-                if (!timer.value.running) return;
-                if (!participants.value.length) return;
-
-                const video = getReaderVideo();
-                if (!video || video.readyState < 2 || !video.videoWidth) return;
-
-                globalOcrInFlight = true;
+                
                 try {
-                    const result = await scanFullFrameOcr(video);
-                    if (!camera.value.active || !timer.value.running) return;
-                    if (result?.participant) {
-                        // Requirement: first valid pattern -> top-1 fuzzy match -> process immediately.
-                        processGlobalOcrResult(video, result);
+                    const [bx, by, bw, bh] = bbox;
+                    const cropCanvas = document.createElement('canvas');
+                    const torsoY = Math.max(0, by + bh * 0.22);
+                    const torsoH = Math.min(video.videoHeight - torsoY, bh * 0.48);
+                    const torsoX = Math.max(0, bx + bw * 0.1);
+                    const torsoW = Math.min(video.videoWidth - torsoX, bw * 0.8);
+
+                    cropCanvas.width = 240;
+                    cropCanvas.height = 160;
+                    const ctx = cropCanvas.getContext('2d');
+
+                    ctx.drawImage(video, torsoX, torsoY, torsoW, torsoH, 0, 0, 240, 160);
+
+                    // High contrast binarization
+                    const imgData = ctx.getImageData(0, 0, 240, 160);
+                    const d = imgData.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        const v = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+                        const bin = v > 125 ? 255 : 0;
+                        d[i] = bin;
+                        d[i + 1] = bin;
+                        d[i + 2] = bin;
                     }
+                    ctx.putImageData(imgData, 0, 0);
+
+                    if (!ocrWorker) {
+                        ocrWorker = await Tesseract.createWorker('eng');
+                        await ocrWorker.setParameters({
+                            tessedit_char_whitelist: '0123456789',
+                        });
+                    }
+
+                    const res = await ocrWorker.recognize(cropCanvas);
+                    const digits = (res?.data?.text || '').replace(/\D/g, '').trim();
+                    if (!digits) return null;
+
+                    const matched = participants.value.find(p => p.bib === digits || p.bib.endsWith(digits));
+                    if (matched) return matched.bib;
+
+                    if (digits.length >= 1 && digits.length <= 5) return digits;
                 } catch (e) {
-                    console.warn('Global OCR tick failed:', e);
-                } finally {
-                    globalOcrInFlight = false;
+                    // ignore OCR error
                 }
-            };
-
-            const startGlobalOcrScanner = () => {
-                stopGlobalOcrScanner();
-                globalOcrTimer = setInterval(() => {
-                    // Do not queue overlapping Tesseract work. If one scan is still running,
-                    // this interval is simply skipped.
-                    runGlobalOcrTick();
-                }, OCR_GLOBAL_INTERVAL_MS);
-
-                // First scan quickly after camera startup.
-                setTimeout(() => runGlobalOcrTick(), 120);
-            };
-
-            const stopGlobalOcrScanner = () => {
-                if (globalOcrTimer) {
-                    clearInterval(globalOcrTimer);
-                    globalOcrTimer = null;
-                }
-                globalOcrInFlight = false;
-            };
-
-            const pointToFinishLineDistance = (point, line) => {
-                const x1 = line.x1, y1 = line.y1, x2 = line.x2, y2 = line.y2;
-                const dx = x2 - x1;
-                const dy = y2 - y1;
-                const denom = Math.hypot(dx, dy) || 1;
-                return Math.abs(dy * point.x - dx * point.y + x2 * y1 - y2 * x1) / denom;
+                return null;
             };
 
             // Runner Crossing Event Handler
-            const handleRunnerCrossing = async (video, bbox, trackId = null, crossingTiming = null) => {
+            const handleRunnerCrossing = async (video, bbox) => {
                 camera.value.crossingCount++;
                 camera.value.lineFlash = true;
                 setTimeout(() => { camera.value.lineFlash = false; }, 450);
                 if (raceSettings.value.enableBeep) playBeep();
 
-                // Lock timing IMMEDIATELY at the physical crossing. OCR/Face AI may finish later.
-                const capturedAt = Number.isFinite(crossingTiming?.capturedAt) ? crossingTiming.capturedAt : Date.now();
-                const recordedTimeMs = Number.isFinite(crossingTiming?.elapsedMs)
-                    ? crossingTiming.elapsedMs
-                    : (timer.value.running && timer.value.startTime ? Math.max(0, capturedAt - timer.value.startTime) : Math.max(0, timer.value.elapsed || 0));
-                const timingLock = { capturedAt, elapsedMs: recordedTimeMs };
+                const recordedTimeMs = timer.value.running ? timer.value.elapsed : 0;
                 const formattedTimeStr = formatTime(recordedTimeMs);
 
-                // Create snapshot thumbnail immediately from the crossing frame.
+                // Create snapshot thumbnail
                 let snapshotDataUrl = '';
                 try {
                     const snapCanvas = document.createElement('canvas');
-                    snapCanvas.width = 240;
-                    snapCanvas.height = 240;
+                    snapCanvas.width = 160;
+                    snapCanvas.height = 160;
                     const snapCtx = snapCanvas.getContext('2d');
-
+                    
                     const [bx, by, bw, bh] = bbox;
-                    const padX = Math.max(0, bx - 14);
-                    const padY = Math.max(0, by - 14);
-                    const padW = Math.min(video.videoWidth - padX, bw + 28);
-                    const padH = Math.min(video.videoHeight - padY, bh + 28);
-                    snapCtx.drawImage(video, padX, padY, padW, padH, 0, 0, 240, 240);
-                    snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.86);
+                    const padX = Math.max(0, bx - 10);
+                    const padY = Math.max(0, by - 10);
+                    const padW = Math.min(video.videoWidth - padX, bw + 20);
+                    const padH = Math.min(video.videoHeight - padY, bh + 20);
+
+                    snapCtx.drawImage(video, padX, padY, padW, padH, 0, 0, 160, 160);
+                    snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.8);
                 } catch (e) {}
 
+                // Triple Recognition Pipeline: Engine 1 (QR Code), Engine 2 (OCR Digits), Engine 3 (Face AI)
                 let detectedBib = '';
                 let matchMethod = '';
-                let participant = null;
-                let weakCandidate = null;
 
-                // Engine 1: QR. Accept only if it resolves to a participant; otherwise continue OCR/Face.
+                // Engine 1: QR Code Scanner
                 if (raceSettings.value.enableQr) {
                     try {
                         const bibs = await decodeMultipleFromVideoFrame(video);
-                        for (const qrBib of bibs || []) {
-                            const resolved = resolveBibCandidate(qrBib);
-                            if (resolved.participant) {
-                                participant = resolved.participant;
-                                detectedBib = normalizeBib(participant.bib) || participant.bib;
-                                matchMethod = 'qr';
-                                break;
-                            }
-                            if (!weakCandidate && resolved.bib) weakCandidate = { ...resolved, method: 'qr' };
+                        if (bibs && bibs.length > 0) {
+                            detectedBib = bibs[0];
+                            matchMethod = 'qr';
                         }
                     } catch (e) {}
                 }
 
-                // OCR is handled by the independent GLOBAL full-frame scanner.
-                // Do not block crossing handling with Tesseract or per-person OCR here.
+                // Engine 2: OCR Digit Matcher
+                if (!detectedBib && raceSettings.value.enableOcr) {
+                    try {
+                        const ocrBib = await ocrScanTorso(video, bbox);
+                        if (ocrBib) {
+                            detectedBib = ocrBib;
+                            matchMethod = 'ocr';
+                        }
+                    } catch (e) {}
+                }
 
-                // Engine 3: Face Recognition fallback.
-                if (!participant && raceSettings.value.enableFaceAi && faceModelsLoaded) {
+                // Engine 3: Face Recognition AI (Biometrics with Multi-Angle Support)
+                if (!detectedBib && raceSettings.value.enableFaceAi && faceModelsLoaded) {
                     try {
                         const [bx, by, bw, bh] = bbox;
                         const headY = Math.max(0, by);
@@ -5070,8 +4325,8 @@
                         const liveDesc = await extractFaceDescriptorFromImage(faceCanvas);
                         if (liveDesc) {
                             let bestMatch = null;
-                            let minDistance = 0.54;
-
+                            let minDistance = 0.54; // Euclidean distance threshold
+                            
                             participants.value.forEach(p => {
                                 const targetDescriptors = Array.isArray(p.faceDescriptors) && p.faceDescriptors.length > 0
                                     ? p.faceDescriptors
@@ -5089,78 +4344,73 @@
                             });
 
                             if (bestMatch) {
-                                participant = bestMatch;
-                                detectedBib = normalizeBib(bestMatch.bib) || bestMatch.bib;
+                                detectedBib = bestMatch.bib;
                                 matchMethod = 'face_ai';
                             }
                         }
                     } catch (e) {}
                 }
 
-                // Preserve the best readable text for audit/manual assignment when automatic identity failed.
-                if (!participant && weakCandidate?.bib) detectedBib = weakCandidate.bib;
+                let participant = null;
+                if (detectedBib) {
+                    participant = participants.value.find(p => p.bib == detectedBib);
+                }
 
                 if (participant && timer.value.running) {
-                    const tag = matchMethod === 'face_ai' ? '[Face AI]' : '[QR]';
-
+                    const tag = matchMethod === 'face_ai' ? '[Face AI]' : (matchMethod === 'ocr' ? '[OCR]' : '[QR]');
+                    // Check Race Mode & Anti-duplicate Guard
                     if (raceSettings.value.raceMode === 'single') {
                         if (participant.status === 'finished') {
                             camera.value.lastScanMsg = `BIB #${participant.bib} sudah Finish sebelumnya (${formatTime(participant.totalTime)})`;
                             showDuplicateAlert('warning', `DUPLIKAT: BIB #${participant.bib} (${participant.name}) SUDAH FINISH sebelumnya pada ${formatTime(participant.totalTime)}!`, participant);
-                        } else {
-                            const recorded = recordLap(participant.id, 'ai_vision', timingLock);
-                            if (recorded) {
-                                triggerTvFinisherFlash(participant);
-                                camera.value.lastScanMsg = `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
-                                showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
-                            }
+                            return;
                         }
+                        recordLap(participant.id, 'ai_vision');
+                        participant.status = 'finished';
+                        triggerTvFinisherFlash(participant);
+                        camera.value.lastScanMsg = `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                        showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
                     } else {
+                        // Multi-Lap Mode with Cooldown Filter
+                        const now = Date.now();
                         const cooldownMs = raceSettings.value.minLapCooldownSec * 1000;
-                        if (participant.lastScanTime && (capturedAt - participant.lastScanTime < cooldownMs)) {
-                            const rem = Math.ceil((cooldownMs - (capturedAt - participant.lastScanTime)) / 1000);
+                        if (participant.lastScanTime && (now - participant.lastScanTime < cooldownMs)) {
+                            const rem = Math.ceil((cooldownMs - (now - participant.lastScanTime)) / 1000);
                             camera.value.lastScanMsg = `BIB #${participant.bib} dalam masa cooldown putaran`;
                             showDuplicateAlert('warning', `BIB #${participant.bib} (${participant.name}) masih dalam cooldown lap (${rem}s tersisa)!`, participant);
+                            return;
+                        }
+                        recordLap(participant.id, 'ai_vision');
+                        if (participant.laps.length >= raceSettings.value.targetLaps) {
+                            participant.status = 'finished';
+                            triggerTvFinisherFlash(participant);
+                            camera.value.lastScanMsg = `FINISH ${tag} (Lap ${participant.laps.length}): BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                            showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
                         } else {
-                            const recorded = recordLap(participant.id, 'ai_vision', timingLock);
-                            if (recorded) {
-                                if (participant.laps.length >= raceSettings.value.targetLaps) {
-                                    triggerTvFinisherFlash(participant);
-                                    camera.value.lastScanMsg = `FINISH ${tag} (Lap ${participant.laps.length}): BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
-                                    showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
-                                } else {
-                                    camera.value.lastScanMsg = `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`;
-                                    showDuplicateAlert('info', `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`, participant);
-                                }
-                            }
+                            camera.value.lastScanMsg = `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`;
+                            showDuplicateAlert('info', `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`, participant);
                         }
                     }
-                } else if (weakCandidate?.ambiguous) {
-                    const names = (weakCandidate.candidates || []).map(p => p.bib).join(', ');
-                    camera.value.lastScanMsg = `OCR ambigu: ${weakCandidate.bib} → ${names || 'beberapa peserta'} • ${formattedTimeStr}`;
-                    showDuplicateAlert('warning', `BIB ${weakCandidate.bib} terbaca tetapi ambigu (${names}). Gunakan snapshot / Face AI / assign manual.`);
                 } else if (detectedBib) {
-                    camera.value.lastScanMsg = `Crossing: BIB terbaca #${detectedBib}, belum cocok ke peserta • ${formattedTimeStr}`;
-                    showDuplicateAlert('error', `Crossing terdeteksi BIB #${detectedBib}, namun identitas belum dapat dipastikan.`);
+                    camera.value.lastScanMsg = `Crossing: Unknown BIB #${detectedBib} • ${formattedTimeStr}`;
+                    showDuplicateAlert('error', `Crossing terdeteksi BIB #${detectedBib}, namun tidak ada di daftar peserta!`);
                 } else {
-                    camera.value.lastScanMsg = `Crossing terdeteksi • Waktu: ${formattedTimeStr} • Perlu verifikasi BIB`;
+                    camera.value.lastScanMsg = `Crossing terdeteksi • Waktu: ${formattedTimeStr}`;
                 }
 
                 liveFinishFeed.value.unshift({
                     id: crypto.randomUUID(),
-                    capturedAt,
                     timestampMs: recordedTimeMs,
                     timeFormatted: formattedTimeStr,
                     bib: participant ? participant.bib : (detectedBib || ''),
                     name: participant ? participant.name : '',
                     snapshot: snapshotDataUrl,
-                    participantId: participant ? participant.id : null,
-                    matchMethod: matchMethod || weakCandidate?.method || '',
-                    ocrConfidence: Number(weakCandidate?.confidence || weakCandidate?.avg || 0),
-                    ambiguous: Boolean(weakCandidate?.ambiguous),
+                    participantId: participant ? participant.id : null
                 });
 
-                if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
+                if (liveFinishFeed.value.length > 30) {
+                    liveFinishFeed.value.pop();
+                }
             };
 
             // AI Detection & Canvas Rendering Loop
@@ -5272,7 +4522,7 @@
                                     lastX: normCentroid.x,
                                     lastY: normCentroid.y,
                                     lastTime: now,
-                                    crossedAt: 0,
+                                    crossedAt: 0
                                 });
                             } else {
                                 const track = personTracks.get(matchedTrackId);
@@ -5287,17 +4537,7 @@
 
                                 if (isCrossing && isValidDir && (now - track.crossedAt > 3500)) {
                                     track.crossedAt = now;
-
-                                    // Lock official time here, before any async OCR/Face processing.
-                                    const crossingCapturedAt = Date.now();
-                                    const crossingElapsedMs = timer.value.running && timer.value.startTime
-                                        ? Math.max(0, crossingCapturedAt - timer.value.startTime)
-                                        : Math.max(0, timer.value.elapsed || 0);
-
-                                    handleRunnerCrossing(video, person.bbox, matchedTrackId, {
-                                        capturedAt: crossingCapturedAt,
-                                        elapsedMs: crossingElapsedMs,
-                                    });
+                                    handleRunnerCrossing(video, person.bbox);
                                 }
 
                                 track.lastX = normCentroid.x;
@@ -5324,8 +4564,7 @@
             const startAiCamera = async (deviceId = null) => {
                 stopAiCamera();
                 try {
-                    // Do not block OCR/camera startup on COCO-SSD. Person detection may load in parallel.
-                    loadAiModel().catch(() => {});
+                    await loadAiModel();
                     const constraints = {
                         video: {
                             deviceId: deviceId ? { exact: deviceId } : undefined,
@@ -5341,11 +4580,6 @@
                         video.srcObject = aiStream;
                         await video.play();
                         camera.value.active = true;
-
-                        // FAST OCR starts immediately and is independent from COCO/person tracking.
-                        startGlobalOcrScanner();
-
-                        // Keep the existing line/person pipeline only for line crossing / Face AI / visuals.
                         runAiDetectionLoop();
                     }
                 } catch (e) {
@@ -5355,7 +4589,6 @@
             };
 
             const stopAiCamera = () => {
-                stopGlobalOcrScanner();
                 if (aiAnimationId) {
                     cancelAnimationFrame(aiAnimationId);
                     aiAnimationId = null;
@@ -5423,7 +4656,7 @@
                                 (decodedText) => {
                                     const bib = normalizeBib(decodedText);
                                     if (!bib) return;
-                                    const p = findParticipantByBib(bib);
+                                    const p = participants.value.find(p => p.bib == bib);
                                     if (p) {
                                         recordLap(p.id, 'scanner');
                                     } else {
@@ -5435,10 +4668,6 @@
                                 if (getBarcodeDetector()) {
                                     startAutoMultiScan();
                                 }
-
-                                // Full-frame OCR also works in QR-only camera mode.
-                                startGlobalOcrScanner();
-
                                 setTimeout(tryImproveVideoTrack, 500);
                                 saveState();
                             }).catch(err => {
@@ -5465,18 +4694,11 @@
                 item.name = p.name;
                 item.participantId = p.id;
 
-                const originalTiming = {
-                    capturedAt: Number.isFinite(item.capturedAt) ? item.capturedAt : Date.now(),
-                    elapsedMs: Number.isFinite(item.timestampMs) ? item.timestampMs : Math.max(0, timer.value.elapsed || 0),
-                };
-
-                if (timer.value.running || timer.value.elapsed > 0) {
-                    recordLap(p.id, 'manual_assign', originalTiming);
+                if (timer.value.running) {
+                    recordLap(p.id, 'manual_assign');
                 } else {
-                    if (!Array.isArray(p.laps)) p.laps = [];
-                    p.totalTime = originalTiming.elapsedMs;
-                    p.laps.push(originalTiming.capturedAt);
-                    p.lastScanTime = originalTiming.capturedAt;
+                    p.totalTime = item.timestampMs;
+                    p.laps.push(Date.now());
                     p.status = 'finished';
                     saveState();
                 }
@@ -5640,7 +4862,7 @@
                 const matched = [];
                 const unknown = [];
                 for (const bib of bibs) {
-                    const p = findParticipantByBib(bib);
+                    const p = participants.value.find(p => p.bib == bib);
                     if (p) {
                         recordLap(p.id, source);
                         matched.push(bib);
@@ -5783,10 +5005,6 @@
                     ocrWorker.terminate();
                     ocrWorker = null;
                 }
-                ocrWorkerInitPromise = null;
-                ocrQueue = Promise.resolve();
-                ocrQueueDepth = 0;
-                ocrWorkerProfileSignature = '';
             });
 
             // Race Tab Pagination & Fast Filter State
