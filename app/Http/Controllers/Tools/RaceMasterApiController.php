@@ -699,6 +699,31 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function resetSession(Request $request, RaceSession $session)
+    {
+        DB::transaction(function () use ($session) {
+            RaceSessionLap::where('race_session_id', $session->id)->delete();
+            $session->started_at = null;
+            $session->ended_at = null;
+            $session->save();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session berhasil direset.',
+        ]);
+    }
+
+    public function publicResetSession(Request $request, $slug)
+    {
+        $session = RaceSession::query()
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
+            ->firstOrFail();
+
+        return $this->resetSession($request, $session);
+    }
+
     public function liveSync(Request $request, $sessionIdentifier)
     {
         $session = RaceSession::query()
@@ -728,6 +753,7 @@ class RaceMasterApiController extends Controller
         }
 
         $sinceId = (int) $request->query('since_id', 0);
+        $isSessionReset = empty($session->started_at) && empty($session->ended_at);
 
         // DELTA / INCREMENTAL SYNC (Ultra fast, < 1ms, < 1KB)
         if ($sinceId > 0) {
@@ -743,6 +769,7 @@ class RaceMasterApiController extends Controller
             return response()->json([
                 'success' => true,
                 'is_delta' => true,
+                'is_reset' => $isSessionReset,
                 'max_lap_id' => $maxLapId,
                 'server_now_ms' => (int) ($now->getTimestamp() * 1000 + (int) ($now->micro / 1000)),
                 'session' => [
@@ -1112,9 +1139,21 @@ class RaceMasterApiController extends Controller
             ->with(['race'])
             ->firstOrFail();
 
+        $raceName = $session->race?->name ?? 'Ruang Lari Race';
+        $category = $session->category ?? '';
+        $distanceKm = $session->distance_km ?? '';
+        $metaTitle = "Hasil Lomba {$raceName}" . ($category ? " - {$category}" : '') . " | Leaderboard & Kartu Finisher RuangLari";
+        $metaDesc = "Lihat hasil resmi, leaderboard, peringkat, waktu finish, average pace, dan unduh Kartu Finisher 4:5 resmi lomba {$raceName}" . ($category ? " kategori {$category}" : '') . " di RuangLari.com.";
+
         return view('tools.race-master-results', [
             'slug' => $slug,
-            'raceName' => $session->race?->name,
+            'session' => $session,
+            'race' => $session->race,
+            'raceName' => $raceName,
+            'category' => $category,
+            'distanceKm' => $distanceKm,
+            'metaTitle' => $metaTitle,
+            'metaDesc' => $metaDesc,
         ]);
     }
 

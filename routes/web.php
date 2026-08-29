@@ -220,6 +220,7 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
     Route::post('/sessions/{session}/poster/{participant}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateParticipantPoster'])->name('tools.race-master.api.sessions.poster.participant');
     Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
+    Route::post('/sessions/{session}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'resetSession'])->name('tools.race-master.api.sessions.reset');
 });
 
 Route::prefix('/api/tools/race-master/public')->group(function () {
@@ -230,6 +231,7 @@ Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::post('/{slug}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLapsBulk'])->name('tools.race-master.api.public.laps.bulk');
     Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
     Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
+    Route::post('/{slug}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResetSession'])->name('tools.race-master.api.public.reset');
 });
 
 Route::get('/races/{slug}', function (string $slug) {
