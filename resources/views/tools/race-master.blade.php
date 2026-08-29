@@ -3724,6 +3724,12 @@
                     if (!res.ok) throw new Error('Sesi tidak ditemukan di server.');
                     const data = await res.json();
                     if (!data.success) throw new Error(data.message || 'Gagal sinkronisasi sesi.');
+                    
+                    if (typeof data.is_host === 'boolean') {
+                        isSessionHost.value = data.is_host;
+                    } else if (!isAuthenticated) {
+                        isSessionHost.value = false;
+                    }
 
                     // Track maximum synced lap ID for subsequent lightweight delta syncs
                     maxSyncedLapId.value = data.max_lap_id || 0;
@@ -3831,6 +3837,9 @@
                         const data = await res.json();
                         if (data && data.success) {
                             sessionSyncLastUpdated.value = new Date().toLocaleTimeString();
+                            if (typeof data.is_host === 'boolean') {
+                                isSessionHost.value = data.is_host;
+                            }
                             
                             // Detect if session was reset on host / server
                             if (data.is_reset || (!data.session.is_running && !data.session.started_at_ms && !data.session.ended_at)) {

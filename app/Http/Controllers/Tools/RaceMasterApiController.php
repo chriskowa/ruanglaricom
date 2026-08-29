@@ -752,6 +752,12 @@ class RaceMasterApiController extends Controller
             }
         }
 
+        $user = Auth::user();
+        $isHost = false;
+        if ($user && ($user->role === 'admin' || (int) $user->id === (int) $session->race?->created_by)) {
+            $isHost = true;
+        }
+
         $sinceId = (int) $request->query('since_id', 0);
         $isSessionReset = empty($session->started_at) && empty($session->ended_at);
 
@@ -770,6 +776,7 @@ class RaceMasterApiController extends Controller
                 'success' => true,
                 'is_delta' => true,
                 'is_reset' => $isSessionReset,
+                'is_host' => $isHost,
                 'max_lap_id' => $maxLapId,
                 'server_now_ms' => (int) ($now->getTimestamp() * 1000 + (int) ($now->micro / 1000)),
                 'session' => [
@@ -844,6 +851,7 @@ class RaceMasterApiController extends Controller
         return response()->json([
             'success' => true,
             'is_delta' => false,
+            'is_host' => $isHost,
             'max_lap_id' => $maxLapId,
             'server_now' => $now->toISOString(),
             'server_now_ms' => (int) ($now->getTimestamp() * 1000 + (int) ($now->micro / 1000)),
