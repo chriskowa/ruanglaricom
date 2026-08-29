@@ -109,10 +109,12 @@
                             @forelse($slides as $i => $slide)
                                 <article class="rl-featured-slide" data-slide-index="{{ $i }}">
                                     <a href="{{ $slide['href'] }}"
-                                       aria-label="{{ $slide['eyebrow'] }}: {{ $slide['title'] }}">
+                                       aria-label="{{ $slide['eyebrow'] }}: {{ $slide['title'] }}"
+                                       draggable="false">
                                         <img
                                             src="{{ $slide['image'] ?: $fallbackHero }}"
                                             alt="{{ $slide['title'] }}"
+                                            draggable="false"
                                             @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
                                             onerror="this.onerror=null; this.src='{{ $fallbackHero }}';"
                                         >
@@ -850,6 +852,17 @@
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .rl-featured-track.is-dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+        scroll-behavior: auto;
     }
 
     .rl-featured-slide {
@@ -858,12 +871,15 @@
         flex: 0 0 100%;
         scroll-snap-align: start;
         min-height: clamp(31rem, 49vw, 39rem);
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .rl-featured-slide > a {
         position: absolute;
         inset: 0;
         display: block;
+        -webkit-user-drag: none;
     }
 
     .rl-featured-slide img {
@@ -873,6 +889,9 @@
         inset: 0;
         object-fit: cover;
         transition: transform 1.2s cubic-bezier(.16,1,.3,1);
+        pointer-events: none;
+        -webkit-user-drag: none;
+        user-drag: none;
     }
 
     .rl-featured-slide:hover img { transform: scale(1.035); }
@@ -2058,6 +2077,16 @@ function initFeaturedSlider() {
     let timer = null;
     let frame = null;
 
+    // Touch & Pointer Gesture Tracking
+    let isPointerDown = false;
+    let startX = 0;
+    let startY = 0;
+    let initialScrollLeft = 0;
+    let startTime = 0;
+    let isSwiping = false;
+    let movedDistanceX = 0;
+    let preventClick = false;
+
     function updateNav() {
         if (!dots) return;
         [...dots.children].forEach((item, index) => {
@@ -2066,16 +2095,20 @@ function initFeaturedSlider() {
         });
     }
 
-    function goTo(index) {
+    function goTo(index, smooth = true) {
         activeIndex = (index + slides.length) % slides.length;
-        track.scrollTo({
-            left: slides[activeIndex].offsetLeft,
-            behavior: reducedMotion ? 'auto' : 'smooth'
-        });
+        const targetSlide = slides[activeIndex];
+        if (targetSlide) {
+            track.scrollTo({
+                left: targetSlide.offsetLeft,
+                behavior: (reducedMotion || !smooth) ? 'auto' : 'smooth'
+            });
+        }
         updateNav();
     }
 
     function detectActive() {
+        if (isPointerDown) return;
         const center = track.scrollLeft + track.clientWidth / 2;
         let closest = 0;
         let closestDistance = Infinity;
@@ -2103,7 +2136,7 @@ function initFeaturedSlider() {
     }
 
     function startAuto() {
-        if (reducedMotion || document.hidden || timer) return;
+        if (reducedMotion || document.hidden || timer || isPointerDown) return;
         timer = setInterval(() => goTo(activeIndex + 1), 7000);
     }
 
@@ -2128,18 +2161,124 @@ function initFeaturedSlider() {
         updateNav();
     }
 
+    // Capture & prevent click on links if user was dragging/swiping
+    track.addEventListener('click', (e) => {
+        if (preventClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            preventClick = false;
+        }
+    }, true);
+
+    // Touch events for mobile finger swipe
+    track.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) return;
+        stopAuto();
+        const touch = e.touches[0];
+        isPointerDown = true;
+        isSwiping = false;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        initialScrollLeft = track.scrollLeft;
+        startTime = Date.now();
+        movedDistanceX = 0;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+        if (!isPointerDown) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+
+        // If horizontal movement exceeds vertical and is > 8px, lock horizontal swipe
+        if (!isSwiping && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            isSwiping = true;
+            track.classList.add('is-dragging');
+        }
+
+        if (isSwiping) {
+            movedDistanceX = deltaX;
+            track.scrollLeft = initialScrollLeft - deltaX;
+        }
+    }, { passive: true });
+
+    function handleTouchEnd() {
+        if (!isPointerDown) return;
+        isPointerDown = false;
+        track.classList.remove('is-dragging');
+
+        const elapsed = Date.now() - startTime;
+        const velocityThreshold = Math.abs(movedDistanceX) > 35 && elapsed < 320;
+        const distanceThreshold = Math.abs(movedDistanceX) > track.clientWidth * 0.2;
+
+        if (isSwiping && (velocityThreshold || distanceThreshold)) {
+            preventClick = true;
+            if (movedDistanceX < 0) {
+                goTo(activeIndex + 1);
+            } else {
+                goTo(activeIndex - 1);
+            }
+        } else if (isSwiping) {
+            preventClick = Math.abs(movedDistanceX) > 15;
+            goTo(activeIndex);
+        }
+
+        setTimeout(() => {
+            preventClick = false;
+        }, 120);
+
+        restartAuto();
+    }
+
+    track.addEventListener('touchend', handleTouchEnd, { passive: true });
+    track.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    // Pointer / Mouse drag support for desktop
+    track.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        stopAuto();
+        isPointerDown = true;
+        isSwiping = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        initialScrollLeft = track.scrollLeft;
+        startTime = Date.now();
+        movedDistanceX = 0;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isPointerDown) return;
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (!isSwiping && Math.abs(deltaX) > 6) {
+            isSwiping = true;
+            track.classList.add('is-dragging');
+        }
+
+        if (isSwiping) {
+            movedDistanceX = deltaX;
+            track.scrollLeft = initialScrollLeft - deltaX;
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (!isPointerDown) return;
+        handleTouchEnd();
+    });
+
     track.addEventListener('scroll', () => {
-        if (frame) return;
+        if (frame || isPointerDown) return;
         frame = requestAnimationFrame(() => {
             detectActive();
             frame = null;
         });
     }, { passive: true });
 
-    track.addEventListener('pointerdown', stopAuto, { passive: true });
-    track.addEventListener('pointerup', startAuto, { passive: true });
     track.addEventListener('mouseenter', stopAuto, { passive: true });
-    track.addEventListener('mouseleave', startAuto, { passive: true });
+    track.addEventListener('mouseleave', () => {
+        if (!isPointerDown) startAuto();
+    }, { passive: true });
 
     prev?.addEventListener('click', () => {
         goTo(activeIndex - 1);
