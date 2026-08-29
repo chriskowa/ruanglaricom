@@ -9,7 +9,7 @@
             }
             $dt = $a->published_at ?: $a->created_at;
         @endphp
-        <a href="{{ route('blog.show', $a->slug) }}" class="group block bg-card/60 border border-slate-700/60 rounded-2xl overflow-hidden hover:border-neon/40 hover:shadow-lg hover:shadow-neon/10 transition-all">
+        <a href="{{ route('blog.show', $a->slug) }}" class="group block bg-card/60 border border-slate-700/60 rounded-xl overflow-hidden hover:border-neon/40 hover:shadow-lg hover:shadow-neon/10 transition-all">
             <div class="relative h-44 overflow-hidden">
                 @if($img)
                     <img src="{{ $img }}" alt="{{ $a->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -19,7 +19,9 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/20 to-transparent"></div>
                 <div class="absolute bottom-3 left-4 right-4">
                     @if($a->category)
-                        <div class="text-xs font-mono text-neon/90 mb-2 truncate">{{ $a->category->name }}</div>
+                        <div class="mb-2">
+                            <span class="inline-block px-2.5 py-0.5 rounded bg-white text-slate-950 text-xs tracking-wider">{{ $a->category->name }}</span>
+                        </div>
                     @endif
                     <div class="text-white font-bold leading-snug line-clamp-2">{{ $a->localized_title }}</div>
                     <div class="mt-2 text-[11px] font-mono text-slate-300 flex items-center gap-3">
@@ -36,7 +38,7 @@
         </a>
     @empty
         <div class="md:col-span-2 xl:col-span-3">
-            <div class="rounded-2xl border border-slate-700/60 bg-card/40 p-10 text-center">
+            <div class="rounded-xl border border-slate-700/60 bg-card/40 p-10 text-center">
                 <div class="text-2xl font-black">Tidak ada artikel</div>
                 <div class="mt-2 text-slate-400">Coba ubah kata kunci atau pilih kategori lain.</div>
             </div>

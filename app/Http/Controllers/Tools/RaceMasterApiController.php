@@ -305,7 +305,7 @@ class RaceMasterApiController extends Controller
     {
         try {
             $validated = $request->validate([
-                'participants' => 'required|array|min:1|max:2000',
+                'participants' => 'required|array|min:1|max:10000',
                 'participants.*.bib_number' => 'required|string|max:32',
                 'participants.*.name' => 'required|string|max:255',
                 'participants.*.predicted_time_ms' => 'nullable|integer|min:0|max:86400000',

@@ -3928,6 +3928,9 @@
                 newPredictedSS.value = '';
                 clearNewFacePhoto();
                 saveState();
+                if (currentRaceId.value) {
+                    syncParticipantsToDb();
+                }
                 nextTick(() => inputBib.value.focus());
             };
 
@@ -4078,6 +4081,9 @@
                     participants.value.push(...newEntries);
                     participants.value.sort(compareBibs);
                     saveState();
+                    if (currentRaceId.value) {
+                        syncParticipantsToDb();
+                    }
                 }
 
                 let summaryMsg = `Berhasil mengimpor ${addedCount} peserta dari file CSV.`;
@@ -4260,8 +4266,10 @@
                     // Sync Participants from Server
                     if (Array.isArray(data.participants) && data.participants.length > 0) {
                         const existingMap = new Map(participants.value.map(p => [normalizeBib(p.bib) || String(p.bib).trim().toUpperCase(), p]));
+                        const serverBibSet = new Set();
                         const merged = data.participants.map(sp => {
                             const serverBib = normalizeBib(sp.bib) || String(sp.bib).trim().toUpperCase();
+                            serverBibSet.add(serverBib);
                             const local = existingMap.get(serverBib);
                             return {
                                 id: local ? local.id : crypto.randomUUID(),
@@ -4277,7 +4285,11 @@
                                 lastScanTime: 0
                             };
                         });
-                        participants.value = merged;
+                        const localOnly = participants.value.filter(p => {
+                            const b = normalizeBib(p.bib) || String(p.bib).trim().toUpperCase();
+                            return !serverBibSet.has(b);
+                        });
+                        participants.value = [...merged, ...localOnly].sort(compareBibs);
                     }
 
                     // Sync Server Clock Time
@@ -4388,8 +4400,10 @@
                             if (!data.is_delta && Array.isArray(data.participants) && data.participants.length > 0) {
                                 if (data.max_lap_id) maxSyncedLapId.value = data.max_lap_id;
                                 const existingMap = new Map(participants.value.map(p => [normalizeBib(p.bib) || String(p.bib).trim().toUpperCase(), p]));
+                                const serverBibSet = new Set();
                                 const merged = data.participants.map(sp => {
                                     const serverBib = normalizeBib(sp.bib) || String(sp.bib).trim().toUpperCase();
+                                    serverBibSet.add(serverBib);
                                     const local = existingMap.get(serverBib);
                                     return {
                                         id: local ? local.id : crypto.randomUUID(),
@@ -4405,7 +4419,11 @@
                                         lastScanTime: 0
                                     };
                                 });
-                                participants.value = merged;
+                                const localOnly = participants.value.filter(p => {
+                                    const b = normalizeBib(p.bib) || String(p.bib).trim().toUpperCase();
+                                    return !serverBibSet.has(b);
+                                });
+                                participants.value = [...merged, ...localOnly].sort(compareBibs);
                             }
 
                             // Clock Sync (Only start if not running and not paused)
