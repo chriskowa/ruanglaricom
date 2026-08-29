@@ -3710,11 +3710,13 @@
 
                 sessionSyncError.value = '';
                 try {
-                    let endpoint = `${apiBase}/sessions/${encodeURIComponent(target)}/live-sync`;
+                    let endpoint = isAuthenticated 
+                        ? `${apiBase}/sessions/${encodeURIComponent(target)}/live-sync`
+                        : `${apiBase}/public/${encodeURIComponent(target)}/live-sync`;
                     let res = await fetch(endpoint, {
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                     });
-                    if (!res.ok) {
+                    if (!res.ok && isAuthenticated) {
                         endpoint = `${apiBase}/public/${encodeURIComponent(target)}/live-sync`;
                         res = await fetch(endpoint, {
                             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -3822,11 +3824,13 @@
                 try {
                     // If local participants is empty, force full sync (since_id = 0) so participants are populated immediately!
                     const sinceParam = participants.value.length === 0 ? 0 : maxSyncedLapId.value;
-                    let endpoint = `${apiBase}/sessions/${encodeURIComponent(String(target))}/live-sync?since_id=${sinceParam}`;
+                    let endpoint = isAuthenticated
+                        ? `${apiBase}/sessions/${encodeURIComponent(String(target))}/live-sync?since_id=${sinceParam}`
+                        : `${apiBase}/public/${encodeURIComponent(String(target))}/live-sync?since_id=${sinceParam}`;
                     let res = await fetch(endpoint, {
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                     });
-                    if (!res.ok) {
+                    if (!res.ok && isAuthenticated) {
                         endpoint = `${apiBase}/public/${encodeURIComponent(String(target))}/live-sync?since_id=${sinceParam}`;
                         res = await fetch(endpoint, {
                             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }

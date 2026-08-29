@@ -202,6 +202,10 @@ Route::get('/tools/race-master', function () {
 Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsPage'])
     ->name('tools.race-master.results');
 
+Route::prefix('/api/tools/race-master')->group(function () {
+    Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
+});
+
 Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->group(function () {
     Route::get('/docs', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'docs'])->name('tools.race-master.api.docs');
     Route::get('/eo-events', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'getEoEvents'])->name('tools.race-master.api.eo-events');
@@ -219,7 +223,6 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/sessions/{session}/certificates', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateCertificates'])->name('tools.race-master.api.sessions.certificates.generate');
     Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
     Route::post('/sessions/{session}/poster/{participant}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateParticipantPoster'])->name('tools.race-master.api.sessions.poster.participant');
-    Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
     Route::post('/sessions/{session}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'resetSession'])->name('tools.race-master.api.sessions.reset');
 });
 
