@@ -86,187 +86,133 @@
 <div id="app" :class="{'dark': isDarkMode}" v-cloak>
 
     <!-- TV / JUMBOTRON BROADCAST FULLSCREEN OVERLAY (ADMIN 1) -->
-    <div v-if="tvDisplayOpen" class="fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden font-sans" style="background-color: #000000 !important; color: #ffffff !important;">
+    <div v-if="tvDisplayOpen" class="fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between p-3.5 sm:p-6 md:p-10 select-none overflow-y-auto sm:overflow-hidden font-sans" style="background-color: #000000 !important; color: #ffffff !important;">
         <!-- Top Status Bar -->
-        <div class="border-b border-slate-800 pb-3 sm:pb-5 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="border-b border-slate-800 pb-2.5 sm:pb-5 space-y-2.5 sm:space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                 <!-- Left: Logo, Race Title, Category -->
-                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center font-black text-sm sm:text-lg text-white shrink-0">
+                <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center font-black text-xs sm:text-lg text-white shrink-0">
                         <span v-if="!raceLogoPreviewUrl">RL</span>
-                        <img v-else :src="raceLogoPreviewUrl" class="w-full h-full object-contain rounded-2xl" alt="Logo">
+                        <img v-else :src="raceLogoPreviewUrl" class="w-full h-full object-contain rounded-xl sm:rounded-2xl" alt="Logo">
                     </div>
-                    <div class="min-w-0">
-                        <div class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400">Live Race Display</div>
-                        <div class="text-lg sm:text-2xl md:text-3xl font-black text-white uppercase tracking-tight truncate max-w-xs sm:max-w-md md:max-w-xl">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <span class="text-[9px] sm:text-xs font-bold uppercase tracking-widest text-slate-400">Live Race Display</span>
+                            <!-- Room / Session Code for Assistant Admins -->
+                            <div v-if="sessionSlug || currentSessionId" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-amber-400 font-mono text-[9px] sm:text-xs font-bold" title="Kode Sesi untuk Admin Satelit / Pembantu">                                
+                                <span>KODE: <strong class="text-white tracking-wider">@{{ sessionSlug || currentSessionId }}</strong></span>
+                            </div>
+                        </div>
+                        <div class="text-base sm:text-2xl md:text-3xl font-black text-white uppercase tracking-tight truncate max-w-xs sm:max-w-md md:max-w-xl">
                             @{{ raceName || 'Ruang Lari Official Race' }}
                         </div>
                     </div>
-                    <div class="px-2.5 sm:px-3.5 py-1 rounded-xl bg-indigo-600 text-white font-oswald text-xs sm:text-lg font-black uppercase shrink-0">
+                    <div class="px-2 sm:px-3.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-indigo-600 text-white font-oswald text-[11px] sm:text-lg font-black uppercase shrink-0">
                         @{{ raceCategory }}
                     </div>
                 </div>
 
-                <!-- Right: Stats & TV Menu Buttons -->
-                <div class="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
+                <!-- Right: Action & Utility Buttons (Single Neat Row on Mobile) -->
+                <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full sm:w-auto justify-start sm:justify-end">
                     <!-- Host Quick Controls in TV Topbar -->
-                    <div v-if="isSessionHost" class="flex items-center gap-1.5 sm:gap-2 mr-1 sm:mr-2">
+                    <div v-if="isSessionHost" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        <!-- Start / Resume -->
+                        <button
+                            v-if="!timer.running"
+                            type="button"
+                            @click="startRace"
+                            class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-white hover:bg-slate-100 text-slate-950 border border-white font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                            :title="timer.elapsed > 0 ? 'Lanjutkan Timer Balapan' : 'Mulai Timer Balapan'"
+                        >
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>@{{ timer.elapsed > 0 ? 'Resume' : 'Start' }}</span>
+                        </button>
 
-    <!-- Start / Resume -->
-    <button
-        v-if="!timer.running"
-        type="button"
-        @click="startRace"
-        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
-               bg-white hover:bg-slate-100
-               text-slate-950
-               border border-white
-               font-semibold text-xs
-               flex items-center gap-2
-               transition-colors"
-        :title="timer.elapsed > 0 ? 'Lanjutkan Timer Balapan' : 'Mulai Timer Balapan'"
-    >
-        <i class="fa-solid fa-play text-[10px]"></i>
-        <span>@{{ timer.elapsed > 0 ? 'Resume' : 'Start' }}</span>
-    </button>
+                        <!-- Pause -->
+                        <button
+                            v-else
+                            type="button"
+                            @click="pauseRace"
+                            class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-white hover:bg-slate-100 text-slate-950 border border-white font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                            title="Jeda Timer Balapan"
+                        >
+                            <i class="fa-solid fa-pause text-[10px]"></i>
+                            <span>Pause</span>
+                        </button>
 
+                        <!-- Reset -->
+                        <button
+                            type="button"
+                            @click="resetRace"
+                            class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-transparent hover:bg-slate-900 text-slate-400 hover:text-white border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                            title="Reset Timer dan Sesi Balapan"
+                        >
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                            <span>Reset</span>
+                        </button>
 
-    <!-- Pause -->
-    <button
-        v-else
-        type="button"
-        @click="pauseRace"
-        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
-               bg-white hover:bg-slate-100
-               text-slate-950
-               border border-white
-               font-semibold text-xs
-               flex items-center gap-2
-               transition-colors"
-        title="Jeda Timer Balapan"
-    >
-        <i class="fa-solid fa-pause text-[10px]"></i>
-        <span>Pause</span>
-    </button>
+                        <!-- Finish Race -->
+                        <button
+                            type="button"
+                            @click="finishRace"
+                            class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-transparent hover:bg-red-950/40 text-red-400 hover:text-red-300 border border-red-900/70 hover:border-red-800 font-semibold text-xs flex items-center gap-1.5 transition-colors"
+                            title="Selesaikan & Simpan Hasil Sesi"
+                        >
+                            <i class="fa-solid fa-flag-checkered text-[10px]"></i>
+                            <span>Finish</span>
+                        </button>
+                    </div>
 
+                    <!-- Mini Live Stats (Hidden on mobile to keep bar clean) -->
+                    <div class="hidden lg:flex items-center border-l border-slate-800 ml-1 pl-3">
+                        <!-- Peserta -->
+                        <div class="px-3.5 border-r border-slate-800 text-left">
+                            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Peserta</div>
+                            <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">@{{ participants.length }}</div>
+                        </div>
 
-    <!-- Reset -->
-    <button
-        type="button"
-        @click="resetRace"
-        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
-               bg-transparent hover:bg-slate-900
-               text-slate-400 hover:text-white
-               border border-slate-700
-               font-semibold text-xs
-               flex items-center gap-2
-               transition-colors"
-        title="Reset Timer dan Sesi Balapan"
-    >
-        <i class="fa-solid fa-rotate-left text-[10px]"></i>
-        <span>Reset</span>
-    </button>
+                        <!-- Finish -->
+                        <div class="px-3.5 border-r border-slate-800 text-left">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Finish</div>
+                            </div>
+                            <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">@{{ finishedCount }}</div>
+                        </div>
 
+                        <!-- On Track -->
+                        <div class="px-3.5 border-r border-slate-800 text-left">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">On Track</div>
+                            </div>
+                            <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">@{{ runningCount }}</div>
+                        </div>
 
-    <!-- Finish Race -->
-    <button
-        type="button"
-        @click="finishRace"
-        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
-               bg-transparent hover:bg-red-950/40
-               text-red-400 hover:text-red-300
-               border border-red-900/70 hover:border-red-800
-               font-semibold text-xs
-               flex items-center gap-2
-               transition-colors"
-        title="Selesaikan & Simpan Hasil Sesi"
-    >
-        <i class="fa-solid fa-flag-checkered text-[10px]"></i>
-        <span>Finish</span>
-    </button>
+                        <!-- DNF -->
+                        <div v-if="dnfCount > 0" class="px-3.5 text-left">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">DNF</div>
+                            </div>
+                            <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">@{{ dnfCount }}</div>
+                        </div>
+                    </div>
 
-</div>
-
-
-<!-- Mini Live Stats -->
-<div class="hidden lg:flex items-center border-l border-slate-800 ml-1 pl-3">
-
-    <!-- Peserta -->
-    <div class="px-3.5 border-r border-slate-800 text-left">
-        <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
-            Peserta
-        </div>
-
-        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
-            @{{ participants.length }}
-        </div>
-    </div>
-
-
-    <!-- Finish -->
-    <div class="px-3.5 border-r border-slate-800 text-left">
-        <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-
-            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
-                Finish
-            </div>
-        </div>
-
-        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
-            @{{ finishedCount }}
-        </div>
-    </div>
-
-
-    <!-- On Track -->
-    <div class="px-3.5 border-r border-slate-800 text-left">
-        <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-
-            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
-                On Track
-            </div>
-        </div>
-
-        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
-            @{{ runningCount }}
-        </div>
-    </div>
-
-
-    <!-- DNF -->
-    <div
-        v-if="dnfCount > 0"
-        class="px-3.5 text-left"
-    >
-        <div class="flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-
-            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
-                DNF
-            </div>
-        </div>
-
-        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
-            @{{ dnfCount }}
-        </div>
-    </div>
-
-</div>
-
-                    <!-- Settings Button (Toggles Size Slider & Style Menu) -->
+                    <!-- Settings Button -->
                     <button type="button" @click="tvSettingsOpen = !tvSettingsOpen"
-                            class="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 border transition"
+                            class="h-8 sm:h-10 px-2.5 sm:px-3.5 rounded-lg font-bold text-xs flex items-center gap-1.5 border transition shrink-0"
                             :class="tvSettingsOpen ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700'"
                             title="Pengaturan Ukuran & Gaya Jam">
-                        <i class="fa-solid fa-sliders"></i>
-                        <span class="hidden sm:inline">Ukuran & Gaya</span>
+                        <i class="fa-solid fa-sliders text-[11px]"></i>
+                        <span class="hidden sm:inline">Gaya</span>
                     </button>
 
-                    <button type="button" @click="closeTvDisplay" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition" title="Tutup TV Mode (Esc)">
-                        <i class="fa-solid fa-compress text-sm"></i>
-                        <span class="hidden sm:inline">Tutup (Esc)</span>
+                    <!-- Close TV Button -->
+                    <button type="button" @click="closeTvDisplay" class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition shrink-0" title="Tutup TV Mode (Esc)">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                        <span class="hidden sm:inline">Tutup</span>
                     </button>
                 </div>
             </div>
@@ -276,14 +222,14 @@
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-indigo-400"></i>
-                        Pengaturan Tampilan Jam TV / Jumbotron
+                        Pengaturan Tampilan Jam TV
                     </span>
                     <button type="button" @click="tvSettingsOpen = false" class="text-slate-400 hover:text-white font-bold text-xs p-1">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-end">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                     <!-- Slider Ukuran Font -->
                     <div class="space-y-1.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
                         <div class="flex justify-between items-center text-[11px] font-bold text-slate-300">
@@ -294,13 +240,6 @@
                             <span class="text-[10px] text-slate-500 font-mono">50%</span>
                             <input type="range" v-model.number="tvTimerSizeScale" min="50" max="180" step="5" class="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg cursor-pointer">
                             <span class="text-[10px] text-slate-500 font-mono">180%</span>
-                        </div>
-                        <!-- Quick Presets -->
-                        <div class="flex items-center gap-1 pt-1 justify-between text-[10px]">
-                            <button type="button" @click="tvTimerSizeScale = 75" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400" :class="{'text-indigo-400 font-bold': tvTimerSizeScale === 75}">75%</button>
-                            <button type="button" @click="tvTimerSizeScale = 100" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400" :class="{'text-indigo-400 font-bold': tvTimerSizeScale === 100}">100%</button>
-                            <button type="button" @click="tvTimerSizeScale = 125" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400" :class="{'text-indigo-400 font-bold': tvTimerSizeScale === 125}">125%</button>
-                            <button type="button" @click="tvTimerSizeScale = 150" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400" :class="{'text-indigo-400 font-bold': tvTimerSizeScale === 150}">150%</button>
                         </div>
                     </div>
 
@@ -329,14 +268,14 @@
         </div>
 
         <!-- Center: Giant Race Clock + Live Finisher Hero Flash -->
-        <div class="flex-1 flex flex-col items-center justify-center my-auto py-3 sm:py-6 relative w-full overflow-hidden">
+        <div class="flex-1 flex flex-col items-center justify-center my-auto py-2 sm:py-6 relative w-full overflow-hidden">
             
             <!-- Main Giant Clock -->
-            <div class="text-center w-full max-w-full px-2 sm:px-4">
-                <div class="text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.35em] text-slate-400 mb-10 sm:mb-4">
+            <div class="text-center w-full max-w-full px-1 sm:px-4">
+                <div class="text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.25em] text-slate-500 mb-2 sm:mb-4">
                     RUANG LARI RACE TIMER
                 </div>
-                <div class="font-bold tracking-tight sm:tracking-normal md:tracking-wider leading-none select-none transition-all duration-150"
+                <div class="font-bold tracking-tight leading-none select-none transition-all duration-150 inline-flex items-baseline justify-center max-w-full"
                      :class="{
                         'font-dseg': tvTimerFont === 'dseg',
                         'font-orbitron': tvTimerFont === 'orbitron',
@@ -347,23 +286,27 @@
                         'text-white': tvTimerColor === 'white',
                      }"
                      :style="{
-                        fontSize: 'clamp(' + (2.5 * tvTimerSizeScale / 100) + 'rem, ' + (13 * tvTimerSizeScale / 100) + 'vw, ' + (17 * tvTimerSizeScale / 100) + 'rem)',
+                        fontSize: 'clamp(2.2rem, 11vw, ' + (15 * tvTimerSizeScale / 100) + 'rem)',
                         lineHeight: '0.95'
                      }">
-                    @{{ formattedTime }}
+                    <span class="tabular-nums font-bold">@{{ tvTimerParts.main }}</span>
+                    <span class="opacity-70 font-semibold tracking-normal ml-1 sm:ml-2 font-mono-numbers tabular-nums"
+                          style="font-size: clamp(1rem, 4.2vw, 4.5rem); line-height: 1;">
+                        @{{ tvTimerParts.ms }}
+                    </span>
                 </div>
 
-                <!-- Live Results QR Code Badge for Runners / Spectators (Rata Kanan & Simple) -->
-                <div class="mt-6 sm:mt-10 flex justify-end">
-                    <div class="flex items-center gap-3 p-2 sm:p-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl" style="background-color: #0f172a !important;">
-                        <div class="p-1.5 bg-white rounded-xl shadow shrink-0 flex items-center justify-center">
-                            <div id="tvResultsQrCode" class="w-18 h-18 sm:w-24 sm:h-24 flex items-center justify-center"></div>
+                <!-- Live Results QR Code Badge for Runners / Spectators -->
+                <div class="mt-3.5 sm:mt-8 flex justify-center sm:justify-end">
+                    <div class="flex items-center gap-2.5 sm:gap-3 p-1.5 sm:p-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl" style="background-color: #0f172a !important;">
+                        <div class="p-1 sm:p-1.5 bg-white rounded-xl shadow shrink-0 flex items-center justify-center">
+                            <div id="tvResultsQrCode" class="w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"></div>
                         </div>
                         <div class="text-left pr-2 min-w-0">
-                            <div class="text-xs sm:text-sm font-bold text-white leading-tight">
+                            <div class="text-[11px] sm:text-sm font-bold text-white leading-tight">
                                 Scan Live Results
                             </div>
-                            <div class="text-[10px] sm:text-xs text-orange-400 font-mono font-bold mt-0.5 truncate max-w-[180px] sm:max-w-[240px]">
+                            <div class="text-[9px] sm:text-xs text-orange-400 font-mono font-bold mt-0.5 truncate max-w-[140px] sm:max-w-[240px]">
                                 @{{ tvResultsShortUrl }}
                             </div>
                         </div>
@@ -373,16 +316,16 @@
 
             <!-- Realtime Finisher Flash Hero Overlay (appears on crossing) -->
             <transition enter-active-class="transition duration-300 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-200 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-                <div v-if="tvLatestFinisher" class="absolute inset-x-4 max-w-3xl mx-auto p-6 rounded-3xl bg-slate-900 border-2 border-emerald-500 shadow-2xl text-center animate-fade-in z-20" style="background-color: #0f172a !important;">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-600">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <div v-if="tvLatestFinisher" class="absolute inset-x-3 max-w-3xl mx-auto p-4 sm:p-6 rounded-3xl bg-slate-900 border-2 border-emerald-500 shadow-2xl text-center animate-fade-in z-20" style="background-color: #0f172a !important;">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                         BARU SAJA FINISH
                     </div>
-                    <div class="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
-                        <span class="text-indigo-400 font-oswald mr-2">#@{{ tvLatestFinisher.bib }}</span>
+                    <div class="text-2xl sm:text-5xl font-black text-white uppercase tracking-tight">
+                        <span class="text-indigo-400 font-oswald mr-1.5">#@{{ tvLatestFinisher.bib }}</span>
                         @{{ tvLatestFinisher.name }}
                     </div>
-                    <div class="mt-3 flex items-center justify-center gap-6 text-sm sm:text-lg font-mono">
+                    <div class="mt-2.5 flex items-center justify-center gap-4 sm:gap-6 text-xs sm:text-lg font-mono">
                         <span class="text-slate-200">Waktu: <strong class="text-emerald-400">@{{ tvLatestFinisher.time }}</strong></span>
                         <span v-if="tvLatestFinisher.rank" class="text-slate-200">Peringkat: <strong class="text-white">#@{{ tvLatestFinisher.rank }}</strong></span>
                     </div>
@@ -391,17 +334,17 @@
         </div>
 
         <!-- Bottom: Top 5 Live Leaderboard Strip -->
-        <div class="border-t border-slate-800 pt-5">
-            <div class="flex items-center justify-between mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div class="border-t border-slate-800 pt-2.5 sm:pt-4 mt-2 sm:mt-0">
+            <div class="flex items-center justify-between mb-1.5 sm:mb-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
                 <div class="flex items-center gap-2">
                     <span>Top 5 Finisher Leaderboard</span>
                 </div>
-                <div class="text-[11px] font-mono text-slate-400">Live Auto-Update</div>
+                <div class="text-[9px] sm:text-[11px] font-mono text-slate-500">Live Auto-Update</div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                <div v-for="(p, idx) in top5Results" :key="p.id" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0"
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-1.5 sm:gap-3">
+                <div v-for="(p, idx) in top5Results" :key="p.id" class="bg-slate-900 border border-slate-800 p-2 sm:p-3 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shrink-0"
                         :class="{
                             'bg-amber-400 text-slate-950': idx === 0,
                             'bg-slate-300 text-slate-950': idx === 1,
@@ -411,21 +354,23 @@
                         @{{ idx + 1 }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="font-bold text-white text-xs truncate">
+                        <div class="font-bold text-white text-[11px] sm:text-xs truncate">
                             <span class="text-indigo-400 font-oswald mr-1">#@{{ p.bib }}</span>
                             @{{ p.name }}
                         </div>
-                        <div class="text-[11px] font-mono text-emerald-400 font-bold mt-0.5">
+                        <div class="text-[10px] sm:text-[11px] font-mono text-emerald-400 font-bold mt-0.5">
                             @{{ formatTime(p.totalTime) }}
                         </div>
                     </div>
                 </div>
-                <!-- Empty Placeholder if < 5 finishers -->
-                <div v-for="i in Math.max(0, 5 - top5Results.length)" :key="'empty-'+i" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex items-center gap-3 opacity-40">
-                    <div class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold">
+                <!-- Empty Placeholder if < 5 finishers (on mobile show max 2 placeholders if 0 finishers to save vertical space) -->
+                <div v-for="i in Math.max(0, 5 - top5Results.length)" :key="'empty-'+i" 
+                     :class="{'hidden sm:flex': i > 2 && top5Results.length === 0}"
+                     class="bg-slate-900 border border-slate-800 p-2 sm:p-3 rounded-xl sm:rounded-2xl flex items-center gap-2.5 sm:gap-3 opacity-40">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] sm:text-xs font-bold">
                         @{{ top5Results.length + i }}
                     </div>
-                    <div class="text-xs text-slate-400 font-mono">Menunggu Finisher...</div>
+                    <div class="text-[11px] sm:text-xs text-slate-400 font-mono">Menunggu Finisher...</div>
                 </div>
             </div>
         </div>
@@ -1226,6 +1171,94 @@
                         <span>Catat Finish (Enter)</span>
                     </button>
                 </form>
+
+                <!-- Quick Add Unregistered Participant Floating Bottom Sheet (Mobile First & Thumb Friendly) -->
+                <transition
+    enter-active-class="transition duration-200 ease-out"
+    enter-from-class="translate-y-4 opacity-0"
+    enter-to-class="translate-y-0 opacity-100"
+    leave-active-class="transition duration-150 ease-in"
+    leave-from-class="translate-y-0 opacity-100"
+    leave-to-class="translate-y-4 opacity-0"
+>
+    <div
+        v-if="pendingUnregisteredBib.show"
+        class="fixed inset-x-3 bottom-3 sm:bottom-6 sm:right-6 sm:left-auto
+               sm:w-[380px] z-50
+               bg-slate-950 border border-slate-700
+               rounded-xl p-4 text-white shadow-lg"
+    >
+
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-4">
+
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+
+                    <span class="text-xs font-semibold text-slate-300">
+                        BIB belum terdaftar
+                    </span>
+                </div>
+
+                <div class="mt-1 font-mono text-2xl font-bold text-white">
+                    #@{{ pendingUnregisteredBib.bib }}
+                </div>
+            </div>
+
+            <div class="text-right">
+                <div class="text-[10px] uppercase tracking-wide text-slate-500">
+                    Waktu
+                </div>
+
+                <div class="mt-0.5 font-mono text-sm font-semibold text-white">
+                    @{{ pendingUnregisteredBib.formattedTime }}
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Message -->
+        <div class="mt-3 pt-3 border-t border-slate-800">
+            <p class="text-xs text-slate-400 leading-relaxed">
+                Nomor ini tidak ditemukan. Tambahkan peserta dan simpan waktu tersebut?
+            </p>
+        </div>
+
+
+        <!-- Actions -->
+        <div class="mt-4 flex items-center justify-end gap-2">
+
+            <button
+                type="button"
+                @click="cancelAddUnregisteredParticipant"
+                class="h-9 px-3.5 rounded-lg
+                       border border-slate-700
+                       text-slate-400 hover:text-white
+                       hover:bg-slate-900
+                       text-xs font-semibold
+                       transition-colors"
+            >
+                Batal
+            </button>
+
+            <button
+                type="button"
+                @click="confirmAddUnregisteredParticipant"
+                class="h-9 px-4 rounded-lg
+                       bg-white hover:bg-slate-200
+                       text-slate-950
+                       text-xs font-semibold
+                       transition-colors"
+            >
+                Tambah peserta
+            </button>
+
+        </div>
+
+    </div>
+</transition>
 
                 <!-- Collapsible Sensor & Scanner Drawer -->
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -2399,8 +2432,8 @@
             Official Race Clock
         </div>
 
-        <div class="font-mono text-6xl sm:text-8xl md:text-9xl font-bold text-white tracking-tight leading-none tabular-nums">
-            @{{ formattedTime }}
+        <div class="font-mono text-6xl sm:text-8xl md:text-9xl font-bold text-white tracking-tight leading-none tabular-nums inline-flex items-baseline justify-center">
+            <span>@{{ tvTimerParts.main }}</span><span class="text-[0.45em] opacity-75 font-semibold ml-1">@{{ tvTimerParts.ms }}</span>
         </div>
     </div>
 
@@ -2765,6 +2798,16 @@
                 bib: '',
                 name: '',
                 time: ''
+            });
+
+            // Quick Add Unregistered Participant State (Mobile Thumb-Friendly Bottom Sheet)
+            const pendingUnregisteredBib = ref({
+                show: false,
+                bib: '',
+                rawDigits: '',
+                prefix: '',
+                timing: null,
+                formattedTime: ''
             });
 
             // Multi-Admin Live Room Sync State
@@ -4523,6 +4566,18 @@
                 return formatTime(timer.value.elapsed);
             });
 
+            const tvTimerParts = computed(() => {
+                const raw = formattedTime.value || '00:00:00.00';
+                const dotIdx = raw.lastIndexOf('.');
+                if (dotIdx === -1) {
+                    return { main: raw, ms: '.00' };
+                }
+                return {
+                    main: raw.substring(0, dotIdx),
+                    ms: raw.substring(dotIdx)
+                };
+            });
+
             const formatTime = (ms) => {
                 if (!ms || ms < 0 || isNaN(ms)) return '00:00:00.00';
                 const totalSeconds = Math.floor(ms / 1000);
@@ -5166,10 +5221,38 @@
                     const p = resolveParticipantByBib(token, lockedBibPrefix.value);
 
                     if (!p) {
-                        const searchAttempt = lockedBibPrefix.value && !token.toUpperCase().startsWith(lockedBibPrefix.value.toUpperCase())
-                            ? `${lockedBibPrefix.value}-${token}`
-                            : token;
-                        showDuplicateAlert('error', `Nomor BIB #${searchAttempt} tidak ditemukan dalam daftar peserta!`);
+                        // Check prefix handling
+                        let targetBib = token.toUpperCase();
+                        if (lockedBibPrefix.value && !targetBib.startsWith(lockedBibPrefix.value.toUpperCase())) {
+                            targetBib = `${lockedBibPrefix.value.toUpperCase()}-${targetBib.replace(/^[-_\s]+/, '')}`;
+                        } else {
+                            targetBib = canonicalizeBibToken(targetBib) || targetBib;
+                        }
+
+                        const digits = targetBib.replace(/\D/g, '');
+
+                        // Check digit rule if autoSubmitDigits is configured
+                        if (autoSubmitDigits.value > 0 && digits.length !== autoSubmitDigits.value) {
+                            showDuplicateAlert('error', `Nomor BIB #${targetBib} harus ${autoSubmitDigits.value} digit (sesuai aturan auto-submit)!`);
+                            return;
+                        }
+
+                        // Lock timing immediately at this exact moment
+                        const capturedAt = Date.now();
+                        const elapsedMs = timer.value.running && timer.value.startTime
+                            ? Math.max(0, capturedAt - timer.value.startTime)
+                            : Math.max(0, timer.value.elapsed || 0);
+                        const timing = { capturedAt, elapsedMs };
+
+                        // Trigger Mobile Bottom Sheet for Quick Add confirmation
+                        pendingUnregisteredBib.value = {
+                            show: true,
+                            bib: targetBib,
+                            rawDigits: digits,
+                            prefix: lockedBibPrefix.value || '',
+                            timing: timing,
+                            formattedTime: formatTime(elapsedMs)
+                        };
                         return;
                     }
 
@@ -5199,6 +5282,55 @@
                     const el = document.getElementById('manualBibInputEl');
                     if (el) el.focus();
                 }, 30);
+            };
+
+            const confirmAddUnregisteredParticipant = () => {
+                if (!pendingUnregisteredBib.value.show || !pendingUnregisteredBib.value.bib) return;
+                const targetBib = pendingUnregisteredBib.value.bib;
+                const timing = pendingUnregisteredBib.value.timing;
+
+                // 1. Create new participant
+                const newParticipant = {
+                    id: Date.now(),
+                    bib: targetBib,
+                    name: `Runner #${targetBib}`,
+                    category: raceCategory.value || 'General',
+                    predictedTime: '00:00:00',
+                    predictedTimeMs: 0,
+                    laps: [],
+                    status: 'running',
+                    totalTime: 0
+                };
+
+                participants.value.push(newParticipant);
+
+                // 2. Record lap with the locked timestamp immediately
+                recordLap(newParticipant.id, 'manual_input', timing);
+
+                if (newParticipant.status === 'finished') {
+                    triggerTvFinisherFlash(newParticipant);
+                    showDuplicateAlert('success', `PESERTA BARU DITAMBAHKAN & FINISH: BIB #${newParticipant.bib} • Waktu: ${formatTime(newParticipant.totalTime)}`, newParticipant);
+                } else {
+                    showDuplicateAlert('info', `PESERTA BARU DITAMBAHKAN: BIB #${newParticipant.bib} (${newParticipant.name})`, newParticipant);
+                }
+
+                // 3. Reset and close modal
+                pendingUnregisteredBib.value.show = false;
+                pendingUnregisteredBib.value.bib = '';
+
+                setTimeout(() => {
+                    const el = document.getElementById('manualBibInputEl');
+                    if (el) el.focus();
+                }, 50);
+            };
+
+            const cancelAddUnregisteredParticipant = () => {
+                pendingUnregisteredBib.value.show = false;
+                pendingUnregisteredBib.value.bib = '';
+                setTimeout(() => {
+                    const el = document.getElementById('manualBibInputEl');
+                    if (el) el.focus();
+                }, 50);
             };
 
             const recordLap = (id, source = 'manual', timing = null) => {
@@ -7700,8 +7832,9 @@
                 manualBibInput, lockedBibPrefix, detectedBibPrefixes, ambiguousRunners, autoSubmitDigits, liveMatchedRunner, onManualBibKeyup,
                 quickBibSuggestions, selectSuggestion,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
+                pendingUnregisteredBib, confirmAddUnregisteredParticipant, cancelAddUnregisteredParticipant,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay, toggleTvFullscreen, isFullscreen, copyTvDisplayUrl,
-                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvSettingsOpen, tvResultsQrUrl, tvResultsShortUrl, generateTvResultsQrCode,
+                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvTimerParts, tvSettingsOpen, tvResultsQrUrl, tvResultsShortUrl, generateTvResultsQrCode,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
                 newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
                 openFaceCaptureModal, closeFaceCaptureModal, snapFaceAngle, onFacePhotoUpload, clearNewFacePhoto,

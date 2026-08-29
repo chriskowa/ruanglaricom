@@ -432,8 +432,22 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
-    public function startSessionTimer(Request $request, RaceSession $session)
+    public function resolveRaceSession($session): RaceSession
     {
+        if ($session instanceof RaceSession) {
+            return $session;
+        }
+
+        return RaceSession::query()
+            ->where('id', $session)
+            ->orWhere('slug', $session)
+            ->firstOrFail();
+    }
+
+    public function startSessionTimer(Request $request, $session)
+    {
+        $session = $this->resolveRaceSession($session);
+
         if (! $session->started_at) {
             $session->started_at = now();
             $session->save();
@@ -451,16 +465,13 @@ class RaceMasterApiController extends Controller
 
     public function publicStartSessionTimer(Request $request, $slug)
     {
-        $session = RaceSession::query()
-            ->where('id', $slug)
-            ->orWhere('slug', $slug)
-            ->firstOrFail();
-
-        return $this->startSessionTimer($request, $session);
+        return $this->startSessionTimer($request, $slug);
     }
 
-    public function storeLap(Request $request, RaceSession $session)
+    public function storeLap(Request $request, $session)
     {
+        $session = $this->resolveRaceSession($session);
+
         $validated = $request->validate([
             'bib_number' => 'required|string|max:32',
             'total_time_ms' => 'required|integer|min:0|max:86400000',
@@ -542,8 +553,10 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
-    public function storeLapsBulk(Request $request, RaceSession $session)
+    public function storeLapsBulk(Request $request, $session)
     {
+        $session = $this->resolveRaceSession($session);
+
         $validated = $request->validate([
             'laps' => 'required|array|min:1|max:200',
             'laps.*.bib_number' => 'required|string|max:32',
@@ -634,26 +647,18 @@ class RaceMasterApiController extends Controller
 
     public function publicStoreLap(Request $request, $slug)
     {
-        $session = RaceSession::query()
-            ->where('id', $slug)
-            ->orWhere('slug', $slug)
-            ->firstOrFail();
-
-        return $this->storeLap($request, $session);
+        return $this->storeLap($request, $slug);
     }
 
     public function publicStoreLapsBulk(Request $request, $slug)
     {
-        $session = RaceSession::query()
-            ->where('id', $slug)
-            ->orWhere('slug', $slug)
-            ->firstOrFail();
-
-        return $this->storeLapsBulk($request, $session);
+        return $this->storeLapsBulk($request, $slug);
     }
 
-    public function finishSession(Request $request, RaceSession $session)
+    public function finishSession(Request $request, $session)
     {
+        $session = $this->resolveRaceSession($session);
+
         if (! $session->ended_at) {
             $session->ended_at = now();
             if (Schema::hasColumn('race_sessions', 'slug') && ! $session->slug) {
@@ -699,8 +704,10 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
-    public function resetSession(Request $request, RaceSession $session)
+    public function resetSession(Request $request, $session)
     {
+        $session = $this->resolveRaceSession($session);
+
         DB::transaction(function () use ($session) {
             RaceSessionLap::where('race_session_id', $session->id)->delete();
             $session->started_at = null;
@@ -716,12 +723,7 @@ class RaceMasterApiController extends Controller
 
     public function publicResetSession(Request $request, $slug)
     {
-        $session = RaceSession::query()
-            ->where('id', $slug)
-            ->orWhere('slug', $slug)
-            ->firstOrFail();
-
-        return $this->resetSession($request, $session);
+        return $this->resetSession($request, $slug);
     }
 
     public function liveSync(Request $request, $sessionIdentifier)
