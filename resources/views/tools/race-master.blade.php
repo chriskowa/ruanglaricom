@@ -1034,54 +1034,55 @@
                         </button>
                     </div>
 
-                    <!-- Mobile Full-Width Submit Button -->
+                    <!-- PREDICTIVE SUGGESTIONS BAR (Tepat di bawah input, langsung terlihat di atas keyboard HP) -->
+                    <div v-if="quickBibSuggestions.length > 0" class="p-2.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-indigo-500/50 dark:border-indigo-500/60 space-y-1.5 shadow-md">
+                        <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1 flex items-center justify-between">
+                            <span class="text-indigo-600 dark:text-indigo-400 font-bold">Pilih Pelari (@{{ quickBibSuggestions.length }}):</span>
+                            <span class="text-[10px] text-slate-400">1-Tap untuk Langsung Catat</span>
+                        </div>
+                        <div class="flex flex-wrap sm:grid sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto no-scrollbar">
+                            <button v-for="p in quickBibSuggestions" :key="p.id" type="button" @click="selectSuggestion(p)"
+                                class="flex-1 sm:flex-none flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition text-left text-xs shadow-sm active:scale-[0.98] min-h-[44px]">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">#@{{ p.bib }}</span>
+                                    <span class="font-bold text-slate-900 dark:text-white truncate">@{{ p.name }}</span>
+                                </div>
+                                <span class="text-[10px] font-mono shrink-0 ml-2 font-bold px-2 py-0.5 rounded-lg"
+                                    :class="p.status === 'finished' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800' : (p.status === 'dnf' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border border-red-300 dark:border-red-800' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800')">
+                                    @{{ p.status === 'finished' ? 'Finish ' + formatTime(p.totalTime) : (p.status === 'dnf' ? 'DNF' : 'Berlari') }}
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Single Live Runner Match Bar (Saat 1 pelari cocok persis) -->
+                    <div v-else-if="liveMatchedRunner" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-indigo-500/40 flex items-center justify-between text-xs font-mono shadow-sm">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="text-slate-400">Cocok:</span>
+                            <span class="font-bold text-slate-900 dark:text-white truncate">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
+                        </div>
+                        <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'" class="shrink-0 ml-2">
+                            @{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }}
+                        </span>
+                    </div>
+
+                    <!-- Ambiguous Prefix Warning -->
+                    <div v-else-if="ambiguousRunners && ambiguousRunners.length > 1" class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-400 font-mono space-y-1">
+                        <div class="flex items-center gap-1.5 font-bold">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Ditemukan @{{ ambiguousRunners.length }} pelari dengan nomor tersebut:</span>
+                        </div>
+                        <div class="text-[11px] text-slate-300">
+                            @{{ ambiguousRunners.map(r => '#' + r.bib + ' ' + r.name).join(', ') }}. Silakan pilih Prefix di atas.
+                        </div>
+                    </div>
+
+                    <!-- Mobile Full-Width Submit Button (Terletak di bawah suggestions) -->
                     <button type="submit" :disabled="!timer.running && timer.elapsed === 0" 
                         class="sm:hidden w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-base rounded-2xl shadow transition flex items-center justify-center gap-2">
-                        
                         <span>Catat Finish (Enter)</span>
                     </button>
                 </form>
-
-                <!-- Flexible Live Suggestions List (Quick Tap to Finish) -->
-                <div v-if="quickBibSuggestions.length > 0" class="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 animate-fade-in">
-                    <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1 flex items-center justify-between">
-                        <span>Hasil Pencarian Peserta (@{{ quickBibSuggestions.length }}):</span>
-                        <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Tap nama untuk langsung catat</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button v-for="p in quickBibSuggestions" :key="p.id" type="button" @click="selectSuggestion(p)"
-                            class="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition text-left text-xs shadow-sm active:scale-[0.98]">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">#@{{ p.bib }}</span>
-                                <span class="font-bold text-slate-900 dark:text-white truncate">@{{ p.name }}</span>
-                            </div>
-                            <span class="text-[10px] font-mono shrink-0 ml-2 font-bold px-2 py-0.5 rounded-lg"
-                                :class="p.status === 'finished' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800' : (p.status === 'dnf' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border border-red-300 dark:border-red-800' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800')">
-                                @{{ p.status === 'finished' ? formatTime(p.totalTime) : (p.status === 'dnf' ? 'DNF' : 'Berlari') }}
-                            </span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Live Runner Match Preview (When exact/single candidate matched) -->
-                <div v-else-if="liveMatchedRunner" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
-                    <div class="flex items-center gap-1.5 truncate">
-                        <span class="text-slate-400">Cocok:</span>
-                        <span class="font-bold text-slate-900 dark:text-white truncate">#@{{ liveMatchedRunner.bib }} @{{ liveMatchedRunner.name }}</span>
-                    </div>
-                    <span :class="liveMatchedRunner.status === 'finished' ? 'text-amber-500 font-bold' : 'text-emerald-500 font-bold'" class="shrink-0 ml-2">
-                        @{{ liveMatchedRunner.status === 'finished' ? 'Sudah Finish: ' + formatTime(liveMatchedRunner.totalTime) : 'Sedang Berlari' }}
-                    </span>
-                </div>
-                <div v-else-if="ambiguousRunners && ambiguousRunners.length > 1" class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-400 font-mono space-y-1">
-                    <div class="flex items-center gap-1.5 font-bold">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Ditemukan @{{ ambiguousRunners.length }} pelari dengan nomor tersebut:</span>
-                    </div>
-                    <div class="text-[11px] text-slate-300">
-                        @{{ ambiguousRunners.map(r => '#' + r.bib + ' ' + r.name).join(', ') }}. Silakan pilih Prefix di atas.
-                    </div>
-                </div>
 
                 <!-- Collapsible Sensor & Scanner Drawer -->
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
