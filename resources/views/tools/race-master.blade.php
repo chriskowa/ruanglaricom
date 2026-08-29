@@ -226,6 +226,25 @@
                      }">
                     @{{ formattedTime }}
                 </div>
+
+                <!-- Live Results QR Code Badge for Runners / Spectators -->
+                <div class="mt-8 sm:mt-12 flex flex-row items-center justify-center gap-4 p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl max-w-sm sm:max-w-md mx-auto" style="background-color: #0f172a !important;">
+                    <div class="p-2 bg-white rounded-xl shadow-md shrink-0 flex items-center justify-center">
+                        <div id="tvResultsQrCode" class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center"></div>
+                    </div>
+                    <div class="text-left min-w-0">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-950/80 text-orange-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-orange-600/50 mb-1">
+                            <i class="fa-solid fa-qrcode text-[#fc5200]"></i>
+                            <span>Scan Live Results & Finisher Card</span>
+                        </div>
+                        <div class="text-sm sm:text-base font-bold text-white leading-snug truncate">
+                            @{{ raceName || 'Ruang Lari Race' }}
+                        </div>
+                        <div class="text-[11px] sm:text-xs text-slate-400 font-mono mt-0.5 truncate">
+                            @{{ tvResultsQrUrl }}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Realtime Finisher Flash Hero Overlay (appears on crossing) -->
@@ -2610,8 +2629,33 @@
                 }
             };
 
+            const tvResultsQrUrl = computed(() => {
+                const slug = sessionSlug.value || currentSessionId.value;
+                if (!slug) return `${window.location.origin}/tools/race-master`;
+                return `${resultsBase}/${encodeURIComponent(slug)}`;
+            });
+
+            const generateTvResultsQrCode = () => {
+                const el = document.getElementById('tvResultsQrCode');
+                if (!el) return;
+                el.innerHTML = '';
+                const url = tvResultsQrUrl.value;
+                if (!url) return;
+                try {
+                    new QRCode(el, {
+                        text: url,
+                        width: 96,
+                        height: 96,
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch (e) {}
+            };
+
             const openTvDisplay = () => {
                 tvDisplayOpen.value = true;
+                nextTick(() => {
+                    generateTvResultsQrCode();
+                });
                 try {
                     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                         document.documentElement.requestFullscreen().then(() => {
@@ -3859,6 +3903,12 @@
             Vue.watch(currentView, (val) => {
                 if (val === 'bibs') {
                     nextTick(generateQRCodes);
+                }
+            });
+
+            Vue.watch(tvDisplayOpen, (val) => {
+                if (val) {
+                    nextTick(generateTvResultsQrCode);
                 }
             });
 
@@ -7467,7 +7517,7 @@
                 quickBibSuggestions, selectSuggestion,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay, toggleTvFullscreen, isFullscreen, copyTvDisplayUrl,
-                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvSettingsOpen,
+                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvSettingsOpen, tvResultsQrUrl, generateTvResultsQrCode,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
                 newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
                 openFaceCaptureModal, closeFaceCaptureModal, snapFaceAngle, onFacePhotoUpload, clearNewFacePhoto,

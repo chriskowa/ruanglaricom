@@ -5,40 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <!-- Primary SEO Meta Tags -->
-    <title>{{ $metaTitle ?? 'Hasil Lomba & Leaderboard - Ruang Lari' }}</title>
-    <meta name="title" content="{{ $metaTitle ?? 'Hasil Lomba & Leaderboard - Ruang Lari' }}">
-    <meta name="description" content="{{ $metaDesc ?? 'Lihat hasil resmi, leaderboard, peringkat, waktu finish, dan unduh Kartu Finisher 4:5 resmi lomba di RuangLari.com.' }}">
-    <meta name="keywords" content="hasil lomba lari, leaderboard {{ $raceName ?? 'lari' }}, race results, kartu finisher lari, timing gate, ruang lari race master">
+    <title>{{ $metaTitle ?? ('Hasil Lomba ' . ($raceName ?? 'Lari') . ' | Leaderboard & Kartu Finisher') }}</title>
+    <meta name="title" content="{{ $metaTitle ?? ('Hasil Lomba ' . ($raceName ?? 'Lari') . ' | Leaderboard & Kartu Finisher') }}">
+    <meta name="description" content="{{ $metaDesc ?? ('Lihat hasil resmi, leaderboard, peringkat, waktu finish, dan unduh Kartu Finisher 4:5 resmi lomba ' . ($raceName ?? 'Lari') . ' di RuangLari.com.') }}">
+    <meta name="keywords" content="hasil lomba {{ strtolower($raceName ?? 'lari') }}, leaderboard {{ strtolower($raceName ?? 'lari') }}, race result {{ strtolower($raceName ?? 'lari') }}, kartu finisher {{ strtolower($raceName ?? 'lari') }}, finisher certificate {{ strtolower($raceName ?? 'lari') }}, timing gate ruang lari">
     <link rel="canonical" href="{{ route('tools.race-master.results', ['slug' => $slug]) }}">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ route('tools.race-master.results', ['slug' => $slug]) }}">
-    <meta property="og:title" content="{{ $metaTitle ?? 'Hasil Lomba & Leaderboard - Ruang Lari' }}">
-    <meta property="og:description" content="{{ $metaDesc ?? 'Lihat hasil resmi dan unduh Kartu Finisher resmi lomba di RuangLari.com.' }}">
+    <meta property="og:title" content="{{ $metaTitle ?? ('Hasil Lomba ' . ($raceName ?? 'Lari') . ' | Leaderboard & Kartu Finisher') }}">
+    <meta property="og:description" content="{{ $metaDesc ?? ('Lihat hasil resmi leaderboard dan unduh Kartu Finisher resmi lomba ' . ($raceName ?? 'Lari') . ' di RuangLari.com.') }}">
     <meta property="og:image" content="https://ruanglari.com/storage/blog/media/23deca03-e89f-4c14-a0d1-7f4e4b2059a7.webp">
     <meta property="og:site_name" content="RuangLari.com">
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ route('tools.race-master.results', ['slug' => $slug]) }}">
-    <meta name="twitter:title" content="{{ $metaTitle ?? 'Hasil Lomba & Leaderboard - Ruang Lari' }}">
-    <meta name="twitter:description" content="{{ $metaDesc ?? 'Lihat hasil resmi dan unduh Kartu Finisher resmi lomba di RuangLari.com.' }}">
+    <meta name="twitter:title" content="{{ $metaTitle ?? ('Hasil Lomba ' . ($raceName ?? 'Lari') . ' | Leaderboard & Kartu Finisher') }}">
+    <meta name="twitter:description" content="{{ $metaDesc ?? ('Lihat hasil resmi leaderboard dan unduh Kartu Finisher resmi lomba ' . ($raceName ?? 'Lari') . ' di RuangLari.com.') }}">
     <meta name="twitter:image" content="https://ruanglari.com/storage/blog/media/23deca03-e89f-4c14-a0d1-7f4e4b2059a7.webp">
 
-    <!-- Schema.org SportsEvent JSON-LD -->
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org",
-      "@type": "SportsEvent",
-      "name": "{{ $raceName ?? 'Ruang Lari Race' }}",
-      "description": "{{ $metaDesc ?? 'Hasil resmi perlombaan lari di RuangLari.com' }}",
-      "url": "{{ route('tools.race-master.results', ['slug' => $slug]) }}",
+      "@@context": "https://schema.org",
+      "@@type": "SportsEvent",
+      "name": {{ json_encode($raceName ?? 'Ruang Lari Race') }},
+      "description": {{ json_encode($metaDesc ?? 'Hasil resmi perlombaan lari di RuangLari.com') }},
+      "url": {{ json_encode(route('tools.race-master.results', ['slug' => $slug])) }},
       "eventStatus": "https://schema.org/EventCompleted",
       "organizer": {
-        "@type": "Organization",
+        "@@type": "Organization",
         "name": "Ruang Lari Race Master",
         "url": "https://ruanglari.com"
       },
@@ -46,310 +42,451 @@
     }
     </script>
 
-    <!-- PageSpeed: Resource Preconnects -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://unpkg.com">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-
-    <!-- Google Analytics (gtag.js) - Asynchronous -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
-    </script>
-
-    <!-- Vue 3 and Assets -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"></noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .font-orbitron { font-family: 'Orbitron', monospace !important; }
-        .font-mono-nums { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        :root {
+            /* Default Dark Theme */
+            --page: #0a0d11;
+            --surface: #10151b;
+            --surface-2: #151b22;
+            --surface-3: #1a212a;
+            --line: #252d37;
+            --line-soft: #1d242c;
+            --text: #f4f6f8;
+            --muted: #8f9aa8;
+            --muted-2: #687482;
+            --accent: #fc5200;
+            --accent-hover: #ff651a;
+            --success: #43c78f;
+            --gold: #f3b94f;
+            --silver: #bac2cc;
+            --bronze: #c67b4e;
+            --topbar-bg: rgba(10, 13, 17, .94);
+            --table-head-bg: #0e1318;
+            --table-hover-bg: #141a21;
+            --modal-bg: #0f141a;
+            --modal-border: #2b333d;
+            --radius: 10px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --page: #f6f8fa;
+                --surface: #ffffff;
+                --surface-2: #f0f3f6;
+                --surface-3: #e5ebf1;
+                --line: #d2d9e1;
+                --line-soft: #e5ebf1;
+                --text: #13171d;
+                --muted: #596574;
+                --muted-2: #7c8a99;
+                --accent: #fc5200;
+                --accent-hover: #e04900;
+                --success: #1b8352;
+                --gold: #c9850c;
+                --silver: #64707d;
+                --bronze: #9c5427;
+                --topbar-bg: rgba(246, 248, 250, .94);
+                --table-head-bg: #edf2f7;
+                --table-hover-bg: #f3f6f9;
+                --modal-bg: #ffffff;
+                --modal-border: #d2d9e1;
+            }
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+        button, input { font: inherit; }
+        button, a { -webkit-tap-highlight-color: transparent; }
+        [v-cloak] { display: none; }
+        .mono { font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+        .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--topbar-bg);
+            border-bottom: 1px solid var(--line-soft);
+            backdrop-filter: blur(12px);
+        }
+        .topbar-inner { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand-lockup { display: flex; align-items: center; min-width: 0; gap: 14px; text-decoration: none; color: inherit; }
+        .brand-logo { width: 96px; height: 32px; object-fit: contain; flex: 0 0 auto; }
+        .brand-divider { width: 1px; height: 26px; background: var(--line); flex: 0 0 auto; }
+        .brand-copy { min-width: 0; }
+        .brand-kicker { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; line-height: 1.2; }
+        .brand-event { margin-top: 3px; color: var(--text); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 470px; }
+        .topbar-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
+        .btn {
+            border: 1px solid transparent;
+            border-radius: 8px;
+            min-height: 38px;
+            padding: 0 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn-secondary { background: var(--surface); border-color: var(--line); color: var(--text); }
+        .btn-secondary:hover { background: var(--surface-2); border-color: var(--line); }
+        .btn-primary { background: var(--accent); color: #ffffff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-quiet { background: transparent; border-color: var(--line); color: var(--text); }
+        .btn-quiet:hover { background: var(--surface-2); }
+        .btn-icon { width: 38px; padding: 0; }
+        .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+        .content { padding: 54px 0 72px; }
+        .race-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 42px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+        .eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+        .eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+        .race-title { margin: 12px 0 9px; max-width: 760px; font-size: clamp(32px, 5vw, 58px); line-height: .98; letter-spacing: -.045em; font-weight: 700; color: var(--text); }
+        .race-description { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
+        .race-summary { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+        .summary-item { min-width: 138px; padding: 17px 19px; }
+        .summary-item + .summary-item { border-left: 1px solid var(--line); }
+        .summary-label { color: var(--muted-2); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .summary-value { margin-top: 6px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; white-space: nowrap; }
+
+        .result-section { margin-top: 32px; }
+        .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 14px; }
+        .section-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.015em; color: var(--text); }
+        .section-count { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+        .toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 10px; margin-bottom: 12px; }
+        .search-wrap { position: relative; }
+        .search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted-2); font-size: 12px; pointer-events: none; }
+        .search-input {
+            width: 100%; height: 44px; padding: 0 14px 0 38px;
+            border: 1px solid var(--line); border-radius: 8px;
+            outline: none; background: var(--surface); color: var(--text); font-size: 14px;
+            transition: border-color .16s ease, box-shadow .16s ease;
+        }
+        .search-input::placeholder { color: var(--muted-2); }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(252, 82, 0, .12); }
+        .filter-group { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 3px; background: var(--surface); }
+        .filter-btn { height: 36px; border: 0; border-radius: 6px; padding: 0 13px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+        .filter-btn:hover { color: var(--text); }
+        .filter-btn.active { background: var(--surface-3); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+
+        .results-frame { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th { height: 45px; padding: 0 16px; background: var(--table-head-bg); border-bottom: 1px solid var(--line); color: var(--muted-2); font-size: 10px; font-weight: 700; letter-spacing: .075em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+        .results-table td { height: 68px; padding: 0 16px; border-bottom: 1px solid var(--line-soft); color: var(--text); font-size: 14px; vertical-align: middle; }
+        .results-table tbody tr:last-child td { border-bottom: 0; }
+        .results-table tbody tr { transition: background-color .13s ease; }
+        .results-table tbody tr:hover { background: var(--table-hover-bg); }
+        .results-table .align-right { text-align: right; }
+        .results-table .align-center { text-align: center; }
+        .rank { width: 42px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; }
+        .rank.p1 { color: var(--gold); font-weight: 700; }
+        .rank.p2 { color: var(--silver); font-weight: 700; }
+        .rank.p3 { color: var(--bronze); font-weight: 700; }
+        .bib { font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-size: 12px; font-weight: 600; }
+        .runner-name { color: var(--text); font-weight: 600; }
+        .finish-time { color: var(--text); font-family: 'IBM Plex Mono', monospace; font-weight: 600; letter-spacing: -.02em; }
+        .pace { color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+        .status { display: inline-flex; align-items: center; gap: 7px; color: var(--success); font-size: 11px; font-weight: 600; }
+        .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+        .result-action { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+        .result-action:hover { background: var(--surface-3); border-color: var(--line); color: var(--accent); }
+
+        .mobile-results { display: none; }
+        .mobile-row { padding: 17px 16px; border-bottom: 1px solid var(--line-soft); }
+        .mobile-row:last-child { border-bottom: 0; }
+        .mobile-main { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; align-items: center; gap: 10px; }
+        .mobile-rank { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 7px; display: grid; place-items: center; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; }
+        .mobile-rank.p1 { color: var(--gold); border-color: var(--gold); }
+        .mobile-rank.p2 { color: var(--silver); }
+        .mobile-rank.p3 { color: var(--bronze); border-color: var(--bronze); }
+        .mobile-identity { min-width: 0; }
+        .mobile-name { color: var(--text); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mobile-sub { margin-top: 3px; color: var(--muted-2); font-size: 11px; }
+        .mobile-time { text-align: right; }
+        .mobile-time strong { display: block; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; }
+        .mobile-time span { display: block; margin-top: 3px; color: var(--muted-2); font-family: 'IBM Plex Mono', monospace; font-size: 10px; }
+        .mobile-foot { margin: 13px 0 0 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .mobile-card-link { border: 0; padding: 0; background: transparent; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; }
+        .mobile-card-link:hover { color: var(--accent-hover); }
+
+        .table-state { padding: 52px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+        .table-state i { margin-right: 8px; color: var(--accent); }
+
+        .modal-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.75); }
+        .modal-card { width: min(900px, 100%); max-height: calc(100vh - 40px); overflow: auto; background: var(--modal-bg); border: 1px solid var(--modal-border); border-radius: 12px; box-shadow: 0 28px 80px rgba(0,0,0,.4); }
+        .modal-head { min-height: 66px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); }
+        .modal-title { margin: 0; font-size: 16px; font-weight: 600; color: var(--text); }
+        .modal-subtitle { margin-top: 4px; color: var(--muted); font-size: 12px; }
+        .modal-close { width: 34px; height: 34px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; }
+        .modal-close:hover { background: var(--surface-3); color: var(--text); }
+        .modal-body { display: grid; grid-template-columns: minmax(280px, 390px) minmax(280px, 1fr); gap: 28px; padding: 24px; }
+        .preview-panel { min-width: 0; }
+        .preview-frame { width: min(100%, 360px); aspect-ratio: 4 / 5; margin: 0 auto; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #07090c; display: grid; place-items: center; }
+        .preview-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .render-state { color: var(--muted); font-size: 12px; text-align: center; }
+        .render-state i { display: block; margin-bottom: 10px; color: var(--accent); font-size: 22px; }
+        .control-panel { display: flex; flex-direction: column; min-width: 0; }
+        .control-label { margin-bottom: 8px; color: var(--text); font-size: 12px; font-weight: 600; }
+        .control-help { margin: 8px 0 0; color: var(--muted-2); font-size: 11px; line-height: 1.55; }
+        .upload-box { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+        .file-input { width: 100%; color: var(--muted); font-size: 12px; }
+        .file-input::file-selector-button { margin-right: 10px; border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; background: var(--surface-3); color: var(--text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .file-input::file-selector-button:hover { background: var(--surface-2); }
+        .control-note { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; }
+        .modal-actions { margin-top: auto; padding-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+        .site-footer { border-top: 1px solid var(--line-soft); }
+        .footer-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--muted-2); font-size: 11px; }
+        .footer-inner a { color: var(--text); text-decoration: none; font-weight: 600; }
+        .footer-inner a:hover { color: var(--accent); }
+
+        @media (max-width: 820px) {
+            .shell { width: min(100% - 28px, 1120px); }
+            .content { padding: 36px 0 56px; }
+            .brand-divider, .brand-copy { display: none; }
+            .topbar-inner { min-height: 60px; }
+            .brand-logo { width: 88px; }
+            .race-head { grid-template-columns: 1fr; gap: 24px; align-items: start; }
+            .race-title { font-size: clamp(34px, 10vw, 50px); }
+            .race-summary { width: 100%; }
+            .summary-item { flex: 1; min-width: 0; }
+            .toolbar { grid-template-columns: 1fr; }
+            .filter-group { width: 100%; }
+            .filter-btn { flex: 1; }
+            .desktop-results { display: none; }
+            .mobile-results { display: block; }
+            .modal-body { grid-template-columns: 1fr; }
+            .control-panel { min-height: auto; }
+            .modal-actions { margin-top: 22px; }
+            .footer-inner { padding: 20px 0; min-height: 0; flex-direction: column; align-items: flex-start; gap: 6px; }
+        }
+
+        @media (max-width: 520px) {
+            .shell { width: min(100% - 24px, 1120px); }
+            .topbar-actions .btn span { display: none; }
+            .topbar-actions .btn { width: 38px; padding: 0; }
+            .race-summary { display: grid; grid-template-columns: 1fr 1fr; }
+            .summary-item { padding: 14px 15px; }
+            .summary-value { font-size: 16px; }
+            .section-heading { align-items: start; }
+            .modal-overlay { padding: 10px; }
+            .modal-card { max-height: calc(100vh - 20px); border-radius: 10px; }
+            .modal-head { padding: 0 15px; }
+            .modal-body { padding: 15px; gap: 18px; }
+            .modal-actions { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
-<div id="app" class="min-h-screen flex flex-col justify-between">
+<body>
+<div id="app" v-cloak class="min-h-screen">
 
-    <!-- Main Navigation Header -->
-    <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
-        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <a href="https://ruanglari.com" class="shrink-0">
-                    <img src="https://ruanglari.com/storage/blog/media/23deca03-e89f-4c14-a0d1-7f4e4b2059a7.webp" alt="Ruang Lari" class="h-8 sm:h-9 object-contain" width="108" height="36">
-                </a>
-                <div class="min-w-0 border-l border-slate-800 pl-3">
-                    <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Official Race Leaderboard</div>
-                    <div class="font-bold text-sm sm:text-base text-white truncate max-w-xs sm:max-w-md">
-                        {{ $raceName ?? 'Ruang Lari Race Championship' }}
-                    </div>
-                </div>
-            </div>
+    <header class="topbar">
+        <div class="shell topbar-inner">
+            <a href="https://ruanglari.com" class="brand-lockup" aria-label="Ruang Lari">
+                <img src="https://ruanglari.com/storage/blog/media/23deca03-e89f-4c14-a0d1-7f4e4b2059a7.webp" alt="Ruang Lari" class="brand-logo" width="108" height="36">
+                <span class="brand-divider" aria-hidden="true"></span>
+                <span class="brand-copy">
+                    <span class="brand-kicker">Race results </span>
+                    <span class="brand-event">{{ $raceName ?? 'Ruang Lari Race Championship' }}</span>
+                </span>
+            </a>
 
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" @click="copyLink" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-xs flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-share-nodes text-indigo-400"></i>
-                    <span class="hidden sm:inline">Bagikan</span>
+            <div class="topbar-actions">
+                <button type="button" @click="copyLink" class="btn btn-secondary" aria-label="Salin tautan hasil lomba">
+                    <i :class="copied ? 'fa-solid fa-check' : 'fa-solid fa-link'"></i>
+                    <span>@{{ copied ? 'Tersalin' : 'Salin tautan' }}</span>
                 </button>
-                <a href="{{ route('tools.race-master') }}" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm">
-                    <i class="fa-solid fa-stopwatch"></i>
-                    <span class="hidden sm:inline">Race Master</span>
+                <a href="{{ route('tools.race-master') }}" class="btn btn-primary">
+                    <span>Race Master</span>
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-5 flex-1 w-full">
-
-        <!-- Race Hero Card -->
-        <div class="p-5 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl relative overflow-hidden">
-            <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-1">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-700/60 text-xs font-bold uppercase">
-                        <i class="fa-solid fa-flag-checkered"></i>
-                        <span>@{{ session.category || '{{ $category ?? "OFFICIAL EVENT" }}' }}</span>
-                    </div>
-                    <h1 class="text-xl sm:text-3xl font-black text-white uppercase tracking-tight">
-                        {{ $raceName ?? 'Ruang Lari Race' }}
-                    </h1>
-                    <p class="text-xs sm:text-sm text-slate-400">
-                        Hasil resmi catatan waktu digital yang diverifikasi oleh sistem Ruang Lari Race Master.
-                    </p>
+    <main class="shell content">
+        <section class="race-head" aria-labelledby="race-title">
+            <div>
+                <div class="eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    <span>@{{ session.category || defaultCategory }}</span>
+                    <span>Official result</span>
                 </div>
+                <h1 id="race-title" class="race-title">{{ $raceName ?? 'Ruang Lari Race' }}</h1>
+                <p class="race-description">Catatan waktu dan peringkat peserta berdasarkan hasil timing resmi Ruang Lari Race Master.</p>
+            </div>
 
-                <!-- Fast Race Summary Box -->
-                <div class="grid grid-cols-2 sm:grid-cols-2 gap-2 shrink-0 bg-slate-950 p-3 rounded-xl border border-slate-800 text-center min-w-[200px]">
-                    <div class="p-2">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Total Finisher</div>
-                        <div class="font-mono text-xl sm:text-2xl font-black text-white">@{{ results.length }}</div>
-                    </div>
-                    <div class="p-2 border-l border-slate-800">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase">Jarak Tempuh</div>
-                        <div class="font-mono text-xl sm:text-2xl font-black text-indigo-400">
-                            @{{ session.distance_km ? session.distance_km + ' KM' : '{{ $distanceKm ? $distanceKm . " KM" : "Road Race" }}' }}
-                        </div>
-                    </div>
+            <div class="race-summary" aria-label="Ringkasan lomba">
+                <div class="summary-item">
+                    <div class="summary-label">Finisher</div>
+                    <div class="summary-value">@{{ results.length }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Jarak</div>
+                    <div class="summary-value">@{{ session.distance_km ? (session.distance_km + ' km') : (defaultDistanceKm ? (defaultDistanceKm + ' km') : 'Road race') }}</div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Search Bar & Filters -->
-        <div class="p-3 sm:p-4 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center gap-3">
-            <div class="relative w-full">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input 
-                    v-model="query" 
-                    type="text" 
-                    placeholder="Cari nomor BIB atau nama pelari..." 
-                    class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-950 text-white font-medium placeholder:text-slate-400 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-xs sm:text-sm transition">
+        <section class="result-section" aria-labelledby="leaderboard-title">
+            <div class="section-heading">
+                <div>
+                    <h2 id="leaderboard-title" class="section-title">Leaderboard</h2>
+                    <div class="section-count">@{{ filteredResults.length }} dari @{{ results.length }} peserta</div>
+                </div>
             </div>
-            <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 text-xs font-bold">
-                <button type="button" @click="statusFilter = 'all'" :class="statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'" class="px-3 py-2 rounded-xl transition shrink-0">
-                    Semua (@{{ results.length }})
-                </button>
-                <button type="button" @click="statusFilter = 'top3'" :class="statusFilter === 'top3' ? 'bg-indigo-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'" class="px-3 py-2 rounded-xl transition shrink-0">
-                    Podium Top 3
-                </button>
-            </div>
-        </div>
 
-        <!-- Results Table Container -->
-        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
-            
-            <!-- Mobile Stack View -->
-            <div class="md:hidden divide-y divide-slate-800">
-                <div v-for="r in filteredResults" :key="r.participant_id" class="p-4 space-y-3" :class="{'bg-amber-950/20': r.rank === 1}">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <!-- Rank Badge -->
-                            <div class="w-8 h-8 rounded-xl font-bold flex items-center justify-center shrink-0 text-sm shadow-sm"
-                                :class="{
-                                    'bg-amber-500 text-slate-950 font-black': r.rank === 1,
-                                    'bg-slate-300 text-slate-900 font-bold': r.rank === 2,
-                                    'bg-amber-700 text-white font-bold': r.rank === 3,
-                                    'bg-slate-800 text-slate-400 text-xs': !r.rank || r.rank > 3
-                                }">
-                                @{{ r.rank ? r.rank : '-' }}
+            <div class="toolbar">
+                <label class="search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input v-model="query" type="search" class="search-input" placeholder="Cari BIB atau nama peserta" aria-label="Cari BIB atau nama peserta">
+                </label>
+
+                <div class="filter-group" aria-label="Filter leaderboard">
+                    <button type="button" @click="statusFilter = 'all'" class="filter-btn" :class="{ active: statusFilter === 'all' }">Semua</button>
+                    <button type="button" @click="statusFilter = 'top3'" class="filter-btn" :class="{ active: statusFilter === 'top3' }">Top 3</button>
+                </div>
+            </div>
+
+            <div class="results-frame">
+                <div class="desktop-results">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th style="width:72px">Pos.</th>
+                                <th style="width:100px">BIB</th>
+                                <th>Peserta</th>
+                                <th class="align-right">Finish time</th>
+                                <th class="align-right">Pace</th>
+                                <th class="align-center">Status</th>
+                                <th class="align-center" style="width:76px">Kartu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="r in filteredResults" :key="r.participant_id">
+                                <td><span class="rank" :class="{ p1: r.rank === 1, p2: r.rank === 2, p3: r.rank === 3 }">@{{ r.rank ? String(r.rank).padStart(2, '0') : '—' }}</span></td>
+                                <td><span class="bib">#@{{ r.bib }}</span></td>
+                                <td><span class="runner-name">@{{ r.name }}</span></td>
+                                <td class="align-right"><span class="finish-time">@{{ formatTimeHms(r.total_time_ms) }}</span></td>
+                                <td class="align-right"><span class="pace">@{{ paceFor(r) }}</span></td>
+                                <td class="align-center"><span class="status">Finish</span></td>
+                                <td class="align-center">
+                                    <button type="button" @click="openFinisherCard(r)" class="result-action" title="Buka kartu finisher" :aria-label="'Buka kartu finisher ' + r.name">
+                                        <i class="fa-regular fa-image"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr v-if="!loading && filteredResults.length === 0">
+                                <td colspan="7"><div class="table-state">Tidak ada peserta yang cocok dengan pencarian.</div></td>
+                            </tr>
+                            <tr v-if="loading">
+                                <td colspan="7"><div class="table-state"><i class="fa-solid fa-circle-notch fa-spin"></i>Memuat hasil lomba</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mobile-results">
+                    <article v-for="r in filteredResults" :key="r.participant_id" class="mobile-row">
+                        <div class="mobile-main">
+                            <div class="mobile-rank" :class="{ p1: r.rank === 1, p2: r.rank === 2, p3: r.rank === 3 }">@{{ r.rank || '—' }}</div>
+                            <div class="mobile-identity">
+                                <div class="mobile-name">@{{ r.name }}</div>
+                                <div class="mobile-sub">BIB #@{{ r.bib }} · @{{ r.laps || 1 }} lap</div>
                             </div>
-
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="font-mono font-bold text-sm text-indigo-400">#@{{ r.bib }}</span>
-                                    <span class="font-bold text-base text-white truncate">@{{ r.name }}</span>
-                                </div>
-                                <div class="text-[11px] text-slate-400">
-                                    Putaran: @{{ r.laps || 1 }} Laps
-                                </div>
+                            <div class="mobile-time">
+                                <strong>@{{ formatTimeHms(r.total_time_ms) }}</strong>
+                                <span>@{{ paceFor(r) }}</span>
                             </div>
                         </div>
+                        <div class="mobile-foot">
+                            <span class="status">Finish</span>
+                            <button type="button" @click="openFinisherCard(r)" class="mobile-card-link">Kartu finisher <i class="fa-solid fa-arrow-right-long"></i></button>
+                        </div>
+                    </article>
 
-                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 shrink-0">
-                            FINISH
-                        </span>
+                    <div v-if="!loading && filteredResults.length === 0" class="table-state">Tidak ada peserta yang cocok dengan pencarian.</div>
+                    <div v-if="loading" class="table-state"><i class="fa-solid fa-circle-notch fa-spin"></i>Memuat hasil lomba</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div v-if="cardModalOpen" class="modal-overlay" @click.self="closeCardModal">
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="finisher-modal-title">
+            <header class="modal-head">
+                <div>
+                    <h3 id="finisher-modal-title" class="modal-title">Kartu finisher</h3>
+                    <div class="modal-subtitle">Format portrait 1080 × 1350 px</div>
+                </div>
+                <button type="button" @click="closeCardModal" class="modal-close" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+
+            <div class="modal-body">
+                <div class="preview-panel">
+                    <div class="preview-frame">
+                        <img v-if="previewUrl" :src="previewUrl" alt="Pratinjau kartu finisher">
+                        <div v-else-if="generating" class="render-state"><i class="fa-solid fa-circle-notch fa-spin"></i>Menyiapkan kartu</div>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <div>
+                        <div class="control-label">Gunakan foto lari</div>
+                        <div class="upload-box">
+                            <input @change="onBgChange" type="file" accept="image/png,image/jpeg,image/webp" class="file-input">
+                            <p class="control-help">Opsional. Foto akan memenuhi bidang kartu dan diberi lapisan gelap agar data hasil tetap terbaca.</p>
+                        </div>
+
+                        <div class="control-note">
+                            Kartu menampilkan nama peserta, BIB, waktu finish, peringkat, pace, jarak, dan identitas hasil resmi. Tanpa foto, kartu memakai layout editorial Ruang Lari.
+                        </div>
                     </div>
 
-                    <!-- Performance Stats -->
-                    <div class="grid grid-cols-2 gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800">
-                        <div>
-                            <div class="text-[10px] uppercase font-bold text-slate-400">Waktu Finish (HH:MM:SS)</div>
-                            <div class="font-mono font-black text-sm text-indigo-400">
-                                @{{ formatTimeHms(r.total_time_ms) }}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase font-bold text-slate-400">Average Pace</div>
-                            <div class="font-mono font-bold text-sm text-slate-200">
-                                @{{ paceFor(r) }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Button for 4:5 Finisher Card -->
-                    <div class="pt-1">
-                        <button type="button" @click="openFinisherCard(r)" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i class="fa-solid fa-award text-amber-300"></i>
-                            <span>Buka Kartu Finisher 4:5</span>
+                    <div class="modal-actions">
+                        <button type="button" @click="downloadCard" :disabled="!previewUrl || generating" class="btn btn-secondary">
+                            <i class="fa-solid fa-arrow-down"></i>
+                            <span>Unduh PNG</span>
+                        </button>
+                        <button type="button" @click="shareCard" :disabled="!cardFile || generating" class="btn btn-primary">
+                            <i class="fa-solid fa-share-nodes"></i>
+                            <span>Bagikan</span>
                         </button>
                     </div>
                 </div>
-
-                <div v-if="!loading && filteredResults.length === 0" class="p-8 text-center text-slate-400 text-xs">
-                    Tidak ada data peserta yang cocok.
-                </div>
-                <div v-if="loading" class="p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-circle-notch fa-spin text-indigo-400"></i>
-                    <span>Memuat leaderboard...</span>
-                </div>
             </div>
-
-            <!-- Desktop Table View -->
-            <table class="w-full text-left hidden md:table">
-                <thead class="bg-slate-950 border-b border-slate-800">
-                    <tr>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rank</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">BIB</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Peserta</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Waktu Finish</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Avg Pace</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
-                        <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Kartu Finisher</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-800 text-sm">
-                    <tr v-for="r in filteredResults" :key="r.participant_id" class="hover:bg-slate-800/40 transition-colors" :class="{'bg-amber-950/20': r.rank === 1}">
-                        <td class="p-4 font-bold text-slate-400">
-                            <span v-if="r.rank === 1" class="text-amber-400 font-black text-lg">#1</span>
-                            <span v-else-if="r.rank === 2" class="text-slate-200 font-black text-base">#2</span>
-                            <span v-else-if="r.rank === 3" class="text-amber-600 font-black text-base">#3</span>
-                            <span v-else-if="r.rank">#@{{ r.rank }}</span>
-                            <span v-else>-</span>
-                        </td>
-                        <td class="p-4 font-mono font-bold text-base text-white">@{{ r.bib }}</td>
-                        <td class="p-4 font-bold text-slate-200">@{{ r.name }}</td>
-                        <td class="p-4 text-right font-mono font-bold text-indigo-400">
-                            @{{ formatTimeHms(r.total_time_ms) }}
-                        </td>
-                        <td class="p-4 text-right font-mono text-slate-300">@{{ paceFor(r) }}</td>
-                        <td class="p-4 text-center">
-                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                                FINISH
-                            </span>
-                        </td>
-                        <td class="p-4 text-center">
-                            <button type="button" @click="openFinisherCard(r)" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs inline-flex items-center gap-1.5 transition shadow-sm" title="Buka Kartu Finisher 4:5">
-                                <i class="fa-solid fa-award text-amber-300"></i>
-                                <span>Kartu 4:5</span>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr v-if="!loading && filteredResults.length === 0">
-                        <td colspan="7" class="p-8 text-center text-slate-400 text-xs">Tidak ada data hasil perlombaan yang cocok.</td>
-                    </tr>
-                    <tr v-if="loading">
-                        <td colspan="7" class="p-8 text-center text-slate-400 text-xs">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-circle-notch fa-spin text-indigo-400"></i>
-                                <span>Memuat data leaderboard...</span>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <!-- 4:5 HTML5 Canvas Sports Finisher Card Modal -->
-    <div v-if="cardModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm" @click.self="closeCardModal">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 w-full max-w-lg shadow-2xl relative text-white space-y-4 max-h-[95vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-                        <i class="fa-solid fa-award text-amber-300"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-white">Kartu Finisher & E-Poster 4:5</h3>
-                        <p class="text-xs text-slate-400">Format Instagram Portrait (1080 x 1350 px)</p>
-                    </div>
-                </div>
-                <button type="button" @click="closeCardModal" class="text-slate-400 hover:text-white p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div class="space-y-3 text-xs">
-                <!-- Photo Background Uploader -->
-                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
-                    <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                        Foto Lari Pelari (Opsional)
-                    </label>
-                    <input @change="onBgChange" type="file" accept="image/png,image/jpeg,image/webp" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
-                    <div class="text-[10px] text-slate-400">
-                        Jika tidak ada foto, sistem otomatis merender desain <i>Energetic Sports Dark Theme</i> dengan logo resmi Ruang Lari.
-                    </div>
-                </div>
-
-                <!-- Canvas Preview Box (4:5 Ratio) -->
-                <div class="relative w-full max-w-[340px] mx-auto aspect-[4/5] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center shadow-lg">
-                    <img v-if="previewUrl" :src="previewUrl" class="w-full h-full object-contain" alt="Finisher Card Preview">
-                    <div v-else-if="generating" class="flex flex-col items-center gap-2 text-indigo-400">
-                        <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
-                        <span class="text-xs font-bold text-slate-300">Merender Kartu Finisher...</span>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" @click="downloadCard" :disabled="!previewUrl || generating" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1.5 transition">
-                        <i class="fa-solid fa-download"></i>
-                        <span>Unduh PNG HD</span>
-                    </button>
-                    <button type="button" @click="shareCard" :disabled="!cardFile || generating" class="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1.5 transition shadow-sm">
-                        <i class="fa-solid fa-share-nodes"></i>
-                        <span>Bagikan</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
 
-    <!-- Site Footer -->
-    <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>
-                © {{ date('Y') }} <a href="https://ruanglari.com" class="text-indigo-400 hover:underline font-bold">RuangLari.com</a>. Official Race Timing & Results.
-            </div>
-            <div class="text-slate-400">
-                Verified Digital Timing Gate by Ruang Lari Race Master Pro
-            </div>
+    <footer class="site-footer">
+        <div class="shell footer-inner">
+            <div>© {{ date('Y') }} <a href="https://ruanglari.com">RuangLari.com</a></div>
+            <div>Official timing result · Race Master</div>
         </div>
     </footer>
-
 </div>
 
 <script>
@@ -359,11 +496,14 @@ createApp({
     setup() {
         const slug = @json($slug);
         const initialRaceName = @json($raceName ?? 'Ruang Lari Race');
+        const defaultCategory = @json($category ?? 'OFFICIAL EVENT');
+        const defaultDistanceKm = @json($distanceKm ?? '');
         const apiBase = @json(url('api/tools/race-master'));
 
         const loading = ref(true);
         const query = ref('');
         const statusFilter = ref('all');
+        const copied = ref(false);
         const session = ref({});
         const race = ref({});
         const results = ref([]);
@@ -421,7 +561,7 @@ createApp({
         };
 
         const paceFor = (r) => {
-            const dist = parseFloat(session.value.distance_km || '{{ $distanceKm ?? 0 }}');
+            const dist = parseFloat(session.value.distance_km || defaultDistanceKm || 0);
             if (!dist || !r.total_time_ms) return '-';
             const sec = Math.max(1, Math.floor(r.total_time_ms / 1000));
             const paceSec = Math.round(sec / dist);
@@ -432,19 +572,17 @@ createApp({
 
         const copyLink = async () => {
             const url = window.location.href;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                try {
-                    await navigator.clipboard.writeText(url);
-                    alert('Link hasil perlombaan berhasil disalin!');
-                } catch (e) {
-                    prompt('Salin link hasil lomba:', url);
-                }
-            } else {
-                prompt('Salin link hasil lomba:', url);
+            try {
+                if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard API unavailable');
+                await navigator.clipboard.writeText(url);
+                copied.value = true;
+                window.setTimeout(() => { copied.value = false; }, 1800);
+            } catch (e) {
+                prompt('Salin tautan hasil lomba:', url);
             }
         };
 
-        // Render 4:5 HTML5 Canvas Sports Finisher Card
+        // Render 4:5 editorial finisher card
         const renderCanvasCard = async () => {
             const p = activeParticipant.value;
             if (!p) return;
@@ -457,67 +595,59 @@ createApp({
                 canvas.height = 1350;
                 const ctx = canvas.getContext('2d');
 
-                // 1. Background
+                const coverImage = (img) => {
+                    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const w = img.width * scale;
+                    const h = img.height * scale;
+                    const x = (canvas.width - w) / 2;
+                    const y = (canvas.height - h) / 2;
+                    ctx.drawImage(img, x, y, w, h);
+                };
+
+                const fitText = (text, maxWidth, startSize, minSize, weight = 700, family = 'DM Sans') => {
+                    let size = startSize;
+                    do {
+                        ctx.font = `${weight} ${size}px "${family}", sans-serif`;
+                        if (ctx.measureText(text).width <= maxWidth) break;
+                        size -= 2;
+                    } while (size > minSize);
+                    return size;
+                };
+
+                // Background: photo or restrained editorial base
                 if (bgImage.value) {
-                    const bg = bgImage.value;
-                    const imgRatio = bg.width / bg.height;
-                    const canvasRatio = 1080 / 1350;
-                    let drawW = 1080, drawH = 1350, drawX = 0, drawY = 0;
-                    if (imgRatio > canvasRatio) {
-                        drawH = 1350;
-                        drawW = 1350 * imgRatio;
-                        drawX = (1080 - drawW) / 2;
-                    } else {
-                        drawW = 1080;
-                        drawH = 1080 / imgRatio;
-                        drawY = (1350 - drawH) / 2;
-                    }
-                    ctx.drawImage(bg, drawX, drawY, drawW, drawH);
-
-                    const bgGrad = ctx.createLinearGradient(0, 0, 0, 1350);
-                    bgGrad.addColorStop(0, 'rgba(15, 23, 42, 0.85)');
-                    bgGrad.addColorStop(0.4, 'rgba(15, 23, 42, 0.72)');
-                    bgGrad.addColorStop(1, 'rgba(2, 6, 23, 0.96)');
-                    ctx.fillStyle = bgGrad;
+                    coverImage(bgImage.value);
+                    ctx.fillStyle = 'rgba(5, 7, 9, 0.50)';
                     ctx.fillRect(0, 0, 1080, 1350);
+                    const shade = ctx.createLinearGradient(0, 420, 0, 1350);
+                    shade.addColorStop(0, 'rgba(5,7,9,0.05)');
+                    shade.addColorStop(1, 'rgba(5,7,9,0.96)');
+                    ctx.fillStyle = shade;
+                    ctx.fillRect(0, 380, 1080, 970);
                 } else {
-                    // Default Energetic Sports Dark Solid Palette
-                    const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1350);
-                    bgGrad.addColorStop(0, '#090d16');
-                    bgGrad.addColorStop(0.5, '#0f172a');
-                    bgGrad.addColorStop(1, '#020617');
-                    ctx.fillStyle = bgGrad;
+                    ctx.fillStyle = '#0a0d11';
                     ctx.fillRect(0, 0, 1080, 1350);
 
-                    // Sport angle geometry speed lines
-                    ctx.save();
-                    ctx.strokeStyle = 'rgba(79, 70, 229, 0.16)';
-                    ctx.lineWidth = 2;
-                    for (let x = -500; x < 1500; x += 60) {
+                    ctx.fillStyle = '#fc5200';
+                    ctx.fillRect(0, 0, 18, 1350);
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+                    ctx.lineWidth = 1;
+                    for (let x = 72; x < 1080; x += 72) {
                         ctx.beginPath();
                         ctx.moveTo(x, 0);
-                        ctx.lineTo(x + 500, 1350);
+                        ctx.lineTo(x, 1350);
                         ctx.stroke();
                     }
-                    ctx.restore();
-
-                    // Sports ambient lights
-                    ctx.save();
-                    const glow1 = ctx.createRadialGradient(200, 250, 20, 200, 250, 450);
-                    glow1.addColorStop(0, 'rgba(99, 102, 241, 0.28)');
-                    glow1.addColorStop(1, 'rgba(99, 102, 241, 0)');
-                    ctx.fillStyle = glow1;
-                    ctx.fillRect(0, 0, 1080, 700);
-
-                    const glow2 = ctx.createRadialGradient(880, 1100, 20, 880, 1100, 400);
-                    glow2.addColorStop(0, 'rgba(16, 185, 129, 0.20)');
-                    glow2.addColorStop(1, 'rgba(16, 185, 129, 0)');
-                    ctx.fillStyle = glow2;
-                    ctx.fillRect(0, 600, 1080, 750);
-                    ctx.restore();
+                    for (let y = 72; y < 1350; y += 72) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(1080, y);
+                        ctx.stroke();
+                    }
                 }
 
-                // 2. Official Ruang Lari Logo (Top Left)
+                // Header logo
                 try {
                     const logoImg = new Image();
                     logoImg.crossOrigin = 'anonymous';
@@ -527,150 +657,119 @@ createApp({
                         logoImg.src = 'https://ruanglari.com/storage/blog/media/23deca03-e89f-4c14-a0d1-7f4e4b2059a7.webp';
                     });
                     if (logoImg.width > 0) {
-                        const logoH = 75;
+                        const logoH = 58;
                         const logoW = (logoImg.width / logoImg.height) * logoH;
-                        ctx.drawImage(logoImg, 60, 60, logoW, logoH);
+                        ctx.drawImage(logoImg, 72, 66, logoW, logoH);
                     }
                 } catch (err) {}
 
-                // Top Category Pill (Top Right)
-                const catText = `${session.value.category || '{{ $category ?? "RACE" }}'} • OFFICIAL FINISHER`.toUpperCase();
-                ctx.save();
-                ctx.font = 'bold 22px Inter, sans-serif';
-                const catWidth = ctx.measureText(catText).width + 48;
-                const catX = 1080 - 60 - catWidth;
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
-                ctx.strokeStyle = '#4f46e5';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.roundRect(catX, 68, catWidth, 52, 14);
-                ctx.fill();
-                ctx.stroke();
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#c7ced7';
+                ctx.font = '600 22px "DM Sans", sans-serif';
+                ctx.fillText('OFFICIAL RESULT', 1008, 91);
+                ctx.fillStyle = '#8e99a6';
+                ctx.font = '500 17px "DM Sans", sans-serif';
+                ctx.fillText(String(session.value.category || defaultCategory || 'RACE').toUpperCase(), 1008, 120);
 
-                ctx.fillStyle = '#818cf8';
-                ctx.fillText(catText, catX + 24, 102);
-                ctx.restore();
+                // Event label
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#9aa4af';
+                ctx.font = '600 18px "DM Sans", sans-serif';
+                ctx.fillText('RACE', 72, 210);
 
-                // 3. Race Event Title
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = 'bold 20px Inter, sans-serif';
-                ctx.fillText('OFFICIAL RACE RESULT', 60, 190);
-
+                const displayRaceTitle = String(race.value?.name || initialRaceName || '').toUpperCase();
+                const titleSize = fitText(displayRaceTitle, 936, 52, 34, 700);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 42px Inter, sans-serif';
-                const displayRaceTitle = race.value?.name || initialRaceName;
-                ctx.fillText(displayRaceTitle.toUpperCase().slice(0, 32), 60, 245);
+                ctx.font = `700 ${titleSize}px "DM Sans", sans-serif`;
+                ctx.fillText(displayRaceTitle, 72, 270);
+
+                ctx.fillStyle = '#fc5200';
+                ctx.fillRect(72, 305, 92, 6);
+
+                // Participant identity
+                ctx.fillStyle = '#9aa4af';
+                ctx.font = '600 19px "DM Sans", sans-serif';
+                ctx.fillText(`BIB #${p.bib}`, 72, 398);
+
+                const runnerName = String(p.name || 'FINISHER').toUpperCase();
+                const nameSize = fitText(runnerName, 930, 66, 38, 700);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `700 ${nameSize}px "DM Sans", sans-serif`;
+                ctx.fillText(runnerName, 72, 475);
+
+                // Hero time
+                ctx.fillStyle = '#9aa4af';
+                ctx.font = '600 18px "DM Sans", sans-serif';
+                ctx.fillText('FINISH TIME', 72, 575);
+
+                const timeHms = formatTimeHms(p.total_time_ms);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 112px "IBM Plex Mono", monospace';
+                ctx.fillText(timeHms, 66, 700);
 
                 // Divider
-                const divGrad = ctx.createLinearGradient(60, 0, 1020, 0);
-                divGrad.addColorStop(0, '#4f46e5');
-                divGrad.addColorStop(0.5, '#10b981');
-                divGrad.addColorStop(1, 'transparent');
-                ctx.fillStyle = divGrad;
-                ctx.fillRect(60, 270, 960, 4);
+                ctx.fillStyle = 'rgba(255,255,255,0.20)';
+                ctx.fillRect(72, 760, 936, 1);
 
-                // 4. Hero Finisher Card
-                ctx.save();
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
-                ctx.strokeStyle = 'rgba(71, 85, 105, 0.8)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.roundRect(60, 310, 960, 425, 24);
-                ctx.fill();
-                ctx.stroke();
-
-                // BIB Tag
-                ctx.fillStyle = '#4f46e5';
-                ctx.beginPath();
-                ctx.roundRect(100, 350, 200, 56, 12);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 28px Orbitron, monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(`BIB #${p.bib}`, 200, 388);
-
-                // Runner Full Name
-                ctx.textAlign = 'left';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 46px Inter, sans-serif';
-                ctx.fillText(p.name.toUpperCase().slice(0, 26), 100, 465);
-
-                // Subtitle Official Time
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = 'bold 22px Inter, sans-serif';
-                ctx.fillText('OFFICIAL FINISH TIME (HH:MM:SS)', 100, 520);
-
-                // TIME ONLY HH:MM:SS (NO MILLISECONDS)
-                const timeHms = formatTimeHms(p.total_time_ms);
-                ctx.fillStyle = '#f59e0b';
-                ctx.font = '900 84px Orbitron, monospace';
-                ctx.fillText(timeHms, 100, 620);
-                ctx.restore();
-
-                // 5. 3-Stat Metric Cards Grid
-                const cardY = 765;
-                const cardW = 300;
-                const cardH = 220;
-                const rankStr = p.rank ? `#${p.rank}` : '-';
+                // Metrics, one clean row with separators
+                const rankStr = p.rank ? `#${p.rank}` : '—';
                 const paceStr = paceFor(p);
                 const lapsCount = p.laps || 1;
-                const distKm = session.value.distance_km || '{{ $distanceKm ?? 0 }}';
-                const distStr = distKm ? `${distKm} KM` : `${lapsCount} Laps`;
-
+                const distKm = session.value.distance_km || defaultDistanceKm || 0;
+                const distStr = distKm ? `${distKm} KM` : `${lapsCount} LAPS`;
                 const metrics = [
-                    { label: 'PERINGKAT', val: rankStr, color: '#f59e0b', sub: `DARI ${results.value.length} FINISHER` },
-                    { label: 'AVERAGE PACE', val: paceStr, color: '#10b981', sub: 'MENIT / KM' },
-                    { label: 'TOTAL JARAK', val: distStr, color: '#6366f1', sub: `${lapsCount} Putaran Laps` },
+                    ['POSITION', rankStr],
+                    ['AVG PACE', paceStr],
+                    ['DISTANCE', distStr],
                 ];
 
+                const metricY = 825;
+                const metricW = 312;
                 metrics.forEach((m, i) => {
-                    const cX = 60 + i * (cardW + 30);
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
-                    ctx.strokeStyle = 'rgba(71, 85, 105, 0.8)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.roundRect(cX, cardY, cardW, cardH, 20);
-                    ctx.fill();
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#94a3b8';
-                    ctx.font = 'bold 20px Inter, sans-serif';
-                    ctx.fillText(m.label, cX + 24, cardY + 46);
-
-                    ctx.fillStyle = m.color;
-                    ctx.font = '900 48px Orbitron, monospace';
-                    ctx.fillText(m.val, cX + 24, cardY + 118);
-
-                    ctx.fillStyle = '#64748b';
-                    ctx.font = 'bold 18px Inter, sans-serif';
-                    ctx.fillText(m.sub, cX + 24, cardY + 172);
-                    ctx.restore();
+                    const x = 72 + i * metricW;
+                    if (i > 0) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                        ctx.fillRect(x, metricY, 1, 116);
+                    }
+                    ctx.fillStyle = '#8e99a6';
+                    ctx.font = '600 16px "DM Sans", sans-serif';
+                    ctx.fillText(m[0], x + (i > 0 ? 28 : 0), metricY + 22);
+                    ctx.fillStyle = i === 0 ? '#fc5200' : '#ffffff';
+                    const valSize = fitText(String(m[1]), metricW - 42, 37, 25, 600, i === 0 ? 'DM Sans' : 'IBM Plex Mono');
+                    ctx.font = `600 ${valSize}px "${i === 0 ? 'DM Sans' : 'IBM Plex Mono'}", ${i === 0 ? 'sans-serif' : 'monospace'}`;
+                    ctx.fillText(String(m[1]), x + (i > 0 ? 28 : 0), metricY + 77);
                 });
 
-                // 6. Footer Verified Badge
-                const footY = 1025;
-                ctx.save();
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
-                ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
-                ctx.beginPath();
-                ctx.roundRect(60, footY, 960, 250, 20);
-                ctx.fill();
-                ctx.stroke();
+                // Result provenance
+                ctx.fillStyle = 'rgba(255,255,255,0.20)';
+                ctx.fillRect(72, 1000, 936, 1);
 
-                ctx.fillStyle = '#e2e8f0';
-                ctx.font = 'bold 26px Inter, sans-serif';
-                ctx.fillText('RUANG LARI RACE TIMING SYSTEM', 100, footY + 55);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 22px "DM Sans", sans-serif';
+                ctx.fillText('Verified race result', 72, 1060);
 
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = '19px Inter, sans-serif';
-                ctx.fillText('Hasil ini diverifikasi secara resmi oleh sistem AI & Digital Timing Gate Ruang Lari.', 100, footY + 95);
-                ctx.fillText(`ID Sesi: ${slug} • Tanggal: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 100, footY + 130);
+                ctx.fillStyle = '#8e99a6';
+                ctx.font = '500 17px "DM Sans", sans-serif';
+                ctx.fillText('Ruang Lari Race Master · Digital timing result', 72, 1096);
+                ctx.fillText(`Session ${slug}`, 72, 1130);
 
-                ctx.fillStyle = '#10b981';
-                ctx.font = 'bold 22px Inter, sans-serif';
-                ctx.fillText('✓ VERIFIED OFFICIAL FINISHER RESULT • RUANGLARI.COM', 100, footY + 185);
-                ctx.restore();
+                const dateText = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#c9d0d8';
+                ctx.font = '600 17px "IBM Plex Mono", monospace';
+                ctx.fillText(dateText.toUpperCase(), 1008, 1096);
+                ctx.fillStyle = '#fc5200';
+                ctx.font = '600 18px "DM Sans", sans-serif';
+                ctx.fillText('RUANGLARI.COM', 1008, 1130);
+
+                // Bottom statement
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 27px "DM Sans", sans-serif';
+                ctx.fillText('FINISHER', 72, 1253);
+                ctx.fillStyle = '#8e99a6';
+                ctx.font = '500 17px "DM Sans", sans-serif';
+                ctx.fillText('Keep this card as your official race result.', 72, 1287);
 
                 canvas.toBlob((blob) => {
                     if (!blob) return;
@@ -755,7 +854,8 @@ createApp({
         };
 
         return {
-            slug, session, race, results, filteredResults, loading, query, statusFilter,
+            slug, session, race, results, filteredResults, loading, query, statusFilter, copied,
+            defaultCategory, defaultDistanceKm,
             formatTimeHms, paceFor, copyLink,
             cardModalOpen, activeParticipant, previewUrl, cardFile, generating,
             openFinisherCard, closeCardModal, onBgChange, downloadCard, shareCard

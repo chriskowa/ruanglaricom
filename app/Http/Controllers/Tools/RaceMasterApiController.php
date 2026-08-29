@@ -1143,18 +1143,24 @@ class RaceMasterApiController extends Controller
     public function publicResultsPage(string $slug)
     {
         $session = RaceSession::query()
-            ->where('slug', $slug)
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
             ->with(['race'])
-            ->firstOrFail();
+            ->first();
+
+        if (! $session) {
+            abort(404, 'Sesi perlombaan tidak ditemukan.');
+        }
 
         $raceName = $session->race?->name ?? 'Ruang Lari Race';
         $category = $session->category ?? '';
         $distanceKm = $session->distance_km ?? '';
+        $displaySlug = $session->slug ?: (string) $session->id;
         $metaTitle = "Hasil Lomba {$raceName}" . ($category ? " - {$category}" : '') . " | Leaderboard & Kartu Finisher RuangLari";
         $metaDesc = "Lihat hasil resmi, leaderboard, peringkat, waktu finish, average pace, dan unduh Kartu Finisher 4:5 resmi lomba {$raceName}" . ($category ? " kategori {$category}" : '') . " di RuangLari.com.";
 
         return view('tools.race-master-results', [
-            'slug' => $slug,
+            'slug' => $displaySlug,
             'session' => $session,
             'race' => $session->race,
             'raceName' => $raceName,
@@ -1168,9 +1174,17 @@ class RaceMasterApiController extends Controller
     public function publicResultsJson(string $slug)
     {
         $session = RaceSession::query()
-            ->where('slug', $slug)
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
             ->with(['race'])
-            ->firstOrFail();
+            ->first();
+
+        if (! $session) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi perlombaan tidak ditemukan.',
+            ], 404);
+        }
 
         $standings = $this->computeStandings($session);
         $participants = RaceSessionParticipant::query()
@@ -1229,6 +1243,8 @@ class RaceMasterApiController extends Controller
             return $ra <=> $rb;
         });
 
+        $sessionSlug = $session->slug ?: (string) $session->id;
+
         return response()->json([
             'success' => true,
             'race' => [
@@ -1243,7 +1259,7 @@ class RaceMasterApiController extends Controller
                 'distance_km' => $session->distance_km !== null ? (float) $session->distance_km : null,
                 'started_at' => $session->started_at?->toISOString(),
                 'ended_at' => $session->ended_at?->toISOString(),
-                'public_results_url' => route('tools.race-master.results', ['slug' => $session->slug]),
+                'public_results_url' => route('tools.race-master.results', ['slug' => $sessionSlug]),
             ],
             'results' => $rows,
         ]);
@@ -1256,7 +1272,8 @@ class RaceMasterApiController extends Controller
         ]);
 
         $session = RaceSession::query()
-            ->where('slug', $slug)
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
             ->with(['race'])
             ->firstOrFail();
 
@@ -1298,7 +1315,8 @@ class RaceMasterApiController extends Controller
     public function publicParticipantCertificate(Request $request, string $slug, string $bib)
     {
         $session = RaceSession::query()
-            ->where('slug', $slug)
+            ->where('id', $slug)
+            ->orWhere('slug', $slug)
             ->with(['race'])
             ->firstOrFail();
 
