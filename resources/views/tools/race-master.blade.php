@@ -4129,10 +4129,6 @@
                                     };
                                 });
                                 participants.value = merged;
-
-                                if (currentView.value === 'setup') {
-                                    currentView.value = data.session?.ended_at ? 'results' : 'race';
-                                }
                             }
 
                             // Clock Sync (Only start if not running and not paused)
