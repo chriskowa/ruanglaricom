@@ -202,6 +202,10 @@ Route::get('/tools/race-master', function () {
 Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsPage'])
     ->name('tools.race-master.results');
 
+Route::get('/r/{slug}', function ($slug) {
+    return redirect()->route('tools.race-master.results', ['slug' => $slug]);
+})->name('tools.race-master.short-results');
+
 Route::prefix('/api/tools/race-master')->group(function () {
     Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
 });

@@ -109,25 +109,151 @@
 
                 <!-- Right: Stats & TV Menu Buttons -->
                 <div class="flex items-center gap-2 sm:gap-3 flex-wrap ml-auto">
-                    <!-- Mini Live Stat Pills -->
-                    <div class="flex items-center gap-1.5 sm:gap-2 text-center">
-                        <div class="bg-slate-900 border border-slate-800 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl">
-                            <div class="text-[9px] sm:text-[10px] font-bold uppercase text-slate-400">Peserta</div>
-                            <div class="text-sm sm:text-xl font-black text-white">@{{ participants.length }}</div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl">
-                            <div class="text-[9px] sm:text-[10px] font-bold uppercase text-emerald-400">Finish</div>
-                            <div class="text-sm sm:text-xl font-black text-emerald-400">@{{ finishedCount }}</div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl">
-                            <div class="text-[9px] sm:text-[10px] font-bold uppercase text-indigo-400">On Track</div>
-                            <div class="text-sm sm:text-xl font-black text-indigo-400">@{{ runningCount }}</div>
-                        </div>
-                        <div v-if="dnfCount > 0" class="bg-slate-900 border border-slate-800 px-2.5 sm:px-4 py-1 sm:py-2 rounded-xl">
-                            <div class="text-[9px] sm:text-[10px] font-bold uppercase text-red-400">DNF</div>
-                            <div class="text-sm sm:text-xl font-black text-red-400">@{{ dnfCount }}</div>
-                        </div>
-                    </div>
+                    <!-- Host Quick Controls in TV Topbar -->
+                    <div v-if="isSessionHost" class="flex items-center gap-1.5 sm:gap-2 mr-1 sm:mr-2">
+
+    <!-- Start / Resume -->
+    <button
+        v-if="!timer.running"
+        type="button"
+        @click="startRace"
+        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
+               bg-white hover:bg-slate-100
+               text-slate-950
+               border border-white
+               font-semibold text-xs
+               flex items-center gap-2
+               transition-colors"
+        :title="timer.elapsed > 0 ? 'Lanjutkan Timer Balapan' : 'Mulai Timer Balapan'"
+    >
+        <i class="fa-solid fa-play text-[10px]"></i>
+        <span>@{{ timer.elapsed > 0 ? 'Resume' : 'Start' }}</span>
+    </button>
+
+
+    <!-- Pause -->
+    <button
+        v-else
+        type="button"
+        @click="pauseRace"
+        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
+               bg-white hover:bg-slate-100
+               text-slate-950
+               border border-white
+               font-semibold text-xs
+               flex items-center gap-2
+               transition-colors"
+        title="Jeda Timer Balapan"
+    >
+        <i class="fa-solid fa-pause text-[10px]"></i>
+        <span>Pause</span>
+    </button>
+
+
+    <!-- Reset -->
+    <button
+        type="button"
+        @click="resetRace"
+        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
+               bg-transparent hover:bg-slate-900
+               text-slate-400 hover:text-white
+               border border-slate-700
+               font-semibold text-xs
+               flex items-center gap-2
+               transition-colors"
+        title="Reset Timer dan Sesi Balapan"
+    >
+        <i class="fa-solid fa-rotate-left text-[10px]"></i>
+        <span>Reset</span>
+    </button>
+
+
+    <!-- Finish Race -->
+    <button
+        type="button"
+        @click="finishRace"
+        class="h-9 sm:h-10 px-3 sm:px-4 rounded-lg
+               bg-transparent hover:bg-red-950/40
+               text-red-400 hover:text-red-300
+               border border-red-900/70 hover:border-red-800
+               font-semibold text-xs
+               flex items-center gap-2
+               transition-colors"
+        title="Selesaikan & Simpan Hasil Sesi"
+    >
+        <i class="fa-solid fa-flag-checkered text-[10px]"></i>
+        <span>Finish</span>
+    </button>
+
+</div>
+
+
+<!-- Mini Live Stats -->
+<div class="hidden lg:flex items-center border-l border-slate-800 ml-1 pl-3">
+
+    <!-- Peserta -->
+    <div class="px-3.5 border-r border-slate-800 text-left">
+        <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+            Peserta
+        </div>
+
+        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
+            @{{ participants.length }}
+        </div>
+    </div>
+
+
+    <!-- Finish -->
+    <div class="px-3.5 border-r border-slate-800 text-left">
+        <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+
+            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+                Finish
+            </div>
+        </div>
+
+        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
+            @{{ finishedCount }}
+        </div>
+    </div>
+
+
+    <!-- On Track -->
+    <div class="px-3.5 border-r border-slate-800 text-left">
+        <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+
+            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+                On Track
+            </div>
+        </div>
+
+        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
+            @{{ runningCount }}
+        </div>
+    </div>
+
+
+    <!-- DNF -->
+    <div
+        v-if="dnfCount > 0"
+        class="px-3.5 text-left"
+    >
+        <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+
+            <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+                DNF
+            </div>
+        </div>
+
+        <div class="mt-0.5 font-mono text-base font-semibold text-white tabular-nums">
+            @{{ dnfCount }}
+        </div>
+    </div>
+
+</div>
 
                     <!-- Settings Button (Toggles Size Slider & Style Menu) -->
                     <button type="button" @click="tvSettingsOpen = !tvSettingsOpen"
@@ -227,21 +353,19 @@
                     @{{ formattedTime }}
                 </div>
 
-                <!-- Live Results QR Code Badge for Runners / Spectators -->
-                <div class="mt-8 sm:mt-12 flex flex-row items-center justify-center gap-4 p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl max-w-sm sm:max-w-md mx-auto" style="background-color: #0f172a !important;">
-                    <div class="p-2 bg-white rounded-xl shadow-md shrink-0 flex items-center justify-center">
-                        <div id="tvResultsQrCode" class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center"></div>
-                    </div>
-                    <div class="text-left min-w-0">
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-950/80 text-orange-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-orange-600/50 mb-1">
-                            <i class="fa-solid fa-qrcode text-[#fc5200]"></i>
-                            <span>Scan Live Results & Finisher Card</span>
+                <!-- Live Results QR Code Badge for Runners / Spectators (Rata Kanan & Simple) -->
+                <div class="mt-6 sm:mt-10 flex justify-end">
+                    <div class="flex items-center gap-3 p-2 sm:p-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl" style="background-color: #0f172a !important;">
+                        <div class="p-1.5 bg-white rounded-xl shadow shrink-0 flex items-center justify-center">
+                            <div id="tvResultsQrCode" class="w-18 h-18 sm:w-24 sm:h-24 flex items-center justify-center"></div>
                         </div>
-                        <div class="text-sm sm:text-base font-bold text-white leading-snug truncate">
-                            @{{ raceName || 'Ruang Lari Race' }}
-                        </div>
-                        <div class="text-[11px] sm:text-xs text-slate-400 font-mono mt-0.5 truncate">
-                            @{{ tvResultsQrUrl }}
+                        <div class="text-left pr-2 min-w-0">
+                            <div class="text-xs sm:text-sm font-bold text-white leading-tight">
+                                Scan Live Results
+                            </div>
+                            <div class="text-[10px] sm:text-xs text-orange-400 font-mono font-bold mt-0.5 truncate max-w-[180px] sm:max-w-[240px]">
+                                @{{ tvResultsShortUrl }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2267,34 +2391,88 @@
         </div>
 
         <!-- Center TV Hero: Massive Official Race Clock -->
-        <div class="my-auto py-6 text-center space-y-6">
-            <div class="space-y-1">
-                <div class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-400">Official Race Clock</div>
-                <div class="font-mono text-6xl sm:text-8xl md:text-9xl font-black text-white tracking-widest drop-shadow-2xl">
-                    @{{ formattedTime }}
+        <div class="my-auto py-6 text-center">
+
+    <!-- Race Clock -->
+    <div class="mb-8 sm:mb-10">
+        <div class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 mb-3">
+            Official Race Clock
+        </div>
+
+        <div class="font-mono text-6xl sm:text-8xl md:text-9xl font-bold text-white tracking-tight leading-none tabular-nums">
+            @{{ formattedTime }}
+        </div>
+    </div>
+
+
+    <!-- Race Summary -->
+    <div class="max-w-4xl mx-auto border-t border-slate-800">
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-800">
+
+            <!-- Total Peserta -->
+            <div class="px-4 py-4 sm:py-5 text-left">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                    <span class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        Peserta
+                    </span>
+                </div>
+
+                <div class="font-mono text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+                    @{{ participants.length }}
                 </div>
             </div>
 
-            <!-- 4 Summary Stat Tiles -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto">
-                <div class="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 text-center">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase">Total Peserta</div>
-                    <div class="text-2xl sm:text-3xl font-mono font-black text-white mt-0.5">@{{ participants.length }}</div>
+
+            <!-- Finish -->
+            <div class="px-4 py-4 sm:py-5 text-left">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        Finish
+                    </span>
                 </div>
-                <div class="p-3.5 bg-emerald-950/80 rounded-2xl border border-emerald-700/60 text-center">
-                    <div class="text-[11px] font-bold text-emerald-400 uppercase">Sudah Finish</div>
-                    <div class="text-2xl sm:text-3xl font-mono font-black text-emerald-300 mt-0.5">@{{ finishedCount }}</div>
-                </div>
-                <div class="p-3.5 bg-indigo-950/80 rounded-2xl border border-indigo-700/60 text-center">
-                    <div class="text-[11px] font-bold text-indigo-400 uppercase">Sedang Berlari</div>
-                    <div class="text-2xl sm:text-3xl font-mono font-black text-indigo-300 mt-0.5">@{{ runningCount }}</div>
-                </div>
-                <div class="p-3.5 bg-red-950/80 rounded-2xl border border-red-700/60 text-center">
-                    <div class="text-[11px] font-bold text-red-400 uppercase">DNF</div>
-                    <div class="text-2xl sm:text-3xl font-mono font-black text-red-300 mt-0.5">@{{ dnfCount }}</div>
+
+                <div class="font-mono text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+                    @{{ finishedCount }}
                 </div>
             </div>
+
+
+            <!-- On Track -->
+            <div class="px-4 py-4 sm:py-5 text-left">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                    <span class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        On Track
+                    </span>
+                </div>
+
+                <div class="font-mono text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+                    @{{ runningCount }}
+                </div>
+            </div>
+
+
+            <!-- DNF -->
+            <div class="px-4 py-4 sm:py-5 text-left">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    <span class="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        DNF
+                    </span>
+                </div>
+
+                <div class="font-mono text-2xl sm:text-3xl font-semibold text-white tabular-nums">
+                    @{{ dnfCount }}
+                </div>
+            </div>
+
         </div>
+    </div>
+
+</div>
 
         <!-- Bottom TV Section: Latest Finisher + Top 5 Leaderboard -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-800/80">
@@ -2629,10 +2807,16 @@
                 }
             };
 
+            const tvResultsShortUrl = computed(() => {
+                const slug = sessionSlug.value || currentSessionId.value;
+                if (!slug) return `${window.location.host}/r`;
+                return `${window.location.host}/r/${slug}`;
+            });
+
             const tvResultsQrUrl = computed(() => {
                 const slug = sessionSlug.value || currentSessionId.value;
                 if (!slug) return `${window.location.origin}/tools/race-master`;
-                return `${resultsBase}/${encodeURIComponent(slug)}`;
+                return `${window.location.origin}/r/${encodeURIComponent(slug)}`;
             });
 
             const generateTvResultsQrCode = () => {
@@ -7517,7 +7701,7 @@
                 quickBibSuggestions, selectSuggestion,
                 manualValidationAlert, recordManualBib, dismissAlert, setDetectorPreset, currentDetectorPreset, showDuplicateAlert, playBuzzer,
                 tvDisplayOpen, tvLatestFinisher, finishedCount, runningCount, dnfCount, top5Results, openTvDisplay, closeTvDisplay, toggleTvFullscreen, isFullscreen, copyTvDisplayUrl,
-                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvSettingsOpen, tvResultsQrUrl, generateTvResultsQrCode,
+                tvTimerFont, tvTimerColor, tvTimerSizeScale, tvSettingsOpen, tvResultsQrUrl, tvResultsShortUrl, generateTvResultsQrCode,
                 newFacePhoto, newFacePhotos, newFaceDescriptors, faceEnrollStep, enrolledAngleCount,
                 newFaceProcessing, faceModelLoading, faceCaptureModalOpen,
                 openFaceCaptureModal, closeFaceCaptureModal, snapFaceAngle, onFacePhotoUpload, clearNewFacePhoto,
