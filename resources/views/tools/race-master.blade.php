@@ -1179,6 +1179,24 @@
                                 <option value="bib_scan">BIB Number Scan Only</option>
                             </select>
 
+                            <!-- Local Referee Video Recorder Button -->
+                            <button type="button" @click="toggleVideoRecording" 
+                                class="px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                                :class="isRecordingVideo ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'"
+                                :title="isRecordingVideo ? 'Hentikan Perekaman Video Lokal' : 'Mulai Rekam Video Lokal untuk Juri (Disimpan di Browser/Laptop)'">
+                                <i class="fa-solid" :class="isRecordingVideo ? 'fa-stop' : 'fa-video'"></i>
+                                <span v-if="isRecordingVideo">REC @{{ formatRecordingDuration }}</span>
+                                <span v-else>Rekam Video Juri</span>
+                            </button>
+
+                            <!-- Review Video Juri Button -->
+                            <button v-if="recordedVideoUrl && !isRecordingVideo" type="button" @click="openVideoReviewModal" 
+                                class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                                title="Buka Pemutar Video Slow-Motion Juri">
+                                <i class="fa-solid fa-film text-amber-300"></i>
+                                <span>Review Video Juri</span>
+                            </button>
+
                             <!-- AI Status Pill -->
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold border border-slate-700">
                                 <i class="fa-solid fa-microchip"></i>
@@ -1334,6 +1352,12 @@
                          class="absolute top-3 right-3 z-30 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-950 border border-indigo-700 text-[10px] font-bold text-indigo-300 pointer-events-none">
                         <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
                         Sync 500ms
+                    </div>
+
+                    <!-- Video Recording Active Indicator -->
+                    <div v-if="isRecordingVideo" class="absolute top-3 left-3 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-950/90 border border-red-500 text-red-300 text-xs font-bold font-mono shadow-lg">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                        <span>REC @{{ formatRecordingDuration }} (Lokal)</span>
                     </div>
 
                     <!-- Status Notification Message -->
@@ -2312,6 +2336,88 @@
         </div>
     </div>
 
+    <!-- Referee Slow-Motion Video Review Modal -->
+    <div v-if="videoReviewModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm" @click.self="closeVideoReviewModal">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 w-full max-w-4xl shadow-2xl relative text-white space-y-4 max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-film text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Review Video Finish Juri (Slow-Motion)</h3>
+                        <p class="text-xs text-slate-400">Verifikasi visual urutan pelari garis finish</p>
+                    </div>
+                </div>
+                <button type="button" @click="closeVideoReviewModal" class="text-slate-400 hover:text-white p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Video Player Container -->
+                <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-slate-800 shadow-inner flex items-center justify-center">
+                    <video id="refereeVideoPlayer" :src="recordedVideoUrl" controls playsinline class="w-full h-full object-contain"></video>
+                </div>
+
+                <!-- Video Controls & Slow-Motion Speed Bar -->
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <!-- Playback Speed Controls -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider mr-1">Kecepatan:</span>
+                            <button type="button" @click="setVideoSpeed(0.25)" 
+                                :class="videoPlaybackRate === 0.25 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'"
+                                class="px-2.5 py-1 rounded-lg transition">
+                                0.25x (Super Slow)
+                            </button>
+                            <button type="button" @click="setVideoSpeed(0.5)" 
+                                :class="videoPlaybackRate === 0.5 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'"
+                                class="px-2.5 py-1 rounded-lg transition">
+                                0.5x (Slow)
+                            </button>
+                            <button type="button" @click="setVideoSpeed(0.75)" 
+                                :class="videoPlaybackRate === 0.75 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'"
+                                class="px-2.5 py-1 rounded-lg transition">
+                                0.75x
+                            </button>
+                            <button type="button" @click="setVideoSpeed(1.0)" 
+                                :class="videoPlaybackRate === 1.0 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'"
+                                class="px-2.5 py-1 rounded-lg transition">
+                                1.0x (Normal)
+                            </button>
+                            <button type="button" @click="setVideoSpeed(2.0)" 
+                                :class="videoPlaybackRate === 2.0 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'"
+                                class="px-2.5 py-1 rounded-lg transition">
+                                2.0x (Cepat)
+                            </button>
+                        </div>
+
+                        <!-- Frame-by-Frame Precision Step Controls -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-slate-400 font-bold uppercase tracking-wider mr-1">Frame Step:</span>
+                            <button type="button" @click="stepVideoFrame(-0.05)" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-mono transition" title="Mundur 1 Frame (50ms)">
+                                <i class="fa-solid fa-backward-step mr-1"></i> -1 Frame
+                            </button>
+                            <button type="button" @click="stepVideoFrame(0.05)" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-mono transition" title="Maju 1 Frame (50ms)">
+                                +1 Frame <i class="fa-solid fa-forward-step ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Action Footer: Download Video -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <div class="text-xs text-slate-400">
+                        File tersimpan di memori browser lokal (0% beban server).
+                    </div>
+                    <button type="button" @click="downloadRecordedVideo" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm border border-slate-700">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Unduh Video (.webm / .mp4)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -2622,6 +2728,135 @@
             const posterUrl = ref('');
             const posterFile = ref(null);
             const canNativeShare = !!(navigator && navigator.share && navigator.canShare);
+
+            // Local Referee Video Recording State (Client-Side, 0% Server Burden)
+            let mediaRecorder = null;
+            let recordingChunks = [];
+            let recordingTimer = null;
+            const isRecordingVideo = ref(false);
+            const recordingDuration = ref(0);
+            const recordedVideoUrl = ref('');
+            const recordedVideoBlob = ref(null);
+            const videoReviewModalOpen = ref(false);
+            const videoPlaybackRate = ref(1.0);
+
+            const formatRecordingDuration = computed(() => {
+                const sec = recordingDuration.value;
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = sec % 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            });
+
+            const startVideoRecording = () => {
+                const videoEl = getReaderVideo();
+                const stream = aiStream || (videoEl && videoEl.srcObject);
+                if (!stream) {
+                    alert('Kamera belum aktif. Buka kamera terlebih dahulu untuk mulai merekam.');
+                    return;
+                }
+
+                try {
+                    recordingChunks = [];
+                    let options = { mimeType: 'video/webm;codecs=vp9' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options = { mimeType: 'video/webm' };
+                        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                            options = { mimeType: 'video/mp4' };
+                            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                                options = undefined;
+                            }
+                        }
+                    }
+
+                    mediaRecorder = options ? new MediaRecorder(stream, options) : new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data && e.data.size > 0) {
+                            recordingChunks.push(e.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        if (recordingChunks.length > 0) {
+                            const mime = mediaRecorder.mimeType || 'video/webm';
+                            const blob = new Blob(recordingChunks, { type: mime });
+                            if (recordedVideoUrl.value && recordedVideoUrl.value.startsWith('blob:')) {
+                                try { URL.revokeObjectURL(recordedVideoUrl.value); } catch (_) {}
+                            }
+                            recordedVideoUrl.value = URL.createObjectURL(blob);
+                            recordedVideoBlob.value = blob;
+                        }
+                        if (recordingTimer) {
+                            clearInterval(recordingTimer);
+                            recordingTimer = null;
+                        }
+                        isRecordingVideo.value = false;
+                    };
+
+                    mediaRecorder.start(1000);
+                    isRecordingVideo.value = true;
+                    recordingDuration.value = 0;
+                    recordingTimer = setInterval(() => {
+                        recordingDuration.value++;
+                    }, 1000);
+                } catch (e) {
+                    console.error('Start recording error:', e);
+                    alert('Gagal memulai perekaman video lokal: ' + (e?.message || e));
+                    isRecordingVideo.value = false;
+                }
+            };
+
+            const stopVideoRecording = () => {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+            };
+
+            const toggleVideoRecording = () => {
+                if (isRecordingVideo.value) {
+                    stopVideoRecording();
+                } else {
+                    startVideoRecording();
+                }
+            };
+
+            const openVideoReviewModal = () => {
+                if (!recordedVideoUrl.value) return;
+                videoReviewModalOpen.value = true;
+                videoPlaybackRate.value = 1.0;
+            };
+
+            const closeVideoReviewModal = () => {
+                videoReviewModalOpen.value = false;
+                const player = document.getElementById('refereeVideoPlayer');
+                if (player) player.pause();
+            };
+
+            const setVideoSpeed = (rate) => {
+                videoPlaybackRate.value = rate;
+                const player = document.getElementById('refereeVideoPlayer');
+                if (player) player.playbackRate = rate;
+            };
+
+            const stepVideoFrame = (seconds) => {
+                const player = document.getElementById('refereeVideoPlayer');
+                if (player) {
+                    player.pause();
+                    player.currentTime = Math.max(0, Math.min(player.duration || 0, player.currentTime + seconds));
+                }
+            };
+
+            const downloadRecordedVideo = () => {
+                if (!recordedVideoUrl.value) return;
+                const a = document.createElement('a');
+                a.href = recordedVideoUrl.value;
+                const ext = recordedVideoBlob.value?.type?.includes('mp4') ? 'mp4' : 'webm';
+                a.download = `video-finish-juri-${raceName.value || 'race'}-${Date.now()}.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
 
             const STORAGE_KEY = 'race-master-pro:v1';
             let hydrating = false;
@@ -7249,6 +7484,10 @@
                 initializingSession, initializeRaceSession,
                 openAssignBibModal, confirmAssignBib,
                 bibScan, onBibSampleUpload, getBibRuntimeProfile, activeBibPattern,
+                isRecordingVideo, recordingDuration, formatRecordingDuration, recordedVideoUrl, recordedVideoBlob,
+                videoReviewModalOpen, videoPlaybackRate,
+                startVideoRecording, stopVideoRecording, toggleVideoRecording,
+                openVideoReviewModal, closeVideoReviewModal, setVideoSpeed, stepVideoFrame, downloadRecordedVideo,
             };
 
 
