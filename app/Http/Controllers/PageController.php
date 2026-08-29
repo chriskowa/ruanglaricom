@@ -81,14 +81,26 @@ class PageController extends Controller
         });
 
         $featuredArticles = Cache::remember('home.featured_articles', 300, function () {
-            return Article::query()
+            $articles = Article::query()
                 ->published()
                 ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'updated_at', 'category_id', 'is_featured'])
                 ->with(['category:id,name,slug'])
-                ->orderByDesc('is_featured')
-                ->orderByRaw('COALESCE(updated_at, published_at, created_at) DESC')
-                ->limit(4)
+                ->where('is_featured', true)
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(5)
                 ->get();
+
+            if ($articles->isEmpty()) {
+                $articles = Article::query()
+                    ->published()
+                    ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'updated_at', 'category_id', 'is_featured'])
+                    ->with(['category:id,name,slug'])
+                    ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                    ->limit(5)
+                    ->get();
+            }
+
+            return $articles;
         });
 
         return view('home.index', [

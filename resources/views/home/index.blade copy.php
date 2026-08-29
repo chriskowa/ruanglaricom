@@ -67,6 +67,7 @@
                                     'eyebrow' => 'Race',
                                     'meta_1' => optional($ev->start_at)->translatedFormat('d M Y') ?: null,
                                     'meta_2' => $ev->location_name ?: null,
+                                    'date' => $ev->start_at ?: $ev->created_at,
                                 ]);
                             }
                         }
@@ -89,14 +90,16 @@
                                     'eyebrow' => 'Journal',
                                     'meta_1' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
                                     'meta_2' => optional($a->category)->name ?: null,
+                                    'date' => $a->published_at ?: $a->created_at,
                                 ]);
                             }
                         }
 
                         $slides = $slides
                             ->filter(fn ($slide) => ! empty($slide['href']))
+                            ->sortByDesc(fn ($slide) => optional($slide['date'])->timestamp ?? 0)
                             ->values()
-                            ->take(6);
+                            ->take(5);
                     @endphp
 
                     <div id="heroFeatured" class="rl-featured-frame">

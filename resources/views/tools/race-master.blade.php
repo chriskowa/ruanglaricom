@@ -6,11 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Race Master Pro - Ruang Lari</title>
     
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -272,7 +272,7 @@
             
             <!-- Main Giant Clock -->
             <div class="text-center w-full max-w-full px-1 sm:px-4">
-                <div class="text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.25em] text-slate-500 mb-2 sm:mb-4">
+                <div class="text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.25em] text-slate-500 mb-5 sm:mb-8 md:mb-10">
                     RUANG LARI RACE TIMER
                 </div>
                 <div class="font-bold tracking-tight leading-none select-none transition-all duration-150 inline-flex items-baseline justify-center max-w-full"
@@ -286,27 +286,30 @@
                         'text-white': tvTimerColor === 'white',
                      }"
                      :style="{
-                        fontSize: 'clamp(2.2rem, 11vw, ' + (15 * tvTimerSizeScale / 100) + 'rem)',
+                        fontSize: 'clamp(2.2rem, ' + (11 * (tvTimerSizeScale || 100) / 100) + 'vw, ' + (16 * (tvTimerSizeScale || 100) / 100) + 'rem)',
                         lineHeight: '0.95'
                      }">
                     <span class="tabular-nums font-bold">@{{ tvTimerParts.main }}</span>
-                    <span class="opacity-70 font-semibold tracking-normal ml-1 sm:ml-2 font-mono-numbers tabular-nums"
-                          style="font-size: clamp(1rem, 4.2vw, 4.5rem); line-height: 1;">
+                    <span class="opacity-70 font-semibold tracking-normal ml-1.5 sm:ml-3 font-mono-numbers tabular-nums"
+                          :style="{
+                            fontSize: 'clamp(1rem, ' + (4 * (tvTimerSizeScale || 100) / 100) + 'vw, ' + (5.5 * (tvTimerSizeScale || 100) / 100) + 'rem)',
+                            lineHeight: '1'
+                          }">
                         @{{ tvTimerParts.ms }}
                     </span>
                 </div>
 
                 <!-- Live Results QR Code Badge for Runners / Spectators -->
-                <div class="mt-3.5 sm:mt-8 flex justify-center sm:justify-end">
-                    <div class="flex items-center gap-2.5 sm:gap-3 p-1.5 sm:p-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl" style="background-color: #0f172a !important;">
-                        <div class="p-1 sm:p-1.5 bg-white rounded-xl shadow shrink-0 flex items-center justify-center">
-                            <div id="tvResultsQrCode" class="w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"></div>
+                <div class="mt-6 sm:mt-10 md:mt-14 flex justify-center sm:justify-end">
+                    <div class="flex items-center gap-3 sm:gap-4 p-2 sm:p-3.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl" style="background-color: #0f172a !important;">
+                        <div class="p-1.5 sm:p-2 bg-white rounded-xl shadow shrink-0 flex items-center justify-center">
+                            <div id="tvResultsQrCode" class="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center"></div>
                         </div>
-                        <div class="text-left pr-2 min-w-0">
-                            <div class="text-[11px] sm:text-sm font-bold text-white leading-tight">
+                        <div class="text-left pr-3 min-w-0">
+                            <div class="text-xs sm:text-base font-black text-white leading-tight uppercase tracking-wider">
                                 Scan Live Results
                             </div>
-                            <div class="text-[9px] sm:text-xs text-orange-400 font-mono font-bold mt-0.5 truncate max-w-[140px] sm:max-w-[240px]">
+                            <div class="text-[10px] sm:text-xs text-orange-400 font-mono font-bold mt-1 truncate max-w-[160px] sm:max-w-[280px]">
                                 @{{ tvResultsShortUrl }}
                             </div>
                         </div>
@@ -2871,8 +2874,8 @@
                 try {
                     new QRCode(el, {
                         text: url,
-                        width: 96,
-                        height: 96,
+                        width: 128,
+                        height: 128,
                         correctLevel: QRCode.CorrectLevel.M
                     });
                 } catch (e) {}
@@ -3240,6 +3243,9 @@
                         raceLogoUrl: raceLogoUrl.value,
                         certificatesByBib: certificatesByBib.value,
                         participants: participants.value,
+                        tvTimerFont: tvTimerFont.value,
+                        tvTimerColor: tvTimerColor.value,
+                        tvTimerSizeScale: tvTimerSizeScale.value,
                         timerElapsed: timer.value.elapsed,
                         currentView: currentView.value,
                     };
@@ -3283,6 +3289,9 @@
                             lastScanTime: typeof p.lastScanTime === 'number' ? p.lastScanTime : 0,
                         })).filter(p => p.bib !== '');
                     }
+                    if (parsed && parsed.tvTimerFont) tvTimerFont.value = parsed.tvTimerFont;
+                    if (parsed && parsed.tvTimerColor) tvTimerColor.value = parsed.tvTimerColor;
+                    if (parsed && typeof parsed.tvTimerSizeScale === 'number') tvTimerSizeScale.value = parsed.tvTimerSizeScale;
                     if (parsed && typeof parsed.timerElapsed === 'number') timer.value.elapsed = parsed.timerElapsed;
                     if (parsed && parsed.currentView) currentView.value = parsed.currentView;
                 } catch (e) {} finally {
@@ -3744,7 +3753,7 @@
                 if (typeof faceapi === 'undefined') return false;
                 faceModelLoading.value = true;
                 try {
-                    const MODEL_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
                     await Promise.all([
                         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -3754,9 +3763,21 @@
                     faceModelLoading.value = false;
                     return true;
                 } catch (e) {
-                    console.error('Failed to load Face-API models:', e);
-                    faceModelLoading.value = false;
-                    return false;
+                    try {
+                        const FALLBACK_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model/';
+                        await Promise.all([
+                            faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK_URL),
+                            faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL),
+                            faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL),
+                        ]);
+                        faceModelsLoaded = true;
+                        faceModelLoading.value = false;
+                        return true;
+                    } catch (err2) {
+                        console.error('Failed to load Face-API models:', err2);
+                        faceModelLoading.value = false;
+                        return false;
+                    }
                 }
             };
 
