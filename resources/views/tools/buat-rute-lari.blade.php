@@ -49,34 +49,471 @@
                 display: none !important;
             }
         }
+
+
+        /* =========================================================
+           RUANGLARI ROUTE LAB — PROFESSIONAL WORKSPACE
+           ========================================================= */
+        #route-builder-workspace {
+            --route-bg: #07101c;
+            --route-surface: #0b1522;
+            --route-surface-soft: #0f1b2a;
+            --route-line: rgba(255,255,255,.09);
+            --route-line-strong: rgba(255,255,255,.16);
+            --route-text: #f5f7fa;
+            --route-muted: #8290a3;
+            --route-accent: #b8ff00;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .route-lab-header {
+            margin-bottom: 1.25rem;
+            border-top: 1px solid var(--route-line);
+            border-bottom: 1px solid var(--route-line);
+        }
+
+        .route-lab-header__main {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 2rem;
+            padding: 1.75rem 0;
+        }
+
+        .route-lab-kicker {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            color: var(--route-accent);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .route-lab-kicker::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background: var(--route-accent);
+        }
+
+        .route-lab-title {
+            margin-top: .55rem;
+            color: #fff;
+            font-size: clamp(2.4rem, 5vw, 4.9rem);
+            font-weight: 900;
+            line-height: .88;
+            letter-spacing: -.06em;
+            text-transform: uppercase;
+        }
+
+        .route-lab-subtitle {
+            margin-top: .85rem;
+            max-width: 42rem;
+            color: rgba(255,255,255,.42);
+            font-size: 12px;
+            line-height: 1.65;
+        }
+
+        .route-lab-header__actions {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            flex: 0 0 auto;
+        }
+
+        .route-lab-action {
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .55rem;
+            padding: 0 1rem;
+            border: 1px solid var(--route-line-strong);
+            border-radius: 3px;
+            background: transparent;
+            color: rgba(255,255,255,.7);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            transition: .18s ease;
+        }
+
+        .route-lab-action:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,.28);
+            background: rgba(255,255,255,.025);
+        }
+
+        .route-lab-action--primary {
+            color: #07101c;
+            border-color: var(--route-accent);
+            background: var(--route-accent);
+        }
+
+        .route-lab-action--primary:hover {
+            color: #07101c;
+            border-color: #d2ff65;
+            background: #d2ff65;
+        }
+
+        .route-lab-context {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            border-top: 1px solid var(--route-line);
+        }
+
+        .route-context-item {
+            min-height: 58px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: .7rem 1rem;
+            border-right: 1px solid var(--route-line);
+        }
+
+        .route-context-item:last-child { border-right: 0; }
+
+        .route-context-label {
+            color: rgba(255,255,255,.25);
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+        }
+
+        .route-context-value {
+            margin-top: .3rem;
+            color: rgba(255,255,255,.72);
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .route-context-value--accent { color: var(--route-accent); }
+
+        .route-builder-layout {
+            align-items: start;
+        }
+
+        .route-builder-sidebar {
+            position: relative;
+        }
+
+        @media (min-width: 1024px) {
+            .route-builder-sidebar {
+                position: sticky;
+                top: 5.7rem;
+                max-height: calc(100vh - 6.5rem);
+                overflow-y: auto;
+                padding-right: .15rem;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255,255,255,.13) transparent;
+            }
+        }
+
+        /* Kill the "AI card soup" visual language inside the builder. */
+        #route-builder-workspace .bg-slate-900\/60,
+        #route-builder-workspace .bg-card\/50 {
+            background: rgba(11,21,34,.82) !important;
+            backdrop-filter: none !important;
+        }
+
+        #route-builder-workspace .rounded-3xl,
+        #route-builder-workspace .rounded-2xl {
+            border-radius: 6px !important;
+        }
+
+        #route-builder-workspace .rounded-xl {
+            border-radius: 4px !important;
+        }
+
+        #route-builder-workspace .rounded-lg {
+            border-radius: 3px !important;
+        }
+
+        #route-builder-workspace [class*="shadow-neon"],
+        #route-builder-workspace [class*="shadow-xl"],
+        #route-builder-workspace [class*="shadow-lg"],
+        #route-builder-workspace [class*="shadow-md"],
+        #route-builder-workspace [class*="shadow-sm"] {
+            box-shadow: none !important;
+        }
+
+        #route-builder-workspace .border-slate-800,
+        #route-builder-workspace .border-slate-800\/80,
+        #route-builder-workspace .border-slate-700\/50,
+        #route-builder-workspace .border-slate-700\/80 {
+            border-color: var(--route-line) !important;
+        }
+
+        #route-builder-workspace input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]),
+        #route-builder-workspace select,
+        #route-builder-workspace textarea {
+            border-radius: 3px !important;
+            background-color: rgba(3,8,15,.46) !important;
+            border-color: var(--route-line) !important;
+            box-shadow: none !important;
+        }
+
+        #route-builder-workspace input:not([type="checkbox"]):not([type="range"]):not([type="color"]):not([type="file"]):focus,
+        #route-builder-workspace select:focus,
+        #route-builder-workspace textarea:focus {
+            border-color: rgba(184,255,0,.5) !important;
+            box-shadow: 0 0 0 3px rgba(184,255,0,.045) !important;
+            outline: none !important;
+        }
+
+        /* Section headings become operational labels instead of decorative cards. */
+        .route-builder-sidebar > div {
+            border-radius: 5px !important;
+            box-shadow: none !important;
+        }
+
+        .route-builder-sidebar > div > .flex:first-child {
+            padding-bottom: .75rem;
+            border-bottom: 1px solid var(--route-line);
+        }
+
+        /* AI generator: product feature, not neon novelty. */
+        #route-builder-workspace .rl-ai-dist-btn,
+        #route-builder-workspace .rl-shape-btn {
+            border-radius: 3px !important;
+            box-shadow: none !important;
+        }
+
+        #route-builder-workspace .rl-ai-dist-btn.active {
+            border-color: var(--route-accent) !important;
+            background: rgba(184,255,0,.06) !important;
+            color: var(--route-accent) !important;
+        }
+
+        #route-builder-workspace .rl-shape-btn:hover {
+            border-color: rgba(255,255,255,.25) !important;
+        }
+
+        /* Summary becomes a compact telemetry strip. */
+        #rl-summary-panel {
+            border-radius: 5px !important;
+            background: rgba(11,21,34,.9) !important;
+            border-color: var(--route-line) !important;
+            box-shadow: none !important;
+        }
+
+        #rl-summary-panel #rl-expanded-content > .grid > div {
+            border-radius: 0 !important;
+            border: 0 !important;
+            border-right: 1px solid var(--route-line) !important;
+            background: transparent !important;
+            padding: .65rem .8rem !important;
+        }
+
+        #rl-summary-panel #rl-expanded-content > .grid > div:last-child {
+            border-right: 0 !important;
+        }
+
+        /* Map becomes the visual hero. */
+        .route-builder-canvas > .bg-card\/50 {
+            border-radius: 5px !important;
+            border-color: var(--route-line) !important;
+            background: #08111f !important;
+            box-shadow: 0 24px 70px rgba(0,0,0,.25) !important;
+        }
+
+        #rl-route-map {
+            height: calc(100vh - 245px);
+            min-height: 600px;
+        }
+
+        .leaflet-container {
+            font-family: inherit;
+            background: #08111f;
+        }
+
+        /* Floating map controls: compact instrument controls. */
+        #route-builder-workspace .absolute.z-\[500\] button,
+        #route-builder-workspace #rl-marker-palette button {
+            border-radius: 3px !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,.25) !important;
+        }
+
+        #route-builder-workspace #rl-marker-palette button {
+            width: 36px !important;
+            height: 36px !important;
+        }
+
+        #route-builder-workspace #rl-mode-toggle,
+        #route-builder-workspace #rl-undo,
+        #route-builder-workspace #rl-clear,
+        #route-builder-workspace #rl-center,
+        #route-builder-workspace #rl-fit {
+            width: 36px !important;
+            height: 36px !important;
+        }
+
+        #route-builder-workspace #rl-mode-toggle {
+            background: var(--route-accent) !important;
+            border-color: var(--route-accent) !important;
+            color: #07101c !important;
+        }
+
+        #route-builder-workspace #rl-floating-summary-badge,
+        #route-builder-workspace .group.bg-slate-900\/90 {
+            border-radius: 3px !important;
+            border-color: rgba(255,255,255,.14) !important;
+            background: rgba(7,16,28,.92) !important;
+            backdrop-filter: blur(10px) !important;
+            box-shadow: 0 10px 28px rgba(0,0,0,.28) !important;
+        }
+
+        /* Actions: one primary, the rest quiet. */
+        #rl-share {
+            background: var(--route-accent) !important;
+            color: #07101c !important;
+            border-radius: 3px !important;
+            box-shadow: none !important;
+        }
+
+        #rl-save,
+        #rl-load,
+        #rl-export-gpx,
+        #rl-import-gpx {
+            border-radius: 3px !important;
+            box-shadow: none !important;
+        }
+
+        /* Strava is integration branding, not the visual theme. */
+        #strava-form-panel {
+            border-radius: 4px !important;
+            background: rgba(255,255,255,.014) !important;
+        }
+
+        /* Elevation panel reads like data analysis. */
+        .route-builder-canvas > div:last-child {
+            border-radius: 5px !important;
+            box-shadow: none !important;
+        }
+
+        #rl-elev-svg {
+            background:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 100% 44px;
+        }
+
+        /* Modal language */
+        #rl-modal > .relative {
+            border-radius: 5px !important;
+        }
+
+        #rl-modal-close {
+            border-radius: 3px !important;
+        }
+
+        @media (max-width: 1023px) {
+            .route-lab-header__main {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .route-lab-context {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+
+            .route-context-item:nth-child(2n) {
+                border-right: 0;
+            }
+
+            .route-context-item:nth-child(-n+2) {
+                border-bottom: 1px solid var(--route-line);
+            }
+
+            #rl-route-map {
+                height: calc(100vh - 280px);
+                min-height: 540px;
+            }
+
+            .rl-mobile-sticky-ringkasan {
+                border-radius: 8px 8px 0 0 !important;
+                background: rgba(7,16,28,.98) !important;
+                box-shadow: 0 -18px 45px rgba(0,0,0,.4) !important;
+            }
+
+            .rl-mobile-sticky-ringkasan.rl-minimized {
+                border-radius: 5px 5px 0 0 !important;
+            }
+        }
+
+        @media (max-width: 639px) {
+            .route-lab-header__actions {
+                width: 100%;
+            }
+
+            .route-lab-action {
+                flex: 1;
+            }
+
+            .route-lab-context {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            #rl-route-map {
+                height: calc(100vh - 245px);
+                min-height: 470px;
+            }
+
+            #rl-summary-panel #rl-expanded-content > .grid > div {
+                padding: .55rem .35rem !important;
+            }
+        }
     </style>
 @endpush
 
 @section('content')
     <div class="min-h-screen pt-20 pb-10 px-4 md:px-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-6">
-                <div class="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                        <h1 class="text-3xl md:text-4xl font-black tracking-tighter text-white italic">
-                            BUAT <span class="text-neon">RUTE LARI</span>
-                        </h1>
-                        <p class="text-slate-400 mt-1 max-w-2xl text-sm">
-                            Tap peta untuk bikin rute. Simpan, share link, atau export GPX buat dipakai di jam/aplikasi favoritmu.
+        <div id="route-builder-workspace" class="max-w-[1480px] mx-auto">
+            <!-- ROUTE LAB MASTHEAD -->
+            <header class="route-lab-header">
+                <div class="route-lab-header__main">
+                    <div class="min-w-0">
+                        <div class="route-lab-kicker">RuangLari / Route Lab</div>
+                        <h1 class="route-lab-title">Buat Rute Lari</h1>
+                        <p class="route-lab-subtitle">
+                            Rancang jalur lari, ukur jarak dan elevasi, lalu simpan atau kirim ke perangkat pilihanmu.
                         </p>
                     </div>
-                    <div class="w-full sm:w-auto grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2">
-                        <a href="{{ route('gpx.index') }}" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition text-[10px] xs:text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm text-center">
-                            
-                            <span class="truncate">Database GPX</span>
+
+                    <div class="route-lab-header__actions">
+                        <a href="{{ route('gpx.index') }}" class="route-lab-action">
+                            <span>GPX Library</span>
+                            <i class="fas fa-arrow-right text-[9px]"></i>
                         </a>
-                        <button id="btn-open-submit-gpx-modal" type="button" class="whitespace-nowrap px-2 sm:px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-white transition text-[10px] xs:text-[11px] sm:text-xs font-black flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-neon/10 text-center">
-                            
-                            <span class="truncate">Submit GPX</span>
-                        </button>                        
+
+                        <button id="btn-open-submit-gpx-modal" type="button" class="route-lab-action route-lab-action--primary">
+                            <span>Submit GPX</span>
+                        </button>
                     </div>
                 </div>
-            </div>
+
+                <div class="route-lab-context">
+                    <div class="route-context-item">
+                        <span class="route-context-label">Mode</span>
+                        <span class="route-context-value">Route Builder</span>
+                    </div>
+                    <div class="route-context-item">
+                        <span class="route-context-label">Routing</span>
+                        <span class="route-context-value">OSRM / Manual</span>
+                    </div>
+                    <div class="route-context-item">
+                        <span class="route-context-label">Output</span>
+                        <span class="route-context-value">GPX / Share / Strava</span>
+                    </div>
+                    <div class="route-context-item">
+                        <span class="route-context-label">Map</span>
+                        <span class="route-context-value route-context-value--accent">Interactive</span>
+                    </div>
+                </div>
+            </header>
 
             @if(session('success'))
                 <div class="mb-4 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 px-4 py-3 rounded-xl text-sm font-semibold">
@@ -89,9 +526,9 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="route-builder-layout grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <!-- Left Column: Setup & AI Route Generator -->
-                <div class="lg:col-span-4 space-y-4">
+                <aside class="route-builder-sidebar lg:col-span-4 space-y-4">
                     <!-- Setup Panel -->
                     <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
                         <div class="flex items-center justify-between">
@@ -334,10 +771,10 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </aside>
 
                 <!-- Right Column: Summary, Actions, Map & Profile -->
-                <div class="lg:col-span-8 space-y-4">
+                <main class="route-builder-canvas lg:col-span-8 space-y-4">
                     <div id="rl-summary-panel" class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-800 lg:bg-slate-900/60 lg:p-5 lg:shadow-none transition-all duration-300">
                         <!-- Mobile Sheet Toggle / Compact Info Header -->
                         <div id="rl-mobile-sheet-toggle" class="py-1 cursor-pointer lg:hidden flex flex-col items-center justify-center border-b border-slate-800/40 pb-2">
@@ -665,7 +1102,7 @@
                             <svg id="rl-elev-svg" viewBox="0 0 1000 220" preserveAspectRatio="none" class="w-full h-[220px] block"></svg>
                         </div>
                     </div>
-                </div>
+                </main>
             </div>
         </div>
 

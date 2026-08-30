@@ -190,6 +190,8 @@ class RaceMasterApiController extends Controller
                 'category' => $latestSession->category,
                 'distance_km' => $latestSession->distance_km,
                 'started_at' => $latestSession->started_at?->toISOString(),
+                'started_at_formatted' => $latestSession->started_at?->format('Y-m-d H:i:s'),
+                'started_at_ms' => $latestSession->started_at ? (int) ($latestSession->started_at->getTimestamp() * 1000 + (int) ($latestSession->started_at->micro / 1000)) : null,
                 'ended_at' => $latestSession->ended_at?->toISOString(),
                 'timer_elapsed' => $latestSession->ended_at
                     ? $latestSession->ended_at->diffInMilliseconds($latestSession->started_at)
@@ -466,6 +468,104 @@ class RaceMasterApiController extends Controller
     public function publicStartSessionTimer(Request $request, $slug)
     {
         return $this->startSessionTimer($request, $slug);
+    }
+
+    public function updateSessionTiming(Request $request, $session)
+    {
+        $session = $this->resolveRaceSession($session);
+
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && $session->created_by && (int) $session->created_by !== (int) $user->id && (int) $session->race?->created_by !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Hanya Host pembuat sesi yang dapat mengubah waktu start.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'started_at' => 'nullable|string',
+            'started_at_ms' => 'nullable|numeric',
+            'offset_seconds' => 'nullable|numeric',
+            'recalculate_laps' => 'nullable|boolean',
+        ]);
+
+        $oldStartedAt = $session->started_at ? Carbon::parse($session->started_at) : null;
+        $newStartedAt = null;
+
+        if (!empty($validated['started_at'])) {
+            $newStartedAt = Carbon::parse($validated['started_at']);
+        } elseif (!empty($validated['started_at_ms'])) {
+            $newStartedAt = Carbon::createFromTimestampMs((float) $validated['started_at_ms']);
+        } elseif (isset($validated['offset_seconds']) && $oldStartedAt) {
+            $newStartedAt = (clone $oldStartedAt)->addSeconds((float) $validated['offset_seconds']);
+        }
+
+        if (!$newStartedAt) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format tanggal dan waktu mulai tidak valid.',
+            ], 422);
+        }
+
+        $recalculateLaps = $request->has('recalculate_laps') ? $request->boolean('recalculate_laps') : true;
+        $timeShiftMs = 0;
+        if ($oldStartedAt) {
+            // Time shift in milliseconds: old - new.
+            // If new is earlier (e.g. 06:00 instead of 06:05), timeShiftMs is positive (+300000ms),
+            // which adds 5 min to elapsed time and existing lap times.
+            $timeShiftMs = (int) ($oldStartedAt->getTimestamp() * 1000 - $newStartedAt->getTimestamp() * 1000);
+        }
+
+        DB::transaction(function () use ($session, $newStartedAt, $timeShiftMs, $recalculateLaps) {
+            $session->started_at = $newStartedAt;
+            $session->save();
+
+            if ($recalculateLaps && $timeShiftMs !== 0) {
+                $laps = RaceSessionLap::where('race_session_id', $session->id)->orderBy('lap_number', 'asc')->get();
+                $grouped = $laps->groupBy('race_session_participant_id');
+
+                foreach ($grouped as $participantLaps) {
+                    $prevTotal = 0;
+                    foreach ($participantLaps as $lap) {
+                        $newTotal = max(0, (int) $lap->total_time_ms + $timeShiftMs);
+                        $newLapTime = max(0, $newTotal - $prevTotal);
+                        $lap->total_time_ms = $newTotal;
+                        $lap->lap_time_ms = $newLapTime;
+                        $lap->save();
+                        $prevTotal = $newTotal;
+                    }
+                }
+            }
+        });
+
+        $now = now();
+        $elapsedMs = 0;
+        if ($session->ended_at) {
+            $elapsedMs = (int) (Carbon::parse($session->started_at)->diffInMilliseconds(Carbon::parse($session->ended_at)));
+        } elseif ($session->started_at) {
+            $elapsedMs = (int) (Carbon::parse($session->started_at)->diffInMilliseconds($now));
+        }
+
+        $startedAtMs = (int) ($session->started_at->getTimestamp() * 1000 + (int) ($session->started_at->micro / 1000));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Waktu start sesi berhasil diperbarui!',
+            'session' => [
+                'id' => $session->id,
+                'slug' => $session->slug,
+                'started_at' => $session->started_at?->toISOString(),
+                'started_at_formatted' => $session->started_at?->format('Y-m-d H:i:s'),
+                'started_at_ms' => $startedAtMs,
+                'elapsed_ms' => $elapsedMs,
+                'time_shift_ms' => $timeShiftMs,
+            ],
+        ]);
+    }
+
+    public function publicUpdateSessionTiming(Request $request, $slug)
+    {
+        return $this->updateSessionTiming($request, $slug);
     }
 
     public function storeLap(Request $request, $session)

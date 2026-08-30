@@ -474,6 +474,11 @@
                                 @{{ sessionSlug || currentSessionId }}
                             </div>
                             <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                                <button v-if="isSessionHost" type="button" @click="openEditTimingModal" 
+                                    class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-slate-700" title="Koreksi Tanggal & Jam Mulai Lomba (Human Error Start)">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                    <span>Koreksi Start</span>
+                                </button>
                                 <button type="button" @click="copySessionShareUrl" 
                                     class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
                                     <i class="fa-solid fa-copy"></i>
@@ -965,6 +970,11 @@
 
                         <!-- Secondary Actions Grid -->
                         <div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
+                            <button v-if="isSessionHost" @click="openEditTimingModal" 
+                                class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition" title="Koreksi Tanggal & Jam Start Lomba (Human Error Start)">
+                                <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                                <span>Edit Start</span>
+                            </button>
                             <button v-if="isSessionHost" @click="resetRace" 
                                 class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition" title="Reset Total Timer (Khusus Host)">
                                 <i class="fa-solid fa-rotate-right text-xs"></i>
@@ -2651,6 +2661,132 @@
         </div>
     </div>
 
+    <!-- Edit Start Date & Time Modal (Koreksi Human Error Start Timer Terlambat) -->
+    <div v-if="editTimingModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm" @click.self="closeEditTimingModal">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 w-full max-w-lg shadow-2xl relative text-white space-y-5">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-start pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Koreksi Waktu Start Sesi</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Koreksi tanggal dan jam mulai lomba jika start timer sebelumnya terlambat.</p>
+                    </div>
+                </div>
+                <button type="button" @click="closeEditTimingModal" class="text-slate-400 hover:text-white p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Error Banner -->
+            <div v-if="editTimingError" class="p-3 bg-red-950/80 border border-red-600 rounded-xl text-red-200 text-xs font-medium">
+                @{{ editTimingError }}
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button type="button" @click="editTimingMode = 'datetime'"
+                    :class="editTimingMode === 'datetime' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-white font-medium'"
+                    class="py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span>Tentukan Tanggal & Jam</span>
+                </button>
+                <button type="button" @click="editTimingMode = 'offset'"
+                    :class="editTimingMode === 'offset' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-white font-medium'"
+                    class="py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-backward-step"></i>
+                    <span>Mundurkan Waktu (Offset)</span>
+                </button>
+            </div>
+
+            <!-- Form Body: Mode Datetime -->
+            <div v-if="editTimingMode === 'datetime'" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Tanggal Start Lomba</label>
+                        <input v-model="editTimingDate" type="date"
+                            class="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Jam Start (HH:MM:SS)</label>
+                        <input v-model="editTimingTime" type="time" step="1"
+                            class="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Contoh: Jika lomba resmi dimulai tepat pukul <strong>06:00:00 WIB</strong>, masukkan jam tersebut. Timer balap dan durasi pelari akan dihitung dari jam tersebut.
+                </p>
+            </div>
+
+            <!-- Form Body: Mode Offset -->
+            <div v-if="editTimingMode === 'offset'" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Arah Koreksi Start</label>
+                    <select v-model="editTimingOffsetSign" class="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-bold text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="earlier">Mundurkan Waktu Start (Start Asli Lebih Awal / Telat Pencet Timer)</option>
+                        <option value="later">Majukan Waktu Start (Start Asli Lebih Lambat / Kecepetan Pencet)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Jumlah Menit</label>
+                        <input v-model.number="editTimingOffsetMin" type="number" min="0" max="600" placeholder="0"
+                            class="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Jumlah Detik</label>
+                        <input v-model.number="editTimingOffsetSec" type="number" min="0" max="59" placeholder="0"
+                            class="w-full p-3 bg-slate-950 border border-slate-700 rounded-xl font-mono text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Contoh: Jika panitia baru menekan tombol start <strong>5 menit 30 detik</strong> setelah pistol start berbunyi, pilih <em>Mundurkan</em> lalu isi 5 menit 30 detik.
+                </p>
+            </div>
+
+            <!-- Recalculate Laps Checkbox -->
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                    <input type="checkbox" v-model="editTimingRecalculateLaps" class="mt-0.5 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                    <div class="text-xs">
+                        <span class="font-bold text-white block">Sesuaikan waktu finisher yang sudah masuk</span>
+                        <span class="text-slate-400 text-[11px] block mt-0.5">Otomatis menggeser total waktu pelari yang sudah crossing agar sinkron dengan waktu start baru.</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="p-3.5 bg-slate-950 rounded-xl border border-indigo-900/40 flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400">Estimasi Waktu Berjalan Sekarang:</div>
+                    <div class="font-mono text-xl font-black text-emerald-400 mt-0.5">
+                        @{{ previewRecalculatedElapsed() }}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] uppercase font-bold text-slate-400">Waktu Start Baru:</div>
+                    <div class="font-mono text-xs font-bold text-slate-200 mt-0.5">
+                        @{{ previewTargetStartTime() }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+                <button type="button" @click="closeEditTimingModal" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-bold transition">
+                    Batal
+                </button>
+                <button type="button" @click="saveTimingAdjustment" :disabled="editTimingSaving"
+                    class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                    <i v-if="editTimingSaving" class="fa-solid fa-circle-notch fa-spin"></i>
+                    <i v-else class="fa-solid fa-check"></i>
+                    <span>@{{ editTimingSaving ? 'Menyimpan...' : 'Simpan Koreksi Start' }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -2767,6 +2903,18 @@
                 elapsed: 0,
                 interval: null
             });
+
+            // Timing Adjustment (Correction for Human Error / Late Timer Start)
+            const editTimingModalOpen = ref(false);
+            const editTimingSaving = ref(false);
+            const editTimingError = ref('');
+            const editTimingMode = ref('datetime'); // 'datetime' | 'offset'
+            const editTimingDate = ref('');
+            const editTimingTime = ref('');
+            const editTimingOffsetSign = ref('earlier'); // 'earlier' (mundur) | 'later' (maju)
+            const editTimingOffsetMin = ref(0);
+            const editTimingOffsetSec = ref(0);
+            const editTimingRecalculateLaps = ref(true);
 
             // Camera & AI Vision State
             let cocoModel = null;
@@ -3497,9 +3645,16 @@
                             
                             // Timer logic
                             timer.value.elapsed = data.session.timer_elapsed || 0;
+                            if (data.session.started_at_ms) {
+                                timer.value.startTime = data.session.started_at_ms;
+                            } else if (data.session.started_at) {
+                                timer.value.startTime = new Date(data.session.started_at).getTime();
+                            }
                             if (data.session.is_running) {
                                 timer.value.running = true;
-                                timer.value.startTime = Date.now() - timer.value.elapsed;
+                                if (!timer.value.startTime) {
+                                    timer.value.startTime = Date.now() - timer.value.elapsed;
+                                }
                                 // Restart interval if needed
                                 if (timer.value.interval) clearInterval(timer.value.interval);
                                 timer.value.interval = setInterval(() => {
@@ -3544,7 +3699,7 @@
                             });
                         }
                         saveState();
-                        alert('Race berhasil dimuat!');
+                        alert('Race berhasil dimuat! Anda dapat mengoreksi waktu start jika sebelumnya terlambat melalui tombol "Koreksi Start".');
                     }
                 } catch (e) {
                     alert('Gagal memuat race.');
@@ -4599,6 +4754,164 @@
                     currentView.value = 'race';
                 }
                 saveState();
+            };
+
+            const openEditTimingModal = () => {
+                if (!currentSessionId.value && !sessionSlug.value) {
+                    alert('Sesi balap belum dibuat. Silakan klik "Buat Sesi" atau "Start Timer" terlebih dahulu.');
+                    return;
+                }
+                editTimingError.value = '';
+                editTimingSaving.value = false;
+
+                // Pre-fill with current session start time or timer.value.startTime or now
+                let baseDate = new Date();
+                if (timer.value.startTime && Number.isFinite(timer.value.startTime) && timer.value.startTime > 0) {
+                    baseDate = new Date(timer.value.startTime);
+                }
+
+                // YYYY-MM-DD
+                const yyyy = baseDate.getFullYear();
+                const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(baseDate.getDate()).padStart(2, '0');
+                editTimingDate.value = `${yyyy}-${mm}-${dd}`;
+
+                // HH:mm:ss
+                const hh = String(baseDate.getHours()).padStart(2, '0');
+                const min = String(baseDate.getMinutes()).padStart(2, '0');
+                const ss = String(baseDate.getSeconds()).padStart(2, '0');
+                editTimingTime.value = `${hh}:${min}:${ss}`;
+
+                editTimingOffsetSign.value = 'earlier';
+                editTimingOffsetMin.value = 0;
+                editTimingOffsetSec.value = 0;
+                editTimingRecalculateLaps.value = true;
+                editTimingModalOpen.value = true;
+            };
+
+            const closeEditTimingModal = () => {
+                editTimingModalOpen.value = false;
+                editTimingError.value = '';
+            };
+
+            const computeCalculatedTargetDate = () => {
+                if (editTimingMode.value === 'datetime') {
+                    if (!editTimingDate.value || !editTimingTime.value) return null;
+                    const dStr = `${editTimingDate.value}T${editTimingTime.value.length === 5 ? editTimingTime.value + ':00' : editTimingTime.value}`;
+                    const d = new Date(dStr);
+                    return Number.isNaN(d.getTime()) ? null : d;
+                } else {
+                    let baseMs = timer.value.startTime || Date.now();
+                    const offsetTotalSec = ((parseInt(editTimingOffsetMin.value, 10) || 0) * 60) + (parseInt(editTimingOffsetSec.value, 10) || 0);
+                    const shiftMs = offsetTotalSec * 1000;
+                    const targetMs = editTimingOffsetSign.value === 'earlier' ? (baseMs - shiftMs) : (baseMs + shiftMs);
+                    return new Date(targetMs);
+                }
+            };
+
+            const previewTargetStartTime = () => {
+                const target = computeCalculatedTargetDate();
+                if (!target) return '-';
+                try {
+                    return target.toLocaleString('id-ID', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                    });
+                } catch (_) {
+                    return target.toISOString();
+                }
+            };
+
+            const previewRecalculatedElapsed = () => {
+                const target = computeCalculatedTargetDate();
+                if (!target) return '00:00:00.00';
+                const now = Date.now();
+                const diffMs = Math.max(0, now - target.getTime());
+                return formatTime(diffMs);
+            };
+
+            const saveTimingAdjustment = async () => {
+                if (editTimingSaving.value) return;
+                const target = computeCalculatedTargetDate();
+                if (!target) {
+                    editTimingError.value = 'Tanggal atau jam yang dimasukkan tidak valid.';
+                    return;
+                }
+
+                const targetSession = sessionSlug.value || currentSessionId.value;
+                if (!targetSession) {
+                    editTimingError.value = 'Sesi tidak ditemukan.';
+                    return;
+                }
+
+                editTimingSaving.value = true;
+                editTimingError.value = '';
+
+                try {
+                    const payload = {
+                        started_at_ms: target.getTime(),
+                        recalculate_laps: editTimingRecalculateLaps.value,
+                    };
+
+                    let endpoint = `${apiBase}/sessions/${encodeURIComponent(String(targetSession))}/update-timing`;
+                    let data;
+                    try {
+                        data = await apiFetchJson(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (errAuth) {
+                        endpoint = `${apiBase}/public/${encodeURIComponent(String(targetSession))}/update-timing`;
+                        data = await apiFetchJson(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    if (data && data.success) {
+                        const newStartMs = data.session.started_at_ms || target.getTime();
+                        const timeShiftMs = data.session.time_shift_ms || 0;
+
+                        // Update local timer state
+                        timer.value.startTime = newStartMs;
+                        timer.value.elapsed = Math.max(0, Date.now() - newStartMs);
+                        if (!timer.value.running && !timer.value.paused) {
+                            timer.value.running = true;
+                            if (timer.value.interval) clearInterval(timer.value.interval);
+                            timer.value.interval = setInterval(() => {
+                                timer.value.elapsed = Date.now() - timer.value.startTime;
+                            }, 50);
+                        }
+
+                        // Shift participant lap times locally if requested
+                        if (editTimingRecalculateLaps.value && timeShiftMs !== 0) {
+                            participants.value.forEach(p => {
+                                if (Array.isArray(p.laps) && p.laps.length > 0) {
+                                    p.laps.forEach(l => {
+                                        l.totalTime = Math.max(0, (l.totalTime || 0) + timeShiftMs);
+                                    });
+                                    p.totalTime = Math.max(0, (p.totalTime || 0) + timeShiftMs);
+                                }
+                            });
+                        }
+
+                        saveState();
+                        closeEditTimingModal();
+                        alert(`Waktu start sesi berhasil diperbarui!\n\nJam Start Baru: ${previewTargetStartTime()}\nWaktu Berjalan Baru: ${formatTime(timer.value.elapsed)}`);
+                        if (typeof pollLiveSync === 'function') {
+                            pollLiveSync();
+                        }
+                    } else {
+                        throw new Error(data?.message || 'Gagal memperbarui waktu start sesi.');
+                    }
+                } catch (e) {
+                    console.error('Update timing error:', e);
+                    editTimingError.value = e.message || 'Gagal memperbarui waktu start sesi.';
+                } finally {
+                    editTimingSaving.value = false;
+                }
             };
 
             const formattedTime = computed(() => {
@@ -7890,6 +8203,10 @@
                 videoReviewModalOpen, videoPlaybackRate,
                 startVideoRecording, stopVideoRecording, toggleVideoRecording,
                 openVideoReviewModal, closeVideoReviewModal, setVideoSpeed, stepVideoFrame, downloadRecordedVideo,
+                editTimingModalOpen, editTimingSaving, editTimingError, editTimingMode,
+                editTimingDate, editTimingTime, editTimingOffsetSign, editTimingOffsetMin, editTimingOffsetSec,
+                editTimingRecalculateLaps, openEditTimingModal, closeEditTimingModal,
+                computeCalculatedTargetDate, previewTargetStartTime, previewRecalculatedElapsed, saveTimingAdjustment,
             };
 
 
