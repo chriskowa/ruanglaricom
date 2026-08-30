@@ -207,4 +207,39 @@ class Article extends Model
     {
         $this->attributes['focus_keyword_en'] = is_array($value) ? implode(', ', array_filter($value)) : $value;
     }
+
+    /**
+     * Get featured image URL with fallback to default image if file is missing
+     */
+    public function getFeaturedImageUrl(): string
+    {
+        $image = $this->featured_image;
+
+        if (empty($image)) {
+            return asset('ruanglari.webp');
+        }
+
+        if (Str::startsWith($image, ['http://', 'https://'])) {
+            return $image;
+        }
+
+        $cleanPath = ltrim($image, '/');
+        if (Str::startsWith($cleanPath, 'storage/')) {
+            $cleanPath = substr($cleanPath, 8);
+        }
+
+        $publicDiskPath = storage_path('app/public/' . $cleanPath);
+        $publicDirFile = public_path('storage/' . $cleanPath);
+
+        if (file_exists($publicDiskPath) || file_exists($publicDirFile)) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        return asset('ruanglari.webp');
+    }
+
+    public function getFeaturedImageUrlAttribute(): string
+    {
+        return $this->getFeaturedImageUrl();
+    }
 }

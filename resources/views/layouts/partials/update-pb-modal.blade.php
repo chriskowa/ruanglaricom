@@ -5,6 +5,14 @@
     $currentVdot = (float) ($user->vdot ?? 35);
     $currentPaces = $user->training_paces ?? [];
 
+    // Check last updated / created date of PB (every 1 week / 7 days)
+    $lastPbDate = $user->updated_at ?: $user->created_at;
+    $daysSinceLastPb = $lastPbDate ? (int) $lastPbDate->diffInDays(now()) : 999;
+    $hasNeverSetPb = empty($user->pb_5k) && empty($user->pb_10k) && empty($user->pb_hm) && empty($user->pb_fm) && empty($user->pb_cooper) && empty($user->pb_balke);
+    $isPbOlderThanOneWeek = $daysSinceLastPb >= 7;
+    $shouldPromptWeeklyPb = $isPbOlderThanOneWeek || $hasNeverSetPb;
+    $lastPbDateFormatted = $lastPbDate ? $lastPbDate->translatedFormat('d M Y') : '-';
+
     $formatSecToPace = function($decimalMin) {
         if (!$decimalMin || $decimalMin <= 0) return '-';
         $mins = floor($decimalMin);
@@ -25,223 +33,658 @@
     $initialR = isset($currentPaces['R']) ? $formatSecToPace($currentPaces['R']) : '4:20';
 @endphp
 
-<div id="global-pb-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 hidden">
-    <div class="bg-slate-950 border border-slate-700 w-11/12 max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col my-6 max-h-[90vh]">
-        <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-neon">
-                    <i class="fas fa-heart-pulse text-base"></i>
-                </div>
+
+<style>
+    :root {
+        --perf-bg: #07101c;
+        --perf-panel: #0b1522;
+        --perf-panel-soft: #0f1b2a;
+        --perf-line: rgba(255,255,255,.09);
+        --perf-line-strong: rgba(255,255,255,.16);
+        --perf-text: #f7f9fb;
+        --perf-muted: #8794a6;
+        --perf-accent: #b8ff00;
+        --perf-danger: #fb7185;
+        --perf-warning: #fbbf24;
+    }
+
+    #global-pb-modal {
+        font-variant-numeric: tabular-nums;
+    }
+
+    .performance-modal {
+        width: min(1180px, calc(100vw - 32px));
+        max-height: min(94vh, 920px);
+        background: var(--perf-panel);
+        border: 1px solid var(--perf-line-strong);
+        box-shadow: 0 34px 100px rgba(0,0,0,.58);
+    }
+
+    .performance-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.18) transparent;
+    }
+
+    .performance-scroll::-webkit-scrollbar { width: 8px; }
+    .performance-scroll::-webkit-scrollbar-track { background: transparent; }
+    .performance-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,.14);
+        border-radius: 999px;
+    }
+
+    .performance-overline {
+        display: inline-flex;
+        align-items: center;
+        gap: .65rem;
+        color: var(--perf-accent);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+    }
+
+    .performance-overline::before {
+        content: "";
+        width: 30px;
+        height: 2px;
+        background: var(--perf-accent);
+    }
+
+    .performance-step {
+        color: rgba(255,255,255,.28);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+    }
+
+    .performance-section {
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--perf-line);
+    }
+
+    .performance-label {
+        display: block;
+        margin-bottom: .5rem;
+        color: #c9d1dc;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .performance-input,
+    .performance-textarea {
+        width: 100%;
+        border: 1px solid var(--perf-line);
+        border-radius: 3px;
+        background: rgba(255,255,255,.018);
+        color: #fff;
+        outline: none;
+        transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .performance-input {
+        min-height: 46px;
+        padding: 0 13px;
+        font-size: 12px;
+    }
+
+    .performance-textarea {
+        min-height: 84px;
+        padding: 12px 13px;
+        font-size: 12px;
+        resize: vertical;
+    }
+
+    .performance-input::placeholder,
+    .performance-textarea::placeholder {
+        color: rgba(255,255,255,.24);
+    }
+
+    .performance-input:focus,
+    .performance-textarea:focus {
+        border-color: rgba(184,255,0,.58);
+        background: rgba(255,255,255,.028);
+        box-shadow: 0 0 0 3px rgba(184,255,0,.055);
+    }
+
+    .performance-help {
+        margin-top: .42rem;
+        color: rgba(255,255,255,.31);
+        font-size: 9.5px;
+        line-height: 1.45;
+    }
+
+    .feeling-btn {
+        position: relative;
+        min-height: 72px;
+        padding: 11px 12px;
+        border: 1px solid var(--perf-line);
+        border-radius: 3px;
+        background: rgba(255,255,255,.018);
+        text-align: left;
+        transition: border-color .18s ease, background .18s ease;
+    }
+
+    .feeling-btn:hover {
+        border-color: rgba(255,255,255,.22);
+        background: rgba(255,255,255,.03);
+    }
+
+    .feeling-btn.is-active {
+        border-color: var(--perf-accent);
+        background: rgba(184,255,0,.045);
+    }
+
+    .feeling-btn.is-active::after {
+        content: "";
+        position: absolute;
+        left: -1px;
+        top: -1px;
+        bottom: -1px;
+        width: 3px;
+        background: var(--perf-accent);
+    }
+
+    .feeling-btn.is-active .feeling-title {
+        color: var(--perf-accent);
+    }
+
+    .performance-status {
+        border-left: 3px solid var(--perf-accent);
+        background: rgba(255,255,255,.018);
+    }
+
+    .performance-status.is-due {
+        border-left-color: var(--perf-warning);
+    }
+
+    .performance-score {
+        background: var(--perf-accent);
+        color: #07101c;
+    }
+
+    .pace-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .pace-table tr {
+        border-bottom: 1px solid var(--perf-line);
+    }
+
+    .pace-table tr:last-child {
+        border-bottom: 0;
+    }
+
+    .pace-table td {
+        padding: 15px 0;
+        vertical-align: middle;
+    }
+
+    .pace-tag {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--perf-line-strong);
+        color: rgba(255,255,255,.7);
+        font-size: 10px;
+        font-weight: 900;
+    }
+
+    .pace-name {
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .pace-sub {
+        margin-top: 2px;
+        color: rgba(255,255,255,.28);
+        font-size: 9px;
+    }
+
+    .pace-value {
+        color: #fff;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 15px;
+        font-weight: 800;
+        text-align: right;
+        white-space: nowrap;
+        letter-spacing: -.02em;
+    }
+
+    .pace-unit {
+        color: rgba(255,255,255,.28);
+        font-size: 9px;
+        font-weight: 500;
+    }
+
+    .performance-alert {
+        margin: 18px 24px 0;
+        padding: 12px 14px;
+        border: 1px solid;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .performance-alert--success {
+        color: #a7f3d0;
+        border-color: rgba(16,185,129,.30);
+        background: rgba(16,185,129,.06);
+    }
+
+    .performance-alert--error {
+        color: #fecdd3;
+        border-color: rgba(244,63,94,.30);
+        background: rgba(244,63,94,.06);
+    }
+
+    .performance-btn-primary,
+    .performance-btn-secondary {
+        min-height: 44px;
+        border-radius: 3px;
+        padding: 0 17px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        transition: background .18s ease, border-color .18s ease, color .18s ease;
+    }
+
+    .performance-btn-primary {
+        background: var(--perf-accent);
+        border: 1px solid var(--perf-accent);
+        color: #07101c;
+    }
+
+    .performance-btn-primary:hover {
+        background: #d2ff65;
+        border-color: #d2ff65;
+    }
+
+    .performance-btn-primary:disabled {
+        cursor: wait;
+        opacity: .55;
+    }
+
+    .performance-btn-secondary {
+        background: transparent;
+        border: 1px solid var(--perf-line-strong);
+        color: rgba(255,255,255,.58);
+    }
+
+    .performance-btn-secondary:hover {
+        border-color: rgba(255,255,255,.28);
+        color: #fff;
+        background: rgba(255,255,255,.025);
+    }
+
+    @media (max-width: 899px) {
+        .performance-modal {
+            width: 100%;
+            max-height: 100dvh;
+            height: 100dvh;
+            border: 0;
+        }
+    }
+</style>
+
+<div id="global-pb-modal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/80 backdrop-blur-[2px] p-0 md:p-5">
+    <div class="performance-modal flex flex-col overflow-hidden">
+
+        <!-- HEADER -->
+        <header class="shrink-0 border-b border-white/10 px-5 py-4 md:px-7 md:py-5">
+            <div class="flex items-start justify-between gap-6">
                 <div>
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Laporan Kondisi Atlet & Personal Best</h3>
-                    <p class="text-[11px] text-slate-400">Update feeling fisik harian, parameter tes lari, dan target pace latihan</p>
+                    <div class="performance-overline">Performance check-in</div>
+
+                    <div class="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
+                        <h2 class="text-xl md:text-[1.65rem] font-black tracking-[-.035em] text-white">
+                            Athlete Readiness &amp; Pace
+                        </h2>
+
+                        <div class="performance-score inline-flex items-center gap-2 px-2.5 py-1">
+                            <span class="text-[9px] font-black uppercase tracking-[.12em]">VDOT</span>
+                            <strong id="pb-display-vdot" class="font-mono text-sm">{{ number_format($currentVdot, 1) }}</strong>
+                        </div>
+                    </div>
+
+                    <p class="mt-2 max-w-2xl text-[11px] leading-relaxed text-white/38">
+                        Check-in mingguan untuk memperbarui kondisi, benchmark, dan pace latihan berdasarkan performa terkini.
+                    </p>
                 </div>
+
+                <button
+                    type="button"
+                    onclick="closeGlobalPbModal()"
+                    aria-label="Tutup"
+                    class="w-9 h-9 shrink-0 border border-white/10 text-white/40 hover:text-white hover:border-white/25 transition-colors flex items-center justify-center"
+                >
+                    <i class="fas fa-times text-xs"></i>
+                </button>
             </div>
-            <button type="button" onclick="closeGlobalPbModal()" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
-                <i class="fas fa-times text-xs"></i>
-            </button>
+        </header>
+
+        <!-- STATUS STRIP -->
+        <div class="shrink-0 px-5 md:px-7 py-3 border-b border-white/10 bg-black/10">
+            <div class="performance-status {{ $isPbOlderThanOneWeek ? 'is-due' : '' }} pl-3.5 py-1">
+                @if($hasNeverSetPb)
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-[.13em] text-white">Initial setup</span>
+                        <span class="text-[10px] text-white/35">Belum ada benchmark performa. Tambahkan satu hasil tes atau race terbaru.</span>
+                    </div>
+                @elseif($isPbOlderThanOneWeek)
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-[.13em] text-amber-300">Weekly review due</span>
+                        <span class="text-[10px] text-white/40">Terakhir diperbarui {{ $lastPbDateFormatted }} · {{ $daysSinceLastPb }} hari lalu</span>
+                    </div>
+                @else
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span class="text-[10px] font-black uppercase tracking-[.13em] text-[#B8FF00]">Up to date</span>
+                        <span class="text-[10px] text-white/40">Terakhir diperbarui {{ $lastPbDateFormatted }} · review berikutnya {{ 7 - $daysSinceLastPb }} hari lagi</span>
+                    </div>
+                @endif
+            </div>
         </div>
 
-        <!-- Scrollable Form Body -->
-        <form id="global-pb-form" onsubmit="submitGlobalPb(event)" class="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-950 text-slate-200">
+        <form id="global-pb-form" onsubmit="submitGlobalPb(event)" class="performance-scroll min-h-0 flex-1 overflow-y-auto">
             @csrf
 
-            <div id="global-pb-alert" class="hidden p-3.5 rounded-xl text-xs font-semibold"></div>
+            <div id="global-pb-alert" class="hidden"></div>
 
-            <!-- SECTION 1: LAPORAN KONDISI ATLET (FEELING & KELUHAN) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-user-check text-neon text-xs"></i>
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Kondisi & Kesiapan Fisik Hari Ini</h4>
+            <div class="grid xl:grid-cols-[minmax(0,1fr)_390px]">
+
+                <!-- INPUT COLUMN -->
+                <div class="px-5 py-6 md:px-7 md:py-7 xl:border-r xl:border-white/10">
+                    <section>
+                        <div class="flex items-end justify-between gap-5">
+                            <div>
+                                <div class="performance-step">01 / Readiness</div>
+                                <h3 class="mt-1 text-sm font-black uppercase tracking-[.055em] text-white">
+                                    Kondisi hari ini
+                                </h3>
+                            </div>
+                            <span class="text-[9px] uppercase tracking-[.12em] text-white/24">Required</span>
+                        </div>
+
+                        <div class="mt-5">
+                            <input type="hidden" name="feeling" id="global_pb_feeling" value="good">
+
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2" id="feeling-btn-group">
+                                <button type="button" onclick="selectFeeling('strong')" data-feeling="strong" aria-pressed="false" class="feeling-btn">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Sangat Prima</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Energi tinggi, siap sesi kualitas.</div>
+                                </button>
+
+                                <button type="button" onclick="selectFeeling('good')" data-feeling="good" aria-pressed="true" class="feeling-btn is-active">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#B8FF00]"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Bugar &amp; Siap</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Siap menjalankan beban normal.</div>
+                                </button>
+
+                                <button type="button" onclick="selectFeeling('average')" data-feeling="average" aria-pressed="false" class="feeling-btn">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Normal</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Cukup baik, pantau respons tubuh.</div>
+                                </button>
+
+                                <button type="button" onclick="selectFeeling('tired')" data-feeling="tired" aria-pressed="false" class="feeling-btn">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Lelah</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Fatigue atau kualitas tidur rendah.</div>
+                                </button>
+
+                                <button type="button" onclick="selectFeeling('sore')" data-feeling="sore" aria-pressed="false" class="feeling-btn">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Nyeri Otot</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Pertimbangkan recovery atau easy day.</div>
+                                </button>
+
+                                <button type="button" onclick="selectFeeling('injured')" data-feeling="injured" aria-pressed="false" class="feeling-btn">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                                        <span class="feeling-title text-[11px] font-black text-white">Terbatas</span>
+                                    </div>
+                                    <div class="mt-2 text-[9px] leading-snug text-white/28">Ada pain atau concern cedera.</div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="performance-label" for="global_pb_notes">Catatan fisik <span class="font-normal text-white/28">— opsional</span></label>
+                            <textarea
+                                name="physical_notes"
+                                id="global_pb_notes"
+                                rows="3"
+                                placeholder="Contoh: betis kanan terasa kencang setelah tempo run kemarin."
+                                class="performance-textarea"
+                            ></textarea>
+                        </div>
+                    </section>
+
+                    <section class="performance-section mt-7">
+                        <div>
+                            <div class="performance-step">02 / Benchmark</div>
+                            <h3 class="mt-1 text-sm font-black uppercase tracking-[.055em] text-white">
+                                Data performa
+                            </h3>
+                            <p class="mt-1.5 max-w-xl text-[10px] leading-relaxed text-white/31">
+                                Tidak perlu mengisi semuanya. Sistem akan memakai benchmark terbaik yang tersedia untuk estimasi VDOT.
+                            </p>
+                        </div>
+
+                        <div class="mt-5 grid md:grid-cols-2 gap-5">
+                            <div class="space-y-4">
+                                <div class="text-[9px] font-black uppercase tracking-[.13em] text-white/26">Field test</div>
+
+                                <div>
+                                    <label class="performance-label" for="global_pb_cooper">Cooper 12 menit</label>
+                                    <div class="relative">
+                                        <input type="number" name="pb_cooper" id="global_pb_cooper" value="{{ $user->pb_cooper }}" oninput="handlePbInputChange()" min="0" max="10000" placeholder="2650" class="performance-input pr-16 font-mono">
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] uppercase tracking-[.1em] text-white/28">meter</span>
+                                    </div>
+                                    <div class="performance-help">Jarak maksimal selama 12 menit.</div>
+                                </div>
+
+                                <div>
+                                    <label class="performance-label" for="global_pb_balke">Balke 15 menit</label>
+                                    <div class="relative">
+                                        <input type="number" name="pb_balke" id="global_pb_balke" value="{{ $user->pb_balke }}" oninput="handlePbInputChange()" min="0" max="10000" placeholder="3200" class="performance-input pr-16 font-mono">
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] uppercase tracking-[.1em] text-white/28">meter</span>
+                                    </div>
+                                    <div class="performance-help">Jarak maksimal selama 15 menit.</div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="text-[9px] font-black uppercase tracking-[.13em] text-white/26">Race result</div>
+                                    <div class="text-[9px] text-white/22">HH:MM:SS / MM:SS</div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="performance-label" for="global_pb_5k">5K</label>
+                                        <input type="text" name="pb_5k" id="global_pb_5k" value="{{ $user->pb_5k }}" oninput="handlePbInputChange()" placeholder="00:25:00" class="performance-input font-mono">
+                                    </div>
+
+                                    <div>
+                                        <label class="performance-label" for="global_pb_10k">10K</label>
+                                        <input type="text" name="pb_10k" id="global_pb_10k" value="{{ $user->pb_10k }}" oninput="handlePbInputChange()" placeholder="00:52:00" class="performance-input font-mono">
+                                    </div>
+
+                                    <div>
+                                        <label class="performance-label" for="global_pb_hm">Half Marathon</label>
+                                        <input type="text" name="pb_hm" id="global_pb_hm" value="{{ $user->pb_hm }}" oninput="handlePbInputChange()" placeholder="01:55:00" class="performance-input font-mono">
+                                    </div>
+
+                                    <div>
+                                        <label class="performance-label" for="global_pb_fm">Marathon</label>
+                                        <input type="text" name="pb_fm" id="global_pb_fm" value="{{ $user->pb_fm }}" oninput="handlePbInputChange()" placeholder="04:15:00" class="performance-input font-mono">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- LIVE RESULT COLUMN -->
+                <aside class="bg-black/[.09] px-5 py-6 md:px-7 md:py-7">
+                    <div class="xl:sticky xl:top-0">
+                        <div class="flex items-end justify-between gap-5">
+                            <div>
+                                <div class="performance-step">03 / Training output</div>
+                                <h3 class="mt-1 text-sm font-black uppercase tracking-[.055em] text-white">
+                                    Pace rekomendasi
+                                </h3>
+                            </div>
+                            <span class="text-[9px] uppercase tracking-[.12em] text-white/24">min / km</span>
+                        </div>
+
+                        <table class="pace-table mt-4">
+                            <tbody>
+                                <tr>
+                                    <td class="pr-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="pace-tag">E</span>
+                                            <div>
+                                                <div class="pace-name">Easy</div>
+                                                <div class="pace-sub">Recovery / aerobic</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="pb-pace-easy" class="pace-value">{{ $initialEasyRange }} <span class="pace-unit">/km</span></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="pr-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="pace-tag">M</span>
+                                            <div>
+                                                <div class="pace-name">Marathon</div>
+                                                <div class="pace-sub">Steady endurance</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="pb-pace-marathon" class="pace-value">{{ $initialM }} <span class="pace-unit">/km</span></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="pr-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="pace-tag">T</span>
+                                            <div>
+                                                <div class="pace-name">Threshold</div>
+                                                <div class="pace-sub">Lactate threshold</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="pb-pace-threshold" class="pace-value">{{ $initialT }} <span class="pace-unit">/km</span></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="pr-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="pace-tag">I</span>
+                                            <div>
+                                                <div class="pace-name">Interval</div>
+                                                <div class="pace-sub">VO₂max</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="pb-pace-interval" class="pace-value">{{ $initialI }} <span class="pace-unit">/km</span></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="pr-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="pace-tag">R</span>
+                                            <div>
+                                                <div class="pace-name">Repetition</div>
+                                                <div class="pace-sub">Speed / economy</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td id="pb-pace-repetition" class="pace-value">{{ $initialR }} <span class="pace-unit">/km</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="mt-6 border-t border-white/10 pt-5">
+                            <div class="text-[9px] font-black uppercase tracking-[.13em] text-[#B8FF00]">
+                                Calculation note
+                            </div>
+                            <p class="mt-2 text-[10px] leading-relaxed text-white/32">
+                                Pace berubah secara langsung saat Anda memperbarui benchmark. Estimasi menggunakan formula Jack Daniels VDOT dan memilih nilai performa terbaik yang tersedia.
+                            </p>
+                        </div>
+
+                        <div class="mt-6 border border-white/10 p-4">
+                            <div class="grid grid-cols-[auto_1fr] gap-3">
+                                <i class="fas fa-circle-info text-[#B8FF00] text-[11px] mt-0.5"></i>
+                                <p class="text-[9.5px] leading-relaxed text-white/34">
+                                    Gunakan pace sebagai acuan training. Kondisi fisik harian tetap menjadi pertimbangan utama sebelum menjalankan sesi intensitas tinggi.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <span class="text-[10px] text-slate-400 uppercase font-semibold">Laporan Harian</span>
-                </div>
-
-                <!-- Feeling Selector -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-2">Bagaimana kondisi tubuh dan fisik Anda saat ini?</label>
-                    <input type="hidden" name="feeling" id="global_pb_feeling" value="good">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="feeling-btn-group">
-                        <button type="button" onclick="selectFeeling('strong')" data-feeling="strong" class="feeling-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-left hover:border-emerald-500/60 transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
-                            <span class="font-semibold text-white">Sangat Prima</span>
-                        </button>
-                        <button type="button" onclick="selectFeeling('good')" data-feeling="good" class="feeling-btn active flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-neon bg-slate-800 text-left transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-neon shrink-0"></span>
-                            <span class="font-semibold text-white">Bugar & Siap</span>
-                        </button>
-                        <button type="button" onclick="selectFeeling('average')" data-feeling="average" class="feeling-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-left hover:border-slate-600 transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
-                            <span class="font-semibold text-white">Normal</span>
-                        </button>
-                        <button type="button" onclick="selectFeeling('tired')" data-feeling="tired" class="feeling-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-left hover:border-amber-500/60 transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
-                            <span class="font-semibold text-white">Lelah / Kurang Tidur</span>
-                        </button>
-                        <button type="button" onclick="selectFeeling('sore')" data-feeling="sore" class="feeling-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-left hover:border-orange-500/60 transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0"></span>
-                            <span class="font-semibold text-white">Nyeri Otot</span>
-                        </button>
-                        <button type="button" onclick="selectFeeling('injured')" data-feeling="injured" class="feeling-btn flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-left hover:border-red-500/60 transition text-xs">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0"></span>
-                            <span class="font-semibold text-white">Cedera / Terbatas</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Notes / Keluhan -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Catatan Fisik / Keluhan Khusus (Opsional)</label>
-                    <textarea name="physical_notes" id="global_pb_notes" rows="2" placeholder="Contoh: Betis kanan terasa kencang setelah tempo run kemarin, butuh recovery run ringan." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500 resize-none"></textarea>
-                </div>
+                </aside>
             </div>
 
-            <!-- SECTION 2: PERSONAL BEST & TEST BENCHMARK -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-stopwatch text-neon text-xs"></i>
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Personal Best & Parameter Tes</h4>
+            <!-- FOOTER -->
+            <footer class="sticky bottom-0 z-20 border-t border-white/10 bg-[#0b1522]/96 backdrop-blur-md px-5 py-4 md:px-7">
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="text-[9px] leading-relaxed text-white/23">
+                        Weekly athlete check-in · RuangLari Performance
                     </div>
-                    <span class="text-[10px] text-slate-400 font-mono">Format: HH:MM:SS atau Meter</span>
-                </div>
 
-                <!-- 12m Cooper & 15m Balke -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Cooper Test 12-Menit (Meter)</label>
-                        <input type="number" name="pb_cooper" id="global_pb_cooper" value="{{ $user->pb_cooper }}" oninput="handlePbInputChange()" min="0" max="10000" placeholder="e.g. 2650" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
-                        <span class="text-[10px] text-slate-500 mt-1 block">Jarak tempuh lari maksimal selama 12 menit</span>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Balke Test 15-Menit (Meter)</label>
-                        <input type="number" name="pb_balke" id="global_pb_balke" value="{{ $user->pb_balke }}" oninput="handlePbInputChange()" min="0" max="10000" placeholder="e.g. 3200" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
-                        <span class="text-[10px] text-slate-500 mt-1 block">Jarak tempuh lari maksimal selama 15 menit</span>
-                    </div>
-                </div>
+                    <div class="flex items-center justify-end gap-2">
+                        <button
+                            type="button"
+                            onclick="closeGlobalPbModal()"
+                            class="performance-btn-secondary"
+                        >
+                            Nanti saja
+                        </button>
 
-                <!-- 5K, 10K, HM, FM -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">5K PB (HH:MM:SS / MM:SS)</label>
-                        <input type="text" name="pb_5k" id="global_pb_5k" value="{{ $user->pb_5k }}" oninput="handlePbInputChange()" placeholder="00:25:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">10K PB (HH:MM:SS / MM:SS)</label>
-                        <input type="text" name="pb_10k" id="global_pb_10k" value="{{ $user->pb_10k }}" oninput="handlePbInputChange()" placeholder="00:52:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Half Marathon / 21K (HH:MM:SS)</label>
-                        <input type="text" name="pb_hm" id="global_pb_hm" value="{{ $user->pb_hm }}" oninput="handlePbInputChange()" placeholder="01:55:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Full Marathon / 42K (HH:MM:SS)</label>
-                        <input type="text" name="pb_fm" id="global_pb_fm" value="{{ $user->pb_fm }}" oninput="handlePbInputChange()" placeholder="04:15:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors placeholder:text-slate-500">
+                        <button
+                            type="submit"
+                            id="global-pb-submit-btn"
+                            class="performance-btn-primary inline-flex items-center justify-center gap-2"
+                        >
+                            <span>Simpan Check-in</span>
+                            <i class="fas fa-arrow-right text-[10px]"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-
-            <!-- SECTION 3: REKOMENDASI PACE TRAINING (JACK DANIELS VDOT) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-gauge-high text-neon text-xs"></i>
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Target Pace Latihan</h4>
-                    </div>
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950 border border-slate-800 text-xs font-bold text-white">
-                        <span class="text-slate-400 font-normal text-[11px]">VDOT:</span>
-                        <span id="pb-display-vdot" class="text-neon font-mono">{{ number_format($currentVdot, 1) }}</span>
-                    </div>
-                </div>
-
-                <!-- Pace Cards Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <!-- Easy Pace -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-emerald-400 uppercase tracking-wide">Easy (E) Pace</span>
-                            <span class="text-[10px] text-slate-400">Recovery & Aerobic</span>
-                        </div>
-                        <div id="pb-pace-easy" class="text-base font-black font-mono text-white">{{ $initialEasyRange }} <span class="text-[11px] font-normal text-slate-400">/km</span></div>
-                        <p class="text-[10px] text-slate-400 leading-tight">Untuk long run, pemulihan, dan membangun kapasitas aerobik dasar.</p>
-                    </div>
-
-                    <!-- Marathon Pace -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-cyan-400 uppercase tracking-wide">Marathon (M) Pace</span>
-                            <span class="text-[10px] text-slate-400">Steady Endurance</span>
-                        </div>
-                        <div id="pb-pace-marathon" class="text-base font-black font-mono text-white">{{ $initialM }} <span class="text-[11px] font-normal text-slate-400">/km</span></div>
-                        <p class="text-[10px] text-slate-400 leading-tight">Target ritme balap marathon & latihan daya tahan berkelanjutan.</p>
-                    </div>
-
-                    <!-- Threshold Pace -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-amber-400 uppercase tracking-wide">Threshold (T) Pace</span>
-                            <span class="text-[10px] text-slate-400">Lactate Threshold</span>
-                        </div>
-                        <div id="pb-pace-threshold" class="text-base font-black font-mono text-white">{{ $initialT }} <span class="text-[11px] font-normal text-slate-400">/km</span></div>
-                        <p class="text-[10px] text-slate-400 leading-tight">Tempo run 20-30 menit untuk menggeser ambang asam laktat.</p>
-                    </div>
-
-                    <!-- Interval Pace -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-orange-400 uppercase tracking-wide">Interval (I) Pace</span>
-                            <span class="text-[10px] text-slate-400">VO2Max Booster</span>
-                        </div>
-                        <div id="pb-pace-interval" class="text-base font-black font-mono text-white">{{ $initialI }} <span class="text-[11px] font-normal text-slate-400">/km</span></div>
-                        <p class="text-[10px] text-slate-400 leading-tight">Interval 800m - 1200m untuk meningkatkan kapasitas VO2Max.</p>
-                    </div>
-
-                    <!-- Repetition Pace -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-rose-400 uppercase tracking-wide">Repetition (R) Pace</span>
-                            <span class="text-[10px] text-slate-400">Speed & Form</span>
-                        </div>
-                        <div id="pb-pace-repetition" class="text-base font-black font-mono text-white">{{ $initialR }} <span class="text-[11px] font-normal text-slate-400">/km</span></div>
-                        <p class="text-[10px] text-slate-400 leading-tight">Latihan sprint pendek 200m - 400m dengan istirahat penuh.</p>
-                    </div>
-
-                    <!-- VDOT Summary Box -->
-                    <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between">
-                        <div class="text-[11px] font-bold text-neon uppercase tracking-wide">Kalkulasi Otomatis</div>
-                        <p class="text-[10px] text-slate-400 mt-1">Pace latihan langsung diperbarui saat Anda mengubah catatan waktu atau hasil tes.</p>
-                        <div class="mt-2 text-[10px] text-slate-500 font-mono">Formula: Jack Daniels VDOT</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="pt-2 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0">
-                <button type="button" onclick="closeGlobalPbModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-xs font-bold">
-                    Tutup
-                </button>
-                <button type="submit" id="global-pb-submit-btn" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-lime-400 transition-all text-xs flex items-center gap-2 shadow-lg shadow-neon/10">
-                    <i class="fas fa-save text-xs"></i>
-                    <span>Simpan & Perbarui Pace</span>
-                </button>
-            </div>
+            </footer>
         </form>
     </div>
 </div>
 
 <script>
+    const shouldPromptWeeklyPb = @json($shouldPromptWeeklyPb);
+    const daysSinceLastPb = @json($daysSinceLastPb);
+
     function selectFeeling(feeling) {
         document.getElementById('global_pb_feeling').value = feeling;
         document.querySelectorAll('#feeling-btn-group .feeling-btn').forEach(btn => {
-            if (btn.getAttribute('data-feeling') === feeling) {
-                btn.classList.add('border-neon', 'bg-slate-800');
-                btn.classList.remove('border-slate-800', 'bg-slate-950');
-            } else {
-                btn.classList.remove('border-neon', 'bg-slate-800');
-                btn.classList.add('border-slate-800', 'bg-slate-950');
-            }
+            const active = btn.getAttribute('data-feeling') === feeling;
+            btn.classList.toggle('is-active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
     }
 
@@ -249,139 +692,145 @@
         const modal = document.getElementById('global-pb-modal');
         if (modal) {
             modal.classList.remove('hidden');
-            const alertBox = document.getElementById('global-pb-alert');
-            if (alertBox) alertBox.classList.add('hidden');
-            handlePbInputChange();
+            document.body.style.overflow = 'hidden';
         }
     }
 
     function closeGlobalPbModal() {
         const modal = document.getElementById('global-pb-modal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            // Dismiss cooldown: don't auto-prompt again for 24 hours if closed manually
+            localStorage.setItem('global_pb_modal_dismissed_time', Date.now().toString());
+        }
     }
 
-    document.getElementById('global-pb-modal')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeGlobalPbModal();
-        }
-    });
-
-    // Parse time string (HH:MM:SS or MM:SS) to total seconds
-    function parseTimeToSeconds(timeStr) {
+    function timeToMinutes(timeStr) {
         if (!timeStr) return null;
-        timeStr = timeStr.trim();
-        if (!timeStr) return null;
-        const parts = timeStr.split(':').map(Number);
-        if (parts.some(isNaN)) return null;
+        const parts = timeStr.trim().split(':').map(Number);
         if (parts.length === 3) {
-            return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            return parts[0] * 60 + parts[1] + parts[2] / 60;
         } else if (parts.length === 2) {
-            return parts[0] * 60 + parts[1];
+            return parts[0] + parts[1] / 60;
         }
         return null;
     }
 
-    // Format time input to standard HH:MM:SS
-    function normalizeTimeFormat(val) {
-        if (!val) return null;
-        val = val.trim();
-        if (!val) return null;
-        const parts = val.split(':');
+    function normalizeTimeFormat(timeStr) {
+        if (!timeStr) return null;
+        const parts = timeStr.trim().split(':').map(Number);
+        if (parts.some(isNaN)) return null;
         if (parts.length === 2) {
-            return `00:${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+            return `00:${String(parts[0]).padStart(2, '0')}:${String(parts[1]).padStart(2, '0')}`;
         } else if (parts.length === 3) {
-            return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:${parts[2].padStart(2, '0')}`;
+            return `${String(parts[0]).padStart(2, '0')}:${String(parts[1]).padStart(2, '0')}:${String(parts[2]).padStart(2, '0')}`;
         }
-        return val;
+        return null;
     }
 
-    // Jack Daniels VDOT calculation from race distance & time in seconds
-    function calcVdotFromRace(distMeters, timeSec) {
-        if (!distMeters || !timeSec || timeSec <= 0) return 0;
-        const velocity = distMeters / (timeSec / 60); // m/min
-        const vo2 = -4.60 + (0.182258 * velocity) + (0.000104 * Math.pow(velocity, 2));
-        const t = timeSec / 60; // minutes
-        const percentMax = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
-        if (percentMax <= 0) return 0;
-        return Math.max(10, Math.min(85, vo2 / percentMax));
+    function calculateVdotFromTime(distanceMeters, timeMinutes) {
+        if (!distanceMeters || !timeMinutes || timeMinutes <= 0) return null;
+        const velocity = distanceMeters / timeMinutes; // m/min
+        const vo2 = -4.60 + 0.182258 * velocity + 0.000104 * Math.pow(velocity, 2);
+        const percentMax = 0.8 + 0.1894393 * Math.exp(-0.012778 * timeMinutes) + 0.2989558 * Math.exp(-0.1932605 * timeMinutes);
+        if (percentMax <= 0) return null;
+        const vdot = vo2 / percentMax;
+        return (vdot > 10 && vdot < 90) ? vdot : null;
     }
 
-    function calcVdotFromCooper(meters) {
-        if (!meters || meters <= 500) return 0;
-        return Math.max(10, Math.min(85, (meters - 504.9) / 44.73));
+    function calculateVdotFromCooper(meters) {
+        if (!meters || meters <= 0) return null;
+        return calculateVdotFromTime(meters, 12);
     }
 
-    function calcVdotFromBalke(meters) {
-        if (!meters || meters <= 500) return 0;
-        return Math.max(10, Math.min(85, ((meters / 15) - 133) * 0.172 + 33.3));
+    function calculateVdotFromBalke(meters) {
+        if (!meters || meters <= 0) return null;
+        return calculateVdotFromTime(meters, 15);
     }
 
-    function calcTrainingPaces(vdot) {
-        if (!vdot || vdot < 10) return null;
-        const a = 0.000104;
-        const b = 0.182258;
-        const c = -4.6 - vdot;
-        const vVO2max = (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a);
-        if (!vVO2max || isNaN(vVO2max)) return null;
+    function calculatePacesFromVdot(vdot) {
+        if (!vdot || vdot <= 0) return null;
 
-        const formatPace = (velocity) => {
-            if (!velocity || velocity <= 0) return '-';
-            const minPerKm = 1000 / velocity;
-            let mins = Math.floor(minPerKm);
-            let secs = Math.round((minPerKm - mins) * 60);
+        function getPacePerKm(intensity) {
+            const vo2 = vdot * intensity;
+            const a = 0.000104;
+            const b = 0.182258;
+            const c = -4.60 - vo2;
+            const discriminant = Math.pow(b, 2) - 4 * a * c;
+            if (discriminant < 0) return null;
+            const velocity = (-b + Math.sqrt(discriminant)) / (2 * a);
+            if (velocity <= 0) return null;
+            return 1000 / velocity; // minutes per km (decimal)
+        }
+
+        function formatPace(decimalMin) {
+            if (!decimalMin || decimalMin <= 0) return '-';
+            const mins = floor(decimalMin);
+            let secs = round((decimalMin - mins) * 60);
+            let finalMins = mins;
             if (secs >= 60) {
-                mins++;
+                finalMins++;
                 secs = 0;
             }
-            return `${mins}:${String(secs).padStart(2, '0')}`;
-        };
+            return `${finalMins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function floor(n) { return Math.floor(n); }
+        function round(n) { return Math.round(n); }
+
+        const eLow = getPacePerKm(0.65);
+        const eHigh = getPacePerKm(0.74);
+        const mPace = getPacePerKm(0.80);
+        const tPace = getPacePerKm(0.88);
+        const iPace = getPacePerKm(0.975);
+        const rPace = getPacePerKm(1.05);
 
         return {
-            vdot: vdot.toFixed(1),
-            easy_range: `${formatPace(vVO2max * 0.72)} - ${formatPace(vVO2max * 0.66)}`,
-            marathon: formatPace(vVO2max * 0.82),
-            threshold: formatPace(vVO2max * 0.88),
-            interval: formatPace(vVO2max * 0.97),
-            repetition: formatPace(vVO2max * 1.05),
+            easy_range: `${formatPace(eHigh)} - ${formatPace(eLow)}`,
+            marathon: formatPace(mPace),
+            threshold: formatPace(tPace),
+            interval: formatPace(iPace),
+            repetition: formatPace(rPace)
         };
     }
 
     function handlePbInputChange() {
-        const pb5kSec = parseTimeToSeconds(document.getElementById('global_pb_5k')?.value);
-        const pb10kSec = parseTimeToSeconds(document.getElementById('global_pb_10k')?.value);
-        const pbHmSec = parseTimeToSeconds(document.getElementById('global_pb_hm')?.value);
-        const pbFmSec = parseTimeToSeconds(document.getElementById('global_pb_fm')?.value);
-        const cooperMeters = parseInt(document.getElementById('global_pb_cooper')?.value) || 0;
-        const balkeMeters = parseInt(document.getElementById('global_pb_balke')?.value) || 0;
+        const pb5k = timeToMinutes(document.getElementById('global_pb_5k')?.value);
+        const pb10k = timeToMinutes(document.getElementById('global_pb_10k')?.value);
+        const pbHm = timeToMinutes(document.getElementById('global_pb_hm')?.value);
+        const pbFm = timeToMinutes(document.getElementById('global_pb_fm')?.value);
+        const pbCooper = parseFloat(document.getElementById('global_pb_cooper')?.value) || null;
+        const pbBalke = parseFloat(document.getElementById('global_pb_balke')?.value) || null;
 
-        let maxVdot = 0;
+        const vdots = [];
+        if (pb5k) vdots.push(calculateVdotFromTime(5000, pb5k));
+        if (pb10k) vdots.push(calculateVdotFromTime(10000, pb10k));
+        if (pbHm) vdots.push(calculateVdotFromTime(21097.5, pbHm));
+        if (pbFm) vdots.push(calculateVdotFromTime(42195, pbFm));
+        if (pbCooper) vdots.push(calculateVdotFromCooper(pbCooper));
+        if (pbBalke) vdots.push(calculateVdotFromBalke(pbBalke));
 
-        if (pb5kSec) maxVdot = Math.max(maxVdot, calcVdotFromRace(5000, pb5kSec));
-        if (pb10kSec) maxVdot = Math.max(maxVdot, calcVdotFromRace(10000, pb10kSec));
-        if (pbHmSec) maxVdot = Math.max(maxVdot, calcVdotFromRace(21097.5, pbHmSec));
-        if (pbFmSec) maxVdot = Math.max(maxVdot, calcVdotFromRace(42195, pbFmSec));
-        if (cooperMeters) maxVdot = Math.max(maxVdot, calcVdotFromCooper(cooperMeters));
-        if (balkeMeters) maxVdot = Math.max(maxVdot, calcVdotFromBalke(balkeMeters));
+        const validVdots = vdots.filter(v => v !== null && !isNaN(v) && v > 0);
+        if (validVdots.length === 0) return;
 
-        if (maxVdot < 10) {
-            maxVdot = {{ $currentVdot }};
-        }
+        const maxVdot = Math.max(...validVdots);
+        const displayVdotEl = document.getElementById('pb-display-vdot');
+        if (displayVdotEl) displayVdotEl.textContent = maxVdot.toFixed(1);
 
-        const paces = calcTrainingPaces(maxVdot);
+        const paces = calculatePacesFromVdot(maxVdot);
         if (paces) {
-            const vdotEl = document.getElementById('pb-display-vdot');
             const easyEl = document.getElementById('pb-pace-easy');
             const marathonEl = document.getElementById('pb-pace-marathon');
             const thresholdEl = document.getElementById('pb-pace-threshold');
             const intervalEl = document.getElementById('pb-pace-interval');
             const repetitionEl = document.getElementById('pb-pace-repetition');
 
-            if (vdotEl) vdotEl.textContent = paces.vdot;
-            if (easyEl) easyEl.innerHTML = `${paces.easy_range} <span class="text-[11px] font-normal text-slate-400">/km</span>`;
-            if (marathonEl) marathonEl.innerHTML = `${paces.marathon} <span class="text-[11px] font-normal text-slate-400">/km</span>`;
-            if (thresholdEl) thresholdEl.innerHTML = `${paces.threshold} <span class="text-[11px] font-normal text-slate-400">/km</span>`;
-            if (intervalEl) intervalEl.innerHTML = `${paces.interval} <span class="text-[11px] font-normal text-slate-400">/km</span>`;
-            if (repetitionEl) repetitionEl.innerHTML = `${paces.repetition} <span class="text-[11px] font-normal text-slate-400">/km</span>`;
+            if (easyEl) easyEl.innerHTML = `${paces.easy_range} <span class="pace-unit">/km</span>`;
+            if (marathonEl) marathonEl.innerHTML = `${paces.marathon} <span class="pace-unit">/km</span>`;
+            if (thresholdEl) thresholdEl.innerHTML = `${paces.threshold} <span class="pace-unit">/km</span>`;
+            if (intervalEl) intervalEl.innerHTML = `${paces.interval} <span class="pace-unit">/km</span>`;
+            if (repetitionEl) repetitionEl.innerHTML = `${paces.repetition} <span class="pace-unit">/km</span>`;
         }
     }
 
@@ -425,7 +874,10 @@
             const res = await resp.json();
 
             if (res.success || resp.ok) {
-                alertBox.className = 'p-3.5 rounded-xl text-xs font-semibold bg-emerald-950 border border-emerald-800 text-emerald-300 block';
+                // Clear dismissal cooldown since user successfully updated
+                localStorage.removeItem('global_pb_modal_dismissed_time');
+
+                alertBox.className = 'performance-alert performance-alert--success block';
                 alertBox.textContent = 'Laporan kondisi & Personal Best berhasil diperbarui! Target pace latihan telah disesuaikan.';
 
                 setTimeout(() => {
@@ -435,27 +887,29 @@
                     }
                 }, 1200);
             } else {
-                alertBox.className = 'p-3.5 rounded-xl text-xs font-semibold bg-red-950 border border-red-800 text-red-300 block';
+                alertBox.className = 'performance-alert performance-alert--error block';
                 alertBox.textContent = res.message || 'Gagal memperbarui Personal Best. Periksa format waktu (HH:MM:SS).';
             }
         } catch (err) {
-            alertBox.className = 'p-3.5 rounded-xl text-xs font-semibold bg-red-950 border border-red-800 text-red-300 block';
+            alertBox.className = 'performance-alert performance-alert--error block';
             alertBox.textContent = 'Terjadi kesalahan sistem. Silakan coba lagi.';
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save text-xs"></i> <span>Simpan & Perbarui Pace</span>';
+            btn.innerHTML = '<span>Simpan Check-in</span><i class="fas fa-arrow-right text-[10px]"></i>';
         }
     }
 
-    // Auto-prompt on dashboard load if not prompted in current session
+    // Auto-prompt every 1 week (7 days) based on DB updated_at / created_at date
     document.addEventListener('DOMContentLoaded', function() {
-        if (window.location.pathname.includes('/runner/dashboard')) {
-            const hasShownSession = sessionStorage.getItem('pb_checkin_shown_session');
-            if (!hasShownSession) {
-                sessionStorage.setItem('pb_checkin_shown_session', 'true');
+        if (shouldPromptWeeklyPb) {
+            const lastDismissed = localStorage.getItem('global_pb_modal_dismissed_time');
+            const oneDayMs = 24 * 60 * 60 * 1000;
+            const isDismissedRecently = lastDismissed && (Date.now() - parseInt(lastDismissed, 10) < oneDayMs);
+
+            if (!isDismissedRecently) {
                 setTimeout(() => {
                     openGlobalPbModal();
-                }, 1000);
+                }, 1200);
             }
         }
     });

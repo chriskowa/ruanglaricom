@@ -74,13 +74,9 @@
 
                         if (isset($featuredArticles) && $featuredArticles) {
                             foreach ($featuredArticles as $a) {
-                                $img = null;
-
-                                if ($a->featured_image) {
-                                    $img = Str::startsWith($a->featured_image, ['http://', 'https://'])
-                                        ? $a->featured_image
-                                        : asset('storage/' . $a->featured_image);
-                                }
+                                $img = method_exists($a, 'getFeaturedImageUrl')
+                                    ? $a->getFeaturedImageUrl()
+                                    : ($a->featured_image ? (Str::startsWith($a->featured_image, ['http://', 'https://']) ? $a->featured_image : asset('storage/' . ltrim($a->featured_image, '/'))) : asset('ruanglari.webp'));
 
                                 $slides->push([
                                     'type' => 'article',
@@ -327,18 +323,18 @@
                         </div>
 
                         <div id="vdot_tab_paces_content" class="rl-result-list">
-                            <div><span><b>E</b> Easy / Recovery</span><strong id="vdot_easy_pace">05:00/km</strong></div>
-                            <div><span><b>M</b> Marathon</span><strong id="vdot_marathon_pace">04:30/km</strong></div>
-                            <div><span><b>T</b> Threshold / Tempo</span><strong id="vdot_tempo_pace">04:10/km</strong></div>
+                            <div><span><b class="rl-pace-badge rl-pace-e">E</b> Easy / Recovery</span><strong id="vdot_easy_pace">05:00/km</strong></div>
+                            <div><span><b class="rl-pace-badge rl-pace-m">M</b> Marathon</span><strong id="vdot_marathon_pace">04:30/km</strong></div>
+                            <div><span><b class="rl-pace-badge rl-pace-t">T</b> Threshold / Tempo</span><strong id="vdot_tempo_pace">04:10/km</strong></div>
                             <div>
-                                <span><b>I</b> Interval</span>
+                                <span><b class="rl-pace-badge rl-pace-i">I</b> Interval</span>
                                 <strong>
                                     <u id="vdot_interval_pace">03:45/km</u>
                                     <small id="vdot_interval_400m">(90s / 400m)</small>
                                 </strong>
                             </div>
                             <div>
-                                <span><b>R</b> Repetition</span>
+                                <span><b class="rl-pace-badge rl-pace-r">R</b> Repetition</span>
                                 <strong>
                                     <u id="vdot_repetition_pace">03:30/km</u>
                                     <small id="vdot_repetition_400m">(84s / 400m)</small>
@@ -1305,7 +1301,53 @@
     }
 
     .rl-result-list > div:first-child { border-top: 0; }
-    .rl-result-list span b { color: var(--rl-lime); margin-right: .3rem; }
+    .rl-result-list span {
+        display: inline-flex;
+        align-items: center;
+    }
+    .rl-result-list span b.rl-pace-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 2px;
+        font-family: var(--rl-mono);
+        font-size: .68rem;
+        font-weight: 800;
+        margin-right: .45rem;
+        flex-shrink: 0;
+    }
+
+    .rl-result-list span b.rl-pace-e {
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.12);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+
+    .rl-result-list span b.rl-pace-m {
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .rl-result-list span b.rl-pace-t {
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+
+    .rl-result-list span b.rl-pace-i {
+        color: #fb923c;
+        background: rgba(251, 146, 60, 0.12);
+        border: 1px solid rgba(251, 146, 60, 0.35);
+    }
+
+    .rl-result-list span b.rl-pace-r {
+        color: #f43f5e;
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.35);
+    }
 
     .rl-result-list strong {
         color: #fff;

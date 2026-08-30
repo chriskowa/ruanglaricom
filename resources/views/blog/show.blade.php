@@ -41,14 +41,9 @@
 @endsection
 
 @php
-    $bgImage = null;
-    if ($article->featured_image) {
-        if (Str::startsWith($article->featured_image, ['http://', 'https://'])) {
-            $bgImage = $article->featured_image;
-        } else {
-            $bgImage = asset('storage/' . $article->featured_image);
-        }
-    }
+    $bgImage = method_exists($article, 'getFeaturedImageUrl')
+        ? $article->getFeaturedImageUrl()
+        : ($article->featured_image ? (Str::startsWith($article->featured_image, ['http://', 'https://']) ? $article->featured_image : asset('storage/' . ltrim($article->featured_image, '/'))) : asset('ruanglari.webp'));
 @endphp
 
 @if($bgImage)
@@ -730,7 +725,7 @@
         </div>
     </div>
 
-    @if($relatedArticles->count() > 0)
+    @if(isset($relatedArticles) && $relatedArticles->count() > 0)
     <div class="mt-24 py-16 bg-slate-900/50 border-t border-slate-800">
         <div class="container mx-auto px-4 md:px-8">
             <div class="flex items-center justify-between mb-10">
@@ -743,20 +738,11 @@
                 <a href="{{ route('blog.show', $related->slug) }}" class="group block h-full bg-card rounded-2xl overflow-hidden border border-slate-700 hover:border-neon/50 transition-all hover:shadow-lg hover:shadow-neon/10">
                     <div class="relative h-48 overflow-hidden">
                         @php
-                            $relImage = null;
-                            if ($related->featured_image) {
-                                if (Str::startsWith($related->featured_image, ['http://', 'https://'])) {
-                                    $relImage = $related->featured_image;
-                                } else {
-                                    $relImage = asset('storage/' . $related->featured_image);
-                                }
-                            }
+                            $relImage = method_exists($related, 'getFeaturedImageUrl')
+                                ? $related->getFeaturedImageUrl()
+                                : asset('ruanglari.webp');
                         @endphp
-                        @if($relImage)
-                            <img src="{{ $relImage }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        @else
-                            <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        @endif
+                        <img src="{{ $relImage }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
                         <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-white">
                             {{ $related->published_at ? $related->published_at->format('d M') : $related->created_at->format('d M') }}
                         </div>

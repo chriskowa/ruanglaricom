@@ -15,112 +15,589 @@
             color: #121212 !important;
             box-shadow: 0 4px 12px rgba(204, 255, 0, 0.25);
         }
+
+        /* ---------------------------------------------------------
+           Runner Dashboard — Performance Workspace
+           --------------------------------------------------------- */
+        #runner-dashboard-shell {
+            --rd-bg: #060a17;
+            --rd-panel: #0b1220;
+            --rd-panel-soft: #0e1726;
+            --rd-line: rgba(255,255,255,.09);
+            --rd-line-strong: rgba(255,255,255,.15);
+            --rd-text: #f7f9fb;
+            --rd-muted: #8592a5;
+            --rd-accent: #B8FF00;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .runner-command {
+            border-top: 1px solid var(--rd-line);
+            border-bottom: 1px solid var(--rd-line);
+        }
+
+        .runner-command__top {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 2rem;
+            padding: 1.75rem 0;
+        }
+
+        .runner-kicker {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            color: var(--rd-accent);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .runner-kicker::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background: var(--rd-accent);
+        }
+
+        .runner-name {
+            margin-top: .55rem;
+            color: #fff;
+            font-size: clamp(2.15rem, 5vw, 4.7rem);
+            line-height: .88;
+            letter-spacing: -.06em;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .runner-subtitle {
+            margin-top: .8rem;
+            max-width: 40rem;
+            color: rgba(255,255,255,.4);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .runner-command__actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: .45rem;
+            flex: 0 0 auto;
+        }
+
+        .runner-action {
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .55rem;
+            padding: 0 .95rem;
+            border: 1px solid var(--rd-line-strong);
+            border-radius: 3px;
+            color: rgba(255,255,255,.72);
+            background: transparent;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .055em;
+            text-transform: uppercase;
+            transition: .18s ease;
+        }
+
+        .runner-action:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,.28);
+            background: rgba(255,255,255,.025);
+        }
+
+        .runner-action--run {
+            color: #08111f;
+            border-color: var(--rd-accent);
+            background: var(--rd-accent);
+        }
+
+        .runner-action--run:hover {
+            color: #08111f;
+            border-color: #d3ff6a;
+            background: #d3ff6a;
+        }
+
+        .runner-action__status {
+            color: rgba(255,255,255,.28);
+            font-size: 8px;
+        }
+
+        .runner-status-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0,1fr));
+            border-top: 1px solid var(--rd-line);
+        }
+
+        .runner-stat {
+            min-height: 76px;
+            padding: .85rem 1rem;
+            border-right: 1px solid var(--rd-line);
+            background: rgba(255,255,255,.012);
+            transition: background .18s ease;
+        }
+
+        .runner-stat:last-child {
+            border-right: 0;
+        }
+
+        a.runner-stat:hover,
+        button.runner-stat:hover {
+            background: rgba(255,255,255,.025);
+        }
+
+        .runner-stat__label {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            color: rgba(255,255,255,.28);
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        .runner-stat__label--accent {
+            color: var(--rd-accent);
+        }
+
+        .runner-live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--rd-accent);
+            box-shadow: 0 0 0 3px rgba(184,255,0,.08);
+        }
+
+        .runner-stat__value {
+            margin-top: .42rem;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: -.035em;
+        }
+
+        .runner-stat__value > span {
+            margin-left: .25rem;
+            color: rgba(255,255,255,.32);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .035em;
+        }
+
+        .runner-stat__value--small {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: .4rem;
+            font-size: 12px;
+            letter-spacing: 0;
+        }
+
+        .runner-stat__divider {
+            color: rgba(255,255,255,.17) !important;
+        }
+
+        .runner-switch {
+            position: relative;
+            width: 30px;
+            height: 16px;
+            margin-left: auto !important;
+            border: 1px solid rgba(255,255,255,.18);
+            transition: .2s ease;
+        }
+
+        .runner-switch > span {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            margin: 0 !important;
+            background: rgba(255,255,255,.35);
+            transition: .2s ease;
+        }
+
+        .runner-switch.is-on {
+            border-color: #34d399;
+            background: #34d399;
+        }
+
+        .runner-switch.is-on > span {
+            left: 17px;
+            background: #07101c;
+        }
+
+        .runner-workspace-nav {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            border-top: 1px solid var(--rd-line);
+        }
+
+        .runner-tabs {
+            display: flex;
+            align-items: stretch;
+            gap: 1.75rem;
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .runner-tabs::-webkit-scrollbar { display: none; }
+
+        #runner-dashboard-shell .runner-tab {
+            position: relative;
+            min-height: 58px;
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            padding: 0;
+            border-radius: 0;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: rgba(255,255,255,.38) !important;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        #runner-dashboard-shell .runner-tab::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 2px;
+            background: transparent;
+        }
+
+        #runner-dashboard-shell .runner-tab.active {
+            color: #fff !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        #runner-dashboard-shell .runner-tab.active::after {
+            background: var(--rd-accent);
+        }
+
+        .runner-tab__index {
+            color: rgba(255,255,255,.18);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 8px;
+        }
+
+        .runner-tab.active .runner-tab__index {
+            color: var(--rd-accent);
+        }
+
+        .runner-calendar-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            color: var(--rd-accent);
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Make the overview feel like one professional workspace,
+           rather than many unrelated generated cards. */
+        #tab-content-overview .bg-card\/50 {
+            background: rgba(11,18,32,.74) !important;
+            backdrop-filter: none !important;
+            border-color: var(--rd-line) !important;
+            border-radius: 5px !important;
+            box-shadow: none !important;
+        }
+
+        #tab-content-overview .rounded-3xl,
+        #tab-content-overview .rounded-2xl {
+            border-radius: 6px !important;
+        }
+
+        #tab-content-overview .rounded-xl {
+            border-radius: 4px !important;
+        }
+
+        #tab-content-overview [class*="shadow-neon"],
+        #tab-content-overview [class*="shadow-[#ccff00]"],
+        #tab-content-overview [class*="shadow-[#FC4C02]"] {
+            box-shadow: none !important;
+        }
+
+        #tab-content-overview [class*="hover:scale"],
+        #tab-content-overview [class*="group-hover:scale"] {
+            transform: none;
+        }
+
+        #tab-content-overview h2,
+        #tab-content-overview h3,
+        #tab-content-overview h4 {
+            font-style: normal !important;
+        }
+
+        #tab-content-overview .bg-neon {
+            box-shadow: none !important;
+        }
+
+        #tab-content-marketplace > div {
+            border-radius: 6px !important;
+            box-shadow: none !important;
+        }
+
+        #calculator-iframe {
+            border-top: 1px solid var(--rd-line);
+        }
+
+        @media (max-width: 1023px) {
+            .runner-command__top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .runner-command__actions {
+                justify-content: flex-start;
+            }
+
+            .runner-status-grid {
+                grid-template-columns: repeat(2, minmax(0,1fr));
+            }
+
+            .runner-stat {
+                border-bottom: 1px solid var(--rd-line);
+            }
+
+            .runner-stat:nth-child(2n) {
+                border-right: 0;
+            }
+
+            .runner-stat:last-child {
+                grid-column: 1 / -1;
+                border-bottom: 0;
+            }
+        }
+
+        @media (max-width: 639px) {
+            .runner-command__top {
+                padding-top: 1.2rem;
+            }
+
+            .runner-command__actions {
+                width: 100%;
+            }
+
+            .runner-action {
+                flex: 1;
+            }
+
+            .runner-status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .runner-stat,
+            .runner-stat:nth-child(2n) {
+                border-right: 0;
+                border-bottom: 1px solid var(--rd-line);
+            }
+
+            .runner-stat:last-child {
+                grid-column: auto;
+                border-bottom: 0;
+            }
+
+            .runner-workspace-nav {
+                align-items: stretch;
+                flex-direction: column;
+                padding-top: .15rem;
+            }
+
+            .runner-tabs {
+                width: 100%;
+                gap: 1.15rem;
+            }
+
+            .runner-calendar-link {
+                display: none;
+            }
+        }
+
     </style>
 @endpush
 
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
-    <div class="max-w-7xl mx-auto" x-data="dashboardComponent()">
-        <!-- Top Status / Quick Info Strip (Run Points, Date/Time, Next Workout, WA Toggle, Check-In & PB) -->
-        <div class="mt-4 md:mt-6 flex flex-wrap items-center gap-2">
-            <!-- Run Points Badge -->
-            <a href="{{ route('gpx.index') }}" title="Unggah GPX rute lari untuk mendapatkan poin & tukar reward" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-500/40 text-xs font-bold text-white hover:border-amber-400 transition shadow-sm">
-                <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
-                <span class="text-slate-300">Run Points:</span>
-                <span class="text-neon font-black font-mono">{{ number_format(auth()->user()->run_points ?? 0) }} PTS</span>
-            </a>
+    <div id="runner-dashboard-shell" class="max-w-7xl mx-auto" x-data="dashboardComponent()">
+        <!-- RUNNER COMMAND HEADER -->
+        <section class="runner-command">
+            <div class="runner-command__top">
+                <div class="min-w-0">
+                    <div class="runner-kicker">{{ $greeting }} / Runner workspace</div>
+                    <h1 class="runner-name">{{ auth()->user()->name }}</h1>
+                    <p class="runner-subtitle">
+                        Training, recovery, performance, dan race planning dalam satu workspace.
+                    </p>
+                </div>
 
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700/60 text-xs text-slate-300">
-                <span class="text-slate-400">Hari ini</span>
-                <span id="runner-dashboard-date" class="font-bold text-white"></span>
-                <span class="text-slate-600">•</span>
-                <span id="runner-dashboard-time" class="font-mono text-slate-300"></span>
-            </div>
+                <div class="runner-command__actions">
+                    <a href="{{ route('run.free') }}" class="runner-action runner-action--run">
+                        <i class="fa-solid fa-person-running"></i>
+                        <span>Start Run</span>
+                    </a>
 
-            <!-- Check-in Progress & Update PB Quick Trigger -->
-            <button onclick="openGlobalPbModal()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-neon/50 text-xs font-bold text-white hover:bg-neon hover:text-black transition shadow-sm" title="Check-in kondisi fisik & perbarui Personal Best / Parameter Test">
-                <i class="fa-solid fa-heart-pulse text-neon group-hover:text-black text-xs"></i>
-                <span>Check-in & Update PB</span>
-                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-200 border border-slate-700">VDOT {{ number_format(auth()->user()->vdot ?? 35, 1) }}</span>
-            </button>
+                    @if(auth()->user()->strava_access_token)
+                        <a
+                            href="{{ route('runner.strava.disconnect') }}"
+                            onclick="return confirm('Apakah Anda yakin ingin melepaskan otorisasi (Unauthorize) Strava?');"
+                            class="runner-action"
+                            title="Lepaskan koneksi Strava"
+                        >
+                            <i class="fab fa-strava text-[#FC4C02]"></i>
+                            <span>Strava</span>
+                            <span class="runner-action__status">Connected</span>
+                        </a>
+                    @else
+                        <a href="{{ route('runner.strava.connect') }}" class="runner-action">
+                            <i class="fab fa-strava text-[#FC4C02]"></i>
+                            <span>Connect Strava</span>
+                        </a>
+                    @endif
 
-            @if(!empty($nextWorkout))
-                <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700/60 text-xs text-slate-300 hover:border-neon/40 transition">
-                    <span class="font-bold text-neon">Next</span>
-                    <span class="text-slate-200">{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</span>
-                    @if(!empty($nextWorkout['distance'])) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
-                    <span class="text-slate-400">•</span>
-                    <span class="text-slate-200">{{ $nextWorkout['date_label'] ?? '' }}</span>
-                </button>
-            @endif
-
-            <!-- WhatsApp Daily Program Toggle Switch -->
-            <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-slate-900 border-green-500/50 text-green-300 hover:bg-slate-800' : 'bg-slate-900 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
-                <i class="fab fa-whatsapp text-sm" :class="isReceiveWa ? 'text-green-400' : 'text-slate-500'"></i>
-                <span>Program Harian WA: </span>
-                <span class="font-black uppercase text-[10px]" :class="isReceiveWa ? 'text-green-400' : 'text-slate-400'" x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"></span>
-            </button>
-        </div>
-
-        <div class="mt-4 md:mt-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-800/80 pb-4">
-            <div class="min-w-0">
-                <div class="text-neon font-mono text-xs tracking-widest uppercase">{{ $greeting }}, Runner</div>
-                <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter truncate">{{ strtoupper(auth()->user()->name) }}</h1>
-                
-                <!-- Tab Switching Pills -->
-                <div class="mt-6 inline-flex w-full sm:w-auto p-1 bg-zinc-900/80 border border-zinc-800 rounded-xl justify-between sm:justify-start">
-                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white active">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
-                        <span class="hidden sm:inline">Ringkasan</span>
-                    </button>
-                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span class="hidden sm:inline">My Program</span>
-                    </button>
-                    <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Kalkulator</span>
-                    </button>
-                    <button onclick="switchTab('marketplace')" id="tab-btn-marketplace" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 sm:py-2 font-black uppercase tracking-wider text-[10px] sm:text-xs transition-all rounded-lg text-slate-300 hover:text-white">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Marketplace</span>
-                    </button>
+                    <a href="{{ route('runner.programs') }}" class="runner-action hidden sm:inline-flex">
+                        <span>Programs</span>
+                        <i class="fas fa-arrow-right text-[9px]"></i>
+                    </a>
                 </div>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full md:w-auto md:flex">
-                <a href="{{ route('run.free') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black transition-all shadow-lg shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs tracking-wide uppercase cursor-pointer" title="Mulai sesi lari live GPS (Free Run)">
-                    <i class="fa-solid fa-person-running text-sm"></i>
-                    <span>Run</span>
+
+            <!-- OPERATING STATUS -->
+            <div class="runner-status-grid">
+                <a href="{{ route('gpx.index') }}" class="runner-stat group">
+                    <div class="runner-stat__label">
+                        <i class="fa-solid fa-coins text-amber-400"></i>
+                        Run Points
+                    </div>
+                    <div class="runner-stat__value">
+                        {{ number_format(auth()->user()->run_points ?? 0) }}
+                        <span>PTS</span>
+                    </div>
                 </a>
-                @if(auth()->user()->strava_access_token)
-                    <a href="{{ route('runner.strava.disconnect') }}" onclick="return confirm('Apakah Anda yakin ingin melepaskan otorisasi (Unauthorize) Strava?');" class="px-3.5 py-3 rounded-xl bg-rose-600/90 text-white font-bold hover:bg-rose-600 transition-all shadow-md shadow-rose-600/20 flex items-center justify-center gap-1.5 text-xs" title="Klik untuk melepaskan koneksi Strava">
-                        <i class="fab fa-strava text-sm"></i>
-                        <span>Unauthorize</span>
-                    </a>
-                @else
-                    <a href="{{ route('runner.strava.connect') }}" class="px-3.5 py-3 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition-all shadow-md shadow-[#FC4C02]/20 flex items-center justify-center gap-1.5 text-xs">
-                        <i class="fab fa-strava text-sm"></i>
-                        <span>Connect Strava</span>
-                    </a>
-                @endif
-                <button onclick="switchTab('calendar')" id="dashboard-calendar-btn" class="px-3.5 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-1.5 text-xs">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    Calendar
+
+                <div class="runner-stat">
+                    <div class="runner-stat__label">Local time</div>
+                    <div class="runner-stat__value runner-stat__value--small">
+                        <span id="runner-dashboard-date"></span>
+                        <span class="runner-stat__divider">/</span>
+                        <span id="runner-dashboard-time" class="font-mono"></span>
+                    </div>
+                </div>
+
+                <button type="button" onclick="openGlobalPbModal()" class="runner-stat group text-left">
+                    <div class="runner-stat__label runner-stat__label--accent">
+                        <span class="runner-live-dot"></span>
+                        Athlete check-in
+                    </div>
+                    <div class="runner-stat__value runner-stat__value--small">
+                        VDOT {{ number_format(auth()->user()->vdot ?? 35, 1) }}
+                        <span class="group-hover:text-[#B8FF00]">Update PB →</span>
+                    </div>
                 </button>
-                <a href="{{ route('runner.programs') }}" class="px-3.5 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-xs flex items-center justify-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    Programs
-                </a>
+
+                @if(!empty($nextWorkout))
+                    <button type="button" onclick="switchTab('calendar')" class="runner-stat group text-left">
+                        <div class="runner-stat__label">Next session</div>
+                        <div class="runner-stat__value runner-stat__value--small">
+                            <strong>{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</strong>
+                            @if(!empty($nextWorkout['distance']))
+                                <span>{{ $nextWorkout['distance'] }} km</span>
+                            @endif
+                            @if(!empty($nextWorkout['date_label']))
+                                <span>{{ $nextWorkout['date_label'] }}</span>
+                            @endif
+                        </div>
+                    </button>
+                @else
+                    <div class="runner-stat">
+                        <div class="runner-stat__label">Next session</div>
+                        <div class="runner-stat__value runner-stat__value--small">
+                            <strong>Recovery / Open</strong>
+                            <span>No scheduled workout</span>
+                        </div>
+                    </div>
+                @endif
+
+                <button
+                    type="button"
+                    @click="toggleReceiveWa"
+                    class="runner-stat group text-left"
+                >
+                    <div class="runner-stat__label">
+                        <i class="fab fa-whatsapp" :class="isReceiveWa ? 'text-emerald-400' : 'text-white/25'"></i>
+                        Daily program
+                    </div>
+
+                    <div class="runner-stat__value runner-stat__value--small">
+                        <strong>WhatsApp</strong>
+                        <span
+                            :class="isReceiveWa ? 'text-emerald-400' : 'text-white/30'"
+                            x-text="isReceiveWa ? 'Active' : 'Off'"
+                        ></span>
+
+                        <span class="runner-switch" :class="isReceiveWa ? 'is-on' : ''">
+                            <span></span>
+                        </span>
+                    </div>
+                </button>
             </div>
-        </div>
+
+            <!-- WORKSPACE NAV -->
+            <div class="runner-workspace-nav">
+                <div class="runner-tabs">
+                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn runner-tab active">
+                        <span class="runner-tab__index">01</span>
+                        <span>Overview</span>
+                    </button>
+
+                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn runner-tab">
+                        <span class="runner-tab__index">02</span>
+                        <span>My Program</span>
+                    </button>
+
+                    <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="tab-btn runner-tab">
+                        <span class="runner-tab__index">03</span>
+                        <span>Calculator</span>
+                    </button>
+
+                    <button onclick="switchTab('marketplace')" id="tab-btn-marketplace" class="tab-btn runner-tab">
+                        <span class="runner-tab__index">04</span>
+                        <span>Marketplace</span>
+                    </button>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="switchTab('calendar')"
+                    id="dashboard-calendar-btn"
+                    class="runner-calendar-link"
+                >
+                    Calendar
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
 
         <!-- Tab Content Overview -->
         <div id="tab-content-overview" class="tab-content mt-6">

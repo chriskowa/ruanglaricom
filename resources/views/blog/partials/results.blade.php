@@ -1,21 +1,14 @@
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     @forelse($articles as $a)
         @php
-            $img = null;
-            if ($a->featured_image) {
-                $img = Str::startsWith($a->featured_image, ['http://', 'https://'])
-                    ? $a->featured_image
-                    : asset('storage/' . ltrim($a->featured_image, '/'));
-            }
+            $img = method_exists($a, 'getFeaturedImageUrl')
+                ? $a->getFeaturedImageUrl()
+                : asset('ruanglari.webp');
             $dt = $a->published_at ?: $a->created_at;
         @endphp
         <a href="{{ route('blog.show', $a->slug) }}" class="group block bg-card/60 border border-slate-700/60 rounded-xl overflow-hidden hover:border-neon/40 hover:shadow-lg hover:shadow-neon/10 transition-all">
             <div class="relative h-44 overflow-hidden">
-                @if($img)
-                    <img src="{{ $img }}" alt="{{ $a->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                @else
-                    <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
-                @endif
+                <img src="{{ $img }}" alt="{{ $a->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
                 <div class="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/20 to-transparent"></div>
                 <div class="absolute bottom-3 left-4 right-4">
                     @if($a->category)

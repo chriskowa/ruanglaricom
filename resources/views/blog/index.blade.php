@@ -98,22 +98,15 @@
                 @if($heroArticle)
                 <div id="blog-hero">
                     @php
-                        $heroImg = null;
-                        if ($heroArticle->featured_image) {
-                            $heroImg = Str::startsWith($heroArticle->featured_image, ['http://', 'https://'])
-                                ? $heroArticle->featured_image
-                                : asset('storage/' . ltrim($heroArticle->featured_image, '/'));
-                        }
+                        $heroImg = method_exists($heroArticle, 'getFeaturedImageUrl')
+                            ? $heroArticle->getFeaturedImageUrl()
+                            : asset('ruanglari.webp');
                         $heroDt = $heroArticle->published_at ?: $heroArticle->created_at;
                     @endphp
 
                     <a href="{{ route('blog.show', $heroArticle->slug) }}" class="group block mt-10 rounded-xl overflow-hidden border border-slate-700/60 hover:border-neon/40 transition-all bg-card/40">
                         <div class="relative h-[320px] md:h-[420px] overflow-hidden">
-                            @if($heroImg)
-                                <img src="{{ $heroImg }}" alt="{{ $heroArticle->localized_title }}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700">
-                            @else
-                                <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
-                            @endif
+                            <img src="{{ $heroImg }}" alt="{{ $heroArticle->localized_title }}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
                             <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/25 to-transparent"></div>
                             <div class="absolute bottom-0 left-0 right-0 p-7 md:p-10">
                                 <div class="flex flex-wrap items-center gap-3 text-xs font-mono text-slate-300">

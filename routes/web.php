@@ -760,11 +760,7 @@ Route::get('/api/blog/latest', function () {
                 ->limit(3)
                 ->get()
                 ->map(function ($a) {
-                    $img = $a->featured_image;
-                    if ($img && ! str_starts_with($img, 'http')) {
-                        $img = asset('storage/'.ltrim($img, '/'));
-                    }
-
+                    $img = $a->getFeaturedImageUrl();
                     $dt = $a->published_at ?: $a->created_at;
 
                     return [
