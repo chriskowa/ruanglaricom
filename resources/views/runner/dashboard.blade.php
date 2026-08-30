@@ -156,7 +156,7 @@
             display: flex;
             align-items: center;
             gap: .45rem;
-            color: rgba(255,255,255,.28);
+            color: rgba(255, 255, 255, 0.94);
             font-size: 9px;
             font-weight: 900;
             letter-spacing: .13em;
