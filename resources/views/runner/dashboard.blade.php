@@ -75,7 +75,7 @@
         .runner-subtitle {
             margin-top: .8rem;
             max-width: 40rem;
-            color: rgba(255,255,255,.4);
+            color: rgba(255, 255, 255, 0.87);
             font-size: 12px;
             line-height: 1.6;
         }
@@ -97,7 +97,7 @@
             padding: 0 .95rem;
             border: 1px solid var(--rd-line-strong);
             border-radius: 3px;
-            color: rgba(255,255,255,.72);
+            color: rgba(255, 255, 255, 1);
             background: transparent;
             font-size: 10px;
             font-weight: 900;
