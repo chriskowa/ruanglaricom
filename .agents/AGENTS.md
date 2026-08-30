@@ -4,7 +4,12 @@
 
 # UI/UX & Design Guidelines (Strictly Mandatory)
 
-- **No AI Aesthetic**: Designs must look human-crafted, professional, clean, and production-ready. Avoid generic AI-generated vibes.
+- **No AI Aesthetic (Anti-AI Clichés)**:
+  - Designs must look human-crafted, professional, clean, and production-ready. Avoid generic AI-generated vibes.
+  - **No Pill Badges Everywhere**: Do not default to rounded pill shapes (`rounded-full`) for all badges, tags, and small cards. Use clean, subtle rectangular styling (`rounded-sm`, `rounded`, `rounded-md`).
+  - **No Neon Glow Effects**: Avoid excessive neon glow shadows (`shadow-neon`, `shadow-[0_0_..._#...]`, `blur`, `drop-shadow`). Keep components solid, crisp, and tactile.
+  - **No Repetitive Uppercase + Italic**: Do not overuse `uppercase italic font-black tracking-tight` on every heading, title, or label. Use balanced, natural typographic hierarchy (clean title case or sentence case, bold/semibold without excessive italic shouting).
+  - **No Low-Contrast / Excessive `text-slate-500`**: Never spam `text-slate-500` or dark washed-out gray for regular text, descriptions, and labels. Secondary texts and subtitles must remain high-contrast and legible (`text-slate-300`, `text-slate-200`, `text-white/80`).
 - **NO Emojis Anywhere**: Never use emojis (no 🏃‍♂️, 🏔️, 💨, ⚡, 🚀, ⏱️, etc.) in UI templates, alerts, popups, buttons, or placeholder texts. Use clean, professional text or standard FontAwesome icons sparingly.
 - **Minimalist & Purposeful Icons**: Do not over-clutter interfaces with icons on every single label, button, or heading. Keep icon usage minimal, subtle, and purposeful. A text button or label does not need an icon unless strictly necessary.
 - **Solid Colors Only (No Broken Arbitrary Hex, No Gradients, No Blur/Transparency)**:

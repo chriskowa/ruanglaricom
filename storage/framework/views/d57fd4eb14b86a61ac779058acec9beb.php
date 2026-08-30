@@ -50,9 +50,9 @@
     <?php endif; ?>
 
     <?php
-        $defaultTitle = \App\Models\AppSettings::get('seo_meta_title_default', 'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia');
-        $defaultDesc = \App\Models\AppSettings::get('seo_meta_description_default', 'RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.');
-        $defaultKeywords = \App\Models\AppSettings::get('seo_meta_keywords_default', 'ruang lari, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari');
+        $defaultTitle = \App\Models\AppSettings::get('seo_meta_title_default', 'Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools');
+        $defaultDesc = \App\Models\AppSettings::get('seo_meta_description_default', 'Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.');
+        $defaultKeywords = \App\Models\AppSettings::get('seo_meta_keywords_default', 'ruang lari, media lari indonesia, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari, running tools');
     ?>
 
     <!-- Primary Meta Tags -->
@@ -92,8 +92,8 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="<?php echo $__env->yieldContent('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current()); ?>">
-    <meta name="twitter:title" content="<?php echo $__env->yieldContent('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans'); ?>">
-    <meta name="twitter:description" content="<?php echo $__env->yieldContent('meta_description', 'Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.'); ?>">
+    <meta name="twitter:title" content="<?php echo $__env->yieldContent('meta_title', $defaultTitle); ?>">
+    <meta name="twitter:description" content="<?php echo $__env->yieldContent('meta_description', $defaultDesc); ?>">
     <meta name="twitter:image" content="<?php echo $__env->yieldContent('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'); ?>">
     <?php if(trim($__env->yieldContent('meta_robots'))): ?>
     <meta name="robots" content="<?php echo $__env->yieldContent('meta_robots'); ?>">

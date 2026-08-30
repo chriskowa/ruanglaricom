@@ -63,6 +63,7 @@
                                     'title' => $ev->name,
                                     'href' => $ev->public_url,
                                     'image' => $ev->getHeroImageUrl(),
+                                    'category' => $ev->raceType?->name ?: 'Race',
                                     'eyebrow' => 'Race',
                                     'meta_1' => optional($ev->start_at)->translatedFormat('d M Y') ?: null,
                                     'meta_2' => $ev->location_name ?: null,
@@ -82,6 +83,7 @@
                                     'title' => $a->title,
                                     'href' => route('blog.show', $a->slug),
                                     'image' => $img ?: asset('ruanglari.webp'),
+                                    'category' => optional($a->category)->name ?: 'Journal',
                                     'eyebrow' => 'Journal',
                                     'meta_1' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
                                     'meta_2' => optional($a->category)->name ?: null,
@@ -104,7 +106,7 @@
                             @forelse($slides as $i => $slide)
                                 <article class="rl-featured-slide" data-slide-index="{{ $i }}">
                                     <a href="{{ $slide['href'] }}"
-                                       aria-label="{{ $slide['eyebrow'] }}: {{ $slide['title'] }}"
+                                       aria-label="{{ $slide['category'] ?? $slide['eyebrow'] }}: {{ $slide['title'] }}"
                                        draggable="false">
                                         <img
                                             src="{{ $slide['image'] ?: $fallbackHero }}"
@@ -122,7 +124,7 @@
                                                 <span>/</span>
                                                 {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}
                                             </div>
-                                            <span>RuangLari Featured</span>
+                                            <span class="rl-featured-badge">{{ $slide['category'] ?? $slide['eyebrow'] }}</span>
                                         </div>
 
                                         <div class="rl-featured-copy">
@@ -914,6 +916,7 @@
     .rl-featured-top {
         top: clamp(1.25rem, 3vw, 2rem);
         display: flex;
+        align-items: center;
         justify-content: space-between;
         gap: 1rem;
         color: rgba(255,255,255,.65);
@@ -921,6 +924,20 @@
         font-weight: 800;
         letter-spacing: .15em;
         text-transform: uppercase;
+    }
+
+    .rl-featured-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: .28rem .6rem;
+        background: #fff;
+        color: #07090b;
+        font-size: .62rem;
+        font-weight: 900;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        border-radius: 2px;
+        line-height: 1;
     }
 
     .rl-counter {
