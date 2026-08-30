@@ -185,7 +185,7 @@
 
         .runner-stat__value > span {
             margin-left: .25rem;
-            color: rgba(255,255,255,.32);
+            color: rgba(255, 255, 255, 0.79);
             font-size: 9px;
             font-weight: 700;
             letter-spacing: .035em;
