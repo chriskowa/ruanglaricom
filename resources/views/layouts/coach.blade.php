@@ -18,27 +18,27 @@
     <title>@yield('title', 'Coach Dashboard - RuangLari')</title>
 
      <!-- Primary Meta Tags -->
-    <meta name="title" content="RuangLari - Info Lari, Tips Latihan & Event Running Indonesia">
-    <meta name="description" content="RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.">
+    <meta name="title" content="Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools">
+    <meta name="description" content="Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.">
 
     <!-- Keywords -->
-    <meta name="keywords" content="ruang lari, berita lari, running news indonesia, program lari, jadwal event lari, kalender marathon, training plan marathon, 5k, 10k, half marathon, full marathon, marketplace lari">
+    <meta name="keywords" content="ruang lari, media lari indonesia, running news indonesia, program lari, jadwal event lari, kalender marathon, training plan marathon, 5k, 10k, half marathon, full marathon, running tools">
 
     <!-- Author -->
     <meta name="author" content="Ruang Lari Indonesia">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ruanglari.id/">
-    <meta property="og:title" content="RuangLari - Berita Lari, Program Latihan & Jadwal Event Marathon">
-    <meta property="og:description" content="Portal lari terdepan di Indonesia. Temukan berita & artikel lari terbaru, program latihan lari profesional, serta jadwal event lari terlengkap.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools">
+    <meta property="og:description" content="Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.">
     <meta property="og:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://ruanglari.id/">
-    <meta name="twitter:title" content="RuangLari - Berita Lari, Program Latihan & Jadwal Event Marathon">
-    <meta name="twitter:description" content="Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools">
+    <meta name="twitter:description" content="Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.">
     <meta name="twitter:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
 
     <!-- Canonical -->

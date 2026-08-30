@@ -13,15 +13,15 @@ class SeoSettingsController extends Controller
         $settings = [
             'seo_meta_title_default' => AppSettings::get(
                 'seo_meta_title_default',
-                'RuangLari - Info Lari, Tips Latihan & Event Running Indonesia'
+                'Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools'
             ),
             'seo_meta_description_default' => AppSettings::get(
                 'seo_meta_description_default',
-                'RuangLari menghadirkan informasi seputar dunia lari, tips latihan, panduan persiapan race, program latihan 5K hingga marathon, serta update event running di Indonesia.'
+                'Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.'
             ),
             'seo_meta_keywords_default' => AppSettings::get(
                 'seo_meta_keywords_default',
-                'ruang lari, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari'
+                'ruang lari, media lari indonesia, info lari, tips latihan lari, program latihan 5k, program marathon, event running indonesia, kalender lari, running tools'
             ),
             'seo_og_image_default' => AppSettings::get('seo_og_image_default', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg'),
             'seo_twitter_card_default' => AppSettings::get('seo_twitter_card_default', 'summary_large_image'),
