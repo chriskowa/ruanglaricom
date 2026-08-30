@@ -19,15 +19,14 @@
                         <span></span>
                         RuangLari / Indonesia
                     </div>
-
+ 
                     <h1 class="rl-hero-title">
-                        Lari<br>
-                        Tanpa <em>Batas.</em>
+                        Media dan Platform Lari<br>
+                        <em>Indonesia.</em>
                     </h1>
 
                     <p class="rl-hero-lead">
-                        Program latihan berbasis VDOT, kalender race Indonesia,
-                        rute lari, komunitas, dan tools untuk membantumu berlari lebih terarah.
+                        Berita dan insight running, program latihan gratis, kalender race Indonesia, rute lari, komunitas, hingga tools untuk membantu pelari berkembang lebih terarah.
                     </p>
 
                     <div class="rl-hero-actions">
@@ -665,15 +664,19 @@
     }
 
     .rl-hero {
+        position: relative;
         min-height: min(850px, calc(100vh - 72px));
         padding: clamp(3.5rem, 7vw, 7rem) 0;
         display: flex;
         align-items: center;
-        background:
-            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
-            var(--rl-bg);
-        background-size: 76px 76px;
+        background-color: var(--rl-bg);
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+            linear-gradient(rgba(184, 255, 0, 0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(184, 255, 0, 0.035) 1px, transparent 1px);
+        background-size: 72px 72px, 72px 72px, 18px 18px, 18px 18px;
+        border-bottom: 1px solid var(--rl-line);
     }
 
     .rl-hero-grid {
@@ -723,7 +726,7 @@
     .rl-hero-lead {
         max-width: 31rem;
         margin: 2rem 0 0;
-        color: var(--rl-muted);
+        color: #E2E8F0;
         font-size: clamp(1rem, 1.4vw, 1.1rem);
         line-height: 1.75;
     }
@@ -804,7 +807,7 @@
         display: flex;
         gap: .85rem;
         align-items: baseline;
-        border-top: 1px solid rgba(255,255,255,.1);
+        border-top: 1px solid rgba(255,255,255,.16);
     }
 
     .rl-proof strong {
@@ -814,7 +817,7 @@
     }
 
     .rl-proof span {
-        color: rgba(255,255,255,.45);
+        color: rgba(255,255,255,.8);
         font-size: .69rem;
         font-weight: 700;
         letter-spacing: .09em;
@@ -825,7 +828,7 @@
         position: relative;
         overflow: hidden;
         background: #050B13;
-        border: 1px solid rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.12);
         border-radius: 2px;
         box-shadow: 0 40px 100px rgba(0,0,0,.3);
     }
@@ -837,8 +840,8 @@
         z-index: 5;
         pointer-events: none;
         background-image:
-            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
         background-size: 64px 64px;
         -webkit-mask-image: linear-gradient(to bottom, black, transparent 52%);
         mask-image: linear-gradient(to bottom, black, transparent 52%);
@@ -1912,7 +1915,7 @@
         .rl-hero {
             min-height: auto;
             padding: 2.5rem 0 4.5rem;
-            background-size: 44px 44px;
+            background-size: 48px 48px, 48px 48px, 16px 16px, 16px 16px;
         }
 
         .rl-hero-grid { gap: 2rem; }
