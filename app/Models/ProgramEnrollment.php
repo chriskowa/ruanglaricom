@@ -19,6 +19,14 @@ class ProgramEnrollment extends Model
         'target_race_date',
         'status_reason',
         'reschedule_history',
+        'pricing_type',
+        'subscription_status',
+        'current_period_start',
+        'current_period_end',
+        'next_billing_date',
+        'total_sessions_quota',
+        'sessions_used',
+        'sessions_remaining',
     ];
 
     protected function casts(): array
@@ -28,12 +36,23 @@ class ProgramEnrollment extends Model
             'end_date' => 'date',
             'target_race_date' => 'date',
             'reschedule_history' => 'array',
+            'current_period_start' => 'date',
+            'current_period_end' => 'date',
+            'next_billing_date' => 'date',
+            'total_sessions_quota' => 'integer',
+            'sessions_used' => 'integer',
+            'sessions_remaining' => 'integer',
         ];
     }
 
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(CoachInvoice::class, 'enrollment_id');
     }
 
     public function runner(): BelongsTo

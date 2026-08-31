@@ -181,14 +181,45 @@
                             </div>
                         </div>
                         
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Pricing Model</label>
+                            <select v-model="form.pricing_model" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-neon outline-none">
+                                <option value="one_time">Sekali Bayar (Paket Utuh)</option>
+                                <option value="hourly">Per Jam / Sesi Latihan</option>
+                                <option value="monthly">Langganan Bulanan (Retainer)</option>
+                                <option value="weekly">Langganan Mingguan</option>
+                                <option value="daily">Harian (Daily Pass)</option>
+                            </select>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Price</label>
-                                <input type="number" v-model="form.price" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none">
+                            <div v-if="form.pricing_model === 'one_time'">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Price (Rp)</label>
+                                <input type="number" v-model="form.price" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
                             </div>
+                            <div v-else-if="form.pricing_model === 'hourly'">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tarif / Sesi (Rp)</label>
+                                <input type="number" v-model="form.price_hourly" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
+                            </div>
+                            <div v-else-if="form.pricing_model === 'monthly'">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tarif / Bulan (Rp)</label>
+                                <input type="number" v-model="form.price_monthly" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
+                            </div>
+                            <div v-else-if="form.pricing_model === 'weekly'">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tarif / Minggu (Rp)</label>
+                                <input type="number" v-model="form.price_weekly" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
+                            </div>
+                            <div v-else-if="form.pricing_model === 'daily'">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tarif / Hari (Rp)</label>
+                                <input type="number" v-model="form.price_daily" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
+                            </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Weeks</label>
-                                <input type="number" v-model="form.duration_weeks" min="1" max="52" @change="updateWeeks" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">
+                                    @{{ form.pricing_model === 'hourly' ? 'Kuota Sesi' : 'Weeks' }}
+                                </label>
+                                <input v-if="form.pricing_model === 'hourly'" type="number" v-model="form.session_quota" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
+                                <input v-else type="number" v-model="form.duration_weeks" min="1" max="52" @change="updateWeeks" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-neon outline-none font-mono">
                             </div>
                         </div>
 
@@ -985,6 +1016,12 @@ createApp({
             distance_target: programData.distance_target,
             difficulty: programData.difficulty,
             price: programData.price,
+            pricing_model: programData.pricing_model || 'one_time',
+            price_hourly: programData.price_hourly || null,
+            price_daily: programData.price_daily || null,
+            price_weekly: programData.price_weekly || null,
+            price_monthly: programData.price_monthly || null,
+            session_quota: programData.session_quota || 1,
             duration_weeks: programData.duration_weeks,
             is_published: !!programData.is_published,
             is_challenge: !!programData.is_challenge,
@@ -1590,7 +1627,13 @@ createApp({
                 formData.append('description', form.description || '');
                 formData.append('distance_target', form.distance_target);
                 formData.append('difficulty', form.difficulty);
-                formData.append('price', form.price);
+                formData.append('price', form.price || 0);
+                formData.append('pricing_model', form.pricing_model || 'one_time');
+                if (form.price_hourly) formData.append('price_hourly', form.price_hourly);
+                if (form.price_daily) formData.append('price_daily', form.price_daily);
+                if (form.price_weekly) formData.append('price_weekly', form.price_weekly);
+                if (form.price_monthly) formData.append('price_monthly', form.price_monthly);
+                if (form.session_quota) formData.append('session_quota', form.session_quota);
                 formData.append('duration_weeks', form.duration_weeks);
                 formData.append('is_published', form.is_published ? 1 : 0);
                 formData.append('is_challenge', form.is_challenge ? 1 : 0);

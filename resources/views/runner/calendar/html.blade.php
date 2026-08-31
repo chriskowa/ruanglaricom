@@ -149,21 +149,21 @@
                         class="flex-1 py-1.5 rounded-[4px] text-[11px] font-bold transition-all duration-300 flex items-center justify-center gap-1"
                         :class="activeMobileTab === 'calendar' ? 'bg-neon text-dark font-black shadow' : 'bg-[#0d1527] text-slate-400'"
                         @click="activeMobileTab = 'calendar'">
-                    <i class="fa-solid fa-calendar-days text-[10px]" :class="activeMobileTab === 'calendar' ? 'text-dark' : 'text-slate-400'"></i>
+                    
                     <span>Jadwal</span>
                 </button>
                 <button type="button" 
                         class="flex-1 py-1.5 rounded-[4px] text-[11px] font-bold transition-all duration-300 flex items-center justify-center gap-1"
                         :class="activeMobileTab === 'programs' ? 'bg-neon text-dark font-black shadow' : 'bg-[#0d1527] text-slate-400'"
                         @click="activeMobileTab = 'programs'">
-                    <i class="fa-solid fa-route text-[10px]" :class="activeMobileTab === 'programs' ? 'text-dark' : 'text-slate-400'"></i>
+
                     <span>Program</span>
                 </button>
                 <button type="button" 
                         class="flex-1 py-1.5 rounded-[4px] text-[11px] font-bold transition-all duration-300 flex items-center justify-center gap-1"
                         :class="activeMobileTab === 'profile' ? 'bg-neon text-dark font-black shadow' : 'bg-[#0d1527] text-slate-400'"
                         @click="activeMobileTab = 'profile'">
-                    <i class="fa-solid fa-gauge-high text-[10px]" :class="activeMobileTab === 'profile' ? 'text-dark' : 'text-slate-400'"></i>
+                    
                     <span>Training Pace</span>
                 </button>
             </div>
@@ -258,52 +258,47 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
-                <div class="glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden" :class="activeMobileTab === 'profile' ? 'block' : 'hidden lg:block'">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none" style="pointer-events: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
+                <!-- Training Profile / Training Pace Card -->
+                <div class="glass-panel rounded-2xl p-4 sm:p-6 relative overflow-hidden" :class="activeMobileTab === 'profile' ? 'block' : 'hidden lg:block'">
                     <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-6">
+                        <!-- Header & Action Buttons -->
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
                             <div>
-                                <h3 class="text-white font-bold text-lg flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                    </svg>
+                                <h3 class="text-white font-extrabold text-lg tracking-tight">
                                     Training Profile
                                 </h3>
-                                <p class="text-xs text-slate-400">Based on your Personal Best (PB)</p>
+                                <p class="text-xs text-slate-300 mt-0.5">Kalkulasi pace berbasis Personal Best (PB) terkini</p>
                             </div>
-                            <div class="flex flex-wrap gap-1.5 justify-end relative z-10">
-                                <button type="button" @click.stop="syncTraining" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1" :disabled="syncLoading">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <button type="button" @click.stop="syncTraining" class="text-[11px] bg-slate-800 text-slate-200 px-3 py-1.5 rounded-[4px] border border-slate-700 hover:bg-slate-700 hover:text-white transition font-semibold" :disabled="syncLoading">
                                     <span v-if="syncLoading" class="animate-spin">⟳</span>
-                                    <span v-else>⟳</span>
-                                    Sync Training
+                                    <span v-else>Sync</span>
                                 </button>
-                                <button type="button" @click.stop="openStravaAnalysisModal" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1">
-                                    <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Analisis AI MCP
+                                <button type="button" @click.stop="openStravaAnalysisModal" class="text-[11px] bg-slate-800 text-slate-200 px-3 py-1.5 rounded-[4px] border border-slate-700 hover:bg-slate-700 hover:text-white transition font-semibold">
+                                    Analisis
                                 </button>
-                                <button type="button" @click.stop="openPbModal" class="text-[11px] text-neon hover:underline font-bold px-1.5 py-1">Update PB</button>
+                                <button type="button" @click.stop="openPbModal" class="text-[11px] bg-neon/15 text-neon border border-neon/30 hover:bg-neon hover:text-dark px-3 py-1.5 rounded-[4px] font-bold transition">
+                                    Update PB
+                                </button>
                             </div>
                         </div>
 
-                        <!-- VDOT & Weekly Target -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center relative overflow-hidden group cursor-pointer" @click="openVdotModal">
-                                <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-neon opacity-60"></div>
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
-                                <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                                <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                                <!-- Runner Level Badge -->
-                                <div v-if="trainingProfile.vdot" class="mt-2 inline-block">
-                                    <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
+                        <!-- VDOT & Weekly Target Metrics (2 Columns on all screens) -->
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-4 mb-5">
+                            <!-- VDOT Score Card -->
+                            <div class="bg-slate-900/90 rounded-xl p-3 sm:p-4 border border-slate-800 hover:border-slate-700 transition cursor-pointer text-center relative" @click="openVdotModal">
+                                <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
+                                <div class="text-2xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                                    @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}
+                                </div>
+                                <div v-if="trainingProfile.vdot" class="mt-1.5">
+                                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-[3px] border inline-block"
                                           :class="{
                                               'bg-yellow-500/20 text-yellow-300 border-yellow-500/40': trainingProfile.vdot >= 75,
                                               'bg-purple-500/20 text-purple-300 border-purple-500/40': trainingProfile.vdot >= 60 && trainingProfile.vdot < 75,
                                               'bg-orange-500/20 text-orange-300 border-orange-500/40': trainingProfile.vdot >= 50 && trainingProfile.vdot < 60,
                                               'bg-blue-500/20 text-blue-300 border-blue-500/40': trainingProfile.vdot >= 40 && trainingProfile.vdot < 50,
-                                              'bg-green-500/20 text-green-300 border-green-500/40': trainingProfile.vdot < 40
+                                              'bg-emerald-500/20 text-emerald-300 border-emerald-500/40': trainingProfile.vdot < 40
                                           }">
                                         <span v-if="trainingProfile.vdot >= 75">Elite</span>
                                         <span v-else-if="trainingProfile.vdot >= 60">Sub-Elite</span>
@@ -313,147 +308,211 @@
                                         <span v-else>Beginner</span>
                                     </span>
                                 </div>
-                                <!-- Hint -->
-                                <div class="text-[9px] text-purple-400 mt-1.5 opacity-0 group-hover:opacity-100 transition">Klik untuk generate program ↗</div>
+                                <div class="text-[9px] text-slate-400 mt-1">VO2Max ~@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                             </div>
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center relative group">
-                                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                                    <button @click="showWeeklyTargetModal = true" class="text-xs text-neon hover:text-white bg-slate-700/50 p-1 rounded">Edit</button>
+
+                            <!-- Weekly Target Card -->
+                            <div class="bg-slate-900/90 rounded-xl p-3 sm:p-4 border border-slate-800 hover:border-slate-700 transition cursor-pointer text-center relative" @click="showWeeklyTargetModal = true">
+                                <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Target Mingguan</div>
+                                <div class="text-2xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                                    @{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}<span class="text-xs font-bold text-neon ml-0.5">km</span>
                                 </div>
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Weekly Target (km)</div>
-                                <div class="text-4xl font-black text-white cursor-pointer" @click="showWeeklyTargetModal = true">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}</div>
-                                <div class="text-[10px] text-slate-500 mt-1">Target mingguan pengguna</div>
+                                <div class="text-[9px] text-slate-400 mt-2">
+                                    Edit target
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Tabs -->
-                        <div class="flex gap-4 border-b border-slate-700 mb-4">
+                        <!-- Segmented Sub-Tabs Bar -->
+                        <div class="grid grid-cols-3 p-1 bg-slate-950/90 border border-slate-800 rounded-lg mb-5 gap-1">
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
-                                :class="profileTab === 'training' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                type="button"
+                                class="py-2 rounded-[5px] text-xs font-bold transition text-center"
+                                :class="profileTab === 'training' ? 'bg-slate-800 text-neon border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
                                 @click="profileTab = 'training'">
-                                Training
+                                Paces
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
-                                :class="profileTab === 'equivalent' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                type="button"
+                                class="py-2 rounded-[5px] text-xs font-bold transition text-center"
+                                :class="profileTab === 'equivalent' ? 'bg-slate-800 text-neon border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
                                 @click="profileTab = 'equivalent'">
                                 Equivalent
                             </button>
                             <button 
-                                class="text-sm font-bold pb-2 transition border-b-2"
-                                :class="profileTab === 'track' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                type="button"
+                                class="py-2 rounded-[5px] text-xs font-bold transition text-center"
+                                :class="profileTab === 'track' ? 'bg-slate-800 text-neon border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
                                 @click="profileTab = 'track'">
                                 Track
                             </button>
                         </div>
 
-                        <!-- Training Tab -->
-                        <div v-if="profileTab === 'training'">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Type</th>
-                                            <th class="py-2 text-right">1 Km</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-green-400 font-bold" id="pace-easy-label">Easy (E) Pace</td>
-                                            <td class="py-2 text-right" id="pace-easy-value">
-                                                <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
-                                                    @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
-                                                </template>
-                                                <template v-else>
-                                                    @{{ formatPace(trainingProfile.paces?.E) }}
-                                                </template>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-blue-400 font-bold" id="pace-marathon-label">Marathon (M) Pace</td>
-                                            <td class="py-2 text-right" id="pace-marathon-value">@{{ formatPace(trainingProfile.paces?.M) }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-yellow-400 font-bold" id="pace-threshold-label">Threshold (T) Pace</td>
-                                            <td class="py-2 text-right" id="pace-threshold-value">@{{ formatPace(trainingProfile.paces?.T) }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-orange-400 font-bold" id="pace-interval-label">Interval (I) Pace</td>
-                                            <td class="py-2 text-right" id="pace-interval-value">@{{ formatPace(trainingProfile.paces?.I) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-2 text-red-400 font-bold" id="pace-repetition-label">Repetition (R) Pace</td>
-                                            <td class="py-2 text-right" id="pace-repetition-value">@{{ formatPace(trainingProfile.paces?.R) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- 1. Training Paces Tab -->
+                        <div v-if="profileTab === 'training'" class="space-y-2">
+                            <!-- Easy Pace -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-emerald-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-emerald-400 font-bold text-xs sm:text-sm" id="pace-easy-label">Easy (E) Pace</div>
+                                    <div class="text-[10px] text-slate-300 mt-0.5">Recovery, Long Run & Aerobic Base</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-easy-value">
+                                        <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
+                                            @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
+                                        </template>
+                                        <template v-else>
+                                            @{{ formatPace(trainingProfile.paces?.E) }}
+                                        </template>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
+                            </div>
+
+                            <!-- Marathon Pace -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-sky-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-sky-400 font-bold text-xs sm:text-sm" id="pace-marathon-label">Marathon (M) Pace</div>
+                                    <div class="text-[10px] text-slate-300 mt-0.5">Steady Aerobic & Race Pace Stamina</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-marathon-value">
+                                        @{{ formatPace(trainingProfile.paces?.M) }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
+                            </div>
+
+                            <!-- Threshold Pace -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-amber-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-amber-400 font-bold text-xs sm:text-sm" id="pace-threshold-label">Threshold (T) Pace</div>
+                                    <div class="text-[10px] text-slate-300 mt-0.5">Tempo & Lactate Clearance Endurance</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-threshold-value">
+                                        @{{ formatPace(trainingProfile.paces?.T) }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
+                            </div>
+
+                            <!-- Interval Pace -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-orange-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-orange-400 font-bold text-xs sm:text-sm" id="pace-interval-label">Interval (I) Pace</div>
+                                    <div class="text-[10px] text-slate-300 mt-0.5">VO2Max & Aerobic Power Booster</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-interval-value">
+                                        @{{ formatPace(trainingProfile.paces?.I) }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
+                            </div>
+
+                            <!-- Repetition Pace -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-rose-400 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-rose-400 font-bold text-xs sm:text-sm" id="pace-repetition-label">Repetition (R) Pace</div>
+                                    <div class="text-[10px] text-slate-300 mt-0.5">Speed, Running Economy & Mechanics</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-repetition-value">
+                                        @{{ formatPace(trainingProfile.paces?.R) }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Equivalent Tab -->
+                        <!-- 2. Equivalent Race Predictions Tab -->
                         <div v-if="profileTab === 'equivalent'">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Race</th>
-                                            <th class="py-2 text-right">Time</th>
-                                            <th class="py-2 text-right">Pace</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">5K</td>
-                                            <td class="py-2 text-right text-white font-mono" id="equiv-5k">@{{ trainingProfile.equivalent_race_times?.['5k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['5k']?.pace || '-' }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">10K</td>
-                                            <td class="py-2 text-right text-white font-mono" id="equiv-10k">@{{ trainingProfile.equivalent_race_times?.['10k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['10k']?.pace || '-' }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">Half Marathon</td>
-                                            <td class="py-2 text-right text-white font-mono" id="equiv-hm">@{{ trainingProfile.equivalent_race_times?.['21k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['21k']?.pace || '-' }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-2 font-bold">Marathon</td>
-                                            <td class="py-2 text-right text-white font-mono" id="equiv-fm">@{{ trainingProfile.equivalent_race_times?.['42k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['42k']?.pace || '-' }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                                <!-- 5K -->
+                                <div class="p-3 sm:p-4 rounded-lg bg-slate-950/70 border border-slate-800">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-mono font-bold text-neon bg-neon/10 border border-neon/30 px-1.5 py-0.5 rounded-[3px]">5K</span>
+                                        <span class="text-[9px] font-mono text-slate-400">Pace</span>
+                                    </div>
+                                    <div class="text-base sm:text-xl font-mono font-black text-white mt-1" id="equiv-5k">
+                                        @{{ trainingProfile.equivalent_race_times?.['5k']?.time || '-' }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-300 font-mono mt-0.5">
+                                        @{{ trainingProfile.equivalent_race_times?.['5k']?.pace || '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- 10K -->
+                                <div class="p-3 sm:p-4 rounded-lg bg-slate-950/70 border border-slate-800">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-mono font-bold text-neon bg-neon/10 border border-neon/30 px-1.5 py-0.5 rounded-[3px]">10K</span>
+                                        <span class="text-[9px] font-mono text-slate-400">Pace</span>
+                                    </div>
+                                    <div class="text-base sm:text-xl font-mono font-black text-white mt-1" id="equiv-10k">
+                                        @{{ trainingProfile.equivalent_race_times?.['10k']?.time || '-' }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-300 font-mono mt-0.5">
+                                        @{{ trainingProfile.equivalent_race_times?.['10k']?.pace || '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Half Marathon -->
+                                <div class="p-3 sm:p-4 rounded-lg bg-slate-950/70 border border-slate-800">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-1.5 py-0.5 rounded-[3px]">21.1K (HM)</span>
+                                        <span class="text-[9px] font-mono text-slate-400">Pace</span>
+                                    </div>
+                                    <div class="text-base sm:text-xl font-mono font-black text-white mt-1" id="equiv-hm">
+                                        @{{ trainingProfile.equivalent_race_times?.['21k']?.time || '-' }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-300 font-mono mt-0.5">
+                                        @{{ trainingProfile.equivalent_race_times?.['21k']?.pace || '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Full Marathon -->
+                                <div class="p-3 sm:p-4 rounded-lg bg-slate-950/70 border border-slate-800">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded-[3px]">42.2K (FM)</span>
+                                        <span class="text-[9px] font-mono text-slate-400">Pace</span>
+                                    </div>
+                                    <div class="text-base sm:text-xl font-mono font-black text-white mt-1" id="equiv-fm">
+                                        @{{ trainingProfile.equivalent_race_times?.['42k']?.time || '-' }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-300 font-mono mt-0.5">
+                                        @{{ trainingProfile.equivalent_race_times?.['42k']?.pace || '-' }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Track Tab -->
+                        <!-- 3. Track Intervals Tab -->
                         <div v-if="profileTab === 'track'">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
+                            <div class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/70">
+                                <table class="w-full text-xs text-left">
                                     <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Distance</th>
-                                            <th class="py-2 text-right text-red-400">Rep (R)</th>
-                                            <th class="py-2 text-right text-orange-400">Int (I)</th>
-                                            <th class="py-2 text-right text-yellow-400">Thr (T)</th>
+                                        <tr class="text-[10px] font-mono uppercase bg-slate-900 border-b border-slate-800">
+                                            <th class="py-2.5 px-3 text-slate-300 font-bold">Jarak</th>
+                                            <th class="py-2.5 px-2 text-right text-rose-400 font-bold">Rep (R)</th>
+                                            <th class="py-2.5 px-2 text-right text-orange-400 font-bold">Int (I)</th>
+                                            <th class="py-2.5 px-3 text-right text-amber-400 font-bold">Thr (T)</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr v-for="(times, dist) in trainingProfile.track_times" :key="dist" class="border-b border-slate-800 last:border-0">
-                                            <td class="py-2 font-bold text-white">@{{ dist }}</td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.R }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_R }}/km</div>
+                                    <tbody class="divide-y divide-slate-800/60">
+                                        <tr v-for="(times, dist) in trainingProfile.track_times" :key="dist" class="hover:bg-slate-900/40 transition">
+                                            <td class="py-2.5 px-3 font-bold text-white font-mono">@{{ dist }}</td>
+                                            <td class="py-2.5 px-2 text-right font-mono">
+                                                <div class="text-white font-bold">@{{ times.R }}</div>
+                                                <div class="text-[9px] text-slate-400">@{{ times.pace_R }}/km</div>
                                             </td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.I }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_I }}/km</div>
+                                            <td class="py-2.5 px-2 text-right font-mono">
+                                                <div class="text-white font-bold">@{{ times.I }}</div>
+                                                <div class="text-[9px] text-slate-400">@{{ times.pace_I }}/km</div>
                                             </td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.T }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_T }}/km</div>
+                                            <td class="py-2.5 px-3 text-right font-mono">
+                                                <div class="text-white font-bold">@{{ times.T }}</div>
+                                                <div class="text-[9px] text-slate-400">@{{ times.pace_T }}/km</div>
                                             </td>
                                         </tr>
                                     </tbody>

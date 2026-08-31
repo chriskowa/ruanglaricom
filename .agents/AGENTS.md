@@ -26,3 +26,39 @@
   - Text must have strong contrast and never blend into dark backgrounds (`text-white`, `text-slate-200`, `text-slate-300`).
   - Placeholder texts must be clearly readable and sharp (`placeholder:text-slate-400` or `placeholder-slate-400`, never dark/washed out `placeholder-slate-600/700`).
   - Typography must remain strictly consistent with the existing website design system (Inter / clean sans-serif hierarchy).
+
+## Border Radius Standard (Mandatory)
+
+All UI components MUST follow this border-radius scale. Do NOT use values outside this list:
+
+| Element             | Class         | Notes                                       |
+|---------------------|---------------|---------------------------------------------|
+| Buttons             | `rounded-md`  | All buttons, CTAs, form submits              |
+| Inputs / Selects    | `rounded-md`  | Text inputs, dropdowns, textareas            |
+| Cards / Panels      | `rounded-lg`  | Content cards, stat boxes, filter panels     |
+| Modals              | `rounded-lg`  | Modal dialogs, confirmation popups           |
+| Badges / Tags       | `rounded`     | Status badges, difficulty labels, tag chips  |
+| Tables              | `rounded-lg`  | Table wrapper container only                 |
+| Avatars / Photos    | `rounded-full`| Profile photos and avatar circles ONLY       |
+| Progress Bars       | `rounded-sm`  | Progress bar track and fill                  |
+| Alerts / Toasts     | `rounded-md`  | Notification banners, flash messages         |
+
+**Banned values on non-avatar elements**: `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-full`
+
+## Button Icon Policy (Mandatory)
+
+- **Text buttons DO NOT get icons** unless the button is a primary "Create/Add" action (then use `+` text, not an SVG icon).
+- **Icon-only buttons** are acceptable for compact table actions (edit, delete) but should use small FontAwesome icons (`text-xs`) with no background.
+- **Do NOT pair an icon + text** on every button. The text is sufficient.
+
+## Typography Scale (Mandatory)
+
+| Usage               | Class                                   | Do NOT use                                    |
+|---------------------|-----------------------------------------|-----------------------------------------------|
+| Page Title (h1)     | `text-2xl font-bold text-white`         | `font-black`, `italic`, `tracking-tighter`    |
+| Section Title (h2)  | `text-lg font-semibold text-white`      | `font-extrabold`, `font-black`, `tracking-tight` |
+| Card Title          | `text-base font-semibold text-white`    | `font-black`                                  |
+| Body Text           | `text-sm text-slate-200`               | `text-slate-500`                              |
+| Subtitle / Label    | `text-sm text-slate-300`               | `font-mono uppercase tracking-widest`         |
+| Caption / Meta      | `text-xs text-slate-400`               | `text-[10px]`, `text-[11px]` (use sparingly)  |
+| Monospace Values     | `text-sm font-mono text-white`         | Apply only on numeric/code values, never labels |

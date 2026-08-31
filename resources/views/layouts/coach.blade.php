@@ -87,7 +87,6 @@
         .animate-pulse { animation: loaderPulse 1.5s ease-in-out infinite; }
         @keyframes loaderPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.98)} }
         
-        .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
         [v-cloak] { display: none; }
 
         /* Fixed full-height sidebar layout */
@@ -141,8 +140,8 @@
 <body class="bg-dark text-white font-sans antialiased flex flex-col min-h-screen">
 
     <div id="loader" class="loader-overlay">
-        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
-            COACH<span class="text-primary">HUB</span>
+        <div class="text-xl font-bold text-white tracking-tight animate-pulse">
+            Memuat...
         </div>
     </div>
 

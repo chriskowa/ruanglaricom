@@ -259,6 +259,24 @@
                                     <span>Manage Athlete</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('coach.finance.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('coach.finance.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-wallet"></i></span>
+                                    <span>Keuangan & Saldo</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('coach.invoices.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('coach.invoices.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-file-invoice-dollar"></i></span>
+                                    <span>Tagihan Atlet</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('coach.withdrawals.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('coach.withdrawals.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-money-bill-transfer"></i></span>
+                                    <span>Penarikan Dana</span>
+                                </a>
+                            </li>
                         @elseif(auth()->user()->isRunner())
                             @php
                                 $isTrainingActive = request()->routeIs('runner.dashboard', 'runner.calendar*', 'runner.programs*', 'calculator');

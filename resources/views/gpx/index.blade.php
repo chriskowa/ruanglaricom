@@ -27,14 +27,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            font-size: 12px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-            border: 2px solid #0c121e;
+            font-weight: 700;
+            font-size: 11px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border: 2px solid #020617;
             transition: transform 0.15s ease;
         }
         .gpx-map-cluster:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
         .gpx-cluster-small {
             background: #ccff00;
@@ -49,93 +49,63 @@
             color: #ffffff;
         }
 
-        /* Custom Leaflet Popup Styling (Pure Dark & RuangLari Palette - No #0078A8) */
+        /* Leaflet Container & Controls */
         .leaflet-container {
             font-family: inherit !important;
-            background: #111827 !important;
+            background: #020617 !important;
         }
         .leaflet-container a {
             text-decoration: none !important;
         }
+        .leaflet-control-zoom {
+            border: 1px solid #334155 !important;
+            border-radius: 6px !important;
+            overflow: hidden;
+        }
         .leaflet-control-zoom a {
-            background-color: #0c121e !important;
+            background-color: #0f172a !important;
             color: #f1f5f9 !important;
             border-color: #334155 !important;
+            line-height: 28px !important;
         }
         .leaflet-control-zoom a:hover {
             background-color: #1e293b !important;
             color: #ccff00 !important;
         }
-        .leaflet-control-zoom a:focus {
-            background-color: #1e293b !important;
-            color: #ccff00 !important;
-            outline: none !important;
-            border-color: #ccff00 !important;
-        }
-        .gpx-custom-leaflet-popup a.btn-popup-detail,
-        .gpx-custom-leaflet-popup a.btn-popup-detail * {
-            color: #020617 !important;
-            font-weight: 700 !important;
-        }
-        .gpx-custom-leaflet-popup a.btn-popup-detail:hover,
-        .gpx-custom-leaflet-popup a.btn-popup-detail:hover * {
-            color: #020617 !important;
-        }
-        .gpx-custom-leaflet-popup h4 a {
-            color: #ffffff !important;
-            transition: color 0.15s ease;
-        }
-        .gpx-custom-leaflet-popup h4 a:hover {
-            color: #ccff00 !important;
-        }
+
+        /* Custom Leaflet Popup */
         .gpx-custom-leaflet-popup .leaflet-popup-content-wrapper {
-            background: #0c121e !important;
+            background: #0f172a !important;
             color: #f1f5f9 !important;
-            border-radius: 1rem !important;
+            border-radius: 8px !important;
             border: 1px solid #334155 !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7) !important;
             padding: 0 !important;
         }
         .gpx-custom-leaflet-popup .leaflet-popup-content {
-            margin: 0.875rem !important;
+            margin: 12px !important;
             line-height: 1.4 !important;
             min-width: 220px;
             max-width: 280px;
         }
         .gpx-custom-leaflet-popup .leaflet-popup-tip {
-            background: #0c121e !important;
+            background: #0f172a !important;
             border: 1px solid #334155 !important;
         }
         .gpx-custom-leaflet-popup a.leaflet-popup-close-button {
             color: #94a3b8 !important;
-            padding: 8px !important;
+            padding: 6px !important;
         }
         .gpx-custom-leaflet-popup a.leaflet-popup-close-button:hover {
             color: #ffffff !important;
         }
+
         .gpx-svg-grid {
-            background-color: #0c121e;
+            background-color: #020617;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(204, 255, 0, 0.04) 0%, transparent 70%),
                 linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-            background-size: 100% 100%, 20px 20px, 20px 20px;
-        }
-        /* Accent color override */
-        .text-accent { color: #ccff00; }
-        .bg-accent { background-color: #ccff00; }
-        .border-accent { border-color: #ccff00; }
-        .hover\:bg-accent:hover { background-color: #ccff00; }
-        .shadow-accent { box-shadow: 0 4px 14px rgba(204, 255, 0, 0.2); }
-
-        /* Dark styling for all filter dropdowns & native selects */
-        select, select option {
-            background-color: #0c121e !important;
-            color: #f1f5f9 !important;
-        }
-        select option:hover, select option:focus, select option:checked {
-            background-color: #1e293b !important;
-            color: #ccff00 !important;
+            background-size: 20px 20px, 20px 20px;
         }
 
         /* Hide floating chat on GPX database page */
@@ -143,29 +113,22 @@
             display: none !important;
         }
 
-        /* Route Type Radio Buttons (Neon Lime Active) */
+        /* Route Type Segment Buttons */
         .route-type-btn {
-            background-color: #090D16 !important;
+            background-color: #020617 !important;
             border-color: #334155 !important;
             color: #cbd5e1 !important;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.15s ease-in-out;
         }
         .route-type-btn.is-active,
         .route-type-btn:has(input:checked) {
-            background-color: #ccff00 !important;
-            background: #ccff00 !important;
-            border-color: #ccff00 !important;
-            color: #020617 !important;
-            font-weight: 700 !important;
-            box-shadow: 0 0 12px rgba(204, 255, 0, 0.25) !important;
-        }
-        .route-type-btn.is-active span,
-        .route-type-btn:has(input:checked) span {
-            color: #020617 !important;
-            font-weight: 700 !important;
+            background-color: #1e293b !important;
+            border-color: #475569 !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
         }
 
-        /* Mobile Floating Filter Drawer & Bottom Docked Button */
+        /* Mobile Filter Sheet */
         @media (max-width: 767px) {
             #mobile-filter-btn-wrap {
                 position: fixed !important;
@@ -173,54 +136,6 @@
                 left: 50% !important;
                 transform: translateX(-50%) !important;
                 z-index: 99980 !important;
-                margin: 0 !important;
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-                padding: 0 !important;
-            }
-            #btn-open-mobile-filter {
-                background-color: #0c121e !important;
-                background: #0c121e !important;
-                margin: 0 !important;
-                margin-bottom: 0 !important;
-            }
-            #mobile-filter-backdrop {
-                position: fixed !important;
-                inset: 0 !important;
-                background-color: rgba(0, 0, 0, 0.85) !important;
-                backdrop-filter: blur(6px) !important;
-                -webkit-backdrop-filter: blur(6px) !important;
-                z-index: 99990 !important;
-            }
-            #filter-wrapper-container {
-                position: fixed !important;
-                left: 0.75rem !important;
-                right: 0.75rem !important;
-                top: 4.75rem !important;
-                bottom: auto !important;
-                max-height: calc(100vh - 5.75rem) !important;
-                overflow-y: auto !important;
-                background-color: #0c121e !important;
-                background: #0c121e !important;
-                opacity: 1 !important;
-                border: 1px solid rgba(204, 255, 0, 0.4) !important;
-                border-radius: 1.25rem !important;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95) !important;
-                z-index: 99999 !important;
-                padding: 1.25rem !important;
-            }
-            #filter-wrapper-container form#form-gpx-filter {
-                background-color: #0c121e !important;
-                background: #0c121e !important;
-                opacity: 1 !important;
-                border: none !important;
-                padding: 0 !important;
-            }
-            #filter-wrapper-container input,
-            #filter-wrapper-container select {
-                background-color: #090D16 !important;
-                background: #090D16 !important;
-                opacity: 1 !important;
             }
         }
     </style>
@@ -271,341 +186,253 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 md:px-8 bg-[#090D16] text-slate-200">
-    <div class="max-w-7xl mx-auto space-y-8">
+<div class="min-h-screen pt-10 pb-20 px-4 md:px-8 bg-slate-950 text-slate-200 font-sans">
+    <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Hero -->
-        <div class="bg-[#0c121e] border border-slate-800 p-6 md:p-9 rounded-2xl relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-80 h-80 bg-[#ccff00]/5 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
-                <div class="space-y-3 max-w-2xl">
-                    
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-                        Database Rute <span class="text-accent">GPX</span> Lari Indonesia
+        <!-- Hero Header -->
+        <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-lg">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="space-y-2 max-w-2xl">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                        Database Rute GPX Lari Indonesia
                     </h1>
-
-                    <p class="text-slate-200 text-sm leading-relaxed max-w-xl">
-                        Temukan dan unduh rute lari terbaik di seluruh Indonesia. File GPX siap sinkron ke Garmin, Coros, Suunto, dan Strava.
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xl">
+                        Temukan dan unduh rute lari terverifikasi di berbagai kota di Indonesia. File GPX siap disinkronkan ke jam Garmin, Coros, Suunto, dan aplikasi Strava.
                     </p>
                 </div>
                 
-                <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap shrink-0">
-                    <a href="{{ route('tools.buat-rute-lari') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-medium transition flex items-center justify-center gap-2">
-                        <span>Buat rute baru</span>
+                <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+                    <a href="{{ route('tools.buat-rute-lari') }}" class="w-full sm:w-auto px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-medium transition text-center">
+                        + Buat Rute Baru
                     </a>
                     
-                    <button id="btn-open-submit-gpx-modal" type="button" class="btn-trigger-gpx-modal w-full sm:w-auto px-5 py-2.5 rounded-xl bg-accent text-slate-950 hover:bg-white text-sm font-bold transition shadow-accent flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Submit rute (+10 poin)</span>
+                    <button id="btn-open-submit-gpx-modal" type="button" class="btn-trigger-gpx-modal w-full sm:w-auto px-4 py-2 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition text-center">
+                        Submit Rute (+10 poin)
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Location Detection Banner -->
-        <div id="gpx-geo-notice-bar" class="{{ $hasCoordinates ? '' : 'hidden' }} p-4 rounded-xl bg-slate-900/90 border border-[#ccff00]/30 text-sm text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div id="gpx-geo-notice-bar" class="{{ $hasCoordinates ? '' : 'hidden' }} p-3.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shrink-0"></span>
+                <span class="w-2 h-2 rounded-full bg-neon animate-pulse shrink-0"></span>
                 <div>
-                    <span>Lokasi GPS terdeteksi: <strong id="gpx-detected-city-name" class="text-white">{{ $userLat ? number_format($userLat, 4) . ', ' . number_format($userLng, 4) : '...' }}</strong></span>
-                    <span id="gpx-detected-radius-badge" class="text-xs text-accent font-semibold ml-2">({{ request('radius') ? 'Radius ' . request('radius') . ' km' : 'Semua radius' }})</span>
+                    <span>Lokasi GPS terdeteksi: <strong id="gpx-detected-city-name" class="text-white font-mono">{{ $userLat ? number_format($userLat, 4) . ', ' . number_format($userLng, 4) : '...' }}</strong></span>
+                    <span id="gpx-detected-radius-badge" class="text-xs text-slate-400 font-medium ml-1">({{ request('radius') ? 'Radius ' . request('radius') . ' km' : 'Semua radius' }})</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button id="btn-apply-detected-city" type="button" class="px-3.5 py-1.5 bg-accent text-slate-950 font-bold rounded-lg text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
-                    <span>Urutkan Terdekat</span>
+                <button id="btn-apply-detected-city" type="button" class="px-3 py-1.5 bg-neon text-dark font-semibold rounded-md text-xs hover:bg-white transition">
+                    Urutkan Terdekat
                 </button>
-                <button id="btn-clear-gps-filter" type="button" class="px-2.5 py-1.5 rounded-lg border border-slate-700 hover:border-rose-500/50 text-slate-400 hover:text-rose-400 text-xs font-semibold transition cursor-pointer" title="Hapus Filter GPS">
-                    <i class="fa-solid fa-xmark"></i>
+                <button id="btn-clear-gps-filter" type="button" class="px-2.5 py-1.5 rounded-md border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition" title="Hapus Filter GPS">
+                    Reset GPS
                 </button>
             </div>
         </div>
 
-        <!-- Interactive Explorer Map Section (Minimizable, OpenStreetMap with CARTO Light style, Marker Clustering) -->
-        <div id="gpx-explorer-map-section" class="bg-[#0c121e] border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all duration-300">
-            <!-- Header bar with Minimize/Expand toggle -->
-            <div class="px-5 py-3.5 bg-[#090D16]/90 border-b border-slate-800 flex items-center justify-between gap-4 cursor-pointer select-none" id="btn-toggle-explorer-map">
-                <div class="flex items-center gap-3">                    
+        <!-- Interactive Explorer Map Section -->
+        <div id="gpx-explorer-map-section" class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden transition-all duration-300">
+            <!-- Header bar with Layer Switcher and Recenter -->
+            <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 select-none" id="btn-toggle-explorer-map">
+                <div class="flex items-center gap-3">
                     <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h2 class="text-sm sm:text-base font-bold text-white tracking-tight">Peta Sebaran Rute GPX</h2>
-                            <span id="gpx-map-routes-count" class="px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 text-[11px] font-bold">
-                                {{ count($mapRoutes ?? []) }} Rute terdaftar
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-semibold text-white">Peta Sebaran Rute GPX</h2>
+                            <span id="gpx-map-routes-count" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-xs font-mono">
+                                {{ count($mapRoutes ?? []) }} Rute
                             </span>
                         </div>
-                        <p class="text-xs text-slate-400 hidden sm:block">Jelajahi titik awal rute di peta. Klik marker untuk melihat detail rute.</p>
+                        <p class="text-xs text-slate-400 mt-0.5 hidden sm:block">Klik marker untuk melihat ringkasan elevasi dan membuka detail rute.</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2" onclick="event.stopPropagation()">
-                    <button type="button" id="btn-map-recenter" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Pusatkan Peta ke Seluruh Rute">
-                        <i class="fa-solid fa-expand text-[11px]"></i>
-                        <span class="hidden sm:inline">Pusatkan</span>
+                    <!-- Map Style Switcher (Jalan / Satelit / Topografi / Dark) -->
+                    <div class="flex items-center bg-slate-950 p-0.5 rounded-md border border-slate-800 text-xs">
+                        <button type="button" onclick="switchExplorerMapStyle('streets')" id="btn-map-style-streets" class="px-2 py-1 rounded font-medium transition bg-slate-800 text-white" title="Mapbox Streets (Jalan)">
+                            Jalan
+                        </button>
+                        <button type="button" onclick="switchExplorerMapStyle('satellite')" id="btn-map-style-satellite" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Satellite Imagery">
+                            Satelit
+                        </button>
+                        <button type="button" onclick="switchExplorerMapStyle('outdoors')" id="btn-map-style-outdoors" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Topografi / Outdoors">
+                            Topografi
+                        </button>
+                        <button type="button" onclick="switchExplorerMapStyle('dark')" id="btn-map-style-dark" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Dark Mode">
+                            Dark
+                        </button>
+                    </div>
+
+                    <button type="button" id="btn-map-recenter" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition" title="Pusatkan Peta ke Seluruh Rute">
+                        Pusatkan
                     </button>
-                    <button type="button" id="btn-map-minimize-toggle" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Minimize / Tampilkan Peta">
-                        <span id="label-map-toggle" class="text-xs">Sembunyikan</span>
-                        <i id="icon-map-toggle" class="fa-solid fa-chevron-up transition-transform duration-300 text-[10px]"></i>
+                    <button type="button" id="btn-map-minimize-toggle" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition" title="Minimize / Tampilkan Peta">
+                        <span id="label-map-toggle">Sembunyikan</span>
                     </button>
                 </div>
             </div>
 
             <!-- Map Container Wrapper -->
             <div id="explorer-map-collapse-wrap" class="relative transition-all duration-300">
-                <div id="gpx-explorer-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-[#f2efe9]"></div>
+                <div id="gpx-explorer-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-slate-950"></div>
                 
                 <!-- Map Legend / Interactive Route Type Filter Overlay -->
-                <div id="gpx-map-type-filter-overlay" class="absolute bottom-3 left-3 z-[400] bg-[#0c121e] border border-slate-700 rounded-xl p-1.5 text-xs text-slate-300 shadow-2xl pointer-events-auto flex items-center gap-1.5" style="background-color: #0c121e !important;">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">Tipe:</span>
-                    <button type="button" onclick="setMapAndFormRouteType('')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ (!request('route_type') || request('route_type') == '') ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }}">
+                <div id="gpx-map-type-filter-overlay" class="absolute bottom-3 left-3 z-[400] bg-slate-900 border border-slate-800 rounded-md p-1 text-xs text-slate-300 shadow-xl pointer-events-auto flex items-center gap-1">
+                    <span class="text-xs text-slate-400 font-medium px-1.5">Tipe:</span>
+                    <button type="button" onclick="setMapAndFormRouteType('')" class="btn-map-type-pill px-2 py-1 rounded text-xs font-medium transition border {{ (!request('route_type') || request('route_type') == '') ? 'bg-slate-800 text-white border-slate-700' : 'text-slate-400 hover:text-white border-transparent' }}">
                         Semua
                     </button>
-                    <button type="button" onclick="setMapAndFormRouteType('road')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'road' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#ccff00]"></span>
+                    <button type="button" onclick="setMapAndFormRouteType('road')" class="btn-map-type-pill px-2 py-1 rounded text-xs font-medium transition border {{ request('route_type') == 'road' ? 'bg-slate-800 text-white border-slate-700' : 'text-slate-400 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#ccff00]"></span>
                         <span>Road</span>
                     </button>
-                    <button type="button" onclick="setMapAndFormRouteType('trail')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'trail' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+                    <button type="button" onclick="setMapAndFormRouteType('trail')" class="btn-map-type-pill px-2 py-1 rounded text-xs font-medium transition border {{ request('route_type') == 'trail' ? 'bg-slate-800 text-white border-slate-700' : 'text-slate-400 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
                         <span>Trail</span>
                     </button>
-                    <button type="button" onclick="setMapAndFormRouteType('track')" class="btn-map-type-pill px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer border {{ request('route_type') == 'track' ? 'bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center gap-1.5">
-                        <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span>
+                    <button type="button" onclick="setMapAndFormRouteType('track')" class="btn-map-type-pill px-2 py-1 rounded text-xs font-medium transition border {{ request('route_type') == 'track' ? 'bg-slate-800 text-white border-slate-700' : 'text-slate-400 hover:text-white border-transparent' }} flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
                         <span>Track</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Docked Bottom Mobile Filter Trigger (Bottom 0) -->
-        <div id="mobile-filter-btn-wrap"
-            class="md:hidden !m-0 !mt-0 !mb-0 !p-0"
-            style="
-                position: fixed !important;
-                left: 50% !important;
-                bottom: 0 !important;
-                margin: 0 !important;
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-                padding: 0 !important;
-                transform: translateX(-50%) !important;
-                z-index: 99980 !important;
-                width: max-content;
-            ">
-
+        <!-- Docked Bottom Mobile Filter Trigger -->
+        <div id="mobile-filter-btn-wrap" class="md:hidden">
             <button id="btn-open-mobile-filter"
                 type="button"
-                class="group relative flex items-center gap-2.5 px-6 pt-2.5 pb-2.5 rounded-t-2xl rounded-b-none bg-[#0c121e] border-2 border-b-0 border-accent text-white shadow-[0_-8px_25px_rgba(0,0,0,0.9)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none !m-0 !mt-0 !mb-0"
-                style="background-color: #0c121e !important; margin: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important;"
-                title="Buka Filter Rute">
-
-                <i class="fa-solid fa-sliders text-accent text-sm group-hover:scale-110 transition-transform"></i>
-
-                <span class="text-xs font-bold text-white tracking-wide uppercase">
-                    Filter Rute
-                </span>
-
-                <span id="mobile-filter-active-dot"
-                    class="hidden w-2.5 h-2.5 bg-accent rounded-full animate-pulse">
-                </span>
-
+                class="flex items-center gap-2 px-5 py-2.5 rounded-t-lg bg-slate-900 border border-b-0 border-slate-700 text-white shadow-2xl text-xs font-semibold">
+                <span>Filter Rute</span>
+                <span id="mobile-filter-active-dot" class="hidden w-2 h-2 bg-neon rounded-full"></span>
             </button>
         </div>
 
-        <!-- Search & Filter Wrapper (Desktop In-Line & Mobile Top Modal) -->
-        <div id="mobile-filter-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[99990] hidden transition-opacity" style="position: fixed; z-index: 99990 !important;"></div>
+        <!-- Search & Filter Section -->
+        <div id="mobile-filter-backdrop" class="fixed inset-0 bg-black/70 z-[99990] hidden transition-opacity"></div>
 
-        <div id="filter-wrapper-container" class="hidden md:block fixed md:static inset-x-3 top-20 z-[99999] md:z-auto bg-[#0c121e] border border-accent/40 md:border-0 rounded-2xl md:rounded-2xl max-h-[85vh] md:max-h-none overflow-y-auto md:overflow-visible shadow-2xl md:shadow-none p-5 md:p-0 transition-all" style="background-color: #0c121e !important; z-index: 99999 !important;">
-            <form id="form-gpx-filter" method="GET" action="{{ route('gpx.index') }}" class="bg-[#0c121e] md:border md:border-slate-800 p-0 md:p-6 md:rounded-2xl space-y-4">
+        <div id="filter-wrapper-container" class="hidden md:block fixed md:static inset-x-3 top-20 z-[99999] md:z-auto bg-slate-900 border border-slate-800 rounded-lg max-h-[85vh] md:max-h-none overflow-y-auto md:overflow-visible shadow-2xl md:shadow-none p-5 md:p-0 transition-all">
+            <form id="form-gpx-filter" method="GET" action="{{ route('gpx.index') }}" class="bg-slate-900 md:border md:border-slate-800 p-0 md:p-5 md:rounded-lg space-y-4">
                 <!-- GPS Coordinates Hidden Inputs -->
                 <input type="hidden" name="user_lat" id="filter-user-lat" value="{{ request('user_lat', request('lat')) }}">
                 <input type="hidden" name="user_lng" id="filter-user-lng" value="{{ request('user_lng', request('lng')) }}">
 
-                <!-- Mobile Header with Close Button (Visible only on mobile) -->
+                <!-- Mobile Header -->
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800 md:hidden">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 rounded-xl bg-accent/15 border border-accent/40 flex items-center justify-center text-accent">
-                            <i class="fa-solid fa-sliders text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-white">Filter & Pencarian Rute</h3>
-                            <p class="text-[10px] text-slate-400">Atur filter jarak, radius, kota, dan elevasi</p>
-                        </div>
-                    </div>
-                    <button id="btn-close-mobile-filter" type="button" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer" title="Tutup Filter">
-                        <i class="fa-solid fa-xmark text-base"></i>
+                    <h3 class="text-sm font-semibold text-white">Filter & Pencarian Rute</h3>
+                    <button id="btn-close-mobile-filter" type="button" class="text-slate-400 hover:text-white text-lg leading-none">
+                        &times;
                     </button>
                 </div>
 
                 <div class="space-y-4">
-                    <!-- Top Row: Tipe Rute Segmented Radio & Search Box -->
+                    <!-- Top Row: Tipe Rute & Search Input -->
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        <!-- Tipe Rute (Segmented Radio Group like Submit Modal) -->
-                        <div class="space-y-1.5 flex-1 max-w-xl">
-                            <label class="block text-xs text-slate-200 font-semibold">Tipe Rute</label>
-                            <div class="grid grid-cols-4 gap-1.5 bg-[#090D16] p-1 rounded-xl border border-slate-700 select-none">
-                                <label class="route-type-filter-btn {{ (!request('route_type') || request('route_type') == '') ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                        <!-- Tipe Rute -->
+                        <div class="space-y-1 flex-1 max-w-xl">
+                            <label class="block text-xs font-medium text-slate-300">Tipe Rute</label>
+                            <div class="grid grid-cols-4 gap-1 bg-slate-950 p-1 rounded-md border border-slate-800 select-none text-xs">
+                                <label class="route-type-filter-btn {{ (!request('route_type') || request('route_type') == '') ? 'is-active bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white' }} flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition">
                                     <input type="radio" name="route_type" value="" class="hidden" {{ (!request('route_type') || request('route_type') == '') ? 'checked' : '' }}>
                                     <span>Semua</span>
                                 </label>
-                                <label class="route-type-filter-btn {{ request('route_type') == 'road' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                <label class="route-type-filter-btn {{ request('route_type') == 'road' ? 'is-active bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white' }} flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition">
                                     <input type="radio" name="route_type" value="road" class="hidden" {{ request('route_type') == 'road' ? 'checked' : '' }}>
                                     <span>Road</span>
                                 </label>
-                                <label class="route-type-filter-btn {{ request('route_type') == 'trail' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                <label class="route-type-filter-btn {{ request('route_type') == 'trail' ? 'is-active bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white' }} flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition">
                                     <input type="radio" name="route_type" value="trail" class="hidden" {{ request('route_type') == 'trail' ? 'checked' : '' }}>
                                     <span>Trail</span>
                                 </label>
-                                <label class="route-type-filter-btn {{ request('route_type') == 'track' ? 'is-active bg-slate-800 text-white font-bold border-slate-600' : 'text-slate-300 hover:text-white border-transparent' }} flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm">
+                                <label class="route-type-filter-btn {{ request('route_type') == 'track' ? 'is-active bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-white' }} flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition">
                                     <input type="radio" name="route_type" value="track" class="hidden" {{ request('route_type') == 'track' ? 'checked' : '' }}>
                                     <span>Track</span>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Cari Rute Keyword -->
-                        <div class="space-y-1.5 flex-1">
-                            <label class="block text-xs text-slate-200 font-semibold">Cari Rute</label>
-                            <div class="relative">
-                                <input type="text" name="q" value="{{ request('q') }}" placeholder="Ketik nama rute..." 
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            </div>
+                        <!-- Search Input -->
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Cari Nama Rute</label>
+                            <input type="text" name="q" value="{{ request('q') }}" 
+                                placeholder="Ketik kata kunci rute (e.g. GBK, Sudirman, Tahura)..."
+                                class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:ring-1 focus:ring-slate-500 outline-none transition">
                         </div>
                     </div>
 
-                    <!-- Secondary Row: Kota, Radius, Jarak, Elevasi, Urutan -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                        
-                        <!-- Kota -->
-                        <div>
-                            <div class="flex items-center justify-between mb-1.5">
-                                <label class="block text-xs text-slate-200 font-semibold">Kota</label>
-                                <button id="btn-detect-user-city" type="button" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-semibold cursor-pointer" title="Deteksi GPS">
-                                    <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
-                                    <span>GPS</span>
-                                </button>
-                            </div>
-                            <div class="relative" id="filter-city-combobox-wrap">
-                                <div class="relative flex items-center">
-                                    <input type="text" 
-                                        id="select-filter-city" 
-                                        name="city" 
-                                        value="{{ request('city') }}" 
-                                        placeholder="Semua kota / cari..." 
-                                        autocomplete="off"
-                                        class="w-full bg-[#090D16] border border-slate-700 rounded-xl pl-8 pr-12 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition cursor-text">
-                                    
-                                    <div class="pointer-events-none absolute left-2.5 text-slate-400">
-                                        <i class="fa-solid fa-location-dot text-xs text-slate-400"></i>
-                                    </div>
-
-                                    <div class="absolute right-2 flex items-center gap-1">
-                                        <button type="button" id="btn-clear-filter-city" class="text-slate-400 hover:text-white p-1 text-xs cursor-pointer {{ request('city') ? '' : 'hidden' }}" title="Hapus Filter Kota">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                        <button type="button" id="btn-toggle-filter-city" class="text-slate-400 hover:text-white p-1 text-[10px] cursor-pointer" title="Lihat Pilihan Kota">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Floating Autocomplete / Selection Menu (100% Solid Opaque Dark) -->
-                                <div id="filter-city-dropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 z-[99999] bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto" style="background-color: #0c121e !important; background: #0c121e !important; opacity: 1 !important; z-index: 99999 !important;">
-                                    <!-- Populated dynamically by JS -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Radius GPS -->
-                        <div>
-                            <div class="flex items-center justify-between mb-1.5">
-                                <label class="block text-xs text-slate-200 font-semibold">Radius GPS</label>
-                                <span id="label-gps-active" class="text-[10px] text-emerald-400 font-mono {{ $hasCoordinates ? '' : 'hidden' }}">Aktif</span>
-                            </div>
+                    <!-- Bottom Row: Filters (City, Distance, Elevation, Sort) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <!-- Kota / Wilayah (Combobox) -->
+                        <div class="relative" id="filter-city-combobox-wrap">
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Kota / Wilayah</label>
                             <div class="relative">
-                                <select id="select-filter-radius" name="radius" 
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
-                                    <option value="">Semua radius</option>
-                                    <option value="5" {{ request('radius') == '5' ? 'selected' : '' }}>Radius &lt; 5 km</option>
-                                    <option value="10" {{ request('radius') == '10' ? 'selected' : '' }}>Radius 10 km</option>
-                                    <option value="25" {{ request('radius') == '25' ? 'selected' : '' }}>Radius 25 km</option>
-                                    <option value="50" {{ request('radius') == '50' ? 'selected' : '' }}>Radius 50 km</option>
-                                    <option value="100" {{ request('radius') == '100' ? 'selected' : '' }}>Radius 100 km</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                <input type="text" id="select-filter-city" name="city" value="{{ request('city') }}" autocomplete="off"
+                                    placeholder="Semua kota..."
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:ring-1 focus:ring-slate-500 outline-none transition pr-14">
+                                <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                    <button type="button" id="btn-clear-filter-city" class="{{ request('city') ? '' : 'hidden' }} text-slate-400 hover:text-white text-xs p-1" title="Hapus Filter Kota">
+                                        &times;
+                                    </button>
+                                    <button type="button" id="btn-toggle-filter-city" class="text-slate-400 hover:text-white text-xs p-1" title="Lihat Pilihan Kota">
+                                        <i class="fas fa-chevron-down text-[10px]"></i>
+                                    </button>
                                 </div>
                             </div>
+                            <div id="filter-city-dropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-md shadow-2xl z-50 max-h-56 overflow-y-auto"></div>
                         </div>
 
                         <!-- Jarak Rute -->
                         <div>
-                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Jarak Rute</label>
-                            <div class="relative">
-                                <select name="distance" 
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
-                                    <option value="">Semua jarak</option>
-                                    <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km</option>
-                                    <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km</option>
-                                    <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km</option>
-                                    <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                    <i class="fas fa-chevron-down text-[10px]"></i>
-                                </div>
-                            </div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Kategori Jarak</label>
+                            <select name="distance" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:ring-1 focus:ring-slate-500 outline-none transition">
+                                <option value="">Semua jarak</option>
+                                <option value="under_5k" {{ request('distance') == 'under_5k' ? 'selected' : '' }}>&lt; 5 km (Short Run)</option>
+                                <option value="5k_10k" {{ request('distance') == '5k_10k' ? 'selected' : '' }}>5 – 10 km (Medium Run)</option>
+                                <option value="10k_21k" {{ request('distance') == '10k_21k' ? 'selected' : '' }}>10 – 21,1 km (Half Marathon)</option>
+                                <option value="over_21k" {{ request('distance') == 'over_21k' ? 'selected' : '' }}>&gt; 21,1 km (Long Run)</option>
+                            </select>
                         </div>
 
                         <!-- Elevasi -->
                         <div>
-                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Elevasi</label>
-                            <div class="relative">
-                                <select name="elevation" 
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
-                                    <option value="">Semua elevasi</option>
-                                    <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
-                                    <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
-                                    <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                    <i class="fas fa-chevron-down text-[10px]"></i>
-                                </div>
-                            </div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Karakter Elevasi</label>
+                            <select name="elevation" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:ring-1 focus:ring-slate-500 outline-none transition">
+                                <option value="">Semua elevasi</option>
+                                <option value="flat" {{ request('elevation') == 'flat' ? 'selected' : '' }}>Datar (&lt; 100 m)</option>
+                                <option value="hilly" {{ request('elevation') == 'hilly' ? 'selected' : '' }}>Berbukit (100 – 300 m)</option>
+                                <option value="mountainous" {{ request('elevation') == 'mountainous' ? 'selected' : '' }}>Pegunungan (&gt; 300 m)</option>
+                            </select>
                         </div>
 
-                        <!-- Urutan (Sorting) -->
+                        <!-- Urutan -->
                         <div>
-                            <label class="block text-xs text-slate-200 mb-1.5 font-semibold">Urutan</label>
-                            <div class="relative">
-                                <select name="sort" id="select-filter-sort"
-                                    class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white appearance-none focus:outline-none focus:border-slate-500 transition cursor-pointer [&>option]:bg-[#0c121e]">
-                                    <option value="nearest" {{ (request('sort') == 'nearest' || (!request('sort') && $hasCoordinates)) ? 'selected' : '' }}>Lokasi Terdekat (GPS)</option>
-                                    <option value="latest" {{ (request('sort') == 'latest' || (!request('sort') && !$hasCoordinates)) ? 'selected' : '' }}>Rute Terbaru</option>
-                                    <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak Terpendek</option>
-                                    <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak Terpanjang</option>
-                                    <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi Tertinggi</option>
-                                    <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
-                                    <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
-                                    <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-200">
-                                    <i class="fas fa-chevron-down text-[10px]"></i>
-                                </div>
-                            </div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Urutan</label>
+                            <select name="sort" id="select-filter-sort" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:ring-1 focus:ring-slate-500 outline-none transition">
+                                <option value="nearest" {{ (request('sort') == 'nearest' || (!request('sort') && $hasCoordinates)) ? 'selected' : '' }}>Lokasi Terdekat (GPS)</option>
+                                <option value="latest" {{ (request('sort') == 'latest' || (!request('sort') && !$hasCoordinates)) ? 'selected' : '' }}>Rute Terbaru</option>
+                                <option value="distance_asc" {{ request('sort') == 'distance_asc' ? 'selected' : '' }}>Jarak Terpendek</option>
+                                <option value="distance_desc" {{ request('sort') == 'distance_desc' ? 'selected' : '' }}>Jarak Terpanjang</option>
+                                <option value="elevation_desc" {{ request('sort') == 'elevation_desc' ? 'selected' : '' }}>Elevasi Tertinggi</option>
+                                <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Abjad Judul (A - Z)</option>
+                                <option value="city" {{ request('sort') == 'city' ? 'selected' : '' }}>Berdasarkan Kota</option>
+                                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <div class="text-xs sm:text-sm text-slate-200">
-                        Menampilkan <strong id="gpx-total-count" class="text-white font-bold">{{ $items->total() }}</strong> rute
+                    <div class="text-xs text-slate-300">
+                        Menampilkan <strong id="gpx-total-count" class="text-white font-mono font-semibold">{{ $items->total() }}</strong> rute
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" id="btn-reset-filters" class="px-3.5 py-2 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-xs sm:text-sm transition cursor-pointer">
+                        <button type="button" id="btn-reset-filters" class="px-3 py-1.5 rounded-md border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium transition">
                             Reset
                         </button>
-                        <button type="submit" class="px-4 py-2 rounded-xl bg-accent text-slate-950 hover:bg-white text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer shadow-accent">
-                            <i class="fa-solid fa-sliders text-xs"></i>
-                            <span>Terapkan</span>
+                        <button type="submit" class="px-3.5 py-1.5 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition">
+                            Terapkan Filter
                         </button>
                     </div>
                 </div>
@@ -617,56 +444,39 @@
             @include('gpx.partials.cards')
         </div>
 
-        <!-- FAQ / Educational Section -->
-        <section class="mt-16 pt-12 border-t border-slate-800 space-y-6">
-            <div class="max-w-2xl">
-                <p class="text-sm text-accent font-medium mb-1">Panduan</p>
-                <h2 class="text-2xl font-bold text-white tracking-tight">
-                    Cara memakai file GPX untuk lari
-                </h2>
-                <p class="text-slate-200 text-sm leading-relaxed mt-1">
-                    Pelajari cara mengimpor rute GPX ke jam Garmin, Coros, dan aplikasi training favoritmu.
-                </p>
+        <!-- Educational Section -->
+        <section class="mt-12 pt-8 border-t border-slate-800 space-y-4">
+            <div>
+                <h2 class="text-lg font-semibold text-white">Panduan Penggunaan Berkas GPX</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Tata cara mengimpor rute GPX ke jam olahraga Garmin, Coros, dan platform olahraga favorit.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-5 rounded-2xl bg-[#0c121e] border border-slate-800 space-y-2">
-                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-circle-question text-accent text-xs"></i>
-                        Apa itu file GPX?
-                    </h3>
-                    <p class="text-sm text-slate-200 leading-relaxed">
-                        GPX (GPS Exchange Format) adalah format standar yang menyimpan koordinat, jarak, dan elevasi rute. File ini dipakai untuk navigasi turn-by-turn di jam olahraga dan aplikasi lari.
+                <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
+                    <h3 class="text-xs font-semibold text-white">Apa itu berkas GPX?</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        GPX (GPS Exchange Format) adalah format standar yang menyimpan koordinat, jarak, dan elevasi rute untuk navigasi turn-by-turn di jam olahraga dan aplikasi tracking.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-[#0c121e] border border-slate-800 space-y-2">
-                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-watch text-accent text-xs"></i>
-                        Cara import ke Garmin
-                    </h3>
-                    <p class="text-sm text-slate-200 leading-relaxed">
-                        Unduh file GPX → buka Garmin Connect → Training & Planning → Courses → Import → pilih file → Send to Device.
+                <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
+                    <h3 class="text-xs font-semibold text-white">Cara impor ke Garmin</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Unduh berkas GPX &rarr; buka Garmin Connect &rarr; Training & Planning &rarr; Courses &rarr; Import &rarr; pilih berkas &rarr; Send to Device.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-[#0c121e] border border-slate-800 space-y-2">
-                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen text-accent text-xs"></i>
-                        Cara import ke Coros
-                    </h3>
-                    <p class="text-sm text-slate-200 leading-relaxed">
-                        Unduh file GPX → buka di aplikasi COROS → simpan ke Route Library → Sync with Watch.
+                <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
+                    <h3 class="text-xs font-semibold text-white">Cara impor ke Coros</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Unduh berkas GPX &rarr; buka di aplikasi COROS &rarr; simpan ke Route Library &rarr; Sync with Watch.
                     </p>
                 </div>
 
-                <div class="p-5 rounded-2xl bg-[#0c121e] border border-slate-800 space-y-2">
-                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-award text-accent text-xs"></i>
-                        Dapat poin dengan berbagi rute
-                    </h3>
-                    <p class="text-sm text-slate-200 leading-relaxed">
-                        Setiap rute yang kamu unggah memberikan +10 Run Points. Poin bisa dipakai untuk fitur-fitur di RuangLari.
+                <div class="p-4 rounded-lg bg-slate-900 border border-slate-800 space-y-1.5">
+                    <h3 class="text-xs font-semibold text-white">Poin kontribusi komunitas</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Setiap rute yang kamu bagikan memberikan +10 Run Points yang dapat digunakan untuk fitur-fitur eksklusif di RuangLari.
                     </p>
                 </div>
             </div>
@@ -675,17 +485,17 @@
     </div>
 </div>
 
-<!-- Submit GPX Modal (Solid Opaque High-Contrast) -->
-<div id="modal-submit-gpx" class="fixed inset-0 z-[99999] bg-black/90 hidden items-center justify-center p-4" style="z-index: 99999 !important;">
-    <div class="bg-[#0c121e] border border-slate-700 rounded-2xl max-w-xl w-full p-6 md:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto text-slate-200" style="background-color: #0c121e !important; opacity: 1 !important;">
+<!-- Submit GPX Modal -->
+<div id="modal-submit-gpx" class="fixed inset-0 z-[99999] bg-black/70 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-xl w-full p-5 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto text-slate-200">
         
-        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <div>
-                <p class="text-xs text-slate-400 font-medium">Kontribusi Komunitas</p>
-                <h3 class="text-lg font-bold text-white mt-0.5">Bagikan Rute GPX</h3>
+                <h3 class="text-base font-semibold text-white">Bagikan Rute GPX</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Unggah berkas GPX rute lari untuk komunitas.</p>
             </div>
-            <button id="btn-close-submit-gpx-modal" type="button" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer" title="Tutup Modal">
-                <i class="fa-solid fa-times text-xs"></i>
+            <button id="btn-close-submit-gpx-modal" type="button" class="text-slate-400 hover:text-white text-lg leading-none" title="Tutup Modal">
+                &times;
             </button>
         </div>
 
@@ -693,94 +503,83 @@
 
         <form id="form-submit-gpx-modal" enctype="multipart/form-data" class="space-y-4">
             @csrf
-            <!-- Anti-Bot Honeypot -->
             <input type="text" name="website_url" class="hidden" style="display:none !important;" tabindex="-1" autocomplete="off">
 
             <div>
-                <label class="block text-sm font-semibold text-white mb-2">
-                    File GPX <span class="text-rose-400">*</span>
+                <label class="block text-xs font-medium text-slate-300 mb-1">
+                    Berkas GPX <span class="text-rose-400">*</span>
                 </label>
                 
                 <!-- Interactive Dropzone -->
-                <div id="modal-gpx-dropzone" class="relative border-2 border-dashed border-slate-700 hover:border-slate-500 rounded-2xl p-5 transition-all duration-200 bg-[#111724] text-center cursor-pointer group flex flex-col items-center justify-center min-h-[130px] select-none" style="background-color: #111724 !important;">
+                <div id="modal-gpx-dropzone" class="relative border border-dashed border-slate-700 hover:border-slate-500 rounded-md p-5 transition bg-slate-950 text-center cursor-pointer flex flex-col items-center justify-center min-h-[120px] select-none">
                     <input id="input-modal-gpx-file" name="gpx_file" type="file" accept=".gpx,application/gpx+xml,text/xml" class="hidden" required>
                     
                     <!-- Empty State -->
-                    <div id="dropzone-empty-state" class="flex flex-col items-center space-y-2 pointer-events-none">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-white transition-all duration-200">
-                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
-                                Tarik & lepaskan file <span class="text-white font-bold">GPX</span> di sini, atau <span class="text-white underline underline-offset-2">pilih file</span>
-                            </p>
-                            <p class="text-xs text-slate-400 mt-0.5 font-mono">Format .gpx (maksimal 10 MB)</p>
-                        </div>
+                    <div id="dropzone-empty-state" class="flex flex-col items-center space-y-1.5 pointer-events-none">
+                        <p class="text-xs font-medium text-slate-300">
+                            Tarik berkas <span class="text-white font-semibold">.gpx</span> ke sini atau <span class="text-neon underline underline-offset-2">pilih berkas</span>
+                        </p>
+                        <p class="text-xs text-slate-400 font-mono">Format .gpx (maksimal 10 MB)</p>
                     </div>
 
                     <!-- Loaded File State -->
-                    <div id="dropzone-file-state" class="hidden w-full flex items-center justify-between gap-3 bg-slate-900 border border-slate-700 rounded-xl p-3 text-left">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-white flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-file-lines text-lg"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <div id="dropzone-filename" class="text-xs sm:text-sm font-bold text-white truncate">route.gpx</div>
-                                <div id="dropzone-filesize" class="text-[11px] text-slate-300 font-mono">0 KB • Siap diproses</div>
-                            </div>
+                    <div id="dropzone-file-state" class="hidden w-full flex items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-md p-3 text-left">
+                        <div class="min-w-0">
+                            <div id="dropzone-filename" class="text-xs font-semibold text-white truncate">route.gpx</div>
+                            <div id="dropzone-filesize" class="text-xs text-slate-400 font-mono mt-0.5">0 KB • Siap diproses</div>
                         </div>
-                        <button type="button" id="btn-dropzone-remove" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition shrink-0 cursor-pointer">
-                            <i class="fa-solid fa-rotate-left mr-1"></i> Ganti
+                        <button type="button" id="btn-dropzone-remove" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition shrink-0">
+                            Ganti
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="modal-gpx-preview-container" class="hidden space-y-3 p-4 rounded-xl bg-[#111724] border border-slate-700" style="background-color: #111724 !important;">
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-slate-200 font-medium">Preview Rute</span>
-                    <span id="modal-gpx-point-count" class="text-[#FC4C02] font-semibold font-mono">0 pts</span>
+            <div id="modal-gpx-preview-container" class="hidden space-y-3 p-3.5 rounded-md bg-slate-950 border border-slate-800">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-300 font-medium">Pratinjau Rute</span>
+                    <span id="modal-gpx-point-count" class="text-neon font-semibold font-mono">0 pts</span>
                 </div>
-                <div id="modal-gpx-preview-map" class="h-44 w-full rounded-xl overflow-hidden border border-slate-700"></div>
-                <div class="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-300 block">Jarak</span>
-                        <strong id="modal-stat-distance" class="text-white">-</strong>
+                <div id="modal-gpx-preview-map" class="h-44 w-full rounded-md overflow-hidden border border-slate-800 bg-slate-900"></div>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-slate-900 p-2 rounded-md border border-slate-800">
+                        <span class="text-[11px] text-slate-400 block">Jarak</span>
+                        <strong id="modal-stat-distance" class="text-white font-mono font-semibold">-</strong>
                     </div>
-                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-300 block">Gain</span>
-                        <strong id="modal-stat-gain" class="text-white">-</strong>
+                    <div class="bg-slate-900 p-2 rounded-md border border-slate-800">
+                        <span class="text-[11px] text-slate-400 block">Elev Gain</span>
+                        <strong id="modal-stat-gain" class="text-white font-mono font-semibold">-</strong>
                     </div>
-                    <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-300 block">Loss</span>
-                        <strong id="modal-stat-loss" class="text-white">-</strong>
+                    <div class="bg-slate-900 p-2 rounded-md border border-slate-800">
+                        <span class="text-[11px] text-slate-400 block">Elev Loss</span>
+                        <strong id="modal-stat-loss" class="text-white font-mono font-semibold">-</strong>
                     </div>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5 font-medium">
+                <label class="block text-xs font-medium text-slate-300 mb-1">
                     Judul Rute <span class="text-rose-400">*</span>
                 </label>
                 <input id="input-modal-title" type="text" name="title" required
-                    class="w-full bg-[#111724] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:ring-1 focus:ring-slate-500 outline-none transition"
                     placeholder="Contoh: Rute CFD Sudirman – GBK Loop">
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5 font-medium">
+                <label class="block text-xs font-medium text-slate-300 mb-1">
                     Tipe Rute
                 </label>
                 <div class="grid grid-cols-3 gap-2" id="modal-route-type-group">
-                    <label class="route-type-btn is-active flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn is-active flex items-center justify-center p-2 rounded-md border border-slate-800 bg-slate-950 cursor-pointer text-xs font-medium text-center select-none transition">
                         <input type="radio" name="route_type" value="road" class="hidden" checked>
                         <span>Road</span>
                     </label>
-                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn flex items-center justify-center p-2 rounded-md border border-slate-800 bg-slate-950 cursor-pointer text-xs font-medium text-center select-none transition">
                         <input type="radio" name="route_type" value="trail" class="hidden">
                         <span>Trail</span>
                     </label>
-                    <label class="route-type-btn flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-[#111724] hover:border-slate-500 cursor-pointer text-xs font-semibold text-center select-none shadow-sm transition">
+                    <label class="route-type-btn flex items-center justify-center p-2 rounded-md border border-slate-800 bg-slate-950 cursor-pointer text-xs font-medium text-center select-none transition">
                         <input type="radio" name="route_type" value="track" class="hidden">
                         <span>Track</span>
                     </label>
@@ -788,37 +587,26 @@
             </div>
 
             <div>
-                <div class="flex items-center justify-between mb-1.5">
-                    <label class="block text-sm text-slate-200 font-medium">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-medium text-slate-300">
                         Kota / Kabupaten <span class="text-rose-400">*</span>
                     </label>
-                    <button id="btn-modal-detect-location" type="button" class="text-xs text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
-                        <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
-                        <span>Deteksi otomatis</span>
+                    <button id="btn-modal-detect-location" type="button" class="text-xs text-neon hover:underline font-medium">
+                        Deteksi Lokasi
                     </button>
                 </div>
                 <div class="relative" id="modal-city-autocomplete-wrapper">
-                    <div class="relative">
-                        <input id="input-modal-city" type="text" name="city" required autocomplete="off"
-                            class="w-full bg-[#111724] border border-slate-700 rounded-xl pl-9 pr-8 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
-                            placeholder="Ketik nama kota / kabupaten di Indonesia...">
-                        <i class="fa-solid fa-location-dot absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <div id="modal-city-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-white text-sm">
-                            <i class="fa-solid fa-spinner animate-spin"></i>
-                        </div>
-                    </div>
-
-                    <!-- Floating Autocomplete Dropdown List (Solid Opaque Dark Background) -->
-                    <div id="modal-city-autocomplete-list" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl z-[99999] max-h-52 overflow-y-auto divide-y divide-slate-800" style="background-color: #0c121e !important; background: #0c121e !important; opacity: 1 !important; z-index: 99999 !important;">
-                        <!-- Populated by JavaScript -->
-                    </div>
+                    <input id="input-modal-city" type="text" name="city" required autocomplete="off"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:ring-1 focus:ring-slate-500 outline-none transition"
+                        placeholder="Nama kota atau kabupaten...">
+                    <div id="modal-city-autocomplete-list" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-md shadow-2xl z-[99999] max-h-48 overflow-y-auto divide-y divide-slate-800"></div>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm text-slate-200 mb-1.5 font-medium">Catatan Tambahan (opsional)</label>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Catatan Tambahan (opsional)</label>
                 <textarea name="notes" rows="2"
-                    class="w-full bg-[#111724] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500 transition"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-slate-400 focus:ring-1 focus:ring-slate-500 outline-none transition resize-none leading-relaxed"
                     placeholder="Contoh: Aspal mulus, cocok long run pagi. Ada water station di km 5."></textarea>
             </div>
 
@@ -827,15 +615,14 @@
             <input type="hidden" id="input-modal-loss" name="client_elevation_loss">
             <input type="hidden" id="input-modal-coords" name="coordinates_json">
 
-            <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+            <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
                 <button type="button" onclick="document.getElementById('btn-close-submit-gpx-modal').click()"
-                    class="px-4 py-2.5 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-800 text-slate-300 hover:text-white text-sm font-semibold transition cursor-pointer">
+                    class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
                     Batal
                 </button>
                 <button id="btn-submit-gpx-form" type="submit"
-                    class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition border border-slate-700 flex items-center gap-2 cursor-pointer shadow-md">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                    <span>Kirim Rute</span>
+                    class="px-4 py-2 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition">
+                    Kirim Rute
                 </button>
             </div>
         </form>
@@ -850,137 +637,230 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const isUserLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+            // Toast notification helper
+            window.showGpxToast = function(msg, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-5 right-5 z-[99999] px-4 py-2.5 rounded-md border text-xs font-medium transition-all duration-300 shadow-2xl ${
+                    type === 'success' 
+                        ? 'bg-emerald-950 border-emerald-800 text-emerald-200' 
+                        : 'bg-rose-950 border-rose-800 text-rose-200'
+                }`;
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            };
 
             // ==========================================
-            // INTERACTIVE GPX EXPLORER MAP (Stadia Alidade Smooth & Clustering)
+            // SUBMIT GPX MODAL CONTROLLER
             // ==========================================
-            const mapContainer = document.getElementById('gpx-explorer-map');
-            const allInitialMapRoutes = @json($mapRoutes ?? []);
-            const mapRoutesCountEl = document.getElementById('gpx-map-routes-count');
-            let explorerMap = null;
-            let explorerClusterGroup = null;
+            const modal = document.getElementById('modal-submit-gpx');
+            const btnClose = document.getElementById('btn-close-submit-gpx-modal');
+            const form = document.getElementById('form-submit-gpx-modal');
+            const fileInput = document.getElementById('input-modal-gpx-file');
+            const previewContainer = document.getElementById('modal-gpx-preview-container');
+            const alertBox = document.getElementById('gpx-modal-alert');
+            let previewMap = null;
+            let previewPolyline = null;
 
-            function getPinIcon(routeType) {
-                let color = '#ccff00';
-                let textColor = '#020617';
-                let iconClass = 'fa-person-running';
-                if (routeType === 'trail') {
-                    color = '#10b981';
-                    iconClass = 'fa-mountain';
-                    textColor = '#ffffff';
-                } else if (routeType === 'track') {
-                    color = '#38bdf8';
-                    iconClass = 'fa-stopwatch';
-                    textColor = '#020617';
+            function showAlert(msg, isSuccess = false) {
+                if (!alertBox) return;
+                alertBox.className = `p-3 rounded-md text-xs font-medium border ${isSuccess ? 'bg-emerald-950 border-emerald-800 text-emerald-200' : 'bg-rose-950 border-rose-800 text-rose-200'}`;
+                alertBox.textContent = msg;
+                alertBox.classList.remove('hidden');
+            }
+
+            function hideAlert() {
+                if (alertBox) alertBox.classList.add('hidden');
+            }
+
+            function openGpxModal() {
+                const isAuth = {{ auth()->check() ? 'true' : 'false' }};
+                if (!isAuth) {
+                    if (typeof openLoginModal === 'function') {
+                        openLoginModal();
+                    } else {
+                        window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(window.location.href);
+                    }
+                    return;
                 }
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+            window.open_gpx_modal = openGpxModal;
 
-                return L.divIcon({
-                    className: 'custom-gpx-pin-wrapper',
-                    html: `<div style="
-                        background: ${color};
-                        color: ${textColor};
-                        width: 30px;
-                        height: 30px;
-                        border-radius: 50% 50% 50% 0;
-                        transform: rotate(-45deg);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        box-shadow: 0 3px 8px rgba(0,0,0,0.35), 0 0 0 2px #0c121e;
-                        cursor: pointer;
-                    ">
-                        <i class="fa-solid ${iconClass}" style="transform: rotate(45deg); font-size: 12px;"></i>
-                    </div>`,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 30],
-                    popupAnchor: [0, -30]
+            function closeGpxModal() {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                hideAlert();
+            }
+
+            document.querySelectorAll('.btn-trigger-gpx-modal').forEach(btn => {
+                btn.addEventListener('click', openGpxModal);
+            });
+
+            if (btnClose) btnClose.addEventListener('click', closeGpxModal);
+
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) closeGpxModal();
                 });
             }
 
-            function escapeHtml(str) {
-                if (!str) return '';
-                return String(str)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
+            // ==========================================
+            // MAPBOX TILES & LEAFLET EXPLORER MAP
+            // ==========================================
+            const mapContainer = document.getElementById('gpx-explorer-map');
+            let explorerMap = null;
+            let explorerClusterGroup = null;
+            const allInitialMapRoutes = @json($mapRoutes ?? []);
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
+
+            let currentTileLayer = null;
+            let currentMapStyle = 'streets';
+
+            function getMapTileLayer(style) {
+                if (mapboxToken) {
+                    let mapboxStyleId = 'mapbox/dark-v11';
+                    if (style === 'satellite') mapboxStyleId = 'mapbox/satellite-streets-v12';
+                    else if (style === 'outdoors') mapboxStyleId = 'mapbox/outdoors-v12';
+                    else if (style === 'streets') mapboxStyleId = 'mapbox/streets-v12';
+
+                    return L.tileLayer(`https://api.mapbox.com/styles/v1/${mapboxStyleId}/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
+                        tileSize: 512,
+                        zoomOffset: -1,
+                        maxZoom: 19,
+                        attribution: '&copy; Mapbox'
+                    });
+                } else {
+                    if (style === 'satellite') {
+                        return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+                    } else if (style === 'outdoors' || style === 'streets') {
+                        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'] });
+                    } else {
+                        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'] });
+                    }
+                }
             }
 
-            function updateExplorerMapMarkers(routesList, shouldZoom = true) {
+            window.switchExplorerMapStyle = function(style) {
+                currentMapStyle = style;
+                if (explorerMap) {
+                    if (currentTileLayer) explorerMap.removeLayer(currentTileLayer);
+                    currentTileLayer = getMapTileLayer(style);
+                    currentTileLayer.addTo(explorerMap);
+                    if (explorerClusterGroup) explorerClusterGroup.bringToFront();
+                }
+
+                ['dark', 'satellite', 'outdoors', 'streets'].forEach(s => {
+                    const btn = document.getElementById('btn-map-style-' + s);
+                    if (btn) {
+                        if (s === style) {
+                            btn.className = 'px-2 py-1 rounded font-medium transition bg-slate-800 text-white';
+                        } else {
+                            btn.className = 'px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white';
+                        }
+                    }
+                });
+            };
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function updateExplorerMapMarkers(routes, shouldZoom = false) {
                 if (!explorerMap || !explorerClusterGroup) return;
 
-                const routes = Array.isArray(routesList) ? routesList : [];
                 explorerClusterGroup.clearLayers();
 
-                if (mapRoutesCountEl) {
-                    mapRoutesCountEl.textContent = `${routes.length} Titik Rute`;
+                const countBadge = document.getElementById('gpx-map-routes-count');
+                if (countBadge) {
+                    countBadge.textContent = (routes ? routes.length : 0) + ' Rute';
                 }
+
+                if (!routes || routes.length === 0) return;
 
                 const validBounds = [];
 
                 routes.forEach(route => {
-                    if (route.start_lat && route.start_lng && !isNaN(route.start_lat) && !isNaN(route.start_lng)) {
-                        const marker = L.marker([route.start_lat, route.start_lng], {
-                            icon: getPinIcon(route.route_type)
+                    if (route.start_lat && route.start_lng) {
+                        let dotColor = '#ccff00';
+                        if (route.route_type === 'trail') dotColor = '#10b981';
+                        else if (route.route_type === 'track') dotColor = '#38bdf8';
+
+                        const customIcon = L.divIcon({
+                            className: 'custom-gpx-pin',
+                            html: `
+                                <div style="
+                                    width: 14px; 
+                                    height: 14px; 
+                                    background: ${dotColor}; 
+                                    border: 2px solid #020617; 
+                                    border-radius: 9999px; 
+                                    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+                                "></div>
+                            `,
+                            iconSize: [14, 14],
+                            iconAnchor: [7, 7]
                         });
 
-                        let typeBadgeClass = 'bg-[#ccff00]/15 text-accent border border-accent/30';
-                        if (route.route_type === 'trail') {
-                            typeBadgeClass = 'bg-[#10b981]/15 text-white-400 border border-emerald-500/30';
-                        } else if (route.route_type === 'track') {
-                            typeBadgeClass = 'bg-[#38bdf8]/15 text-sky-400 border border-sky-500/30';
-                        }
+                        const marker = L.marker([route.start_lat, route.start_lng], {
+                            icon: customIcon,
+                            title: route.title
+                        });
 
                         const popupHtml = `
-                            <div class="gpx-map-popup-card">
-                                <div class="flex items-center justify-between gap-2 mb-2">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono ${typeBadgeClass}">
-                                        ${escapeHtml(route.route_type_label || route.route_type)}
+                            <div class="p-1 space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                                        ${route.route_type ? route.route_type.toUpperCase() : 'ROAD'}
                                     </span>
-                                    <span class="text-xs text-slate-300 flex items-center gap-1 pr-3">
-                                        <i class="fa-solid fa-location-dot text-accent text-[10px]"></i>
-                                        <span>${escapeHtml(route.city || 'Indonesia')}</span>
-                                    </span>
+                                    <span class="text-xs text-slate-400">${escapeHtml(route.city || 'Indonesia')}</span>
                                 </div>
-                                
-                                <h4 class="text-sm font-bold text-white mb-2.5 line-clamp-2 leading-snug">
-                                    <a href="${route.url}" class="text-white hover:text-accent transition-colors" style="color: #ffffff !important;">
+                                <h4 class="text-xs font-semibold text-white line-clamp-2">
+                                    <a href="${route.url}" class="hover:text-neon transition">
                                         ${escapeHtml(route.title)}
                                     </a>
                                 </h4>
                                 
-                                <div class="grid grid-cols-3 gap-1.5 text-center mb-3 bg-[#090D16] p-2 rounded-xl border border-slate-800">
+                                <div class="grid grid-cols-3 gap-1 text-center bg-slate-950 p-1.5 rounded border border-slate-800 text-xs">
                                     <div>
                                         <div class="text-[10px] text-slate-400">Jarak</div>
-                                        <div class="text-xs font-bold text-white font-mono">${route.distance_km ? route.distance_km + ' km' : '-'}</div>
+                                        <div class="font-semibold text-white font-mono">${route.distance_km ? route.distance_km + ' km' : '-'}</div>
                                     </div>
                                     <div>
                                         <div class="text-[10px] text-slate-400">Gain</div>
-                                        <div class="text-xs font-bold text-white font-mono">+${route.elevation_gain_m}m</div>
+                                        <div class="font-semibold text-white font-mono">+${route.elevation_gain_m}m</div>
                                     </div>
                                     <div>
                                         <div class="text-[10px] text-slate-400">Loss</div>
-                                        <div class="text-xs font-bold text-white font-mono">-${route.elevation_loss_m}m</div>
+                                        <div class="font-semibold text-white font-mono">-${route.elevation_loss_m}m</div>
                                     </div>
                                 </div>
                                 
-                                <div class="flex items-center gap-2">
-                                    <a href="${route.url}" class="btn-popup-detail flex-1 px-3 py-1.5 rounded-lg bg-accent text-slate-950 hover:bg-white text-xs font-bold transition flex items-center justify-center gap-1 text-center shadow-sm" style="color: #020617 !important;">
-                                        <span style="color: #020617 !important;">Detail Rute</span>
-                                        <i class="fa-solid fa-arrow-right text-[10px]" style="color: #020617 !important;"></i>
+                                <div class="flex items-center gap-1.5 pt-1">
+                                    <a href="${route.url}" class="flex-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium text-center border border-slate-700 transition">
+                                        Detail Rute
                                     </a>
-                                    <a href="${route.download_url}" class="btn-popup-download px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition flex items-center justify-center gap-1 border border-slate-700" style="color: #ffffff !important;" title="Unduh GPX">
-    <i class="fa-solid fa-download text-[11px]" style="color: #ffffff !important;"></i>
-</a>
+                                    <a href="${route.download_url}" class="px-2.5 py-1 rounded bg-neon text-dark hover:bg-white text-xs font-semibold text-center transition">
+                                        Unduh
+                                    </a>
                                 </div>
                             </div>
                         `;
 
                         marker.bindPopup(popupHtml, {
-                            maxWidth: 300,
-                            minWidth: 240,
+                            maxWidth: 280,
+                            minWidth: 230,
                             className: 'gpx-custom-leaflet-popup'
                         });
 
@@ -992,11 +872,11 @@
                 if (shouldZoom && validBounds.length > 0) {
                     try {
                         if (validBounds.length === 1) {
-                            explorerMap.setView(validBounds[0], 14, { animate: true });
+                            explorerMap.setView(validBounds[0], 13, { animate: true });
                         } else {
                             const bounds = L.latLngBounds(validBounds);
                             if (bounds.isValid()) {
-                                explorerMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: true });
+                                explorerMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 13, animate: true });
                             }
                         }
                     } catch(e) {}
@@ -1006,7 +886,6 @@
             function initExplorerMap() {
                 if (!mapContainer || explorerMap) return;
 
-                // Center of Indonesia as default fallback
                 const defaultCenter = [-2.5489, 118.0149];
                 const defaultZoom = 5;
 
@@ -1016,38 +895,23 @@
                     scrollWheelZoom: true
                 }).setView(defaultCenter, defaultZoom);
 
-                // Mapbox Outdoors / Streets Tile Layer
-                const mapboxToken = "{{ config('services.mapbox.token') }}";
-                if (mapboxToken) {
-                    L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
-                        tileSize: 512,
-                        zoomOffset: -1,
-                        maxZoom: 19,
-                        attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    }).addTo(explorerMap);
-                } else {
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        maxZoom: 20,
-                        subdomains: ['a', 'b', 'c', 'd'],
-                        attribution: '&copy; CARTO &copy; OpenStreetMap'
-                    }).addTo(explorerMap);
-                }
+                currentTileLayer = getMapTileLayer('streets');
+                currentTileLayer.addTo(explorerMap);
 
-                // Initialize Marker Cluster Group with custom styling
                 explorerClusterGroup = L.markerClusterGroup({
                     showCoverageOnHover: false,
-                    maxClusterRadius: 45,
+                    maxClusterRadius: 40,
                     spiderfyOnMaxZoom: true,
                     iconCreateFunction: function(cluster) {
                         const count = cluster.getChildCount();
-                        let size = 36;
+                        let size = 32;
                         let cClass = 'gpx-cluster-small';
                         if (count >= 10) {
-                            size = 42;
+                            size = 38;
                             cClass = 'gpx-cluster-medium';
                         }
                         if (count >= 50) {
-                            size = 50;
+                            size = 46;
                             cClass = 'gpx-cluster-large';
                         }
 
@@ -1074,52 +938,33 @@
                         try {
                             const bounds = explorerClusterGroup.getBounds();
                             if (bounds.isValid()) {
-                                explorerMap.fitBounds(bounds, { padding: [35, 35], maxZoom: 12 });
+                                explorerMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
                             }
                         } catch(err) {}
                     }
                 });
             }
 
-            // Minimize / Expand Toggle Engine
-            const btnToggleExplorerMap = document.getElementById('btn-toggle-explorer-map');
+            // Minimize / Expand Toggle
             const btnMapMinimizeToggle = document.getElementById('btn-map-minimize-toggle');
             const explorerMapCollapseWrap = document.getElementById('explorer-map-collapse-wrap');
-            const iconMapToggle = document.getElementById('icon-map-toggle');
             const labelMapToggle = document.getElementById('label-map-toggle');
             let isMapMinimized = false;
 
-            function toggleExplorerMap(forceState) {
-                if (!explorerMapCollapseWrap) return;
-                
-                isMapMinimized = (typeof forceState === 'boolean') ? forceState : !isMapMinimized;
-
-                if (isMapMinimized) {
-                    explorerMapCollapseWrap.style.display = 'none';
-                    if (iconMapToggle) iconMapToggle.classList.add('rotate-180');
-                    if (labelMapToggle) labelMapToggle.textContent = 'Tampilkan';
-                } else {
-                    explorerMapCollapseWrap.style.display = 'block';
-                    if (iconMapToggle) iconMapToggle.classList.remove('rotate-180');
-                    if (labelMapToggle) labelMapToggle.textContent = 'Sembunyikan';
-                    
-                    setTimeout(() => {
-                        if (explorerMap) {
-                            explorerMap.invalidateSize();
-                        }
-                    }, 100);
-                }
-            }
-
-            if (btnToggleExplorerMap) {
-                btnToggleExplorerMap.addEventListener('click', function() {
-                    toggleExplorerMap();
-                });
-            }
             if (btnMapMinimizeToggle) {
                 btnMapMinimizeToggle.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    toggleExplorerMap();
+                    isMapMinimized = !isMapMinimized;
+                    if (isMapMinimized) {
+                        explorerMapCollapseWrap.style.display = 'none';
+                        if (labelMapToggle) labelMapToggle.textContent = 'Tampilkan';
+                    } else {
+                        explorerMapCollapseWrap.style.display = 'block';
+                        if (labelMapToggle) labelMapToggle.textContent = 'Sembunyikan';
+                        setTimeout(() => {
+                            if (explorerMap) explorerMap.invalidateSize();
+                        }, 100);
+                    }
                 });
             }
 
@@ -1150,9 +995,7 @@
             let filterDebounceTimer = null;
             let currentFilterAbortCtrl = null;
 
-            // ==========================================
-            // SEARCHABLE CITY FILTER COMBOBOX ENGINE
-            // ==========================================
+            // City Filter Combobox
             const catalogCities = @json($cities ?? []);
             const filterCityDropdown = document.getElementById('filter-city-dropdown');
             const btnClearFilterCity = document.getElementById('btn-clear-filter-city');
@@ -1162,18 +1005,16 @@
             function renderCityFilterDropdown(query = '') {
                 if (!filterCityDropdown) return;
                 const cleanQuery = (query || '').toLowerCase().trim();
-                
                 let matches = catalogCities.filter(c => c && c.toLowerCase().includes(cleanQuery));
 
                 let html = `
-                    <div class="p-2.5 border-b border-slate-800 bg-[#111724] text-[10px] text-slate-300 font-bold uppercase tracking-wider flex items-center justify-between" style="background-color: #111724 !important;">
-                        <span>Pilihan Kota Katalog</span>
-                        <span class="text-white font-bold">${matches.length} kota</span>
+                    <div class="p-2 border-b border-slate-800 bg-slate-950 text-[10px] text-slate-400 font-medium flex items-center justify-between">
+                        <span>Pilihan Kota</span>
+                        <span>${matches.length} kota</span>
                     </div>
-                    <div class="py-1 divide-y divide-slate-800/60 bg-[#0c121e]" style="background-color: #0c121e !important;">
-                        <button type="button" data-city="" class="city-filter-option w-full text-left px-3.5 py-2.5 text-xs font-bold text-white hover:bg-[#111724] flex items-center gap-2.5 transition cursor-pointer" style="background-color: #0c121e !important;">
-                            <i class="fa-solid fa-globe text-[11px] text-slate-400"></i>
-                            <span>Semua Kota (Reset)</span>
+                    <div class="py-1 divide-y divide-slate-800 bg-slate-900">
+                        <button type="button" data-city="" class="city-filter-option w-full text-left px-3 py-2 text-xs font-medium text-white hover:bg-slate-800 flex items-center transition">
+                            Semua Kota (Reset)
                         </button>
                 `;
 
@@ -1181,19 +1022,16 @@
                     matches.forEach(city => {
                         const isSelected = selectCity?.value?.trim().toLowerCase() === city.toLowerCase();
                         html += `
-                            <button type="button" data-city="${city}" class="city-filter-option w-full text-left px-3.5 py-2.5 text-xs font-medium text-white hover:bg-[#111724] flex items-center justify-between transition cursor-pointer ${isSelected ? 'bg-slate-800 font-bold' : ''}" style="${isSelected ? 'background-color: #1e293b !important;' : 'background-color: #0c121e !important;'}">
-                                <div class="flex items-center gap-2.5 truncate">
-                                    <i class="fa-solid fa-location-dot text-[11px] ${isSelected ? 'text-white' : 'text-slate-400'}"></i>
-                                    <span class="truncate ${isSelected ? 'text-white font-bold' : 'text-slate-200'}">${city}</span>
-                                </div>
-                                ${isSelected ? '<i class="fa-solid fa-check text-white text-[11px]"></i>' : ''}
+                            <button type="button" data-city="${city}" class="city-filter-option w-full text-left px-3 py-2 text-xs text-white hover:bg-slate-800 flex items-center justify-between transition ${isSelected ? 'bg-slate-800 font-semibold' : ''}">
+                                <span class="truncate">${city}</span>
+                                ${isSelected ? '<span class="text-xs text-neon">&#10003;</span>' : ''}
                             </button>
                         `;
                     });
                 } else {
                     html += `
-                        <div class="px-3.5 py-3 text-xs text-slate-300 text-center bg-[#0c121e]" style="background-color: #0c121e !important;">
-                            Tidak ada kota katalog bernama "<strong class="text-white">${cleanQuery}</strong>".
+                        <div class="px-3 py-2.5 text-xs text-slate-400 text-center">
+                            Tidak ditemukan kota "${cleanQuery}".
                         </div>
                     `;
                 }
@@ -1204,19 +1042,12 @@
             }
 
             function selectFilterCity(cityName) {
-                if (selectCity) {
-                    selectCity.value = cityName;
-                }
+                if (selectCity) selectCity.value = cityName;
                 if (btnClearFilterCity) {
-                    if (cityName) {
-                        btnClearFilterCity.classList.remove('hidden');
-                    } else {
-                        btnClearFilterCity.classList.add('hidden');
-                    }
+                    if (cityName) btnClearFilterCity.classList.remove('hidden');
+                    else btnClearFilterCity.classList.add('hidden');
                 }
-                if (filterCityDropdown) {
-                    filterCityDropdown.classList.add('hidden');
-                }
+                if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
                 applyFiltersAjax();
             }
 
@@ -1228,18 +1059,13 @@
                 selectCity.addEventListener('input', function() {
                     const val = this.value.trim();
                     if (btnClearFilterCity) {
-                        if (val) {
-                            btnClearFilterCity.classList.remove('hidden');
-                        } else {
-                            btnClearFilterCity.classList.add('hidden');
-                        }
+                        if (val) btnClearFilterCity.classList.remove('hidden');
+                        else btnClearFilterCity.classList.add('hidden');
                     }
                     clearTimeout(cityFilterDebounce);
                     cityFilterDebounce = setTimeout(() => {
                         renderCityFilterDropdown(val);
-                        if (!val) {
-                            applyFiltersAjax();
-                        }
+                        if (!val) applyFiltersAjax();
                     }, 150);
                 });
 
@@ -1274,7 +1100,6 @@
                 });
             }
 
-            // Click option or outside listener
             document.addEventListener('click', function(e) {
                 const optBtn = e.target.closest('.city-filter-option');
                 if (optBtn) {
@@ -1286,9 +1111,7 @@
 
                 const comboboxWrap = document.getElementById('filter-city-combobox-wrap');
                 if (comboboxWrap && !comboboxWrap.contains(e.target)) {
-                    if (filterCityDropdown) {
-                        filterCityDropdown.classList.add('hidden');
-                    }
+                    if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
                 }
             });
 
@@ -1356,14 +1179,13 @@
                     const endY = (height - (offsetY + ((endPt[0] - minLat) * scale))).toFixed(1);
 
                     svg.innerHTML = `
-                        <polyline points="${pointsStr}" fill="none" stroke="#FC4C02" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <circle cx="${startX}" cy="${startY}" r="4" fill="#22c55e" stroke="#000" stroke-width="1.5" />
-                        <circle cx="${endX}" cy="${endY}" r="4" fill="#FC4C02" stroke="#000" stroke-width="1.5" />
+                        <polyline points="${pointsStr}" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="${startX}" cy="${startY}" r="3.5" fill="#10b981" stroke="#000" stroke-width="1.5" />
+                        <circle cx="${endX}" cy="${endY}" r="3.5" fill="#f43f5e" stroke="#000" stroke-width="1.5" />
                     `;
                 });
             }
 
-            // Initial SVG render
             renderAllRouteSvgs();
 
             async function fetchGpxResults(targetUrl, pushToHistory = true) {
@@ -1374,8 +1196,7 @@
                 }
                 currentFilterAbortCtrl = new AbortController();
 
-                // Smooth loading indicator
-                gpxCatalogResults.style.opacity = '0.35';
+                gpxCatalogResults.style.opacity = '0.4';
                 gpxCatalogResults.style.pointerEvents = 'none';
 
                 try {
@@ -1400,821 +1221,157 @@
                             renderAllRouteSvgs();
 
                             if (pushToHistory) {
-                                window.history.pushState({ gpxFilterUrl: targetUrl }, '', targetUrl);
+                                window.history.pushState({}, '', targetUrl);
                             }
                         }
                     }
                 } catch(err) {
-                    if (err.name !== 'AbortError') {
-                        console.error('GPX Filter Error:', err);
-                    }
+                    if (err.name !== 'AbortError') console.error(err);
                 } finally {
                     gpxCatalogResults.style.opacity = '1';
                     gpxCatalogResults.style.pointerEvents = 'auto';
                 }
             }
 
-            // ==========================================
-            // MOBILE FLOATING FILTER DRAWER CONTROLLER
-            // ==========================================
-            const btnOpenMobileFilter = document.getElementById('btn-open-mobile-filter');
-            const btnCloseMobileFilter = document.getElementById('btn-close-mobile-filter');
-            const mobileFilterBackdrop = document.getElementById('mobile-filter-backdrop');
-            const filterWrapperContainer = document.getElementById('filter-wrapper-container');
-            const mobileFilterActiveDot = document.getElementById('mobile-filter-active-dot');
-
-            function openMobileFilterDrawer() {
-                if (!filterWrapperContainer) return;
-                filterWrapperContainer.classList.remove('hidden');
-                if (mobileFilterBackdrop) mobileFilterBackdrop.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeMobileFilterDrawer() {
-                if (!filterWrapperContainer) return;
-                if (window.innerWidth < 768) {
-                    filterWrapperContainer.classList.add('hidden');
-                }
-                if (mobileFilterBackdrop) mobileFilterBackdrop.classList.add('hidden');
-                document.body.style.overflow = '';
-            }
-
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 768) {
-                    filterWrapperContainer?.classList.remove('hidden');
-                    if (mobileFilterBackdrop) mobileFilterBackdrop.classList.add('hidden');
-                    document.body.style.overflow = '';
-                } else {
-                    if (mobileFilterBackdrop && mobileFilterBackdrop.classList.contains('hidden')) {
-                        filterWrapperContainer?.classList.add('hidden');
-                    }
-                }
-            });
-
-            function updateMobileFilterActiveBadge() {
-                if (!filterForm || !mobileFilterActiveDot) return;
-                const qVal = searchInput?.value?.trim() || '';
-                const cityVal = selectCity?.value?.trim() || '';
-                const radiusVal = document.getElementById('select-filter-radius')?.value?.trim() || '';
-                const distVal = filterForm.querySelector('select[name="distance"]')?.value?.trim() || '';
-                const eleVal = filterForm.querySelector('select[name="elevation"]')?.value?.trim() || '';
-                const sortVal = filterForm.querySelector('select[name="sort"]')?.value?.trim() || 'default';
-                const latVal = document.getElementById('filter-user-lat')?.value?.trim() || '';
-                const routeTypeVal = filterForm.querySelector('input[name="route_type"]:checked')?.value?.trim() || '';
-
-                const hasActiveFilters = qVal !== '' || cityVal !== '' || radiusVal !== '' || distVal !== '' || eleVal !== '' || latVal !== '' || routeTypeVal !== '' || (sortVal !== '' && sortVal !== 'default' && sortVal !== 'nearest');
-                if (hasActiveFilters) {
-                    mobileFilterActiveDot.classList.remove('hidden');
-                } else {
-                    mobileFilterActiveDot.classList.add('hidden');
-                }
-            }
-
-            // Sync Route Type Pills (Both on Map & in Filter Form)
-            window.setMapAndFormRouteType = function(type) {
-                const targetVal = type || '';
-                
-                // Update Radio in form
-                const radio = filterForm?.querySelector(`input[name="route_type"][value="${targetVal}"]`);
-                if (radio) {
-                    radio.checked = true;
-                }
-
-                // Update form segmented buttons UI
-                document.querySelectorAll('.route-type-filter-btn').forEach(btn => {
-                    const input = btn.querySelector('input[name="route_type"]');
-                    const isActive = (input?.value || '') === targetVal;
-                    if (isActive) {
-                        btn.className = 'route-type-filter-btn is-active bg-slate-800 text-white font-bold border-slate-600 flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm';
-                    } else {
-                        btn.className = 'route-type-filter-btn text-slate-300 hover:text-white border-transparent flex items-center justify-center py-2 px-2 rounded-lg cursor-pointer text-xs transition border text-center shadow-sm';
-                    }
-                });
-
-                // Update map overlay pills UI
-                document.querySelectorAll('#gpx-map-type-filter-overlay .btn-map-type-pill').forEach(pill => {
-                    const onclickAttr = pill.getAttribute('onclick') || '';
-                    const isPillActive = onclickAttr.includes(`'${targetVal}'`);
-                    if (isPillActive) {
-                        pill.classList.add('bg-slate-800', 'text-white', 'font-bold', 'border-slate-600');
-                        pill.classList.remove('text-slate-300', 'border-transparent');
-                    } else {
-                        pill.classList.remove('bg-slate-800', 'text-white', 'font-bold', 'border-slate-600');
-                        pill.classList.add('text-slate-300', 'border-transparent');
-                    }
-                });
-
-                applyFiltersAjax();
-            };
-
-            // Form radio change listener
-            document.querySelectorAll('input[name="route_type"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    window.setMapAndFormRouteType(this.value);
-                });
-            });
-
-            if (btnOpenMobileFilter) {
-                btnOpenMobileFilter.addEventListener('click', openMobileFilterDrawer);
-            }
-            if (btnCloseMobileFilter) {
-                btnCloseMobileFilter.addEventListener('click', closeMobileFilterDrawer);
-            }
-            if (mobileFilterBackdrop) {
-                mobileFilterBackdrop.addEventListener('click', closeMobileFilterDrawer);
-            }
-
-            // Initial active filter check
-            updateMobileFilterActiveBadge();
-
             function applyFiltersAjax() {
                 if (!filterForm) return;
                 const formData = new FormData(filterForm);
                 const params = new URLSearchParams();
 
-                for (const [key, value] of formData.entries()) {
-                    if (value && value.toString().trim() !== '') {
-                        params.set(key, value.toString().trim());
+                for (const [key, val] of formData.entries()) {
+                    if (val !== '' && val !== null && val !== undefined) {
+                        params.append(key, val);
                     }
                 }
 
                 const baseUrl = filterForm.action || '{{ route("gpx.index") }}';
-                const queryString = params.toString();
-                const targetUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
-
-                updateMobileFilterActiveBadge();
-                fetchGpxResults(targetUrl, true);
+                const finalUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+                fetchGpxResults(finalUrl, true);
             }
 
+            window.setMapAndFormRouteType = function(type) {
+                const radio = filterForm?.querySelector(`input[name="route_type"][value="${type}"]`);
+                if (radio) radio.checked = true;
+
+                document.querySelectorAll('.route-type-filter-btn').forEach(btn => {
+                    const r = btn.querySelector('input[name="route_type"]');
+                    if (r && r.value === type) {
+                        btn.className = 'route-type-filter-btn is-active bg-slate-800 text-white font-medium flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition';
+                    } else {
+                        btn.className = 'route-type-filter-btn text-slate-400 hover:text-white flex items-center justify-center py-1.5 px-2 rounded-md cursor-pointer text-center transition';
+                    }
+                });
+
+                document.querySelectorAll('.btn-map-type-pill').forEach(btn => {
+                    btn.classList.remove('bg-slate-800', 'text-white', 'border-slate-700');
+                    btn.classList.add('text-slate-400', 'border-transparent');
+                });
+
+                applyFiltersAjax();
+            };
+
+            // Form Event Listeners
             if (filterForm) {
                 filterForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     applyFiltersAjax();
-                    if (window.innerWidth < 768) {
-                        closeMobileFilterDrawer();
-                    }
+                    closeMobileFilter();
                 });
 
-                // Auto filter on select change & sort nearest GPS handling
-                filterForm.querySelectorAll('select').forEach(sel => {
-                    sel.addEventListener('change', function() {
-                        if (this.id === 'select-filter-sort' && this.value === 'nearest') {
-                            const inputLat = document.getElementById('filter-user-lat');
-                            const inputLng = document.getElementById('filter-user-lng');
-                            if (!inputLat?.value || !inputLng?.value) {
-                                triggerGeoLocation(true);
-                                return;
-                            }
-                        }
-                        applyFiltersAjax();
-                    });
+                filterForm.querySelectorAll('select').forEach(select => {
+                    select.addEventListener('change', applyFiltersAjax);
                 });
 
-                // Live search with debounce
                 if (searchInput) {
                     searchInput.addEventListener('input', function() {
                         clearTimeout(filterDebounceTimer);
-                        filterDebounceTimer = setTimeout(() => {
-                            applyFiltersAjax();
-                        }, 250);
+                        filterDebounceTimer = setTimeout(applyFiltersAjax, 350);
                     });
                 }
+
+                filterForm.querySelectorAll('.route-type-filter-btn input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        setMapAndFormRouteType(this.value);
+                    });
+                });
             }
 
-            // Reset filters button in filter bar
+            // Pagination Interceptor
+            document.addEventListener('click', function(e) {
+                const pageLink = e.target.closest('.gpx-pagination-wrap a, .pagination a');
+                if (pageLink && pageLink.href) {
+                    e.preventDefault();
+                    fetchGpxResults(pageLink.href, true);
+                    const resultsTop = gpxCatalogResults.getBoundingClientRect().top + window.pageYOffset - 100;
+                    window.scrollTo({ top: resultsTop, behavior: 'smooth' });
+                }
+            });
+
+            // Reset Button
             const btnResetFilters = document.getElementById('btn-reset-filters');
             if (btnResetFilters) {
-                btnResetFilters.addEventListener('click', function(e) {
-                    e.preventDefault();
+                btnResetFilters.addEventListener('click', function() {
                     if (filterForm) filterForm.reset();
-                    if (searchInput) searchInput.value = '';
                     if (selectCity) selectCity.value = '';
                     if (btnClearFilterCity) btnClearFilterCity.classList.add('hidden');
-                    if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
-                    const inputLat = document.getElementById('filter-user-lat');
-                    const inputLng = document.getElementById('filter-user-lng');
-                    if (inputLat) inputLat.value = '';
-                    if (inputLng) inputLng.value = '';
-                    const lblGps = document.getElementById('label-gps-active');
-                    if (lblGps) lblGps.classList.add('hidden');
-                    const noticeBar = document.getElementById('gpx-geo-notice-bar');
-                    if (noticeBar) noticeBar.classList.add('hidden');
-                    filterForm?.querySelectorAll('select').forEach(s => s.value = '');
-                    window.setMapAndFormRouteType('');
-                });
-            }
-
-            // Click listener for dynamic pagination links & empty state reset button
-            document.addEventListener('click', function(e) {
-                // Pagination links
-                const paginationLink = e.target.closest('#gpx-catalog-results .gpx-pagination-wrap a, #gpx-catalog-results nav a');
-                if (paginationLink && paginationLink.href) {
-                    e.preventDefault();
-                    fetchGpxResults(paginationLink.href, true);
-                    window.scrollTo({ top: filterForm ? filterForm.offsetTop - 80 : 0, behavior: 'smooth' });
-                    return;
-                }
-
-                // Reset button inside empty state
-                if (e.target.closest('#btn-reset-empty-filters')) {
-                    e.preventDefault();
-                    if (filterForm) filterForm.reset();
-                    if (searchInput) searchInput.value = '';
-                    if (selectCity) selectCity.value = '';
-                    if (btnClearFilterCity) btnClearFilterCity.classList.add('hidden');
-                    if (filterCityDropdown) filterCityDropdown.classList.add('hidden');
-                    const inputLat = document.getElementById('filter-user-lat');
-                    const inputLng = document.getElementById('filter-user-lng');
-                    if (inputLat) inputLat.value = '';
-                    if (inputLng) inputLng.value = '';
-                    const lblGps = document.getElementById('label-gps-active');
-                    if (lblGps) lblGps.classList.add('hidden');
-                    const noticeBar = document.getElementById('gpx-geo-notice-bar');
-                    if (noticeBar) noticeBar.classList.add('hidden');
-                    filterForm?.querySelectorAll('select').forEach(s => s.value = '');
-                    applyFiltersAjax();
-                }
-            });
-
-            // Browser back/forward navigation support
-            window.addEventListener('popstate', function(e) {
-                const currentUrl = window.location.href;
-                fetchGpxResults(currentUrl, false);
-                
-                // Sync form inputs with current URL search params
-                const params = new URLSearchParams(window.location.search);
-                if (searchInput) searchInput.value = params.get('q') || '';
-                if (selectCity) {
-                    selectCity.value = params.get('city') || '';
-                    if (btnClearFilterCity) {
-                        if (selectCity.value) btnClearFilterCity.classList.remove('hidden');
-                        else btnClearFilterCity.classList.add('hidden');
-                    }
-                }
-                const radiusSel = document.getElementById('select-filter-radius');
-                if (radiusSel) radiusSel.value = params.get('radius') || '';
-                const distanceSel = filterForm?.querySelector('select[name="distance"]');
-                if (distanceSel) distanceSel.value = params.get('distance') || '';
-                const elevationSel = filterForm?.querySelector('select[name="elevation"]');
-                if (elevationSel) elevationSel.value = params.get('elevation') || '';
-                const sortSel = document.getElementById('select-filter-sort') || filterForm?.querySelector('select[name="sort"]');
-                if (sortSel) sortSel.value = params.get('sort') || 'default';
-                const inputLat = document.getElementById('filter-user-lat');
-                const inputLng = document.getElementById('filter-user-lng');
-                if (inputLat) inputLat.value = params.get('user_lat') || params.get('lat') || '';
-                if (inputLng) inputLng.value = params.get('user_lng') || params.get('lng') || '';
-            });
-
-            // Geolocation & GPS Radius helpers
-            const detectCityBtn = document.getElementById('btn-detect-user-city');
-            const applyCityBtn = document.getElementById('btn-apply-detected-city');
-            const clearGpsBtn = document.getElementById('btn-clear-gps-filter');
-            const geoNoticeBar = document.getElementById('gpx-geo-notice-bar');
-            const detectedCityNameEl = document.getElementById('gpx-detected-city-name');
-            const inputUserLat = document.getElementById('filter-user-lat');
-            const inputUserLng = document.getElementById('filter-user-lng');
-            const selectRadius = document.getElementById('select-filter-radius');
-            const selectSort = document.getElementById('select-filter-sort');
-            const labelGpsActive = document.getElementById('label-gps-active');
-
-            async function reverseGeocodeUserLoc(lat, lon) {
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.address) {
-                            const a = data.address;
-                            const city = a.city || a.town || a.city_district || a.county || a.municipality || a.state_district || a.state;
-                            if (city) {
-                                return city.replace(/^(Kota|Kabupaten)\s+/i, '').trim();
-                            }
-                        }
-                    }
-                } catch(e) {}
-                return null;
-            }
-
-            function triggerGeoLocation(forceFilter = true) {
-                if (!navigator.geolocation) {
-                    alert('Geolocation tidak didukung oleh browser Anda.');
-                    return;
-                }
-
-                if (detectCityBtn) {
-                    detectCityBtn.classList.add('animate-pulse', 'text-white');
-                }
-
-                navigator.geolocation.getCurrentPosition(
-                    async function(pos) {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-
-                        if (inputUserLat) inputUserLat.value = lat;
-                        if (inputUserLng) inputUserLng.value = lng;
-
-                        if (labelGpsActive) labelGpsActive.classList.remove('hidden');
-                        if (geoNoticeBar) geoNoticeBar.classList.remove('hidden');
-
-                        if (detectedCityNameEl) {
-                            detectedCityNameEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                        }
-
-                        // Try to get city name for better user display
-                        reverseGeocodeUserLoc(lat, lng).then(city => {
-                            if (city && detectedCityNameEl) {
-                                detectedCityNameEl.textContent = `${city} (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
-                            }
-                        });
-
-                        // Set sort to nearest
-                        if (selectSort) {
-                            selectSort.value = 'nearest';
-                        }
-
-                        if (detectCityBtn) {
-                            detectCityBtn.classList.remove('animate-pulse', 'text-white');
-                        }
-
-                        if (forceFilter) {
-                            applyFiltersAjax();
-                        }
-                    },
-                    function(err) {
-                        console.warn('Geolocation Error:', err);
-                        if (detectCityBtn) {
-                            detectCityBtn.classList.remove('animate-pulse', 'text-white');
-                        }
-                        if (forceFilter && err.code === err.PERMISSION_DENIED) {
-                            alert('Izin lokasi GPS belum diaktifkan di browser.');
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            }
-
-            if (detectCityBtn) {
-                detectCityBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    triggerGeoLocation(true);
-                });
-            }
-
-            if (applyCityBtn) {
-                applyCityBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (!inputUserLat?.value || !inputUserLng?.value) {
-                        triggerGeoLocation(true);
-                    } else {
-                        if (selectSort) selectSort.value = 'nearest';
-                        applyFiltersAjax();
-                    }
-                });
-            }
-
-            if (clearGpsBtn) {
-                clearGpsBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (inputUserLat) inputUserLat.value = '';
-                    if (inputUserLng) inputUserLng.value = '';
-                    if (selectRadius) selectRadius.value = '';
-                    if (labelGpsActive) labelGpsActive.classList.add('hidden');
-                    if (geoNoticeBar) geoNoticeBar.classList.add('hidden');
-                    if (selectSort && (selectSort.value === 'nearest' || selectSort.value === 'default')) {
-                        selectSort.value = 'default';
-                    }
+                    setMapAndFormRouteType('');
                     applyFiltersAjax();
                 });
             }
 
-            // Auto-detect geolocation if not set in query param and permission already granted
-            if (navigator.permissions && navigator.geolocation && !inputUserLat?.value && !inputUserLng?.value) {
-                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
-                    if (result.state === 'granted') {
-                        triggerGeoLocation(false);
-                    }
-                }).catch(function() {});
-            }
-
-            // Modal handlers (warna disesuaikan ke accent)
-            const modal = document.getElementById('modal-submit-gpx');
-            const triggerBtns = document.querySelectorAll('.btn-trigger-gpx-modal');
-            const closeBtn = document.getElementById('btn-close-submit-gpx-modal');
-            const fileInput = document.getElementById('input-modal-gpx-file');
-            const previewContainer = document.getElementById('modal-gpx-preview-container');
-            const form = document.getElementById('form-submit-gpx-modal');
-            const alertBox = document.getElementById('gpx-modal-alert');
-            let previewMap = null;
-            let previewPolyline = null;
-
-            function showAlert(msg, isSuccess = false) {
-                if (!alertBox) return;
-                alertBox.className = isSuccess 
-                    ? 'p-3.5 rounded-xl text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
-                    : 'p-3.5 rounded-xl text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300';
-                alertBox.innerHTML = msg;
-                alertBox.classList.remove('hidden');
-            }
-
-            function hideAlert() {
-                if (alertBox) alertBox.classList.add('hidden');
-            }
-
-            function openGpxModal() {
-                if (!modal) return;
-                if (!isUserLoggedIn) {
-                    const currentUrl = new URL(window.location.href);
-                    currentUrl.searchParams.set('open_gpx_modal', '1');
-                    const returnUrl = currentUrl.toString();
-
-                    if (typeof window.openLoginModal === 'function') {
-                        window.openLoginModal(returnUrl);
-                        return;
-                    }
-                    window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(returnUrl);
-                    return;
-                }
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-
-            function closeGpxModal() {
-                if (!modal) return;
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-
-            triggerBtns.forEach(btn => {
-                btn.addEventListener('click', openGpxModal);
-            });
-
-            if (closeBtn) closeBtn.addEventListener('click', closeGpxModal);
-
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) closeGpxModal();
-                });
-            }
-
-            const currentUrlParams = new URLSearchParams(window.location.search);
-            if (currentUrlParams.get('open_gpx_modal') === '1') {
-                openGpxModal();
-                try {
-                    const cleanUrl = new URL(window.location.href);
-                    cleanUrl.searchParams.delete('open_gpx_modal');
-                    window.history.replaceState({}, document.title, cleanUrl.toString());
-                } catch(e) {}
-            }
-
-            function haversineDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371000;
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                          Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                return R * c;
-            }
-
-            // ==========================================
-            // INDONESIAN CITIES AUTOCOMPLETE ENGINE
-            // ==========================================
-            const INDONESIA_CITIES_MASTER = [
-                { name: 'Jakarta Pusat', province: 'DKI Jakarta' },
-                { name: 'Jakarta Selatan', province: 'DKI Jakarta' },
-                { name: 'Jakarta Barat', province: 'DKI Jakarta' },
-                { name: 'Jakarta Timur', province: 'DKI Jakarta' },
-                { name: 'Jakarta Utara', province: 'DKI Jakarta' },
-                { name: 'Kepulauan Seribu', province: 'DKI Jakarta' },
-                { name: 'Bandung', province: 'Jawa Barat' },
-                { name: 'Bandung Barat', province: 'Jawa Barat' },
-                { name: 'Bekasi', province: 'Jawa Barat' },
-                { name: 'Bogor', province: 'Jawa Barat' },
-                { name: 'Cimahi', province: 'Jawa Barat' },
-                { name: 'Cirebon', province: 'Jawa Barat' },
-                { name: 'Depok', province: 'Jawa Barat' },
-                { name: 'Sukabumi', province: 'Jawa Barat' },
-                { name: 'Tasikmalaya', province: 'Jawa Barat' },
-                { name: 'Garut', province: 'Jawa Barat' },
-                { name: 'Karawang', province: 'Jawa Barat' },
-                { name: 'Kuningan', province: 'Jawa Barat' },
-                { name: 'Majalengka', province: 'Jawa Barat' },
-                { name: 'Pangandaran', province: 'Jawa Barat' },
-                { name: 'Purwakarta', province: 'Jawa Barat' },
-                { name: 'Subang', province: 'Jawa Barat' },
-                { name: 'Sumedang', province: 'Jawa Barat' },
-                { name: 'Cianjur', province: 'Jawa Barat' },
-                { name: 'Ciamis', province: 'Jawa Barat' },
-                { name: 'Indramayu', province: 'Jawa Barat' },
-                { name: 'Tangerang', province: 'Banten' },
-                { name: 'Tangerang Selatan', province: 'Banten' },
-                { name: 'Serang', province: 'Banten' },
-                { name: 'Cilegon', province: 'Banten' },
-                { name: 'Lebak', province: 'Banten' },
-                { name: 'Pandeglang', province: 'Banten' },
-                { name: 'Semarang', province: 'Jawa Tengah' },
-                { name: 'Surakarta (Solo)', province: 'Jawa Tengah' },
-                { name: 'Magelang', province: 'Jawa Tengah' },
-                { name: 'Pekalongan', province: 'Jawa Tengah' },
-                { name: 'Salatiga', province: 'Jawa Tengah' },
-                { name: 'Tegal', province: 'Jawa Tengah' },
-                { name: 'Banyumas (Purwokerto)', province: 'Jawa Tengah' },
-                { name: 'Boyolali', province: 'Jawa Tengah' },
-                { name: 'Cilacap', province: 'Jawa Tengah' },
-                { name: 'Kudus', province: 'Jawa Tengah' },
-                { name: 'Klaten', province: 'Jawa Tengah' },
-                { name: 'Kendal', province: 'Jawa Tengah' },
-                { name: 'Karanganyar', province: 'Jawa Tengah' },
-                { name: 'Kebumen', province: 'Jawa Tengah' },
-                { name: 'Pati', province: 'Jawa Tengah' },
-                { name: 'Purworejo', province: 'Jawa Tengah' },
-                { name: 'Sukoharjo', province: 'Jawa Tengah' },
-                { name: 'Wonogiri', province: 'Jawa Tengah' },
-                { name: 'Wonosobo', province: 'Jawa Tengah' },
-                { name: 'Yogyakarta', province: 'DI Yogyakarta' },
-                { name: 'Sleman', province: 'DI Yogyakarta' },
-                { name: 'Bantul', province: 'DI Yogyakarta' },
-                { name: 'Gunungkidul', province: 'DI Yogyakarta' },
-                { name: 'Kulon Progo', province: 'DI Yogyakarta' },
-                { name: 'Surabaya', province: 'Jawa Timur' },
-                { name: 'Malang', province: 'Jawa Timur' },
-                { name: 'Batu', province: 'Jawa Timur' },
-                { name: 'Sidoarjo', province: 'Jawa Timur' },
-                { name: 'Gresik', province: 'Jawa Timur' },
-                { name: 'Kediri', province: 'Jawa Timur' },
-                { name: 'Blitar', province: 'Jawa Timur' },
-                { name: 'Madiun', province: 'Jawa Timur' },
-                { name: 'Mojokerto', province: 'Jawa Timur' },
-                { name: 'Pasuruan', province: 'Jawa Timur' },
-                { name: 'Probolinggo', province: 'Jawa Timur' },
-                { name: 'Banyuwangi', province: 'Jawa Timur' },
-                { name: 'Jember', province: 'Jawa Timur' },
-                { name: 'Lamongan', province: 'Jawa Timur' },
-                { name: 'Lumajang', province: 'Jawa Timur' },
-                { name: 'Tuban', province: 'Jawa Timur' },
-                { name: 'Tulungagung', province: 'Jawa Timur' },
-                { name: 'Denpasar', province: 'Bali' },
-                { name: 'Badung (Kuta / Canggu)', province: 'Bali' },
-                { name: 'Gianyar (Ubud)', province: 'Bali' },
-                { name: 'Tabanan', province: 'Bali' },
-                { name: 'Buleleng (Singaraja)', province: 'Bali' },
-                { name: 'Karangasem', province: 'Bali' },
-                { name: 'Klungkung', province: 'Bali' },
-                { name: 'Bangli', province: 'Bali' },
-                { name: 'Jembrana', province: 'Bali' },
-                { name: 'Mataram', province: 'Nusa Tenggara Barat' },
-                { name: 'Lombok Barat', province: 'Nusa Tenggara Barat' },
-                { name: 'Lombok Tengah', province: 'Nusa Tenggara Barat' },
-                { name: 'Lombok Timur', province: 'Nusa Tenggara Barat' },
-                { name: 'Lombok Utara', province: 'Nusa Tenggara Barat' },
-                { name: 'Sumbawa', province: 'Nusa Tenggara Barat' },
-                { name: 'Bima', province: 'Nusa Tenggara Barat' },
-                { name: 'Kupang', province: 'Nusa Tenggara Timur' },
-                { name: 'Manggarai Barat (Labuan Bajo)', province: 'Nusa Tenggara Timur' },
-                { name: 'Medan', province: 'Sumatera Utara' },
-                { name: 'Binjai', province: 'Sumatera Utara' },
-                { name: 'Pematangsiantar', province: 'Sumatera Utara' },
-                { name: 'Deli Serdang', province: 'Sumatera Utara' },
-                { name: 'Karo (Berastagi)', province: 'Sumatera Utara' },
-                { name: 'Samosir (Danau Toba)', province: 'Sumatera Utara' },
-                { name: 'Padang', province: 'Sumatera Barat' },
-                { name: 'Bukittinggi', province: 'Sumatera Barat' },
-                { name: 'Payakumbuh', province: 'Sumatera Barat' },
-                { name: 'Pekanbaru', province: 'Riau' },
-                { name: 'Dumai', province: 'Riau' },
-                { name: 'Batam', province: 'Kepulauan Riau' },
-                { name: 'Tanjungpinang', province: 'Kepulauan Riau' },
-                { name: 'Bintan', province: 'Kepulauan Riau' },
-                { name: 'Palembang', province: 'Sumatera Selatan' },
-                { name: 'Prabumulih', province: 'Sumatera Selatan' },
-                { name: 'Lubuklinggau', province: 'Sumatera Selatan' },
-                { name: 'Bengkulu', province: 'Bengkulu' },
-                { name: 'Jambi', province: 'Jambi' },
-                { name: 'Bandar Lampung', province: 'Lampung' },
-                { name: 'Metro', province: 'Lampung' },
-                { name: 'Pangkalpinang', province: 'Bangka Belitung' },
-                { name: 'Belitung', province: 'Bangka Belitung' },
-                { name: 'Banda Aceh', province: 'Aceh' },
-                { name: 'Sabang', province: 'Aceh' },
-                { name: 'Lhokseumawe', province: 'Aceh' },
-                { name: 'Pontianak', province: 'Kalimantan Barat' },
-                { name: 'Singkawang', province: 'Kalimantan Barat' },
-                { name: 'Banjarmasin', province: 'Kalimantan Selatan' },
-                { name: 'Banjarbaru', province: 'Kalimantan Selatan' },
-                { name: 'Palangkaraya', province: 'Kalimantan Tengah' },
-                { name: 'Balikpapan', province: 'Kalimantan Timur' },
-                { name: 'Samarinda', province: 'Kalimantan Timur' },
-                { name: 'Bontang', province: 'Kalimantan Timur' },
-                { name: 'Nusantara (IKN)', province: 'Kalimantan Timur' },
-                { name: 'Tarakan', province: 'Kalimantan Utara' },
-                { name: 'Makassar', province: 'Sulawesi Selatan' },
-                { name: 'Parepare', province: 'Sulawesi Selatan' },
-                { name: 'Palopo', province: 'Sulawesi Selatan' },
-                { name: 'Gowa', province: 'Sulawesi Selatan' },
-                { name: 'Maros', province: 'Sulawesi Selatan' },
-                { name: 'Toraja', province: 'Sulawesi Selatan' },
-                { name: 'Manado', province: 'Sulawesi Utara' },
-                { name: 'Tomohon', province: 'Sulawesi Utara' },
-                { name: 'Bitung', province: 'Sulawesi Utara' },
-                { name: 'Palu', province: 'Sulawesi Tengah' },
-                { name: 'Kendari', province: 'Sulawesi Tenggara' },
-                { name: 'Baubau', province: 'Sulawesi Tenggara' },
-                { name: 'Gorontalo', province: 'Gorontalo' },
-                { name: 'Mamuju', province: 'Sulawesi Barat' },
-                { name: 'Ambon', province: 'Maluku' },
-                { name: 'Ternate', province: 'Maluku Utara' },
-                { name: 'Jayapura', province: 'Papua' },
-                { name: 'Sorong', province: 'Papua Barat Daya' },
-                { name: 'Manokwari', province: 'Papua Barat' },
-                { name: 'Merauke', province: 'Papua Selatan' },
-                { name: 'Mimika (Timika)', province: 'Papua Tengah' }
-            ];
-
-            const modalCityInput = document.getElementById('input-modal-city');
-            const cityAutoList = document.getElementById('modal-city-autocomplete-list');
-            let cityDebounceTimer = null;
-            let currentFocusIdx = -1;
-
-            function renderCityAutocomplete(suggestions, query) {
-                if (!cityAutoList) return;
-                if (!suggestions || suggestions.length === 0) {
-                    cityAutoList.innerHTML = `
-                        <div class="px-3.5 py-2.5 text-xs text-slate-200 text-center">
-                            Tidak ada kota yang cocok. Tetap gunakan "<strong>${escapeHtml(query)}</strong>"
-                        </div>
-                    `;
-                    cityAutoList.classList.remove('hidden');
-                    return;
-                }
-
-                currentFocusIdx = -1;
-                cityAutoList.innerHTML = suggestions.map((item, idx) => {
-                    const isGlobal = item.country && item.country !== 'Indonesia';
-                    const provLabel = isGlobal 
-                        ? `<span class="text-[10px] text-slate-300 font-normal block">${escapeHtml(item.province ? item.province + ', ' : '')}${escapeHtml(item.country)}</span>` 
-                        : (item.province ? `<span class="text-[10px] text-slate-300 font-normal block">${escapeHtml(item.province)}</span>` : '');
-                    const iconClass = isGlobal ? 'fa-globe text-cyan-400' : 'fa-location-dot text-accent';
-
-                    return `
-                        <div class="city-auto-item px-3.5 py-2.5 bg-[#0b1220] hover:bg-[#1e293b] cursor-pointer flex items-center justify-between text-xs text-slate-200 transition-colors" data-index="${idx}" data-name="${escapeHtml(item.name)}" style="background-color: #0b1220;">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <i class="fa-solid ${iconClass} text-[11px] shrink-0"></i>
-                                <div class="truncate">
-                                    <strong class="text-white font-semibold">${escapeHtml(item.name)}</strong>
-                                    ${provLabel}
-                                </div>
-                            </div>
-                            <span class="text-[10px] text-accent font-bold shrink-0">Pilih &rarr;</span>
-                        </div>
-                    `;
-                }).join('');
-
-                cityAutoList.querySelectorAll('.city-auto-item').forEach(el => {
-                    el.addEventListener('click', function() {
-                        const cityName = this.getAttribute('data-name');
-                        if (modalCityInput) {
-                            modalCityInput.value = cityName;
-                            modalCityInput.focus();
-                        }
-                        closeCityAutocomplete();
-                    });
-                });
-
-                cityAutoList.classList.remove('hidden');
-            }
-
-            function closeCityAutocomplete() {
-                if (cityAutoList) {
-                    cityAutoList.classList.add('hidden');
-                    cityAutoList.innerHTML = '';
-                    currentFocusIdx = -1;
-                }
-            }
-
-            function escapeHtml(str) {
-                return String(str || '').replace(/[&<>"']/g, function(m) {
-                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-                });
-            }
-
-            if (modalCityInput) {
-                modalCityInput.addEventListener('input', function(e) {
-                    const q = this.value.trim().toLowerCase();
-                    clearTimeout(cityDebounceTimer);
-
-                    if (q.length === 0) {
-                        closeCityAutocomplete();
-                        return;
-                    }
-
-                    // 1. Instant local filter from master list
-                    const localMatches = INDONESIA_CITIES_MASTER.filter(c => 
-                        c.name.toLowerCase().includes(q) || (c.province && c.province.toLowerCase().includes(q))
-                    ).slice(0, 8);
-
-                    renderCityAutocomplete(localMatches, q);
-
-                    // 2. Fetch from backend API endpoint (searches Indonesian DB + Photon Global API)
-                    cityDebounceTimer = setTimeout(() => {
-                        fetch('{{ route("gpx.cities.autocomplete") }}?q=' + encodeURIComponent(q))
-                            .then(res => res.json())
-                            .then(apiData => {
-                                if (Array.isArray(apiData) && apiData.length > 0) {
-                                    // Merge & deduplicate
-                                    const merged = [...localMatches];
-                                    apiData.forEach(item => {
-                                        if (!merged.some(m => m.name.toLowerCase() === item.name.toLowerCase())) {
-                                            merged.push(item);
-                                        }
-                                    });
-                                    renderCityAutocomplete(merged.slice(0, 15), q);
-                                }
-                            })
-                            .catch(err => {});
-                    }, 200);
-                });
-
-                modalCityInput.addEventListener('keydown', function(e) {
-                    if (!cityAutoList || cityAutoList.classList.contains('hidden')) return;
-                    const items = cityAutoList.querySelectorAll('.city-auto-item');
-                    if (items.length === 0) return;
-
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        currentFocusIdx = (currentFocusIdx + 1) % items.length;
-                        items.forEach((it, i) => it.classList.toggle('bg-slate-800', i === currentFocusIdx));
-                        items[currentFocusIdx]?.scrollIntoView({ block: 'nearest' });
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        currentFocusIdx = (currentFocusIdx - 1 + items.length) % items.length;
-                        items.forEach((it, i) => it.classList.toggle('bg-slate-800', i === currentFocusIdx));
-                        items[currentFocusIdx]?.scrollIntoView({ block: 'nearest' });
-                    } else if (e.key === 'Enter') {
-                        if (currentFocusIdx >= 0 && items[currentFocusIdx]) {
-                            e.preventDefault();
-                            items[currentFocusIdx].click();
-                        }
-                    } else if (e.key === 'Escape') {
-                        closeCityAutocomplete();
-                    }
-                });
-            }
-
             document.addEventListener('click', function(e) {
-                const wrapper = document.getElementById('modal-city-autocomplete-wrapper');
-                if (wrapper && !wrapper.contains(e.target)) {
-                    closeCityAutocomplete();
+                if (e.target && (e.target.id === 'btn-reset-empty-filters' || e.target.closest('#btn-reset-empty-filters'))) {
+                    if (btnResetFilters) btnResetFilters.click();
                 }
             });
 
-            async function reverseGeocodeModalCity(lat, lon) {
-                const loader = document.getElementById('modal-city-loading');
-                if (loader) loader.classList.remove('hidden');
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.address) {
-                            const a = data.address;
-                            const city = a.city || a.town || a.city_district || a.county || a.municipality || a.state_district || a.state;
-                            const country = a.country || '';
-                            const countryCode = (a.country_code || '').toLowerCase();
-                            if (city) {
-                                const cleanCity = city.replace(/^(Kota|Kabupaten)\s+/i, '').trim();
-                                const finalCityName = (country && countryCode !== 'id') ? `${cleanCity}, ${country}` : cleanCity;
-                                if (modalCityInput) modalCityInput.value = finalCityName;
-                            }
-                        }
-                    }
-                } catch (e) {} finally {
-                    if (loader) loader.classList.add('hidden');
-                }
+            // Mobile Filter Controls
+            const mobileFilterWrap = document.getElementById('filter-wrapper-container');
+            const mobileBackdrop = document.getElementById('mobile-filter-backdrop');
+            const btnOpenMobileFilter = document.getElementById('btn-open-mobile-filter');
+            const btnCloseMobileFilter = document.getElementById('btn-close-mobile-filter');
+
+            function openMobileFilter() {
+                if (mobileFilterWrap) mobileFilterWrap.classList.remove('hidden');
+                if (mobileBackdrop) mobileBackdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
             }
 
-            const detectModalGpsBtn = document.getElementById('btn-modal-detect-location');
-            if (detectModalGpsBtn) {
-                detectModalGpsBtn.addEventListener('click', function() {
-                    if (!navigator.geolocation) {
-                        showAlert('Browser tidak mendukung Geolocation.');
-                        return;
-                    }
-                    const loader = document.getElementById('modal-city-loading');
-                    if (loader) loader.classList.remove('hidden');
-                    navigator.geolocation.getCurrentPosition(
-                        function(pos) {
-                            reverseGeocodeModalCity(pos.coords.latitude, pos.coords.longitude);
-                        },
-                        function(err) {
-                            if (loader) loader.classList.add('hidden');
-                            showAlert('Gagal mengakses GPS: ' + err.message);
-                        },
-                        { timeout: 10000 }
-                    );
+            function closeMobileFilter() {
+                if (mobileFilterWrap && window.innerWidth < 768) mobileFilterWrap.classList.add('hidden');
+                if (mobileBackdrop) mobileBackdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            if (btnOpenMobileFilter) btnOpenMobileFilter.addEventListener('click', openMobileFilter);
+            if (btnCloseMobileFilter) btnCloseMobileFilter.addEventListener('click', closeMobileFilter);
+            if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileFilter);
+
+            // ==========================================
+            // GPS LOKASI DETECTION ENGINE
+            // ==========================================
+            const btnApplyDetectedCity = document.getElementById('btn-apply-detected-city');
+            const btnClearGpsFilter = document.getElementById('btn-clear-gps-filter');
+
+            if (btnApplyDetectedCity) {
+                btnApplyDetectedCity.addEventListener('click', function() {
+                    const sortSelect = document.getElementById('select-filter-sort');
+                    if (sortSelect) sortSelect.value = 'nearest';
+                    applyFiltersAjax();
+                });
+            }
+
+            if (btnClearGpsFilter) {
+                btnClearGpsFilter.addEventListener('click', function() {
+                    document.getElementById('filter-user-lat').value = '';
+                    document.getElementById('filter-user-lng').value = '';
+                    document.getElementById('gpx-geo-notice-bar').classList.add('hidden');
+                    applyFiltersAjax();
                 });
             }
 
             // ==========================================
-            // INTERACTIVE GPX DROPZONE ENGINE
+            // SUBMIT MODAL DROPZONE & PARSER
             // ==========================================
             const dropzone = document.getElementById('modal-gpx-dropzone');
             const emptyState = document.getElementById('dropzone-empty-state');
@@ -2222,6 +1379,7 @@
             const dropFilename = document.getElementById('dropzone-filename');
             const dropFilesize = document.getElementById('dropzone-filesize');
             const btnRemoveFile = document.getElementById('btn-dropzone-remove');
+            const modalCityInput = document.getElementById('input-modal-city');
 
             function formatBytes(bytes) {
                 if (!bytes || bytes === 0) return '0 KB';
@@ -2253,7 +1411,6 @@
             }
 
             if (dropzone && fileInput) {
-                // Click to open file picker
                 dropzone.addEventListener('click', function(e) {
                     if (e.target.closest('#btn-dropzone-remove')) {
                         e.stopPropagation();
@@ -2263,13 +1420,11 @@
                     fileInput.click();
                 });
 
-                // Drag & Drop handlers
                 ['dragenter', 'dragover'].forEach(eventName => {
                     dropzone.addEventListener(eventName, function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        dropzone.classList.add('border-accent', 'bg-[#ccff00]/5', 'scale-[1.01]');
-                        dropzone.classList.remove('border-slate-700');
+                        dropzone.classList.add('border-neon');
                     }, false);
                 });
 
@@ -2277,26 +1432,23 @@
                     dropzone.addEventListener(eventName, function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        dropzone.classList.remove('border-accent', 'bg-[#ccff00]/5', 'scale-[1.01]');
-                        dropzone.classList.add('border-slate-700');
+                        dropzone.classList.remove('border-neon');
                     }, false);
                 });
 
                 dropzone.addEventListener('drop', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    dropzone.classList.remove('border-accent', 'bg-[#ccff00]/5', 'scale-[1.01]');
-                    dropzone.classList.add('border-slate-700');
+                    dropzone.classList.remove('border-neon');
 
                     const dt = e.dataTransfer;
                     if (dt && dt.files && dt.files.length > 0) {
                         const droppedFile = dt.files[0];
                         if (!droppedFile.name.toLowerCase().endsWith('.gpx') && !droppedFile.type.includes('xml')) {
-                            showAlert('Harap pilih file dengan format .gpx');
+                            showAlert('Harap pilih berkas dengan format .gpx');
                             return;
                         }
                         
-                        // Assign to hidden file input
                         try {
                             const dataTransfer = new DataTransfer();
                             dataTransfer.items.add(droppedFile);
@@ -2322,6 +1474,19 @@
                 });
             }
 
+            function haversineDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3;
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                          Math.cos(φ1) * Math.cos(φ2) *
+                          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
             function processGpxFile(file) {
                 hideAlert();
                 if (!file) return;
@@ -2329,14 +1494,13 @@
                 setDropzoneFileUI(file);
 
                 const titleInput = document.getElementById('input-modal-title');
-
                 const reader = new FileReader();
+
                 reader.onload = function(evt) {
                     const xmlText = evt.target.result;
                     const parser = new DOMParser();
                     const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-                    // 1. Trigger dan update judul rute dari file GPX (name tag atau nama file)
                     const nameTags = xmlDoc.getElementsByTagName('name');
                     let extractedTitle = '';
                     if (nameTags.length > 0 && nameTags[0].textContent && nameTags[0].textContent.trim()) {
@@ -2361,8 +1525,8 @@
 
                     for (let i = 0; i < trkpts.length; i++) {
                         const pt = trkpts[i];
-                        let lat = pt.getAttribute('lat') || pt.getAttribute('latitude') || pt.getAttribute('LAT');
-                        let lon = pt.getAttribute('lon') || pt.getAttribute('lng') || pt.getAttribute('longitude') || pt.getAttribute('LON');
+                        let lat = pt.getAttribute('lat') || pt.getAttribute('latitude');
+                        let lon = pt.getAttribute('lon') || pt.getAttribute('lng') || pt.getAttribute('longitude');
 
                         if (!lat && pt.querySelector('lat')) lat = pt.querySelector('lat').textContent;
                         if (!lon && (pt.querySelector('lon') || pt.querySelector('lng'))) lon = (pt.querySelector('lon') || pt.querySelector('lng')).textContent;
@@ -2390,7 +1554,7 @@
                     }
 
                     if (coords.length < 2) {
-                        showAlert('File GPX tidak valid atau tidak memiliki titik koordinat yang dapat diproses.');
+                        showAlert('Berkas GPX tidak memiliki titik koordinat yang dapat diproses.');
                         resetDropzone();
                         return;
                     }
@@ -2418,20 +1582,8 @@
                                 attributionControl: false
                             }).setView([coords[0][0], coords[0][1]], 13);
                             
-                            const mapboxToken = "{{ config('services.mapbox.token') }}";
-                            if (mapboxToken) {
-                                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
-                                    tileSize: 512,
-                                    zoomOffset: -1,
-                                    maxZoom: 19,
-                                    attribution: '&copy; Mapbox'
-                                }).addTo(previewMap);
-                            } else {
-                                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                                    maxZoom: 20,
-                                    subdomains: ['a', 'b', 'c', 'd']
-                                }).addTo(previewMap);
-                            }
+                            const previewTileLayer = getMapTileLayer('streets');
+                            previewTileLayer.addTo(previewMap);
                         } else {
                             previewMap.setView([coords[0][0], coords[0][1]], 13);
                         }
@@ -2441,8 +1593,8 @@
                         }
 
                         previewPolyline = L.polyline(coords, {
-                            color: '#FC4C02',
-                            weight: 4,
+                            color: '#ccff00',
+                            weight: 3.5,
                             opacity: 0.95,
                             lineCap: 'round',
                             lineJoin: 'round'
@@ -2454,68 +1606,60 @@
                         }
                     } catch(mapErr) {}
 
-                    // 2. Trigger otomatis deteksi lokasi awal rute (reverse geocoding titik start)
                     if (coords.length > 0 && modalCityInput) {
                         reverseGeocodeModalCity(coords[0][0], coords[0][1]);
                     }
 
-                    // 3. Auto-detect route type based on gradient density / filename
-                    const gainPerKm = (totalDist > 0) ? (gainSum / (totalDist / 1000)) : 0;
-                    const isTrailCandidate = (gainPerKm >= 35.0) || (file.name.toLowerCase().includes('trail'));
-                    const targetType = isTrailCandidate ? 'trail' : 'road';
-                    document.querySelectorAll('input[name="route_type"]').forEach(r => {
-                        r.checked = (r.value === targetType);
-                    });
-                    syncRouteTypeButtons();
-
                     setTimeout(() => {
                         if (previewMap) previewMap.invalidateSize();
-                    }, 250);
+                    }, 200);
                 };
                 reader.readAsText(file);
             }
 
-            // ==========================================
-            // ROUTE TYPE SELECTOR (NEON LIME SYNC)
-            // ==========================================
-            function syncRouteTypeButtons() {
-                document.querySelectorAll('input[name="route_type"]').forEach(r => {
-                    const label = r.closest('.route-type-btn');
-                    if (label) {
-                        if (r.checked) {
-                            label.classList.add('is-active');
-                        } else {
-                            label.classList.remove('is-active');
+            // Reverse Geocoding City Detection
+            async function reverseGeocodeModalCity(lat, lng) {
+                const cityInput = document.getElementById('input-modal-city');
+                if (!cityInput) return;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.address) {
+                            const addr = data.address;
+                            const cityName = addr.city || addr.town || addr.county || addr.state_district || addr.state || '';
+                            if (cityName) {
+                                cityInput.value = cityName.replace(/^(Kota|Kabupaten)\s+/i, '');
+                            }
                         }
                     }
+                } catch(e) {}
+            }
+
+            const btnModalDetectLoc = document.getElementById('btn-modal-detect-location');
+            if (btnModalDetectLoc) {
+                btnModalDetectLoc.addEventListener('click', function() {
+                    if (!navigator.geolocation) {
+                        showAlert('Browser tidak mendukung geolokasi GPS.');
+                        return;
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        pos => reverseGeocodeModalCity(pos.coords.latitude, pos.coords.longitude),
+                        err => showAlert('Gagal membaca posisi GPS.')
+                    );
                 });
             }
 
-            document.querySelectorAll('input[name="route_type"]').forEach(radio => {
-                radio.addEventListener('change', syncRouteTypeButtons);
-            });
-
-            document.querySelectorAll('.route-type-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const input = this.querySelector('input[name="route_type"]');
-                    if (input) {
-                        input.checked = true;
-                        syncRouteTypeButtons();
-                    }
-                });
-            });
-
-            syncRouteTypeButtons();
-
+            // Submit GPX Form
             if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
                     hideAlert();
 
                     const submitBtn = document.getElementById('btn-submit-gpx-form');
-                    const originalBtnHtml = submitBtn.innerHTML;
+                    const origText = submitBtn.textContent;
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i><span>Mengirim...</span>';
+                    submitBtn.textContent = 'Mengirim...';
 
                     const formData = new FormData(form);
 
@@ -2530,25 +1674,24 @@
                     .then(res => res.json().then(data => ({ status: res.status, body: data })))
                     .then(resObj => {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnHtml;
+                        submitBtn.textContent = origText;
 
                         if (resObj.status === 200 && resObj.body.success) {
                             showAlert(resObj.body.message, true);
                             form.reset();
                             resetDropzone();
-                            syncRouteTypeButtons();
                             setTimeout(() => {
                                 closeGpxModal();
                                 window.location.reload();
-                            }, 2000);
+                            }, 1500);
                         } else {
                             showAlert(resObj.body.message || 'Gagal mengirim rute GPX. Periksa input Anda.');
                         }
                     })
                     .catch(err => {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnHtml;
-                        showAlert('Terjadi kesalahan koneksi saat mengirim rute GPX.');
+                        submitBtn.textContent = origText;
+                        showAlert('Terjadi kesalahan koneksi saat mengirim berkas GPX.');
                     });
                 });
             }

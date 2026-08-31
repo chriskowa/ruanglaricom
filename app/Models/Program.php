@@ -35,12 +35,21 @@ class Program extends Model
         'daniels_params',
         'generated_vdot',
         'hardcoded',
+        'pricing_model',
+        'price_hourly',
+        'price_daily',
+        'price_weekly',
+        'price_monthly',
+        'session_quota',
+        'allow_manual_payment',
     ];
 
     protected $appends = [
         'thumbnail_url',
         'banner_url',
         'image_url',
+        'pricing_model_label',
+        'display_price_formatted',
     ];
 
     protected function casts(): array
@@ -49,6 +58,12 @@ class Program extends Model
             'program_json' => 'array',
             'target_time' => 'datetime',
             'price' => 'decimal:2',
+            'price_hourly' => 'decimal:2',
+            'price_daily' => 'decimal:2',
+            'price_weekly' => 'decimal:2',
+            'price_monthly' => 'decimal:2',
+            'session_quota' => 'integer',
+            'allow_manual_payment' => 'boolean',
             'is_vdot_generated' => 'boolean',
             'vdot_score' => 'decimal:2',
             'is_active' => 'boolean',
@@ -85,12 +100,58 @@ class Program extends Model
         return $this->hasMany(ProgramReview::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(CoachInvoice::class);
+    }
+
+    /**
+     * Get human readable pricing model label
+     */
+    public function getPricingModelLabelAttribute(): string
+    {
+        return match ($this->pricing_model) {
+            'hourly' => 'Per Jam / Sesi',
+            'daily' => 'Harian',
+            'weekly' => 'Mingguan',
+            'monthly' => 'Bulanan',
+            'custom_package' => 'Paket Sesi',
+            default => 'Sekali Beli (Paket Utuh)',
+        };
+    }
+
+    /**
+     * Get formatted display price with unit
+     */
+    public function getDisplayPriceFormattedAttribute(): string
+    {
+        if ($this->isFree()) {
+            return 'Gratis';
+        }
+
+        return match ($this->pricing_model) {
+            'hourly' => 'Rp ' . number_format($this->price_hourly ?: $this->price, 0, ',', '.') . ' / jam',
+            'daily' => 'Rp ' . number_format($this->price_daily ?: $this->price, 0, ',', '.') . ' / hari',
+            'weekly' => 'Rp ' . number_format($this->price_weekly ?: $this->price, 0, ',', '.') . ' / minggu',
+            'monthly' => 'Rp ' . number_format($this->price_monthly ?: $this->price, 0, ',', '.') . ' / bulan',
+            default => 'Rp ' . number_format($this->price, 0, ',', '.'),
+        };
+    }
+
     /**
      * Check if program is free
      */
     public function isFree(): bool
     {
-        return $this->price == 0 || $this->price === null;
+        $basePrice = match ($this->pricing_model) {
+            'hourly' => $this->price_hourly,
+            'daily' => $this->price_daily,
+            'weekly' => $this->price_weekly,
+            'monthly' => $this->price_monthly,
+            default => $this->price,
+        };
+
+        return ($basePrice == 0 || $basePrice === null) && ($this->price == 0 || $this->price === null);
     }
 
     /**

@@ -3,60 +3,59 @@
     $withSidebar = true;
 @endphp
 
-@section('title', 'Monitor Athlete')
+@section('title', 'Monitor Atlet - ' . ($enrollment->runner->name ?? 'Ruang Lari'))
 
 @push('styles')
 <style>
 [v-cloak]{display:none !important;}
-.glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
-.fc .fc-toolbar-title{font-size: 1rem;font-weight:800;color:#e2e8f0}
-.fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
-.fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
-.fc-event{border:none;border-radius:6px;cursor:pointer;padding:2px 4px;font-size:0.75rem;}
+.fc .fc-toolbar-title{font-size: 1rem;font-weight:600;color:#f1f5f9;}
+.fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1;border-radius:6px;font-size:0.8rem;font-weight:500;padding:0.35rem 0.65rem;}
+.fc .fc-button:hover{color:#fff;background:#334155;border-color:#475569;}
+.fc-event{border:none;border-radius:4px;cursor:pointer;padding:2px 5px;font-size:0.75rem;font-weight:500;}
 /* Calendar Dark Mode Overrides */
 .fc-theme-standard .fc-scrollgrid { border-color: #334155; }
 .fc-theme-standard td, .fc-theme-standard th { border-color: #334155; }
-.fc .fc-daygrid-day-number { color: #94a3b8; text-decoration: none; }
-.fc .fc-col-header-cell-cushion { color: #94a3b8; text-decoration: none; }
-.fc-day-today { background-color: rgba(204, 255, 0, 0.05) !important; }
-.fc-daygrid-day-frame { min-height: 80px; }
-.fc .fc-daygrid-day.fc-day-other { background-color: rgba(0,0,0,0.2); }
+.fc .fc-daygrid-day-number { color: #94a3b8; text-decoration: none; font-size: 0.8rem; }
+.fc .fc-col-header-cell-cushion { color: #cbd5e1; text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 6px 0; }
+.fc-day-today { background-color: rgba(204, 255, 0, 0.04) !important; }
+.fc-daygrid-day-frame { min-height: 85px; }
+.fc .fc-daygrid-day.fc-day-other { background-color: rgba(0,0,0,0.15); }
 
 /* Mobile List View Styling */
 .fc-list { border: none !important; background: transparent !important; }
-.fc-list-day-cushion { background-color: transparent !important; }
-.fc-list-day-text, .fc-list-day-side-text { font-size: 1rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+.fc-list-day-cushion { background-color: transparent !important; padding: 8px 4px !important; }
+.fc-list-day-text, .fc-list-day-side-text { font-size: 0.85rem; font-weight: 600; color: #f1f5f9; }
 .fc-list-event td { border: none !important; }
 .fc-list-event { 
     background-color: #1e293b !important; 
-    border-radius: 12px; 
-    margin-bottom: 8px; 
+    border-radius: 6px; 
+    margin-bottom: 6px; 
     display: block;
     position: relative;
     border: 1px solid #334155;
 }
-.fc-list-table { border-collapse: separate; border-spacing: 0 8px; }
+.fc-list-table { border-collapse: separate; border-spacing: 0 6px; }
 .fc-list-event:hover td { background-color: transparent !important; }
 .fc-list-event-graphic { display: none; }
-.fc-list-event-time { color: #94a3b8; font-size: 0.75rem; padding: 12px 0 12px 16px !important; width: 20%; }
-.fc-list-event-title { color: #fff; font-weight: 700; padding: 12px 16px !important; }
+.fc-list-event-time { color: #94a3b8; font-size: 0.75rem; padding: 10px 0 10px 14px !important; width: 20%; }
+.fc-list-event-title { color: #fff; font-weight: 500; padding: 10px 14px !important; font-size: 0.8rem; }
 
-/* Workout Colors */
-.fc-event.workout-easy_run, .fc-list-event.workout-easy_run { border-left: 4px solid #4CAF50 !important; }
-.fc-event.workout-long_run, .fc-list-event.workout-long_run { border-left: 4px solid #2196F3 !important; }
-.fc-event.workout-interval, .fc-list-event.workout-interval { border-left: 4px solid #F44336 !important; }
-.fc-event.workout-tempo, .fc-list-event.workout-tempo { border-left: 4px solid #FFC107 !important; }
-.fc-event.workout-strength, .fc-list-event.workout-strength { border-left: 4px solid #9C27B0 !important; }
-.fc-event.workout-rest, .fc-list-event.workout-rest { border-left: 4px solid #9E9E9E !important; }
-.fc-event.workout-race, .fc-list-event.workout-race { border-left: 4px solid #FFD700 !important; }
-.fc-event.workout-threshold, .fc-event.workout-treshold, .fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 4px solid #E91E63 !important; }
-.fc-event.workout-recovery_run, .fc-list-event.workout-recovery_run { border-left: 4px solid #00BCD4 !important; }
-.fc-event.workout-time_trial, .fc-list-event.workout-time_trial { border-left: 4px solid #FF5722 !important; }
+/* Workout Left Accent Border */
+.fc-event.workout-easy_run, .fc-list-event.workout-easy_run { border-left: 3px solid #22c55e !important; }
+.fc-event.workout-long_run, .fc-list-event.workout-long_run { border-left: 3px solid #3b82f6 !important; }
+.fc-event.workout-interval, .fc-list-event.workout-interval { border-left: 3px solid #ef4444 !important; }
+.fc-event.workout-tempo, .fc-list-event.workout-tempo { border-left: 3px solid #eab308 !important; }
+.fc-event.workout-strength, .fc-list-event.workout-strength { border-left: 3px solid #a855f7 !important; }
+.fc-event.workout-rest, .fc-list-event.workout-rest { border-left: 3px solid #64748b !important; }
+.fc-event.workout-race, .fc-list-event.workout-race { border-left: 3px solid #eab308 !important; }
+.fc-event.workout-threshold, .fc-event.workout-treshold, .fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 3px solid #ec4899 !important; }
+.fc-event.workout-recovery_run, .fc-list-event.workout-recovery_run { border-left: 3px solid #06b6d4 !important; }
+.fc-event.workout-time_trial, .fc-list-event.workout-time_trial { border-left: 3px solid #f97316 !important; }
 
 @media (max-width: 640px) {
-    .fc .fc-header-toolbar { margin-bottom: 1rem; flex-direction: column; gap: 0.5rem; }
+    .fc .fc-header-toolbar { margin-bottom: 0.75rem; flex-direction: column; gap: 0.5rem; }
     .fc .fc-toolbar-title { font-size: 0.9rem; }
-    .fc .fc-button { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+    .fc .fc-button { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 }
 </style>
 @if(request()->has('embed'))
@@ -67,7 +66,6 @@
     #chatbox-toggle { display: none !important; }
     body { padding-top: 0 !important; }
     #coach-monitor-app { padding-top: 1rem !important; }
-    /* Hide back link */
     a[href*="athletes"] { display: none !important; }
 </style>
 @endif
@@ -76,535 +74,360 @@
 @section('content')
 <main id="coach-monitor-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" v-cloak>
     <div class="max-w-7xl mx-auto">
+        <!-- Top Athlete Header Bar -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-6 mb-6">
             <div class="w-full lg:w-auto">
-                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 flex items-center gap-1.5 font-bold transition">
-                    <i class="fa-solid fa-arrow-left text-xs"></i>
-                    <span>Kembali ke Daftar Atlet</span>
+                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 inline-flex items-center gap-1 font-medium transition">
+                    <span>&larr; Kembali ke Daftar Atlet</span>
                 </a>
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-white font-extrabold text-xl sm:text-2xl shadow-lg flex-shrink-0">
+                    <div class="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
                         {{ substr($enrollment->runner->name, 0, 1) }}
                     </div>
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none">@{{ trainingProfile.name }}</h1>
-                            <!-- Strava Connected indicator and sync button -->
-                            <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-[#FC4C02] transition-all">
-                                <i class="fa-brands fa-strava text-xs"></i>
-                                <span>STRAVA TERHUBUNG</span>
-                                <button type="button" @click="syncStrava" :disabled="loading" class="ml-1 px-2 py-0.5 rounded-md bg-[#FC4C02] text-white hover:bg-[#e34402] transition font-bold disabled:opacity-50 text-[9px] flex items-center gap-1 shadow">
+                            <h1 class="text-2xl font-bold text-white tracking-tight leading-tight">@{{ trainingProfile.name }}</h1>
+                            <!-- Strava Indicator -->
+                            <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2 py-0.5 rounded text-xs font-semibold text-[#FC4C02]">
+                                <span>Strava Terhubung</span>
+                                <button type="button" @click="syncStrava" :disabled="loading" class="ml-1 px-1.5 py-0.5 rounded bg-[#FC4C02] text-white hover:bg-[#e34402] transition text-[10px] font-medium disabled:opacity-50">
                                     <span v-if="loading">Syncing...</span>
-                                    <span v-else>Sync Now</span>
+                                    <span v-else>Sync</span>
                                 </button>
                             </div>
                         </div>
+
                         <div class="flex flex-wrap items-center gap-2 mt-2">
-                            <span class="text-neon font-mono text-xs font-bold tracking-widest uppercase">{{ $enrollment->program->title }}</span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold border
+                            <span class="text-xs font-semibold text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">{{ $enrollment->program->title }}</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-medium border
                                 @if($enrollment->status === 'active') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
                                 @elseif($enrollment->status === 'inactive') bg-rose-500/10 text-rose-400 border-rose-500/20
                                 @elseif($enrollment->status === 'completed') bg-blue-500/10 text-blue-400 border-blue-500/20
                                 @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
-                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : $enrollment->status) }}
+                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : ucfirst($enrollment->status)) }}
                             </span>
+                            
+                            <!-- Pricing & Session Quota Badge -->
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300">
+                                {{ $enrollment->program->pricing_model_label }}
+                            </span>
+                            @if($enrollment->pricing_type === 'hourly' || $enrollment->program->pricing_model === 'hourly')
+                                <div class="flex items-center gap-1.5 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded text-xs font-medium text-emerald-300 font-mono">
+                                    <span>Sisa Sesi: {{ $enrollment->sessions_remaining ?? 0 }} / {{ $enrollment->total_sessions_quota ?? 0 }}</span>
+                                    @if(($enrollment->sessions_remaining ?? 0) > 0)
+                                        <form method="POST" action="{{ route('coach.athletes.record-session', $enrollment->id) }}" onsubmit="return confirm('Catat 1 sesi latihan tatap muka selesai?');" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-1.5 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold transition">
+                                                -1 Sesi
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
+
+                            <a href="{{ route('coach.invoices.index', ['search' => $enrollment->runner->name]) }}" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium rounded-md transition">
+                                Tagihan Atlet
+                            </a>
                             
                             <!-- Program Action Buttons -->
                             @if($enrollment->status !== 'active')
-                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-neon text-dark font-black text-[11px] rounded-full shadow hover:bg-white transition-all flex items-center gap-1.5">
-                                    <i class="fa-solid fa-play text-[10px]"></i>
-                                    <span>Aktifkan Program</span>
+                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-neon text-dark font-semibold text-xs rounded-md hover:bg-white transition">
+                                    Aktifkan Program
                                 </button>
                             @else
-                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:border-neon hover:text-neon text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5">
-                                    <i class="fa-solid fa-calendar-days text-[10px]"></i>
-                                    <span>Reschedule</span>
+                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white text-xs font-medium rounded-md transition">
+                                    Reschedule
                                 </button>
                             @endif
-                            <button @click="openReminderModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:border-neon hover:text-neon text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5">
-                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
-                                <span>Kirim Pengingat</span>
+                            <button @click="openReminderModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white text-xs font-medium rounded-md transition">
+                                Kirim Pengingat
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Runner Stats Summary - Full Width & Device Responsive -->
-            <div class="w-full lg:w-auto lg:min-w-[380px]">
-                <div class="grid grid-cols-3 gap-2.5 sm:gap-4 w-full">
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
-                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">VDOT</div>
-                        <div class="text-2xl sm:text-3xl font-black text-neon font-mono">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+            <!-- Runner Stats Summary Cards -->
+            <div class="w-full lg:w-auto lg:min-w-[360px]">
+                <div class="grid grid-cols-3 gap-3 w-full">
+                    <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
+                        <div class="text-xs text-slate-400 font-medium mb-1">Skor VDOT</div>
+                        <div class="text-2xl font-bold text-white font-mono">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                     </div>
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
-                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Target</div>
-                        <div class="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline justify-center">
+                    <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
+                        <div class="text-xs text-slate-400 font-medium mb-1">Target Mingguan</div>
+                        <div class="text-2xl font-bold text-white font-mono flex items-baseline justify-center">
                             <span>@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}</span>
-                            <span class="text-xs sm:text-sm font-semibold text-slate-400 ml-1">km</span>
+                            <span class="text-xs font-normal text-slate-400 ml-1">km</span>
                         </div>
                     </div>
-                    <div class="bg-slate-800/60 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 border border-slate-700/60 text-center hover:border-slate-600 transition-all flex flex-col justify-center items-center shadow-lg">
-                        <div class="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider mb-1 font-bold">Usia</div>
-                        <div class="text-2xl sm:text-3xl font-black text-white font-mono">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
+                    <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
+                        <div class="text-xs text-slate-400 font-medium mb-1">Usia Atlet</div>
+                        <div class="text-2xl font-bold text-white font-mono">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age . ' th' : '-' }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
         @if($enrollment->status !== 'active')
-        <div class="mb-6 p-4 rounded-2xl bg-amber-950/25 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xl">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
-                    <i class="fa-solid fa-circle-play text-lg"></i>
-                </div>
-                <div>
-                    <div class="text-xs font-extrabold text-white uppercase tracking-wide">Status: Program Belum Aktif</div>
-                    <div class="text-xs text-amber-200/80 mt-0.5">Atlet ini terdaftar pada {{ $enrollment->program->title }}. Tentukan tanggal mulai untuk mengaktifkan sesi latihan atlet.</div>
-                </div>
+        <div class="mb-6 p-4 rounded-lg bg-amber-950 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+                <div class="text-sm font-semibold text-white">Status: Program Belum Aktif</div>
+                <div class="text-xs text-amber-200/90 mt-0.5">Atlet terdaftar pada {{ $enrollment->program->title }}. Tentukan tanggal mulai untuk menjadwalkan sesi latihan atlet.</div>
             </div>
-            <button @click="openRescheduleModal()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg flex-shrink-0">
-                <i class="fa-solid fa-play text-xs"></i>
-                <span>Aktifkan Program Sekarang</span>
+            <button @click="openRescheduleModal()" class="w-full sm:w-auto px-4 py-2 rounded-md bg-neon text-dark font-semibold text-xs hover:bg-white transition flex-shrink-0">
+                Aktifkan Program Sekarang
             </button>
         </div>
         @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Calendar Column -->
-            <div class="lg:col-span-2">
-                <!-- Training Profile Panel -->
-                <div class="glass-panel rounded-2xl p-4 md:p-6 mb-6 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <h3 class="text-white font-extrabold text-lg tracking-tight uppercase">Profil Kebugaran Atlet</h3>
-                                <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Berdasarkan Analitik VDOT Jack Daniels</p>
-                            </div>
+            <!-- Left Main Column: Fitness Profile & Calendar -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Streamlined Fitness & Training Profile Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white">Profil Kebugaran Atlet</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Parameter VDOT dan acuan target latihan atlet</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button @click="openVdotModal()" class="px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700 transition text-xs font-medium">
+                                Update PB / VDOT
+                            </button>
+                            <button @click="showWeeklyTargetModal = true" class="px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700 transition text-xs font-medium">
+                                Edit Target KM
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clean Focused Tabs (No Icons) -->
+                    <div class="flex gap-6 border-b border-slate-800 mb-5 overflow-x-auto pb-px">
+                        <button 
+                            class="text-xs font-semibold pb-2.5 transition border-b-2 whitespace-nowrap"
+                            :class="profileTab === 'training' ? 'text-white border-neon' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                            @click="profileTab = 'training'">
+                            Pace Latihan
+                        </button>
+                        <button 
+                            class="text-xs font-semibold pb-2.5 transition border-b-2 whitespace-nowrap"
+                            :class="profileTab === 'race' ? 'text-white border-neon' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                            @click="profileTab = 'race'">
+                            Prediksi Waktu Lomba
+                        </button>
+                        <button 
+                            class="text-xs font-semibold pb-2.5 transition border-b-2 whitespace-nowrap"
+                            :class="profileTab === 'weekly_report' ? 'text-white border-neon' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                            @click="profileTab = 'weekly_report'">
+                            Laporan Mingguan
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Pace Latihan -->
+                    <div v-if="profileTab === 'training'">
+                        <div class="flex justify-between items-center mb-3">
                             <div class="flex items-center gap-2">
-                                <button @click="showVdotModal = true" class="px-3 py-2 rounded-xl bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark transition-all text-xs font-bold flex items-center gap-1.5" title="Update VDOT / PB Atlet">
-                                    <i class="fa-solid fa-heart-pulse"></i>
-                                    <span class="hidden sm:inline">Update PB / VDOT</span>
-                                </button>
-                                <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800/90 border border-slate-700/80 text-neon hover:text-white transition-all" title="Edit Target Mingguan">
-                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                                </button>
+                                <span class="text-xs font-medium text-slate-300">Pace Referensi Sesi</span>
+                                <span v-if="trainingProfile.is_custom_paces" class="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                    Kustom Coach
+                                </span>
+                                <span v-else class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                    Otomatis VDOT
+                                </span>
                             </div>
-                        </div>
-
-                        <!-- VDOT Score & Target Mingguan -->
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="openVdotModal()" title="Klik untuk update VDOT / PB">
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold flex items-center justify-center gap-1">
-                                    <span>Skor VDOT</span>
-                                    <i class="fa-solid fa-pen text-[10px] text-neon opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                </div>
-                                <div class="text-3xl font-extrabold text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                                <div class="text-[10px] text-slate-400 mt-1">VO2Max Estimasi: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
-                            </div>
-                            
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700/80 text-center relative group cursor-pointer hover:border-neon/50 transition-all" @click="showWeeklyTargetModal = true" title="Klik untuk edit target mingguan">
-                                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1 font-bold flex items-center justify-center gap-1">
-                                    <span>Target Mingguan (KM)</span>
-                                    <i class="fa-solid fa-pen text-[10px] text-neon opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                </div>
-                                <div class="text-3xl font-extrabold text-neon">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}</div>
-                                <div class="text-[10px] text-slate-400 mt-1">Target jarak mingguan atlet</div>
-                            </div>
-                        </div>
-
-                        <!-- Tabs -->
-                        <div class="flex gap-2 sm:gap-4 border-b border-slate-700/80 mb-4 overflow-x-auto pb-px">
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'training' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'training'">
-                                <i class="fa-solid fa-stopwatch text-xs"></i>
-                                <span>Pace Latihan</span>
-                            </button>
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'equivalent' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'equivalent'">
-                                <i class="fa-solid fa-trophy text-xs"></i>
-                                <span>Est. Waktu Lomba</span>
-                            </button>
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'track' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'track'">
-                                <i class="fa-solid fa-route text-xs"></i>
-                                <span>Waktu Track</span>
-                            </button>
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'analytics' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'analytics'">
-                                <i class="fa-solid fa-chart-line text-xs"></i>
-                                <span>Analitik & Kesehatan</span>
-                            </button>
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'predictions' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'predictions'">
-                                <i class="fa-solid fa-calculator text-xs"></i>
-                                <span>Prediksi Race</span>
-                            </button>
-                            <button 
-                                class="text-xs sm:text-sm font-extrabold pb-2.5 transition border-b-2 whitespace-nowrap flex items-center gap-1.5"
-                                :class="profileTab === 'weekly_report' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
-                                @click="profileTab = 'weekly_report'">
-                                <i class="fa-solid fa-file-lines text-xs"></i>
-                                <span>Laporan Mingguan</span>
+                            <button @click="openPaceModal()" class="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700 transition text-xs font-medium">
+                                Edit Pace
                             </button>
                         </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead>
+                                    <tr class="text-xs text-slate-400 border-b border-slate-800 font-medium">
+                                        <th class="py-2.5">Zona Latihan</th>
+                                        <th class="py-2.5 text-right">Target Pace (per 1 KM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-200 divide-y divide-slate-800/60">
+                                    <tr>
+                                        <td class="py-2.5 font-medium text-emerald-400">Easy (E)</td>
+                                        <td class="py-2.5 text-right font-mono text-white">
+                                            <template v-if="trainingProfile.paces?.E_high && trainingProfile.paces?.E_low">
+                                                @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
+                                            </template>
+                                            <template v-else>
+                                                @{{ formatPace(trainingProfile.paces?.E) }}
+                                            </template>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium text-sky-400">Marathon (M)</td>
+                                        <td class="py-2.5 text-right font-mono text-white">@{{ formatPace(trainingProfile.paces?.M) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium text-yellow-400">Threshold (T)</td>
+                                        <td class="py-2.5 text-right font-mono text-white">@{{ formatPace(trainingProfile.paces?.T) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium text-orange-400">Interval (I)</td>
+                                        <td class="py-2.5 text-right font-mono text-white">@{{ formatPace(trainingProfile.paces?.I) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 font-medium text-rose-400">Repetition (R)</td>
+                                        <td class="py-2.5 text-right font-mono text-white">@{{ formatPace(trainingProfile.paces?.R) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                        <!-- Training Tab -->
-                        <div v-if="profileTab === 'training'">
-                            <div class="flex justify-between items-center mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs text-slate-400 font-bold uppercase">Pace Latihan Utama</span>
-                                    <span v-if="trainingProfile.is_custom_paces" class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                                        <i class="fa-solid fa-user-gear mr-1"></i>KUSTOM COACH
-                                    </span>
-                                    <span v-else class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                                        <i class="fa-solid fa-calculator mr-1"></i>OTOMATIS VDOT
-                                    </span>
-                                </div>
-                                <button @click="openPaceModal()" class="px-2.5 py-1 rounded-lg bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark transition-all text-xs font-bold flex items-center gap-1">
-                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                                    <span>Edit Pace</span>
-                                </button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
+                    <!-- Tab 2: Estimasi & Prediksi Lomba -->
+                    <div v-if="profileTab === 'race'" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- Equivalent Race Times Table -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                                <h3 class="text-sm font-semibold text-white mb-1">Waktu Ekuivalen VDOT</h3>
+                                <p class="text-xs text-slate-400 mb-3">Estimasi waktu lomba berdasarkan VDOT saat ini</p>
+                                <table class="w-full text-xs text-left">
                                     <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Type</th>
-                                            <th class="py-2 text-right">1 Km</th>
+                                        <tr class="text-slate-400 border-b border-slate-800 font-medium">
+                                            <th class="py-2">Jarak</th>
+                                            <th class="py-2 text-right">Waktu Finish</th>
+                                            <th class="py-2 text-right">Pace Rata-rata</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-green-400 font-bold">Easy (E)</td>
-                                            <td class="py-2 text-right font-mono font-bold">
-                                                <template v-if="trainingProfile.paces?.E_high && trainingProfile.paces?.E_low">
-                                                    @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}
-                                                </template>
-                                                <template v-else>
-                                                    @{{ formatPace(trainingProfile.paces?.E) }}
-                                                </template>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-blue-400 font-bold">Marathon (M)</td>
-                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.M) }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-yellow-400 font-bold">Threshold (T)</td>
-                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.T) }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-orange-400 font-bold">Interval (I)</td>
-                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.I) }}</td>
-                                        </tr>
+                                    <tbody class="text-slate-200 divide-y divide-slate-800/60">
                                         <tr>
-                                            <td class="py-2 text-red-400 font-bold">Repetition (R)</td>
-                                            <td class="py-2 text-right font-mono font-bold">@{{ formatPace(trainingProfile.paces?.R) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Equivalent Tab -->
-                        <div v-if="profileTab === 'equivalent'">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Race</th>
-                                            <th class="py-2 text-right">Time</th>
-                                            <th class="py-2 text-right">Pace</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">5K</td>
+                                            <td class="py-2 font-medium">5K</td>
                                             <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['5k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['5k']?.pace || '-' }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">10K</td>
-                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['10k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['10k']?.pace || '-' }}</td>
-                                        </tr>
-                                        <tr class="border-b border-slate-800">
-                                            <td class="py-2 font-bold">Half Marathon</td>
-                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['21k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['21k']?.pace || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-300 font-mono">@{{ trainingProfile.equivalent_race_times?.['5k']?.pace || '-' }}</td>
                                         </tr>
                                         <tr>
-                                            <td class="py-2 font-bold">Marathon</td>
+                                            <td class="py-2 font-medium">10K</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['10k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-300 font-mono">@{{ trainingProfile.equivalent_race_times?.['10k']?.pace || '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 font-medium">Half Marathon</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['21k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-300 font-mono">@{{ trainingProfile.equivalent_race_times?.['21k']?.pace || '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 font-medium">Full Marathon</td>
                                             <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['42k']?.time || '-' }}</td>
-                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['42k']?.pace || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-300 font-mono">@{{ trainingProfile.equivalent_race_times?.['42k']?.pace || '-' }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
 
-                        <!-- Track Tab -->
-                        <div v-if="profileTab === 'track'">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead>
-                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
-                                            <th class="py-2">Distance</th>
-                                            <th class="py-2 text-right text-red-400">Rep (R)</th>
-                                            <th class="py-2 text-right text-orange-400">Int (I)</th>
-                                            <th class="py-2 text-right text-yellow-400">Thr (T)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-slate-300">
-                                        <tr v-for="(times, dist) in trainingProfile.track_times" :key="dist" class="border-b border-slate-800 last:border-0">
-                                            <td class="py-2 font-bold text-white">@{{ dist }}</td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.R }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_R }}/km</div>
-                                            </td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.I }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_I }}/km</div>
-                                            </td>
-                                            <td class="py-2 text-right font-mono">
-                                                <div class="text-white">@{{ times.T }}</div>
-                                                <div class="text-[10px] text-slate-500">@{{ times.pace_T }}/km</div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Analytics Tab -->
-                        <div v-if="profileTab === 'analytics'" class="space-y-6">
-                            <!-- Fatigue & Health Status -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
-                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-2 font-mono font-bold">Kelelahan & Pemulihan</div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
-                                             :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30')">
-                                            <i class="fa-solid text-lg" :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'fa-battery-quarter text-red-400' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'fa-battery-half text-amber-400' : 'fa-battery-full text-emerald-400')"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-lg font-extrabold text-white leading-tight">@{{ healthSummary.fatigueLevel }}</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5">Rata-rata RPE: <span class="text-white font-bold">@{{ healthSummary.avgRpe }}</span> (5 Sesi Terakhir)</div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
-                                        @{{ healthSummary.advice }}
-                                    </div>
-                                </div>
-
-                                <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
-                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-2 font-mono font-bold">Resiko Cedera & Overtraining</div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
-                                             :class="healthSummary.riskLevel === 'HIGH RISK' ? 'bg-rose-600/30 text-rose-500 border border-rose-500/50 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'">
-                                            <i class="fa-solid text-lg" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'fa-triangle-exclamation text-rose-400' : 'fa-shield-halved text-emerald-400'"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-lg font-extrabold text-white leading-tight" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'text-rose-400' : 'text-emerald-400'">@{{ healthSummary.riskLevel }}</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5">Kondisi Subjektif: <span class="text-white font-bold capitalize">@{{ healthSummary.feelingStatus }}</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
-                                        @{{ healthSummary.riskMessage }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Weekly Mileage Chart -->
-                            <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-inner">
-                                <div class="flex justify-between items-center mb-3">
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Weekly Mileage (Target vs Actual)</div>
-                                    <div class="flex gap-4 text-[9px] font-mono">
-                                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-600 rounded"></span> Target</span>
-                                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-neon rounded"></span> Completed</span>
-                                    </div>
-                                </div>
-                                <div class="h-44 relative">
-                                    <canvas id="weeklyVolumeChart"></canvas>
-                                </div>
-                            </div>
-
-                            <!-- Pace Compliance Analytics -->
-                            <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase mb-3 font-mono tracking-wider">Pace Compliance & Accuracy</div>
-                                <div v-if="paceComplianceList.length === 0" class="text-center py-6 text-xs text-slate-500 italic">
-                                    No completed workouts found in calendar events to analyze.
-                                </div>
-                                <div v-else class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                                    <div v-for="item in paceComplianceList" :key="item.date" class="p-3 bg-slate-900/50 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between md:items-center gap-2">
-                                        <div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-xs font-bold text-white font-mono">@{{ item.dateFormatted }}</span>
-                                                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase" :class="item.typeClass">@{{ item.typeName }}</span>
-                                            </div>
-                                            <div class="text-[10px] text-slate-400 mt-1">
-                                                Target: <span class="text-white font-mono">@{{ item.targetPace }}</span> • Actual: <span class="text-neon font-mono font-bold">@{{ item.actualPace }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <div class="text-left md:text-right">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider" :class="item.complianceClass">
-                                                    @{{ item.complianceStatus }}
-                                                </span>
-                                                <div class="text-[9px] text-slate-500 mt-1 font-mono">@{{ item.diffText }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Predictions Tab -->
-                        <div v-if="profileTab === 'predictions'" class="space-y-6">
-                            <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50">
-                                <h4 class="text-sm font-extrabold text-white uppercase tracking-tight mb-1 flex items-center gap-2">
-                                    <i class="fa-solid fa-trophy text-neon text-xs"></i>
-                                    <span>Prediksi Waktu Finish Lomba</span>
-                                </h4>
-                                <p class="text-[10px] text-slate-400 leading-normal mb-4">
-                                    Prediksi estimasi waktu finish untuk berbagai jarak menggunakan Formula Riegel berbasis skor VDOT atlet saat ini.
-                                </p>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Interactive Race Predictor (Riegel Formula) -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                                <h3 class="text-sm font-semibold text-white mb-1">Kalkulator Prediksi Finish</h3>
+                                <p class="text-xs text-slate-400 mb-3">Formula Riegel untuk estimasi jarak lomba kustom</p>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Target Distance (KM)</label>
-                                        <div class="flex gap-2">
-                                            <input type="number" step="0.1" v-model.number="predictor.distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none" placeholder="e.g. 15">
-                                            <button type="button" @click="predictor.distance = 15" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-[10px] font-black text-slate-300 rounded-xl">15K</button>
-                                            <button type="button" @click="predictor.distance = 30" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-[10px] font-black text-slate-300 rounded-xl">30K</button>
-                                        </div>
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">Target Jarak (KM)</label>
+                                        <input type="number" step="0.1" v-model.number="predictor.distance" class="w-full bg-slate-900 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Reference VDOT Score</label>
-                                        <input type="number" step="0.1" v-model.number="predictor.vdot" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none">
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">VDOT Acuan</label>
+                                        <input type="number" step="0.1" v-model.number="predictor.vdot" class="w-full bg-slate-900 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono">
                                     </div>
                                 </div>
-
-                                <div class="mt-5 p-4 bg-slate-950/40 rounded-xl border border-slate-850 text-center">
-                                    <div class="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Predicted Finish Time</div>
-                                    <div class="text-3xl font-black text-neon italic mt-1 font-mono">@{{ predictedTime.time }}</div>
-                                    <div class="text-[10px] text-slate-400 mt-1">Target Pace: <span class="text-white font-bold font-mono">@{{ predictedTime.pace }} /km</span></div>
+                                <div class="p-3 bg-slate-900 border border-slate-800 rounded-md text-center">
+                                    <div class="text-xs text-slate-400 font-medium">Estimasi Waktu Selesai</div>
+                                    <div class="text-2xl font-bold text-white mt-1 font-mono">@{{ predictedTime.time }}</div>
+                                    <div class="text-xs text-slate-300 mt-1 font-mono">Pace: @{{ predictedTime.pace }} /km</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Weekly Report Tab -->
-                        <div v-if="profileTab === 'weekly_report'" class="space-y-6">
-                            <!-- Nudge Strava Banner inside tab if not connected -->
-                            <div v-if="!trainingProfile.strava_connected" class="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-                                <div class="flex items-center gap-2.5">
-                                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
-                                    <div class="text-left">
-                                        <div class="text-xs font-bold text-white">Strava Belum Terhubung</div>
-                                        <div class="text-[10px] text-slate-400">Atlet ini belum menyinkronkan Strava. Anda dapat meminta mereka menyinkronkan token di dashboard mereka.</div>
-                                    </div>
-                                </div>
-                                <button type="button" @click="nudgeStrava" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition whitespace-nowrap">
-                                    Nudge in App
-                                </button>
+                    <!-- Tab 3: Laporan Mingguan -->
+                    <div v-if="profileTab === 'weekly_report'" class="space-y-5">
+                        <!-- Strava Connection Notice if not connected -->
+                        <div v-if="!trainingProfile.strava_connected" class="p-3.5 rounded-lg bg-amber-950 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="text-left">
+                                <div class="text-xs font-semibold text-white">Strava Belum Terhubung</div>
+                                <div class="text-xs text-slate-300 mt-0.5">Atlet belum menghubungkan akun Strava untuk sinkronisasi otomatis.</div>
                             </div>
+                            <button type="button" @click="nudgeStrava" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition whitespace-nowrap">
+                                Kirim Pengingat
+                            </button>
+                        </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <!-- Report Form (Col-span-2) -->
-                                <div class="md:col-span-2 space-y-4">
-                                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
-                                        <h4 class="text-sm font-black text-white tracking-tight mb-4">
-                                            Tulis Laporan Mingguan
-                                        </h4>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Minggu Ke</label>
-                                                <input type="number" min="1" max="52" v-model.number="weeklyReportForm.week_number" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none font-bold">
-                                            </div>
-                                            <div class="flex items-end">
-                                                <button type="button" @click="generateWeeklyReport" :disabled="weeklyReportLoading" class="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
-                                                    <span v-if="!weeklyReportLoading">Hasilkan AI Draft</span>
-                                                    <span v-else class="flex items-center gap-1">
-                                                        <svg class="animate-spin h-3.5 w-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                        Menganalisis...
-                                                    </span>
-                                                </button>
-                                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <!-- Report Form (Col-span-2) -->
+                            <div class="md:col-span-2 space-y-4">
+                                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                                    <h3 class="text-sm font-semibold text-white mb-1">Tulis Evaluasi Mingguan</h3>
+                                    <p class="text-xs text-slate-400 mb-3">Buat rapor berkala untuk atlet</p>
+                                    
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-300 mb-1">Minggu Ke-</label>
+                                            <input type="number" min="1" max="52" v-model.number="weeklyReportForm.week_number" class="w-full bg-slate-900 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono">
                                         </div>
-
-                                        <div class="space-y-1">
-                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Konten Laporan</label>
-                                            <textarea rows="10" v-model="weeklyReportForm.report_text" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-xs focus:ring-1 focus:ring-neon outline-none leading-relaxed font-sans" placeholder="Tulis analisis mingguan di sini atau klik 'Hasilkan AI Draft' untuk mendraft secara otomatis..."></textarea>
-                                        </div>
-
-                                        <div class="mt-4 flex justify-end">
-                                            <button type="button" @click="publishWeeklyReport" :disabled="weeklyReportPublishing" class="px-5 py-2.5 bg-neon text-dark font-black text-xs rounded-xl hover:bg-neon/90 transition shadow-lg shadow-neon/15 flex items-center gap-1.5">
-                                                <span v-if="!weeklyReportPublishing">Terbitkan Rapor Mingguan</span>
-                                                <span v-else class="w-3.5 h-3.5 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                                        <div class="flex items-end">
+                                            <button type="button" @click="generateWeeklyReport" :disabled="weeklyReportLoading" class="w-full px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium rounded-md transition">
+                                                <span v-if="!weeklyReportLoading">Hasilkan Draf AI</span>
+                                                <span v-else>Menganalisis...</span>
                                             </button>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- History List (Col-span-1) -->
-                                <div class="md:col-span-1 space-y-4">
-                                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
-                                        <h4 class="text-sm font-black text-white tracking-tight mb-4">
-                                            Riwayat Rapor Mingguan
-                                        </h4>
-                                        <div v-if="weeklyReportsList.length === 0" class="text-center py-6 text-xs text-slate-500">
-                                            Belum ada laporan mingguan yang diterbitkan.
-                                        </div>
-                                        <div v-else class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-                                            <div v-for="rep in weeklyReportsList" :key="rep.id" @click="selectWeeklyReport(rep)" class="p-3 bg-slate-900/50 hover:bg-slate-900 border border-slate-800 rounded-xl cursor-pointer transition">
-                                                <div class="flex justify-between items-center mb-1">
-                                                     <span class="text-xs font-black text-white">Minggu ke-@{{ rep.week_number }}</span>
-                                                     <span class="text-[9px] text-slate-500 font-mono">@{{ formatDateShort(rep.created_at) }}</span>
-                                                </div>
-                                                <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">@{{ rep.report_text }}</p>
+                                    <div class="space-y-1">
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">Catatan Evaluasi Coach</label>
+                                        <textarea rows="6" v-model="weeklyReportForm.report_text" class="w-full bg-slate-900 border border-slate-800 rounded-md p-3 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none leading-relaxed" placeholder="Tulis catatan perkembangan atlet atau gunakan draf AI..."></textarea>
+                                    </div>
+
+                                    <div class="mt-4 flex justify-end">
+                                        <button type="button" @click="publishWeeklyReport" :disabled="weeklyReportPublishing" class="px-4 py-2 bg-neon text-dark font-semibold text-xs rounded-md hover:bg-white transition">
+                                            <span v-if="!weeklyReportPublishing">Terbitkan Rapor</span>
+                                            <span v-else>Menyimpan...</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- History List (Col-span-1) -->
+                            <div class="md:col-span-1">
+                                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                                    <h3 class="text-sm font-semibold text-white mb-3">Riwayat Rapor</h3>
+                                    <div v-if="weeklyReportsList.length === 0" class="text-center py-6 text-xs text-slate-400">
+                                        Belum ada laporan yang diterbitkan.
+                                    </div>
+                                    <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                        <div v-for="rep in weeklyReportsList" :key="rep.id" @click="selectWeeklyReport(rep)" class="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-md cursor-pointer transition">
+                                            <div class="flex justify-between items-center mb-1">
+                                                 <span class="text-xs font-semibold text-white">Minggu ke-@{{ rep.week_number }}</span>
+                                                 <span class="text-xs text-slate-400 font-mono">@{{ formatDateShort(rep.created_at) }}</span>
                                             </div>
+                                            <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed">@{{ rep.report_text }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-[2.5rem] p-4 md:p-8" id="coach-calendar-section">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <!-- Calendar Section -->
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-6" id="coach-calendar-section">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                         <div>
-                            <h3 class="text-white font-extrabold text-xl tracking-tight uppercase">Kalender Latihan Atlet</h3>
-                            <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold mt-1">Review, Atur & Reschedule Sesi Latihan</p>
+                            <h2 class="text-lg font-semibold text-white">Kalender Latihan Atlet</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Klik tanggal untuk menambah sesi, drag untuk reschedule</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                            <!-- Export Buttons -->
-                            <button @click="exportCalendar('image')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-image text-neon text-xs"></i>
-                                <span>Export Gambar</span>
+                            <button @click="exportCalendar('image')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
+                                Export Gambar
                             </button>
-                            <button @click="exportCalendar('pdf')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-file-pdf text-rose-400 text-xs"></i>
-                                <span>Export PDF</span>
+                            <button @click="exportCalendar('pdf')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition">
+                                Export PDF
                             </button>
-                            <button @click="openRaceForm" class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-neon text-dark hover:bg-neon/90 text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="fa-solid fa-flag-checkered text-xs"></i>
-                                <span>Tambah Event Lomba</span>
+                            <button @click="openRaceForm" class="w-full sm:w-auto px-3.5 py-1.5 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition">
+                                + Tambah Lomba
                             </button>
                         </div>
                     </div>
@@ -612,676 +435,219 @@
                 </div>
             </div>
 
-            <!-- Detail & Feedback Column - Mobile Sheet Style -->
+            <!-- Right Column / Mobile Sheet: Session Detail & Feedback -->
             <div class="lg:col-span-1" id="detail-feedback-column">
                 <!-- Mobile Backdrop Overlay -->
-                <div v-if="selectedSession && isMobileSheetOpen" @click="closeMobileSheet" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[90] lg:hidden transition-opacity"></div>
+                <div v-if="selectedSession && isMobileSheetOpen" @click="closeMobileSheet" class="fixed inset-0 bg-black/70 z-[90] lg:hidden transition-opacity"></div>
 
                 <div v-if="selectedSession" 
                      :class="{
-                         'fixed inset-x-0 bottom-0 z-[100] max-h-[85vh] overflow-y-auto rounded-t-[2.5rem] bg-slate-900 border-t border-neon/40 p-5 sm:p-6 shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:border-none lg:p-0 lg:shadow-none': isMobileSheetOpen
+                         'fixed inset-x-0 bottom-0 z-[100] max-h-[85vh] overflow-y-auto rounded-t-lg bg-slate-900 border-t border-slate-700 p-5 sm:p-6 shadow-2xl lg:relative lg:inset-auto lg:z-auto lg:max-h-none lg:overflow-visible lg:rounded-none lg:bg-transparent lg:border-none lg:p-0 lg:shadow-none': isMobileSheetOpen
                      }"
                      class="lg:sticky lg:top-24 space-y-6">
 
                     <!-- Mobile Handle Bar & Header -->
                     <div v-if="isMobileSheetOpen" class="lg:hidden flex flex-col items-center mb-2">
-                        <div class="w-12 h-1.5 bg-slate-700 hover:bg-slate-600 rounded-full mb-3 cursor-pointer" @click="closeMobileSheet" title="Tutup Detail"></div>
+                        <div class="w-12 h-1 bg-slate-700 rounded-full mb-3 cursor-pointer" @click="closeMobileSheet" title="Tutup Detail"></div>
                         <div class="w-full flex justify-between items-center pb-3 border-b border-slate-800">
-                            <span class="text-xs font-black text-neon uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-clipboard-list text-xs"></i>
-                                <span>Detail & Feedback Sesi</span>
-                            </span>
-                            <button type="button" @click="closeMobileSheet" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
-                                <i class="fa-solid fa-xmark text-sm"></i>
+                            <span class="text-xs font-semibold text-white">Detail & Feedback Sesi</span>
+                            <button type="button" @click="closeMobileSheet" class="text-slate-400 hover:text-white transition text-sm">
+                                &times;
                             </button>
                         </div>
                     </div>
-                    <div class="glass-panel rounded-[2.5rem] p-6 border-neon/20 shadow-xl shadow-neon/5">
-                        <div class="flex justify-between items-start mb-6">
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                        <div class="flex justify-between items-start mb-4">
                             <div class="flex-1 min-w-0">
-                                <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">@{{ formatDate(selectedSession.start) }}</div>
-                                <h3 class="text-2xl font-black text-white italic tracking-tight truncate">@{{ selectedSession.title }}</h3>
+                                <div class="text-xs text-slate-400 mb-0.5">@{{ formatDate(selectedSession.start) }}</div>
+                                <h3 class="text-lg font-semibold text-white truncate">@{{ selectedSession.title }}</h3>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm" 
+                            <span class="px-2 py-0.5 rounded text-xs font-medium" 
                                 :class="statusClass(selectedSession.extendedProps.status)">
                                 @{{ selectedSession.extendedProps.status }}
                             </span>
                         </div>
 
-                        <!-- Edit Button -->
-                        <div class="mb-2" v-if="!selectedSession.extendedProps.is_strava">
-                            <button @click="openForm(null, selectedSession)" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700">
-                                <i class="fa-solid fa-pen"></i> @{{ selectedSession.extendedProps.is_custom ? 'Edit Custom Workout' : 'Customize / Edit Workout' }}
-                            </button>
+                        <!-- Session Actions -->
+                        <div class="space-y-2 mb-4">
+                            <div v-if="!selectedSession.extendedProps.is_strava">
+                                <button @click="openForm(null, selectedSession)" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-md transition border border-slate-700 font-medium text-center">
+                                    @{{ selectedSession.extendedProps.is_custom ? 'Edit Custom Workout' : 'Sesuaikan / Edit Workout' }}
+                                </button>
+                            </div>
+                            <div v-if="!selectedSession.extendedProps.is_strava && selectedSession.extendedProps.status !== 'completed'">
+                                <button @click="openReminderModal()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-md transition border border-slate-700 font-medium text-center">
+                                    Kirim Pengingat Latihan
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Reschedule Program Button -->
-                        <div class="mb-2">
-                            <button @click="openRescheduleModal()" class="w-full text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-blue-500/30">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Reschedule Program
-                            </button>
-                        </div>
-
-                        <!-- Send Reminder Button -->
-                        <div class="mb-4" v-if="!selectedSession.extendedProps.is_strava && selectedSession.extendedProps.status !== 'completed'">
-                            <button @click="openReminderModal()" class="w-full text-xs bg-neon/10 hover:bg-neon/20 text-neon hover:text-neon/80 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-neon/30">
-                                <i class="fa-solid fa-paper-plane"></i>
-                                Send Program Reminder
-                            </button>
-                        </div>
-
-                        <!-- Session Detail -->
-                        <div class="space-y-3 mb-6 text-sm text-slate-300">
+                        <!-- Session Detail Specs -->
+                        <div class="space-y-3 mb-5 text-xs text-slate-300">
                             <div v-if="selectedSession.extendedProps.distance || getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description)">
-                                <span v-if="selectedSession.extendedProps.distance" class="text-slate-500">Target Distance: <strong class="text-white">@{{ selectedSession.extendedProps.distance }} km</strong></span>
-                                <div v-if="getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description)" class="mt-2 p-2 bg-slate-800/80 border border-slate-700 rounded text-neon font-mono text-xs">
+                                <div v-if="selectedSession.extendedProps.distance" class="text-slate-400 font-medium">Target Jarak: <strong class="text-white font-mono">@{{ selectedSession.extendedProps.distance }} km</strong></div>
+                                <div v-if="getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description)" class="mt-2 p-2 bg-slate-950 border border-slate-800 rounded-md text-slate-200 font-mono text-xs">
                                     @{{ getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance, selectedSession.extendedProps.description) }}
                                 </div>
                             </div>
                             <div v-if="selectedSession.extendedProps.description">
-                                <span class="text-slate-500 text-xs uppercase font-bold">Description / Notes:</span>
-                                <div class="mt-1 p-3 bg-slate-800 border-l-4 border-neon rounded-r-xl text-white font-bold text-sm shadow-lg">
+                                <div class="text-slate-400 font-medium mb-1">Deskripsi / Instruksi:</div>
+                                <div class="p-2.5 bg-slate-950 border-l-2 border-slate-700 rounded-r-md text-slate-200 text-xs leading-relaxed">
                                     @{{ selectedSession.extendedProps.description }}
                                 </div>
                             </div>
                             <div v-if="selectedSession.extendedProps.notes">
-                                <span class="text-slate-500 text-xs uppercase font-bold mt-3 block">Additional Notes:</span>
-                                <div class="mt-1 p-3 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-r-xl text-white font-bold text-sm shadow-lg">
+                                <div class="text-slate-400 font-medium mt-2 mb-1">Catatan Tambahan:</div>
+                                <div class="p-2.5 bg-amber-950/40 border-l-2 border-amber-500 rounded-r-md text-slate-200 text-xs leading-relaxed">
                                     @{{ selectedSession.extendedProps.notes }}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Athlete Report -->
-                        <div v-if="selectedSession.extendedProps.tracking" class="mb-6 border-t border-slate-700 pt-4">
-                            <h4 class="text-neon font-bold text-xs uppercase mb-3">Athlete Report</h4>
-                            <div class="space-y-3">
+                        <!-- Athlete Execution Report -->
+                        <div v-if="selectedSession.extendedProps.tracking" class="mb-5 border-t border-slate-800 pt-4">
+                            <h4 class="text-xs font-semibold text-white mb-3">Laporan Hasil Atlet</h4>
+                            <div class="space-y-2.5">
                                 <div class="grid grid-cols-2 gap-2">
-                                    <div class="bg-slate-800 p-2 rounded">
-                                        <div class="text-[10px] text-slate-500">RPE (1-10)</div>
-                                        <div class="font-bold text-white">@{{ selectedSession.extendedProps.tracking.rpe || '-' }}</div>
+                                    <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                        <div class="text-xs text-slate-400">RPE (1-10)</div>
+                                        <div class="font-semibold text-white font-mono mt-0.5">@{{ selectedSession.extendedProps.tracking.rpe || '-' }}</div>
                                     </div>
-                                    <div class="bg-slate-800 p-2 rounded">
-                                        <div class="text-[10px] text-slate-500">Feeling</div>
-                                        <div class="font-bold text-white capitalize">@{{ selectedSession.extendedProps.tracking.feeling || '-' }}</div>
+                                    <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                        <div class="text-xs text-slate-400">Kondisi / Feeling</div>
+                                        <div class="font-semibold text-white capitalize mt-0.5">@{{ selectedSession.extendedProps.tracking.feeling || '-' }}</div>
                                     </div>
                                 </div>
                                 
                                 <div v-if="selectedSession.extendedProps.tracking.notes">
-                                    <div class="text-[10px] text-slate-500 mb-1">Athlete Notes</div>
-                                    <p class="text-xs text-white bg-slate-800 p-2 rounded italic">"@{{ selectedSession.extendedProps.tracking.notes }}"</p>
+                                    <div class="text-xs text-slate-400 mb-1">Catatan Atlet</div>
+                                    <p class="text-xs text-slate-200 bg-slate-950 p-2.5 rounded-md border border-slate-800 italic">"@{{ selectedSession.extendedProps.tracking.notes }}"</p>
                                 </div>
                                 
                                 <div v-if="selectedSession.extendedProps.tracking.strava_link">
-                                    <a :href="selectedSession.extendedProps.tracking.strava_link" target="_blank" class="block w-full text-center py-2 rounded bg-[#FC4C02]/20 text-[#FC4C02] text-xs font-bold hover:bg-[#FC4C02]/30 transition border border-[#FC4C02]/30">
-                                        View on Strava
+                                    <a :href="selectedSession.extendedProps.tracking.strava_link" target="_blank" class="block w-full text-center py-2 rounded-md bg-[#FC4C02]/20 text-[#FC4C02] text-xs font-semibold hover:bg-[#FC4C02]/30 transition border border-[#FC4C02]/30">
+                                        Buka di Strava
                                     </a>
                                 </div>
                             </div>
                         </div>
-                        <div v-else-if="!selectedSession.extendedProps.is_strava" class="mb-6 border-t border-slate-700 pt-4 text-center text-slate-500 text-xs italic">
-                            Athlete has not completed this session yet.
+                        <div v-else-if="!selectedSession.extendedProps.is_strava" class="mb-5 border-t border-slate-800 pt-4 text-center text-slate-400 text-xs italic">
+                            Atlet belum mencatat sesi ini.
                         </div>
 
-                        <div v-if="stravaDetailsLoading" class="mb-6 border-t border-slate-700 pt-4">
-                            <div class="text-xs text-slate-400">Fetching Strava details…</div>
+                        <!-- Strava Metrics & Details -->
+                        <div v-if="stravaDetailsLoading" class="mb-5 border-t border-slate-800 pt-4 text-center">
+                            <div class="text-xs text-slate-400">Memuat detail Strava...</div>
                         </div>
-                        <div v-else-if="stravaDetailsError" class="mb-6 border-t border-slate-700 pt-4">
-                            <div class="text-xs text-red-300">@{{ stravaDetailsError }}</div>
+                        <div v-else-if="stravaDetailsError" class="mb-5 border-t border-slate-800 pt-4">
+                            <div class="text-xs text-rose-400">@{{ stravaDetailsError }}</div>
                         </div>
-                        <div v-else-if="stravaMetrics" class="mb-6 border-t border-slate-700 pt-4">
-                            <h4 class="text-[#FC4C02] font-black text-xs uppercase mb-3">Strava Details</h4>
+                        <div v-else-if="stravaMetrics" class="mb-5 border-t border-slate-800 pt-4 space-y-3">
+                            <h4 class="text-xs font-semibold text-[#FC4C02] mb-2">Detail Data Strava</h4>
 
-                            <!-- Workout Classification Summary -->
-                            <div v-if="stravaWorkoutClassification" class="mb-3 p-3.5 rounded-xl border flex flex-col gap-1.5" :class="stravaWorkoutClassification.colorClass">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider opacity-70">Kesimpulan Sesi (@{{ stravaWorkoutClassification.source }})</span>
-                                    <span class="text-[9px] font-bold bg-white/10 px-2 py-0.5 rounded uppercase">Classified</span>
+                            <!-- Classification -->
+                            <div v-if="stravaWorkoutClassification" class="p-2.5 rounded-md border text-xs" :class="stravaWorkoutClassification.colorClass">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-medium opacity-80">Klasifikasi (@{{ stravaWorkoutClassification.source }})</span>
                                 </div>
-                                <div class="text-sm font-black italic uppercase tracking-tight">
+                                <div class="text-xs font-bold uppercase tracking-tight">
                                     @{{ stravaWorkoutClassification.type }}
                                 </div>
-                                <div v-if="stravaWorkoutClassification.evidence.length" class="mt-1 space-y-0.5 border-t border-white/10 pt-1.5">
-                                    <div v-for="(ev, idx) in stravaWorkoutClassification.evidence" :key="idx" class="text-[10px] opacity-85 flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                                        <span>@{{ ev }}</span>
-                                    </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                    <div class="text-xs text-slate-400">Jarak Aktual</div>
+                                    <div class="font-semibold text-white font-mono mt-0.5">@{{ stravaMetrics.distance_m ? (stravaMetrics.distance_m / 1000).toFixed(2) : '-' }} km</div>
+                                </div>
+                                <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                    <div class="text-xs text-slate-400">Avg Pace</div>
+                                    <div class="font-semibold text-white font-mono mt-0.5">@{{ stravaMetrics.pace ? (stravaMetrics.pace + ' /km') : '-' }}</div>
+                                </div>
+                                <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                    <div class="text-xs text-slate-400">Heart Rate</div>
+                                    <div class="font-semibold text-white font-mono mt-0.5">@{{ stravaMetrics.average_heartrate ? Math.round(stravaMetrics.average_heartrate) : '-' }} bpm</div>
+                                </div>
+                                <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800">
+                                    <div class="text-xs text-slate-400">Cadence</div>
+                                    <div class="font-semibold text-white font-mono mt-0.5">@{{ stravaMetrics.average_cadence ? Math.round(stravaMetrics.average_cadence) : '-' }} spm</div>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 mb-3">
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Distance</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.distance_m ? (stravaMetrics.distance_m / 1000).toFixed(2) : '-' }} km</div>
-                                </div>
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Avg Pace</div>
-                                    <div class="font-black text-neon">@{{ stravaMetrics.pace ? (stravaMetrics.pace + ' /km') : '-' }}</div>
-                                </div>
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Heart Rate</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.average_heartrate ? Math.round(stravaMetrics.average_heartrate) : '-' }} <span class="text-slate-500 text-[10px]">avg</span></div>
-                                    <div class="text-[10px] text-slate-500">max @{{ stravaMetrics.max_heartrate ? Math.round(stravaMetrics.max_heartrate) : '-' }}</div>
-                                </div>
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Cadence</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.average_cadence ? Math.round(stravaMetrics.average_cadence) : '-' }} <span class="text-slate-500 text-[10px]">spm</span></div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-2 mb-3">
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Total Time</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.total_time_s ? formatSeconds(stravaMetrics.total_time_s) : '-' }}</div>
-                                </div>
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Moving</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.moving_time_s ? formatSeconds(stravaMetrics.moving_time_s) : '-' }}</div>
-                                </div>
-                                <div class="bg-slate-800 p-2 rounded">
-                                    <div class="text-[10px] text-slate-500">Paused</div>
-                                    <div class="font-black text-white">@{{ stravaMetrics.pause_time_s ? formatSeconds(stravaMetrics.pause_time_s) : '-' }}</div>
-                                </div>
-                            </div>
-
-                            <div v-if="stravaPaceZones || stravaHrZones || stravaZoneAnalysis" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                <div v-if="stravaPaceZones" class="bg-slate-800/40 border border-slate-700 rounded-xl p-3">
-                                    <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Pace Distribution</div>
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Easy</div>
-                                            <div class="text-white font-black text-sm">@{{ stravaPaceZones.summary.easy }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Tempo</div>
-                                            <div class="text-white font-black text-sm">@{{ stravaPaceZones.summary.tempo }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Speed</div>
-                                            <div class="text-white font-black text-sm">@{{ stravaPaceZones.summary.speed }}%</div>
-                                        </div>
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 mt-2">
-                                        E @{{ stravaPaceZones.zones.E }}% • M @{{ stravaPaceZones.zones.M }}% • T @{{ stravaPaceZones.zones.T }}% • I @{{ stravaPaceZones.zones.I }}% • R @{{ stravaPaceZones.zones.R }}%
-                                    </div>
-                                </div>
-
-                                <div v-if="stravaHrZones" class="bg-slate-800/40 border border-slate-700 rounded-xl p-3">
-                                    <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Heart Rate Distribution</div>
-                                    <div class="grid grid-cols-5 gap-2">
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Z1</div>
-                                            <div class="text-white font-black text-xs">@{{ stravaHrZones.Z1 }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Z2</div>
-                                            <div class="text-white font-black text-xs">@{{ stravaHrZones.Z2 }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Z3</div>
-                                            <div class="text-white font-black text-xs">@{{ stravaHrZones.Z3 }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Z4</div>
-                                            <div class="text-white font-black text-xs">@{{ stravaHrZones.Z4 }}%</div>
-                                        </div>
-                                        <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-2 text-center">
-                                            <div class="text-[10px] text-slate-400">Z5</div>
-                                            <div class="text-white font-black text-xs">@{{ stravaHrZones.Z5 }}%</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div v-if="stravaZoneAnalysis" class="bg-slate-800/40 border border-slate-700 rounded-xl p-3 space-y-2">
-                                    <div class="text-[11px] font-bold text-slate-400 uppercase">Analisis Zona & Efek</div>
-                                    <div class="text-slate-300 text-sm">@{{ stravaZoneAnalysis }}</div>
-                                    <div v-if="stravaZoneEffect" class="text-[11px] text-neon font-bold uppercase">Efek Latihan</div>
-                                    <div v-if="stravaZoneEffect" class="text-white text-sm font-medium">@{{ stravaZoneEffect }}</div>
-                                    <div v-if="stravaZoneSuggestion" class="pt-2 border-t border-slate-700/50">
-                                        <div class="text-[11px] text-yellow-500 font-bold uppercase">Saran</div>
-                                        <div class="text-white text-sm font-medium">@{{ stravaZoneSuggestion }}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- AI Workout Analysis (Aligned with Runner View) -->
-                            <div v-if="stravaMetrics" class="mb-3 bg-slate-800/40 border border-slate-700 rounded-xl p-4">
-                                <div class="flex items-center justify-between gap-3 mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-5 h-5 rounded-[4px] bg-purple-400 flex items-center justify-center text-dark font-bold text-[10px]">AI</div>
-                                        <span class="text-xs font-bold text-purple-300">AI Workout Analysis</span>
-                                    </div>
-                                    <button class="px-2.5 py-1 rounded-[4px] bg-purple-500/20 text-purple-200 border border-purple-500/30 text-[10px] font-bold hover:bg-purple-500/30 transition disabled:opacity-50"
-                                            :disabled="stravaAiAnalysisLoading"
-                                            @click="loadStravaForActivity(stravaMetrics.strava_activity_id, true)">
-                                        @{{ stravaAiAnalysisLoading ? 'Analyzing...' : 'Refresh AI' }}
-                                    </button>
-                                </div>
-
-                                <div v-if="stravaAiAnalysisLoading" class="text-xs text-slate-400">AI sedang menganalisis workout dan konteks latihan atlet...</div>
-                                <div v-else-if="!stravaAiAnalysis" class="text-xs text-slate-550 italic">Analisis AI belum tersedia. Klik Refresh AI untuk memicu analisis baru.</div>
-                                <div v-else class="space-y-3 text-xs">
-                                    <div v-if="stravaAiAnalysis.summary" class="text-slate-200 leading-relaxed text-sm">@{{ stravaAiAnalysis.summary }}</div>
-                                    <div class="text-xs text-slate-350">
-                                        <span class="text-slate-400 font-mono text-[10px] uppercase">Junk Miles Risk:</span>
-                                        <span class="font-bold text-white capitalize">@{{ stravaAiAnalysis.junk_miles_risk?.level || 'unknown' }}</span>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.what_went_well?.length">
-                                        <div class="text-[10px] font-bold text-green-300 uppercase mb-1">Yang Sudah Bagus</div>
-                                        <ul class="space-y-0.5 text-slate-300">
-                                            <li v-for="(item, idx) in stravaAiAnalysis.what_went_well" :key="'well-' + idx">• @{{ item }}</li>
-                                        </ul>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.what_to_improve?.length">
-                                        <div class="text-[10px] font-bold text-amber-300 uppercase mb-1">Yang Perlu Ditingkatkan</div>
-                                        <ul class="space-y-0.5 text-slate-300">
-                                            <li v-for="(item, idx) in stravaAiAnalysis.what_to_improve" :key="'improve-' + idx">• @{{ item }}</li>
-                                        </ul>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.next_workout_suggestion?.type || stravaAiAnalysis.next_workout_suggestion?.reason" class="rounded-[6px] bg-slate-900/80 border border-slate-700 p-2.5">
-                                        <div class="text-[10px] font-bold text-neon uppercase mb-1">Saran Workout Berikutnya</div>
-                                        <div class="text-white font-bold text-xs">@{{ stravaAiAnalysis.next_workout_suggestion.type || '-' }}</div>
-                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.duration" class="text-[10px] text-slate-400 mt-0.5">Durasi: @{{ stravaAiAnalysis.next_workout_suggestion.duration }}</div>
-                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.target" class="text-[10px] text-slate-400">Target: @{{ stravaAiAnalysis.next_workout_suggestion.target }}</div>
-                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.reason" class="text-xs text-slate-300 mt-1 leading-relaxed">@{{ stravaAiAnalysis.next_workout_suggestion.reason }}</div>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.recovery_advice?.length">
-                                        <div class="text-[10px] font-bold text-sky-300 uppercase mb-1">Recovery Advice</div>
-                                        <ul class="space-y-0.5 text-slate-300">
-                                            <li v-for="(item, idx) in stravaAiAnalysis.recovery_advice" :key="'recovery-' + idx">• @{{ item }}</li>
-                                        </ul>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.improve_next_time?.length">
-                                        <div class="text-[10px] font-bold text-purple-300 uppercase mb-1">Improve Next Time</div>
-                                        <ul class="space-y-0.5 text-slate-300">
-                                            <li v-for="(item, idx) in stravaAiAnalysis.improve_next_time" :key="'next-' + idx">• @{{ item }}</li>
-                                        </ul>
-                                    </div>
-
-                                    <div v-if="stravaAiAnalysis.risk_flags?.length" class="rounded-[6px] bg-red-500/10 border border-red-500/20 p-2.5">
-                                        <div class="text-[10px] font-bold text-red-300 uppercase mb-1">Risk Flags</div>
-                                        <ul class="space-y-0.5 text-red-100">
-                                            <li v-for="(item, idx) in stravaAiAnalysis.risk_flags" :key="'risk-' + idx">• @{{ item }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-if="stravaMetrics.media && stravaMetrics.media.length" class="mb-3 border-t border-slate-700 pt-3">
-                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Media</div>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    <a v-for="(m, idx) in stravaMetrics.media" :key="idx" :href="m" target="_blank" class="block">
-                                        <img :src="m" class="w-full h-24 object-cover rounded-lg border border-slate-700 bg-slate-900" loading="lazy">
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div v-if="stravaStreams && stravaStreams.time && stravaStreams.time.length > 0" class="bg-slate-900/30 border border-slate-700 rounded-xl p-2 mb-3 h-44 relative group">
-                                <button @click="showStravaGraphModal = true" class="absolute top-2 right-2 p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition z-10" title="Expand Chart">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
-                                </button>
-                                <canvas id="coachStravaMetricsChart" class="w-full h-full"></canvas>
-                            </div>
-
-                            <div v-if="stravaSplits.length > 0" class="mb-3">
-                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Splits (per km)</div>
-                                <div class="max-h-40 overflow-y-auto space-y-1">
-                                    <div v-for="s in stravaSplits" :key="s.split" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
-                                        <div class="text-slate-300 font-bold">KM @{{ s.split || '-' }}</div>
-                                        <div class="text-right">
-                                            <div class="text-white font-mono">@{{ s.pace || '-' }}</div>
-                                            <div class="text-[10px] text-slate-500">@{{ formatSeconds(s.moving_time_s) }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-if="stravaLaps.length > 0" class="mb-1">
-                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Laps</div>
-                                <div class="max-h-40 overflow-y-auto space-y-1">
-                                    <div v-for="(l, idx) in stravaLaps" :key="idx" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
-                                        <div class="min-w-0">
-                                            <div class="text-slate-300 font-bold truncate">@{{ l.name || ('Lap ' + (idx + 1)) }}</div>
-                                            <div class="text-[10px] text-slate-500">@{{ l.distance_m ? (Math.round(l.distance_m) + ' m') : '-' }} • @{{ formatSeconds(l.moving_time_s) }}</div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-white font-mono">@{{ l.pace || '-' }}</div>
-                                            <div class="text-[10px] text-slate-500">@{{ l.average_heartrate ? (Math.round(l.average_heartrate) + ' bpm') : '' }}</div>
-                                        </div>
+                            <!-- Splits / Laps summary -->
+                            <div v-if="stravaSplits.length > 0" class="mt-3">
+                                <div class="text-xs font-medium text-slate-400 mb-1.5">Splits per KM</div>
+                                <div class="max-h-36 overflow-y-auto space-y-1 pr-1">
+                                    <div v-for="s in stravaSplits" :key="s.split" class="flex justify-between items-center text-xs p-1.5 rounded bg-slate-950 border border-slate-800">
+                                        <div class="text-slate-300 font-mono">KM @{{ s.split || '-' }}</div>
+                                        <div class="text-white font-mono font-medium">@{{ s.pace || '-' }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Coach Feedback Form -->
-                        <div v-if="selectedSession.extendedProps.tracking" class="border-t border-slate-700 pt-4">
-                            <h4 class="text-neon font-bold text-xs uppercase mb-3">Coach Feedback</h4>
-                            <form @submit.prevent="saveFeedback">
-                                <div class="mb-3">
-                                    <label class="block text-xs text-slate-400 mb-1">Rating</label>
+                        <div v-if="selectedSession.extendedProps.tracking" class="border-t border-slate-800 pt-4">
+                            <h4 class="text-xs font-semibold text-white mb-3">Feedback & Evaluasi Coach</h4>
+                            <form @submit.prevent="saveFeedback" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-400 mb-1">Rating Sesi</label>
                                     <div class="flex gap-2">
                                         <button type="button" v-for="i in 5" :key="i" 
                                             @click="feedbackForm.coach_rating = i"
-                                            class="text-base transition hover:scale-110"
+                                            class="text-base transition hover:scale-105"
                                             :class="i <= feedbackForm.coach_rating ? 'text-amber-400' : 'text-slate-700'">
                                             <i class="fa-solid fa-star"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="block text-xs text-slate-400 mb-1">Feedback</label>
-                                    <textarea v-model="feedbackForm.coach_feedback" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm" placeholder="Great job! Keep it up..."></textarea>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-400 mb-1">Catatan Feedback</label>
+                                    <textarea v-model="feedbackForm.coach_feedback" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2.5 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none" placeholder="Tulis feedback untuk atlet..."></textarea>
                                 </div>
-                                <button type="submit" :disabled="loading" class="w-full py-2 rounded-lg bg-neon text-dark font-black text-sm hover:bg-neon/90 transition disabled:opacity-50">
-                                    @{{ loading ? 'Saving...' : 'Save Feedback' }}
+                                <button type="submit" :disabled="loading" class="w-full py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition disabled:opacity-50 border border-slate-700">
+                                    @{{ loading ? 'Menyimpan...' : 'Simpan Feedback' }}
                                 </button>
                             </form>
                         </div>
 
                     </div>
-                    <div v-else class="text-center py-12 text-slate-500">
-                        <p>Select a session from the calendar to view details and give feedback.</p>
-                    </div>
+                </div>
+
+                <div v-else class="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center text-slate-400 text-xs">
+                    Pilih sesi pada kalender untuk melihat detail latihan dan memberikan feedback.
                 </div>
             </div>
         </div>
 
-        <!-- Workout Modal -->
-        <div v-if="showFormModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showFormModal = false"></div>
-            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
-                            <i class="fa-solid fa-person-running text-neon"></i>
-                            <span>@{{ form.workout_id ? 'Edit Workout' : 'Tambah Workout' }}</span>
-                        </h3>
-                        <button class="text-slate-400 hover:text-white transition" @click="showFormModal = false">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-                    <!-- Body -->
-                    <form @submit.prevent="saveCustomWorkout" class="flex flex-col flex-1 min-h-0 overflow-hidden">
-                        <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 min-h-0">
-                            <input type="hidden" v-model="form.workout_id">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tanggal</label>
-                                    <input type="date" v-model="form.workout_date" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tipe Sesi</label>
-                                    <select v-model="form.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
-                                        <option value="run">Run</option>
-                                        <option value="easy_run">Easy Run</option>
-                                        <option value="interval">Interval (600m - 1600m)</option>
-                                        <option value="repetition">Repetition (100m - 400m)</option>
-                                        <option value="tempo">Tempo</option>
-                                        <option value="yoga">Yoga</option>
-                                        <option value="cycling">Cycling</option>
-                                        <option value="rest">Rest</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Intensitas</label>
-                                    <select v-model="form.difficulty" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
-                                        <option value="easy">Easy</option>
-                                        <option value="moderate">Moderate</option>
-                                        <option value="hard">Hard</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Jarak (KM)</label>
-                                    <input type="number" step="0.01" v-model="form.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Durasi</label>
-                                    <input type="text" v-model="form.duration" placeholder="00:30:00" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none font-mono">
-                                </div>
-                            </div>
-                            
-                            <!-- Advanced Workout Builder -->
-                            <div class="border-t border-slate-800 pt-3">
-                                <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Struktur Latihan Lanjutan</label>
-                                
-                                <div v-if="form.workout_structure && form.workout_structure.advanced" class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 mb-3">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <div class="text-[10px] text-neon font-bold uppercase mb-1">Advanced Config</div>
-                                            <div class="text-xs text-white">@{{ form.description }}</div>
-                                            <div class="text-[10px] text-slate-400 mt-1 font-mono">Total: @{{ form.distance }} km</div>
-                                        </div>
-                                        <button type="button" @click="openBuilder(true)" class="text-xs text-neon hover:underline font-bold">Edit</button>
-                                    </div>
-                                </div>
+        <!-- ────────────────── MODALS ────────────────── -->
 
-                                <button type="button" @click="openBuilder(!!(form.workout_structure && form.workout_structure.advanced))" class="w-full py-2.5 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-neon hover:border-neon hover:bg-slate-800/50 transition text-xs font-bold flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-layer-group"></i> @{{ form.workout_structure && form.workout_structure.advanced ? 'Buka Builder untuk Edit' : 'Buka Advanced Builder' }}
-                                </button>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Deskripsi / Instruksi</label>
-                                <textarea v-model="form.description" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon focus:border-neon outline-none resize-none" placeholder="Instruksi latihan untuk atlet..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
-                            <button type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition" @click="showFormModal = false">Batal</button>
-                            <button type="submit" :disabled="loading" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-white transition text-xs disabled:opacity-50 shadow-md">
-                                @{{ loading ? 'Menyimpan...' : 'Simpan Workout' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reschedule / Activate Program Modal -->
-        <div v-if="showRescheduleModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRescheduleModal = false"></div>
-            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
-
-                    <!-- Header -->
-                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                        <div>
-                            <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-days text-neon"></i>
-                                <span>{{ $enrollment->status === 'active' ? 'Reschedule Program' : 'Aktifkan Program Atlet' }}</span>
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">
-                                {{ $enrollment->status === 'active' ? 'Jadwalkan ulang seluruh tanggal program latihan' : 'Tentukan tanggal mulai untuk mengaktifkan program atlet' }}
-                            </p>
-                        </div>
-                        <button @click="showRescheduleModal = false" class="text-slate-400 hover:text-white transition">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                        <!-- Program Info Card -->
-                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-1.5 text-xs">
-                            <div class="text-slate-400">Program: <span class="font-bold text-white">{{ $enrollment->program->title }}</span></div>
-                            <div class="text-slate-400">Status: <span class="font-bold text-neon uppercase">{{ $enrollment->status === 'purchased' ? 'Belum Aktif (Program Bag)' : ($enrollment->status === 'inactive' ? 'Expired' : $enrollment->status) }}</span></div>
-                            <div class="text-slate-400">
-                                Tanggal Aktif:
-                                <span class="font-bold text-white font-mono">
-                                    {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : 'Belum Ditentukan' }}
-                                    @if($enrollment->end_date) → {{ \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') }} @endif
-                                </span>
-                            </div>
-                            <div class="text-slate-400">Durasi: <span class="font-bold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
-                        </div>
-
-                        <p class="text-slate-400 text-xs leading-relaxed">
-                            Pilih tanggal mulai pertama untuk program ini. Seluruh sesi kalender latihan akan disesuaikan secara otomatis dari tanggal yang dipilih.
-                        </p>
-
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tanggal Mulai Program</label>
-                                <input type="date" v-model="rescheduleForm.new_start_date"
-                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
-                            </div>
-
-                            <!-- Quick Date Shortcuts -->
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Pintasan Tanggal Cepat</label>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <button type="button" @click="setStartDateToday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Hari Ini</button>
-                                    <button type="button" @click="setStartDateNextMonday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Senin Depan</button>
-                                    <button type="button" @click="setStartDateNextMonth" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-bold rounded-lg transition text-center truncate">Bulan Depan</button>
-                                </div>
-                            </div>
-
-                            <!-- Preview end date -->
-                            <div v-if="rescheduleForm.new_start_date" class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs flex justify-between items-center">
-                                <span class="text-slate-400 font-medium">Estimasi Tanggal Selesai:</span>
-                                <span class="text-neon font-black font-mono">@{{ previewRescheduleEndDate }}</span>
-                            </div>
-
-                            <div v-if="rescheduleError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
-                                @{{ rescheduleError }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
-                        <button type="button" @click="showRescheduleModal = false"
-                            class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
-                            Batal
-                        </button>
-                        <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
-                            class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                            <span v-if="rescheduleLoading">Menyimpan...</span>
-                            <span v-else>{{ $enrollment->status === 'active' ? 'Simpan Reschedule' : 'Aktifkan Program' }}</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Send Program Reminder Modal -->
-        <div v-if="showReminderModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showReminderModal = false"></div>
-            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
-
-                    <!-- Header -->
-                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                        <div>
-                            <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
-                                <i class="fa-solid fa-paper-plane text-neon"></i>
-                                <span>Kirim Pengingat Program</span>
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Kirim pengingat sesi latihan ke atlet</p>
-                        </div>
-                        <button @click="showReminderModal = false" class="text-slate-400 hover:text-white transition">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                        <!-- Session Info Card -->
-                        <div class="bg-neon/10 border border-neon/20 rounded-xl p-3.5 space-y-1.5 text-xs" v-if="reminderSessionInfo.title">
-                            <div class="text-neon flex items-start gap-1.5">
-                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Sesi:</span>
-                                <span class="font-bold text-white">@{{ reminderSessionInfo.title }}</span>
-                            </div>
-                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.distance && reminderSessionInfo.distance !== '-'">
-                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Jarak:</span>
-                                <span class="font-bold text-white font-mono">@{{ reminderSessionInfo.distance }}</span>
-                            </div>
-                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.pace">
-                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Pace:</span>
-                                <span class="font-bold text-white font-mono">@{{ reminderSessionInfo.pace }}</span>
-                            </div>
-                            <div class="text-neon flex items-start gap-1.5" v-if="reminderSessionInfo.description">
-                                <span class="font-semibold text-neon/80 w-16 flex-shrink-0">Deskripsi:</span>
-                                <span class="font-bold text-white">@{{ reminderSessionInfo.description }}</span>
-                            </div>
-                        </div>
-
-                        <div class="space-y-3.5">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Saluran Pengiriman (Channel)</label>
-                                <select v-model="reminderForm.channel" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
-                                    <option value="both">WhatsApp & Email</option>
-                                    <option value="wa">WhatsApp Saja</option>
-                                    <option value="email">Email Saja</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Pesan Kustom (Opsional)</label>
-                                <textarea v-model="reminderForm.custom_message" rows="4" placeholder="Tulis pesan kustom di sini... (Kosongkan untuk menggunakan pesan otomatis AI)"
-                                    class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none resize-none"></textarea>
-                                <p class="text-[10px] text-slate-500 mt-1">Jika dikosongkan, sistem akan otomatis membuat pesan pengingat yang dipersonalisasi menggunakan AI.</p>
-                            </div>
-
-                            <div v-if="reminderError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
-                                @{{ reminderError }}
-                            </div>
-
-                            <div v-if="reminderSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
-                                @{{ reminderSuccess }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
-                        <button type="button" @click="showReminderModal = false"
-                            class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
-                            Batal
-                        </button>
-                        <button type="button" @click="submitReminder" :disabled="reminderLoading"
-                            class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                            @{{ reminderLoading ? 'Mengirim...' : 'Kirim Pengingat' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Advanced Workout Builder Modal -->
+        <!-- Unified Advanced Workout Builder Modal -->
         <div v-if="builderVisible" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="builderVisible = false"></div>
+            <div class="fixed inset-0 bg-black/70" @click="builderVisible = false"></div>
             <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col">
                     <!-- Header -->
-                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
-                            <i class="fa-solid fa-sliders text-neon"></i>
-                            <span>Advanced Workout Builder</span>
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <h3 class="text-white font-semibold text-base">
+                            @{{ form.workout_id ? 'Edit Workout Atlet' : 'Tambah Workout Baru' }}
                         </h3>
-                        <button class="text-slate-400 hover:text-white transition" @click="builderVisible = false">
-                            <i class="fa-solid fa-xmark text-lg"></i>
+                        <button class="text-slate-400 hover:text-white transition text-lg" @click="builderVisible = false">
+                            &times;
                         </button>
                     </div>
 
                     <!-- Body -->
                     <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Tipe Latihan</label>
-                                <select v-model="builderForm.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none">
+                                <label class="text-xs font-medium text-slate-300 mb-1 block">Tanggal</label>
+                                <input type="date" v-model="form.workout_date" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            </div>
+                            <div>
+                                <label class="text-xs font-medium text-slate-300 mb-1 block">Tipe Latihan</label>
+                                <select v-model="builderForm.type" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none">
                                     <option value="easy_run">Easy Run</option>
                                     <option value="long_run">Long Run</option>
                                     <option value="tempo">Tempo</option>
@@ -1291,114 +657,114 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Judul Sesi (Opsional)</label>
-                                <input v-model="builderForm.title" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none" placeholder="misal: Easy 5K + Strides">
+                                <label class="text-xs font-medium text-slate-300 mb-1 block">Judul Sesi (Opsional)</label>
+                                <input v-model="builderForm.title" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none" placeholder="misal: Easy 5K + Strides">
                             </div>
                         </div>
 
                         <!-- Warm Up & Cool Down -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/60">
+                            <div class="bg-slate-950 rounded-md p-3 border border-slate-800">
                                 <div class="flex items-center justify-between">
-                                    <div class="text-xs font-bold text-slate-300 uppercase">Warm Up</div>
+                                    <div class="text-xs font-semibold text-slate-300">Warm Up</div>
                                     <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
-                                        <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-neon">
-                                        Enable
+                                        <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-slate-300 focus:ring-0">
+                                        Aktifkan
                                     </label>
                                 </div>
                                 <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
-                                    <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Waktu</option>
                                     </select>
                                     <div v-if="builderForm.warmup.by==='distance'" class="flex gap-1">
-                                        <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs" placeholder="Jarak">
-                                        <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-1.5 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-md px-1 py-1.5 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
+                                    <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
                                 </div>
                             </div>
 
-                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/60">
+                            <div class="bg-slate-950 rounded-md p-3 border border-slate-800">
                                 <div class="flex items-center justify-between">
-                                    <div class="text-xs font-bold text-slate-300 uppercase">Cool Down</div>
+                                    <div class="text-xs font-semibold text-slate-300">Cool Down</div>
                                     <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
-                                        <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-neon">
-                                        Enable
+                                        <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-slate-300 focus:ring-0">
+                                        Aktifkan
                                     </label>
                                 </div>
                                 <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
-                                    <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Waktu</option>
                                     </select>
                                     <div v-if="builderForm.cooldown.by==='distance'" class="flex gap-1">
-                                        <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs" placeholder="Jarak">
-                                        <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-1.5 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-md px-1 py-1.5 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
+                                    <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-md px-2 py-1.5 text-white text-xs font-mono" placeholder="00:10:00">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Main Workout Section -->
-                        <div class="bg-slate-800/40 rounded-xl p-3.5 border border-slate-700/60">
-                            <div class="text-xs font-bold text-neon uppercase mb-2.5">Menu Utama (Main Set)</div>
+                        <div class="bg-slate-950 rounded-md p-3.5 border border-slate-800">
+                            <div class="text-xs font-semibold text-slate-200 mb-2.5">Menu Utama Latihan</div>
                             
                             <!-- Easy Run -->
                             <div v-if="builderForm.type==='easy_run'">
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Durasi Waktu</option>
                                     </select>
                                     <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
-                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
-                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-800 rounded-md px-1 py-2 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
-                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
+                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
+                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
                                 </div>
                             </div>
 
                             <!-- Long Run -->
                             <div v-else-if="builderForm.type==='long_run'">
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Durasi Waktu</option>
                                     </select>
                                     <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
-                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
-                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-800 rounded-md px-1 py-2 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
-                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
+                                    <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="00:30:00">
+                                    <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="Target Pace (05:30)">
                                 </div>
-                                <div class="space-y-2 border-t border-slate-700/60 pt-2">
+                                <div class="space-y-2 border-t border-slate-800 pt-2">
                                     <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                                        <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                        <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-slate-300">
                                         Fast Finish (Selesai Lebih Cepat)
                                     </label>
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
-                                        <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak FF">
-                                        <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs">
+                                        <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Jarak FF">
+                                        <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
-                                        <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Pace FF (04:45)">
+                                        <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="Pace FF (04:45)">
                                     </div>
                                 </div>
                             </div>
@@ -1406,20 +772,20 @@
                             <!-- Tempo -->
                             <div v-else-if="builderForm.type==='tempo'">
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                                    <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Waktu</option>
                                     </select>
                                     <div v-if="builderForm.tempo.by==='distance'" class="flex gap-1">
-                                        <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Jarak">
-                                        <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Jarak">
+                                        <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-800 rounded-md px-1 py-2 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="00:20:00">
-                                    <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono" placeholder="Pace Tempo">
-                                    <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                    <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="00:20:00">
+                                    <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono" placeholder="Pace Tempo">
+                                    <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
                                         <option value="moderate">Moderate Effort</option>
                                         <option value="hard">Hard Effort</option>
                                     </select>
@@ -1429,21 +795,21 @@
                             <!-- Interval -->
                             <div v-else-if="builderForm.type==='interval'">
                                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                                    <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs" placeholder="Total Reps">
-                                    <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
+                                    <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs font-mono" placeholder="Total Reps">
+                                    <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
+                                        <option value="distance">Jarak</option>
+                                        <option value="time">Waktu</option>
                                     </select>
                                     <div v-if="builderForm.interval.by==='distance'" class="flex gap-1 col-span-2 sm:col-span-1">
-                                        <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Rep Dist">
-                                        <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-[10px]">
+                                        <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Jarak Rep">
+                                        <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-800 rounded-md px-1 py-2 text-white text-xs">
                                             <option value="km">km</option>
                                             <option value="m">m</option>
                                         </select>
                                     </div>
-                                    <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs font-mono col-span-2 sm:col-span-1" placeholder="Rep 00:03:00">
-                                    <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs font-mono" placeholder="Rep Pace">
-                                    <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs" placeholder="Recovery (90s / 200m)">
+                                    <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs font-mono col-span-2 sm:col-span-1" placeholder="Rep 00:03:00">
+                                    <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs font-mono" placeholder="Rep Pace">
+                                    <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs font-mono" placeholder="Recovery (90s / 200m)">
                                 </div>
                             </div>
 
@@ -1451,68 +817,68 @@
                             <div v-else-if="builderForm.type==='strength'">
                                 <div class="space-y-3">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
                                             <option value="">Pilih Kategori</option>
                                             <option value="full_body">Full Body</option>
                                             <option value="legs_lower_body">Legs/Lower Body</option>
                                             <option value="core">Core</option>
                                             <option value="upper_body">Upper Body</option>
                                         </select>
-                                        <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-white text-xs">
+                                        <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-800 rounded-md px-2.5 py-2 text-white text-xs">
                                             <option value="">Pilih Gerakan</option>
                                             <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
                                         </select>
                                     </div>
                                     <div class="grid grid-cols-3 gap-2">
-                                        <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Set (misal 3)">
-                                        <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Rep/Durasi">
-                                        <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-xs" placeholder="Peralatan">
+                                        <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Set (misal 3)">
+                                        <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Rep/Durasi">
+                                        <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-800 rounded-md px-2 py-2 text-white text-xs" placeholder="Peralatan">
                                     </div>
                                     <div class="flex justify-end">
-                                        <button type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 transition" @click="addStrengthExercise">Tambah Gerakan</button>
+                                        <button type="button" class="px-3 py-1.5 rounded-md bg-slate-800 text-white text-xs font-medium hover:bg-slate-700 transition" @click="addStrengthExercise">Tambah Gerakan</button>
                                     </div>
                                     <div class="space-y-1.5" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
-                                        <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                        <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-white">
                                             <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
-                                            <button type="button" class="text-slate-400 hover:text-rose-400 transition" @click="removeStrengthExercise(idx)"><i class="fa-solid fa-xmark text-xs"></i></button>
+                                            <button type="button" class="text-slate-400 hover:text-rose-400 transition" @click="removeStrengthExercise(idx)">&times;</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div v-else-if="builderForm.type==='rest'">
-                                <div class="text-slate-400 text-xs italic">Rest Day — Istirahat total dan pemulihan tubuh.</div>
+                                <div class="text-slate-400 text-xs italic">Rest Day — Hari istirahat dan pemulihan atlet.</div>
                             </div>
                         </div>
 
                         <!-- Intensity & Notes -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Intensitas Target</label>
-                                <select v-model="builderForm.intensity" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none">
-                                    <option value="low">Low Intensity</option>
-                                    <option value="medium">Medium Intensity</option>
-                                    <option value="high">High Intensity</option>
+                                <label class="text-xs font-medium text-slate-300 mb-1 block">Intensitas Latihan</label>
+                                <select v-model="builderForm.intensity" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none">
+                                    <option value="low">Rendah (Low)</option>
+                                    <option value="medium">Sedang (Medium)</option>
+                                    <option value="high">Tinggi (High)</option>
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Catatan Sesi Workout</label>
-                                <input type="text" v-model="builderForm.notes" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon outline-none" placeholder="Pesan/instruksi khusus untuk atlet...">
+                                <label class="text-xs font-medium text-slate-300 mb-1 block">Catatan Sesi Workout</label>
+                                <input type="text" v-model="builderForm.notes" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none" placeholder="Instruksi khusus untuk atlet...">
                             </div>
                         </div>
 
                         <!-- Summary -->
-                        <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ringkasan Struktur Workout</div>
-                            <div class="text-white text-xs font-medium">@{{ builderSummary }}</div>
-                            <div class="text-neon text-xs font-bold font-mono mt-1">Total Estimasi Jarak: @{{ builderTotalDistance }} km</div>
+                        <div class="bg-slate-950 rounded-md p-3.5 border border-slate-800">
+                            <div class="text-xs font-medium text-slate-400 mb-1">Ringkasan Struktur Sesi</div>
+                            <div class="text-white text-xs leading-relaxed">@{{ builderSummary }}</div>
+                            <div class="text-slate-200 text-xs font-mono mt-1">Estimasi Total Jarak: <strong class="text-white">@{{ builderTotalDistance }} km</strong></div>
                         </div>
                     </div>
 
                     <!-- Footer -->
-                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end items-center gap-2.5 flex-shrink-0 rounded-b-2xl">
-                        <button v-if="form.workout_id" type="button" class="px-3.5 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold hover:bg-rose-500/20 mr-auto transition" @click="deleteCustomWorkout">Hapus</button>
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold hover:bg-slate-700 transition" @click="builderVisible = false">Batal</button>
-                        <button type="button" class="px-5 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition shadow-md" @click="submitBuilder">
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end items-center gap-2.5 flex-shrink-0">
+                        <button v-if="form.workout_id" type="button" class="px-3.5 py-2 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-medium hover:bg-rose-500/20 mr-auto transition" @click="deleteCustomWorkout">Hapus Sesi</button>
+                        <button type="button" class="px-4 py-2 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-xs font-medium hover:bg-slate-700 transition" @click="builderVisible = false">Batal</button>
+                        <button type="button" class="px-5 py-2 rounded-md bg-neon text-dark font-semibold text-xs hover:bg-white transition" @click="submitBuilder">
                             @{{ loading ? 'Menyimpan...' : 'Simpan Workout' }}
                         </button>
                     </div>
@@ -1520,364 +886,480 @@
             </div>
         </div>
 
-         <!-- Update Target Mingguan Modal -->
-    <div v-if="showWeeklyTargetModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showWeeklyTargetModal = false"></div>
-        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
-                <!-- Header -->
-                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                    <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-bullseye text-neon"></i>
-                        <span>Update Target Mingguan</span>
-                    </h3>
-                    <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white transition">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-                <!-- Body -->
-                <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5">Target Mingguan (KM)</label>
-                        <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white text-sm focus:ring-neon focus:border-neon outline-none font-mono">
-                        <p class="text-[11px] text-slate-500 mt-1">Set target jarak lari mingguan atlet untuk pemantauan volume.</p>
-                    </div>
-                </div>
-                <!-- Footer -->
-                <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
-                    <button type="button" class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700" @click="showWeeklyTargetModal = false">Batal</button>
-                    <button type="button" @click="updateWeeklyTarget" class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md flex items-center justify-center gap-2" :disabled="weeklyTargetLoading">
-                        <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
-                        Simpan Target
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Reschedule / Activate Program Modal -->
+        <div v-if="showRescheduleModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showRescheduleModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
 
-    <!-- Update VDOT / PB Modal -->
-    <div v-if="showVdotModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showVdotModal = false"></div>
-        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
-
-                <!-- Header -->
-                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                    <div>
-                        <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
-                            <i class="fa-solid fa-heart-pulse text-neon"></i>
-                            <span>Update PB & VDOT Atlet</span>
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Sesuaikan hasil tes/PB untuk memperbarui pace latihan atlet</p>
-                    </div>
-                    <button @click="showVdotModal = false" class="text-slate-400 hover:text-white transition">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                    <!-- Mode Selector Tabs -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Pilih Metode Pengukuran</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
-                            <button type="button" @click="vdotForm.mode = 'cooper'"
-                                :class="vdotForm.mode === 'cooper' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
-                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
-                                Cooper 12M
-                            </button>
-                            <button type="button" @click="vdotForm.mode = 'balke'"
-                                :class="vdotForm.mode === 'balke' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
-                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
-                                Balke 15M
-                            </button>
-                            <button type="button" @click="vdotForm.mode = 'pb'"
-                                :class="vdotForm.mode === 'pb' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
-                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
-                                Race PB
-                            </button>
-                            <button type="button" @click="vdotForm.mode = 'direct'"
-                                :class="vdotForm.mode === 'direct' ? 'bg-neon text-dark font-black' : 'text-slate-400 hover:text-white font-bold'"
-                                class="py-2 px-1 text-[11px] rounded-lg transition-all text-center truncate">
-                                Direct VDOT
-                            </button>
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">
+                                {{ $enrollment->status === 'active' ? 'Reschedule Program' : 'Aktifkan Program Atlet' }}
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">
+                                {{ $enrollment->status === 'active' ? 'Jadwalkan ulang tanggal program latihan' : 'Tentukan tanggal mulai untuk mengaktifkan sesi latihan' }}
+                            </p>
                         </div>
+                        <button @click="showRescheduleModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
                     </div>
 
-                    <!-- Mode Specific Form Fields -->
-                    <div class="space-y-4">
-                        <!-- Cooper 12 Min -->
-                        <div v-if="vdotForm.mode === 'cooper'" class="space-y-2">
-                            <label class="block text-xs font-semibold text-slate-400 uppercase">Jarak Tes Cooper 12 Menit (Meter)</label>
-                            <input type="number" v-model="vdotForm.cooper_distance" placeholder="Contoh: 2800" min="500" max="10000"
-                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
-                            <p class="text-[11px] text-slate-500">Masukkan jarak total yang ditempuh atlet dalam lari maksimal 12 menit (dalam meter).</p>
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div class="bg-slate-950 border border-slate-800 rounded-md p-3.5 space-y-1 text-xs">
+                            <div class="text-slate-400">Program: <span class="font-semibold text-white">{{ $enrollment->program->title }}</span></div>
+                            <div class="text-slate-400">Status: <span class="font-semibold text-white">{{ $enrollment->status === 'purchased' ? 'Belum Aktif' : ($enrollment->status === 'inactive' ? 'Expired' : ucfirst($enrollment->status)) }}</span></div>
+                            <div class="text-slate-400">
+                                Tanggal Aktif:
+                                <span class="font-semibold text-white font-mono">
+                                    {{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format('d M Y') : 'Belum Ditentukan' }}
+                                    @if($enrollment->end_date) &rarr; {{ \Carbon\Carbon::parse($enrollment->end_date)->format('d M Y') }} @endif
+                                </span>
+                            </div>
+                            <div class="text-slate-400">Durasi: <span class="font-semibold text-white">{{ $enrollment->program->duration_weeks ?? 12 }} minggu</span></div>
                         </div>
 
-                        <!-- Balke 15 Min -->
-                        <div v-if="vdotForm.mode === 'balke'" class="space-y-2">
-                            <label class="block text-xs font-semibold text-slate-400 uppercase">Jarak Tes Balke 15 Menit (Meter)</label>
-                            <input type="number" v-model="vdotForm.balke_distance" placeholder="Contoh: 3400" min="500" max="10000"
-                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
-                            <p class="text-[11px] text-slate-500">Masukkan jarak total yang ditempuh atlet dalam lari maksimal 15 menit (dalam meter).</p>
-                        </div>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Pilih tanggal mulai pertama untuk program ini. Seluruh sesi kalender latihan akan disesuaikan secara otomatis.
+                        </p>
 
-                        <!-- Race PB -->
-                        <div v-if="vdotForm.mode === 'pb'" class="space-y-3">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Jarak Lomba / PB</label>
-                                    <select v-model="vdotForm.pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none">
-                                        <option value="5k">5K (5.000m)</option>
-                                        <option value="10k">10K (10.000m)</option>
-                                        <option value="21k">Half Marathon (21.097m)</option>
-                                        <option value="42k">Full Marathon (42.195m)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Waktu PB (MM:SS / HH:MM:SS)</label>
-                                    <input type="text" v-model="vdotForm.pb_time" placeholder="Contoh: 22:30 / 01:45:00"
-                                        class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Tanggal Mulai Program</label>
+                                <input type="date" v-model="rescheduleForm.new_start_date"
+                                    class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            </div>
+
+                            <!-- Quick Date Shortcuts -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Pintasan Tanggal</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button type="button" @click="setStartDateToday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-md transition text-center truncate">Hari Ini</button>
+                                    <button type="button" @click="setStartDateNextMonday" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-md transition text-center truncate">Senin Depan</button>
+                                    <button type="button" @click="setStartDateNextMonth" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium rounded-md transition text-center truncate">Bulan Depan</button>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-slate-500">Masukkan hasil waktu PB resmi atau time trial terbaik atlet.</p>
-                        </div>
 
-                        <!-- Direct VDOT -->
-                        <div v-if="vdotForm.mode === 'direct'" class="space-y-2">
-                            <label class="block text-xs font-semibold text-slate-400 uppercase">Skor VDOT Langsung</label>
-                            <input type="number" step="0.1" v-model="vdotForm.vdot_score" placeholder="Contoh: 45.0" min="10" max="85"
-                                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-3 focus:ring-neon focus:border-neon outline-none font-mono">
-                            <p class="text-[11px] text-slate-500">Masukkan nilai VDOT secara manual (range 10.0 - 85.0).</p>
-                        </div>
-
-                        <!-- Live VDOT Preview -->
-                        <div v-if="previewVdot" class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">
-                            <span class="text-slate-400 font-medium">Estimasi Skor VDOT Baru:</span>
-                            <span class="text-neon font-black font-mono text-sm">@{{ previewVdot }}</span>
-                        </div>
-
-                        <div v-if="vdotError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
-                            @{{ vdotError }}
-                        </div>
-                        <div v-if="vdotSuccess" class="text-neon text-xs bg-neon/10 border border-neon/20 rounded-xl p-3">
-                            @{{ vdotSuccess }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 sm:gap-3 flex-shrink-0 rounded-b-2xl">
-                    <button type="button" @click="showVdotModal = false"
-                        class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">
-                        Batal
-                    </button>
-                    <button type="button" @click="submitUpdateVdot" :disabled="vdotLoading"
-                        class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                        @{{ vdotLoading ? 'Menyimpan...' : 'Simpan PB & VDOT' }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Race Modal -->
-    <div v-if="showRaceModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
-        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showRaceModal = false"></div>
-        <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-            <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
-                <!-- Header -->
-                <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-2xl">
-                    <h3 class="text-base font-extrabold text-white uppercase tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-flag-checkered text-neon"></i>
-                        <span>Tambah Event Lomba</span>
-                    </h3>
-                    <button @click="showRaceModal = false" class="text-slate-400 hover:text-white transition">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
-                </div>
-
-                <!-- Form -->
-                <form @submit.prevent="saveRace" class="flex flex-col flex-1 min-h-0 overflow-hidden">
-                    <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 min-h-0">
-                        <!-- RuangLari Import -->
-                        <div class="bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 relative">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Cari Event RuangLari</label>
-                            
-                            <!-- Search Input -->
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    v-model="eventSearchQuery"
-                                    @focus="showEventDropdown = true"
-                                    @blur="hideEventDropdown"
-                                    placeholder="Cari nama event lari..."
-                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs focus:ring-neon focus:border-neon focus:outline-none pl-8"
-                                >
-                                <span class="absolute left-3 top-2.5 text-slate-500"><i class="fa-solid fa-search text-[10px]"></i></span>
-                                <button v-if="eventSearchQuery" type="button" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+                            <!-- Preview end date -->
+                            <div v-if="rescheduleForm.new_start_date" class="bg-slate-950 border border-slate-800 rounded-md p-3 text-xs flex justify-between items-center">
+                                <span class="text-slate-400">Estimasi Selesai:</span>
+                                <span class="text-white font-semibold font-mono">@{{ previewRescheduleEndDate }}</span>
                             </div>
 
-                            <!-- Dropdown List -->
-                            <div v-if="showEventDropdown && filteredEvents.length > 0" 
-                                class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                                <ul>
-                                    <li v-for="event in filteredEvents" :key="event.id"
-                                        @click="selectRuangLariEvent(event)"
-                                        class="px-3.5 py-2.5 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0 text-slate-200"
-                                    >
-                                        <div class="text-xs font-bold text-white">@{{ event.name || event.title }}</div>
-                                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 font-mono">
-                                            <span><i class="fa-solid fa-calendar text-[10px] text-slate-500 mr-1"></i>@{{ event.date || event.start_at }}</span>
-                                            <span><i class="fa-solid fa-location-dot text-[10px] text-slate-500 mr-1"></i>@{{ event.location || event.location_name }}</span>
-                                        </div>
-                                    </li>
-                                </ul>
+                            <div v-if="rescheduleError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-md p-3">
+                                @{{ rescheduleError }}
                             </div>
-                            <div v-else-if="showEventDropdown && filteredEvents.length === 0 && !loadingEvents" class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-slate-500 text-xs z-50">
-                                Tidak ada event ditemukan.
-                            </div>
-
-                            <div v-if="loadingEvents" class="text-[10px] text-neon mt-1 italic">Memuat data event...</div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Event</label>
-                            <input v-model="raceForm.name" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none" placeholder="misal: Jakarta Marathon 2026" required>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal</label>
-                                <input v-model="raceForm.date" type="date" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jarak</label>
-                                <select v-model="raceForm.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none">
-                                    <option value="5k">5K</option>
-                                    <option value="10k">10K</option>
-                                    <option value="21k">Half Marathon (21K)</option>
-                                    <option value="42k">Full Marathon (42K)</option>
-                                    <option value="other">Lainnya</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Target Waktu (HH:MM:SS / MM:SS)</label>
-                            <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none font-mono" placeholder="misal: 01:45:00">
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan</label>
-                            <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-neon outline-none resize-none" placeholder="Catatan lomba..."></textarea>
                         </div>
                     </div>
 
                     <!-- Footer -->
-                    <div class="p-4 border-t border-slate-800 bg-slate-900/95 flex justify-end gap-2.5 flex-shrink-0 rounded-b-2xl">
-                        <button type="button" @click="showRaceModal = false" class="flex-1 py-2.5 text-xs font-bold text-slate-300 bg-slate-800 rounded-xl hover:bg-slate-700 transition border border-slate-700">Batal</button>
-                        <button type="submit" :disabled="loading" class="flex-1 py-2.5 text-xs font-black text-dark bg-neon rounded-xl hover:bg-white transition disabled:opacity-50 shadow-md">
-                            @{{ loading ? 'Menyimpan...' : 'Simpan Event' }}
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end gap-2.5 sm:gap-3 flex-shrink-0">
+                        <button type="button" @click="showRescheduleModal = false"
+                            class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                            Batal
+                        </button>
+                        <button type="button" @click="submitReschedule" :disabled="rescheduleLoading"
+                            class="flex-1 py-2 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50">
+                            <span v-if="rescheduleLoading">Menyimpan...</span>
+                            <span v-else>{{ $enrollment->status === 'active' ? 'Simpan Jadwal' : 'Aktifkan Program' }}</span>
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
 
+        <!-- Send Program Reminder Modal -->
+        <div v-if="showReminderModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showReminderModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
 
-    <!-- Modal Edit Pace Latihan (Custom Pace) -->
-    <div v-if="showPaceModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-white font-extrabold text-lg flex items-center gap-2">
-                        <i class="fa-solid fa-stopwatch text-neon"></i>
-                        Edit Pace Latihan Atlet
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Tentukan pace khusus untuk Easy, Marathon, Threshold, Interval, & Repetition.</p>
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Kirim Pengingat Latihan</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Kirim pesan pengingat jadwal sesi ke atlet</p>
+                        </div>
+                        <button @click="showReminderModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div class="bg-slate-950 border border-slate-800 rounded-md p-3.5 space-y-1 text-xs" v-if="reminderSessionInfo.title">
+                            <div class="flex items-start gap-1.5">
+                                <span class="text-slate-400 w-16 flex-shrink-0">Sesi:</span>
+                                <span class="font-semibold text-white">@{{ reminderSessionInfo.title }}</span>
+                            </div>
+                            <div class="flex items-start gap-1.5" v-if="reminderSessionInfo.distance && reminderSessionInfo.distance !== '-'">
+                                <span class="text-slate-400 w-16 flex-shrink-0">Jarak:</span>
+                                <span class="font-semibold text-white font-mono">@{{ reminderSessionInfo.distance }}</span>
+                            </div>
+                            <div class="flex items-start gap-1.5" v-if="reminderSessionInfo.pace">
+                                <span class="text-slate-400 w-16 flex-shrink-0">Pace:</span>
+                                <span class="font-semibold text-white font-mono">@{{ reminderSessionInfo.pace }}</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Saluran Pengiriman</label>
+                                <select v-model="reminderForm.channel" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                    <option value="both">WhatsApp & Email</option>
+                                    <option value="wa">WhatsApp Saja</option>
+                                    <option value="email">Email Saja</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Pesan Pengingat</label>
+                                <textarea v-model="reminderForm.custom_message" rows="4" placeholder="Tulis pesan pengingat..."
+                                    class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none resize-none leading-relaxed"></textarea>
+                            </div>
+
+                            <div v-if="reminderError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-md p-3">
+                                @{{ reminderError }}
+                            </div>
+
+                            <div v-if="reminderSuccess" class="text-emerald-400 text-xs bg-emerald-500/10 border border-emerald-500/20 rounded-md p-3">
+                                @{{ reminderSuccess }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end gap-2.5 sm:gap-3 flex-shrink-0">
+                        <button type="button" @click="showReminderModal = false"
+                            class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                            Batal
+                        </button>
+                        <button type="button" @click="submitReminder" :disabled="reminderLoading"
+                            class="flex-1 py-2 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50">
+                            @{{ reminderLoading ? 'Mengirim...' : 'Kirim Pengingat' }}
+                        </button>
+                    </div>
                 </div>
-                <button @click="showPaceModal = false" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
             </div>
+        </div>
 
-            <div class="space-y-4">
-                <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-300">
-                    <p class="leading-relaxed">
-                        <i class="fa-solid fa-circle-info text-neon mr-1"></i>
-                        Masukkan pace dalam format <strong>MM:SS</strong> (contoh: <code>05:30</code> untuk 5 min 30 sec per km). Kosongkan field jika ingin mengikuti kalkulasi VDOT otomatis.
+        <!-- Update Target Mingguan Modal -->
+        <div v-if="showWeeklyTargetModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showWeeklyTargetModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <h3 class="text-white font-semibold text-base">Update Target Mingguan</h3>
+                        <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Target Volume Jarak Mingguan (KM)</label>
+                            <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2.5 text-white text-sm focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            <p class="text-xs text-slate-400 mt-1.5">Target total jarak lari yang diharapkan dicapai atlet per minggu.</p>
+                        </div>
+                    </div>
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end gap-2.5 sm:gap-3 flex-shrink-0">
+                        <button type="button" class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700" @click="showWeeklyTargetModal = false">Batal</button>
+                        <button type="button" @click="updateWeeklyTarget" class="flex-1 py-2 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50" :disabled="weeklyTargetLoading">
+                            <span v-if="weeklyTargetLoading">Menyimpan...</span>
+                            <span v-else>Simpan Target</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update VDOT / PB Modal -->
+        <div v-if="showVdotModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showVdotModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-lg shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Update PB & VDOT Atlet</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Sesuaikan hasil tes/PB untuk memperbarui kalkulasi pace latihan atlet</p>
+                        </div>
+                        <button @click="showVdotModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <!-- Mode Selector Tabs -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-2">Metode Pengukuran</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-950 p-1.5 rounded-md border border-slate-800">
+                                <button type="button" @click="vdotForm.mode = 'pb'"
+                                    :class="vdotForm.mode === 'pb' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white font-normal'"
+                                    class="py-1.5 px-1 text-xs rounded transition text-center truncate">
+                                    Race PB
+                                </button>
+                                <button type="button" @click="vdotForm.mode = 'cooper'"
+                                    :class="vdotForm.mode === 'cooper' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white font-normal'"
+                                    class="py-1.5 px-1 text-xs rounded transition text-center truncate">
+                                    Cooper 12M
+                                </button>
+                                <button type="button" @click="vdotForm.mode = 'balke'"
+                                    :class="vdotForm.mode === 'balke' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white font-normal'"
+                                    class="py-1.5 px-1 text-xs rounded transition text-center truncate">
+                                    Balke 15M
+                                </button>
+                                <button type="button" @click="vdotForm.mode = 'direct'"
+                                    :class="vdotForm.mode === 'direct' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white font-normal'"
+                                    class="py-1.5 px-1 text-xs rounded transition text-center truncate">
+                                    Skor Langsung
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mode Specific Form Fields -->
+                        <div class="space-y-4">
+                            <!-- Race PB -->
+                            <div v-if="vdotForm.mode === 'pb'" class="space-y-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">Jarak Lomba / PB</label>
+                                        <select v-model="vdotForm.pb_distance" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                            <option value="5k">5K (5.000m)</option>
+                                            <option value="10k">10K (10.000m)</option>
+                                            <option value="21k">Half Marathon (21.097m)</option>
+                                            <option value="42k">Full Marathon (42.195m)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-300 mb-1">Waktu PB (MM:SS / HH:MM:SS)</label>
+                                        <input type="text" v-model="vdotForm.pb_time" placeholder="Contoh: 22:30 / 01:45:00"
+                                            class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cooper 12 Min -->
+                            <div v-if="vdotForm.mode === 'cooper'" class="space-y-2">
+                                <label class="block text-xs font-medium text-slate-300">Jarak Tes Cooper 12 Menit (Meter)</label>
+                                <input type="number" v-model="vdotForm.cooper_distance" placeholder="Contoh: 2800" min="500" max="10000"
+                                    class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            </div>
+
+                            <!-- Balke 15 Min -->
+                            <div v-if="vdotForm.mode === 'balke'" class="space-y-2">
+                                <label class="block text-xs font-medium text-slate-300">Jarak Tes Balke 15 Menit (Meter)</label>
+                                <input type="number" v-model="vdotForm.balke_distance" placeholder="Contoh: 3400" min="500" max="10000"
+                                    class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            </div>
+
+                            <!-- Direct VDOT -->
+                            <div v-if="vdotForm.mode === 'direct'" class="space-y-2">
+                                <label class="block text-xs font-medium text-slate-300">Skor VDOT Langsung</label>
+                                <input type="number" step="0.1" v-model="vdotForm.vdot_score" placeholder="Contoh: 45.0" min="10" max="85"
+                                    class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                            </div>
+
+                            <!-- Live VDOT Preview -->
+                            <div v-if="previewVdot" class="bg-slate-950 border border-slate-800 rounded-md p-3 flex justify-between items-center text-xs">
+                                <span class="text-slate-400">Estimasi Skor VDOT Baru:</span>
+                                <span class="text-white font-semibold font-mono text-sm">@{{ previewVdot }}</span>
+                            </div>
+
+                            <div v-if="vdotError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-md p-3">
+                                @{{ vdotError }}
+                            </div>
+                            <div v-if="vdotSuccess" class="text-emerald-400 text-xs bg-emerald-500/10 border border-emerald-500/20 rounded-md p-3">
+                                @{{ vdotSuccess }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end gap-2.5 sm:gap-3 flex-shrink-0">
+                        <button type="button" @click="showVdotModal = false"
+                            class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                            Batal
+                        </button>
+                        <button type="button" @click="submitUpdateVdot" :disabled="vdotLoading"
+                            class="flex-1 py-2 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50">
+                            @{{ vdotLoading ? 'Menyimpan...' : 'Simpan PB & VDOT' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Race Event Modal -->
+        <div v-if="showRaceModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showRaceModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-sm shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <h3 class="text-base font-semibold text-white">Tambah Event Lomba</h3>
+                        <button @click="showRaceModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+
+                    <!-- Form -->
+                    <form @submit.prevent="saveRace" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 min-h-0">
+                            <!-- RuangLari Import -->
+                            <div class="bg-slate-950 p-2.5 rounded-md border border-slate-800 relative">
+                                <label class="text-xs font-medium text-slate-400 block mb-1.5">Cari Event RuangLari</label>
+                                
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        v-model="eventSearchQuery"
+                                        @focus="showEventDropdown = true"
+                                        @blur="hideEventDropdown"
+                                        placeholder="Ketik nama event..."
+                                        class="w-full bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:ring-1 focus:ring-slate-500 focus:outline-none"
+                                    >
+                                    <button v-if="eventSearchQuery" type="button" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs">&times;</button>
+                                </div>
+
+                                <!-- Dropdown List -->
+                                <div v-if="showEventDropdown && filteredEvents.length > 0" 
+                                    class="absolute left-0 right-0 mt-1.5 bg-slate-900 border border-slate-700 rounded-md shadow-xl z-50 max-h-48 overflow-y-auto">
+                                    <ul>
+                                        <li v-for="event in filteredEvents" :key="event.id"
+                                            @click="selectRuangLariEvent(event)"
+                                            class="px-3 py-2 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0 text-slate-200"
+                                        >
+                                            <div class="text-xs font-semibold text-white">@{{ event.name || event.title }}</div>
+                                            <div class="text-xs text-slate-400 flex justify-between mt-0.5 font-mono">
+                                                <span>@{{ event.date || event.start_at }}</span>
+                                                <span>@{{ event.location || event.location_name }}</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Nama Event</label>
+                                <input v-model="raceForm.name" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none" placeholder="misal: Jakarta Marathon 2026" required>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Tanggal</label>
+                                    <input v-model="raceForm.date" type="date" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Kategori Jarak</label>
+                                    <select v-model="raceForm.distance" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none">
+                                        <option value="5k">5K</option>
+                                        <option value="10k">10K</option>
+                                        <option value="21k">Half Marathon (21K)</option>
+                                        <option value="42k">Full Marathon (42K)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Target Waktu (HH:MM:SS / MM:SS)</label>
+                                <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none font-mono" placeholder="misal: 01:45:00">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Catatan</label>
+                                <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-slate-500 outline-none resize-none" placeholder="Catatan event..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-4 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-end gap-2.5 flex-shrink-0">
+                            <button type="button" @click="showRaceModal = false" class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">Batal</button>
+                            <button type="submit" :disabled="loading" class="flex-1 py-2 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50">
+                                @{{ loading ? 'Menyimpan...' : 'Simpan Event' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit Pace Latihan (Custom Pace) -->
+        <div v-if="showPaceModal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 relative">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div>
+                        <h3 class="text-white font-semibold text-base">Edit Pace Latihan Atlet</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Tentukan target pace spesifik untuk masing-masing zona.</p>
+                    </div>
+                    <button @click="showPaceModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                        &times;
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Format <strong>MM:SS</strong> (contoh: <code>05:30</code> untuk 5 menit 30 detik per KM). Kosongkan kolom untuk mengikuti kalkulasi otomatis VDOT.
                     </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-emerald-400 mb-1">Easy Pace (E)</label>
+                            <input type="text" v-model="paceForm.E" placeholder="misal 05:30" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-sky-400 mb-1">Marathon Pace (M)</label>
+                            <input type="text" v-model="paceForm.M" placeholder="misal 04:50" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-yellow-400 mb-1">Threshold Pace (T)</label>
+                            <input type="text" v-model="paceForm.T" placeholder="misal 04:30" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-orange-400 mb-1">Interval Pace (I)</label>
+                            <input type="text" v-model="paceForm.I" placeholder="misal 04:00" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-rose-400 mb-1">Repetition Pace (R)</label>
+                            <input type="text" v-model="paceForm.R" placeholder="misal 03:45" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-green-400 mb-1">Easy Pace (E)</label>
-                        <input type="text" v-model="paceForm.E" placeholder="e.g. 05:30" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-blue-400 mb-1">Marathon Pace (M)</label>
-                        <input type="text" v-model="paceForm.M" placeholder="e.g. 04:50" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-yellow-400 mb-1">Threshold Pace (T)</label>
-                        <input type="text" v-model="paceForm.T" placeholder="e.g. 04:30" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-orange-400 mb-1">Interval Pace (I)</label>
-                        <input type="text" v-model="paceForm.I" placeholder="e.g. 04:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-red-400 mb-1">Repetition Pace (R)</label>
-                        <input type="text" v-model="paceForm.R" placeholder="e.g. 03:45" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-xs font-mono focus:border-neon focus:outline-none transition">
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-3 border-t border-slate-800">
-                <button type="button" @click="updatePaces(true)" :disabled="paceLoading" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-rotate-left text-amber-400"></i>
-                    <span>Reset ke Otomatis VDOT</span>
-                </button>
-                <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                    <button type="button" @click="showPaceModal = false" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
-                        Batal
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-3 border-t border-slate-800">
+                    <button type="button" @click="updatePaces(true)" :disabled="paceLoading" class="w-full sm:w-auto px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium text-xs transition">
+                        Reset VDOT
                     </button>
-                    <button type="button" @click="updatePaces(false)" :disabled="paceLoading" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-white transition flex items-center justify-center gap-1.5 shadow-lg shadow-neon/10">
-                        <i class="fa-solid fa-check"></i>
-                        <span>Simpan Pace Khusus</span>
-                    </button>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button type="button" @click="showPaceModal = false" class="flex-1 sm:flex-initial px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition">
+                            Batal
+                        </button>
+                        <button type="button" @click="updatePaces(false)" :disabled="paceLoading" class="flex-1 sm:flex-initial px-4 py-2 rounded-md bg-neon text-dark font-semibold text-xs hover:bg-white transition">
+                            Simpan Pace
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+    </div>
 </main>
 @endsection
 
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-<script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-// Ensure Vue is available before initializing the application.
-if (typeof Vue === 'undefined') {
-    console.error('Vue 3 not loaded!');
-
-    const appElement = document.getElementById('coach-monitor-app');
-    if (appElement) {
-        appElement.removeAttribute('v-cloak');
-        appElement.insertAdjacentHTML(
-            'afterbegin',
-            '<div style="background:#7f1d1d;color:#fca5a5;padding:12px 16px;border-radius:8px;margin:16px;font-family:monospace;font-size:12px"><strong>Vue Error:</strong> Vue 3 tidak termuat.</div>'
-        );
-    }
-} else {
-    console.log('Vue 3 ready:', Vue.version);
-
+if (typeof Vue !== 'undefined') {
     const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
 
     try {
@@ -1908,72 +1390,28 @@ createApp({
         const stravaStreams = ref(null);
         const stravaPaceZones = ref(null);
         const stravaHrZones = ref(null);
-        const stravaZoneAnalysis = ref('');
-        const stravaZoneEffect = ref('');
-        const stravaZoneSuggestion = ref('');
-        const stravaAiAnalysis = ref(null);
-        const stravaAiAnalysisLoading = ref(false);
 
         const stravaWorkoutClassification = computed(() => {
-            // If AI analysis is loaded, use it as primary
-            if (stravaAiAnalysis.value && stravaAiAnalysis.value.workout_classification) {
-                const type = stravaAiAnalysis.value.workout_classification.type || 'unknown';
-                const evidence = stravaAiAnalysis.value.workout_classification.evidence || [];
-                return {
-                    source: 'AI Coach',
-                    type: type.toUpperCase(),
-                    evidence: evidence,
-                    colorClass: type === 'easy' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
-                                type === 'tempo' || type === 'threshold' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' :
-                                type === 'interval' || type === 'speed' ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' :
-                                'text-blue-400 border-blue-500/30 bg-blue-500/10'
-                };
-            }
-
-            // Fallback: Rules-based using pace distribution & heart rate zones
             if (!stravaPaceZones.value && !stravaHrZones.value) return null;
-
             let type = 'EASY RUN / RECOVERY';
-            const evidence = [];
             let colorClass = 'text-green-400 border-green-500/30 bg-green-500/10';
 
-            const easyPace = parseFloat(stravaPaceZones.value?.summary?.easy || 0);
-            const tempoPace = parseFloat(stravaPaceZones.value?.summary?.tempo || 0);
             const speedPace = parseFloat(stravaPaceZones.value?.summary?.speed || 0);
-
-            const z1 = parseFloat(stravaHrZones.value?.Z1 || 0);
-            const z2 = parseFloat(stravaHrZones.value?.Z2 || 0);
-            const z3 = parseFloat(stravaHrZones.value?.Z3 || 0);
+            const tempoPace = parseFloat(stravaPaceZones.value?.summary?.tempo || 0);
             const z4 = parseFloat(stravaHrZones.value?.Z4 || 0);
             const z5 = parseFloat(stravaHrZones.value?.Z5 || 0);
+            const z3 = parseFloat(stravaHrZones.value?.Z3 || 0);
 
-            // Classification logic
             if (speedPace > 15 || (z4 + z5) > 20) {
-                type = 'INTERVAL / SPEED SESSION';
+                type = 'INTERVAL / SPEED';
                 colorClass = 'text-orange-400 border-orange-500/30 bg-orange-500/10';
-                if (speedPace > 15) evidence.push(`Proporsi pace Speed/Interval tinggi (${speedPace.toFixed(0)}%).`);
-                if ((z4 + z5) > 20) evidence.push(`Detak jantung di Zone 4 & 5 dominan (${(z4 + z5).toFixed(0)}%).`);
             } else if (tempoPace > 25 || z3 > 30) {
-                type = 'TEMPO / THRESHOLD RUN';
+                type = 'TEMPO / THRESHOLD';
                 colorClass = 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10';
-                if (tempoPace > 25) evidence.push(`Pace Tempo mendominasi latihan (${tempoPace.toFixed(0)}%).`);
-                if (z3 > 30) evidence.push(`Detak jantung berada di Zone 3 (Aerobic/Tempo) cukup lama (${z3.toFixed(0)}%).`);
-            } else {
-                type = 'EASY RUN / RECOVERY';
-                colorClass = 'text-green-400 border-green-500/30 bg-green-500/10';
-                evidence.push(`Mayoritas pace di zona Easy/Moderate (${easyPace.toFixed(0)}%).`);
-                evidence.push(`Detak jantung stabil di Zone 1 & Zone 2 (${(z1 + z2).toFixed(0)}%).`);
             }
 
-            return {
-                source: 'Aturan Sistem',
-                type: type,
-                evidence: evidence,
-                colorClass: colorClass
-            };
+            return { source: 'Analitik Strava', type, colorClass };
         });
-
-        let stravaChart = null;
 
         // Weekly Target State
         const showWeeklyTargetModal = ref(false);
@@ -1982,15 +1420,11 @@ createApp({
             weekly_km_target: trainingProfile.weekly_km_target || ''
         });
 
-        // Custom Pace Latihan State
+        // Custom Pace State
         const showPaceModal = ref(false);
         const paceLoading = ref(false);
         const paceForm = reactive({
-            E: '',
-            M: '',
-            T: '',
-            I: '',
-            R: ''
+            E: '', M: '', T: '', I: '', R: ''
         });
 
         const openPaceModal = () => {
@@ -2045,7 +1479,6 @@ createApp({
         const updateWeeklyTarget = async () => {
             weeklyTargetLoading.value = true;
             try {
-                // Assuming route is defined in blade or we construct it
                 const res = await fetch(`{{ route('coach.athletes.update-weekly-target', $enrollment->id) }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
@@ -2055,23 +1488,22 @@ createApp({
                 if (data.success) {
                     trainingProfile.weekly_km_target = data.weekly_km_target;
                     showWeeklyTargetModal.value = false;
-                    alert('Weekly target updated and runner notified!');
+                    alert('Target mingguan berhasil diperbarui!');
                 } else {
-                    alert(data.message || 'Failed to update weekly target');
+                    alert(data.message || 'Gagal memperbarui target mingguan');
                 }
             } catch (e) {
-                alert('An error occurred');
+                alert('Terjadi kesalahan koneksi.');
             } finally {
                 weeklyTargetLoading.value = false;
             }
         };
 
-
-        // ─── Reschedule Program State & Methods ───────────────────────
+        // Reschedule Program State & Methods
         const showRescheduleModal = ref(false);
-        const rescheduleForm      = reactive({ new_start_date: '' });
-        const rescheduleLoading   = ref(false);
-        const rescheduleError     = ref('');
+        const rescheduleForm = reactive({ new_start_date: '' });
+        const rescheduleLoading = ref(false);
+        const rescheduleError = ref('');
         const programDurationWeeks = {{ $enrollment->program->duration_weeks ?? 12 }};
 
         const previewRescheduleEndDate = computed(() => {
@@ -2082,7 +1514,6 @@ createApp({
         });
 
         const openRescheduleModal = () => {
-            // Pre-fill with existing start date if available
             const existing = '{{ $enrollment->start_date ? \Carbon\Carbon::parse($enrollment->start_date)->format("Y-m-d") : "" }}';
             rescheduleForm.new_start_date = existing || new Date().toISOString().slice(0, 10);
             rescheduleError.value = '';
@@ -2119,11 +1550,7 @@ createApp({
                 const url = `{{ route('coach.athletes.reschedule', $enrollment->id) }}`;
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
                     body: JSON.stringify({ new_start_date: rescheduleForm.new_start_date }),
                 });
                 const data = await res.json();
@@ -2141,13 +1568,13 @@ createApp({
             }
         };
 
-        // ─── Send Program Reminder State & Methods ───────────────────
+        // Send Program Reminder State & Methods
         const showReminderModal = ref(false);
-        const reminderForm      = reactive({ channel: 'both', custom_message: '' });
+        const reminderForm = reactive({ channel: 'both', custom_message: '' });
         const reminderSessionInfo = reactive({ title: '', distance: '', pace: '', description: '' });
-        const reminderLoading   = ref(false);
-        const reminderError     = ref('');
-        const reminderSuccess   = ref('');
+        const reminderLoading = ref(false);
+        const reminderError = ref('');
+        const reminderSuccess = ref('');
 
         const openReminderModal = () => {
             reminderForm.channel = 'both';
@@ -2156,7 +1583,6 @@ createApp({
 
             const runnerName = @json($enrollment->runner->name ?? 'Atlet');
             const programTitle = @json($enrollment->program->title ?? 'Program Lari');
-            const coachName = @json(auth()->user()->name ?? 'Coach');
 
             let workoutTitle = 'Sesi Latihan';
             let type = 'easy_run';
@@ -2171,73 +1597,26 @@ createApp({
                 notes = props.description || props.notes || props.instruction || '';
                 distanceVal = props.distance || props.target_distance || props.distance_km || '';
                 targetPaceVal = props.target_pace || props.pace || '';
-            } else if (tomorrowsSession.value) {
-                const ts = tomorrowsSession.value;
-                workoutTitle = ts.session_name || ts.title || ts.type || 'Sesi Latihan';
-                type = (ts.type || 'easy_run').toLowerCase();
-                notes = ts.description || ts.notes || ts.instruction || '';
-                distanceVal = ts.distance || ts.target_distance || ts.distance_km || '';
-                targetPaceVal = ts.target_pace || ts.pace || '';
             }
 
             const isRest = ['rest', 'rest_day', 'rest day', 'libur'].includes(type);
-            const paces = trainingProfile.paces || trainingProfile.value?.paces || {};
+            const paces = trainingProfile.paces || {};
             let paceGuidance = targetPaceVal;
 
             if (isRest) {
-                reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: Rest Day\n\nDeskripsi: Istirahat total dan jaga pemulihan fisik dengan baik agar siap menyambut sesi berikutnya.`;
+                reminderForm.custom_message = `Halo ${runnerName}, besok jadwal latihan kamu adalah: Rest Day (Istirahat & Pemulihan).`;
             } else {
-                if (!paceGuidance) {
-                    const combinedText = ((workoutTitle || '') + ' ' + (notes || '') + ' ' + (type || '')).toLowerCase();
-                    const distNum = distanceVal ? parseFloat(distanceVal) : 0;
-                    const isRepetition = ['repetition', 'speed', 'repeats'].some(k => type.includes(k)) ||
-                                         (distNum > 0 && distNum <= 0.45) ||
-                                         /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combinedText) ||
-                                         /\b\d+x\s*(55|50|100|150|200|250|300|350|400)/i.test(combinedText) ||
-                                         combinedText.includes('repetition') ||
-                                         combinedText.includes('reps');
-
-                    if (['easy_run', 'easy', 'recovery', 'recovery_run', 'run'].some(k => type.includes(k)) && !isRepetition) {
-                        if (paces.E_high && paces.E_low) {
-                            paceGuidance = `${formatPace(paces.E_high)} - ${formatPace(paces.E_low)} /km (Easy Pace)`;
-                        } else if (paces.E) {
-                            paceGuidance = `~${formatPace(paces.E)} /km (Easy Pace)`;
-                        } else {
-                            paceGuidance = `Zona aerobik ringan (Easy Pace)`;
-                        }
-                    } else if (['tempo', 'threshold', 'tempo_run'].some(k => type.includes(k))) {
-                        const tPace = paces.T ? formatPace(paces.T) : null;
-                        paceGuidance = tPace ? `~${tPace} /km (Tempo/Threshold)` : `Zona threshold terkontrol`;
-                    } else if (isRepetition) {
-                        const rPace = paces.R ? formatPace(paces.R) : (paces.repetition ? formatPace(paces.repetition) : null);
-                        const iPace = paces.I ? formatPace(paces.I) : null;
-                        paceGuidance = rPace ? `~${rPace} /km (Repetition Pace VDOT)` : (iPace ? `~${iPace} /km (Interval)` : `Repetition Pace (Kecepatan Neuromuskular)`);
-                    } else if (['interval', 'vo2max'].some(k => type.includes(k))) {
-                        const iPace = paces.I ? formatPace(paces.I) : null;
-                        paceGuidance = iPace ? `~${iPace} /km (Interval Pace VDOT)` : `Interval Pace VO2max`;
-                    } else if (['long_run', 'long'].some(k => type.includes(k))) {
-                        const mPace = paces.M ? formatPace(paces.M) : null;
-                        const ePace = paces.E ? formatPace(paces.E) : null;
-                        paceGuidance = mPace ? `~${mPace} /km (Marathon Pace)` : (ePace ? `~${ePace} /km (Endurance)` : `Zona endurance terkontrol`);
-                    } else {
-                        paceGuidance = `Sesuaikan pace dengan target instruksi coach`;
-                    }
+                if (!paceGuidance && paces.E) {
+                    paceGuidance = `~${formatPace(paces.E)} /km`;
                 }
-
                 const distText = distanceVal ? `${distanceVal} km` : '-';
-                const descText = notes || 'Lakukan latihan sesuai arahan coach.';
-
-                reminderForm.custom_message = `Halo ${runnerName}, Kamu terdaftar di program ${programTitle} oleh coach ${coachName}, besok kamu ada sesi: ${workoutTitle}\n\n- Jarak: ${distText}\n- Target Pace: ${paceGuidance}\n- Deskripsi: ${descText}`;
+                reminderForm.custom_message = `Halo ${runnerName}, pengingat sesi latihan besok pada program ${programTitle}:\n\n- Sesi: ${workoutTitle}\n- Jarak: ${distText}\n- Target Pace: ${paceGuidance || '-'}\n\nSemangat latihannya!`;
             }
 
-            const distText = distanceVal ? `${distanceVal} km` : '-';
-            const descText = isRest ? 'Istirahat total dan jaga pemulihan fisik dengan baik.' : (notes || 'Lakukan latihan sesuai arahan coach.');
-            const paceText = isRest ? 'Rest Day' : (paceGuidance || '-');
-
             reminderSessionInfo.title = workoutTitle;
-            reminderSessionInfo.distance = distText;
-            reminderSessionInfo.pace = paceText;
-            reminderSessionInfo.description = descText;
+            reminderSessionInfo.distance = distanceVal ? `${distanceVal} km` : '-';
+            reminderSessionInfo.pace = paceGuidance || '-';
+            reminderSessionInfo.description = notes || '-';
 
             showReminderModal.value = true;
         };
@@ -2262,19 +1641,13 @@ createApp({
 
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
                 const data = await res.json();
                 if (data.success) {
                     reminderSuccess.value = data.message || 'Pengingat berhasil dikirim!';
-                    setTimeout(() => {
-                        showReminderModal.value = false;
-                    }, 1500);
+                    setTimeout(() => { showReminderModal.value = false; }, 1200);
                 } else {
                     reminderError.value = data.message || 'Gagal mengirim pengingat.';
                 }
@@ -2284,9 +1657,8 @@ createApp({
                 reminderLoading.value = false;
             }
         };
-        // ─────────────────────────────────────────────────────────────
 
-        // ── Update VDOT & PB Modal State ──
+        // Update VDOT / PB Modal State & Methods
         const showVdotModal = ref(false);
         const runnerData = @json($enrollment->runner ?? null);
         const vdotForm = ref({
@@ -2304,7 +1676,6 @@ createApp({
         const openVdotModal = () => {
             vdotError.value = '';
             vdotSuccess.value = '';
-
             const curVdot = trainingProfile.vdot || @json($enrollment->current_vdot ?? '');
             
             let initialMode = 'pb';
@@ -2312,40 +1683,19 @@ createApp({
                 initialMode = 'pb';
             } else if (curVdot) {
                 initialMode = 'direct';
-            } else if (runnerData && runnerData.pb_balke) {
-                initialMode = 'balke';
-            } else {
-                initialMode = 'cooper';
-            }
-
-            let initialPbDist = '5k';
-            let initialPbTime = '';
-            if (runnerData) {
-                if (runnerData.pb_5k) { initialPbDist = '5k'; initialPbTime = runnerData.pb_5k; }
-                else if (runnerData.pb_10k) { initialPbDist = '10k'; initialPbTime = runnerData.pb_10k; }
-                else if (runnerData.pb_hm) { initialPbDist = '21k'; initialPbTime = runnerData.pb_hm; }
-                else if (runnerData.pb_fm) { initialPbDist = '42k'; initialPbTime = runnerData.pb_fm; }
             }
 
             vdotForm.value = {
                 mode: initialMode,
                 cooper_distance: runnerData?.pb_balke ? String(runnerData.pb_balke) : '',
                 balke_distance: runnerData?.pb_balke ? String(runnerData.pb_balke) : '',
-                pb_distance: initialPbDist,
-                pb_time: initialPbTime,
+                pb_distance: '5k',
+                pb_time: runnerData?.pb_5k || '',
                 vdot_score: curVdot ? String(Number(curVdot).toFixed(1)) : ''
             };
 
             showVdotModal.value = true;
         };
-
-        watch(() => vdotForm.value.pb_distance, (newDist) => {
-            if (!runnerData) return;
-            if (newDist === '5k') vdotForm.value.pb_time = runnerData.pb_5k || '';
-            else if (newDist === '10k') vdotForm.value.pb_time = runnerData.pb_10k || '';
-            else if (newDist === '21k') vdotForm.value.pb_time = runnerData.pb_hm || '';
-            else if (newDist === '42k') vdotForm.value.pb_time = runnerData.pb_fm || '';
-        });
 
         const previewVdot = computed(() => {
             if (vdotForm.value.mode === 'cooper') {
@@ -2392,17 +1742,12 @@ createApp({
             vdotLoading.value = true;
             vdotError.value = '';
             vdotSuccess.value = '';
-
             try {
                 const response = await fetch('{{ route("coach.athletes.update-vdot", $enrollment->id) }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrf
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify(vdotForm.value)
                 });
-
                 const res = await response.json();
                 if (res.success) {
                     vdotSuccess.value = res.message;
@@ -2413,7 +1758,7 @@ createApp({
                         showVdotModal.value = false;
                         vdotSuccess.value = '';
                         window.location.reload();
-                    }, 1000);
+                    }, 800);
                 } else {
                     vdotError.value = res.message || 'Gagal memperbarui VDOT.';
                 }
@@ -2424,22 +1769,20 @@ createApp({
             }
         };
 
-        // Workout Form State
-        const showFormModal = ref(false);
+        // Advanced Workout Builder State & Methods
+        const builderVisible = ref(false);
         const form = reactive({ 
-            workout_id:'', 
-            workout_date:'', 
-            type:'run', 
-            difficulty:'moderate', 
-            distance:'', 
-            duration:'', 
-            description:'',
-            notes:'',
+            workout_id: '', 
+            workout_date: '', 
+            type: 'easy_run', 
+            difficulty: 'moderate', 
+            distance: '', 
+            duration: '', 
+            description: '',
+            notes: '',
             workout_structure: [] 
         });
 
-        // Advanced Builder State
-        const builderVisible = ref(false);
         const builderForm = reactive({
             type: 'easy_run',
             title: '',
@@ -2459,36 +1802,26 @@ createApp({
                 full_body: [
                     { name: 'Burpees', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
                     { name: 'Kettlebell Swing', sets: '3', reps: '15-20', equipment: 'Kettlebell' },
-                    { name: 'Clean and Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
-                    { name: 'Thrusters', sets: '3', reps: '10-12', equipment: 'Dumbbell/Barbell' }
+                    { name: 'Clean and Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' }
                 ],
                 legs_lower_body: [
-                    { name: 'Squats', sets: '4', reps: '8-12', equipment: 'Barbell/Bodyweight' },
-                    { name: 'Lunges', sets: '3', reps: '10 each leg', equipment: 'Bodyweight/Dumbbell' },
-                    { name: 'Deadlifts', sets: '4', reps: '6-10', equipment: 'Barbell' },
-                    { name: 'Glute Bridge / Hip Thrust', sets: '3', reps: '12-15', equipment: 'Bodyweight/Barbell' },
-                    { name: 'Calf Raises', sets: '3', reps: '15-20', equipment: 'Bodyweight/Dumbbell' }
+                    { name: 'Squats', sets: '4', reps: '8-12', equipment: 'Bodyweight' },
+                    { name: 'Lunges', sets: '3', reps: '10 each leg', equipment: 'Bodyweight' },
+                    { name: 'Calf Raises', sets: '3', reps: '15-20', equipment: 'Bodyweight' }
                 ],
                 core: [
                     { name: 'Plank', sets: '3', duration: '45-60s', equipment: 'Bodyweight' },
-                    { name: 'Russian Twist', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight/Medicine Ball' },
-                    { name: 'Leg Raises', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
-                    { name: 'Bicycle Crunch', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight' },
-                    { name: 'Ab Rollout', sets: '3', reps: '8-12', equipment: 'Ab Wheel/Barbell' }
+                    { name: 'Russian Twist', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight' },
+                    { name: 'Leg Raises', sets: '3', reps: '12-15', equipment: 'Bodyweight' }
                 ],
                 upper_body: [
                     { name: 'Push-Ups', sets: '3', reps: '12-20', equipment: 'Bodyweight' },
-                    { name: 'Bench Press', sets: '4', reps: '6-10', equipment: 'Barbell/Dumbbell' },
-                    { name: 'Pull-Ups / Chin-Ups', sets: '3', reps: '8-12', equipment: 'Bodyweight' },
-                    { name: 'Overhead Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
-                    { name: 'Bent Over Row', sets: '4', reps: '8-12', equipment: 'Barbell/Dumbbell' },
-                    { name: 'Bicep Curl', sets: '3', reps: '12-15', equipment: 'Dumbbell/Barbell' },
-                    { name: 'Tricep Dips', sets: '3', reps: '10-12', equipment: 'Bodyweight/Bench' }
+                    { name: 'Pull-Ups', sets: '3', reps: '8-12', equipment: 'Bodyweight' }
                 ]
             }
         };
 
-        const strengthOptions = Vue.computed(() => {
+        const strengthOptions = computed(() => {
             const cat = builderForm.strength.category;
             const all = strengthData.strength_training;
             return (cat && all[cat]) ? all[cat] : [];
@@ -2508,9 +1841,6 @@ createApp({
             if (!builderForm.strength.plan) builderForm.strength.plan = [];
             builderForm.strength.plan.push(item);
             builderForm.strength.exercise = '';
-            builderForm.strength.sets = '';
-            builderForm.strength.reps = '';
-            builderForm.strength.equipment = '';
         };
 
         const removeStrengthExercise = (idx) => {
@@ -2518,31 +1848,52 @@ createApp({
             builderForm.strength.plan.splice(idx, 1);
         };
 
-        const builderSummary = Vue.computed(() => RLBuilderUtils.buildSummary(builderForm));
+        const builderSummary = computed(() => {
+            if (typeof RLBuilderUtils !== 'undefined') {
+                return RLBuilderUtils.buildSummary(builderForm);
+            }
+            return builderForm.title || `${builderForm.type} workout`;
+        });
 
-        const parseDurationMinutes = (str) => {
-            if (!str) return 0;
-            // Handle number input (already minutes)
-            if (typeof str === 'number') return str;
-            
-            const parts = str.toString().split(':').map(Number);
-            if (parts.length === 1) return parts[0]; // "30" -> 30 mins
-            if (parts.length === 2) return parts[0] + parts[1]/60;
-            if (parts.length === 3) return parts[0]*60 + parts[1] + parts[2]/60;
-            return 0;
+        const builderTotalDistance = computed(() => {
+            if (typeof RLBuilderUtils !== 'undefined') {
+                return RLBuilderUtils.computeTotalDistance(builderForm);
+            }
+            return builderForm.main?.distance || 0;
+        });
+
+        const openForm = (dateStr, session = null) => {
+            if (session) {
+                if (session.extendedProps.is_custom) {
+                    form.workout_id = session.extendedProps.id;
+                    form.workout_structure = session.extendedProps.workout_structure || [];
+                } else {
+                    form.workout_id = '';
+                    form.workout_structure = session.extendedProps.workout_structure || [];
+                }
+                form.workout_date = session.startStr.split('T')[0];
+                form.type = session.extendedProps.type;
+                form.difficulty = session.extendedProps.difficulty || 'moderate';
+                form.distance = session.extendedProps.distance;
+                form.duration = session.extendedProps.duration || '';
+                form.description = session.extendedProps.description;
+                form.notes = session.extendedProps.notes || '';
+                openBuilder(true);
+            } else {
+                form.workout_id = '';
+                form.workout_date = dateStr;
+                form.type = 'easy_run';
+                form.difficulty = 'moderate';
+                form.distance = '';
+                form.duration = '';
+                form.description = '';
+                form.notes = '';
+                form.workout_structure = [];
+                openBuilder(false);
+            }
         };
-
-        const minutesToHHMMSS = (mins) => {
-            const h = Math.floor(mins / 60);
-            const m = Math.floor(mins % 60);
-            const s = Math.round((mins * 60) % 60);
-            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        };
-
-        const builderTotalDistance = Vue.computed(() => RLBuilderUtils.computeTotalDistance(builderForm));
 
         const openBuilder = (isEditing) => {
-            // Always reset to defaults first
             Object.assign(builderForm, {
                 type: 'easy_run',
                 title: '',
@@ -2558,7 +1909,6 @@ createApp({
             });
 
             if (isEditing) {
-                // Try to load existing advanced config
                 let config = null;
                 if (form.workout_structure && form.workout_structure.advanced) {
                     config = form.workout_structure.advanced;
@@ -2568,63 +1918,12 @@ createApp({
                 
                 if (config) {
                     Object.assign(builderForm, config);
-                    // Ensure notes are synced if present in main form but not in advanced config (legacy support)
-                    if (!builderForm.notes && form.notes) builderForm.notes = form.notes;
-                    
-                    // Backward compatibility: map old distanceKm / repDistanceKm properties to new distance / unit
-                    if (builderForm.warmup && builderForm.warmup.distanceKm !== undefined) {
-                        builderForm.warmup.distance = builderForm.warmup.distanceKm;
-                        builderForm.warmup.unit = 'km';
-                    }
-                    if (builderForm.cooldown && builderForm.cooldown.distanceKm !== undefined) {
-                        builderForm.cooldown.distance = builderForm.cooldown.distanceKm;
-                        builderForm.cooldown.unit = 'km';
-                    }
-                    if (builderForm.main && builderForm.main.distanceKm !== undefined) {
-                        builderForm.main.distance = builderForm.main.distanceKm;
-                        builderForm.main.unit = 'km';
-                    }
-                    if (builderForm.longRun && builderForm.longRun.fastFinish && builderForm.longRun.fastFinish.distanceKm !== undefined) {
-                        builderForm.longRun.fastFinish.distance = builderForm.longRun.fastFinish.distanceKm;
-                        builderForm.longRun.fastFinish.unit = 'km';
-                    }
-                    if (builderForm.tempo && builderForm.tempo.distanceKm !== undefined) {
-                        builderForm.tempo.distance = builderForm.tempo.distanceKm;
-                        builderForm.tempo.unit = 'km';
-                    }
-                    if (builderForm.interval && builderForm.interval.repDistanceKm !== undefined) {
-                        builderForm.interval.repDistance = builderForm.interval.repDistanceKm;
-                        builderForm.interval.repDistanceUnit = 'km';
-                    }
                 } else {
-                    // If no advanced config, try to match type and pre-fill from basic form
-                    // Map legacy/simple types to builder types
-                    let targetType = RLBuilderUtils.normalizeType(form.type);
-                    
-                    if (['easy_run', 'long_run', 'tempo', 'interval', 'strength', 'rest'].includes(targetType)) {
-                        builderForm.type = targetType;
-                        builderForm.notes = form.notes || '';
-                        
-                        // Attempt to pre-fill main values from basic form
-                        if (['easy_run', 'long_run'].includes(targetType)) {
-                            if (form.distance) {
-                                builderForm.main.by = 'distance';
-                                builderForm.main.distance = form.distance;
-                                builderForm.main.unit = 'km';
-                            } else if (form.duration) {
-                                builderForm.main.by = 'time';
-                                builderForm.main.duration = form.duration;
-                            }
-                        } else if (targetType === 'tempo') {
-                            if (form.distance) {
-                                builderForm.tempo.by = 'distance';
-                                builderForm.tempo.distance = form.distance;
-                                builderForm.tempo.unit = 'km';
-                            } else if (form.duration) {
-                                builderForm.tempo.by = 'time';
-                                builderForm.tempo.duration = form.duration;
-                            }
-                        }
+                    let targetType = typeof RLBuilderUtils !== 'undefined' ? RLBuilderUtils.normalizeType(form.type) : form.type;
+                    builderForm.type = targetType;
+                    builderForm.notes = form.notes || '';
+                    if (form.distance) {
+                        builderForm.main.distance = form.distance;
                     }
                 }
             }
@@ -2632,137 +1931,13 @@ createApp({
         };
 
         const submitBuilder = () => {
-            // Update the main form with builder data
             const advancedConfig = JSON.parse(JSON.stringify(builderForm));
             form.workout_structure = { advanced: advancedConfig };
             form.description = builderSummary.value;
             form.notes = builderForm.notes;
             form.distance = builderTotalDistance.value;
-            form.type = builderForm.type; // Sync type
-            
-            // Try to set duration if possible
-            if (['easy_run', 'long_run'].includes(builderForm.type) && builderForm.main.by === 'time') {
-                form.duration = builderForm.main.duration;
-            } else if (builderForm.type === 'tempo' && builderForm.tempo.by === 'time') {
-                form.duration = builderForm.tempo.duration;
-            } else if (builderForm.type === 'interval' && builderForm.interval.by === 'time') {
-                const perRep = parseDurationMinutes(builderForm.interval.repTime);
-                const total = (Number(builderForm.interval.reps)||0) * (isNaN(perRep)?0:perRep);
-                form.duration = minutesToHHMMSS(total);
-            }
-
-            // Submit to server
+            form.type = builderForm.type;
             saveCustomWorkout();
-        };
-
-        // Workout Builder Helper Methods
-        const addStep = (type) => {
-            if (!Array.isArray(form.workout_structure)) form.workout_structure = [];
-            form.workout_structure.push({
-                type: type, // warmup, run, interval, recovery, rest, cool_down
-                duration_type: 'distance', // distance, time
-                value: '',
-                unit: 'km', // km, min, m, sec
-                notes: ''
-            });
-        };
-
-        const removeStep = (index) => {
-            if (Array.isArray(form.workout_structure)) {
-                form.workout_structure.splice(index, 1);
-            }
-        };
-
-        const moveStep = (index, direction) => {
-            if (!Array.isArray(form.workout_structure)) return;
-            if (direction === -1 && index > 0) {
-                const temp = form.workout_structure[index];
-                form.workout_structure[index] = form.workout_structure[index - 1];
-                form.workout_structure[index - 1] = temp;
-            } else if (direction === 1 && index < form.workout_structure.length - 1) {
-                const temp = form.workout_structure[index];
-                form.workout_structure[index] = form.workout_structure[index + 1];
-                form.workout_structure[index + 1] = temp;
-            }
-        };
-
-        const calculateTotalDistance = () => {
-            if (!Array.isArray(form.workout_structure)) return;
-            let total = 0;
-            form.workout_structure.forEach(step => {
-                if (step.duration_type === 'distance' && step.value) {
-                    let val = parseFloat(step.value);
-                    if (step.unit === 'm') val /= 1000;
-                    total += val;
-                }
-            });
-            if (total > 0) form.distance = total.toFixed(2);
-        };
-
-        const openForm = (dateStr, session = null) => {
-            if (session) {
-                // Edit Mode
-                if (session.extendedProps.is_custom) {
-                    form.workout_id = session.extendedProps.id;
-                    form.workout_structure = session.extendedProps.workout_structure || [];
-                } else {
-                    form.workout_id = '';
-                    form.workout_structure = session.extendedProps.workout_structure || [];
-                }
-                
-                form.workout_date = session.startStr.split('T')[0];
-                form.type = session.extendedProps.type;
-                form.difficulty = session.extendedProps.difficulty || 'moderate';
-                form.distance = session.extendedProps.distance;
-                form.duration = session.extendedProps.duration || '';
-                form.description = session.extendedProps.description;
-                form.notes = session.extendedProps.notes || ''; // Add notes
-
-                // If it was not custom (standard program workout), we now open builder in edit mode (prefilled)
-                if (!session.extendedProps.is_custom) {
-                    openBuilder(true);
-                }
-            } else {
-                // Create Mode
-                form.workout_id = '';
-                form.workout_date = dateStr;
-                form.type = 'run';
-                form.difficulty = 'moderate';
-                form.distance = '';
-                form.duration = '';
-                form.description = '';
-                form.notes = '';
-                form.workout_structure = [];
-                
-                // Auto-open builder for creating
-                openBuilder(false);
-            }
-        };
-
-        const deleteCustomWorkout = async () => {
-            if(!confirm('Are you sure you want to delete this workout?')) return;
-            
-            loading.value = true;
-            try {
-                const url = `{{ route('coach.athletes.workout.destroy', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', form.workout_id);
-                
-                const res = await fetch(url, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    builderVisible.value = false;
-                    alert('Workout deleted');
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Failed to delete');
-                }
-            } catch(e) {
-                alert('Error deleting workout');
-            } finally {
-                loading.value = false;
-            }
         };
 
         const saveCustomWorkout = async () => {
@@ -2781,7 +1956,6 @@ createApp({
                 
                 let url = `{{ route('coach.athletes.workout.store', $enrollment->id) }}`;
                 let method = 'POST';
-                
                 if (form.workout_id) {
                     url = `{{ route('coach.athletes.workout.update', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', form.workout_id);
                     method = 'PUT';
@@ -2794,38 +1968,57 @@ createApp({
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showFormModal.value = false;
-                    alert('Workout saved successfully');
+                    builderVisible.value = false;
+                    alert('Workout berhasil disimpan!');
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to save workout');
+                    alert(data.message || 'Gagal menyimpan workout');
                 }
             } catch (e) {
                 console.error(e);
-                alert('An error occurred');
+                alert('Terjadi kesalahan koneksi.');
             } finally {
                 loading.value = false;
             }
         };
 
-        // Race State
+        const deleteCustomWorkout = async () => {
+            if (!confirm('Hapus sesi workout custom ini?')) return;
+            loading.value = true;
+            try {
+                const url = `{{ route('coach.athletes.workout.destroy', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', form.workout_id);
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    builderVisible.value = false;
+                    alert('Workout berhasil dihapus');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal menghapus');
+                }
+            } catch(e) {
+                alert('Terjadi kesalahan.');
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        // Race Event State & Methods
         const showRaceModal = ref(false);
         const raceForm = reactive({
             name: '',
             date: new Date().toISOString().slice(0,10),
             distance: '10k',
             goal_time: '',
-            notes: '',
-            distLabel: ''
+            notes: ''
         });
-
-        // RuangLari Events Integration
         const ruangLariEvents = ref([]);
         const loadingEvents = ref(false);
         const eventSearchQuery = ref('');
         const showEventDropdown = ref(false);
-        const showStravaGraphModal = ref(false);
-        let stravaFullscreenChart = null;
         
         const filteredEvents = computed(() => {
             if (!eventSearchQuery.value) return ruangLariEvents.value;
@@ -2840,7 +2033,6 @@ createApp({
             if (ruangLariEvents.value.length > 0) return;
             loadingEvents.value = true;
             try {
-                // Use the proxy route to avoid CORS on localhost
                 const res = await fetch('{{ route("calendar.events.proxy") }}');
                 const data = await res.json();
                 ruangLariEvents.value = Array.isArray(data) ? data : [];
@@ -2854,67 +2046,19 @@ createApp({
         const selectRuangLariEvent = (event) => {
             eventSearchQuery.value = event.name || event.title;
             showEventDropdown.value = false;
-            onSelectRuangLariEvent(event);
+            raceForm.name = event.name || event.title;
+            if (event.start_at || event.date) {
+                const d = event.start_at || event.date;
+                raceForm.date = d.includes(' ') ? d.split(' ')[0] : d;
+            }
         };
 
         const hideEventDropdown = () => {
-            setTimeout(() => {
-                showEventDropdown.value = false;
-            }, 200);
+            setTimeout(() => { showEventDropdown.value = false; }, 200);
         };
 
-        const onSelectRuangLariEvent = (event) => {
-            if (!event) return;
-            raceForm.name = event.name || event.title;
-            
-            // Parse date
-            let dateStr = event.start_at || event.date;
-            if (dateStr) {
-                if (dateStr.includes('-')) {
-                     raceForm.date = dateStr.split(' ')[0];
-                } 
-                else if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
-                    if (parts.length === 3) {
-                        const mm = parts[0].padStart(2, '0');
-                        const dd = parts[1].padStart(2, '0');
-                        const yyyy = parts[2];
-                        raceForm.date = `${yyyy}-${mm}-${dd}`;
-                    }
-                }
-            }
-            
-            // Guess distance
-            const titleLower = (event.name || event.title || '').toLowerCase();
-            if (titleLower.includes('marathon') && !titleLower.includes('half')) {
-                raceForm.distance = '42k';
-            } else if (titleLower.includes('half') || titleLower.includes('hm')) {
-                raceForm.distance = '21k';
-            } else if (titleLower.includes('10k')) {
-                raceForm.distance = '10k';
-            } else if (titleLower.includes('5k')) {
-                raceForm.distance = '5k';
-            }
-            
-            const link = event.slug ? `/event-lari/${event.slug}` : (event.link || '');
-            const loc = event.location_name || event.location || '';
-            raceForm.notes = `Event Link: ${link}\nLocation: ${loc}`;
-        };
-
-        // Watch modal open to fetch events
         watch(showRaceModal, (val) => {
-            if (val) {
-                fetchRuangLariEvents();
-            }
-        });
-
-        watch(showStravaGraphModal, (val) => {
-            if (val && stravaStreams.value) {
-                setTimeout(() => {
-                    if (stravaFullscreenChart) stravaFullscreenChart.destroy();
-                    stravaFullscreenChart = renderChartToCanvas(stravaStreams.value, 'coachStravaMetricsChartFullscreen');
-                }, 100);
-            }
+            if (val) fetchRuangLariEvents();
         });
 
         const openRaceForm = () => {
@@ -2929,20 +2073,13 @@ createApp({
         const saveRace = async () => {
             loading.value = true;
             try {
-                // Determine distLabel
-                let label = '';
-                if(raceForm.distance === '5k') label = '5K';
-                else if(raceForm.distance === '10k') label = '10K';
-                else if(raceForm.distance === '21k') label = 'HM';
-                else if(raceForm.distance === '42k') label = 'FM';
-
+                let label = raceForm.distance.toUpperCase();
                 const res = await fetch(`{{ route('coach.athletes.race.store', $enrollment->id) }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
                     body: JSON.stringify({
                         workout_date: raceForm.date,
                         race_name: raceForm.name,
-                        distance: label ? parseFloat(raceForm.distance) : null, // This might need parsing logic if value is string like '5k'
                         dist_label: label,
                         goal_time: raceForm.goal_time,
                         notes: raceForm.notes
@@ -2951,14 +2088,13 @@ createApp({
                 const data = await res.json();
                 if (data.success) {
                     showRaceModal.value = false;
-                    alert('Race added successfully');
-                    // Refresh calendar
+                    alert('Event lomba berhasil ditambahkan!');
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to add race');
+                    alert(data.message || 'Gagal menambahkan event');
                 }
             } catch(e) {
-                alert('An error occurred');
+                alert('Terjadi kesalahan koneksi.');
             } finally {
                 loading.value = false;
             }
@@ -2973,285 +2109,40 @@ createApp({
 
         const getPaceInfo = (type, distance, description = '') => {
             if (!type || !trainingProfile) return null;
-
             let tLower = String(type || '').toLowerCase();
-            const descLower = String(description || '').toLowerCase();
+            if (['rest', 'strength', 'yoga', 'cycling'].includes(tLower)) return null;
 
-            if (['rest', 'rest_day', 'rest day', 'strength', 'yoga', 'cycling', 'cross_training'].includes(tLower) || tLower.includes('rest')) {
-                return null;
-            }
-
-            const isShortRep = /\b\d+x\s*(55|50|100|150|200|250|300|350|400)/i.test(descLower) ||
-                               /\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(descLower) ||
-                               descLower.includes('repetition') || descLower.includes('reps');
-
-            if (isShortRep) {
-                tLower = 'repetition';
-            }
-
-            const map = { 
-                easy_run: 'E', recovery: 'E', run: 'E', 
-                long_run: 'M', 
-                tempo: 'T', threshold: 'T', 
-                interval: 'I', vo2max: 'I',
-                repetition: 'R', speed: 'R'
-            };
+            const map = { easy_run: 'E', recovery: 'E', run: 'E', long_run: 'M', tempo: 'T', threshold: 'T', interval: 'I', repetition: 'R' };
             const typeKey = map[tLower];
-
-            let dist = distance ? parseFloat(distance) : null;
-            if (!dist && isShortRep) {
-                const matchM = descLower.match(/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i);
-                if (matchM) dist = parseFloat(matchM[1]) / 1000;
-            }
-
-            // Check for track distance logic (0.1km - 2.0km)
-            if (dist && trainingProfile.track_times) {
-                if (dist >= 0.1 && dist <= 2.0) {
-                    const m = Math.round(dist * 1000);
-                    const key = m + 'm';
-                    
-                    // If exact track distance found, return split times
-                    if (trainingProfile.track_times[key]) {
-                        const t = trainingProfile.track_times[key];
-                        
-                        let targetInfo = '';
-                        if (typeKey) {
-                            let useKey = typeKey;
-                            if (typeKey === 'I' && dist >= 0.1 && dist <= 0.405) {
-                                useKey = 'R';
-                            }
-                            
-                            if (['I','R','T'].includes(useKey) && t[useKey]) {
-                                targetInfo = ` | Target: ${t[useKey]}`;
-                            }
-                        }
-
-                        return `Split Times (${key}): Rep=${t.R} | Int=${t.I} | Thr=${t.T}${targetInfo}`;
-                    }
-                }
-            }
-
             if (!typeKey) return null;
 
             let val = trainingProfile.paces?.[typeKey];
-            if (!val && typeKey === 'M') val = trainingProfile.paces?.['E']; // Fallback M -> E
-            
             const paceLabels = { E: 'Easy Pace', M: 'Marathon Pace', T: 'Tempo Pace', I: 'Interval Pace', R: 'Repetition Pace' };
             const label = paceLabels[typeKey] || 'Target Pace';
-
             return val ? `${label}: ${formatPace(val)} /km` : null;
         };
 
         const statusClass = (s) => {
-            if(s === 'completed') return 'bg-green-500/20 text-green-500';
-            if(s === 'started') return 'bg-yellow-500/20 text-yellow-500';
-            return 'bg-slate-700 text-slate-400';
+            if (s === 'completed') return 'bg-green-500/20 text-green-400 border border-green-500/30';
+            if (s === 'started') return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+            return 'bg-slate-800 text-slate-400 border border-slate-700';
         };
 
-        const formatSeconds = (s) => {
-            const sec = parseInt(s || 0, 10);
-            if (!sec || sec < 0) return '-';
-            const h = Math.floor(sec / 3600);
-            const m = Math.floor((sec % 3600) / 60);
-            const ss = sec % 60;
-            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-            return `${m}:${String(ss).padStart(2,'0')}`;
+        const formatDate = (d) => {
+            return new Date(d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         };
 
-        const destroyStravaChart = () => {
-            try {
-                if (stravaChart) stravaChart.destroy();
-                if (stravaFullscreenChart) stravaFullscreenChart.destroy();
-            } catch (e) {}
-            stravaChart = null;
-            stravaFullscreenChart = null;
+        const formatDateShort = (dateStr) => {
+            if (!dateStr) return '';
+            return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
         };
 
-        const toPaceSecPerKm = (mps) => {
-            const v = parseFloat(mps || 0);
-            if (!v || v <= 0) return null;
-            return 1000 / v;
-        };
-
-        const formatPaceFromSec = (secPerKm) => {
-            const s = parseFloat(secPerKm || 0);
-            if (!s || s <= 0) return '-';
-            const mins = Math.floor(s / 60);
-            const secs = Math.round(s - (mins * 60));
-            return `${mins}:${String(secs).padStart(2,'0')}`;
-        };
-
-        const renderChartToCanvas = (streams, canvasId) => {
-            if (!streams || !streams.time || !window.Chart) return null;
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return null;
-
-            const time = Array.isArray(streams.time) ? streams.time : [];
-            const hr = Array.isArray(streams.heartrate) ? streams.heartrate : [];
-            const cad = Array.isArray(streams.cadence) ? streams.cadence : [];
-            const vel = Array.isArray(streams.velocity_smooth) ? streams.velocity_smooth : [];
-            const watts = Array.isArray(streams.watts) ? streams.watts : [];
-
-            const n = time.length;
-            if (n === 0) return null;
-
-            const maxPoints = 320;
-            const step = n > maxPoints ? Math.ceil(n / maxPoints) : 1;
-
-            const labels = [];
-            const pace = [];
-            const hrS = [];
-            const cadS = [];
-            const wattsS = [];
-
-            for (let i = 0; i < n; i += step) {
-                labels.push(formatSeconds(time[i]));
-                pace.push(toPaceSecPerKm(vel[i]));
-                hrS.push(typeof hr[i] === 'number' ? hr[i] : (hr[i] ? parseFloat(hr[i]) : null));
-                cadS.push(typeof cad[i] === 'number' ? cad[i] : (cad[i] ? parseFloat(cad[i]) : null));
-                wattsS.push(typeof watts[i] === 'number' ? watts[i] : (watts[i] ? parseFloat(watts[i]) : null));
-            }
-
-            const datasets = [
-                {
-                    label: 'Pace',
-                    data: pace,
-                    borderColor: '#06B6D4',
-                    backgroundColor: 'rgba(6,182,212,0.08)',
-                    yAxisID: 'yPace',
-                    pointRadius: 0,
-                    borderWidth: 2,
-                    spanGaps: true,
-                },
-            ];
-
-            if (hrS.some(v => v !== null && !Number.isNaN(v))) {
-                datasets.push({
-                    label: 'Heart Rate',
-                    data: hrS,
-                    borderColor: '#EF4444',
-                    backgroundColor: 'rgba(239,68,68,0.08)',
-                    yAxisID: 'yMetric',
-                    pointRadius: 0,
-                    borderWidth: 1.5,
-                    spanGaps: true,
-                });
-            }
-            if (cadS.some(v => v !== null && !Number.isNaN(v))) {
-                datasets.push({
-                    label: 'Cadence',
-                    data: cadS,
-                    borderColor: '#A855F7',
-                    backgroundColor: 'rgba(168,85,247,0.08)',
-                    yAxisID: 'yMetric',
-                    pointRadius: 0,
-                    borderWidth: 1.5,
-                    spanGaps: true,
-                });
-            }
-            if (wattsS.some(v => v !== null && !Number.isNaN(v))) {
-                datasets.push({
-                    label: 'Power',
-                    data: wattsS,
-                    borderColor: '#22C55E',
-                    backgroundColor: 'rgba(34,197,94,0.08)',
-                    yAxisID: 'yMetric',
-                    pointRadius: 0,
-                    borderWidth: 1.5,
-                    spanGaps: true,
-                });
-            }
-
-            return new Chart(canvas.getContext('2d'), {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            labels: { color: '#CBD5E1', boxWidth: 10 }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const ds = context.dataset;
-                                    const val = context.parsed.y;
-                                    if (ds.label === 'Pace') return ` Pace: ${formatPaceFromSec(val)} /km`;
-                                    if (ds.label === 'Heart Rate') return ` HR: ${Math.round(val)} bpm`;
-                                    if (ds.label === 'Cadence') return ` Cadence: ${Math.round(val)} spm`;
-                                    if (ds.label === 'Power') return ` Power: ${Math.round(val)} w`;
-                                    return ` ${ds.label}: ${val}`;
-                                }
-                            }
-                        }
-                    },
-                    elements: { line: { tension: 0.25 } },
-                    scales: {
-                        x: {
-                            ticks: { color: '#64748B', maxTicksLimit: 6 },
-                            grid: { color: 'rgba(51,65,85,0.35)' }
-                        },
-                        yPace: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            ticks: {
-                                color: '#94A3B8',
-                                callback: function (v) { return formatPaceFromSec(v); }
-                            },
-                            grid: { color: 'rgba(51,65,85,0.35)' }
-                        },
-                        yMetric: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            ticks: { color: '#94A3B8' },
-                            grid: { drawOnChartArea: false }
-                        }
-                    }
-                }
-            });
-        };
-
-        const renderStravaChart = (streams) => {
-            if (stravaChart) stravaChart.destroy();
-            stravaChart = renderChartToCanvas(streams, 'coachStravaMetricsChart');
-        };
-
-        const extractStravaActivityId = (url) => {
-            const m = String(url || '').match(/strava\.com\/activities\/(\d+)/i);
-            return m ? parseInt(m[1], 10) : null;
-        };
-
-        const resetStravaState = () => {
-            stravaDetailsLoading.value = false;
-            stravaDetailsError.value = '';
-            stravaMetrics.value = null;
-            stravaSplits.value = [];
-            stravaLaps.value = [];
-            stravaStreams.value = null;
-            stravaPaceZones.value = null;
-            stravaHrZones.value = null;
-            stravaZoneAnalysis.value = '';
-            stravaZoneEffect.value = '';
-            stravaZoneSuggestion.value = '';
-            stravaAiAnalysis.value = null;
-            stravaAiAnalysisLoading.value = false;
-            destroyStravaChart();
-        };
-
-        const loadStravaForActivity = async (activityId, force = false) => {
+        const loadStravaForActivity = async (activityId) => {
             const id = parseInt(activityId || 0, 10);
             if (!id) return;
 
-            resetStravaState();
             stravaDetailsLoading.value = true;
+            stravaDetailsError.value = '';
             try {
                 const detailRes = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/details`, { headers: { 'Accept': 'application/json' } });
                 const detailJson = await detailRes.json();
@@ -3259,225 +2150,16 @@ createApp({
                     stravaMetrics.value = detailJson.activity || null;
                     stravaSplits.value = Array.isArray(detailJson.activity?.splits_metric) ? detailJson.activity.splits_metric : [];
                     stravaLaps.value = Array.isArray(detailJson.activity?.laps) ? detailJson.activity.laps : [];
-                } else {
-                    stravaDetailsError.value = detailJson?.message || 'Gagal mengambil detail Strava.';
-                    return;
                 }
-
-                const streamsRes = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/streams`, { headers: { 'Accept': 'application/json' } });
-                const streamsJson = await streamsRes.json();
-                if (streamsRes.ok && streamsJson && streamsJson.success) {
-                    stravaStreams.value = streamsJson.streams || null;
-                    setTimeout(() => renderStravaChart(stravaStreams.value), 50);
-                    stravaPaceZones.value = buildPaceZones(stravaStreams.value, trainingProfile.paces || {});
-                    stravaHrZones.value = buildHrZones(stravaStreams.value, stravaMetrics.value?.max_heartrate);
-                    const zoneInsight = buildZoneAnalysis(stravaPaceZones.value, stravaHrZones.value, stravaMetrics.value);
-                    stravaZoneAnalysis.value = zoneInsight?.analysis || '';
-                    stravaZoneEffect.value = zoneInsight?.effect || '';
-                    stravaZoneSuggestion.value = zoneInsight?.suggestion || '';
-                }
-
-                // Fetch AI analysis asynchronously
-                stravaAiAnalysisLoading.value = true;
-                const aiUrl = new URL(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/ai-analysis`, window.location.origin);
-                if (force) {
-                    aiUrl.searchParams.set('force', '1');
-                }
-                fetch(aiUrl.toString(), { headers: { 'Accept': 'application/json' } })
-                    .then(res => res.json())
-                    .then(aiJson => {
-                        if (aiJson && aiJson.success) {
-                            stravaAiAnalysis.value = aiJson.analysis || null;
-                        }
-                    })
-                    .catch(e => console.error('Error fetching Strava AI Analysis:', e))
-                    .finally(() => {
-                        stravaAiAnalysisLoading.value = false;
-                    });
-
             } catch (e) {
-                stravaDetailsError.value = 'Gagal mengambil detail Strava.';
+                stravaDetailsError.value = 'Gagal memuat data Strava.';
             } finally {
                 stravaDetailsLoading.value = false;
             }
         };
 
-        watch(showStravaGraphModal, (val) => {
-            if (val && stravaStreams.value) {
-                setTimeout(() => {
-                    if (stravaFullscreenChart) stravaFullscreenChart.destroy();
-                    stravaFullscreenChart = renderChartToCanvas(stravaStreams.value, 'coachStravaMetricsChartFullscreen');
-                }, 100);
-            } else {
-                if (stravaFullscreenChart) {
-                    stravaFullscreenChart.destroy();
-                    stravaFullscreenChart = null;
-                }
-            }
-        });
-
-        const formatDate = (d) => {
-            return new Date(d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
-        };
-
-        const paceMinToSec = (minPerKm) => {
-            const v = parseFloat(minPerKm || 0);
-            if (!v || v <= 0) return null;
-            return v * 60;
-        };
-
-        const buildPaceZones = (streams, paces) => {
-            if (!streams || !Array.isArray(streams.velocity_smooth)) return null;
-            const thresholds = {
-                E: paceMinToSec(paces?.E),
-                M: paceMinToSec(paces?.M),
-                T: paceMinToSec(paces?.T),
-                I: paceMinToSec(paces?.I),
-                R: paceMinToSec(paces?.R)
-            };
-            if (!thresholds.E || !thresholds.M || !thresholds.T || !thresholds.I || !thresholds.R) return null;
-            const counts = { E: 0, M: 0, T: 0, I: 0, R: 0 };
-            let total = 0;
-            streams.velocity_smooth.forEach((v) => {
-                const paceSec = toPaceSecPerKm(v);
-                if (!paceSec) return;
-                total += 1;
-                if (paceSec >= thresholds.E) counts.E += 1;
-                else if (paceSec >= thresholds.M) counts.M += 1;
-                else if (paceSec >= thresholds.T) counts.T += 1;
-                else if (paceSec >= thresholds.I) counts.I += 1;
-                else counts.R += 1;
-            });
-            if (!total) return null;
-            const toPct = (v) => Math.round((v / total) * 100);
-            const zones = {
-                E: toPct(counts.E),
-                M: toPct(counts.M),
-                T: toPct(counts.T),
-                I: toPct(counts.I),
-                R: toPct(counts.R)
-            };
-            return {
-                zones,
-                summary: {
-                    easy: Math.round(zones.E + zones.M),
-                    tempo: Math.round(zones.T),
-                    speed: Math.round(zones.I + zones.R)
-                }
-            };
-        };
-
-        const buildHrZones = (streams, maxHrValue) => {
-            if (!streams || !Array.isArray(streams.heartrate)) return null;
-            const maxFromStream = Math.max(...streams.heartrate.filter(v => typeof v === 'number' && !isNaN(v)));
-            const maxHr = parseFloat(maxHrValue || maxFromStream || 0);
-            if (!maxHr || maxHr <= 0) return null;
-            const counts = { Z1: 0, Z2: 0, Z3: 0, Z4: 0, Z5: 0 };
-            let total = 0;
-            streams.heartrate.forEach((v) => {
-                const hr = typeof v === 'number' ? v : parseFloat(v);
-                if (!hr || hr <= 0) return;
-                const ratio = hr / maxHr;
-                total += 1;
-                if (ratio < 0.6) counts.Z1 += 1;
-                else if (ratio < 0.7) counts.Z2 += 1;
-                else if (ratio < 0.8) counts.Z3 += 1;
-                else if (ratio < 0.9) counts.Z4 += 1;
-                else counts.Z5 += 1;
-            });
-            if (!total) return null;
-            const toPct = (v) => Math.round((v / total) * 100);
-            return {
-                Z1: toPct(counts.Z1),
-                Z2: toPct(counts.Z2),
-                Z3: toPct(counts.Z3),
-                Z4: toPct(counts.Z4),
-                Z5: toPct(counts.Z5)
-            };
-        };
-
-        const buildZoneAnalysis = (paceZones, hrZones, metrics) => {
-            if (!paceZones && !hrZones) return null;
-            const analysis = [];
-            const effects = [];
-            const suggestions = [];
-
-            const easy = paceZones?.summary?.easy ?? null;
-            const tempo = paceZones?.summary?.tempo ?? null;
-            const speed = paceZones?.summary?.speed ?? null;
-
-            const z1 = hrZones?.Z1 ?? null;
-            const z2 = hrZones?.Z2 ?? null;
-            const z3 = hrZones?.Z3 ?? null;
-            const z4 = hrZones?.Z4 ?? null;
-            const z5 = hrZones?.Z5 ?? null;
-
-            const total = metrics?.total_time_s || 0;
-            const pause = metrics?.pause_time_s || 0;
-            const pauseRatio = total ? pause / total : 0;
-
-            if (easy !== null && easy >= 70) {
-                analysis.push('Distribusi pace dominan Easy, fokus utama ada di base aerobik dan efisiensi.');
-            } else if (speed !== null && speed >= 30) {
-                analysis.push('Porsi speed cukup besar, sesi ini tergolong intens dan menstimulasi VO2Max/kecepatan.');
-            } else if (tempo !== null && tempo >= 30) {
-                analysis.push('Tempo cukup dominan, latihan mengarah ke penguatan threshold dan ketahanan pace.');
-            } else if (easy !== null || tempo !== null || speed !== null) {
-                analysis.push('Distribusi pace cukup seimbang, efeknya campuran antara aerobik dan kualitas.');
-            }
-
-            if (z1 !== null && z2 !== null && (z1 + z2) >= 70) {
-                analysis.push('Mayoritas detak jantung berada di Z1–Z2, menunjukkan sesi aerobik atau recovery.');
-            } else if (z4 !== null && z5 !== null && (z4 + z5) >= 30) {
-                analysis.push('Zona detak jantung Z4–Z5 cukup tinggi, beban latihan berat dan menstimulasi adaptasi intensitas.');
-            } else if (z3 !== null && z4 !== null && (z3 + z4) >= 40) {
-                analysis.push('Banyak waktu di Z3–Z4, cocok untuk tempo/threshold dan peningkatan stamina pace.');
-            }
-
-            if (pauseRatio > 0.18) {
-                analysis.push('Proporsi pause cukup besar, artinya banyak berhenti sehingga efek intensitas berkurang.');
-            } else if (pauseRatio > 0.08) {
-                analysis.push('Terdapat pause moderat, kemungkinan karena interval atau kondisi rute.');
-            }
-
-            if (speed !== null && speed >= 25) {
-                effects.push('VO2Max & kecepatan');
-            } else if (tempo !== null && tempo >= 25) {
-                effects.push('Threshold & tempo endurance');
-            } else if (easy !== null && easy >= 60) {
-                effects.push('Base aerobik & recovery');
-            } else if (z4 !== null && z5 !== null && (z4 + z5) >= 25) {
-                effects.push('Kualitas intensitas tinggi');
-            } else if (z1 !== null && z2 !== null && (z1 + z2) >= 60) {
-                effects.push('Aerobic maintenance');
-            } else {
-                effects.push('Mixed aerobic & quality');
-            }
-
-            if (speed !== null && speed >= 30) {
-                suggestions.push('Prioritaskan recovery run 24–48 jam ke depan agar adaptasi optimal.');
-            } else if (tempo !== null && tempo >= 30) {
-                suggestions.push('Pertahankan volume easy berikutnya, lalu sisipkan interval ringan jika tubuh segar.');
-            } else if (easy !== null && easy >= 70) {
-                suggestions.push('Kondisi cocok untuk sesi kualitas berikutnya (tempo/interval) jika rencana mengizinkan.');
-            } else {
-                suggestions.push('Jaga keseimbangan easy dan kualitas untuk mencegah overtraining.');
-            }
-
-            if (pauseRatio > 0.18) {
-                suggestions.push('Jika targetnya steady run, kurangi pause agar stimulus lebih konsisten.');
-            }
-
-            return {
-                analysis: analysis.join(' '),
-                effect: effects.join(' • '),
-                suggestion: suggestions.join(' ')
-            };
-        };
-
         const saveFeedback = async () => {
             if (!selectedSession.value) return;
-            
             loading.value = true;
             try {
                 const res = await fetch(`{{ route('coach.athletes.feedback', $enrollment->id) }}`, {
@@ -3491,24 +2173,20 @@ createApp({
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Feedback saved!');
-                    // Update local state
+                    alert('Feedback berhasil disimpan!');
                     if (selectedSession.value.extendedProps.tracking) {
                         selectedSession.value.extendedProps.tracking.coach_rating = feedbackForm.coach_rating;
                         selectedSession.value.extendedProps.tracking.coach_feedback = feedbackForm.coach_feedback;
-                    } else {
-                        // In case tracking was created on the fly (unlikely in this flow but good safety)
-                        window.location.reload(); 
                     }
                 }
             } catch (e) {
-                alert('Failed to save feedback');
+                alert('Gagal menyimpan feedback.');
             } finally {
                 loading.value = false;
             }
         };
 
-        // Race Predictor State & Logic
+        // Race Predictor State & Logic (Riegel Formula)
         const predictor = reactive({
             distance: 15,
             vdot: trainingProfile.vdot || 40
@@ -3517,30 +2195,20 @@ createApp({
         const predictedTime = computed(() => {
             const timeStr = trainingProfile.equivalent_race_times?.['10k']?.time || '00:50:00';
             const parts = timeStr.split(':');
-            let baselineSeconds = 0;
-            if (parts.length === 3) {
-                baselineSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
-            } else if (parts.length === 2) {
-                baselineSeconds = (+parts[0]) * 60 + (+parts[1]);
-            }
-            if (!baselineSeconds) baselineSeconds = 3000;
+            let baselineSeconds = 3000;
+            if (parts.length === 3) baselineSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+            else if (parts.length === 2) baselineSeconds = (+parts[0]) * 60 + (+parts[1]);
             
             const baselineVdot = trainingProfile.vdot || 40;
             const chosenVdot = predictor.vdot || 40;
             const adjustedBaselineSeconds = baselineSeconds * (baselineVdot / chosenVdot);
-
             const predictedSeconds = adjustedBaselineSeconds * Math.pow(predictor.distance / 10, 1.06);
             
             const hours = Math.floor(predictedSeconds / 3600);
             const minutes = Math.floor((predictedSeconds % 3600) / 60);
             const seconds = Math.floor(predictedSeconds % 60);
             
-            let timeFormatted = '';
-            if (hours > 0) {
-                timeFormatted += String(hours).padStart(2, '0') + ':';
-            }
-            timeFormatted += String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-
+            let timeFormatted = (hours > 0 ? String(hours).padStart(2, '0') + ':' : '') + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
             const paceMin = (predictedSeconds / 60) / predictor.distance;
             const paceM = Math.floor(paceMin);
             const paceS = Math.floor((paceMin - paceM) * 60);
@@ -3549,477 +2217,16 @@ createApp({
             return { time: timeFormatted, pace: paceFormatted };
         });
 
-        // Chat Widget State & Logic
-        const chatContainer = ref(null);
-        const chatState = reactive({
-            isOpen: false,
-            loading: false,
-            messages: [],
-            unreadCount: 0,
-            inputMessage: '',
-            sending: false
-        });
-
-        const toggleChatDrawer = () => {
-            chatState.isOpen = !chatState.isOpen;
-            if (chatState.isOpen) {
-                loadChatMessages();
-            }
-        };
-
-        const loadChatMessages = async () => {
-            chatState.loading = true;
-            try {
-                const runnerId = trainingProfile.user_id || @json($enrollment->runner_id);
-                const res = await fetch(`/api/chat/${runnerId}/messages`);
-                const data = await res.json();
-                chatState.messages = data.messages || [];
-                chatState.unreadCount = 0;
-                scrollToBottom();
-            } catch (e) {
-                console.error('Failed to load chat messages:', e);
-            } finally {
-                chatState.loading = false;
-            }
-        };
-
-        const sendChatMessage = async () => {
-            if (!chatState.inputMessage.trim() || chatState.sending) return;
-            chatState.sending = true;
-            try {
-                const runnerId = trainingProfile.user_id || @json($enrollment->runner_id);
-                const res = await fetch(`/chat/${runnerId}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: chatState.inputMessage })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    chatState.messages.push(data.message);
-                    chatState.inputMessage = '';
-                    scrollToBottom();
-                }
-            } catch (e) {
-                console.error('Failed to send chat message:', e);
-            } finally {
-                chatState.sending = false;
-            }
-        };
-
-        const scrollToBottom = () => {
-            Vue.nextTick(() => {
-                if (chatContainer.value) {
-                    chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-                }
-            });
-        };
-
-        const formatChatTime = (isoStr) => {
-            if (!isoStr) return '';
-            const d = new Date(isoStr);
-            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        };
-
-        // Analytics State & Logic
-        const paceComplianceList = ref([]);
-        const healthSummary = reactive({
-            fatigueLevel: 'Healthy / Low Fatigue',
-            fatigueEmoji: '🟢',
-            avgRpe: '-',
-            advice: 'Excellent recovery. Body is fully adapting. Athlete is ready for mileage or intensity progression.',
-            riskLevel: 'Low Risk',
-            feelingStatus: 'Stable',
-            riskMessage: 'Runner shows stable wellness responses. Continue current progression.'
-        });
-
-        let weeklyVolumeChartInstance = null;
-
-        const initWeeklyVolumeChart = (labels, targetData, completedData) => {
-            Vue.nextTick(() => {
-                const canvasEl = document.getElementById('weeklyVolumeChart');
-                if (!canvasEl) return;
-                const ctx = canvasEl.getContext('2d');
-                if (weeklyVolumeChartInstance) {
-                    weeklyVolumeChartInstance.destroy();
-                }
-                weeklyVolumeChartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Target',
-                                data: targetData,
-                                backgroundColor: '#475569',
-                                borderRadius: 4,
-                                barThickness: 12
-                            },
-                            {
-                                label: 'Completed',
-                                data: completedData,
-                                backgroundColor: '#ccff00',
-                                borderRadius: 4,
-                                barThickness: 12
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                grid: { color: '#334155' },
-                                ticks: { color: '#94a3b8', font: { family: 'monospace', size: 9 } }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { color: '#94a3b8', font: { family: 'monospace', size: 9 } }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-            });
-        };
-
-        const calculateAnalytics = (events) => {
-            const weeks = {};
-            const getMonday = (dStr) => {
-                const date = new Date(dStr);
-                const day = date.getDay();
-                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-                const monday = new Date(date.setDate(diff));
-                return monday.toISOString().split('T')[0];
-            };
-
-            events.forEach(ev => {
-                if (!ev.start) return;
-                const monday = getMonday(ev.start);
-                if (!weeks[monday]) {
-                    weeks[monday] = { target: 0, completed: 0 };
-                }
-                const dist = parseFloat(ev.extendedProps?.distance || ev.distance || 0);
-                const isCustom = ev.extendedProps?.is_custom;
-                const isStrava = ev.extendedProps?.is_strava;
-                const status = ev.extendedProps?.status;
-                const type = ev.extendedProps?.type;
-
-                if (isStrava || status === 'completed') {
-                    weeks[monday].completed += dist;
-                } else if (!isCustom && type !== 'rest' && status !== 'missed') {
-                    weeks[monday].target += dist;
-                }
-            });
-
-            const sortedMondays = Object.keys(weeks).sort();
-            const labels = sortedMondays.map(m => {
-                const d = new Date(m);
-                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            });
-            const targetData = sortedMondays.map(m => weeks[m].target);
-            const completedData = sortedMondays.map(m => weeks[m].completed);
-
-            initWeeklyVolumeChart(labels, targetData, completedData);
-
-            // Compute Pace Compliance
-            const complianceList = [];
-            events.forEach(ev => {
-                const isCompleted = ev.extendedProps?.status === 'completed' || ev.extendedProps?.event_type === 'strava_activity';
-                if (!isCompleted) return;
-
-                const type = ev.extendedProps?.type;
-                if (!type || type === 'rest' || type === 'strength' || type === 'yoga') return;
-
-                const actualPaceStr = ev.extendedProps?.pace || (ev.extendedProps?.tracking?.strava_link ? '05:00' : null);
-                if (!actualPaceStr) return;
-
-                let targetPaceStr = '-';
-                if (type === 'easy_run' && trainingProfile.paces?.E) targetPaceStr = trainingProfile.paces.E;
-                else if (type === 'tempo' && trainingProfile.paces?.T) targetPaceStr = trainingProfile.paces.T;
-                else if (type === 'interval' && trainingProfile.paces?.I) targetPaceStr = trainingProfile.paces.I;
-                else if (type === 'long_run' && trainingProfile.paces?.M) targetPaceStr = trainingProfile.paces.M;
-
-                if (targetPaceStr === '-') return;
-
-                const paceToSeconds = (str) => {
-                    const p = str.split(':');
-                    return p.length === 2 ? (+p[0]) * 60 + (+p[1]) : 0;
-                };
-
-                const actSec = paceToSeconds(actualPaceStr);
-                const tgtSec = paceToSeconds(targetPaceStr);
-
-                if (!actSec || !tgtSec) return;
-
-                const diff = tgtSec - actSec; // positive means actual is faster
-                let complianceStatus = 'On Target';
-                let complianceClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                let diffText = 'Perfect pace match';
-
-                if (diff > 15) {
-                    complianceStatus = 'Too Fast';
-                    complianceClass = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-                    diffText = `${Math.abs(diff)}s faster than target`;
-                } else if (diff < -15) {
-                    complianceStatus = 'Too Slow';
-                    complianceClass = 'bg-red-500/20 text-red-400 border border-red-500/30';
-                    diffText = `${Math.abs(diff)}s slower than target`;
-                }
-
-                complianceList.push({
-                    date: ev.start,
-                    dateFormatted: new Date(ev.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-                    typeName: type.replace('_', ' '),
-                    typeClass: type === 'interval' ? 'bg-red-500/20 text-red-400' : (type === 'tempo' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400'),
-                    targetPace: targetPaceStr,
-                    actualPace: actualPaceStr,
-                    complianceStatus,
-                    complianceClass,
-                    diffText
-                });
-            });
-
-            paceComplianceList.value = complianceList.slice(0, 5);
-
-            // Compute Fatigue & Health Summary
-            const rpes = [];
-            const feelings = [];
-            events.forEach(ev => {
-                const tracking = ev.extendedProps?.tracking;
-                if (tracking) {
-                    if (tracking.rpe) rpes.push(parseInt(tracking.rpe));
-                    if (tracking.feeling) feelings.push(tracking.feeling.toLowerCase());
-                }
-            });
-
-            const avgRpeVal = rpes.length > 0 ? (rpes.reduce((a, b) => a + b, 0) / rpes.length).toFixed(1) : '-';
-            healthSummary.avgRpe = avgRpeVal;
-
-            if (avgRpeVal !== '-') {
-                const avg = parseFloat(avgRpeVal);
-                if (avg >= 7.5) {
-                    healthSummary.fatigueLevel = 'High Fatigue';
-                    healthSummary.advice = 'Atlet menunjukkan beban latihan tinggi. Disarankan mengurangi volume 20% atau menambah hari istirahat.';
-                } else if (avg >= 5.0) {
-                    healthSummary.fatigueLevel = 'Moderate Fatigue';
-                    healthSummary.advice = 'Beban latihan normal. Atlet merespons dengan baik. Pertahankan parameter kalender saat ini.';
-                } else {
-                    healthSummary.fatigueLevel = 'Healthy / Low Fatigue';
-                    healthSummary.advice = 'Pemulihan sangat baik. Tubuh beradaptasi secara optimal. Atlet siap untuk peningkatan volume atau intensitas.';
-                }
-            }
-
-            if (feelings.length > 0) {
-                const lastFeeling = feelings[feelings.length - 1];
-                healthSummary.feelingStatus = lastFeeling;
-                if (lastFeeling === 'terrible' || lastFeeling === 'weak' || (rpes.length > 0 && rpes[rpes.length - 1] >= 9)) {
-                    healthSummary.riskLevel = 'HIGH RISK';
-                    healthSummary.riskMessage = 'WARNING: Last run logged high exertion or poor wellness. High risk of overtraining.';
-                } else {
-                    healthSummary.riskLevel = 'Low Risk';
-                    healthSummary.riskMessage = 'Wellness metrics stable. Runner shows normal adaptive responses.';
-                }
-            }
-        };
-
-        const fetchAnalyticsData = async () => {
-            try {
-                const res = await fetch(`{{ route("coach.athletes.events", $enrollment->id) }}`);
-                const data = await res.json();
-                calculateAnalytics(data);
-            } catch (e) {
-                console.error('Error fetching calendar events for analytics:', e);
-            }
-        };
-
-        watch(profileTab, (newTab) => {
-            if (newTab === 'analytics') {
-                fetchAnalyticsData();
-            }
-        });
-
-        watch(selectedSession, (ev) => {
-            resetStravaState();
-            if (!ev || !ev.extendedProps) {
-                return;
-            }
-
-            const props = ev.extendedProps || {};
-            let id = null;
-            if (props.is_strava && props.strava_activity_id) {
-                id = props.strava_activity_id;
-            } else if (props.tracking && props.tracking.strava_link) {
-                id = extractStravaActivityId(props.tracking.strava_link);
-            }
-            if (id) {
-                loadStravaForActivity(id);
-            }
-        });
-
-        const handleEventDrop = async (info) => {
-            if (!confirm(`Reschedule ${info.event.title} ke ${info.event.startStr}?`)) {
-                info.revert();
-                return;
-            }
-
-            const props = info.event.extendedProps;
-            const payload = {
-                type: props.is_custom ? 'custom_workout' : 'program_session',
-                new_date: info.event.startStr,
-            };
-
-            if (payload.type === 'custom_workout') {
-                payload.workout_id = props.id;
-            } else {
-                payload.session_day = props.session_day;
-            }
-
-            try {
-                const res = await fetch(`${coachUrl}/athletes/${enrollmentId}/reschedule`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    if (data.message && data.message.includes('ditukar')) {
-                        alert(data.message);
-                    }
-                    calendar.refetchEvents();
-                    fetchAnalyticsData();
-                } else {
-                    alert(data.message || 'Failed to reschedule');
-                    info.revert();
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Connection error');
-                info.revert();
-            }
-        };
-
-        onMounted(() => {
-            const el = document.getElementById('calendar');
-            const isMobile = window.innerWidth < 768;
-            const initialView = isMobile ? 'listWeek' : 'dayGridMonth';
-            const headerToolbar = isMobile 
-                ? { left: 'prev,next', center: 'title', right: '' }
-                : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' };
-
-            calendar = new FullCalendar.Calendar(el, {
-                initialView: initialView,
-                headerToolbar: headerToolbar,
-                events: '{{ route("coach.athletes.events", $enrollment->id) }}',
-                locale: 'id',
-                firstDay: 1,
-                editable: true,
-                eventDrop: handleEventDrop,
-                fixedMirrorParent: document.body,
-                eventClassNames: (arg) => {
-                    const cls = [];
-                    const props = arg.event.extendedProps || {};
-                    const type = props.type || (props.session ? props.session.type : 'run');
-                    if (type) cls.push('workout-' + type);
-                    return cls;
-                },
-                eventContent: (arg) => {
-                    const props = arg.event.extendedProps || {};
-                    const isStrava = props.type === 'strava_activity' || props.event_type === 'strava_activity' || props.is_strava;
-                    
-                    const container = document.createElement('div');
-                    container.style.display = 'flex';
-                    container.style.alignItems = 'center';
-                    container.style.gap = '4px';
-                    container.style.overflow = 'hidden';
-                    container.style.textOverflow = 'ellipsis';
-                    container.style.whiteSpace = 'nowrap';
-                    container.style.width = '100%';
-
-                    if (!arg.event.allDay && arg.timeText) {
-                        const timeEl = document.createElement('span');
-                        timeEl.className = 'fc-event-time';
-                        timeEl.style.fontWeight = 'bold';
-                        timeEl.style.marginRight = '2px';
-                        timeEl.style.flexShrink = '0';
-                        timeEl.innerText = arg.timeText;
-                        container.appendChild(timeEl);
-                    }
-
-                    if (isStrava) {
-                        const svgSpan = document.createElement('span');
-                        svgSpan.style.display = 'inline-flex';
-                        svgSpan.style.alignItems = 'center';
-                        svgSpan.style.flexShrink = '0';
-                        svgSpan.innerHTML = `
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#FC4C02">
-                                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-3.756l3.52 6.948h4.636L11.529 0 4 14.808h4.637l2.871-5.62z"/>
-                            </svg>
-                        `;
-                        container.appendChild(svgSpan);
-                    }
-
-                    const titleEl = document.createElement('span');
-                    titleEl.className = 'fc-event-title';
-                    titleEl.innerText = arg.event.title;
-                    container.appendChild(titleEl);
-
-                    return { domNodes: [container] };
-                },
-                dateClick: (info) => {
-                    openForm(info.dateStr);
-                },
-                eventClick: (info) => {
-                    selectedSession.value = info.event;
-                    isMobileSheetOpen.value = true;
-                    // Pre-fill form
-                    const tracking = info.event.extendedProps.tracking;
-                    if (tracking) {
-                        feedbackForm.coach_rating = tracking.coach_rating || 0;
-                        feedbackForm.coach_feedback = tracking.coach_feedback || '';
-                    } else {
-                        feedbackForm.coach_rating = 0;
-                        feedbackForm.coach_feedback = '';
-                    }
-
-                    // Scroll smoothly to detail & feedback column
-                    setTimeout(() => {
-                        const detailEl = document.getElementById('detail-feedback-column');
-                        if (detailEl) {
-                            detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 100);
-                },
-                height: 'auto',
-                listDayFormat: { month: 'short', day: 'numeric', weekday: 'short' },
-                listDaySideFormat: false
-            });
-            calendar.render();
-
-            setInterval(() => {
-                try {
-                    if (calendar) {
-                        calendar.refetchEvents();
-                    }
-                } catch (e) {}
-            }, 60_000);
-        });
-
         // Weekly Report Actions
         const nudgeStrava = async () => {
-            if (confirm("Kirim notifikasi in-app ke atlet untuk menghubungkan akun Strava?")) {
+            if (confirm("Kirim notifikasi ke atlet untuk menghubungkan akun Strava?")) {
                 try {
                     const res = await fetch(`{{ route('coach.athletes.nudge-strava', $enrollment->id) }}`, {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
                     });
                     const data = await res.json();
-                    if (data.success) {
-                        alert(data.message);
-                    } else {
-                        alert("Gagal mengirim notifikasi.");
-                    }
+                    alert(data.message || 'Notifikasi terkirim.');
                 } catch (e) {
                     alert("Terjadi kesalahan.");
                 }
@@ -4034,14 +2241,8 @@ createApp({
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
                 });
                 const data = await res.json();
-                if (data.success) {
-                    alert(data.message);
-                    if (calendar) {
-                        calendar.refetchEvents();
-                    }
-                } else {
-                    alert(data.message || "Gagal sinkronisasi.");
-                }
+                alert(data.message || "Sinkronisasi selesai.");
+                if (calendar) calendar.refetchEvents();
             } catch (e) {
                 alert("Terjadi kesalahan saat sinkronisasi.");
             } finally {
@@ -4063,7 +2264,7 @@ createApp({
                     alert(data.message || "Gagal menghasilkan draf laporan.");
                 }
             } catch (e) {
-                alert("Terjadi kesalahan saat menghubungi OpenAI.");
+                alert("Terjadi kesalahan menghubungi server.");
             } finally {
                 weeklyReportLoading.value = false;
             }
@@ -4071,38 +2272,27 @@ createApp({
 
         const publishWeeklyReport = async () => {
             if (!weeklyReportForm.report_text.trim()) {
-                alert("Konten laporan tidak boleh kosong.");
+                alert("Konten evaluasi tidak boleh kosong.");
                 return;
             }
             weeklyReportPublishing.value = true;
             try {
                 const res = await fetch(`{{ route('coach.athletes.store-weekly-report', $enrollment->id) }}`, {
                     method: 'POST',
-                    headers: { 
-                        'X-CSRF-TOKEN': csrf, 
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
                     body: JSON.stringify(weeklyReportForm)
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // Update lists
-                    const index = weeklyReportsList.value.findIndex(r => r.week_number === data.report.week_number);
-                    if (index !== -1) {
-                        weeklyReportsList.value[index] = data.report;
-                    } else {
-                        weeklyReportsList.value.unshift(data.report);
-                    }
-                    // increment suggested week
+                    const idx = weeklyReportsList.value.findIndex(r => r.week_number === data.report.week_number);
+                    if (idx !== -1) weeklyReportsList.value[idx] = data.report;
+                    else weeklyReportsList.value.unshift(data.report);
                     weeklyReportForm.week_number = Math.max(...weeklyReportsList.value.map(r => r.week_number)) + 1;
                     weeklyReportForm.report_text = '';
-                    alert(data.message);
-                } else {
-                    alert(data.message || "Gagal menyimpan laporan.");
+                    alert(data.message || 'Laporan mingguan berhasil diterbitkan!');
                 }
             } catch (e) {
-                alert("Terjadi kesalahan saat menyimpan laporan.");
+                alert("Terjadi kesalahan.");
             } finally {
                 weeklyReportPublishing.value = false;
             }
@@ -4113,10 +2303,38 @@ createApp({
             weeklyReportForm.report_text = rep.report_text;
         };
 
-        const formatDateShort = (dateStr) => {
-            if (!dateStr) return '';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const handleEventDrop = async (info) => {
+            if (!confirm(`Reschedule ${info.event.title} ke ${info.event.startStr}?`)) {
+                info.revert();
+                return;
+            }
+
+            const props = info.event.extendedProps;
+            const payload = {
+                type: props.is_custom ? 'custom_workout' : 'program_session',
+                new_date: info.event.startStr,
+            };
+
+            if (payload.type === 'custom_workout') payload.workout_id = props.id;
+            else payload.session_day = props.session_day;
+
+            try {
+                const res = await fetch(`${coachUrl}/athletes/${enrollmentId}/reschedule`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    calendar.refetchEvents();
+                } else {
+                    alert(data.message || 'Gagal mengubah jadwal');
+                    info.revert();
+                }
+            } catch (e) {
+                alert('Kesalahan koneksi');
+                info.revert();
+            }
         };
 
         const exportCalendar = async (type) => {
@@ -4124,7 +2342,7 @@ createApp({
                 const response = await fetch('{{ route("coach.athletes.events", $enrollment->id) }}');
                 const list = await response.json();
                 if (!list || list.length === 0) {
-                    alert('Tidak ada data program aktif untuk diekspor.');
+                    alert('Tidak ada data kalender untuk diekspor.');
                     return;
                 }
 
@@ -4132,19 +2350,12 @@ createApp({
                 const runnerName = @json($enrollment->runner->name);
                 const sortedPlans = [...list].sort((a, b) => new Date(a.start) - new Date(b.start));
 
-                const opt = {
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#0b1220',
-                    scale: 2,
-                    logging: false
-                };
+                const opt = { useCORS: true, allowTaint: true, backgroundColor: '#0b1220', scale: 2, logging: false };
 
                 const getRowHtml = (plan, globalIdx) => {
                     const dateObj = new Date(plan.start);
                     const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                     const dayStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long' });
-                    
                     const props = plan.extendedProps || {};
                     const desc = props.description || plan.title;
                     const title = desc ? desc.split('\n')[0].replace(/^✅\s*|^❌\s*/, '') : 'Sesi Latihan';
@@ -4152,46 +2363,20 @@ createApp({
                     const target = props.distance ? `${props.distance} km` : (props.duration || '-');
                     
                     let statusTextStr = 'Pending';
-                    let statusBg = '#33415515';
                     let statusColor = '#94a3b8';
                     if (props.status === 'completed' || props.status === 'imported') {
                         statusTextStr = 'Selesai';
-                        statusBg = '#10b98115';
                         statusColor = '#10b981';
-                    } else if (props.status === 'started') {
-                        statusTextStr = 'Mulai';
-                        statusBg = '#eab30815';
-                        statusColor = '#eab308';
-                    } else if (props.status === 'missed') {
-                        statusTextStr = 'Missed';
-                        statusBg = '#ef444415';
-                        statusColor = '#ef4444';
                     }
-
-                    let typeColor = '#3b82f6';
-                    if (wType.toLowerCase().includes('easy') || wType.toLowerCase().includes('recovery')) typeColor = '#10b981';
-                    else if (wType.toLowerCase().includes('tempo') || wType.toLowerCase().includes('threshold')) typeColor = '#f97316';
-                    else if (wType.toLowerCase().includes('interval') || wType.toLowerCase().includes('speed')) typeColor = '#ef4444';
-                    else if (wType.toLowerCase().includes('long')) typeColor = '#6366f1';
-                    else if (wType.toLowerCase().includes('rest')) typeColor = '#64748b';
 
                     return `
                         <tr style="border-bottom: 1px solid #1e293b;">
-                            <td style="padding: 12px 8px; font-size: 12px; color: #64748b; font-family: monospace;">${globalIdx + 1}</td>
-                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00;">${dayStr}</td>
-                            <td style="padding: 12px 8px; font-size: 12px; color: #cbd5e1;">${dateStr}</td>
-                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ffffff;">
-                                ${title}
-                                <span style="display: inline-block; font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background-color: ${typeColor}15; color: ${typeColor}; border: 1px solid ${typeColor}30; margin-left: 8px;">
-                                    ${wType}
-                                </span>
-                            </td>
-                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00; text-align: center;">${target}</td>
-                            <td style="padding: 12px 8px; text-align: center;">
-                                <span style="display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background-color: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}30;">
-                                    ${statusTextStr}
-                                </span>
-                            </td>
+                            <td style="padding: 10px 8px; font-size: 11px; color: #64748b;">${globalIdx + 1}</td>
+                            <td style="padding: 10px 8px; font-size: 11px; font-weight: bold; color: #ccff00;">${dayStr}</td>
+                            <td style="padding: 10px 8px; font-size: 11px; color: #cbd5e1;">${dateStr}</td>
+                            <td style="padding: 10px 8px; font-size: 11px; color: #ffffff;">${title} (${wType})</td>
+                            <td style="padding: 10px 8px; font-size: 11px; color: #ccff00; text-align: center;">${target}</td>
+                            <td style="padding: 10px 8px; text-align: center; color: ${statusColor}; font-size: 10px; font-weight: bold;">${statusTextStr}</td>
                         </tr>
                     `;
                 };
@@ -4199,152 +2384,165 @@ createApp({
                 const getTableHeaderHtml = () => `
                     <table style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
-                            <tr style="border-bottom: 2px solid #334155; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
-                                <th style="padding: 10px 8px; width: 40px;">No</th>
-                                <th style="padding: 10px 8px; width: 100px;">Hari</th>
-                                <th style="padding: 10px 8px; width: 110px;">Tanggal</th>
-                                <th style="padding: 10px 8px;">Detail Latihan</th>
-                                <th style="padding: 10px 8px; width: 90px; text-align: center;">Target</th>
-                                <th style="padding: 10px 8px; width: 90px; text-align: center;">Status</th>
+                            <tr style="border-bottom: 2px solid #334155; color: #94a3b8; font-size: 10px; text-transform: uppercase;">
+                                <th style="padding: 8px; width: 35px;">No</th>
+                                <th style="padding: 8px; width: 90px;">Hari</th>
+                                <th style="padding: 8px; width: 100px;">Tanggal</th>
+                                <th style="padding: 8px;">Detail Latihan</th>
+                                <th style="padding: 8px; width: 80px; text-align: center;">Target</th>
+                                <th style="padding: 8px; width: 80px; text-align: center;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                 `;
 
                 if (type === 'image') {
-                    // Image option renders everything in a single long scrollable canvas
                     const container = document.createElement('div');
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
-                    container.style.top = '-9999px';
                     container.style.width = '800px';
-                    container.style.padding = '40px';
+                    container.style.padding = '30px';
                     container.style.backgroundColor = '#0b1220';
                     container.style.color = '#e2e8f0';
-                    container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                    container.style.fontFamily = 'sans-serif';
 
                     const headerHtml = `
-                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between;">
                             <div>
-                                <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
-                                <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan (Coach Monitor)</p>
+                                <h1 style="color: #ffffff; font-size: 20px; font-weight: bold; margin: 0;">Ruang Lari</h1>
+                                <p style="color: #94a3b8; font-size: 11px; margin: 4px 0 0 0;">Jadwal Program Latihan Atlet</p>
                             </div>
                             <div style="text-align: right;">
-                                <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
-                                <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Runner: ${runnerName}</p>
+                                <h3 style="color: #ccff00; font-size: 13px; font-weight: bold; margin: 0;">${programTitle}</h3>
+                                <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Atlet: ${runnerName}</p>
                             </div>
                         </div>
                     `;
 
                     let tableRows = '';
-                    sortedPlans.forEach((plan, idx) => {
-                        tableRows += getRowHtml(plan, idx);
-                    });
-
+                    sortedPlans.forEach((plan, idx) => { tableRows += getRowHtml(plan, idx); });
                     container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
                     document.body.appendChild(container);
 
                     html2canvas(container, opt).then(canvas => {
                         document.body.removeChild(container);
-                        const imgData = canvas.toDataURL('image/png');
                         const link = document.createElement('a');
-                        link.download = `kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
-                        link.href = imgData;
+                        link.download = `kalender-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+                        link.href = canvas.toDataURL('image/png');
                         link.click();
-                    }).catch(err => {
+                    }).catch(() => {
                         if (document.body.contains(container)) document.body.removeChild(container);
-                        console.error('Export image failed:', err);
                         alert('Gagal mengekspor gambar.');
                     });
 
                 } else if (type === 'pdf') {
-                    // PDF option renders page-by-page (15 rows per page) to prevent row splitting across pages
-                    const rowsPerPage = 15;
+                    const rowsPerPage = 16;
                     const totalPages = Math.ceil(sortedPlans.length / rowsPerPage);
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('p', 'mm', 'a4');
-                    const imgWidth = 190;
 
-                    const renderPage = async (pageIdx) => {
-                        const startIdx = pageIdx * rowsPerPage;
-                        const endIdx = Math.min(startIdx + rowsPerPage, sortedPlans.length);
-                        const pagePlans = sortedPlans.slice(startIdx, endIdx);
+                    for (let i = 0; i < totalPages; i++) {
+                        const startIdx = i * rowsPerPage;
+                        const pagePlans = sortedPlans.slice(startIdx, startIdx + rowsPerPage);
 
                         const container = document.createElement('div');
                         container.style.position = 'absolute';
                         container.style.left = '-9999px';
-                        container.style.top = '-9999px';
                         container.style.width = '800px';
-                        container.style.height = '1120px'; // Fixed A4 proportional height
-                        container.style.padding = '40px';
+                        container.style.height = '1120px';
+                        container.style.padding = '30px';
                         container.style.backgroundColor = '#0b1220';
                         container.style.color = '#e2e8f0';
-                        container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                        container.style.fontFamily = 'sans-serif';
                         container.style.boxSizing = 'border-box';
-                        container.style.display = 'flex';
-                        container.style.flexDirection = 'column';
 
                         const headerHtml = `
-                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between;">
                                 <div>
-                                    <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
-                                    <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan (Coach Monitor)</p>
+                                    <h1 style="color: #ffffff; font-size: 20px; font-weight: bold; margin: 0;">Ruang Lari</h1>
+                                    <p style="color: #94a3b8; font-size: 11px; margin: 4px 0 0 0;">Jadwal Program Latihan Atlet</p>
                                 </div>
                                 <div style="text-align: right;">
-                                    <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
-                                    <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Halaman ${pageIdx + 1} dari ${totalPages}</p>
+                                    <h3 style="color: #ccff00; font-size: 13px; font-weight: bold; margin: 0;">${programTitle}</h3>
+                                    <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Halaman ${i + 1} dari ${totalPages}</p>
                                 </div>
                             </div>
                         `;
 
                         let tableRows = '';
-                        pagePlans.forEach((plan, localIdx) => {
-                            tableRows += getRowHtml(plan, startIdx + localIdx);
-                        });
-
-                        // Add content
+                        pagePlans.forEach((plan, localIdx) => { tableRows += getRowHtml(plan, startIdx + localIdx); });
                         container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
-                        
-                        // Add footer pushing it to bottom of A4
-                        const footerDiv = document.createElement('div');
-                        footerDiv.style.marginTop = 'auto';
-                        footerDiv.style.paddingTop = '15px';
-                        footerDiv.style.borderTop = '1px solid #1e293b';
-                        footerDiv.style.display = 'flex';
-                        footerDiv.style.justifyContent = 'space-between';
-                        footerDiv.style.fontSize = '10px';
-                        footerDiv.style.color = '#64748b';
-                        footerDiv.innerHTML = `
-                            <span>Runner: ${runnerName}</span>
-                            <span>Generated via Ruang Lari</span>
-                        `;
-                        container.appendChild(footerDiv);
 
                         document.body.appendChild(container);
                         const canvas = await html2canvas(container, opt);
                         document.body.removeChild(container);
-                        return canvas.toDataURL('image/png');
-                    };
 
-                    // Sequential rendering of pages
-                    (async () => {
-                        for (let i = 0; i < totalPages; i++) {
-                            if (i > 0) pdf.addPage();
-                            const imgData = await renderPage(i);
-                            pdf.addImage(imgData, 'PNG', 10, 8.5, imgWidth, 280);
-                        }
-                        pdf.save(`kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`);
-                    })().catch(err => {
-                        console.error('PDF generation failed:', err);
-                        alert('Gagal mengekspor PDF.');
-                    });
+                        if (i > 0) pdf.addPage();
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, 277);
+                    }
+                    pdf.save(`kalender-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`);
                 }
-
             } catch (e) {
-                console.error(e);
-                alert('Gagal mengambil data dari server untuk ekspor.');
+                alert('Gagal mengekspor kalender.');
             }
-        }; // end exportCalendar
+        };
+
+        watch(selectedSession, (ev) => {
+            stravaMetrics.value = null;
+            stravaSplits.value = [];
+            stravaLaps.value = [];
+            if (!ev || !ev.extendedProps) return;
+            const props = ev.extendedProps || {};
+            let id = props.is_strava ? props.strava_activity_id : null;
+            if (!id && props.tracking && props.tracking.strava_link) {
+                const m = String(props.tracking.strava_link).match(/strava\.com\/activities\/(\d+)/i);
+                if (m) id = parseInt(m[1], 10);
+            }
+            if (id) loadStravaForActivity(id);
+        });
+
+        onMounted(() => {
+            const el = document.getElementById('calendar');
+            const isMobile = window.innerWidth < 768;
+
+            calendar = new FullCalendar.Calendar(el, {
+                initialView: isMobile ? 'listWeek' : 'dayGridMonth',
+                headerToolbar: isMobile 
+                    ? { left: 'prev,next', center: 'title', right: '' }
+                    : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                events: '{{ route("coach.athletes.events", $enrollment->id) }}',
+                locale: 'id',
+                firstDay: 1,
+                editable: true,
+                eventDrop: handleEventDrop,
+                eventClassNames: (arg) => {
+                    const props = arg.event.extendedProps || {};
+                    const type = props.type || 'run';
+                    return ['workout-' + type];
+                },
+                dateClick: (info) => {
+                    openForm(info.dateStr);
+                },
+                eventClick: (info) => {
+                    selectedSession.value = info.event;
+                    isMobileSheetOpen.value = true;
+                    const tracking = info.event.extendedProps.tracking;
+                    if (tracking) {
+                        feedbackForm.coach_rating = tracking.coach_rating || 0;
+                        feedbackForm.coach_feedback = tracking.coach_feedback || '';
+                    } else {
+                        feedbackForm.coach_rating = 0;
+                        feedbackForm.coach_feedback = '';
+                    }
+                    setTimeout(() => {
+                        const detailEl = document.getElementById('detail-feedback-column');
+                        if (detailEl) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                },
+                height: 'auto'
+            });
+            calendar.render();
+        });
 
         return { 
             trainingProfile, profileTab, formatPace,
@@ -4353,24 +2551,16 @@ createApp({
             showVdotModal, openVdotModal, vdotForm, vdotLoading, vdotError, vdotSuccess, previewVdot, submitUpdateVdot,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             exportCalendar,
-            stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
-            stravaAiAnalysis, stravaAiAnalysisLoading, stravaWorkoutClassification,
-            showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent, hideEventDropdown,
-            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
-            // Advanced Builder
+            stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps,
+            stravaWorkoutClassification,
+            showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent, hideEventDropdown,
+            form, openForm, saveCustomWorkout, deleteCustomWorkout,
             builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise,
-            showStravaGraphModal,
-            // New Features
             predictor, predictedTime,
-            chatContainer, chatState, toggleChatDrawer, loadChatMessages, sendChatMessage, formatChatTime,
-            paceComplianceList, healthSummary,
-            // Weekly Reports
             nudgeStrava, syncStrava, generateWeeklyReport, publishWeeklyReport, selectWeeklyReport, formatDateShort,
-            // Reschedule Program
             showRescheduleModal, rescheduleForm, rescheduleLoading, rescheduleError,
             openRescheduleModal, submitReschedule, previewRescheduleEndDate,
             setStartDateToday, setStartDateNextMonday, setStartDateNextMonth,
-            // Send Program Reminder
             showReminderModal, reminderForm, reminderSessionInfo, reminderLoading, reminderError, reminderSuccess,
             openReminderModal, submitReminder,
             weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
@@ -4379,15 +2569,6 @@ createApp({
 }).mount('#coach-monitor-app');
     } catch (e) {
         console.error('Vue mount error:', e);
-
-        const el = document.getElementById('coach-monitor-app');
-        if (el) {
-            el.removeAttribute('v-cloak');
-            el.insertAdjacentHTML(
-                'afterbegin',
-                '<div style="background:#7f1d1d;color:#fca5a5;padding:12px 16px;border-radius:8px;margin:16px;font-family:monospace;font-size:12px;z-index:9999;position:relative"><strong>Vue Error:</strong> ' + e.message + '</div>'
-            );
-        }
     }
 }
 </script>

@@ -1261,6 +1261,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/programs/{program}/export-csv', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-csv');
         Route::get('/programs/{program}/export-excel', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-excel');
 
+        // Finance & Billing
+        Route::get('/finance', [App\Http\Controllers\Coach\FinanceController::class, 'index'])->name('finance.index');
+        Route::get('/invoices', [App\Http\Controllers\Coach\InvoiceController::class, 'index'])->name('invoices.index');
+        Route::post('/invoices', [App\Http\Controllers\Coach\InvoiceController::class, 'store'])->name('invoices.store');
+        Route::post('/invoices/{invoice}/mark-paid', [App\Http\Controllers\Coach\InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
+        Route::post('/invoices/{invoice}/cancel', [App\Http\Controllers\Coach\InvoiceController::class, 'cancel'])->name('invoices.cancel');
+        Route::post('/athletes/{enrollment}/record-session', [App\Http\Controllers\Coach\InvoiceController::class, 'recordSessionUsage'])->name('athletes.record-session');
+
         // Withdrawals
         Route::get('/withdrawals', [App\Http\Controllers\Coach\WithdrawalController::class, 'index'])->name('withdrawals.index');
         Route::post('/withdrawals/request', [App\Http\Controllers\Coach\WithdrawalController::class, 'request'])->name('withdrawals.request');

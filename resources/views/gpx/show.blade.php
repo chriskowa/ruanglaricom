@@ -270,30 +270,29 @@
         </div>
 
         <!-- Primary Map & Integrated Elevation Stage -->
-        <div class="bg-[#111724] border border-slate-800/80 rounded-2xl shadow-2xl relative" id="gpx-map-card-wrap">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg shadow-2xl relative" id="gpx-map-card-wrap">
             <!-- Map Sub-header with Mode Switchers -->
-            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-[#0c121e] relative z-40 rounded-t-2xl">
+            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-slate-900 relative z-40 rounded-t-lg">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-[#FC4C02] shadow-[0_0_8px_#FC4C02]"></span>
-                    <h2 class="font-bold text-white text-xs tracking-wide">Peta Interaktif Jalur GPX</h2>
+                    <span class="w-2 h-2 rounded-full bg-neon"></span>
+                    <h2 class="font-semibold text-white text-xs">Peta Interaktif Jalur GPX</h2>
                 </div>
 
                 <!-- Navigation Controls Toolbar -->
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm" title="Tampilkan / Sembunyikan Marker KM">
-                        <span class="w-3.5 h-3.5 rounded-full bg-[#FC4C02] text-white text-[8px] font-mono font-black flex items-center justify-center">1</span>
+                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5" title="Tampilkan / Sembunyikan Marker KM">
+                        <span class="w-3.5 h-3.5 rounded-full bg-slate-700 text-white text-[9px] font-mono font-bold flex items-center justify-center">1</span>
                         <span>KM</span>
-                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">ON</span>
+                        <span id="badge-km-toggle-state" class="text-[10px] px-1 py-0.2 rounded bg-emerald-950 text-emerald-300 font-mono font-medium">ON</span>
                     </button>
 
                     <!-- Map Layer Switcher -->
                     <div class="relative inline-block z-50" id="map-layer-dropdown-wrapper">
-                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-layer-group text-[10px] text-[#FC4C02]"></i>
-                            <span id="label-active-map-layer" class="hidden xs:inline">Voyager Light</span>
+                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5">
+                            <span id="label-active-map-layer">Peta: Dark</span>
                             <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
                         </button>
-                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-[#0c121e] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800" style="background-color: #0c121e !important; opacity: 1 !important;">
+                        <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-slate-900 border border-slate-800 rounded-md shadow-2xl py-1 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800">
                             <button type="button" onclick="setMapLayer('street')" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-between cursor-pointer transition">
                                 <span>Voyager Light</span>
                                 <span class="layer-check-street text-[#FC4C02] text-[11px] font-bold"><i class="fa-solid fa-check"></i></span>
