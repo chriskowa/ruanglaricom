@@ -1280,7 +1280,7 @@ Route::middleware('auth')->group(function () {
         // Custom Workouts
         Route::resource('custom-workouts', App\Http\Controllers\Coach\CustomWorkoutController::class);
 
-        Route::resource('programs', App\Http\Controllers\Coach\ProgramController::class);
+        // Coach Programs specific routes (placed before resource to prevent route shadowing)
         Route::post('/programs/generate-template', [App\Http\Controllers\Coach\ProgramController::class, 'generateTemplate'])->name('programs.generate-template');
         Route::post('/programs/import-json', [App\Http\Controllers\Coach\ProgramController::class, 'importJson'])->name('programs.import-json');
         Route::post('/programs/import-csv', [App\Http\Controllers\Coach\ProgramController::class, 'importCsv'])->name('programs.import-csv');
@@ -1290,7 +1290,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/programs/{program}/unpublish', [App\Http\Controllers\Coach\ProgramController::class, 'unpublish'])->name('programs.unpublish');
         Route::get('/programs/{program}/export-json', [App\Http\Controllers\Coach\ProgramController::class, 'exportJson'])->name('programs.export-json');
         Route::get('/programs/{program}/export-csv', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-csv');
-        Route::get('/programs/{program}/export-excel', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-excel');
+        Route::get('/programs/{program}/export-excel', [App\Http\Controllers\Coach\ProgramController::class, 'exportExcel'])->name('programs.export-excel');
+        Route::resource('programs', App\Http\Controllers\Coach\ProgramController::class);
 
         // Finance & Billing
         Route::get('/finance', [App\Http\Controllers\Coach\FinanceController::class, 'index'])->name('finance.index');
@@ -1328,6 +1329,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/{enrollment}/generate-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'generateWeeklyReport'])->name('athletes.generate-weekly-report');
         Route::post('/athletes/{enrollment}/store-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'storeWeeklyReport'])->name('athletes.store-weekly-report');
         Route::post('/athletes/{enrollment}/reschedule', [App\Http\Controllers\Coach\AthleteController::class, 'reschedule'])->name('athletes.reschedule');
+        Route::match(['GET', 'POST'], '/athletes/{enrollment}/generate-ai-program', [App\Http\Controllers\Coach\AthleteController::class, 'generateAiProgram'])->name('athletes.generate-ai-program');
+        Route::match(['GET', 'POST'], '/athletes/{enrollment}/apply-ai-program', [App\Http\Controllers\Coach\AthleteController::class, 'applyAiProgram'])->name('athletes.apply-ai-program');
         Route::post('/athletes/{enrollment}/send-reminder', [App\Http\Controllers\Coach\AthleteController::class, 'sendReminder'])->name('athletes.send-reminder');
         Route::post('/athletes/{enrollment}/send-login-access', [App\Http\Controllers\Coach\AthleteController::class, 'sendLoginAccess'])->name('athletes.send-login-access');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/ai-analysis', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityAiAnalysis'])->name('athletes.strava.activities.ai-analysis');

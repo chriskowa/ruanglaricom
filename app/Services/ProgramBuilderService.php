@@ -59,6 +59,8 @@ class ProgramBuilderService
         $includeStrength = filter_var($config['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
         $strengthType = $config['strength_type'] ?? 'bodyweight';
         $injuryHistory = $config['injury_history'] ?? 'none';
+        $startingPhase = $config['starting_phase'] ?? 'base'; // 'base' | 'build' | 'peak'
+        $intensityTone = $config['intensity_tone'] ?? ($config['aggressiveness'] ?? 'standard'); // 'standard' | 'sharp' | 'conservative'
 
         $library = $this->loadLibrary();
 
@@ -74,6 +76,20 @@ class ProgramBuilderService
         $volumeFactor = $levelRules['volume_adjustment'] ?? 1.00;
         $maxQualitySessions = $levelRules['max_quality_sessions_per_week'] ?? 1;
 
+        // Apply Intensity Tone / Aggressiveness Tuning (Realistis & Fisiologis)
+        if ($intensityTone === 'sharp') {
+            if ($runnerLevel === 'advanced') {
+                $maxQualitySessions = 2;
+            } elseif ($runnerLevel === 'intermediate') {
+                $maxQualitySessions = 2;
+            } else {
+                $maxQualitySessions = 1;
+            }
+        } elseif ($intensityTone === 'conservative') {
+            $maxQualitySessions = 1;
+            $volumeFactor *= 0.95;
+        }
+
         $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
 
         // Map target distance to goal categories
@@ -84,7 +100,7 @@ class ProgramBuilderService
         $goal = $distanceMap[strtolower($targetDistance)] ?? '10K';
 
         // ===== PHASE CALCULATION =====
-        $phases = $this->calculatePhases($weeks, $targetDistance, $runnerLevel);
+        $phases = $this->calculatePhases($weeks, $targetDistance, $runnerLevel, $startingPhase);
         $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
 
@@ -144,8 +160,10 @@ class ProgramBuilderService
 
             // Professional Coaching Rules for Quality Session Counts:
             if ($w === 1) {
-                // Week 1: Beginner gets 0 quality sessions (100% aerobic base). Intermediate/Advanced gets max 1.
-                $weeklyQualityCount = ($runnerLevel === 'beginner') ? 0 : min($weeklyQualityCount, 1);
+                if ($startingPhase === 'base') {
+                    // Week 1 of Base: Beginner gets 0 quality sessions (100% aerobic base). Intermediate/Advanced gets max 1.
+                    $weeklyQualityCount = ($runnerLevel === 'beginner') ? 0 : min($weeklyQualityCount, 1);
+                }
             } elseif ($phase === 'Base') {
                 // Base phase: Cap quality sessions at max 1 per week to build aerobic foundation safely
                 $weeklyQualityCount = min($weeklyQualityCount, 1);
@@ -554,21 +572,47 @@ class ProgramBuilderService
     // =========================================================================
 
     /**
-     * Calculate phase boundaries — now level-aware.
+     * Calculate phase boundaries — now level-aware and phase-continuation-aware.
      *
-     * Beginners need a longer Base phase (connective tissue adaptation + aerobic foundation).
-     * Advanced runners can spend relatively more time in Speed/Race-specific phases.
+     * Supports:
+     * - 'base': Full periodization (Base -> Strength/Build -> Speed/Peak -> Taper)
+     * - 'build': Continues to Build/Strength phase (Athlete already completed 4-8 weeks Base)
+     * - 'peak': Continues to Peak/Race-specific phase (Athlete already completed Base & Build)
      */
-    private function calculatePhases(int $totalWeeks, string $targetDistance, string $runnerLevel = 'intermediate'): array
+    private function calculatePhases(int $totalWeeks, string $targetDistance, string $runnerLevel = 'intermediate', string $startingPhase = 'base'): array
     {
         $library = $this->loadLibrary();
         $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
-        $trainingWeeks = max(3, $totalWeeks - $taperWeeks);
+        $trainingWeeks = max(2, $totalWeeks - $taperWeeks);
 
-        // Level-aware phase ratios
-        // Beginners: more Base (connective tissue + aerobic base + gradual progression)
-        // Advanced: less Base, more Speed/Race-specific
+        if ($startingPhase === 'build') {
+            // Athlete completed 4-8 weeks of Base: Focus directly on Build (Threshold/Tempo) & Speed
+            $baseWeeks = 0;
+            $strengthWeeks = max(2, (int) round($trainingWeeks * 0.55));
+            $speedWeeks = max(1, $trainingWeeks - $baseWeeks - $strengthWeeks);
+
+            return [
+                'base'     => $baseWeeks,
+                'strength' => $strengthWeeks,
+                'speed'    => $speedWeeks,
+            ];
+        }
+
+        if ($startingPhase === 'peak') {
+            // Athlete completed Base and Build: Focus directly on VO2 Max intervals, race simulation & sharpening
+            $baseWeeks = 0;
+            $strengthWeeks = min(2, max(0, (int) round($trainingWeeks * 0.20)));
+            $speedWeeks = max(2, $trainingWeeks - $baseWeeks - $strengthWeeks);
+
+            return [
+                'base'     => $baseWeeks,
+                'strength' => $strengthWeeks,
+                'speed'    => $speedWeeks,
+            ];
+        }
+
+        // Level-aware phase ratios for full cycle (starting from Base)
         $ratios = match ($runnerLevel) {
             'beginner' => match (strtolower($targetDistance)) {
                 '42k' => ['base' => 0.50, 'strength' => 0.32, 'speed' => 0.18],
@@ -589,9 +633,9 @@ class ProgramBuilderService
             },
         };
 
-        $baseWeeks    = max(1, (int) round($trainingWeeks * $ratios['base']));
+        $baseWeeks     = max(1, (int) round($trainingWeeks * $ratios['base']));
         $strengthWeeks = max(1, (int) round($trainingWeeks * $ratios['strength']));
-        $speedWeeks   = max(1, $trainingWeeks - $baseWeeks - $strengthWeeks);
+        $speedWeeks    = max(1, $trainingWeeks - $baseWeeks - $strengthWeeks);
 
         return [
             'base'     => $baseWeeks,

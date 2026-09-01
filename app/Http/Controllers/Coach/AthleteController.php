@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Coach;
 
 use App\Http\Controllers\Controller;
+use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
+use App\Services\DanielsRunningService;
+use App\Services\ProgramBuilderService;
 use App\Services\StravaApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AthleteController extends Controller
 {
@@ -2744,6 +2748,278 @@ class AthleteController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus atlet: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate AI Program preview for an athlete
+     */
+    public function generateAiProgram(Request $request, $enrollmentId)
+    {
+        if ($request->isMethod('GET')) {
+            return redirect()->route('coach.athletes.show', $enrollmentId);
+        }
+
+        $enrollment = ProgramEnrollment::with(['runner', 'program'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'target_distance' => 'required|in:5k,10k,21k,42k',
+            'target_date'     => 'required|date|after_or_equal:today',
+            'start_date'      => 'nullable|date',
+            'goal_time'       => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
+            'current_vdot'    => 'nullable|numeric|min:10|max:85',
+            'pb_distance'     => 'nullable|string|in:5k,10k,21k,42k',
+            'pb_time'         => 'nullable|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
+            'weekly_mileage'  => 'required|numeric|min:5|max:200',
+            'frequency'       => 'required|integer|min:3|max:7',
+            'runner_level'    => 'required|in:beginner,intermediate,advanced',
+            'long_run_day'    => 'required|in:saturday,sunday',
+            'starting_phase'  => 'required|in:base,build,peak',
+            'intensity_tone'  => 'required|in:standard,sharp,conservative',
+            'include_strength'=> 'nullable|boolean',
+            'strength_type'   => 'nullable|in:bodyweight,gym',
+            'is_tropical'     => 'nullable|boolean',
+        ]);
+
+        try {
+            $daniels = app(DanielsRunningService::class);
+            $builder = app(ProgramBuilderService::class);
+
+            // Determine baseline VDOT
+            $currentVdot = null;
+            if (!empty($validated['current_vdot'])) {
+                $currentVdot = (float) $validated['current_vdot'];
+            } elseif (!empty($validated['pb_distance']) && !empty($validated['pb_time'])) {
+                $currentVdot = $daniels->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
+            } elseif ($enrollment->runner && $enrollment->runner->vdot) {
+                $currentVdot = (float) $enrollment->runner->vdot;
+            } else {
+                $currentVdot = 35.0; // safe baseline fallback
+            }
+
+            // Target VDOT from goal time
+            $targetVdot = $daniels->calculateVDOT($validated['goal_time'], $validated['target_distance']);
+
+            // Level-aware max VDOT improvement limit
+            $maxImprovement = match ($validated['runner_level']) {
+                'beginner' => 0.08,
+                'advanced' => 0.12,
+                default    => 0.10,
+            };
+
+            // If intensity is sharp, allow slightly sharper progression ceiling
+            if ($validated['intensity_tone'] === 'sharp') {
+                $maxImprovement += 0.02;
+            } elseif ($validated['intensity_tone'] === 'conservative') {
+                $maxImprovement = max(0.04, $maxImprovement - 0.03);
+            }
+
+            $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $maxImprovement));
+
+            // Calculate duration in weeks
+            $targetDate = Carbon::parse($validated['target_date']);
+            if (!empty($validated['start_date'])) {
+                $startDate = Carbon::parse($validated['start_date']);
+                $diffDays = max(7, $startDate->diffInDays($targetDate, false));
+                $weeks = max(4, min(24, (int) ceil($diffDays / 7)));
+            } else {
+                $weeks = max(4, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+                $startDate = now()->next(Carbon::MONDAY);
+            }
+
+            $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
+            // Build program using ProgramBuilderService
+            $built = $builder->build([
+                'target_distance' => $validated['target_distance'],
+                'weekly_mileage'  => (float) $validated['weekly_mileage'],
+                'frequency'       => (int) $validated['frequency'],
+                'weeks'           => $weeks,
+                'initial_vdot'    => $currentVdot,
+                'target_vdot'     => $safeTargetVdot,
+                'runner_level'    => $validated['runner_level'],
+                'long_run_day'    => $validated['long_run_day'],
+                'is_tropical'     => $isTropical,
+                'include_strength'=> $includeStrength,
+                'strength_type'   => $validated['strength_type'] ?? 'bodyweight',
+                'injury_history'  => 'none',
+                'starting_phase'  => $validated['starting_phase'],
+                'intensity_tone'  => $validated['intensity_tone'],
+            ]);
+
+            // Calculate training paces
+            $paces = $daniels->calculateTrainingPaces($currentVdot);
+            if ($isTropical) {
+                $paces['E'] *= 1.05;
+                $paces['M'] *= 1.05;
+                $paces['T'] *= 1.04;
+                $paces['I'] *= 1.03;
+                $paces['R'] *= 1.02;
+            }
+
+            return response()->json([
+                'success' => true,
+                'program' => [
+                    'title' => "AI Plan: " . strtoupper($validated['target_distance']) . " (" . round($safeTargetVdot, 1) . ")",
+                    'target_distance' => $validated['target_distance'],
+                    'start_date' => $startDate->toDateString(),
+                    'target_date' => $targetDate->toDateString(),
+                    'weeks' => $weeks,
+                    'initial_vdot' => round($currentVdot, 1),
+                    'target_vdot' => round($safeTargetVdot, 1),
+                    'starting_phase' => $validated['starting_phase'],
+                    'intensity_tone' => $validated['intensity_tone'],
+                    'phases' => $built['phases'] ?? [],
+                    'paces' => $paces,
+                    'weekly_mileage_curve' => $built['weekly_mileage_curve'] ?? [],
+                    'sessions' => $built['sessions'] ?? [],
+                    'summary' => $built['summary'] ?? [],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('AI Program Generation Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate program AI: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Apply generated AI program to athlete's enrollment and calendar
+     */
+    public function applyAiProgram(Request $request, $enrollmentId)
+    {
+        if ($request->isMethod('GET')) {
+            return redirect()->route('coach.athletes.show', $enrollmentId);
+        }
+
+        $enrollment = ProgramEnrollment::with(['runner', 'program'])->findOrFail($enrollmentId);
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'start_date'      => 'required|date',
+            'target_date'     => 'required|date',
+            'target_distance' => 'required|string',
+            'sessions'        => 'required|array|min:1',
+            'vdot'            => 'nullable|numeric',
+            'weekly_mileage'  => 'nullable|numeric',
+            'summary'         => 'nullable|array',
+            'title'           => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $runner = $enrollment->runner;
+            $startDate = Carbon::parse($validated['start_date']);
+            $targetDate = Carbon::parse($validated['target_date']);
+            $sessions = $validated['sessions'];
+            $totalDays = count($sessions);
+            $durationWeeks = (int) max(1, ceil($totalDays / 7));
+            $endDate = $startDate->copy()->addDays($totalDays - 1);
+            $vdot = isset($validated['vdot']) ? (float)$validated['vdot'] : ($runner->vdot ?? 35);
+            $title = $validated['title'] ?? ("AI " . strtoupper($validated['target_distance']) . " Plan (" . round($vdot, 1) . ")");
+
+            // If the program currently has multiple enrollments, create a dedicated program for this athlete
+            $otherEnrollmentsCount = ProgramEnrollment::where('program_id', $enrollment->program_id)
+                ->where('id', '!=', $enrollment->id)
+                ->count();
+
+            if ($otherEnrollmentsCount > 0) {
+                // Fork/Create a unique Program for this athlete
+                $newProgram = Program::create([
+                    'coach_id' => auth()->id(),
+                    'title' => $title,
+                    'slug' => \Illuminate\Support\Str::slug($title) . '-' . \Illuminate\Support\Str::random(6),
+                    'description' => "Program latihan terpersonalisasi AI Daniels VDOT untuk " . $runner->name,
+                    'distance_target' => $validated['target_distance'],
+                    'duration_weeks' => $durationWeeks,
+                    'program_json' => [
+                        'sessions' => $sessions,
+                        'summary'  => $validated['summary'] ?? [],
+                    ],
+                    'is_active' => true,
+                    'is_public' => false,
+                ]);
+
+                $enrollment->update([
+                    'program_id'   => $newProgram->id,
+                    'start_date'   => $startDate,
+                    'end_date'     => $endDate,
+                    'current_vdot' => $vdot,
+                    'status'       => 'active',
+                ]);
+            } else {
+                // Update the single program directly
+                $enrollment->program->update([
+                    'title'           => $title,
+                    'distance_target' => $validated['target_distance'],
+                    'duration_weeks'  => $durationWeeks,
+                    'program_json'    => [
+                        'sessions' => $sessions,
+                        'summary'  => $validated['summary'] ?? [],
+                    ],
+                ]);
+
+                $enrollment->update([
+                    'start_date'   => $startDate,
+                    'end_date'     => $endDate,
+                    'current_vdot' => $vdot,
+                    'status'       => 'active',
+                ]);
+            }
+
+            // Clean up old pending session tracking so new calendar is fresh
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+                ->where(function ($q) {
+                    $q->where('status', 'pending')
+                      ->orWhereNull('status');
+                })
+                ->delete();
+
+            // Update runner metrics if provided
+            if ($vdot > 0) {
+                $runner->update([
+                    'vdot' => $vdot,
+                    'weekly_km_target' => $validated['weekly_mileage'] ?? $runner->weekly_km_target,
+                ]);
+            }
+
+            // Create notification for runner
+            \App\Models\Notification::create([
+                'user_id' => $runner->id,
+                'type' => 'program_updated',
+                'title' => 'Program Latihan AI Diperbarui',
+                'message' => 'Coach ' . auth()->user()->name . ' telah memperbarui kalender program latihan Anda.',
+                'reference_type' => 'program_enrollment',
+                'reference_id' => $enrollment->id,
+                'is_read' => false,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Program latihan AI berhasil diterapkan ke kalender atlet.',
+                'vdot' => $vdot,
+                'weekly_km_target' => $runner->weekly_km_target,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menerapkan program AI: ' . $e->getMessage(),
             ], 500);
         }
     }

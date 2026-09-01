@@ -130,8 +130,11 @@
                             </a>
                             
                             <!-- Program Action Buttons -->
+                            <button @click="openAiProgramModal()" class="px-3 py-1 bg-neon text-dark hover:bg-white font-semibold text-xs rounded-md transition flex items-center gap-1.5 shadow-sm">
+                                <span>Generate Program AI</span>
+                            </button>
                             @if($enrollment->status !== 'active')
-                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-neon text-dark font-semibold text-xs rounded-md hover:bg-white transition">
+                                <button @click="openRescheduleModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white text-xs font-medium rounded-md transition">
                                     Aktifkan Program
                                 </button>
                             @else
@@ -882,6 +885,355 @@
                             @{{ loading ? 'Menyimpan...' : 'Simpan Workout' }}
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate AI Program Modal -->
+        <div v-if="showAiProgramModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/80" @click="showAiProgramModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-3xl shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+
+                    <!-- Header -->
+                    <div class="p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 bg-neon/10 border border-neon/30 text-neon text-[10px] font-bold rounded uppercase tracking-wider">Daniels VDOT 2.0</span>
+                                    <h3 class="text-base font-semibold text-white">AI Program Generator</h3>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">Periodisasi cerdas untuk atlet: <strong>@{{ trainingProfile.name }}</strong></p>
+                            </div>
+                            <button @click="showAiProgramModal = false" class="text-slate-400 hover:text-white transition text-xl p-1 leading-none">
+                                &times;
+                            </button>
+                        </div>
+
+                        <!-- Tab Header Navigation -->
+                        <div class="flex gap-2 mt-4 bg-slate-950 p-1 rounded-md border border-slate-800">
+                            <button type="button" @click="aiProgramTab = 'config'"
+                                :class="aiProgramTab === 'config' ? 'bg-slate-800 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+                                class="flex-1 py-1.5 px-3 text-xs rounded transition text-center">
+                                1. Konfigurasi Parameter
+                            </button>
+                            <button type="button" @click="aiProgramPreview ? (aiProgramTab = 'preview') : null"
+                                :disabled="!aiProgramPreview"
+                                :class="aiProgramTab === 'preview' ? 'bg-slate-800 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed'"
+                                class="flex-1 py-1.5 px-3 text-xs rounded transition text-center flex items-center justify-center gap-1.5">
+                                <span>2. Preview & Terapkan</span>
+                                <span v-if="aiProgramPreview" class="w-2 h-2 rounded-full bg-neon"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-5">
+
+                        <!-- Tab 1: Konfigurasi -->
+                        <div v-show="aiProgramTab === 'config'" class="space-y-4">
+                            <!-- Target Distance & Dates -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Target Jarak Lomba</label>
+                                    <select v-model="aiProgramForm.target_distance" @change="updateDefaultGoalTime" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                        <option value="5k">5K (5.000m)</option>
+                                        <option value="10k">10K (10.000m)</option>
+                                        <option value="21k">Half Marathon (21.1 km)</option>
+                                        <option value="42k">Full Marathon (42.2 km)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Tanggal Mulai</label>
+                                    <input type="date" v-model="aiProgramForm.start_date" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Tanggal Race (Target)</label>
+                                    <input type="date" v-model="aiProgramForm.target_date" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                </div>
+                            </div>
+
+                            <!-- Performance & Volume Profile -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Target Waktu Finish</label>
+                                    <input type="text" v-model="aiProgramForm.goal_time" placeholder="HH:MM:SS / MM:SS" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">VDOT Acuan Saat Ini</label>
+                                    <input type="number" step="0.1" v-model="aiProgramForm.current_vdot" placeholder="38.0" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Target Volume Mingguan (KM)</label>
+                                    <input type="number" step="1" v-model="aiProgramForm.weekly_mileage" placeholder="35" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none font-mono">
+                                </div>
+                            </div>
+
+                            <!-- Starting Phase / Lanjut Fase -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-2">
+                                <div class="flex justify-between items-baseline">
+                                    <label class="block text-xs font-semibold text-white">Kelanjutan Fase (Starting Phase)</label>
+                                    <span class="text-[11px] text-slate-400">Pilih jika atlet sudah melewati base</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.starting_phase === 'base' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="base" v-model="aiProgramForm.starting_phase" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.starting_phase === 'base' ? 'text-neon' : 'text-slate-200'">Siklus Penuh (Base)</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Mulai dari fase pondasi aerobik penuh (Base &rarr; Build &rarr; Peak &rarr; Taper).</div>
+                                    </label>
+
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.starting_phase === 'build' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="build" v-model="aiProgramForm.starting_phase" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.starting_phase === 'build' ? 'text-neon' : 'text-slate-200'">Lanjut ke Build Fase</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Lewati Base (atlet sudah 4-8 minggu Base). Fokus Threshold, Tempo & Speed.</div>
+                                    </label>
+
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.starting_phase === 'peak' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="peak" v-model="aiProgramForm.starting_phase" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.starting_phase === 'peak' ? 'text-neon' : 'text-slate-200'">Lanjut ke Peak Fase</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Lewati Base & Build. Langsung masuk VO2 Max intervals, race specific & taper.</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Intensity Tone / Pilihan Generator -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-2">
+                                <div class="flex justify-between items-baseline">
+                                    <label class="block text-xs font-semibold text-white">Pilihan Ketajaman & Intensitas Generator</label>
+                                    <span class="text-[11px] text-slate-400">Gaya pembebanan workout</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.intensity_tone === 'standard' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="standard" v-model="aiProgramForm.intensity_tone" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.intensity_tone === 'standard' ? 'text-neon' : 'text-slate-200'">Standar & Seimbang</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Periodisasi Jack Daniels klasik yang seimbang dan stabil.</div>
+                                    </label>
+
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.intensity_tone === 'sharp' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="sharp" v-model="aiProgramForm.intensity_tone" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.intensity_tone === 'sharp' ? 'text-neon' : 'text-slate-200'">Tajam & Progresif</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Beban lebih keras, 2 sesi kualitas/minggu, progresif namun tetap aman.</div>
+                                    </label>
+
+                                    <label class="relative flex flex-col p-3 rounded-md border cursor-pointer transition text-left"
+                                        :class="aiProgramForm.intensity_tone === 'conservative' ? 'bg-slate-900 border-neon text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'">
+                                        <input type="radio" value="conservative" v-model="aiProgramForm.intensity_tone" class="sr-only">
+                                        <div class="text-xs font-semibold" :class="aiProgramForm.intensity_tone === 'conservative' ? 'text-neon' : 'text-slate-200'">Konservatif & Aman</div>
+                                        <div class="text-[11px] text-slate-400 mt-1 leading-snug">Volume lebih santai, porsi pemulihan lega untuk cegah cedera.</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Runner Profile & Preferences -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Frekuensi Lari (Hari/Minggu)</label>
+                                    <select v-model="aiProgramForm.frequency" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                        <option :value="3">3 Hari / Minggu</option>
+                                        <option :value="4">4 Hari / Minggu</option>
+                                        <option :value="5">5 Hari / Minggu</option>
+                                        <option :value="6">6 Hari / Minggu</option>
+                                        <option :value="7">7 Hari / Minggu</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Level Atlet</label>
+                                    <select v-model="aiProgramForm.runner_level" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                        <option value="beginner">Beginner (Pemula)</option>
+                                        <option value="intermediate">Intermediate (Menengah)</option>
+                                        <option value="advanced">Advanced (Mahir)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Hari Long Run</label>
+                                    <select v-model="aiProgramForm.long_run_day" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-md p-2.5 focus:ring-1 focus:ring-slate-500 outline-none">
+                                        <option value="sunday">Minggu</option>
+                                        <option value="saturday">Sabtu</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Strength & Climate Toggles -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs font-medium text-white">Latihan Kekuatan (Strength)</div>
+                                        <div class="text-[11px] text-slate-400">Sisipkan program core & strength</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <select v-if="aiProgramForm.include_strength" v-model="aiProgramForm.strength_type" class="bg-slate-900 border border-slate-700 text-white text-xs rounded p-1">
+                                            <option value="bodyweight">Bodyweight</option>
+                                            <option value="gym">Gym / Beban</option>
+                                        </select>
+                                        <input type="checkbox" v-model="aiProgramForm.include_strength" class="w-4 h-4 rounded text-neon focus:ring-0 bg-slate-900 border-slate-700">
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs font-medium text-white">Adaptasi Iklim Tropis</div>
+                                        <div class="text-[11px] text-slate-400">Offset suhu & kelembapan Indonesia (+2-5% pace)</div>
+                                    </div>
+                                    <input type="checkbox" v-model="aiProgramForm.is_tropical" class="w-4 h-4 rounded text-neon focus:ring-0 bg-slate-900 border-slate-700">
+                                </div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div v-if="aiProgramError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-md p-3">
+                                @{{ aiProgramError }}
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Preview & Terapkan -->
+                        <div v-show="aiProgramTab === 'preview' && aiProgramPreview" class="space-y-4">
+                            <!-- Metrics Cards -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 text-center">
+                                    <div class="text-[11px] text-slate-400">Target & Durasi</div>
+                                    <div class="text-sm font-bold text-white font-mono mt-0.5">@{{ aiProgramPreview?.target_distance?.toUpperCase() }} • @{{ aiProgramPreview?.weeks }} Mgg</div>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 text-center">
+                                    <div class="text-[11px] text-slate-400">Target VDOT</div>
+                                    <div class="text-sm font-bold text-neon font-mono mt-0.5">@{{ aiProgramPreview?.target_vdot }} <span class="text-xs text-slate-400 font-normal">(dari @{{ aiProgramPreview?.initial_vdot }})</span></div>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 text-center">
+                                    <div class="text-[11px] text-slate-400">Mulai & Selesai</div>
+                                    <div class="text-xs font-semibold text-slate-200 font-mono mt-0.5">@{{ formatDateShort(aiProgramPreview?.start_date) }} - @{{ formatDateShort(aiProgramPreview?.target_date) }}</div>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 text-center">
+                                    <div class="text-[11px] text-slate-400">Fase & Intensitas</div>
+                                    <div class="text-xs font-semibold text-white mt-0.5 capitalize">@{{ aiProgramPreview?.starting_phase }} • @{{ aiProgramPreview?.intensity_tone }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Phase Distribution Badges -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-3.5 space-y-2">
+                                <div class="text-xs font-semibold text-white">Alokasi Durasi Fase Latihan:</div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2 text-center">
+                                        <span class="text-slate-400 block text-[10px]">Base (Aerobik)</span>
+                                        <span class="font-bold text-white font-mono">@{{ aiProgramPreview?.phases?.base ?? 0 }} Minggu</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2 text-center">
+                                        <span class="text-slate-400 block text-[10px]">Build (Strength/Tempo)</span>
+                                        <span class="font-bold text-white font-mono">@{{ aiProgramPreview?.phases?.strength ?? 0 }} Minggu</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2 text-center">
+                                        <span class="text-slate-400 block text-[10px]">Peak (Speed/VO2Max)</span>
+                                        <span class="font-bold text-white font-mono">@{{ aiProgramPreview?.phases?.speed ?? 0 }} Minggu</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2 text-center">
+                                        <span class="text-slate-400 block text-[10px]">Taper (Sharpening)</span>
+                                        <span class="font-bold text-white font-mono">@{{ aiProgramPreview?.phases?.taper ?? 1 }} Minggu</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Target Paces Breakdown -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-3.5 space-y-2">
+                                <div class="text-xs font-semibold text-white">Target Pace Pelatihan (Daniels VDOT):</div>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                        <span class="text-emerald-400 block text-[10px] font-semibold">Easy (E)</span>
+                                        <span class="font-mono text-white font-semibold">@{{ formatPace(aiProgramPreview?.paces?.E) }} /km</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                        <span class="text-sky-400 block text-[10px] font-semibold">Marathon (M)</span>
+                                        <span class="font-mono text-white font-semibold">@{{ formatPace(aiProgramPreview?.paces?.M) }} /km</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                        <span class="text-yellow-400 block text-[10px] font-semibold">Threshold (T)</span>
+                                        <span class="font-mono text-white font-semibold">@{{ formatPace(aiProgramPreview?.paces?.T) }} /km</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                        <span class="text-orange-400 block text-[10px] font-semibold">Interval (I)</span>
+                                        <span class="font-mono text-white font-semibold">@{{ formatPace(aiProgramPreview?.paces?.I) }} /km</span>
+                                    </div>
+                                    <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                        <span class="text-rose-400 block text-[10px] font-semibold">Repetition (R)</span>
+                                        <span class="font-mono text-white font-semibold">@{{ formatPace(aiProgramPreview?.paces?.R) }} /km</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sample Weekly Sessions Preview -->
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-3.5 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs font-semibold text-white">Pratinjau Sesi Program (@{{ (aiProgramPreview?.sessions || []).length }} Hari Terjadwal)</div>
+                                    <span class="text-[10px] text-slate-400">Total volume progresif otomatis</span>
+                                </div>
+                                <div class="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+                                    <div v-for="(sess, idx) in (aiProgramPreview?.sessions || []).slice(0, 21)" :key="idx"
+                                        class="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800/80 text-xs">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-mono text-slate-400 w-10">Hari @{{ sess.day }}</span>
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                                                :class="{
+                                                    'bg-emerald-500/20 text-emerald-300': sess.type === 'easy_run' || sess.type === 'recovery',
+                                                    'bg-sky-500/20 text-sky-300': sess.type === 'long_run',
+                                                    'bg-yellow-500/20 text-yellow-300': sess.type === 'tempo' || sess.type === 'threshold',
+                                                    'bg-red-500/20 text-red-300': sess.type === 'interval' || sess.type === 'speed',
+                                                    'bg-purple-500/20 text-purple-300': sess.type === 'strength',
+                                                    'bg-slate-800 text-slate-400': sess.type === 'rest'
+                                                }">
+                                                @{{ (sess.type || 'rest').replace('_', ' ').toUpperCase() }}
+                                            </span>
+                                            <span class="text-white text-xs font-medium truncate max-w-[240px]">@{{ sess.name || sess.title }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span v-if="sess.target_distance || sess.distance" class="text-slate-300 font-mono text-[11px]">
+                                                @{{ sess.target_distance || sess.distance }} km
+                                            </span>
+                                            <span v-else-if="sess.type === 'rest'" class="text-slate-500 text-[11px]">
+                                                Rest Day
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-if="(aiProgramPreview?.sessions || []).length > 21" class="text-center py-1.5 text-[11px] text-slate-400">
+                                        + @{{ (aiProgramPreview?.sessions || []).length - 21 }} sesi lainnya akan otomatis diterapkan ke kalender atlet.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Error Message in Preview -->
+                            <div v-if="aiProgramError" class="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-md p-3">
+                                @{{ aiProgramError }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-4 sm:p-5 border-t border-slate-800 bg-slate-900 rounded-b-lg flex justify-between items-center gap-3 flex-shrink-0">
+                        <button type="button" @click="showAiProgramModal = false"
+                            class="py-2 px-4 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                            Tutup
+                        </button>
+
+                        <div class="flex items-center gap-2">
+                            <button v-if="aiProgramTab === 'preview'" type="button" @click="aiProgramTab = 'config'"
+                                class="py-2 px-3.5 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                                &larr; Config
+                            </button>
+
+                            <button v-if="aiProgramTab === 'config'" type="button" @click="generateAiProgramPreview" :disabled="aiProgramLoading"
+                                class="py-2 px-4 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50">
+                                <span v-if="aiProgramLoading">Memproses Kalkulasi AI...</span>
+                                <span v-else>Generate Preview Program</span>
+                            </button>
+
+                            <button v-if="aiProgramTab === 'preview'" type="button" @click="applyAiProgram" :disabled="aiProgramApplying"
+                                class="py-2 px-5 text-xs font-semibold text-dark bg-neon rounded-md hover:bg-white transition disabled:opacity-50 shadow-sm">
+                                <span v-if="aiProgramApplying">Menerapkan ke Kalender...</span>
+                                <span v-else>Terapkan</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -2487,6 +2839,137 @@ createApp({
             }
         };
 
+        // AI Program Generator State & Methods
+        const showAiProgramModal = ref(false);
+        const aiProgramTab = ref('config');
+        const aiProgramLoading = ref(false);
+        const aiProgramApplying = ref(false);
+        const aiProgramError = ref('');
+        const aiProgramPreview = ref(null);
+
+        const aiProgramForm = reactive({
+            target_distance: '10k',
+            target_date: '',
+            start_date: '',
+            goal_time: '00:50:00',
+            current_vdot: trainingProfile.vdot || 38,
+            weekly_mileage: trainingProfile.weekly_km_target || 35,
+            frequency: 4,
+            runner_level: 'intermediate',
+            long_run_day: 'sunday',
+            starting_phase: 'base',
+            intensity_tone: 'standard',
+            include_strength: true,
+            strength_type: 'bodyweight',
+            is_tropical: true,
+        });
+
+        const updateDefaultGoalTime = () => {
+            const vdot = parseFloat(aiProgramForm.current_vdot) || 38;
+            const dist = aiProgramForm.target_distance || '10k';
+            const defaults = {
+                '5k': vdot >= 45 ? '00:21:00' : (vdot <= 32 ? '00:30:00' : '00:25:00'),
+                '10k': vdot >= 45 ? '00:44:00' : (vdot <= 32 ? '01:03:00' : '00:52:00'),
+                '21k': vdot >= 45 ? '01:38:00' : (vdot <= 32 ? '02:18:00' : '01:55:00'),
+                '42k': vdot >= 45 ? '03:25:00' : (vdot <= 32 ? '04:48:00' : '04:05:00'),
+            };
+            aiProgramForm.goal_time = defaults[dist] || '00:50:00';
+        };
+
+        const openAiProgramModal = () => {
+            aiProgramError.value = '';
+            aiProgramTab.value = 'config';
+            aiProgramPreview.value = null;
+
+            const today = new Date();
+            const day = today.getDay();
+            const daysUntilNextMonday = day === 0 ? 1 : (8 - day);
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+
+            const raceDate = new Date(nextMonday);
+            raceDate.setDate(raceDate.getDate() + (12 * 7) - 1);
+
+            aiProgramForm.start_date = nextMonday.toISOString().slice(0, 10);
+            aiProgramForm.target_date = raceDate.toISOString().slice(0, 10);
+            aiProgramForm.current_vdot = trainingProfile.vdot || 38;
+            aiProgramForm.weekly_mileage = trainingProfile.weekly_km_target || 35;
+            updateDefaultGoalTime();
+
+            showAiProgramModal.value = true;
+        };
+
+        const generateAiProgramPreview = async () => {
+            aiProgramError.value = '';
+            aiProgramLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.generate-ai-program', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(aiProgramForm),
+                });
+                const data = await res.json();
+                if (data.success && data.program) {
+                    aiProgramPreview.value = data.program;
+                    aiProgramTab.value = 'preview';
+                } else {
+                    aiProgramError.value = data.message || 'Gagal menghasilkan preview program AI.';
+                }
+            } catch (e) {
+                aiProgramError.value = 'Terjadi kesalahan koneksi saat generate program.';
+            } finally {
+                aiProgramLoading.value = false;
+            }
+        };
+
+        const applyAiProgram = async () => {
+            if (!aiProgramPreview.value) return;
+            if (!confirm('Terapkan program latihan AI ini ke kalender atlet? Sesi kalender sebelumnya akan disinkronkan dengan program baru ini.')) {
+                return;
+            }
+
+            aiProgramApplying.value = true;
+            aiProgramError.value = '';
+            try {
+                const payload = {
+                    start_date: aiProgramPreview.value.start_date,
+                    target_date: aiProgramPreview.value.target_date,
+                    target_distance: aiProgramPreview.value.target_distance,
+                    sessions: aiProgramPreview.value.sessions,
+                    vdot: aiProgramPreview.value.target_vdot,
+                    weekly_mileage: aiProgramForm.weekly_mileage,
+                    summary: aiProgramPreview.value.summary,
+                    title: aiProgramPreview.value.title,
+                };
+
+                const res = await fetch(`{{ route('coach.athletes.apply-ai-program', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Program latihan AI berhasil diterapkan ke kalender atlet!');
+                    showAiProgramModal.value = false;
+                    window.location.reload();
+                } else {
+                    aiProgramError.value = data.message || 'Gagal menerapkan program.';
+                }
+            } catch (e) {
+                aiProgramError.value = 'Terjadi kesalahan koneksi saat menerapkan program.';
+            } finally {
+                aiProgramApplying.value = false;
+            }
+        };
+
         watch(selectedSession, (ev) => {
             stravaMetrics.value = null;
             stravaSplits.value = [];
@@ -2563,7 +3046,9 @@ createApp({
             setStartDateToday, setStartDateNextMonday, setStartDateNextMonth,
             showReminderModal, reminderForm, reminderSessionInfo, reminderLoading, reminderError, reminderSuccess,
             openReminderModal, submitReminder,
-            weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
+            weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm,
+            showAiProgramModal, aiProgramTab, aiProgramLoading, aiProgramApplying, aiProgramError, aiProgramPreview,
+            aiProgramForm, updateDefaultGoalTime, openAiProgramModal, generateAiProgramPreview, applyAiProgram
         };
     }
 }).mount('#coach-monitor-app');

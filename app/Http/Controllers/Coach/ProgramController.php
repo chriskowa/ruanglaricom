@@ -622,6 +622,14 @@ class ProgramController extends Controller
     }
 
     /**
+     * Export program as Excel
+     */
+    public function exportExcel(Program $program)
+    {
+        return $this->exportCsv($program);
+    }
+
+    /**
      * Export program as CSV
      */
     public function exportCsv(Program $program)
