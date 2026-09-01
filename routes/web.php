@@ -33,8 +33,17 @@ Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'inde
 
 Route::get('/komunitas/{slug}', [App\Http\Controllers\CommunityProfileController::class, 'show'])->name('community.profile');
 
-Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
+Route::get('/card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
+Route::get('/v-card', function () {
+    return redirect()->route('vcard.index', [], 301);
+});
 Route::get('/vcard', function () {
+    return redirect()->route('vcard.index', [], 301);
+});
+Route::get('/v-card.html', function () {
+    return redirect()->route('vcard.index', [], 301);
+});
+Route::get('/card.html', function () {
     return redirect()->route('vcard.index', [], 301);
 });
 
@@ -179,12 +188,6 @@ Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])
 
 Route::get('/popups/active', [App\Http\Controllers\PopupRuntimeController::class, 'active'])->name('popups.active');
 Route::post('/popups/{popup}/track', [App\Http\Controllers\PopupRuntimeController::class, 'track'])->name('popups.track');
-
-// Public routes
-Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
-Route::get('/v-card.html', function () {
-    return redirect()->route('vcard.index');
-});
 
 // Tools Landing Page
 Route::get('/tools', function () {

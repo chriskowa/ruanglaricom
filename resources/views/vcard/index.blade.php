@@ -3,289 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ $title }}</title>
-    <meta name="description" content="{{ $description }}">
+    <title>{{ $title ?? 'Ruang Lari - Sports Media Platform' }}</title>
+    <meta name="description" content="{{ $description ?? 'Official Sports Media & Running Platform Indonesia.' }}">
     <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Social Meta -->
     <meta property="og:title" content="{{ $title }}">
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:image" content="{{ $ogImageUrl }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $title }}">
+    <meta name="twitter:description" content="{{ $description }}">
+    <meta name="twitter:image" content="{{ $ogImageUrl }}">
     
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
     
+    <!-- Sports Editorial Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <style>
         :root {
-            --color-dark: {{ $bgColor }};
-            --color-main-text: {{ $textColor }};
-            --color-neon: {{ $accentColor }};
-            --color-primary: {{ $accentColor }};
+            --bg-primary: #090B0F;
+            --surface: #151922;
+            --surface-hover: #1c222e;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.18);
+            --accent-red: #E63946;
+            --highlight-orange: #FF8C00;
+            --text-main: #FFFFFF;
+            --text-secondary: #A7ADB7;
         }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        dark: '{{ $bgColor }}',
-                        'main-text': '{{ $textColor }}',
-                        card: '#1e293b',
-                        neon: '{{ $accentColor }}',
-                        primary: '{{ $accentColor }}',
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up': 'slideUp 0.5s ease-out forwards',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        'pulse-glow': {
-                            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-                            '50%': { opacity: '.8', transform: 'scale(1.02)' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-sports-title {
+            font-family: 'Oswald', 'Bebas Neue', sans-serif;
+            letter-spacing: 0.03em;
+        }
+
+        .font-sports-condensed {
+            font-family: 'Bebas Neue', 'Oswald', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        /* Subtle Fade In Animation */
+        @keyframes subtleFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-    </script>
-    <style>
-        body { background-color: {{ $bgColor }}; color: {{ $textColor }}; -webkit-tap-highlight-color: transparent; }
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        .animate-enter {
+            animation: subtleFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .glass:hover {
-            background: rgba(30, 41, 59, 0.9);
-            border-color: rgba(204, 255, 0, 0.3);
+
+        .link-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            min-height: 70px;
+            transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .link-card:hover {
+            background-color: var(--surface-hover);
+            border-color: var(--border-hover);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px -10px rgba(204, 255, 0, 0.15);
         }
-        .bg-grid-pattern {
-            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
+
+        .link-card:active {
+            transform: translateY(0);
         }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center relative overflow-x-hidden selection:bg-neon selection:text-dark">
+<body class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 selection:bg-[#E63946] selection:text-white">
 
-    <!-- Background -->
-    <div class="fixed inset-0 z-[-1]">
-        @if($bgImageUrl)
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 blur-sm scale-105" style="background-image: url('{{ $bgImageUrl }}');"></div>
-        @endif
-        <div class="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/95 to-dark"></div>
-        <div class="absolute inset-0 bg-grid-pattern opacity-20 mask-image-gradient"></div>
-    </div>
+    <!-- Container -->
+    <main class="w-full max-w-[420px] mx-auto flex flex-col items-center flex-1 animate-enter">
 
-    <!-- Main Content -->
-    <main class="w-full max-w-md mx-auto px-5 py-10 flex flex-col items-center relative z-10 min-h-screen">
-        
-        <!-- Header Profile -->
-        <div class="flex flex-col items-center text-center mb-8 w-full animate-slide-up" style="animation-delay: 0.1s;">
-            <div class="relative group cursor-pointer mb-4">
-                <div class="absolute -inset-1 bg-neon rounded-full blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
-                <div class="relative w-28 h-28 rounded-full bg-dark p-1 border border-slate-700 overflow-hidden shadow-2xl">
-                    <img src="{{ $logoUrl }}" alt="Logo" class="w-full h-full object-contain rounded-full bg-slate-900">
-                </div>
-                <div class="absolute bottom-1 right-1 bg-blue-500 text-white p-1 rounded-full border-2 border-dark shadow-sm" title="Verified Community">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-                </div>
-            </div>
+        <!-- 1. PROFILE HEADER -->
+        <header class="w-full flex flex-col items-center text-center pt-4 pb-6">
             
-            <h1 class="text-2xl font-black tracking-tight text-main-text mb-1 flex items-center justify-center gap-2">
-                RUANG<span class="text-neon">LARI</span>
-            </h1>
-            <p class="text-main-text/60 text-sm font-medium max-w-xs leading-relaxed">{{ $description }}</p>
-
-            <!-- Mini Stats/Badges (Static for now, can be dynamic later) -->
-            <div class="flex items-center gap-3 mt-4 text-[10px] font-mono font-bold uppercase tracking-wider text-main-text/50">
-                <span class="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
-                    <i class="fas fa-users text-neon"></i> 50K+ Runners
-                </span>
-                <span class="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
-                    <i class="fas fa-calendar-check text-neon"></i> 100+ Events
-                </span>
-            </div>
-        </div>
-
-        <!-- Latest Articles -->
-        @if(isset($latestArticles) && count($latestArticles) > 0)
-        <div class="w-full mb-6 animate-slide-up" style="animation-delay: 0.15s;">
-            <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-xs font-black tracking-widest text-main-text/50 uppercase flex items-center gap-2">
-                    <i class="fas fa-book-open text-neon"></i> Artikel Terbaru
-                </h2>
-                <a href="https://ruanglari.com/blog" class="text-[10px] font-black text-neon uppercase tracking-wider hover:underline">Lihat Semua</a>
-            </div>
-            
-            <div class="space-y-3">
-                @foreach($latestArticles as $article)
-                @php
-                    $artImg = $article->featured_image;
-                    if ($artImg && ! str_starts_with($artImg, 'http')) {
-                        $artImg = asset('storage/'.ltrim($artImg, '/'));
-                    }
-                    $artUrl = $article->localized_canonical_url ?: route('blog.show', $article->slug);
-                @endphp
-                <a href="{{ $artUrl }}" class="block w-full glass rounded-xl p-3 flex gap-3 items-center group transition-all duration-300">
-                    @if($artImg)
-                    <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-800 border border-white/5 relative">
-                        <img src="{{ $artImg }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                    </div>
+            <!-- Rectangular Logo Container -->
+            <div class="mb-4">
+                <div class="px-5 py-3 rounded-lg bg-[#151922] border border-white/10 flex items-center justify-center shadow-lg">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="Ruang Lari Logo" class="h-8 w-auto max-w-[140px] object-contain">
                     @else
-                    <div class="w-16 h-16 rounded-lg bg-slate-800/80 border border-white/5 flex items-center justify-center shrink-0">
-                        <i class="fas fa-image text-slate-600 text-lg"></i>
-                    </div>
-                    @endif
-                    <div class="flex-grow min-w-0 text-left">
-                        <span class="text-[9px] font-mono font-bold text-neon/80 uppercase">
-                            {{ optional($article->published_at ?: $article->created_at)->format('d M Y') }}
+                        <span class="font-sports-title text-xl font-bold tracking-wider text-white">
+                            RUANG<span class="text-[#E63946]">LARI</span>
                         </span>
-                        <h3 class="font-bold text-xs text-main-text/90 group-hover:text-neon transition-colors line-clamp-2 leading-snug mt-0.5">
-                            {{ $article->localized_title }}
-                        </h3>
-                    </div>
-                    <i class="fas fa-chevron-right text-[10px] text-main-text/30 group-hover:text-neon group-hover:translate-x-0.5 transition-all"></i>
-                </a>
-                @endforeach
+                    @endif
+                </div>
             </div>
-        </div>
-        @endif
 
-        <!-- Featured Links (Big Cards) -->
-        <div class="w-full space-y-4 mb-6 animate-slide-up" style="animation-delay: 0.2s;">
-            @foreach($featuredLinks as $link)
-            @php
-                $hasCustomBg = !empty($link['bg_color']);
-                $hasCustomText = !empty($link['text_color']);
+            <!-- Verified Badge -->
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#151922] border border-white/10 mb-3">
+                <span class="w-2 h-2 rounded-full bg-[#E63946]"></span>
+                <span class="text-[10px] font-semibold tracking-wider uppercase text-[#A7ADB7]">OFFICIAL MEDIA</span>
+            </div>
 
-                // Background Logic
-                $bgStyle = $hasCustomBg ? "background-color: {$link['bg_color']}; border-color: rgba(255,255,255,0.1);" : '';
-                $bgClass = $hasCustomBg ? 'shadow-xl' : (isset($link['color']) && str_contains($link['color'], 'from-') ? 'bg-gradient-to-br ' . $link['color'] : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700');
+            <!-- Brand Name & Category -->
+            <h1 class="font-sports-title text-3xl font-bold uppercase text-white leading-tight">
+                RUANG LARI
+            </h1>
+            <div class="text-xs font-semibold uppercase tracking-widest text-[#E63946] mt-0.5 mb-2">
+                SPORT MEDIA PLATFORM
+            </div>
 
-                // Glow Logic
-                $glowStyle = $hasCustomBg ? "background-color: {$link['bg_color']};" : '';
-                $glowClass = $hasCustomBg ? '' : (isset($link['color']) ? $link['color'] : 'bg-neon');
+            <!-- Description -->
+            <p class="text-xs leading-relaxed text-[#A7ADB7] max-w-[340px]">
+                {{ $description ?? 'Official sports platform for runners in Indonesia. News, community, race events & sports culture.' }}
+            </p>
+        </header>
 
-                // Text Logic
-                $textStyle = $hasCustomText ? "color: {$link['text_color']} !important;" : '';
-                $textClass = $hasCustomText ? '' : (isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-main-text');
+        <!-- 2. HERO BRAND CARD -->
+        <section class="w-full mb-6">
+            <div class="relative bg-[#151922] border border-white/10 rounded-2xl p-5 shadow-xl overflow-hidden group">
+                <!-- Left Sport Accent Line -->
+                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#E63946]"></div>
                 
-                // Secondary Elements Logic
-                $iconBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
-                $badgeBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
-            @endphp
-            <a href="{{ $link['url'] }}" class="block w-full group relative transform transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <div class="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500 {{ $glowClass }}" style="{{ $glowStyle }}"></div>
-                <div class="relative {{ $bgClass }} rounded-xl p-5 border border-white/10 shadow-xl flex items-center justify-between overflow-hidden" style="{{ $bgStyle }}">
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="w-12 h-12 rounded-full {{ $iconBg }} backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner">
-                            <i class="fas fa-{{ $link['icon'] ?? 'star' }} {{ $textClass }}" style="{{ $textStyle }}"></i>
-                        </div>
-                        <div class="text-left">
-                            @if(isset($link['badge']))
-                            <div class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest mb-1 {{ $badgeBg }}">
-                                {{ $link['badge'] }}
-                            </div>
-                            @endif
-                            <div class="font-bold text-lg leading-tight {{ $textClass }}" style="{{ $textStyle }}">{{ $link['title'] }}</div>
-                        </div>
+                <div class="pl-2">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[10px] font-bold tracking-wider uppercase text-[#FF8C00]">
+                            PRESS & MEDIA
+                        </span>
+                        <span class="text-[11px] font-mono text-[#A7ADB7]">ID • 2026</span>
                     </div>
-                    <div class="relative z-10 w-8 h-8 rounded-full {{ $iconBg }} flex items-center justify-center group-hover:translate-x-1 transition-transform">
-                        <i class="fas fa-arrow-right text-xs {{ $textClass }}" style="{{ $textStyle }}"></i>
-                    </div>
+
+                    <h2 class="font-sports-title text-xl font-bold uppercase text-white tracking-wide">
+                        RUANG LARI MEDIA
+                    </h2>
                     
-                    <!-- Decorative BG Pattern -->
-                    <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-4 translate-y-4">
-                        <i class="fas fa-{{ $link['icon'] ?? 'star' }} text-9xl"></i>
+                    <p class="text-xs text-[#A7ADB7] leading-relaxed mt-1 mb-4">
+                        Breaking Sports Updates • Digital Sports Community
+                    </p>
+
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('home') }}" 
+                            class="flex-1 px-4 py-2.5 rounded-lg bg-[#E63946] hover:bg-[#d52b38] text-white text-xs font-semibold tracking-wide uppercase text-center transition">
+                            Explore Platform
+                        </a>
+                        <button type="button" onclick="shareVCard()"
+                            class="px-3.5 py-2.5 rounded-lg bg-[#090B0F] hover:bg-[#1a202c] border border-white/10 text-[#A7ADB7] hover:text-white text-xs font-medium transition flex items-center justify-center gap-1.5" title="Bagikan Card">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                            <span>Share</span>
+                        </button>
                     </div>
                 </div>
-            </a>
-            @endforeach
-        </div>
-
-        <!-- Grid Links (Small Cards) -->
-        <div class="grid grid-cols-2 gap-3 w-full mb-8 animate-slide-up" style="animation-delay: 0.3s;">
-            @foreach($links as $link)
-            <a href="{{ $link['url'] }}" {{ isset($link['external']) && $link['external'] ? 'target="_blank"' : '' }} class="glass rounded-2xl p-4 flex flex-col items-center justify-center text-center group h-32 transition-all relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div class="w-10 h-10 mb-3 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700 group-hover:border-neon/50 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                    <i class="fas fa-{{ $link['icon'] ?? 'link' }} text-main-text/80 group-hover:text-neon text-lg transition-colors"></i>
-                </div>
-                <span class="text-xs font-bold text-main-text/80 group-hover:text-main-text leading-tight px-1 relative z-10">
-                    {{ $link['title'] }}
-                </span>
-            </a>
-            @endforeach
-        </div>
-
-        <!-- Ads Slot -->
-        @if($adsUrl)
-        <div class="w-full mb-8 animate-slide-up" style="animation-delay: 0.4s;">
-            <a href="{{ $adsUrl }}" target="_blank" class="block relative group overflow-hidden rounded-2xl border border-dashed border-slate-700 hover:border-neon/50 bg-slate-900/30 transition-all">
-                <div class="absolute inset-0 bg-repeat opacity-5" style="background-image: radial-gradient(#ccff00 1px, transparent 1px); background-size: 10px 10px;"></div>
-                <div class="p-4 flex items-center gap-4 relative z-10">
-                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-neon group-hover:text-dark transition-colors">
-                        <i class="fas fa-ad text-main-text/60 group-hover:text-dark"></i>
-                    </div>
-                    <div class="flex-grow text-left">
-                        <h3 class="text-sm font-bold text-main-text/90 group-hover:text-main-text">{{ $adsTitle }}</h3>
-                        <p class="text-xs text-main-text/50 group-hover:text-main-text/60">{{ $adsDescription }}</p>
-                    </div>
-                    <i class="fas fa-chevron-right text-xs text-main-text/40 group-hover:text-neon"></i>
-                </div>
-            </a>
-        </div>
-        @endif
-
-        <!-- Social Footer -->
-        <footer class="mt-auto animate-slide-up" style="animation-delay: 0.5s;">
-            <div class="flex justify-center gap-4 mb-6">
-                @foreach($socialLinks as $social)
-                <a href="{{ $social['url'] }}" target="_blank" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-main-text/60 hover:text-main-text hover:border-slate-500 hover:bg-slate-700 hover:-translate-y-1 transition-all duration-300 shadow-lg" title="{{ $social['title'] }}">
-                    <i class="fab fa-{{ $social['icon'] ?? 'link' }} text-xl"></i>
-                </a>
-                @endforeach
             </div>
+        </section>
+
+        <!-- 3. MAIN LINK BUTTONS (70px height, 16px radius) -->
+        <section class="w-full space-y-3 mb-8">
+            @php
+                // Standard default sports links if not customized
+                $mediaLinks = [
+                    [
+                        'title' => 'Official Website',
+                        'desc' => 'Portal Berita & Jadwal Event Lari',
+                        'url' => route('home'),
+                        'icon' => 'globe'
+                    ],
+                    [
+                        'title' => 'Kalender Lari Indonesia',
+                        'desc' => 'Database Jadwal Race & Marathon',
+                        'url' => route('events.index'),
+                        'icon' => 'calendar-days'
+                    ],
+                    [
+                        'title' => 'Kalkulator Pace & Race',
+                        'desc' => 'Prediksi Waktu Finish & Training Pace',
+                        'url' => route('calculator'),
+                        'icon' => 'calculator'
+                    ],
+                    [
+                        'title' => 'Database Rute GPX',
+                        'desc' => 'Download Rute Lari Siap Pakai',
+                        'url' => route('gpx.index'),
+                        'icon' => 'map-location-dot'
+                    ],
+                    [
+                        'title' => 'Media Partnership',
+                        'desc' => 'Kolaborasi, Liputan & Sponsorship',
+                        'url' => 'https://wa.me/6287866950667?text=' . urlencode('Halo Ruang Lari Media, saya tertarik untuk kolaborasi / media partnership.'),
+                        'icon' => 'handshake',
+                        'external' => true
+                    ]
+                ];
+
+                // If user defined custom links in database, merge with clean description fallback
+                if (isset($links) && is_array($links) && count($links) > 0) {
+                    $mediaLinks = array_map(function($l) {
+                        $title = $l['title'] ?? 'Tautan';
+                        $desc = $l['description'] ?? match(true) {
+                            str_contains(strtolower($title), 'kalender') => 'Database Jadwal Race & Marathon',
+                            str_contains(strtolower($title), 'kalkulator') => 'Prediksi Waktu Finish & Target Pace',
+                            str_contains(strtolower($title), 'training') || str_contains(strtolower($title), 'program') => 'Program Latihan Atlet & Pemula',
+                            str_contains(strtolower($title), 'challenge') => 'Tantangan Lari 40 Hari',
+                            str_contains(strtolower($title), 'gpx') || str_contains(strtolower($title), 'rute') => 'Download Rute Lari GPS',
+                            str_contains(strtolower($title), 'foto') => 'Galeri Foto Marathon Gratis',
+                            str_contains(strtolower($title), 'artikel') || str_contains(strtolower($title), 'blog') => 'Berita & Tips Lari Terkini',
+                            str_contains(strtolower($title), 'marketplace') || str_contains(strtolower($title), 'shop') => 'Perlengkapan & Apparel Pelari',
+                            str_contains(strtolower($title), 'pacer') => 'Hire Professional Sports Pacer',
+                            default => 'Official Sports Content'
+                        };
+                        return [
+                            'title' => $title,
+                            'desc' => $desc,
+                            'url' => $l['url'] ?? '#',
+                            'icon' => $l['icon'] ?? 'arrow-up-right-from-square',
+                            'external' => $l['external'] ?? false
+                        ];
+                    }, $links);
+                }
+            @endphp
+
+            @foreach($mediaLinks as $item)
+                @php
+                    $faIcon = match($item['icon']) {
+                        'globe' => 'fa-solid fa-globe',
+                        'calendar-alt', 'calendar-days', 'calendar' => 'fa-solid fa-calendar-days',
+                        'calculator' => 'fa-solid fa-calculator',
+                        'map-location-dot', 'map', 'map-marker-alt' => 'fa-solid fa-map-location-dot',
+                        'handshake' => 'fa-solid fa-handshake',
+                        'dumbbell', 'running' => 'fa-solid fa-person-running',
+                        'fire' => 'fa-solid fa-fire',
+                        'camera' => 'fa-solid fa-camera',
+                        'book-open', 'newspaper' => 'fa-solid fa-newspaper',
+                        'shopping-bag', 'shopping-cart' => 'fa-solid fa-bag-shopping',
+                        'instagram' => 'fa-brands fa-instagram',
+                        'whatsapp' => 'fa-brands fa-whatsapp',
+                        'youtube' => 'fa-brands fa-youtube',
+                        'tiktok' => 'fa-brands fa-tiktok',
+                        default => 'fa-solid fa-arrow-up-right-from-square'
+                    };
+                @endphp
+                <a href="{{ $item['url'] }}" 
+                    {{ !empty($item['external']) ? 'target="_blank" rel="noopener"' : '' }}
+                    class="link-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3.5 group text-left">
+                    
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <!-- Icon Box -->
+                        <div class="w-11 h-11 rounded-xl bg-[#090B0F] border border-white/10 flex items-center justify-center text-white group-hover:text-[#E63946] shrink-0 transition">
+                            <i class="{{ $faIcon }} text-base"></i>
+                        </div>
+                        
+                        <!-- Text -->
+                        <div class="min-w-0">
+                            <div class="font-bold text-sm text-white tracking-wide uppercase group-hover:text-[#E63946] transition truncate">
+                                {{ $item['title'] }}
+                            </div>
+                            <div class="text-xs text-[#A7ADB7] truncate mt-0.5">
+                                {{ $item['desc'] }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arrow Indicator -->
+                    <div class="text-[#A7ADB7] group-hover:text-white group-hover:translate-x-0.5 transition shrink-0 pr-1">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </div>
+                </a>
+            @endforeach
+        </section>
+
+        <!-- 4. SOCIAL FOOTER -->
+        <footer class="w-full pt-4 pb-2 border-t border-white/10 text-center mt-auto">
             
-            <div class="text-center space-y-2">
-                <p class="text-main-text/40 text-[10px] font-mono uppercase tracking-widest">Powered by RuangLari Platform</p>
-                <div class="h-1 w-10 bg-slate-800 mx-auto rounded-full"></div>
-                <p class="text-main-text/30 text-[10px]">&copy; {{ date('Y') }} Ruang Lari Indonesia</p>
+            <!-- Social Channels -->
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <a href="https://instagram.com/ruanglaricom" target="_blank" rel="noopener" 
+                    class="w-10 h-10 rounded-xl bg-[#151922] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition" title="Instagram">
+                    <i class="fa-brands fa-instagram text-base"></i>
+                </a>
+                <a href="https://youtube.com/@ruanglari" target="_blank" rel="noopener" 
+                    class="w-10 h-10 rounded-xl bg-[#151922] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition" title="YouTube">
+                    <i class="fa-brands fa-youtube text-base"></i>
+                </a>
+                <a href="https://tiktok.com/@ruanglaricom" target="_blank" rel="noopener" 
+                    class="w-10 h-10 rounded-xl bg-[#151922] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition" title="TikTok">
+                    <i class="fa-brands fa-tiktok text-base"></i>
+                </a>
+                <a href="https://twitter.com/ruanglaricom" target="_blank" rel="noopener" 
+                    class="w-10 h-10 rounded-xl bg-[#151922] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition" title="X (Twitter)">
+                    <i class="fa-brands fa-x-twitter text-base"></i>
+                </a>
+                <a href="https://wa.me/6287866950667" target="_blank" rel="noopener" 
+                    class="w-10 h-10 rounded-xl bg-[#151922] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition" title="WhatsApp Media Contact">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                </a>
+            </div>
+
+            <!-- Media Brand Credits -->
+            <div class="space-y-1">
+                <div class="font-sports-title text-sm font-bold uppercase tracking-wider text-white">
+                    RUANG LARI MEDIA
+                </div>
+                <div class="text-xs text-[#A7ADB7]">
+                    Sports Culture & Community
+                </div>
+                <div class="text-[11px] font-mono text-[#A7ADB7]/60 pt-1">
+                    &copy; 2026 Ruang Lari Indonesia. All rights reserved.
+                </div>
             </div>
         </footer>
 
     </main>
 
-    <!-- Floating Action Button (Optional, maybe for Home) -->
-    <a href="{{ route('home') }}" class="fixed bottom-6 right-6 z-50 w-12 h-12 bg-neon rounded-full shadow-lg shadow-neon/20 flex items-center justify-center text-slate-900 hover:scale-110 transition-transform md:hidden">
-        <i class="fas fa-home"></i>
-    </a>
+    <!-- Share Helper Script -->
+    <script>
+        async function shareVCard() {
+            const shareData = {
+                title: 'Ruang Lari Media - Official Sports Platform',
+                text: 'Ruang Lari Media • Official Sports Platform, News, Community & Events in Indonesia:',
+                url: window.location.href
+            };
 
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch(e) {}
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Tautan media card disalin ke clipboard');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-[#151922] border border-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-2xl transition-all duration-300';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 250);
+            }, 2500);
+        }
+    </script>
 </body>
 </html>
