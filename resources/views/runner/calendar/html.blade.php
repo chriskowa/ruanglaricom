@@ -351,10 +351,10 @@
                         <!-- 1. Training Paces Tab -->
                         <div v-if="profileTab === 'training'" class="space-y-2">
                             <!-- Easy Pace -->
-                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-emerald-400 flex items-center justify-between gap-3">
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-emerald-400 font-bold text-xs sm:text-sm" id="pace-easy-label">Easy (E) Pace</div>
-                                    <div class="text-[10px] text-slate-300 mt-0.5">Recovery, Long Run & Aerobic Base</div>
+                                    <div class="text-white font-bold text-xs sm:text-sm" id="pace-easy-label">Easy (E) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Recovery, Long Run & Aerobic Base</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-easy-value">
@@ -370,10 +370,10 @@
                             </div>
 
                             <!-- Marathon Pace -->
-                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-sky-400 flex items-center justify-between gap-3">
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-sky-400 font-bold text-xs sm:text-sm" id="pace-marathon-label">Marathon (M) Pace</div>
-                                    <div class="text-[10px] text-slate-300 mt-0.5">Steady Aerobic & Race Pace Stamina</div>
+                                    <div class="text-sky-300 font-bold text-xs sm:text-sm" id="pace-marathon-label">Marathon (M) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Steady Aerobic & Race Pace Stamina</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-marathon-value">
@@ -384,10 +384,10 @@
                             </div>
 
                             <!-- Threshold Pace -->
-                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-amber-400 flex items-center justify-between gap-3">
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-amber-400 font-bold text-xs sm:text-sm" id="pace-threshold-label">Threshold (T) Pace</div>
-                                    <div class="text-[10px] text-slate-300 mt-0.5">Tempo & Lactate Clearance Endurance</div>
+                                    <div class="text-amber-300 font-bold text-xs sm:text-sm" id="pace-threshold-label">Threshold (T) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Tempo & Lactate Clearance Endurance</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-threshold-value">
@@ -398,10 +398,10 @@
                             </div>
 
                             <!-- Interval Pace -->
-                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-orange-400 flex items-center justify-between gap-3">
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-orange-400 font-bold text-xs sm:text-sm" id="pace-interval-label">Interval (I) Pace</div>
-                                    <div class="text-[10px] text-slate-300 mt-0.5">VO2Max & Aerobic Power Booster</div>
+                                    <div class="text-orange-300 font-bold text-xs sm:text-sm" id="pace-interval-label">Interval (I) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">VO2Max & Aerobic Power Booster</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-interval-value">
@@ -412,10 +412,10 @@
                             </div>
 
                             <!-- Repetition Pace -->
-                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 border-l-4 border-l-rose-400 flex items-center justify-between gap-3">
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-rose-400 font-bold text-xs sm:text-sm" id="pace-repetition-label">Repetition (R) Pace</div>
-                                    <div class="text-[10px] text-slate-300 mt-0.5">Speed, Running Economy & Mechanics</div>
+                                    <div class="text-rose-300 font-bold text-xs sm:text-sm" id="pace-repetition-label">Repetition (R) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Speed, Running Economy & Mechanics</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-repetition-value">
@@ -669,9 +669,14 @@
                             <button v-if="plan.is_locked" class="w-full mt-1 py-1.5 rounded-[4px] bg-slate-800/50 text-slate-600 text-[10px] font-bold border border-slate-700 flex items-center justify-center gap-1.5 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
                                 UNLOCK
                             </button>
-                            <button v-else-if="plan.status==='pending'" class="w-full mt-1 py-1.5 rounded-[4px] bg-neon text-dark text-[10px] font-bold hover:bg-neon/90 transition shadow shadow-neon/10 flex items-center justify-center gap-1.5" @click.stop="updateSessionStatus(plan,'started')">
-                                START
-                            </button>
+                            <div v-else-if="plan.status==='pending'" class="grid grid-cols-2 gap-1 mt-1">
+                                <button class="py-1 rounded-[4px] bg-slate-800 text-slate-300 text-[9px] font-bold hover:bg-slate-700 transition border border-slate-700 flex items-center justify-center" @click.stop="updateSessionStatus(plan,'started')">
+                                    START
+                                </button>
+                                <button class="py-1 rounded-[4px] bg-neon text-dark text-[9px] font-black hover:bg-white transition flex items-center justify-center shadow-sm" @click.stop="updateSessionStatus(plan,'completed')">
+                                    FINISH
+                                </button>
+                            </div>
                         </div>
                         
                         <button v-if="canLoadMore" 
@@ -825,14 +830,19 @@
 
                     <!-- Footer: Action -->
                     <div class="p-3 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md">
-                        <button v-if="detail.status === 'completed'" type="button" disabled class="w-full py-2.5 rounded-[6px] bg-slate-800/60 text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-700">
+                        <button v-if="detail.status === 'completed'" type="button" disabled class="w-full py-2.5 rounded-md bg-slate-800/60 text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-700">
                             Completed
                         </button>
-                        <button v-else type="button" class="w-full py-2.5 rounded-[6px] bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-purple-900/30 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-2"
-                                @click="startGuidedWorkout(detail)">
-                            <span>@{{ detail.status === 'started' ? 'Resume Guided Workout' : 'Start Guided Workout' }}</span>
-                            <span class="bg-white/20 px-1.5 py-0.5 rounded-[2px] text-[9px] uppercase tracking-wider">Beta</span>
-                        </button>
+                        <div v-else class="grid grid-cols-2 gap-2">
+                            <button type="button" class="w-full py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition flex items-center justify-center"
+                                    @click="startGuidedWorkout(detail)">
+                                <span>@{{ detail.status === 'started' ? 'Resume Workout' : 'Start Guided' }}</span>
+                            </button>
+                            <button type="button" class="w-full py-2.5 rounded-md bg-neon hover:bg-white text-dark font-black text-xs uppercase tracking-wider shadow-sm transition flex items-center justify-center"
+                                    @click="finishGuidedWorkout">
+                                <span>Finish Activity</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -962,7 +972,7 @@
                     <div class="space-y-1 mb-3.5 p-2.5 bg-slate-800/30 border border-slate-700/50 rounded-[6px]">
                         <div v-if="detail.distance && String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Distance</span>
-                            <span class="text-xs font-bold text-white">@{{ detail.distance }} km</span>
+                            <span class="text-xs font-bold text-neon">@{{ detail.distance }} km</span>
                         </div>
                         <div v-if="String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Target Pace</span>
@@ -1366,23 +1376,30 @@
                         </div>
                     </div>
                 </div>
-                   <!-- Action Buttons -->
-                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'hill' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-3.5 border-t border-slate-700/60 pt-3.5">
-                    <div v-if="detail.status === 'pending' || !detail.status">
-                        <button class="w-full py-2.5 rounded-[6px] bg-neon text-dark font-bold text-xs hover:bg-neon/90 transition uppercase tracking-wider" @click="updateSessionStatus(detail, 'started')">Start Activity</button>
+                <!-- Action Buttons -->
+                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'hill' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race' || detail.type === 'custom_workout'" class="mt-3.5 border-t border-slate-700/60 pt-3.5">
+                    <div v-if="(detail.status === 'pending' || !detail.status) && !showFinishForm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="w-full py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition uppercase tracking-wider flex items-center justify-center" @click="updateSessionStatus(detail, 'started')">
+                                Start Activity
+                            </button>
+                            <button class="w-full py-2.5 rounded-md bg-neon hover:bg-white text-dark font-black text-xs transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="showFinishForm = true">
+                                Finish Activity
+                            </button>
+                        </div>
                     </div>
-                    <div v-else-if="detail.status === 'started'">
+                    <div v-else-if="detail.status === 'started' || showFinishForm">
                         <div class="space-y-3">
                              <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">Strava Activity Link (Optional)</label>
-                                <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
+                                <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Strava Activity Link (Optional)</label>
+                                <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-xs focus:border-white focus:outline-none transition">
                              </div>
                             
                             <!-- RPE & Feeling Input -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">RPE (1-10)</label>
-                                    <select v-model="rpeInput" class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
+                                    <label class="text-[10px] text-slate-400 block mb-1 font-semibold">RPE (1-10)</label>
+                                    <select v-model="rpeInput" class="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-xs focus:border-white focus:outline-none transition font-medium">
                                         <option value="">Select Effort</option>
                                         <option value="1">1 - Very Easy</option>
                                         <option value="3">3 - Moderate</option>
@@ -1393,8 +1410,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Feeling</label>
-                                    <select v-model="feelingInput" class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
+                                    <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Feeling</label>
+                                    <select v-model="feelingInput" class="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-xs focus:border-white focus:outline-none transition font-medium">
                                         <option value="">Select Feeling</option>
                                         <option value="strong">Strong</option>
                                         <option value="good">Good</option>
@@ -1406,16 +1423,17 @@
                             </div>
 
                              <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">Notes for Coach (Optional)</label>
-                                <textarea v-model="notesInput" rows="2" placeholder="How was your run? Any pain or issues?" class="w-full bg-slate-900 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs"></textarea>
+                                <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Notes for Coach (Optional)</label>
+                                <textarea v-model="notesInput" rows="2" placeholder="Bagaimana sesi latihan Anda? Ada kendala atau keluhan?" class="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white text-xs focus:border-white focus:outline-none transition"></textarea>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2">
-                                <button class="w-full py-2.5 rounded-[6px] bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="updateSessionStatus(detail, 'pending')">Stop</button>
-                                <button class="w-full py-2.5 rounded-[6px] bg-green-500 text-white font-bold text-xs hover:bg-green-600 transition uppercase tracking-wider" @click="finishActivityWithLink">Finish Activity</button>
+                                <button v-if="detail.status === 'started'" class="w-full py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="updateSessionStatus(detail, 'pending')">Stop</button>
+                                <button v-else class="w-full py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="showFinishForm = false">Batal</button>
+                                <button class="w-full py-2.5 rounded-md bg-neon text-dark font-black text-xs hover:bg-white transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="finishActivityWithLink">Finish Activity</button>
                             </div>
                         </div>
                     </div>
-                    <div v-else-if="detail.status === 'completed'" class="text-center text-xs text-slate-500">
+                    <div v-else-if="detail.status === 'completed'" class="text-center text-xs text-slate-400 font-medium py-1">
                         Activity completed on @{{ formatDate(detail.completed_at || new Date()) }}
                     </div>
                 </div>

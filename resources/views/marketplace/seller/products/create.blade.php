@@ -472,17 +472,17 @@
             <div class="lg:col-span-5 sticky top-28 space-y-4 hidden lg:block">
                 <div class="flex items-center justify-between px-1">
                     <span class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-neon"></span>
                         Live Preview Card
                     </span>
                     <span class="text-xs text-slate-500 font-medium">Tampilan di Katalog Publik</span>
                 </div>
 
                 <!-- Card Replica (Standard RuangLari Product Card) -->
-                <div class="rounded-2xl bg-[#0c121e] border border-slate-700/80 p-5 space-y-4 shadow-2xl">
+                <div class="rounded-lg bg-[#0c121e] border border-slate-700/80 p-5 space-y-4 shadow-xl">
                     
                     <!-- Preview Image Frame -->
-                    <div class="aspect-square rounded-xl overflow-hidden bg-[#131b2c] relative flex items-center justify-center border border-slate-800">
+                    <div class="aspect-square rounded-md overflow-hidden bg-[#131b2c] relative flex items-center justify-center border border-slate-800">
                         <template x-if="primaryPreviewImage">
                             <img :src="primaryPreviewImage" alt="Preview Image" class="w-full h-full object-cover">
                         </template>
@@ -495,12 +495,12 @@
 
                         <!-- Top Badges -->
                         <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-                            <span class="px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shadow"
+                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shadow"
                                   :class="condition === 'new' ? 'bg-white text-dark' : 'bg-slate-950/90 text-slate-200 border border-slate-700'"
                                   x-text="condition === 'new' ? 'BARU' : 'BEKAS'">
                             </span>
                             <template x-if="saleType === 'auction'">
-                                <span class="px-2.5 py-0.5 rounded bg-amber-500 text-dark text-[9px] font-black uppercase tracking-wider shadow">
+                                <span class="px-2 py-0.5 rounded bg-amber-500 text-dark text-[9px] font-black uppercase tracking-wider shadow">
                                     LELANG
                                 </span>
                             </template>
@@ -511,7 +511,7 @@
                     <div class="flex items-center gap-2 overflow-x-auto pb-1" x-show="fileList.length > 1" x-cloak>
                         <template x-for="(item, i) in fileList" :key="i">
                             <button type="button" @click="activePreviewIndex = i"
-                                    class="w-12 h-12 rounded-lg overflow-hidden border transition shrink-0 cursor-pointer"
+                                    class="w-12 h-12 rounded-md overflow-hidden border transition shrink-0 cursor-pointer"
                                     :class="activePreviewIndex === i ? 'border-white ring-1 ring-white' : 'border-slate-800 opacity-60 hover:opacity-100'">
                                 <img :src="item.previewUrl" class="w-full h-full object-cover">
                             </button>
@@ -537,29 +537,28 @@
                         <!-- Price -->
                         <div class="pt-1">
                             <template x-if="saleType === 'fixed'">
-                                <p class="text-lg font-black text-white"
+                                <p class="text-lg font-black text-white font-mono"
                                    x-text="formattedPrice">
                                 </p>
                             </template>
                             <template x-if="saleType === 'auction'">
                                 <div class="space-y-0.5">
                                     <span class="text-[9px] font-bold text-amber-400 uppercase tracking-wider">STARTING BID</span>
-                                    <p class="text-lg font-black text-white" x-text="formattedStartingPrice"></p>
+                                    <p class="text-lg font-black text-white font-mono" x-text="formattedStartingPrice"></p>
                                 </div>
                             </template>
                         </div>
                     </div>
 
                     <!-- Seller Card Preview -->
-                    <div class="p-3 rounded-xl bg-[#0a0e17] border border-slate-800/80 flex items-center justify-between gap-3">
+                    <div class="p-3 rounded-md bg-[#0a0e17] border border-slate-800/80 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-700 bg-slate-800 shrink-0">
                                 <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-white truncate">{{ auth()->user()->name ?? 'Seller Anda' }}</p>
-                                <p class="text-[10px] text-emerald-400 flex items-center gap-1 font-semibold">
-                                    <i class="fas fa-check-circle text-[9px]"></i>
+                                <p class="text-[10px] text-slate-400 flex items-center gap-1 font-semibold">
                                     <span>Verified Community Seller</span>
                                 </p>
                             </div>
@@ -571,13 +570,13 @@
 
                     <!-- Simulated Buy Button -->
                     <div class="pt-1">
-                        <button type="button" disabled class="w-full py-3 rounded-xl bg-white/20 text-slate-400 font-black text-xs uppercase tracking-wider cursor-not-allowed">
+                        <button type="button" disabled class="w-full py-2.5 rounded-md bg-white/20 text-slate-400 font-black text-xs uppercase tracking-wider cursor-not-allowed">
                             Simulasi Beli Sekarang
                         </button>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800/60 text-slate-400 text-xs leading-relaxed">
+                <div class="p-3 rounded-md bg-slate-900/50 border border-slate-800/60 text-slate-400 text-xs leading-relaxed">
                     <i class="fas fa-info-circle text-neon mr-1"></i>
                     Foto akan otomatis diproses dalam format WebP resolusi tinggi dan cepat dimuat di seluruh perangkat.
                 </div>

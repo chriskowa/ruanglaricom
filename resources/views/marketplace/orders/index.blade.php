@@ -12,11 +12,11 @@
             <p class="text-slate-400 mt-1">Track your purchases and manage sales</p>
         </div>
         <div class="flex items-center gap-3">
-             <a href="{{ route('marketplace.index') }}" class="px-4 py-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg text-sm font-bold transition-all">
+             <a href="{{ route('marketplace.index') }}" class="px-4 py-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-md text-xs font-bold transition-all">
                 Browse Market
             </a>
             @if(Auth::user()->is_seller)
-                 <a href="{{ route('marketplace.seller.products.index') }}" class="px-4 py-2 bg-slate-800 text-neon hover:bg-slate-700 rounded-lg text-sm font-bold transition-all">
+                 <a href="{{ route('marketplace.seller.products.index') }}" class="px-4 py-2 bg-slate-800 text-neon hover:bg-slate-700 rounded-md text-xs font-bold transition-all">
                     Seller Dashboard
                 </a>
             @endif
@@ -24,53 +24,52 @@
     </div>
 
     @if(session('success'))
-        <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div class="mb-6 p-4 bg-slate-900 border border-slate-700 rounded-md text-slate-200 text-sm flex items-center gap-3">
+            <span class="text-neon font-bold">✓</span>
             <span>{{ session('success') }}</span>
         </div>
     @endif
 
     @if(session('error'))
-        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div class="mb-6 p-4 bg-rose-950/80 border border-rose-800 rounded-md text-rose-200 text-sm flex items-center gap-3">
+            <span class="text-rose-400 font-bold">✗</span>
             <span>{{ session('error') }}</span>
         </div>
     @endif
 
     @if(session('info'))
-        <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-400 text-sm flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div class="mb-6 p-4 bg-slate-900 border border-slate-700 rounded-md text-slate-300 text-sm flex items-center gap-3">
+            <span class="text-neon font-bold">ℹ</span>
             <span>{{ session('info') }}</span>
         </div>
     @endif
 
     <!-- Main Container -->
-    <!-- Main Container -->
     <div x-data="{ tab: '{{ request()->query('tab', $cartItems->count() > 0 ? 'cart' : 'purchases') }}' }" class="space-y-6">
         
         <!-- Tab Navigation -->
-        <div class="bg-slate-900/50 backdrop-blur-md rounded-xl p-1 border border-slate-800 inline-flex flex-wrap gap-1">
+        <div class="bg-slate-900/80 rounded-md p-1 border border-slate-800 inline-flex flex-wrap gap-1">
             <button @click="tab = 'cart'" 
-                class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2"
-                :class="tab === 'cart' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
+                class="px-5 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2"
+                :class="tab === 'cart' ? 'bg-neon text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
                 <span>Program Cart</span>
                 @if($cartItems->count() > 0)
-                    <span class="px-2 py-0.5 text-xs font-black rounded-full bg-red-500 text-white animate-pulse">{{ $cartItems->count() }}</span>
+                    <span class="px-1.5 py-0.2 text-[10px] font-bold rounded bg-rose-500 text-white">{{ $cartItems->count() }}</span>
                 @endif
             </button>
             <button @click="tab = 'programs'" 
-                class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
-                :class="tab === 'programs' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
+                class="px-5 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all duration-200"
+                :class="tab === 'programs' ? 'bg-neon text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
                 Training Programs
             </button>
             <button @click="tab = 'purchases'" 
-                class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
-                :class="tab === 'purchases' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
+                class="px-5 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all duration-200"
+                :class="tab === 'purchases' ? 'bg-neon text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
                 Market Purchases
             </button>
             <button @click="tab = 'sales'" 
-                class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
-                :class="tab === 'sales' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
+                class="px-5 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all duration-200"
+                :class="tab === 'sales' ? 'bg-neon text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
                 Market Sales
             </button>
         </div>
@@ -104,25 +103,23 @@
                                  $url = $isProduct ? route('marketplace.show', $item->product->slug ?? '#') : ($item->program ? route('programs.show', $item->program->slug) : '#');
                                  $subtitle = $isProduct ? ('Penjual: ' . ($item->product->seller->name ?? 'Seller')) : ('Coach: ' . ($item->program->coach->name ?? 'Coach'));
                              ?>
-                             <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-4 md:p-6 hover:border-neon/30 transition-all group relative overflow-hidden shadow-xl" id="cart-row-{{ $item->id }}">
-                                 <div class="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-
+                             <div class="bg-slate-900/80 rounded-lg border border-slate-800 p-4 md:p-6 hover:border-slate-700 transition-all group relative overflow-hidden shadow-sm" id="cart-row-{{ $item->id }}">
                                  <div class="flex flex-col md:flex-row gap-6 relative z-10">
                                      <!-- Details -->
                                      <div class="flex-grow flex flex-col justify-between">
                                          <div>
                                              <div class="flex justify-between items-start">
                                                  <div>
-                                                     <h3 class="text-xl font-bold text-white mb-1 group-hover:text-neon transition-colors">
+                                                     <h3 class="text-lg font-bold text-white mb-1 group-hover:text-neon transition-colors">
                                                          <a href="{{ $url }}">{{ $title }}</a>
                                                      </h3>
-                                                     <p class="text-sm text-slate-400 mb-2">{{ $subtitle }}</p>
+                                                     <p class="text-xs text-slate-400 mb-2">{{ $subtitle }}</p>
                                                  </div>
                                                  <form action="{{ route('marketplace.cart.remove', $item->id) }}" method="POST">
                                                      @csrf
                                                      @method('DELETE')
-                                                     <button type="submit" class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" title="Remove Item">
-                                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                     <button type="submit" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-md transition-all" title="Remove Item">
+                                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                                      </button>
                                                  </form>
                                              </div>
@@ -130,12 +127,12 @@
                                              @if($isProduct && $item->product)
                                                  <div class="flex flex-wrap gap-2 mt-2">
                                                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">Size: {{ $item->product->size ?: '-' }}</span>
-                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-neon border border-slate-700">{{ $item->product->condition == 'new' ? 'Baru' : 'Bekas' }}</span>
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-200 border border-slate-700">{{ $item->product->condition == 'new' ? 'Baru' : 'Bekas' }}</span>
                                                  </div>
                                              @elseif($item->program)
                                                  <div class="flex flex-wrap gap-2 mt-2">
                                                      <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">{{ $item->program->distance_target }}</span>
-                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $item->program->difficulty == 'beginner' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : ($item->program->difficulty == 'intermediate' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20') }}">
+                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-700">
                                                          {{ ucfirst($item->program->difficulty) }}
                                                      </span>
                                                  </div>
@@ -148,7 +145,7 @@
                                              </div>
                                              <div class="text-right">
                                                  <p class="text-xs text-slate-500 mb-0.5">Price</p>
-                                                 <p class="text-lg font-black text-neon">Rp <span>{{ number_format($item->subtotal, 0, ',', '.') }}</span></p>
+                                                 <p class="text-lg font-black text-neon font-mono">Rp <span>{{ number_format($item->subtotal, 0, ',', '.') }}</span></p>
                                              </div>
                                          </div>
                                      </div>
@@ -160,21 +157,20 @@
                      <!-- Summary -->
                      <div class="lg:col-span-1">
                          <div class="sticky top-24">
-                             <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-xl">
-                                 <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                                     <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                             <div class="bg-slate-900/80 rounded-lg border border-slate-800 p-6 shadow-sm">
+                                 <h3 class="text-sm font-bold text-white mb-6 uppercase tracking-wider">
                                      Order Summary
                                  </h3>
                                  
                                  <div class="space-y-4 mb-6">
-                                     <div class="flex justify-between text-sm">
+                                     <div class="flex justify-between text-xs">
                                          <span class="text-slate-400">Subtotal</span>
-                                         <span class="text-white font-medium">Rp {{ number_format($cartSubtotal, 0, ',', '.') }}</span>
+                                         <span class="text-white font-mono font-medium">Rp {{ number_format($cartSubtotal, 0, ',', '.') }}</span>
                                      </div>
-                                     <div class="h-px bg-slate-700 my-2"></div>
-                                     <div class="flex justify-between text-lg">
+                                     <div class="h-px bg-slate-800 my-2"></div>
+                                     <div class="flex justify-between text-base">
                                          <span class="text-white font-bold">Total</span>
-                                         <span class="text-neon font-black">Rp <span>{{ number_format($cartTotal, 0, ',', '.') }}</span></span>
+                                         <span class="text-neon font-mono font-black">Rp <span>{{ number_format($cartTotal, 0, ',', '.') }}</span></span>
                                      </div>
                                  </div>
 
@@ -187,16 +183,16 @@
                                       <form action="{{ route('marketplace.checkout.init') }}" method="POST">
                                           @csrf
                                           <input type="hidden" name="product_id" value="{{ $firstProductItem->product_id }}">
-                                          <button type="submit" class="w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
+                                          <button type="submit" class="w-full py-3 bg-neon hover:bg-white text-dark font-black text-center rounded-md transition-all shadow-sm mb-3 text-xs uppercase tracking-wider">
                                               Checkout Now
                                           </button>
                                       </form>
                                   @else
-                                      <a href="{{ route('marketplace.checkout.index') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
+                                      <a href="{{ route('marketplace.checkout.index') }}" class="block w-full py-3 bg-neon hover:bg-white text-dark font-black text-center rounded-md transition-all shadow-sm mb-3 text-xs uppercase tracking-wider">
                                           Checkout Now
                                       </a>
                                   @endif
-                                  <a href="{{ route('marketplace.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-xl transition-colors text-sm">
+                                  <a href="{{ route('marketplace.index') }}" class="block w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-md transition-colors text-xs">
                                       Browse Market
                                   </a>
                              </div>
@@ -204,15 +200,11 @@
                      </div>
                  </div>
              @else
-                 <div class="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 border-dashed">
-                     <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600">
-                         <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                     </div>
-                     <h3 class="text-xl font-bold text-white mb-2">Keranjang belanja kosong</h3>
-                     <p class="text-slate-400 max-w-sm mx-auto mb-8">Anda belum menambahkan program latihan apa pun ke keranjang belanja.</p>
-                     <a href="{{ route('marketplace.index') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                 <div class="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800/50">
+                     <h3 class="text-lg font-bold text-white mb-2">Keranjang belanja kosong</h3>
+                     <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6">Anda belum menambahkan program latihan apa pun ke keranjang belanja.</p>
+                     <a href="{{ route('marketplace.index') }}" class="px-6 py-2.5 bg-neon hover:bg-white text-slate-950 font-bold rounded-md text-xs uppercase transition inline-flex items-center">
                          Cari Program Latihan
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                      </a>
                  </div>
              @endif
@@ -226,7 +218,7 @@
              class="space-y-4">
              
              @forelse($programOrders as $order)
-                <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
+                <div class="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
                     <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
                         <!-- Program Icon -->
                         <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative flex items-center justify-center text-neon">
@@ -239,8 +231,8 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
-                                            {{ $order->payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' }}">
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
+                                            {{ $order->payment_status === 'paid' ? 'bg-slate-800 text-slate-200 border border-slate-700' : 'bg-amber-950/80 text-amber-300 border border-amber-600/40' }}">
                                             {{ $order->payment_status === 'paid' ? 'Paid' : 'Pending' }}
                                         </span>
                                         <span class="text-xs text-slate-500 font-medium">{{ $order->created_at->format('d M Y, H:i') }}</span>
@@ -263,7 +255,7 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Amount</div>
-                                    <div class="text-xl font-black text-neon">
+                                    <div class="text-xl font-black text-neon font-mono">
                                         Rp {{ number_format($order->total, 0, ',', '.') }}
                                     </div>
                                 </div>
@@ -273,18 +265,17 @@
                                         <form action="{{ route('marketplace.program-orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan program ini?');" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold rounded-lg transition-all">
+                                            <button type="submit" class="px-4 py-2 bg-rose-950/80 text-rose-300 hover:bg-rose-900 text-xs font-bold rounded-md transition-all">
                                                 Cancel
                                             </button>
                                         </form>
                                     @endif
                                     @if($order->payment_status == 'pending' && $order->payment_method === 'midtrans')
-                                        <button onclick="payProgram({{ $order->id }}, this)" class="px-5 py-2 bg-neon text-slate-900 text-sm font-bold rounded-lg hover:bg-neon/90 hover:shadow-lg hover:shadow-neon/20 transition-all flex items-center gap-2">
-                                            <span>Pay Now</span>
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        <button onclick="payProgram({{ $order->id }}, this)" class="px-5 py-2 bg-neon text-slate-950 text-xs font-bold rounded-md hover:bg-white transition-all">
+                                            Pay Now
                                         </button>
                                     @endif
-                                    <a href="{{ route('marketplace.program-orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all">
+                                    <a href="{{ route('marketplace.program-orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-md hover:bg-slate-700 hover:text-white transition-all">
                                         Details
                                     </a>
                                 </div>
@@ -294,15 +285,11 @@
                 </div>
              @empty
                 <!-- Empty State -->
-                <div class="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 border-dashed">
-                    <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">No program purchases yet</h3>
-                    <p class="text-slate-400 max-w-sm mx-auto mb-8">Ready to start training? Explore professional programs designed by running coaches.</p>
-                    <a href="{{ route('programs.index') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                <div class="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800/50">
+                    <h3 class="text-lg font-bold text-white mb-2">No program purchases yet</h3>
+                    <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6">Ready to start training? Explore professional programs designed by running coaches.</p>
+                    <a href="{{ route('programs.index') }}" class="px-6 py-2.5 bg-neon text-slate-950 font-bold rounded-md hover:bg-white text-xs uppercase transition inline-flex items-center">
                         Browse Programs
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                 </div>
              @endforelse
@@ -316,22 +303,21 @@
              class="space-y-4" style="display: none;">
              
              @forelse($purchases as $order)
-                <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
+                <div class="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
                     <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
                         <!-- Product Image (First Item) -->
-                        <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
+                        <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-md overflow-hidden border border-slate-700 relative">
                              <?php
                                 $firstItem = $order->items->first();
                                 $productImage = $firstItem->product?->primaryImage?->image_path;
                              ?>
                              @if($productImage)
-                                <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Product">
+                                <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Product">
                              @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-600">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <div class="w-full h-full flex items-center justify-center text-slate-600 text-xs font-mono">
+                                    NO IMAGE
                                 </div>
                              @endif
-                             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
                         </div>
 
                         <!-- Order Info -->
@@ -339,17 +325,17 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                                             {{ match($order->status) {
-                                                'paid' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                                                'shipped' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-                                                'completed' => 'bg-slate-700 text-slate-300 border border-slate-600',
-                                                'cancelled' => 'bg-red-500/10 text-red-400 border border-red-500/20',
-                                                default => 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                                                'paid' => 'bg-slate-800 text-slate-200 border border-slate-700',
+                                                'shipped' => 'bg-blue-950/80 text-blue-300 border border-blue-600/40',
+                                                'completed' => 'bg-slate-800 text-slate-300 border border-slate-700',
+                                                'cancelled' => 'bg-rose-950/80 text-rose-300 border border-rose-600/40',
+                                                default => 'bg-amber-950/80 text-amber-300 border border-amber-600/40'
                                             } }}">
                                             {{ $order->status }}
                                         </span>
-                                        <span class="text-xs text-slate-500">{{ $order->created_at->format('d M Y, H:i') }}</span>
+                                        <span class="text-xs text-slate-500 font-medium">{{ $order->created_at->format('d M Y, H:i') }}</span>
                                     </div>
                                     <span class="text-xs text-slate-500 font-semibold">#{{ $order->invoice_number }}</span>
                                 </div>
@@ -363,7 +349,7 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Amount</div>
-                                    <div class="text-xl font-black text-neon">
+                                    <div class="text-xl font-black text-neon font-mono">
                                         Rp {{ number_format($order->total_amount, 0, ',', '.') }}
                                     </div>
                                 </div>
@@ -373,25 +359,23 @@
                                         <form action="{{ route('marketplace.orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan produk ini?');" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold rounded-lg transition-all">
+                                            <button type="submit" class="px-4 py-2 bg-rose-950/80 text-rose-300 hover:bg-rose-900 text-xs font-bold rounded-md transition-all">
                                                 Cancel
                                             </button>
                                         </form>
                                     @endif
                                     @if($order->status == 'pending')
                                         @if(empty($order->shipping_address))
-                                            <a href="{{ route('marketplace.checkout.show', $order->id) }}" class="px-5 py-2 bg-amber-500 text-slate-900 text-sm font-bold rounded-lg hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-500/20 transition-all flex items-center gap-2">
-                                                <span>Complete Shipping</span>
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <a href="{{ route('marketplace.checkout.show', $order->id) }}" class="px-5 py-2 bg-white hover:bg-slate-200 text-slate-950 text-xs font-black uppercase tracking-wider rounded-md transition-all shadow-sm">
+                                                Complete Shipping
                                             </a>
                                         @else
-                                            <button onclick="payPurchase({{ $order->id }}, this)" class="px-5 py-2 bg-neon text-slate-900 text-sm font-bold rounded-lg hover:bg-neon/90 hover:shadow-lg hover:shadow-neon/20 transition-all flex items-center gap-2">
-                                                <span>Pay Now</span>
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                            <button onclick="payPurchase({{ $order->id }}, this)" class="px-5 py-2 bg-neon hover:bg-white text-slate-950 text-xs font-black uppercase tracking-wider rounded-md transition-all shadow-sm">
+                                                Pay Now
                                             </button>
                                         @endif
                                     @endif
-                                    <a href="{{ route('marketplace.orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all">
+                                    <a href="{{ route('marketplace.orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-md hover:bg-slate-700 hover:text-white transition-all">
                                         Details
                                     </a>
                                 </div>
@@ -401,15 +385,11 @@
                 </div>
              @empty
                 <!-- Empty State -->
-                <div class="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 border-dashed">
-                    <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">No purchases yet</h3>
-                    <p class="text-slate-400 max-w-sm mx-auto mb-8">Ready to gear up? Explore the marketplace for the best running equipment.</p>
-                    <a href="{{ route('marketplace.index') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                <div class="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800/50">
+                    <h3 class="text-lg font-bold text-white mb-2">No purchases yet</h3>
+                    <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6">Ready to gear up? Explore the marketplace for the best running equipment.</p>
+                    <a href="{{ route('marketplace.index') }}" class="px-6 py-2.5 bg-neon hover:bg-white text-slate-950 font-bold rounded-md text-xs uppercase transition inline-flex items-center">
                         Start Shopping
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                 </div>
              @endforelse
@@ -423,19 +403,19 @@
              class="space-y-4" style="display: none;">
              
              @forelse($sales as $order)
-                <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
+                <div class="bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
                     <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
                          <!-- Product Image -->
-                        <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
+                        <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-md overflow-hidden border border-slate-700 relative">
                              <?php
                                 $firstItem = $order->items->first();
                                 $productImage = $firstItem->product?->primaryImage?->image_path;
                              ?>
                              @if($productImage)
-                                <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Product">
+                                <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Product">
                              @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-600">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <div class="w-full h-full flex items-center justify-center text-slate-600 text-xs font-mono">
+                                    NO IMAGE
                                 </div>
                              @endif
                         </div>
@@ -445,17 +425,17 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center gap-3">
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider
+                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                                             {{ match($order->status) {
-                                                'paid' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                                                'shipped' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-                                                'completed' => 'bg-slate-700 text-slate-300 border border-slate-600',
-                                                'cancelled' => 'bg-red-500/10 text-red-400 border border-red-500/20',
-                                                default => 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                                                'paid' => 'bg-slate-800 text-slate-200 border border-slate-700',
+                                                'shipped' => 'bg-blue-950/80 text-blue-300 border border-blue-600/40',
+                                                'completed' => 'bg-slate-800 text-slate-300 border border-slate-700',
+                                                'cancelled' => 'bg-rose-950/80 text-rose-300 border border-rose-600/40',
+                                                default => 'bg-amber-950/80 text-amber-300 border border-amber-600/40'
                                             } }}">
                                             {{ $order->status }}
                                         </span>
-                                        <span class="text-xs text-slate-500">Buyer: {{ $order->buyer->name }}</span>
+                                        <span class="text-xs text-slate-500 font-medium">Buyer: {{ $order->buyer->name }}</span>
                                     </div>
                                     <span class="text-xs text-slate-500 font-semibold">#{{ $order->invoice_number }}</span>
                                 </div>
@@ -469,12 +449,12 @@
                             <div class="mt-4 flex items-end justify-between">
                                 <div>
                                     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Your Earnings</div>
-                                    <div class="text-xl font-black text-emerald-400">
+                                    <div class="text-xl font-black text-neon font-mono">
                                         Rp {{ number_format($order->seller_amount, 0, ',', '.') }}
                                     </div>
                                 </div>
                                 
-                                <a href="{{ route('marketplace.orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all">
+                                <a href="{{ route('marketplace.orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-bold rounded-md hover:bg-slate-700 hover:text-white transition-all">
                                     Manage Order
                                 </a>
                             </div>
@@ -483,19 +463,15 @@
                 </div>
              @empty
                 <!-- Empty Sales State -->
-                <div class="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 border-dashed">
-                    <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">No sales yet</h3>
-                    <p class="text-slate-400 max-w-sm mx-auto mb-8">Turn your gear into cash. List your first item today!</p>
+                <div class="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800/50">
+                    <h3 class="text-lg font-bold text-white mb-2">No sales yet</h3>
+                    <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6">Turn your gear into cash. List your first item today!</p>
                      @if(Auth::user()->is_seller)
-                        <a href="{{ route('marketplace.seller.products.create') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                        <a href="{{ route('marketplace.seller.products.create') }}" class="px-6 py-2.5 bg-neon text-slate-950 font-bold rounded-md hover:bg-white transition text-xs uppercase inline-flex items-center">
                             Sell Item
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </a>
                     @else
-                         <a href="{{ route('marketplace.seller.register') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                         <a href="{{ route('marketplace.seller.register') }}" class="px-6 py-2.5 bg-neon text-slate-950 font-bold rounded-md hover:bg-white transition text-xs uppercase inline-flex items-center">
                             Become a Seller
                         </a>
                     @endif

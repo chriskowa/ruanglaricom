@@ -209,8 +209,42 @@
                                             <input x-model="item.title" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none" placeholder="Link Title">
                                         </div>
                                         <div>
+                                            <label class="text-[10px] text-slate-500 uppercase font-bold">Tipe Aksi</label>
+                                            <select x-model="item.action_type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none">
+                                                <option value="link">Buka URL Langsung</option>
+                                                <option value="modal">Buka Modal Popup</option>
+                                            </select>
+                                        </div>
+                                        <div class="md:col-span-2" x-show="item.action_type !== 'modal'">
                                             <label class="text-[10px] text-slate-500 uppercase font-bold">URL</label>
                                             <input x-model="item.url" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none" placeholder="https://...">
+                                        </div>
+
+                                        <!-- Modal Popup Fields for Featured -->
+                                        <div x-show="item.action_type === 'modal'" class="md:col-span-2 p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                                            <div class="text-[10px] font-bold text-neon uppercase tracking-wider">Pengaturan Modal Popup</div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Judul Modal (Opsional)</label>
+                                                <input x-model="item.modal_title" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Default: sama dengan Title">
+                                            </div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Isi Konten Modal</label>
+                                                <textarea x-model="item.modal_description" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Tuliskan isi pesan atau informasi detail popup..."></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Gambar / Banner Modal URL (Opsional)</label>
+                                                <input x-model="item.modal_image" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="https://... (gambar/flyer)">
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Teks Tombol Aksi</label>
+                                                    <input x-model="item.modal_button_text" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Contoh: Hubungi Kami">
+                                                </div>
+                                                <div>
+                                                    <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">URL Tombol Aksi</label>
+                                                    <input x-model="item.modal_button_url" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="https://wa.me/...">
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-2">
                                             <div>
@@ -262,7 +296,18 @@
                     <div x-data="{
                         items: {{ $settings['vcard_links'] ?: '[]' }},
                         addItem() {
-                            this.items.push({ title: '', url: '', icon: 'link', external: false });
+                            this.items.push({ 
+                                title: '', 
+                                url: '', 
+                                icon: 'link', 
+                                external: false,
+                                action_type: 'link',
+                                modal_title: '',
+                                modal_description: '',
+                                modal_image: '',
+                                modal_button_text: '',
+                                modal_button_url: ''
+                            });
                         },
                         removeItem(index) {
                             this.items.splice(index, 1);
@@ -279,27 +324,72 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <template x-for="(item, index) in items" :key="index">
-                                <div class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl relative group">
+                                <div class="bg-slate-900/50 border border-slate-700 p-3.5 rounded-xl relative group">
                                     <button type="button" @click="removeItem(index)" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 transition p-1 z-10">
                                         <i class="fas fa-times"></i>
                                     </button>
-                                    <div class="space-y-2 pr-6">
+                                    <div class="space-y-2.5 pr-6">
                                         <div class="flex items-center gap-2">
                                             <button type="button" @click="openIconPicker(item.icon, (icon) => item.icon = icon)" class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-slate-400 flex-shrink-0 border border-transparent hover:border-neon transition">
                                                 <i :class="'fas fa-' + (item.icon || 'link')"></i>
                                             </button>
                                             <input x-model="item.title" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:border-neon focus:outline-none" placeholder="Link Title">
                                         </div>
-                                        <input x-model="item.url" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:border-neon focus:outline-none" placeholder="https://...">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center gap-2 w-1/2">
-                                                <span class="text-[10px] text-slate-500 uppercase font-bold">Icon:</span>
-                                                <input x-model="item.icon" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:border-neon focus:outline-none" placeholder="link">
+
+                                        <!-- Action Type Selector -->
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Tipe Aksi</label>
+                                                <select x-model="item.action_type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:border-neon focus:outline-none font-medium">
+                                                    <option value="link">Buka URL Langsung</option>
+                                                    <option value="modal">Buka Modal Popup</option>
+                                                </select>
                                             </div>
-                                            <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" x-model="item.external" class="rounded bg-slate-800 border-slate-700 text-neon focus:ring-neon">
-                                                <span class="text-[10px] text-slate-400 font-bold uppercase">New Tab</span>
-                                            </label>
+                                            <div x-show="item.action_type !== 'modal'">
+                                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Target</label>
+                                                <label class="flex items-center gap-2 cursor-pointer pt-1">
+                                                    <input type="checkbox" x-model="item.external" class="rounded bg-slate-800 border-slate-700 text-neon focus:ring-neon">
+                                                    <span class="text-[11px] text-slate-300 font-bold uppercase">Buka Tab Baru</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Direct Link URL -->
+                                        <div x-show="item.action_type !== 'modal'">
+                                            <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">URL Tautan</label>
+                                            <input x-model="item.url" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:border-neon focus:outline-none" placeholder="https://...">
+                                        </div>
+
+                                        <!-- Modal Popup Fields -->
+                                        <div x-show="item.action_type === 'modal'" class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 space-y-2 mt-2">
+                                            <div class="text-[10px] font-bold text-neon uppercase tracking-wider">Pengaturan Modal Popup</div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Judul Modal (Opsional)</label>
+                                                <input x-model="item.modal_title" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Default: sama dengan Judul Link">
+                                            </div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Isi Konten Modal</label>
+                                                <textarea x-model="item.modal_description" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Tuliskan isi pesan atau informasi detail popup..."></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Gambar / Banner Modal URL (Opsional)</label>
+                                                <input x-model="item.modal_image" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="https://... (gambar/flyer)">
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">Teks Tombol Aksi</label>
+                                                    <input x-model="item.modal_button_text" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="Contoh: Hubungi Kami">
+                                                </div>
+                                                <div>
+                                                    <label class="text-[9px] text-slate-500 uppercase font-bold block mb-0.5">URL Tombol Aksi</label>
+                                                    <input x-model="item.modal_button_url" type="text" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none" placeholder="https://wa.me/...">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-slate-500 uppercase font-bold">Icon:</span>
+                                            <input x-model="item.icon" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:border-neon focus:outline-none" placeholder="link">
                                         </div>
                                     </div>
                                 </div>

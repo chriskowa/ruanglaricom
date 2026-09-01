@@ -99,9 +99,9 @@
         <div class="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
             <p>&copy; <?php echo e(date('Y')); ?> RuangLari Indonesia. Ekosistem Pelari & Event Lari No.1 Indonesia. Hak cipta dilindungi.</p>
             <div class="flex items-center gap-6">
-                <a href="<?php echo e(route('home')); ?>#privacy" class="hover:text-slate-300 transition">Kebijakan Privasi</a>
-                <a href="<?php echo e(route('home')); ?>#terms" class="hover:text-slate-300 transition">Syarat & Ketentuan</a>
-                <a href="<?php echo e(route('home')); ?>#faq" class="hover:text-slate-300 transition">FaQ / Bantuan</a>
+                <a href="<?php echo e(route('legal', ['tab' => 'privacy'])); ?>" class="hover:text-slate-300 transition">Kebijakan Privasi</a>
+                <a href="<?php echo e(route('legal', ['tab' => 'terms'])); ?>" class="hover:text-slate-300 transition">Syarat & Ketentuan</a>
+                <a href="<?php echo e(route('legal', ['tab' => 'faq'])); ?>" class="hover:text-slate-300 transition">FaQ / Bantuan</a>
             </div>
         </div>
     </div>

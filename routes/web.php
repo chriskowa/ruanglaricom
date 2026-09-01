@@ -16,6 +16,34 @@ Route::get('/about', function () {
     return view('pages.about');
 })->name('about');
 
+Route::get('/legal', function (Illuminate\Http\Request $request) {
+    return view('pages.legal', ['tab' => $request->query('tab', 'privacy')]);
+})->name('legal');
+
+Route::get('/privacy-policy', function () {
+    return redirect()->route('legal', ['tab' => 'privacy'], 301);
+})->name('privacy');
+
+Route::get('/terms-and-conditions', function () {
+    return redirect()->route('legal', ['tab' => 'terms'], 301);
+})->name('terms');
+
+Route::get('/faq', function () {
+    return redirect()->route('legal', ['tab' => 'faq'], 301);
+})->name('faq');
+
+Route::get('/kebijakan-privasi', function () {
+    return redirect()->route('legal', ['tab' => 'privacy'], 301);
+});
+
+Route::get('/syarat-ketentuan', function () {
+    return redirect()->route('legal', ['tab' => 'terms'], 301);
+});
+
+Route::get('/bantuan', function () {
+    return redirect()->route('legal', ['tab' => 'faq'], 301);
+});
+
 Route::get('/join-now', App\Http\Controllers\JoinNowController::class)->name('home.join-now');
 
 // Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode

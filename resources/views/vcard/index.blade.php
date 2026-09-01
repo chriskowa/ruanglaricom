@@ -94,7 +94,12 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 selection:bg-[#E63946] selection:text-white">
+<body class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 selection:bg-[#E63946] selection:text-white"
+      x-data="{ 
+          activeModal: null, 
+          openModal(item) { this.activeModal = item; }, 
+          closeModal() { this.activeModal = null; } 
+      }">
 
     <!-- Container -->
     <main class="w-full max-w-[420px] mx-auto flex flex-col items-center flex-1 animate-enter">
@@ -181,32 +186,37 @@
                         'title' => 'Official Website',
                         'desc' => 'Portal Berita & Jadwal Event Lari',
                         'url' => route('home'),
-                        'icon' => 'globe'
+                        'icon' => 'globe',
+                        'action_type' => 'link'
                     ],
                     [
                         'title' => 'Kalender Lari Indonesia',
                         'desc' => 'Database Jadwal Race & Marathon',
                         'url' => route('events.index'),
-                        'icon' => 'calendar-days'
+                        'icon' => 'calendar-days',
+                        'action_type' => 'link'
                     ],
                     [
                         'title' => 'Kalkulator Pace & Race',
                         'desc' => 'Prediksi Waktu Finish & Training Pace',
                         'url' => route('calculator'),
-                        'icon' => 'calculator'
+                        'icon' => 'calculator',
+                        'action_type' => 'link'
                     ],
                     [
                         'title' => 'Database Rute GPX',
                         'desc' => 'Download Rute Lari Siap Pakai',
                         'url' => route('gpx.index'),
-                        'icon' => 'map-location-dot'
+                        'icon' => 'map-location-dot',
+                        'action_type' => 'link'
                     ],
                     [
                         'title' => 'Media Partnership',
                         'desc' => 'Kolaborasi, Liputan & Sponsorship',
                         'url' => 'https://wa.me/6287866950667?text=' . urlencode('Halo Ruang Lari Media, saya tertarik untuk kolaborasi / media partnership.'),
                         'icon' => 'handshake',
-                        'external' => true
+                        'external' => true,
+                        'action_type' => 'link'
                     ]
                 ];
 
@@ -231,7 +241,13 @@
                             'desc' => $desc,
                             'url' => $l['url'] ?? '#',
                             'icon' => $l['icon'] ?? 'arrow-up-right-from-square',
-                            'external' => $l['external'] ?? false
+                            'external' => !empty($l['external']),
+                            'action_type' => $l['action_type'] ?? 'link',
+                            'modal_title' => !empty($l['modal_title']) ? $l['modal_title'] : $title,
+                            'modal_description' => !empty($l['modal_description']) ? $l['modal_description'] : $desc,
+                            'modal_image' => $l['modal_image'] ?? '',
+                            'modal_button_text' => !empty($l['modal_button_text']) ? $l['modal_button_text'] : 'Buka Tautan',
+                            'modal_button_url' => $l['modal_button_url'] ?? ($l['url'] ?? '')
                         ];
                     }, $links);
                 }
@@ -256,33 +272,64 @@
                         'tiktok' => 'fa-brands fa-tiktok',
                         default => 'fa-solid fa-arrow-up-right-from-square'
                     };
+                    $isModal = ($item['action_type'] ?? 'link') === 'modal';
                 @endphp
-                <a href="{{ $item['url'] }}" 
-                    {{ !empty($item['external']) ? 'target="_blank" rel="noopener"' : '' }}
-                    class="link-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3.5 group text-left">
-                    
-                    <div class="flex items-center gap-3.5 min-w-0">
-                        <!-- Icon Box -->
-                        <div class="w-11 h-11 rounded-xl bg-[#090B0F] border border-white/10 flex items-center justify-center text-white group-hover:text-[#E63946] shrink-0 transition">
-                            <i class="{{ $faIcon }} text-base"></i>
-                        </div>
+                
+                @if($isModal)
+                    <button type="button" 
+                        @click="openModal({{ json_encode($item) }})"
+                        class="w-full link-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3.5 group text-left cursor-pointer">
                         
-                        <!-- Text -->
-                        <div class="min-w-0">
-                            <div class="font-bold text-sm text-white tracking-wide uppercase group-hover:text-[#E63946] transition truncate">
-                                {{ $item['title'] }}
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <!-- Icon Box -->
+                            <div class="w-11 h-11 rounded-xl bg-[#090B0F] border border-white/10 flex items-center justify-center text-white group-hover:text-[#E63946] shrink-0 transition">
+                                <i class="{{ $faIcon }} text-base"></i>
                             </div>
-                            <div class="text-xs text-[#A7ADB7] truncate mt-0.5">
-                                {{ $item['desc'] }}
+                            
+                            <!-- Text -->
+                            <div class="min-w-0">
+                                <div class="font-bold text-sm text-white tracking-wide uppercase group-hover:text-[#E63946] transition truncate">
+                                    {{ $item['title'] }}
+                                </div>
+                                <div class="text-xs text-[#A7ADB7] truncate mt-0.5">
+                                    {{ $item['desc'] }}
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Arrow Indicator -->
-                    <div class="text-[#A7ADB7] group-hover:text-white group-hover:translate-x-0.5 transition shrink-0 pr-1">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </div>
-                </a>
+                        <!-- Modal Expand Indicator -->
+                        <div class="text-[#A7ADB7] group-hover:text-white group-hover:scale-110 transition shrink-0 pr-1">
+                            <i class="fa-solid fa-expand text-xs"></i>
+                        </div>
+                    </button>
+                @else
+                    <a href="{{ $item['url'] }}" 
+                        {{ !empty($item['external']) ? 'target="_blank" rel="noopener"' : '' }}
+                        class="link-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3.5 group text-left">
+                        
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <!-- Icon Box -->
+                            <div class="w-11 h-11 rounded-xl bg-[#090B0F] border border-white/10 flex items-center justify-center text-white group-hover:text-[#E63946] shrink-0 transition">
+                                <i class="{{ $faIcon }} text-base"></i>
+                            </div>
+                            
+                            <!-- Text -->
+                            <div class="min-w-0">
+                                <div class="font-bold text-sm text-white tracking-wide uppercase group-hover:text-[#E63946] transition truncate">
+                                    {{ $item['title'] }}
+                                </div>
+                                <div class="text-xs text-[#A7ADB7] truncate mt-0.5">
+                                    {{ $item['desc'] }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Arrow Indicator -->
+                        <div class="text-[#A7ADB7] group-hover:text-white group-hover:translate-x-0.5 transition shrink-0 pr-1">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
+                    </a>
+                @endif
             @endforeach
         </section>
 
@@ -328,6 +375,72 @@
         </footer>
 
     </main>
+
+    <!-- DYNAMIC VCARD MODAL POPUP -->
+    <div x-show="activeModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" @click="closeModal()"></div>
+
+        <!-- Modal Dialog -->
+        <div class="relative w-full max-w-sm bg-[#151922] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-2xl z-10 text-left"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-2">
+            
+            <!-- Close Button -->
+            <button type="button" @click="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#090B0F] border border-white/10 flex items-center justify-center text-[#A7ADB7] hover:text-white hover:border-white/20 transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <!-- Header Icon & Title -->
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-[#090B0F] border border-white/10 flex items-center justify-center text-[#E63946] shrink-0">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                </div>
+                <div class="pr-8">
+                    <h3 class="font-sports-title text-lg font-bold uppercase text-white tracking-wide leading-tight" x-text="activeModal?.modal_title || activeModal?.title"></h3>
+                    <div class="text-[10px] uppercase tracking-wider text-[#FF8C00] font-bold">INFORMASI RUANGLARI</div>
+                </div>
+            </div>
+
+            <!-- Optional Image / Flyer -->
+            <template x-if="activeModal?.modal_image">
+                <div class="mb-3.5 rounded-xl overflow-hidden border border-white/10">
+                    <img :src="activeModal.modal_image" alt="Modal Image" class="w-full max-h-48 object-cover">
+                </div>
+            </template>
+
+            <!-- Content Body -->
+            <div class="text-xs text-[#CBD5E1] leading-relaxed whitespace-pre-line space-y-2" x-text="activeModal?.modal_description || activeModal?.desc"></div>
+
+            <!-- Modal Action Buttons -->
+            <div class="mt-5 flex items-center gap-2">
+                <template x-if="activeModal?.modal_button_url && activeModal?.modal_button_url !== '#'">
+                    <a :href="activeModal?.modal_button_url" 
+                       :target="activeModal?.external ? '_blank' : '_self'"
+                       rel="noopener"
+                       class="flex-1 py-2.5 px-4 rounded-lg bg-[#E63946] hover:bg-[#d52b38] text-white text-xs font-bold uppercase tracking-wider text-center transition flex items-center justify-center gap-2">
+                        <span x-text="activeModal?.modal_button_text || 'Buka Tautan'"></span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </template>
+                <button type="button" @click="closeModal()" class="py-2.5 px-4 rounded-lg bg-[#090B0F] hover:bg-[#1a202c] border border-white/10 text-[#A7ADB7] hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Share Helper Script -->
     <script>

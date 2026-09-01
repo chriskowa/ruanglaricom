@@ -35,8 +35,8 @@
     <div class="max-w-7xl mx-auto mb-8">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-800/80 pb-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-850 border border-slate-750 text-[10px] uppercase tracking-wider text-neon mb-3 font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-850 border border-slate-750 text-[10px] uppercase tracking-wider text-neon mb-3 font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-neon"></span>
                     Verified Running Gear & Marketplace
                 </div>
                 <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tight font-sans">
@@ -48,19 +48,16 @@
             </div>
             
             <div class="flex items-center gap-3 shrink-0 w-full md:w-auto">
-                <a href="{{ route('marketplace.cart.index') }}" class="relative px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center gap-2">
+                <a href="{{ route('marketplace.cart.index') }}" class="relative px-4 py-2.5 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center gap-2">
                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span>Keranjang</span>
-                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-dark text-[10px] font-black rounded-full flex items-center justify-center hidden">0</span>
+                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-dark text-[10px] font-black rounded flex items-center justify-center hidden font-mono">0</span>
                 </a>
 
-                <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-white/5">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Jual Gear</span>
+                <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                    <span>+ Jual Gear</span>
                 </a>
             </div>
         </div>
@@ -69,13 +66,13 @@
         <div class="flex items-center gap-2 overflow-x-auto pt-4 pb-1 no-scrollbar text-xs font-bold">
             <button type="button" @click="selectCategoryChip('')" 
                     :class="!activeCategory ? 'bg-white text-dark shadow-sm' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700'"
-                    class="px-4 py-2 rounded-full whitespace-nowrap uppercase tracking-wider text-[11px] transition-all">
+                    class="px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all">
                 Semua Kategori
             </button>
             @foreach($categories as $cat)
             <button type="button" @click="selectCategoryChip('{{ $cat->slug }}')" 
                     :class="activeCategory === '{{ $cat->slug }}' ? 'bg-white text-dark shadow-sm' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700'"
-                    class="px-4 py-2 rounded-full whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5">
+                    class="px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5">
                 <span>{{ $cat->name }}</span>
                 @if($cat->products_count > 0)
                     <span class="text-[9px] opacity-60 font-bold">({{ $cat->products_count }})</span>
@@ -89,7 +86,7 @@
         <div class="mt-8 pt-6 border-t border-slate-800/60">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-neon"></span>
                     <h2 class="text-xs font-black uppercase tracking-wider text-white">FEATURED GEAR</h2>
                 </div>
                 <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Pilihan Unggulan Komunitas</span>
@@ -97,8 +94,8 @@
             
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                 @foreach($featuredProducts as $fProd)
-                <a href="{{ route('marketplace.show', $fProd->slug) }}" class="group block p-2.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition shadow-lg">
-                    <div class="aspect-square rounded-xl overflow-hidden bg-[#131b2c] mb-2.5 relative">
+                <a href="{{ route('marketplace.show', $fProd->slug) }}" class="group block p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition shadow-sm">
+                    <div class="aspect-square rounded-md overflow-hidden bg-[#131b2c] mb-2.5 relative">
                         <img src="{{ $fProd->primaryImage ? asset('storage/'.$fProd->primaryImage->image_path) : ($fProd->images->first() ? asset('storage/'.$fProd->images->first()->image_path) : '') }}" 
                              alt="{{ $fProd->title }}" 
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -109,7 +106,7 @@
                     <div class="space-y-0.5">
                         <p class="text-[9px] text-slate-500 uppercase truncate font-semibold">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
                         <h3 class="text-xs font-bold text-white truncate group-hover:text-neon transition">{{ $fProd->title }}</h3>
-                        <p class="text-xs font-black text-white">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
+                        <p class="text-xs font-black text-white font-mono">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
                     </div>
                 </a>
                 @endforeach
@@ -126,7 +123,7 @@
             <div class="flex items-center gap-2.5 w-full sm:w-auto flex-grow max-w-xl">
                 <!-- Filter Toggle Button -->
                 <button @click="sidebarOpen = !sidebarOpen" 
-                        class="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-xl transition-all shrink-0 text-xs font-bold"
+                        class="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-md transition-all shrink-0 text-xs font-bold"
                         :class="sidebarOpen ? 'border-neon/40 text-neon' : ''">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -142,7 +139,7 @@
                         </svg>
                     </span>
                     <input type="text" id="search-top" placeholder="Cari Vaporfly, Adizero, Garmin, Jersey..." 
-                           class="w-full bg-slate-900/90 border border-slate-800 text-white rounded-xl pl-10 pr-8 py-2 text-xs focus:border-white focus:outline-none transition-all placeholder-slate-500">
+                           class="w-full bg-slate-900/90 border border-slate-800 text-white rounded-md pl-10 pr-8 py-2 text-xs focus:border-white focus:outline-none transition-all placeholder-slate-500">
                     <button type="button" id="clear-search-btn" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-white hidden">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -157,7 +154,7 @@
                 
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs text-slate-500 uppercase tracking-wider hidden sm:inline font-semibold">Urutkan:</span>
-                    <select id="sort-select-top" class="bg-slate-900 border border-slate-800 text-slate-200 rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none transition-all font-medium">
+                    <select id="sort-select-top" class="bg-slate-900 border border-slate-800 text-slate-200 rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none transition-all font-medium">
                         <option value="latest">Terbaru</option>
                         <option value="price_asc">Harga: Terendah</option>
                         <option value="price_desc">Harga: Tertinggi</option>
@@ -181,7 +178,7 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-x-0"
              x-transition:leave-end="opacity-0 -translate-x-4"
-             class="fixed inset-y-0 left-0 z-50 w-80 bg-[#0c121e] p-0 overflow-y-auto lg:static lg:w-72 lg:z-20 lg:h-[calc(100vh-8rem)] lg:sticky lg:top-36 lg:overflow-y-auto lg:bg-slate-900/40 lg:backdrop-blur-md lg:border lg:border-slate-800 lg:rounded-2xl custom-scrollbar shrink-0 shadow-2xl lg:shadow-none">
+             class="fixed inset-y-0 left-0 z-50 w-80 bg-[#0c121e] p-0 overflow-y-auto lg:static lg:w-72 lg:z-20 lg:h-[calc(100vh-8rem)] lg:sticky lg:top-36 lg:overflow-y-auto lg:bg-slate-900/40 lg:backdrop-blur-md lg:border lg:border-slate-800 lg:rounded-lg custom-scrollbar shrink-0 shadow-2xl lg:shadow-none">
             
             <form id="filter-form" action="{{ route('marketplace.index') }}" method="GET" class="h-full">
                 <!-- Sticky Header inside Sidebar -->
@@ -206,18 +203,18 @@
                     <!-- Fulfillment Mode Filter (Titip Jual / Kirim Sendiri) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Tipe Layanan</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800">
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="fulfillment_mode" value="" class="hidden peer" {{ !request('fulfillment_mode') ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
+                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
                             </label>
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="fulfillment_mode" value="consignment" class="hidden peer" {{ request('fulfillment_mode') == 'consignment' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Titip Jual</div>
+                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Titip Jual</div>
                             </label>
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="fulfillment_mode" value="self_ship" class="hidden peer" {{ request('fulfillment_mode') == 'self_ship' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Direct</div>
+                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Direct</div>
                             </label>
                         </div>
                     </div>
@@ -225,18 +222,18 @@
                     <!-- Condition Filter (Segmented Control) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Kondisi</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800">
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="condition" value="" class="hidden peer" {{ !request('condition') ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
+                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
                             </label>
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="condition" value="new" class="hidden peer" {{ request('condition') == 'new' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Baru</div>
+                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Baru</div>
                             </label>
                             <label class="text-center cursor-pointer">
                                 <input type="radio" name="condition" value="used" class="hidden peer" {{ request('condition') == 'used' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded-lg text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Bekas</div>
+                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Bekas</div>
                             </label>
                         </div>
                     </div>
@@ -247,11 +244,11 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div class="relative">
                                 <input type="number" name="price_min" placeholder="Min" value="{{ request('price_min') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold">
+                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold font-mono">
                             </div>
                             <div class="relative">
                                 <input type="number" name="price_max" placeholder="Max" value="{{ request('price_max') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold">
+                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold font-mono">
                             </div>
                         </div>
                     </div>
@@ -259,7 +256,7 @@
                     <!-- Brand Filter (Dropdown / Select) -->
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Brand</label>
-                        <select name="brand" id="brand-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
+                        <select name="brand" id="brand-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
                             <option value="">Semua Brand</option>
                             @foreach($brands as $brand)
                                 <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ request('brand') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
@@ -271,13 +268,13 @@
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Ukuran / Size</label>
                         <input type="text" name="size" value="{{ request('size') }}" placeholder="Contoh: 42, 43, M, L..." 
-                               class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2.5 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all">
+                               class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all">
                     </div>
 
                     <!-- Location / City -->
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Lokasi Seller</label>
-                        <select name="city" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
+                        <select name="city" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
                             <option value="">Semua Kota</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
@@ -290,17 +287,17 @@
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Pilih Kategori</label>
                         <div class="space-y-1">
                             <button type="button" @click="selectCategoryChip('')" 
-                                    class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between"
+                                    class="w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between"
                                     :class="!activeCategory ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'">
                                 <span>Semua Kategori</span>
                             </button>
                             @foreach($categories as $cat)
                                 <button type="button" @click="selectCategoryChip('{{ $cat->slug }}')" 
-                                        class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between"
+                                        class="w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between"
                                         :class="activeCategory === '{{ $cat->slug }}' ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'">
                                     <span>{{ $cat->name }}</span>
                                     @if($cat->products_count > 0)
-                                        <span class="text-[10px] font-semibold text-slate-500">{{ $cat->products_count }}</span>
+                                        <span class="text-[10px] font-semibold text-slate-500 font-mono">({{ $cat->products_count }})</span>
                                     @endif
                                 </button>
                             @endforeach
@@ -309,8 +306,8 @@
 
                     <!-- Filter Actions -->
                     <div class="pt-3 pb-6 flex gap-2">
-                        <button type="submit" class="flex-1 bg-white hover:bg-slate-200 text-slate-950 font-black py-2.5 rounded-xl transition-colors text-xs uppercase tracking-wider">Terapkan</button>
-                        <a href="{{ route('marketplace.index') }}" class="px-4 py-2.5 bg-slate-900 text-slate-400 hover:text-white font-bold rounded-xl border border-slate-800 hover:border-slate-700 transition-colors text-xs flex items-center justify-center">Reset</a>
+                        <button type="submit" class="flex-1 bg-white hover:bg-slate-200 text-slate-950 font-black py-2.5 rounded-md transition-colors text-xs uppercase tracking-wider">Terapkan</button>
+                        <a href="{{ route('marketplace.index') }}" class="px-4 py-2.5 bg-slate-900 text-slate-400 hover:text-white font-bold rounded-md border border-slate-800 hover:border-slate-700 transition-colors text-xs flex items-center justify-center">Reset</a>
                     </div>
                 </div>
             </form>

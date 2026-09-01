@@ -264,12 +264,16 @@ const runnerCalendarApp = createApp({
             aiAnalysisError.value = '';
             stravaLinkInput.value = '';
             notesInput.value = '';
+            rpeInput.value = '';
+            feelingInput.value = '';
+            showFinishForm.value = false;
         };
         const detailTitle = ref('');
         const stravaLinkInput = ref('');
         const notesInput = ref('');
         const rpeInput = ref('');
         const feelingInput = ref('');
+        const showFinishForm = ref(false);
         const stravaDetailsLoading = ref(false);
         const stravaDetailsError = ref('');
         const stravaStreamsLoading = ref(false);
@@ -3182,7 +3186,7 @@ const runnerCalendarApp = createApp({
             showFormModal, form, openFormForToday, closeForm, saveCustomWorkout, showPlanDetail, updateSessionStatus, deleteEnrollment,
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, openPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
-            stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
+            stravaLinkInput, notesInput, rpeInput, feelingInput, showFinishForm, finishActivityWithLink, profileTab, chatCoach,
             aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 

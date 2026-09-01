@@ -235,19 +235,25 @@
         }
 
         .runner-workspace-nav {
-            min-height: 58px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
+            padding: 0.75rem 0.85rem;
             border-top: 1px solid var(--rd-line);
+            background: rgba(11, 21, 34, 0.4);
+            flex-wrap: wrap;
         }
 
         .runner-tabs {
-            display: flex;
-            align-items: stretch;
-            gap: 1.75rem;
-            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem;
+            background: rgba(7, 16, 28, 0.85);
+            border: 1px solid var(--rd-line);
+            border-radius: 6px;
+            max-width: 100%;
             overflow-x: auto;
             scrollbar-width: none;
         }
@@ -256,62 +262,76 @@
 
         #runner-dashboard-shell .runner-tab {
             position: relative;
-            min-height: 58px;
+            min-height: 38px;
             display: inline-flex;
             align-items: center;
-            gap: .55rem;
-            padding: 0;
-            border-radius: 0;
+            gap: 0.5rem;
+            padding: 0.45rem 1rem;
+            border-radius: 4px;
             background: transparent !important;
             box-shadow: none !important;
-            color: rgba(255,255,255,.38) !important;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: .08em;
+            color: #94a3b8 !important;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
         }
 
-        #runner-dashboard-shell .runner-tab::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -1px;
-            height: 2px;
-            background: transparent;
+        #runner-dashboard-shell .runner-tab:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.05) !important;
         }
 
         #runner-dashboard-shell .runner-tab.active {
-            color: #fff !important;
-            background: transparent !important;
-            box-shadow: none !important;
+            color: #07101c !important;
+            background: var(--rd-accent) !important;
+            font-weight: 900;
+            border-color: var(--rd-accent);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
         }
 
-        #runner-dashboard-shell .runner-tab.active::after {
-            background: var(--rd-accent);
+        #runner-dashboard-shell .runner-tab::after {
+            display: none;
         }
 
         .runner-tab__index {
-            color: rgba(255,255,255,.18);
+            color: #64748b;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 8px;
+            font-size: 10px;
+            font-weight: 700;
         }
 
         .runner-tab.active .runner-tab__index {
-            color: var(--rd-accent);
+            color: rgba(7, 16, 28, 0.75);
+            font-weight: 900;
         }
 
         .runner-calendar-link {
             display: inline-flex;
             align-items: center;
-            gap: .6rem;
+            gap: 0.5rem;
+            padding: 0.45rem 0.85rem;
+            background: rgba(7, 16, 28, 0.85);
+            border: 1px solid var(--rd-line);
+            border-radius: 6px;
             color: var(--rd-accent);
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing: .1em;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .runner-calendar-link:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         /* Make the overview feel like one professional workspace,
@@ -454,7 +474,6 @@
 
                 <div class="runner-command__actions">
                     <a href="{{ route('run.free') }}" class="runner-action runner-action--run">
-                        <i class="fa-solid fa-person-running"></i>
                         <span>Start Run</span>
                     </a>
 
@@ -478,7 +497,6 @@
 
                     <a href="{{ route('runner.programs') }}" class="runner-action hidden sm:inline-flex">
                         <span>Programs</span>
-                        <i class="fas fa-arrow-right text-[9px]"></i>
                     </a>
                 </div>
             </div>
@@ -545,15 +563,14 @@
                     class="runner-stat group text-left"
                 >
                     <div class="runner-stat__label">
-                        <i class="fab fa-whatsapp" :class="isReceiveWa ? 'text-emerald-400' : 'text-white/25'"></i>
                         Daily program
                     </div>
 
                     <div class="runner-stat__value runner-stat__value--small">
                         <strong>WhatsApp</strong>
                         <span
-                            :class="isReceiveWa ? 'text-emerald-400' : 'text-white/30'"
-                            x-text="isReceiveWa ? 'Active' : 'Off'"
+                            :class="isReceiveWa ? 'text-white' : 'text-slate-500'"
+                            x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"
                         ></span>
 
                         <span class="runner-switch" :class="isReceiveWa ? 'is-on' : ''">
@@ -594,7 +611,6 @@
                     class="runner-calendar-link"
                 >
                     Calendar
-                    <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </section>
@@ -811,16 +827,15 @@
                             @endif
                         @endif
                         @else
-                            <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5">
+                            <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-xl p-5">
                                 <div class="text-sm font-bold text-white">Rest day / tidak ada jadwal hari ini.</div>
                                 <div class="text-xs text-slate-400 mt-1">Cek jadwal 7 hari ke depan atau reschedule dari calendar.</div>
                                 <div class="mt-4 flex flex-wrap gap-2">
-                                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 text-sm text-neon hover:underline font-bold mr-4">
-                                        Buka Training Calendar
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center text-sm text-[#ccff00] hover:underline font-bold mr-4">
+                                        Buka Training Calendar &rarr;
                                     </a>
-                                    <a href="{{ route('runner.calendar') }}?action=add_custom" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-neon hover:text-neon text-xs font-bold transition text-slate-300">
-                                        ➕ Tambah Latihan Kustom
+                                    <a href="{{ route('runner.calendar') }}?action=add_custom" class="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-800 border border-slate-700 hover:border-[#ccff00] hover:text-[#ccff00] text-xs font-bold transition text-slate-300">
+                                        + Tambah Latihan Kustom
                                     </a>
                                 </div>
                             </div>
@@ -863,11 +878,11 @@
                                     </div>
                                     <div class="shrink-0 flex items-center gap-2">
                                         @if($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture')
-                                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">Lunas</span>
+                                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold">Lunas</span>
                                         @elseif($reg->payment_status === 'pending')
-                                            <a href="{{ route('events.show', $evt->slug) }}" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] transition">Bayar</a>
+                                            <a href="{{ route('events.show', $evt->slug) }}" class="px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition">Bayar</a>
                                         @else
-                                            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">{{ ucfirst($reg->payment_status) }}</span>
+                                            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-xs">{{ ucfirst($reg->payment_status) }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -882,9 +897,8 @@
                         <div class="min-w-0">
                             <div class="text-[10px] font-mono text-[#FC4C02] uppercase tracking-widest">Activities</div>
                             <div class="flex items-center gap-2">
-                                <h2 class="text-base sm:text-lg font-black text-white italic tracking-tight flex items-center gap-2">
-                                    <i class="fa-solid fa-person-running text-[#FC4C02] text-sm"></i>
-                                    <span>Aktivitas Lari Terakhir</span>
+                                <h2 class="text-base sm:text-lg font-black text-white italic tracking-tight">
+                                    Aktivitas Lari Terakhir
                                 </h2>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -930,9 +944,8 @@
                                 <p class="text-xs text-slate-400 leading-relaxed">
                                     Belum ada sesi lari yang tersimpan. Mulai rekam jejak lari Anda dengan GPS live!
                                 </p>
-                                <a href="{{ route('run.free') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wide transition shadow-md shadow-[#FC4C02]/20">
-                                    <i class="fa-solid fa-play text-[10px]"></i>
-                                    <span>Run</span>
+                                <a href="{{ route('run.free') }}" class="inline-flex items-center px-3.5 py-2 rounded-md bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs uppercase tracking-wide transition shadow-sm">
+                                    <span>Mulai Lari (GPS)</span>
                                 </a>
                             </div>
                         @endif
@@ -1034,8 +1047,8 @@
                                         <div class="text-white font-bold text-xs truncate">{{ $bg->program->title }}</div>
                                         <div class="text-[10px] text-slate-400 mt-0.5">Coach {{ $bg->program->coach->name }}</div>
                                     </div>
-                                    <button onclick="triggerApplyProgram({{ $bg->id }})" class="shrink-0 px-3 py-1.5 rounded-lg bg-neon text-dark font-bold text-xs hover:bg-white transition flex items-center gap-1">
-                                        Aktifkan <i class="fas fa-play text-[8px]"></i>
+                                    <button onclick="triggerApplyProgram({{ $bg->id }})" class="shrink-0 px-3 py-1.5 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition">
+                                        Aktifkan
                                     </button>
                                 </div>
                             @endforeach
@@ -1094,8 +1107,8 @@
                             </div>
                         </div>
                         @if(auth()->user()->vdot)
-                            <div class="px-2.5 py-1 rounded-full bg-neon text-dark font-black text-xs flex items-center gap-1 font-mono" @click.stop>
-                                ⚡ VDOT {{ round(auth()->user()->vdot, 1) }}
+                            <div class="px-2.5 py-1 rounded bg-neon text-dark font-black text-xs flex items-center gap-1 font-mono" @click.stop>
+                                VDOT {{ round(auth()->user()->vdot, 1) }}
                             </div>
                         @endif
                     </div>
@@ -1137,7 +1150,7 @@
                 <div x-data="{ collapsed: true }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 relative overflow-hidden group">
                     <div class="flex items-center justify-between cursor-pointer select-none" @click="collapsed = !collapsed">
                         <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                            <span>⚡ Update Personal Best (PB)</span>
+                            <span>Update Personal Best (PB)</span>
                         </div>
                         <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-300" :class="collapsed ? '-rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
@@ -1746,21 +1759,19 @@
                     <p class="text-xs text-slate-400">Temukan perlengkapan lari terbaik, sepatu, jam GPS, dan slot event lari.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('marketplace.index') }}" class="px-5 py-2.5 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-[#9FE000] transition">
+                     <a href="{{ route('marketplace.index') }}" class="px-4 py-2 rounded-md bg-neon text-dark font-bold text-xs uppercase hover:bg-white transition">
                         Buka Shop
                     </a>
-                    <a href="{{ route('marketplace.cart.index') }}" class="px-4 py-2.5 rounded-xl bg-[#111F35] border border-[#1F2D44] text-white hover:border-[#B8FF00] font-bold text-xs uppercase transition flex items-center gap-2">
-                        <svg class="w-4 h-4 text-[#B8FF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <a href="{{ route('marketplace.cart.index') }}" class="px-4 py-2 rounded-md bg-[#111F35] border border-[#1F2D44] text-white hover:border-neon font-bold text-xs uppercase transition">
                         <span>Keranjang</span>
                     </a>
                 </div>
             </div>
 
             <!-- Riwayat Pembelian Marketplace -->
-            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6">
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#B8FF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
                         Riwayat Pembelian Barang
                     </h3>
                     <a href="{{ route('marketplace.orders.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Lihat Semua Order &rarr;</a>
@@ -1769,21 +1780,21 @@
                 @if(isset($marketplacePurchases) && $marketplacePurchases->count() > 0)
                     <div class="space-y-4">
                         @foreach($marketplacePurchases as $pur)
-                            <div class="bg-[#08111F] border border-[#1F2D44] rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                            <div class="bg-[#08111F] border border-[#1F2D44] rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="text-xs font-mono font-bold text-white">{{ $pur->invoice_number }}</span>
                                         <?php
                                             $st = $pur->status;
                                             $stMap = [
-                                                'paid' => 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-                                                'shipped' => 'bg-blue-500/20 text-blue-400 border-blue-500/40',
-                                                'completed' => 'bg-[#B8FF00]/20 text-[#B8FF00] border-[#B8FF00]/40',
-                                                'cancelled' => 'bg-rose-500/20 text-rose-400 border-rose-500/40',
+                                                'paid' => 'bg-slate-800 text-slate-200 border-slate-700',
+                                                'shipped' => 'bg-blue-950/80 text-blue-300 border-blue-600/40',
+                                                'completed' => 'bg-emerald-950/80 text-emerald-300 border-emerald-600/40',
+                                                'cancelled' => 'bg-rose-950/80 text-rose-300 border-rose-600/40',
                                             ];
-                                            $stClass = $stMap[$st] ?? 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+                                            $stClass = $stMap[$st] ?? 'bg-amber-950/80 text-amber-300 border-amber-600/40';
                                         ?>
-                                        <span class="px-2.5 py-0.5 border text-[10px] font-bold rounded-full uppercase font-mono {{ $stClass }}">
+                                        <span class="px-2 py-0.5 border text-xs font-bold rounded uppercase font-mono {{ $stClass }}">
                                             {{ strtoupper($st) }}
                                         </span>
                                     </div>
@@ -1805,7 +1816,7 @@
                                     <div class="text-base font-black text-[#B8FF00] font-mono">
                                         Rp {{ number_format($pur->total_amount, 0, ',', '.') }}
                                     </div>
-                                    <a href="{{ route('marketplace.orders.show', $pur->id) }}" class="mt-2 text-xs font-bold text-white bg-[#111F35] border border-[#1F2D44] hover:border-[#B8FF00] px-3 py-1.5 rounded-lg transition">
+                                    <a href="{{ route('marketplace.orders.show', $pur->id) }}" class="mt-2 text-xs font-bold text-white bg-[#111F35] border border-[#1F2D44] hover:border-[#B8FF00] px-3 py-1.5 rounded-md transition">
                                         Detail Order
                                     </a>
                                 </div>
@@ -1820,10 +1831,9 @@
             </div>
 
             <!-- Wishlist Produk Pelari -->
-            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6">
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight flex items-center gap-2">
-                        <svg class="w-5 h-5 text-rose-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
                         Wishlist Produk Saya
                     </h3>
                     <a href="{{ route('marketplace.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Tambah Wishlist &rarr;</a>
@@ -1833,13 +1843,13 @@
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         @foreach($wishlistedProducts as $wl)
                             @if($wl->product)
-                                <div class="bg-[#08111F] border border-[#1F2D44] rounded-2xl p-3 flex flex-col justify-between h-full">
+                                <div class="bg-[#08111F] border border-[#1F2D44] rounded-xl p-3 flex flex-col justify-between h-full">
                                     <div>
-                                        <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-[#0E1A2D] rounded-xl overflow-hidden mb-3">
+                                        <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-[#0E1A2D] rounded-lg overflow-hidden mb-3">
                                             @if($wl->product->primaryImage)
                                                 <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" class="w-full h-full object-cover">
                                             @else
-                                                <div class="w-full h-full flex items-center justify-center text-slate-700">📷</div>
+                                                <div class="w-full h-full flex items-center justify-center text-slate-500 text-xs font-medium">No Image</div>
                                             @endif
                                         </a>
                                         <div class="text-[10px] text-[#B8FF00] font-bold uppercase truncate">{{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}</div>
@@ -2303,11 +2313,11 @@
 
             getPaceColor(type) {
                 const colors = {
-                    'E': 'text-emerald-400',
-                    'M': 'text-blue-400',
-                    'T': 'text-amber-400',
-                    'I': 'text-orange-400',
-                    'R': 'text-rose-400'
+                    'E': 'text-slate-200',
+                    'M': 'text-sky-300',
+                    'T': 'text-amber-300',
+                    'I': 'text-orange-300',
+                    'R': 'text-rose-300'
                 };
                 return colors[type] || 'text-slate-400';
             },
@@ -2333,31 +2343,31 @@
             getSessionClass(type) {
                 const classes = {
                     'rest': 'bg-slate-900/30 border-slate-800/80 text-slate-500',
-                    'easy_run': 'bg-emerald-950/20 border-emerald-500/20 text-emerald-400',
-                    'long_run': 'bg-blue-950/20 border-blue-500/20 text-blue-400',
-                    'threshold': 'bg-amber-950/20 border-amber-500/20 text-amber-400',
-                    'interval': 'bg-orange-950/20 border-orange-500/20 text-orange-400',
-                    'repetition': 'bg-rose-950/20 border-rose-500/20 text-rose-400',
-                    'hill': 'bg-sky-950/20 border-sky-500/20 text-sky-400',
-                    'marathon': 'bg-cyan-950/20 border-cyan-500/20 text-cyan-400',
-                    'tempo': 'bg-amber-950/20 border-amber-500/20 text-amber-400'
+                    'easy_run': 'bg-slate-900 border-slate-700 text-slate-200',
+                    'long_run': 'bg-blue-950/40 border-blue-600/30 text-blue-300',
+                    'threshold': 'bg-amber-950/40 border-amber-600/30 text-amber-300',
+                    'interval': 'bg-orange-950/40 border-orange-600/30 text-orange-300',
+                    'repetition': 'bg-rose-950/40 border-rose-600/30 text-rose-300',
+                    'hill': 'bg-sky-950/40 border-sky-600/30 text-sky-300',
+                    'marathon': 'bg-cyan-950/40 border-cyan-600/30 text-cyan-300',
+                    'tempo': 'bg-amber-950/40 border-amber-600/30 text-amber-300'
                 };
                 return classes[type] || 'bg-slate-900/30 border-slate-800/80 text-slate-500';
             },
 
             getSessionIcon(type) {
-                const icons = {
-                    'rest': '🛋️',
-                    'easy_run': '🏃',
-                    'long_run': '🔋',
-                    'threshold': '🔥',
-                    'interval': '⚡',
-                    'repetition': '🚀',
-                    'hill': '⛰️',
-                    'marathon': '🏆',
-                    'tempo': '🔥'
+                const labels = {
+                    'rest': 'REST',
+                    'easy_run': 'EASY',
+                    'long_run': 'LONG',
+                    'threshold': 'TEMPO',
+                    'interval': 'INTERVAL',
+                    'repetition': 'REP',
+                    'hill': 'HILL',
+                    'marathon': 'RACE',
+                    'tempo': 'TEMPO'
                 };
-                return icons[type] || '🏃';
+                return labels[type] || 'RUN';
             },
 
             async generateProgram() {
@@ -2559,9 +2569,9 @@
         if (e.data && e.data.type === 'resize-iframe-calculator') {
             const iframe = document.getElementById('calculator-iframe');
             if (iframe && e.data.height) {
-                const newHeight = e.data.height + 10;
+                const newHeight = Math.max(e.data.height + 20, 650);
                 const currentHeight = parseInt(iframe.style.height) || 0;
-                if (Math.abs(currentHeight - newHeight) > 15) {
+                if (Math.abs(currentHeight - newHeight) > 10) {
                     iframe.style.height = newHeight + 'px';
                 }
             }

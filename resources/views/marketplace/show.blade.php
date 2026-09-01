@@ -191,18 +191,17 @@
 
                     @if($product->is_sold)
                         <div class="pt-2 border-t border-slate-800/80 flex items-center gap-2 text-rose-400 text-xs font-bold uppercase">
-                            <i class="fas fa-times-circle"></i>
                             <span>Item ini sudah laku terjual {{ $product->sold_channel ? '(' . strtoupper($product->sold_channel) . ')' : '' }}</span>
                         </div>
                     @elseif($product->stock > 0)
                         <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-medium">
-                            <span class="text-emerald-400 flex items-center gap-1.5 font-bold">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-slate-200 flex items-center gap-1.5 font-bold">
+                                <span class="w-2 h-2 rounded-full bg-neon"></span>
                                 Stok Siap Kirim ({{ $product->stock }} Unit)
                             </span>
                             @if(optional($product->seller)->city)
                                 <span class="text-slate-400">
-                                    <i class="fas fa-map-marker-alt text-slate-500 mr-1"></i>{{ $product->seller->city->name }}
+                                    {{ $product->seller->city->name }}
                                 </span>
                             @endif
                         </div>
@@ -211,10 +210,10 @@
 
                 <!-- Auction Interface (if auction) -->
                 @if($product->sale_type === 'auction' && !$product->is_sold)
-                    <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-3">
+                    <div class="p-5 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-3">
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-amber-400 uppercase font-bold tracking-wider">Status Lelang</span>
-                            <span class="text-slate-300 font-semibold">Kelipatan Bid: Rp {{ number_format($product->min_increment ?? 50000, 0, ',', '.') }}</span>
+                            <span class="text-slate-300 font-semibold font-mono">Kelipatan Bid: Rp {{ number_format($product->min_increment ?? 50000, 0, ',', '.') }}</span>
                         </div>
                         @if($product->auction_end_at)
                             <p class="text-xs text-slate-400">
@@ -226,41 +225,41 @@
 
                 <!-- Key Specifications Metric Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Kondisi</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->condition === 'new' ? 'Baru' : 'Bekas' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ukuran / Size</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->size ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Brand</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ optional($product->brand)->name ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Kategori</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ optional($product->category)->name ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Tipe Gear</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->type ?: 'Running Gear' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Lokasi Seller</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5 truncate">{{ optional(optional($product->seller)->city)->name ?: 'Indonesia' }}</span>
                     </div>
                 </div>
 
                 <!-- Seller Profile Card -->
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="p-4 rounded-lg bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 shrink-0">
+                        <div class="w-12 h-12 rounded-full overflow-hidden border border-slate-700 bg-slate-950 shrink-0">
                             <img src="{{ optional($product->seller)->avatar_url }}" 
                                  alt="{{ optional($product->seller)->name ?? 'Seller' }}" 
                                  class="w-full h-full object-cover">
@@ -279,7 +278,7 @@
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         @if($product->seller)
                             <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" 
-                               class="flex-1 sm:flex-none text-center px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold border border-slate-700 transition">
+                               class="flex-1 sm:flex-none text-center px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold border border-slate-700 transition">
                                 Profil Seller
                             </a>
                         @endif
@@ -287,8 +286,7 @@
                         @if(optional($product->seller)->phone)
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $product->seller->phone) }}?text={{ urlencode('Halo ' . optional($product->seller)->name . ', saya tertarik dengan produk lari Anda di RuangLari: ' . $product->title . ' (' . route('marketplace.show', $product->slug) . ')') }}" 
                                target="_blank"
-                               class="flex-1 sm:flex-none text-center px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs font-bold border border-emerald-500/30 transition flex items-center justify-center gap-1.5">
-                                <i class="fab fa-whatsapp"></i>
+                               class="flex-1 sm:flex-none text-center px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1.5">
                                 <span>Tanya Seller</span>
                             </a>
                         @endif

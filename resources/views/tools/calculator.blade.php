@@ -86,18 +86,30 @@
 @section('content')
 @if(request()->has('embed'))
 <style>
-    #ph-sidebar,#pacerhub-nav,#chatbox-toggle,header{display:none!important}
+    #ph-sidebar,#pacerhub-nav,#chatbox-toggle,header,footer{display:none!important}
     #main-content-wrapper{padding-left:0!important;padding-top:0!important;margin:0!important}
-    body{padding-top:0!important;background:transparent!important}
+    html, body{padding-top:0!important;background:transparent!important;overflow-y:visible!important;overflow-x:hidden!important}
     main{padding-top:0!important;margin:0!important}
-    #rl-calculator{padding-top:0!important}
+    #rl-calculator{padding-top:0!important;min-height:auto!important;background:transparent!important}
+    #rl-calculator .rlc-wrap{padding-top:0.5rem!important;padding-bottom:1rem!important}
     #rl-calculator .rlc-header{display:none!important}
 </style>
 <script>
 (function(){
-    if(window.parent&&window.parent!==window){
-        const report=()=>window.parent.postMessage({type:'resize-iframe-calculator',height:document.documentElement.scrollHeight||document.body.scrollHeight},'*');
-        window.addEventListener('load',report);window.addEventListener('resize',report);setInterval(report,400);
+    if(window.parent && window.parent !== window){
+        const report = () => {
+            window.scrollTo(0, 0);
+            const wrap = document.getElementById('rl-calculator');
+            const h = wrap ? wrap.scrollHeight + 30 : (document.documentElement.scrollHeight || document.body.scrollHeight);
+            window.parent.postMessage({type:'resize-iframe-calculator', height: h}, '*');
+        };
+        window.addEventListener('load', report);
+        window.addEventListener('resize', report);
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(report);
+            ro.observe(document.body);
+        }
+        setInterval(report, 400);
     }
 })();
 </script>
@@ -127,7 +139,7 @@
             <button class="tab-btn" onclick="openTab(event,'magicMile')">Magic Mile</button>
             <button class="tab-btn" onclick="openTab(event,'marathon')">Marathon</button>
             <button class="tab-btn active" onclick="openTab(event,'pace')">Pace</button>
-            <button class="tab-btn" onclick="openTab(event,'predictor')">Predictor</button>
+            <button class="tab-btn" onclick="openTab(event,'predictor')">Prediksi & Proyeksi</button>
             <button class="tab-btn" onclick="openTab(event,'improvement')">Improvement</button>
             <button class="tab-btn" onclick="openTab(event,'splits')">Splits</button>
             <button class="tab-btn" onclick="openTab(event,'steps')">Steps</button>
@@ -170,15 +182,74 @@
         </div>
 
         <div id="predictor" class="tab-content" data-hash="racepredictor">
-            <div class="info-note">Prediksi waktu race menggunakan Riegel's Formula dari performa race sebelumnya.</div>
-            <div class="form-row">
-                <div class="form-group"><label id="recentRaceDistanceLabel">Recent Race Distance (km)</label><select id="recentRaceDistanceSelect" onchange="updateRecentRaceDistance()"><option value="custom">Custom</option><option value="5">5K</option><option value="10">10K</option><option value="21.1">Half Marathon</option><option value="42.2">Marathon</option></select><input type="number" id="recentRaceDistance" step="0.1" min="0.1" placeholder="e.g. 10" class="mt-2"></div>
-                <div class="form-group"><label id="targetRaceDistanceLabel">Target Race Distance (km)</label><select id="targetRaceDistanceSelect" onchange="updateTargetRaceDistance()"><option value="custom">Custom</option><option value="5">5K</option><option value="10">10K</option><option value="21.1">Half Marathon</option><option value="42.2">Marathon</option></select><input type="number" id="targetRaceDistance" step="0.1" min="0.1" placeholder="e.g. 21.1" class="mt-2"></div>
+            <div class="info-note">
+                Hitung proyeksi dan prediksi waktu/pace dari jarak tes atau lari sebelumnya (misal: <strong>3.500m dalam 12 menit</strong> atau <strong>4.800m dalam 16 menit</strong> diproyeksikan ke <strong>5.000m / 5K</strong>, 10K, Half Marathon, dan Full Marathon) dengan kalkulasi pace konstan maupun formula kelelahan Riegel.
             </div>
-            <div class="form-group"><label>Recent Race Time</label><div class="time-inputs"><input type="number" id="recentRaceHours" placeholder="Hours"><input type="number" id="recentRaceMinutes" placeholder="Min"><input type="number" id="recentRaceSeconds" placeholder="Sec"></div></div>
-            <button class="rlc-action" onclick="calculateRacePredictor()">Predict Race Time</button>
-            <div id="racePredictorError" class="error"></div><div id="racePredictorResults" class="results"></div>
-            <button type="button" class="rlc-export-btn" id="racePredictorExportBtn" onclick="exportResults('racePredictorResults','Race Predictor')">Export PNG</button>
+            <div class="form-row">
+                <!-- Benchmark Distance -->
+                <div class="form-group">
+                    <label id="recentRaceDistanceLabel">Jarak Benchmark / Tes Sebelumnya</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <select id="recentRacePresetSelect" onchange="applyRecentPreset(this.value)">
+                            <option value="custom">-- Pilih Preset / Manual --</option>
+                            <option value="3500:m" selected>3.500 m (Cooper Test)</option>
+                            <option value="4800:m">4.800 m</option>
+                            <option value="1000:m">1.000 m (1K)</option>
+                            <option value="1500:m">1.500 m</option>
+                            <option value="1609.34:m">1 Mile (1.609 m)</option>
+                            <option value="2400:m">2.400 m (Tes Samapta)</option>
+                            <option value="3000:m">3.000 m (3K)</option>
+                            <option value="5:km">5K (5.000 m)</option>
+                            <option value="10:km">10K (10.000 m)</option>
+                            <option value="21.0975:km">Half Marathon (21.1 km)</option>
+                            <option value="42.195:km">Full Marathon (42.2 km)</option>
+                        </select>
+                        <select id="recentRaceUnit">
+                            <option value="m" selected>Meter (m)</option>
+                            <option value="km">Kilometer (km)</option>
+                        </select>
+                    </div>
+                    <input type="number" id="recentRaceDistance" step="any" min="0.01" placeholder="Contoh: 3500 atau 4.8" value="3500">
+                </div>
+
+                <!-- Target Distance -->
+                <div class="form-group">
+                    <label id="targetRaceDistanceLabel">Jarak Target Proyeksi</label>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <select id="targetRacePresetSelect" onchange="applyTargetPreset(this.value)">
+                            <option value="custom">-- Pilih Preset / Manual --</option>
+                            <option value="5000:m" selected>5.000 m (5K)</option>
+                            <option value="10000:m">10.000 m (10K)</option>
+                            <option value="3000:m">3.000 m (3K)</option>
+                            <option value="2400:m">2.400 m (Tes Samapta)</option>
+                            <option value="21097.5:m">Half Marathon (21.1 km)</option>
+                            <option value="42195:m">Full Marathon (42.2 km)</option>
+                            <option value="3500:m">3.500 m</option>
+                            <option value="4800:m">4.800 m</option>
+                            <option value="1500:m">1.500 m</option>
+                        </select>
+                        <select id="targetRaceUnit">
+                            <option value="m" selected>Meter (m)</option>
+                            <option value="km">Kilometer (km)</option>
+                        </select>
+                    </div>
+                    <input type="number" id="targetRaceDistance" step="any" min="0.01" placeholder="Contoh: 5000 atau 5" value="5000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Waktu Tempuh Sebelumnya (Recent / Test Time)</label>
+                <div class="time-inputs">
+                    <input type="number" id="recentRaceHours" placeholder="Hours" min="0" value="0">
+                    <input type="number" id="recentRaceMinutes" placeholder="Min" min="0" value="12">
+                    <input type="number" id="recentRaceSeconds" placeholder="Sec" min="0" max="59" value="0">
+                </div>
+            </div>
+
+            <button class="rlc-action" onclick="calculateRacePredictor()">Hitung Proyeksi & Prediksi</button>
+            <div id="racePredictorError" class="error"></div>
+            <div id="racePredictorResults" class="results"></div>
+            <button type="button" class="rlc-export-btn" id="racePredictorExportBtn" onclick="exportResults('racePredictorResults','Race & Distance Predictor')">Export PNG</button>
         </div>
 
         <div id="improvement" class="tab-content" data-hash="improvement">
@@ -323,7 +394,15 @@ window.showResults = function(id, html) {
     const err = window.el(id.replace('Results', 'Error')); if (err) err.style.display = 'none';
     const r = window.el(id); if (!r) return; r.innerHTML = html; r.classList.add('show');
     const b = window.el(id.replace('Results', 'ExportBtn')); if (b) b.style.display = 'inline-flex';
-    setTimeout(() => r.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    
+    if (window.parent && window.parent !== window) {
+        window.scrollTo(0, 0);
+        const wrap = document.getElementById('rl-calculator');
+        const h = wrap ? wrap.scrollHeight + 40 : (document.documentElement.scrollHeight || document.body.scrollHeight);
+        window.parent.postMessage({type:'resize-iframe-calculator', height: h}, '*');
+    } else {
+        setTimeout(() => r.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    }
 };
 
 window.rows = function(items) {
@@ -353,7 +432,14 @@ window.openTab = function(evt, name) {
         target.classList.add('active');
         const hash = target.dataset.hash;
         if (hash) history.replaceState(null, '', '#' + hash);
-        setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+        if (window.parent && window.parent !== window) {
+            window.scrollTo(0, 0);
+            const wrap = document.getElementById('rl-calculator');
+            const h = wrap ? wrap.scrollHeight + 40 : (document.documentElement.scrollHeight || document.body.scrollHeight);
+            window.parent.postMessage({type:'resize-iframe-calculator', height: h}, '*');
+        } else {
+            setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+        }
     }
     if (evt?.currentTarget) {
         evt.currentTarget.classList.add('active');
@@ -409,8 +495,27 @@ window.calculateMarathonPace = function() {
     window.showResults('marathonResults', window.rows([['Required Pace', `${window.formatTime(p, false)} ${window.globalUnit === 'metric' ? 'min/km' : 'min/mile'}`], ['Average Speed', `${sp} ${window.globalUnit === 'metric' ? 'km/h' : 'mph'}`]]));
 };
 
+window.applyRecentPreset = function(val) {
+    if (val === 'custom') return;
+    const parts = val.split(':');
+    if (parts.length === 2) {
+        if (window.el('recentRaceUnit')) window.el('recentRaceUnit').value = parts[1];
+        if (window.el('recentRaceDistance')) window.el('recentRaceDistance').value = parts[0];
+    }
+};
+
+window.applyTargetPreset = function(val) {
+    if (val === 'custom') return;
+    const parts = val.split(':');
+    if (parts.length === 2) {
+        if (window.el('targetRaceUnit')) window.el('targetRaceUnit').value = parts[1];
+        if (window.el('targetRaceDistance')) window.el('targetRaceDistance').value = parts[0];
+    }
+};
+
 window.updateSelectInput = function(selectId, inputId) {
     const s = window.el(selectId), x = window.el(inputId);
+    if (!s || !x) return;
     if (s.value === 'custom') { x.disabled = false; x.value = ''; } else { x.disabled = true; x.value = s.value; }
 };
 
@@ -419,10 +524,94 @@ window.updateTargetRaceDistance = function() { window.updateSelectInput('targetR
 window.updateSplitDistance = function() { window.updateSelectInput('splitDistanceSelect', 'splitDistance'); };
 
 window.calculateRacePredictor = function() {
-    const d1 = window.n('recentRaceDistance'), d2 = window.n('targetRaceDistance'), s = window.tsec(window.i('recentRaceHours'), window.i('recentRaceMinutes'), window.i('recentRaceSeconds'));
-    if (!d1 || !d2) return window.showError('racePredictorError', 'Please enter valid distances.');
-    if (!s) return window.showError('racePredictorError', 'Please enter a valid race time.');
-    window.showResults('racePredictorResults', window.rows([['Predicted Time', window.formatTime(s * Math.pow(window.metricDistance(d2) / window.metricDistance(d1), 1.06), true)]]));
+    const rawD1 = window.n('recentRaceDistance');
+    const u1 = window.el('recentRaceUnit')?.value || 'm';
+    const rawD2 = window.n('targetRaceDistance');
+    const u2 = window.el('targetRaceUnit')?.value || 'm';
+    const s = window.tsec(window.i('recentRaceHours'), window.i('recentRaceMinutes'), window.i('recentRaceSeconds'));
+    
+    if (!rawD1 || rawD1 <= 0) return window.showError('racePredictorError', 'Masukkan jarak benchmark yang valid.');
+    if (!rawD2 || rawD2 <= 0) return window.showError('racePredictorError', 'Masukkan jarak target yang valid.');
+    if (!s || s <= 0) return window.showError('racePredictorError', 'Masukkan waktu tempuh lari yang valid.');
+    
+    // Convert to km and m
+    const d1_km = u1 === 'm' ? rawD1 / 1000 : rawD1;
+    const d2_km = u2 === 'm' ? rawD2 / 1000 : rawD2;
+    const d1_m = d1_km * 1000;
+    const d2_m = d2_km * 1000;
+    
+    // Base pace & speed
+    const basePaceSec = s / d1_km;
+    const baseSpeed = (d1_km / (s / 3600)).toFixed(2);
+    
+    // 1. Linear Projection (Constant Pace)
+    const linearSec = basePaceSec * d2_km;
+    
+    // 2. Riegel's Fatigue Formula: T2 = T1 * (D2 / D1)^1.06
+    const riegelSec = s * Math.pow(d2_km / d1_km, 1.06);
+    const riegelPaceSec = riegelSec / d2_km;
+    
+    // Difference
+    const diffMeters = Math.round(d2_m - d1_m);
+    const diffSecLinear = Math.round(linearSec - s);
+    const diffSecRiegel = Math.round(riegelSec - s);
+    
+    const d1Text = u1 === 'm' ? `${Math.round(d1_m)} m` : `${d1_km} km`;
+    const d2Text = u2 === 'm' ? `${Math.round(d2_m)} m` : `${d2_km} km`;
+    
+    const items = [
+        ['Jarak & Waktu Benchmark', `${d1Text} · ${window.formatTime(s, true)}`],
+        ['Pace Rata-Rata Asal', `${window.formatTime(basePaceSec, false)} /km (${baseSpeed} km/h)`],
+        ['Proyeksi Pace Konstan (' + d2Text + ')', `${window.formatTime(linearSec, true)} (Pace ${window.formatTime(basePaceSec, false)}/km)`],
+        ['Proyeksi Fatigue Riegel (' + d2Text + ')', `${window.formatTime(riegelSec, true)} (Pace ${window.formatTime(riegelPaceSec, false)}/km)`],
+    ];
+
+    if (diffMeters !== 0) {
+        const sign = diffMeters > 0 ? '+' : '';
+        const diffLinearStr = (diffSecLinear >= 0 ? '+' : '-') + window.formatTime(Math.abs(diffSecLinear), true);
+        const diffRiegelStr = (diffSecRiegel >= 0 ? '+' : '-') + window.formatTime(Math.abs(diffSecRiegel), true);
+        items.push([
+            'Selisih Jarak & Ekstra Waktu', 
+            `${sign}${diffMeters} m (${diffLinearStr} pace sama / ${diffRiegelStr} fatigue)`
+        ]);
+    }
+
+    // Standard benchmark projections
+    const benchmarks = [
+        { name: '1.000 m (1K)', km: 1.0 },
+        { name: '1.500 m', km: 1.5 },
+        { name: '2.400 m (Samapta)', km: 2.4 },
+        { name: '3.000 m (3K)', km: 3.0 },
+        { name: '5.000 m (5K)', km: 5.0 },
+        { name: '10.000 m (10K)', km: 10.0 },
+        { name: '21.0975 km (Half Marathon)', km: 21.0975 },
+        { name: '42.195 km (Full Marathon)', km: 42.195 },
+    ];
+
+    let tableHtml = '<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line);">' +
+        '<div style="font-size:11px;font-weight:900;text-transform:uppercase;color:var(--accent);letter-spacing:0.08em;margin-bottom:0.8rem;">' +
+        'Tabel Proyeksi Benchmark Standar' +
+        '</div><div style="display:grid;gap:0.45rem;">';
+
+    benchmarks.forEach(function(b) {
+        const bLinearSec = basePaceSec * b.km;
+        const bRiegelSec = s * Math.pow(b.km / d1_km, 1.06);
+        const bRiegelPace = bRiegelSec / b.km;
+        tableHtml += '<div class="result-item" style="padding:0.65rem 0;">' +
+            '<div>' +
+            '<div class="result-label" style="color:#ffffff;font-weight:800;">' + b.name + '</div>' +
+            '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">' +
+            'Pace Riegel: <span style="color:#e2e8f0;font-family:ui-monospace,monospace;">' + window.formatTime(bRiegelPace, false) + '/km</span>' +
+            '</div></div>' +
+            '<div class="result-value" style="font-size:13px;">' +
+            '<div>' + window.formatTime(bRiegelSec, true) + ' <span style="font-size:10px;color:#94a3b8;font-weight:normal;">(Riegel)</span></div>' +
+            '<div style="font-size:11px;color:#64748b;font-weight:normal;">' + window.formatTime(bLinearSec, true) + ' (Pace Sama)</div>' +
+            '</div></div>';
+    });
+
+    tableHtml += '</div></div>';
+
+    window.showResults('racePredictorResults', window.rows(items) + tableHtml);
 };
 
 window.calculateImprovement = function() {
