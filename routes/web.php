@@ -1329,6 +1329,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/{enrollment}/generate-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'generateWeeklyReport'])->name('athletes.generate-weekly-report');
         Route::post('/athletes/{enrollment}/store-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'storeWeeklyReport'])->name('athletes.store-weekly-report');
         Route::post('/athletes/{enrollment}/reschedule', [App\Http\Controllers\Coach\AthleteController::class, 'reschedule'])->name('athletes.reschedule');
+        Route::post('/athletes/{enrollment}/reset-program', [App\Http\Controllers\Coach\AthleteController::class, 'resetProgram'])->name('athletes.reset-program');
+        Route::delete('/athletes/{enrollment}/sessions/{sessionDay}', [App\Http\Controllers\Coach\AthleteController::class, 'destroySession'])->name('athletes.sessions.destroy');
         Route::match(['GET', 'POST'], '/athletes/{enrollment}/generate-ai-program', [App\Http\Controllers\Coach\AthleteController::class, 'generateAiProgram'])->name('athletes.generate-ai-program');
         Route::match(['GET', 'POST'], '/athletes/{enrollment}/apply-ai-program', [App\Http\Controllers\Coach\AthleteController::class, 'applyAiProgram'])->name('athletes.apply-ai-program');
         Route::post('/athletes/{enrollment}/send-reminder', [App\Http\Controllers\Coach\AthleteController::class, 'sendReminder'])->name('athletes.send-reminder');

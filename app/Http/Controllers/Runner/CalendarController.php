@@ -80,6 +80,8 @@ class CalendarController extends Controller
             $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
 
             $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+            $runnerResHistory = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+            $runnerDeletedDays = $runnerResHistory['deleted_session_days'] ?? [];
 
             foreach ($sessions as $index => $session) {
                 if (! isset($session['day']) || ! is_numeric($session['day'])) {
@@ -87,6 +89,9 @@ class CalendarController extends Controller
                 }
 
                 $day = (int) $session['day'];
+                if (in_array($day, $runnerDeletedDays, true)) {
+                    continue;
+                }
 
                 try {
                     $sessionDate = $startDate->copy()->addDays($day - 1);

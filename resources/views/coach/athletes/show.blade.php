@@ -142,8 +142,11 @@
                                     Reschedule
                                 </button>
                             @endif
-                            <button @click="openReminderModal()" class="px-3 py-1 bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white text-xs font-medium rounded-md transition">
-                                Kirim Pengingat
+                            <button @click="openResetProgramModal()" class="px-3 py-1 bg-slate-800 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 hover:text-amber-200 text-xs font-medium rounded-md transition">
+                                Reset Program
+                            </button>
+                            <button @click="showDeleteProgramModal = true" class="px-3 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 hover:text-rose-300 text-xs font-medium rounded-md transition">
+                                Hapus Program
                             </button>
                         </div>
                     </div>
@@ -482,6 +485,11 @@
                             <div v-if="!selectedSession.extendedProps.is_strava && selectedSession.extendedProps.status !== 'completed'">
                                 <button @click="openReminderModal()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-md transition border border-slate-700 font-medium text-center">
                                     Kirim Pengingat Latihan
+                                </button>
+                            </div>
+                            <div v-if="!selectedSession.extendedProps.is_strava">
+                                <button @click="confirmDeleteSession(selectedSession)" class="w-full text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-md transition font-medium text-center">
+                                    Hapus Sesi Workout Ini
                                 </button>
                             </div>
                         </div>
@@ -1708,6 +1716,86 @@
             </div>
         </div>
 
+        <!-- Modal Reset Program Latihan -->
+        <div v-if="showResetProgramModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showResetProgramModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div>
+                            <h3 class="text-white font-semibold text-base">Reset Program Latihan</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Kembalikan progres latihan atlet ke awal</p>
+                        </div>
+                        <button @click="showResetProgramModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+                    <form @submit.prevent="submitResetProgram" class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div class="p-3 rounded-md bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200/90 leading-relaxed space-y-1">
+                            <div class="font-semibold text-amber-300">Perhatian:</div>
+                            <div>Seluruh catatan penyelesaian sesi (tracking), feedback pelatih, dan histori reschedule atlet akan dihapus sehingga atlet dapat memulai kembali dari awal.</div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Tanggal Mulai Baru</label>
+                            <input type="date" v-model="resetProgramForm.start_date" required class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                            <p class="text-[11px] text-slate-400 mt-1">Jadwal seluruh sesi akan disusun ulang mulai dari tanggal ini.</p>
+                        </div>
+
+                        <div class="flex items-start gap-2 pt-1">
+                            <input type="checkbox" id="del_custom" v-model="resetProgramForm.delete_custom_workouts" class="mt-0.5 rounded border-slate-800 bg-slate-950 text-neon focus:ring-0">
+                            <label for="del_custom" class="text-xs text-slate-300 select-none">
+                                Hapus juga semua custom workout yang pernah ditambahkan untuk atlet ini
+                            </label>
+                        </div>
+
+                        <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
+                            <button type="button" @click="showResetProgramModal = false" class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                                Batal
+                            </button>
+                            <button type="submit" :disabled="resetProgramLoading" class="flex-1 py-2 text-xs font-semibold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-md transition disabled:opacity-50">
+                                @{{ resetProgramLoading ? 'Mereset...' : 'Reset Program Sekarang' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Hapus Program Atlet -->
+        <div v-if="showDeleteProgramModal" v-cloak class="fixed inset-0 z-[200] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/70" @click="showDeleteProgramModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md shadow-2xl max-h-[calc(100vh-2.5rem)] flex flex-col">
+                    <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 rounded-t-lg">
+                        <div>
+                            <h3 class="text-white font-semibold text-base">Hapus / Batalkan Program</h3>
+                            <p class="text-xs text-rose-400 mt-0.5">Tindakan permanen untuk program atlet</p>
+                        </div>
+                        <button @click="showDeleteProgramModal = false" class="text-slate-400 hover:text-white transition text-lg">
+                            &times;
+                        </button>
+                    </div>
+                    <div class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <div class="p-3.5 rounded-md bg-rose-950/40 border border-rose-500/30 text-xs text-rose-200 leading-relaxed space-y-1.5">
+                            <div class="font-bold text-rose-300">Peringatan Penghapusan:</div>
+                            <div>Apakah Anda yakin ingin menghapus pendaftaran program <strong>{{ $enrollment->program->title }}</strong> untuk atlet <strong>{{ $enrollment->runner->name }}</strong>?</div>
+                            <div class="text-[11px] text-slate-400">Atlet akan dilepaskan dari program ini dan kalender sesi program akan dihapus dari akun atlet.</div>
+                        </div>
+
+                        <div class="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
+                            <button type="button" @click="showDeleteProgramModal = false" class="flex-1 py-2 text-xs font-medium text-slate-300 bg-slate-800 rounded-md hover:bg-slate-700 transition border border-slate-700">
+                                Batal
+                            </button>
+                            <button type="button" @click="submitDeleteProgram" :disabled="deleteProgramLoading" class="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 rounded-md transition disabled:opacity-50">
+                                @{{ deleteProgramLoading ? 'Menghapus...' : 'Ya, Hapus Program' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Comprehensive Strava Activity Detail & Analysis Modal -->
         <div v-if="showStravaModal" v-cloak class="fixed inset-0 z-[220] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80" @click="showStravaModal = false"></div>
@@ -2205,6 +2293,16 @@ createApp({
         const activeSplitType = ref('splits');
         let chartInstance = null;
         const telemetryFilters = reactive({ pace: true, heartrate: true, altitude: true, cadence: false });
+
+        // Reset & Delete Program State
+        const showResetProgramModal = ref(false);
+        const resetProgramLoading = ref(false);
+        const resetProgramForm = reactive({
+            start_date: @json($enrollment->start_date ? $enrollment->start_date->format('Y-m-d') : date('Y-m-d')),
+            delete_custom_workouts: false
+        });
+        const showDeleteProgramModal = ref(false);
+        const deleteProgramLoading = ref(false);
 
         const stravaWorkoutClassification = computed(() => {
             if (!stravaPaceZones.value && !stravaHrZones.value) return null;
@@ -2818,6 +2916,96 @@ createApp({
                 alert('Terjadi kesalahan.');
             } finally {
                 loading.value = false;
+            }
+        };
+
+        const confirmDeleteSession = async (session) => {
+            if (!session) return;
+            const props = session.extendedProps || {};
+            const isCustom = props.is_custom;
+            const title = session.title || 'Sesi workout';
+
+            if (!confirm(`Hapus "${title}" dari kalender latihan atlet?`)) {
+                return;
+            }
+
+            loading.value = true;
+            try {
+                let url = '';
+                if (isCustom) {
+                    const customId = props.id;
+                    url = `{{ route('coach.athletes.workout.destroy', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', customId);
+                } else {
+                    const sessionDay = props.session_day;
+                    url = `{{ route('coach.athletes.sessions.destroy', ['enrollment' => $enrollment->id, 'sessionDay' => 'DAY_PLACEHOLDER']) }}`.replace('DAY_PLACEHOLDER', sessionDay);
+                }
+
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message || 'Sesi latihan berhasil dihapus!');
+                    selectedSession.value = null;
+                    isMobileSheetOpen.value = false;
+                    if (calendar) calendar.refetchEvents();
+                } else {
+                    alert(data.message || 'Gagal menghapus sesi workout.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan saat menghapus sesi workout.');
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const openResetProgramModal = () => {
+            resetProgramForm.start_date = @json($enrollment->start_date ? $enrollment->start_date->format('Y-m-d') : date('Y-m-d'));
+            resetProgramForm.delete_custom_workouts = false;
+            showResetProgramModal.value = true;
+        };
+
+        const submitResetProgram = async () => {
+            resetProgramLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.reset-program', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(resetProgramForm)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message || 'Program berhasil direset!');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal mereset program.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan sistem saat mereset program.');
+            } finally {
+                resetProgramLoading.value = false;
+            }
+        };
+
+        const submitDeleteProgram = async () => {
+            deleteProgramLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.destroy', $enrollment->id) }}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message || 'Program atlet berhasil dihapus.');
+                    window.location.href = data.redirect || `{{ route('coach.athletes.index') }}`;
+                } else {
+                    alert(data.message || 'Gagal menghapus program.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan saat menghapus program.');
+            } finally {
+                deleteProgramLoading.value = false;
             }
         };
 
@@ -3903,7 +4091,9 @@ createApp({
             openReminderModal, submitReminder,
             weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm,
             showAiProgramModal, aiProgramTab, aiProgramLoading, aiProgramApplying, aiProgramError, aiProgramPreview,
-            aiProgramForm, updateDefaultGoalTime, openAiProgramModal, generateAiProgramPreview, applyAiProgram
+            aiProgramForm, updateDefaultGoalTime, openAiProgramModal, generateAiProgramPreview, applyAiProgram,
+            showResetProgramModal, resetProgramLoading, resetProgramForm, openResetProgramModal, submitResetProgram,
+            showDeleteProgramModal, deleteProgramLoading, submitDeleteProgram, confirmDeleteSession
         };
     }
 }).mount('#coach-monitor-app');

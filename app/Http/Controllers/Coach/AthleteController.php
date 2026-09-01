@@ -232,16 +232,24 @@ class AthleteController extends Controller
             'yoga' => '#8B5CF6',     // Violet 500
         ];
 
+        $resHistory = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+        $deletedSessionDays = $resHistory['deleted_session_days'] ?? [];
+
         foreach ($sessions as $index => $session) {
             if (! isset($session['day'])) {
                 continue;
             }
 
-            $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
+            $sessionDayInt = (int) $session['day'];
+            if (in_array($sessionDayInt, $deletedSessionDays, true)) {
+                continue;
+            }
+
+            $sessionDate = $startDate->copy()->addDays($sessionDayInt - 1);
 
             // Get tracking
             $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                ->where('session_day', (int) $session['day'])
+                ->where('session_day', $sessionDayInt)
                 ->first();
 
             // Override date if rescheduled
@@ -996,6 +1004,132 @@ class AthleteController extends Controller
         $msg .= "Tetap konsisten dan jaga pemulihan dengan baik!";
 
         return $msg;
+    }
+
+    /**
+     * Delete/Unassign program from athlete (destroy enrollment)
+     */
+    public function destroy($enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $runnerName = $enrollment->runner->name ?? 'Atlet';
+        $programTitle = $enrollment->program->title ?? 'Program';
+
+        // Delete associated records & enrollment
+        \App\Models\ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
+        \App\Models\ProgramWeeklyReport::where('enrollment_id', $enrollment->id)->delete();
+        \App\Models\RunnerInjuryLog::where('enrollment_id', $enrollment->id)->delete();
+        $enrollment->delete();
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Program {$programTitle} untuk {$runnerName} berhasil dihapus/dibatalkan.",
+                'redirect' => route('coach.athletes.index')
+            ]);
+        }
+
+        return redirect()->route('coach.athletes.index')->with('success', "Program {$programTitle} untuk {$runnerName} berhasil dihapus/dibatalkan.");
+    }
+
+    /**
+     * Reset athlete's program progress and calendar schedule
+     */
+    public function resetProgram(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'start_date' => 'nullable|date',
+            'delete_custom_workouts' => 'nullable|boolean',
+        ]);
+
+        // Clear all tracking logs for this enrollment
+        \App\Models\ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
+
+        // Optionally clear custom workouts if requested
+        if ($request->boolean('delete_custom_workouts')) {
+            \App\Models\CustomWorkout::where('runner_id', $enrollment->runner_id)->delete();
+        }
+
+        // Reset start date & duration
+        $startDate = !empty($validated['start_date']) ? Carbon::parse($validated['start_date']) : ($enrollment->start_date ?: now()->startOfDay());
+        $durationDays = 84;
+        $programJson = $enrollment->program->program_json ?? [];
+        $sessions = $programJson['sessions'] ?? [];
+        if (! empty($sessions)) {
+            $maxDay = collect($sessions)->max('day') ?: 84;
+            $durationDays = (int) $maxDay;
+        }
+        $endDate = $startDate->copy()->addDays($durationDays - 1);
+
+        $enrollment->update([
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => 'active',
+            'reschedule_history' => [
+                'reset_at' => now()->toIso8601String(),
+                'deleted_session_days' => [],
+            ],
+        ]);
+
+        // Notify runner
+        \App\Models\Notification::create([
+            'user_id' => $enrollment->runner_id,
+            'type' => 'program_reset',
+            'title' => 'Program Direset',
+            'message' => 'Coach ' . auth()->user()->name . ' telah mereset jadwal program latihan Anda ke awal.',
+            'reference_type' => 'program_enrollment',
+            'reference_id' => $enrollment->id,
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program latihan atlet berhasil direset ke awal.',
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+        ]);
+    }
+
+    /**
+     * Delete a single program session day from calendar
+     */
+    public function destroySession(Request $request, $enrollmentId, $sessionDay)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $day = (int) $sessionDay;
+        if ($day <= 0) {
+            return response()->json(['success' => false, 'message' => 'Hari sesi tidak valid.'], 422);
+        }
+
+        $history = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+        $deletedDays = $history['deleted_session_days'] ?? [];
+        if (! in_array($day, $deletedDays, true)) {
+            $deletedDays[] = $day;
+            $history['deleted_session_days'] = array_values($deletedDays);
+            $enrollment->update(['reschedule_history' => $history]);
+        }
+
+        \App\Models\ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+            ->where('session_day', $day)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sesi latihan hari ke-{$day} berhasil dihapus dari kalender.",
+        ]);
     }
 
     /**
