@@ -56,7 +56,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('marketplace.seller.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                <form action="{{ route('marketplace.seller.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8" @submit="syncFileInput()">
                     @csrf
                     @method('PUT')
 
@@ -488,9 +488,8 @@ function productEditForm() {
         },
 
         handleFilesFromInput(e) {
-            if (e.target && e.target.files) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
                 this.addNewFiles(Array.from(e.target.files));
-                e.target.value = '';
             }
         },
 
@@ -525,11 +524,17 @@ function productEditForm() {
             const input = document.getElementById('edit-images-input');
             if (!input) return;
 
-            const dt = new DataTransfer();
-            this.newFileList.forEach(item => {
-                dt.items.add(item.file);
-            });
-            input.files = dt.files;
+            try {
+                const dt = new DataTransfer();
+                this.newFileList.forEach(item => {
+                    if (item.file) {
+                        dt.items.add(item.file);
+                    }
+                });
+                input.files = dt.files;
+            } catch (err) {
+                console.error('DataTransfer sync error:', err);
+            }
         }
     }
 }

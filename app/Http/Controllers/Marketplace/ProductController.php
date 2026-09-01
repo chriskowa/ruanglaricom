@@ -103,9 +103,18 @@ class ProductController extends Controller
             'buy_now_price' => 'nullable|numeric|min:0',
             'dropoff_method' => 'nullable|string|max:255',
             'dropoff_location' => 'nullable|string|max:255',
-            'images' => 'required_without:image|array|max:4',
+            'images' => 'required_without:image|array|min:1|max:4',
             'images.*' => 'image|max:3072',
             'image' => 'nullable|image|max:3072',
+        ], [
+            'images.required_without' => 'Minimal unggah 1 foto produk.',
+            'images.required' => 'Minimal unggah 1 foto produk.',
+            'images.min' => 'Minimal unggah 1 foto produk.',
+            'images.max' => 'Maksimal 4 foto produk.',
+            'images.*.image' => 'File harus berupa gambar (JPG, JPEG, PNG, WEBP).',
+            'images.*.max' => 'Ukuran setiap foto maksimal 3MB.',
+            'image.image' => 'File harus berupa gambar (JPG, JPEG, PNG, WEBP).',
+            'image.max' => 'Ukuran foto maksimal 3MB.',
         ]);
 
         $saleType = $request->sale_type;

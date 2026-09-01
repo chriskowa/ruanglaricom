@@ -61,7 +61,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" id="product-create-form">
+                        <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" id="product-create-form" @submit="syncFileInput()">
                             @csrf
 
                             <!-- 01. Informasi Dasar Produk -->
@@ -642,9 +642,8 @@ function productCreateForm() {
         },
 
         handleFilesFromInput(e) {
-            if (e.target && e.target.files) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
                 this.addFiles(Array.from(e.target.files));
-                e.target.value = ''; // Reset input to allow re-selecting same file name if needed
             }
         },
 
@@ -680,11 +679,17 @@ function productCreateForm() {
             const input = document.getElementById('product-images-input');
             if (!input) return;
 
-            const dt = new DataTransfer();
-            this.fileList.forEach(item => {
-                dt.items.add(item.file);
-            });
-            input.files = dt.files;
+            try {
+                const dt = new DataTransfer();
+                this.fileList.forEach(item => {
+                    if (item.file) {
+                        dt.items.add(item.file);
+                    }
+                });
+                input.files = dt.files;
+            } catch (err) {
+                console.error('DataTransfer sync error:', err);
+            }
         },
 
         updateCategoryText(e) {

@@ -2,63 +2,91 @@
 
 - **Do not automatically perform `git commit` or `git push`**: Do not stage, commit, or push code changes to the Git repository unless explicitly requested by the user. Leave all changes unstaged in the workspace for manual review.
 
+---
+
 # UI/UX & Design Guidelines (Strictly Mandatory)
 
-- **No AI Aesthetic (Anti-AI Clichés)**:
-  - Designs must look human-crafted, professional, clean, and production-ready. Avoid generic AI-generated vibes.
-  - **No Pill Badges Everywhere**: Do not default to rounded pill shapes (`rounded-full`) for all badges, tags, and small cards. Use clean, subtle rectangular styling (`rounded-sm`, `rounded`, `rounded-md`).
-  - **No Neon Glow Effects**: Avoid excessive neon glow shadows (`shadow-neon`, `shadow-[0_0_..._#...]`, `blur`, `drop-shadow`). Keep components solid, crisp, and tactile.
-  - **No Repetitive Uppercase + Italic**: Do not overuse `uppercase italic font-black tracking-tight` on every heading, title, or label. Use balanced, natural typographic hierarchy (clean title case or sentence case, bold/semibold without excessive italic shouting).
-  - **No Low-Contrast / Excessive `text-slate-500`**: Never spam `text-slate-500` or dark washed-out gray for regular text, descriptions, and labels. Secondary texts and subtitles must remain high-contrast and legible (`text-slate-300`, `text-slate-200`, `text-white/80`).
-- **NO Emojis Anywhere**: Never use emojis (no 🏃‍♂️, 🏔️, 💨, ⚡, 🚀, ⏱️, etc.) in UI templates, alerts, popups, buttons, or placeholder texts. Use clean, professional text or standard FontAwesome icons sparingly.
-- **Minimalist & Purposeful Icons**: Do not over-clutter interfaces with icons on every single label, button, or heading. Keep icon usage minimal, subtle, and purposeful. A text button or label does not need an icon unless strictly necessary.
-- **Solid Colors Only (No Broken Arbitrary Hex, No Gradients, No Blur/Transparency)**:
-  - **Always use standard, valid Tailwind solid classes** (e.g., `bg-slate-950`, `bg-slate-900`, `bg-slate-800`, `bg-black`, `bg-dark`, `bg-card`).
-  - **Never use invalid arbitrary syntax** such as `bg-['#090D16']` or unrecognized custom arbitrary hex strings that fail to compile or render blank/transparent.
-  - **Do not use background gradients** (`bg-gradient-to-...`) or semi-transparent/washed-out layers (`bg-slate-900/40`, `backdrop-blur-sm`, `bg-white/5`).
-  - **Modals, cards, and dropdowns must be 100% solid and opaque** with clear, crisp borders (`border-slate-800` or `border-slate-700`).
-- **Generous Spacing & Whitespace (Anti-Crowded / Breathing Room)**:
-  - **Do not crowd the UI**: Interfaces must not feel cramped or stuffed with tightly packed text, labels, and icons.
-  - **Ample Container Padding**: Use generous padding on cards and modals (`p-5`, `p-6` or larger), never cramped padding (`p-2`, `p-3`) for main containers.
-  - **Comfortable Gaps & Separation**: Use `space-y-4` to `space-y-6` between form/content sections, and `gap-3.5` to `gap-6` between grid cards and interactive elements.
-  - **Breathing Room for Typography**: Ensure comfortable margin between titles, descriptions, and inputs (`mb-1.5`, `mt-1`, `leading-relaxed`). Let empty space breathe naturally.
-- **High Contrast & Legible Typography**:
-  - Text must have strong contrast and never blend into dark backgrounds (`text-white`, `text-slate-200`, `text-slate-300`).
-  - Placeholder texts must be clearly readable and sharp (`placeholder:text-slate-400` or `placeholder-slate-400`, never dark/washed out `placeholder-slate-600/700`).
-  - Typography must remain strictly consistent with the existing website design system (Inter / clean sans-serif hierarchy).
+## 1. Anti-AI Clichés & 30 Golden Rules (Standard Desain Manusia & Profesional)
 
-## Border Radius Standard (Mandatory)
+Desain dan antarmuka harus terlihat *human-crafted*, fungsional, bersih, berbobot, dan siap produksi—bebas dari ciri khas template generator AI:
 
-All UI components MUST follow this border-radius scale. Do NOT use values outside this list:
+1. **Tanpa Gradien Warna Terlalu Keras**: Hindari gradasi warna bertabrakan tanpa alasan (seperti ungu ke biru ke pink dalam satu tombol). Gunakan palet tenang, 2 sampai 3 warna brand solid, dan kontras tegas antara teks dan latar.
+2. **Tanpa Ikon Lucide/Garis di Mana-Mana**: Jangan pasang ikon garis tipis di setiap judul, tombol, atau label. Ikon hanya digunakan jika membantu pemindaian visual (*fast scan*). Jika hanya hiasan, hapus.
+3. **Kontras Tinggi & Aksesibilitas Jelas**: Hindari teks abu-abu pucat (`text-slate-500`) di latar putih atau latar gelap. Rasio kontras minimal 4.5:1 (`text-white`, `text-slate-200`, `text-slate-900`).
+4. **Tanpa Warna Pelangi**: Hindari mencampur merah, kuning, hijau, dan biru dalam satu tampilan tanpa hierarki. Gunakan 2–3 warna brand dan satu warna aksen status; sisanya netral.
+5. **Tanpa Bayangan Jatuh Berlebihan (Excessive Drop Shadows)**: Hindari shadow tebal berlapis 3D atau neon glow. Gunakan shadow tipis/subtle (`shadow-sm`) hanya pada elemen yang membutuhkan elevasi nyata (modal/dropdown).
+6. **Hindari Layout Template "3 Kartu Sejajar" yang Membosankan**: Hindari layout generator generik (ikon + judul + 1 kalimat sama rata 3 kolom). Bangun struktur hierarki yang menonjolkan fitur dan fungsi nyata produk.
+7. **NO Emojis Anywhere**: Dilarang keras menggunakan emoji (🏃‍♂️, ⚡, 🚀, ⏱️, ✨, dll.) di template UI, alert, badge, tombol, maupun placeholder. Gunakan teks profesional atau ikon SVG/FontAwesome fungsional.
+8. **Tanpa Efek Kaca Cair (Liquid Glass / Glassmorphism Berlebih)**: Hindari penggunaan `backdrop-blur` dan `bg-white/5` atau `bg-slate-900/40` semi-transparan yang memudarkan keterbacaan. Kartu, panel, dan modal harus 100% solid, tajam, dan *opaque*.
+9. **Gaya Penulisan Manusiawi (No Em Dashes `—` Berlebihan & No AI Buzzwords)**: Hindari tanda pisah panjang (`—`) di setiap kalimat dan pola puitis AI. Gunakan tanda baca titik dan koma yang lugas dan natural.
+10. **Tipografi Berkarakter Sesuai Brand**: Hindari tipografi generik tanpa hierarki. Gunakan font yang tegas dan berkarakter (misal Oswald/Bebas Neue untuk judul olahraga, Inter untuk body text, JetBrains Mono untuk angka/telemetri).
+11. **Tanpa Garis Warna Sisi Kiri (Stripe Border Kiri Klise)**: Hindari stripe warna dekoratif vertikal di sisi kiri kartu yang tidak membawa informasi fungsi. Bangun hierarki lewat ukuran, ketebalan, dan jarak.
+12. **Data & Testimoni Nyata**: Hindari konten ulasan buatan tanpa identitas. Tampilkan data riil, metrik performa asli, atau format interaksi nyata.
+13. **Hindari Bento Grid Kosong**: Jangan membuat kotak bento hanya untuk diisi 1 kalimat pendek. Gunakan grid hanya jika konten padat informasi.
+14. **Tanpa Hero Jendela Terminal Palsu**: Jangan memasang mockup editor terminal/coding di halaman depan aplikasi non-developer. Tampilkan instrumen dan produk asli.
+15. **Hindari Copywriting Template AI ("Bukan X, Ini Y")**: Hindari kalimat klise seperti *"Bukan aplikasi biasa, ini solusi..."*. Tulis manfaat spesifik dan langsung untuk pengguna.
+16. **Daftar Poin Natural (Bukan Checklist Centang di Mana-Mana)**: Jangan memakai ikon centang hijau di setiap baris. Gunakan list natural; centang hanya untuk checklist tugas sebenarnya.
+17. **Struktur Harga / Opsi yang Relevan**: Jangan memaksakan template 3 tier harga (Basic, Pro, Enterprise) jika aplikasi hanya butuh alur langsung.
+18. **Tampilkan Instrumen & Demo Nyata**: Jangan hanya teks promosi; sediakan instrumen interaktif, input presisi, dan preview nyata.
+19. **Batas Radius Proporsional (No Pill Badges Everywhere)**: Dilarang mengubah semua elemen menjadi bentuk pil lonjong (`rounded-full`). Gunakan standar border-radius kotak presisi (`rounded-md`, `rounded-lg`).
+20. **Hindari Kombinasi Ungu + Hitam Klise AI**: Gunakan palet warna resmi platform (misal Deep Athletic `#080A0D`, Slate solid `#12161D`, Sport Red `#E63946`, Performance Orange `#FF6B00`, Athletic Green `#22C55E`).
+21. **Skeleton Loader Halus**: Gunakan skeleton loader subtle saat proses memuat data agar UI tidak terasa *freeze* atau kosong melompong.
+22. **Tanpa Orbs / Bola Radial Blur di Latar**: Hapus orbs/blobs cahaya di background yang mengaburkan teks. Latar harus bersih dan kontras.
+23. **Tanpa Dot Grid / Pattern Titik-Titik AI**: Jangan gunakan background pola grid titik-titik jika tidak memiliki fungsi layout/canvas.
+24. **Dilarang Menggunakan Ikon Sparkle / Kilau (✨ / Fa-Sparkles)**: Hapus simbol kilau AI. Gantilah dengan angka terukur dan data nyata.
+25. **Tanpa Animasi Gelisah / Panah Berjalan Terus**: Gerakan harus memberikan umpan balik arah yang fungsional, bukan dekorasi bergerak terus-menerus.
+26. **Kelengkapan Navigasi & Syarat Ketentuan**: Pastikan struktur tautan footer, legalitas, dan navigasi formal tersedia rapi.
+27. **Kejelasan Privasi Data**: Jelaskan alur penyimpanan data (misal: data disimpan lokal di browser pelatih tanpa upload ke server eksternal).
+28. **Animasi Hover Fungsional & Tenang**: Hindari efek zoom/bounce berlebih pada setiap elemen yang disentuh kursor. Cukup transisi warna halus (`transition duration-150`).
+29. **Tanpa Warna Neon Menyilaukan**: Hindari teks/border neon menyala yang menusuk mata di mode gelap. Gunakan solid high-contrast tones.
+30. **Tanpa Warna Pastel Generik / Pudar**: Hindari warna pastel template yang mencuci kontras teks.
 
-| Element             | Class         | Notes                                       |
-|---------------------|---------------|---------------------------------------------|
-| Buttons             | `rounded-md`  | All buttons, CTAs, form submits              |
-| Inputs / Selects    | `rounded-md`  | Text inputs, dropdowns, textareas            |
-| Cards / Panels      | `rounded-lg`  | Content cards, stat boxes, filter panels     |
-| Modals              | `rounded-lg`  | Modal dialogs, confirmation popups           |
-| Badges / Tags       | `rounded`     | Status badges, difficulty labels, tag chips  |
-| Tables              | `rounded-lg`  | Table wrapper container only                 |
-| Avatars / Photos    | `rounded-full`| Profile photos and avatar circles ONLY       |
-| Progress Bars       | `rounded-sm`  | Progress bar track and fill                  |
-| Alerts / Toasts     | `rounded-md`  | Notification banners, flash messages         |
+---
 
-**Banned values on non-avatar elements**: `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-full`
+## 2. Standar Border Radius (Mandatory)
 
-## Button Icon Policy (Mandatory)
+Semua komponen UI WAJIB mematuhi skala border-radius berikut:
 
-- **Text buttons DO NOT get icons** unless the button is a primary "Create/Add" action (then use `+` text, not an SVG icon).
-- **Icon-only buttons** are acceptable for compact table actions (edit, delete) but should use small FontAwesome icons (`text-xs`) with no background.
-- **Do NOT pair an icon + text** on every button. The text is sufficient.
+| Elemen UI           | Class Tailwind | Keterangan                                  |
+|---------------------|----------------|---------------------------------------------|
+| Tombol (Buttons)    | `rounded-md`   | Semua tombol aksi, CTA, submit formulir     |
+| Input / Select / Form| `rounded-md`  | Input teks, dropdown, textarea              |
+| Kartu / Panels      | `rounded-lg`   | Kartu konten, kotak statistik, filter panel |
+| Modals / Dialogs    | `rounded-lg`   | Dialog modal, popup konfirmasi              |
+| Badges / Tags       | `rounded`      | Label status, chip kategori                 |
+| Container Tabel     | `rounded-lg`   | Pembungkus luar tabel                       |
+| Avatar / Foto Profil| `rounded-full` | **HANYA** untuk foto profil & avatar bulat  |
+| Progress Bar Track  | `rounded-sm`   | Jalur dan isian progress bar                |
+| Alerts / Notifikasi | `rounded-md`   | Banner notifikasi dan flash messages        |
 
-## Typography Scale (Mandatory)
+> **Nilai yang DILARANG pada elemen non-avatar**: `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-full`.
 
-| Usage               | Class                                   | Do NOT use                                    |
-|---------------------|-----------------------------------------|-----------------------------------------------|
-| Page Title (h1)     | `text-2xl font-bold text-white`         | `font-black`, `italic`, `tracking-tighter`    |
-| Section Title (h2)  | `text-lg font-semibold text-white`      | `font-extrabold`, `font-black`, `tracking-tight` |
-| Card Title          | `text-base font-semibold text-white`    | `font-black`                                  |
-| Body Text           | `text-sm text-slate-200`               | `text-slate-500`                              |
-| Subtitle / Label    | `text-sm text-slate-300`               | `font-mono uppercase tracking-widest`         |
-| Caption / Meta      | `text-xs text-slate-400`               | `text-[10px]`, `text-[11px]` (use sparingly)  |
-| Monospace Values     | `text-sm font-mono text-white`         | Apply only on numeric/code values, never labels |
+---
+
+## 3. Kebijakan Ikon pada Tombol (Button Icon Policy)
+
+- **Tombol Teks TIDAK MEMERLUKAN Ikon**, kecuali tombol aksi utama "Tambah/Buat Baru" (dapat menggunakan simbol teks `+`).
+- **Tombol Icon-Only** hanya diperbolehkan untuk aksi tabel yang sangat ringkas (edit, hapus, unduh) dengan ukuran `text-xs` tanpa background mencolok.
+- **Jangan memasangkan ikon + teks di setiap tombol**. Teks yang jelas sudah sangat informatif.
+
+---
+
+## 4. Skala Tipografi & Kontras (Typography Scale)
+
+| Kegunaan            | Class Tailwind                          | JANGAN Gunakan                                 |
+|---------------------|-----------------------------------------|------------------------------------------------|
+| Judul Halaman (H1)  | `text-2xl font-bold text-white`         | `font-black`, `italic`, `tracking-tighter`     |
+| Judul Seksi (H2)    | `text-lg font-semibold text-white`      | `font-extrabold`, `font-black`, `tracking-tight`|
+| Judul Kartu (H3/H4) | `text-base font-semibold text-white`    | `font-black`                                   |
+| Teks Utama / Body   | `text-sm text-slate-200`                | `text-slate-500` (terlalu gelap/pudar)         |
+| Subtitle / Label    | `text-sm text-slate-300`                | `font-mono uppercase tracking-widest`          |
+| Keterangan / Meta   | `text-xs text-slate-400`                | `text-[10px]`, `text-[11px]` (gunakan hemat)   |
+| Angka / Telemetri   | `text-sm font-mono text-white`          | Terapkan font monospace hanya pada angka/kode  |
+
+---
+
+## 5. Spacing & Whitespace (Anti-Crowded)
+
+- **Ample Container Padding**: Wadah utama kartu/modal menggunakan padding lega (`p-5`, `p-6`), hindari padding sesak (`p-2`, `p-3`).
+- **Separasi Jelas**: Gunakan jarak antar seksi `space-y-4` hingga `space-y-6`, dan jarak grid card `gap-3.5` hingga `gap-6`.
+- **Ruang Bernapas Teks**: Pastikan jarak antara label, input, dan judul memiliki margin teratur (`mb-1.5`, `mt-1`, `leading-relaxed`).
