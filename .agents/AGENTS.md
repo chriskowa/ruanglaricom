@@ -6,6 +6,25 @@
 
 # UI/UX & Design Guidelines (Strictly Mandatory)
 
+## 0. Mandatory Execution Workflow
+
+Sebelum melakukan perubahan kode antarmuka atau UI/UX, WAJIB mengacu pada `AGENTS.md` dan mengeksekusi tahapan 3 skills ini secara berurutan:
+
+```
+AGENTS.md
+│
+├── design-intelligence (.agents/skills/design-intelligence)
+│   → Menentukan arah desain, konteks produk, palet warna, tipografi, dan komposisi layout
+│
+├── frontend-quality (.agents/skills/frontend-quality)
+│   → Memastikan kualitas kode, arsitektur komponen, responsivitas mobile-first, dan state handling
+│
+└── ux-review (.agents/skills/ux-review)
+    → Mengaudit hasil akhir, mendeteksi friksi usability, dan memastikan standard anti-AI terpenuhi
+```
+
+---
+
 ## 1. Anti-AI Clichés & 30 Golden Rules (Standard Desain Manusia & Profesional)
 
 Desain dan antarmuka harus terlihat *human-crafted*, fungsional, bersih, berbobot, dan siap produksi—bebas dari ciri khas template generator AI:
@@ -29,7 +48,7 @@ Desain dan antarmuka harus terlihat *human-crafted*, fungsional, bersih, berbobo
 17. **Struktur Harga / Opsi yang Relevan**: Jangan memaksakan template 3 tier harga (Basic, Pro, Enterprise) jika aplikasi hanya butuh alur langsung.
 18. **Tampilkan Instrumen & Demo Nyata**: Jangan hanya teks promosi; sediakan instrumen interaktif, input presisi, dan preview nyata.
 19. **Batas Radius Proporsional (No Pill Badges Everywhere)**: Dilarang mengubah semua elemen menjadi bentuk pil lonjong (`rounded-full`). Gunakan standar border-radius kotak presisi (`rounded-md`, `rounded-lg`).
-20. **Hindari Kombinasi Ungu + Hitam Klise AI**: Gunakan palet warna resmi platform (misal Deep Athletic `#080A0D`, Slate solid `#12161D`, Sport Red `#E63946`, Performance Orange `#FF6B00`, Athletic Green `#22C55E`).
+20. **Hindari Kombinasi Ungu + Hitam Klise AI**: Gunakan palet warna resmi platform (misal Deep Athletic `#080A0D`, Slate solid `#12161D`, Sport Red `#E63946`, Performance Orange `#ccff00`, Athletic Green `#22C55E`).
 21. **Skeleton Loader Halus**: Gunakan skeleton loader subtle saat proses memuat data agar UI tidak terasa *freeze* atau kosong melompong.
 22. **Tanpa Orbs / Bola Radial Blur di Latar**: Hapus orbs/blobs cahaya di background yang mengaburkan teks. Latar harus bersih dan kontras.
 23. **Tanpa Dot Grid / Pattern Titik-Titik AI**: Jangan gunakan background pola grid titik-titik jika tidak memiliki fungsi layout/canvas.

@@ -672,12 +672,6 @@
         display: flex;
         align-items: center;
         background-color: var(--rl-bg);
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
-            linear-gradient(rgba(184, 255, 0, 0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(184, 255, 0, 0.035) 1px, transparent 1px);
-        background-size: 72px 72px, 72px 72px, 18px 18px, 18px 18px;
         border-bottom: 1px solid var(--rl-line);
     }
 
@@ -833,20 +827,6 @@
         border: 1px solid rgba(255,255,255,.12);
         border-radius: 2px;
         box-shadow: 0 40px 100px rgba(0,0,0,.3);
-    }
-
-    .rl-featured-frame::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 5;
-        pointer-events: none;
-        background-image:
-            linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
-        background-size: 64px 64px;
-        -webkit-mask-image: linear-gradient(to bottom, black, transparent 52%);
-        mask-image: linear-gradient(to bottom, black, transparent 52%);
     }
 
     .rl-featured-track {
