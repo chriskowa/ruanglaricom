@@ -155,18 +155,18 @@
                 <div class="grid grid-cols-3 gap-3 w-full">
                     <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
                         <div class="text-xs text-slate-400 font-medium mb-1">Skor VDOT</div>
-                        <div class="text-2xl font-bold text-white font-mono">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                        <div class="text-xl font-bold text-white font-mono">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                     </div>
                     <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
                         <div class="text-xs text-slate-400 font-medium mb-1">Target Mingguan</div>
-                        <div class="text-2xl font-bold text-white font-mono flex items-baseline justify-center">
+                        <div class="text-xl font-bold text-white font-mono flex items-baseline justify-center">
                             <span>@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}</span>
                             <span class="text-xs font-normal text-slate-400 ml-1">km</span>
                         </div>
                     </div>
                     <div class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 text-center">
                         <div class="text-xs text-slate-400 font-medium mb-1">Usia Atlet</div>
-                        <div class="text-2xl font-bold text-white font-mono">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age . ' th' : '-' }}</div>
+                        <div class="text-xl font-bold text-white font-mono">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age . ' th' : '-' }}</div>
                     </div>
                 </div>
             </div>
