@@ -528,9 +528,12 @@
                                     <p class="text-xs text-slate-200 bg-slate-950 p-2.5 rounded-md border border-slate-800 italic">"@{{ selectedSession.extendedProps.tracking.notes }}"</p>
                                 </div>
                                 
-                                <div v-if="selectedSession.extendedProps.tracking.strava_link">
-                                    <a :href="selectedSession.extendedProps.tracking.strava_link" target="_blank" class="block w-full text-center py-2 rounded-md bg-[#FC4C02]/20 text-[#FC4C02] text-xs font-semibold hover:bg-[#FC4C02]/30 transition border border-[#FC4C02]/30">
-                                        Buka di Strava
+                                <div v-if="selectedSession.extendedProps.tracking.strava_link" class="space-y-2">
+                                    <button type="button" @click="openStravaModal()" class="w-full py-2 rounded-md bg-[#FC4C02] text-white text-xs font-semibold hover:bg-[#e34402] transition shadow-sm flex items-center justify-center gap-1.5">
+                                        <span>Detail, Grafik & Analisis AI</span>
+                                    </button>
+                                    <a :href="selectedSession.extendedProps.tracking.strava_link" target="_blank" class="block w-full text-center py-1.5 rounded-md bg-[#FC4C02]/10 text-[#FC4C02] text-xs font-medium hover:bg-[#FC4C02]/20 transition border border-[#FC4C02]/30">
+                                        Buka di Strava.com
                                     </a>
                                 </div>
                             </div>
@@ -1702,6 +1705,9 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
         <!-- Comprehensive Strava Activity Detail & Analysis Modal -->
         <div v-if="showStravaModal" v-cloak class="fixed inset-0 z-[220] overflow-y-auto p-3 sm:p-4">
             <div class="fixed inset-0 bg-black/80" @click="showStravaModal = false"></div>
@@ -2922,8 +2928,8 @@ createApp({
         };
 
         const loadStravaForActivity = async (activityId) => {
-            const id = parseInt(activityId || 0, 10);
-            if (!id) return;
+            const id = activityId ? String(activityId).trim() : '';
+            if (!id || id === '0') return;
 
             stravaDetailsLoading.value = true;
             stravaDetailsError.value = '';
@@ -2946,19 +2952,19 @@ createApp({
         };
 
         const openStravaModal = async (activityId = null) => {
-            let id = parseInt(activityId || 0, 10);
+            let id = activityId ? String(activityId).trim() : '';
             if (!id && selectedSession.value) {
                 const props = selectedSession.value.extendedProps || {};
-                if (props.strava_activity_id) id = parseInt(props.strava_activity_id, 10);
+                if (props.strava_activity_id) id = String(props.strava_activity_id).trim();
                 else if (props.tracking && props.tracking.strava_link) {
                     const m = String(props.tracking.strava_link).match(/strava\.com\/activities\/(\d+)/i);
-                    if (m) id = parseInt(m[1], 10);
+                    if (m) id = m[1];
                 }
             }
             if (!id && stravaMetrics.value?.strava_activity_id) {
-                id = parseInt(stravaMetrics.value.strava_activity_id, 10);
+                id = String(stravaMetrics.value.strava_activity_id).trim();
             }
-            if (!id) {
+            if (!id || id === '0') {
                 alert('Aktivitas Strava tidak ditemukan untuk sesi ini.');
                 return;
             }
