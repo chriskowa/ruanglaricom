@@ -588,6 +588,10 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <button type="button" @click="openStravaModal(stravaMetrics.strava_activity_id)" class="w-full py-2 px-3 bg-[#FC4C02] hover:bg-[#e34402] text-white font-semibold text-xs rounded-md transition flex items-center justify-center gap-1.5 shadow-sm mt-3">
+                                <span>Detail, Grafik & Analisis AI</span>
+                            </button>
                         </div>
 
                         <!-- Coach Feedback Form -->
@@ -1698,6 +1702,419 @@
                         </button>
                     </div>
                 </div>
+        <!-- Comprehensive Strava Activity Detail & Analysis Modal -->
+        <div v-if="showStravaModal" v-cloak class="fixed inset-0 z-[220] overflow-y-auto p-3 sm:p-4">
+            <div class="fixed inset-0 bg-black/80" @click="showStravaModal = false"></div>
+            <div class="flex min-h-full items-center justify-center relative pointer-events-none">
+                <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-4xl shadow-2xl max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
+                    
+                    <!-- Modal Header -->
+                    <div class="p-4 sm:p-5 border-b border-slate-800 flex-shrink-0 bg-slate-900 flex justify-between items-start gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <span class="bg-[#FC4C02] text-white font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
+                                    Strava Activity
+                                </span>
+                                <span class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded border border-slate-700 font-mono">
+                                    @{{ stravaMetrics?.type || 'Run' }}
+                                </span>
+                                <span v-if="stravaMetrics?.device_name" class="text-xs text-slate-400">
+                                    @{{ stravaMetrics.device_name }}
+                                </span>
+                            </div>
+                            <h3 class="text-white font-bold text-lg sm:text-xl">
+                                @{{ stravaMetrics?.name || 'Detail Sesi Lari Strava' }}
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5 font-mono">
+                                @{{ stravaMetrics?.start_date ? formatDate(stravaMetrics.start_date) : '-' }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a v-if="stravaMetrics?.strava_activity_id" :href="'https://www.strava.com/activities/' + stravaMetrics.strava_activity_id" target="_blank" class="px-2.5 py-1.5 rounded-md bg-[#FC4C02]/10 hover:bg-[#FC4C02]/20 text-[#FC4C02] border border-[#FC4C02]/30 text-xs font-semibold transition inline-flex items-center gap-1.5">
+                                <span>Strava.com</span>
+                            </a>
+                            <button @click="showStravaModal = false" class="text-slate-400 hover:text-white transition text-2xl leading-none px-1">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Top KPI Summary Bar -->
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 p-3 sm:p-4 bg-slate-950 border-b border-slate-800 flex-shrink-0">
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Jarak</div>
+                            <div class="font-bold text-white font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.distance_km ? stravaMetrics.distance_km : (stravaMetrics?.distance_m ? (stravaMetrics.distance_m / 1000).toFixed(2) : '0') }} <span class="text-xs font-normal text-slate-400">km</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Waktu Bergerak</div>
+                            <div class="font-bold text-white font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.moving_time_s ? (new Date(stravaMetrics.moving_time_s * 1000).toISOString().substr(11, 8)) : '-' }}
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Avg Pace</div>
+                            <div class="font-bold text-neon font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.pace ? stravaMetrics.pace : '-' }} <span class="text-xs font-normal text-slate-400">/km</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Avg Heart Rate</div>
+                            <div class="font-bold text-rose-400 font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.average_heartrate ? Math.round(stravaMetrics.average_heartrate) : '-' }} <span class="text-xs font-normal text-slate-400">bpm</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Avg Cadence</div>
+                            <div class="font-bold text-amber-400 font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.average_cadence ? Math.round(stravaMetrics.average_cadence) : '-' }} <span class="text-xs font-normal text-slate-400">spm</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/90 p-2 rounded-md border border-slate-800 text-center">
+                            <div class="text-[11px] text-slate-400">Elevasi Gain</div>
+                            <div class="font-bold text-slate-200 font-mono text-sm sm:text-base mt-0.5">
+                                @{{ stravaMetrics?.total_elevation_gain ? Math.round(stravaMetrics.total_elevation_gain) : '0' }} <span class="text-xs font-normal text-slate-400">m</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Header -->
+                    <div class="flex border-b border-slate-800 bg-slate-900 px-4 pt-2 gap-2 flex-shrink-0 overflow-x-auto">
+                        <button type="button" @click="switchStravaTab('overview')" class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap" :class="stravaModalTab === 'overview' ? 'border-neon text-white' : 'border-transparent text-slate-400 hover:text-slate-200'">
+                            Ikhtisar & Zona
+                        </button>
+                        <button type="button" @click="switchStravaTab('telemetry')" class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap" :class="stravaModalTab === 'telemetry' ? 'border-neon text-white' : 'border-transparent text-slate-400 hover:text-slate-200'">
+                            Grafik Telemetri
+                        </button>
+                        <button type="button" @click="switchStravaTab('splits')" class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap" :class="stravaModalTab === 'splits' ? 'border-neon text-white' : 'border-transparent text-slate-400 hover:text-slate-200'">
+                            Laps & Splits KM (@{{ (stravaSplits?.length || stravaLaps?.length || 0) }})
+                        </button>
+                        <button type="button" @click="switchStravaTab('ai_wa')" class="px-3 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-1.5" :class="stravaModalTab === 'ai_wa' ? 'border-neon text-white' : 'border-transparent text-slate-400 hover:text-slate-200'">
+                            <span>Analisis AI & Kirim WhatsApp</span>
+                            <span v-if="stravaAiAnalysis" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        </button>
+                    </div>
+
+                    <!-- Modal Body Scrollable -->
+                    <div class="p-4 sm:p-5 overflow-y-auto flex-1 min-h-0 space-y-4">
+                        
+                        <!-- TAB 1: IKHTISAR & ZONA -->
+                        <div v-if="stravaModalTab === 'overview'" class="space-y-4">
+                            <!-- Heart Rate Zones Distribution -->
+                            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-white">Distribusi Zona Heart Rate</h4>
+                                        <p class="text-[11px] text-slate-400">Estimasi waktu pada masing-masing zona denyut jantung</p>
+                                    </div>
+                                    <div class="text-xs text-slate-400 font-mono">
+                                        Max HR: <strong class="text-white">@{{ stravaMetrics?.max_heartrate ? Math.round(stravaMetrics.max_heartrate) : '-' }} bpm</strong>
+                                    </div>
+                                </div>
+
+                                <div v-if="stravaMetrics?.hr_zones && stravaMetrics.hr_zones.length > 0" class="space-y-2.5">
+                                    <div v-for="(z, idx) in stravaMetrics.hr_zones" :key="idx" class="space-y-1">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2.5 h-2.5 rounded-sm" :style="{ backgroundColor: z.color }"></span>
+                                                <span class="font-medium text-slate-200">@{{ z.name }}</span>
+                                                <span class="text-[11px] text-slate-400 font-mono">(@{{ z.range }})</span>
+                                            </div>
+                                            <div class="font-mono text-white font-semibold">
+                                                @{{ z.duration }} <span class="text-slate-400 font-normal">(@{{ z.percentage }}%)</span>
+                                            </div>
+                                        </div>
+                                        <div class="w-full bg-slate-900 rounded-sm h-2 overflow-hidden border border-slate-800">
+                                            <div class="h-full rounded-sm transition-all duration-300" :style="{ width: z.percentage + '%', backgroundColor: z.color }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="text-center py-6 text-slate-400 text-xs italic bg-slate-900/50 rounded-md border border-slate-800">
+                                    Data streams denyut jantung (HR) tidak tersedia pada aktivitas ini.
+                                </div>
+                            </div>
+
+                            <!-- Additional Telemetry Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-2">
+                                    <h4 class="text-xs font-semibold text-white">Data Waktu & Energi</h4>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Total Waktu (Elapsed)</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.elapsed_time_s ? (new Date(stravaMetrics.elapsed_time_s * 1000).toISOString().substr(11, 8)) : '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Waktu Istirahat / Jeda</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.pause_time_s ? (new Date(stravaMetrics.pause_time_s * 1000).toISOString().substr(11, 8)) : '00:00:00' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Kalori Terbakar</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.calories ? Math.round(stravaMetrics.calories) + ' kcal' : '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1">
+                                            <span class="text-slate-400">Energi (Kilojoules)</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.kilojoules ? Math.round(stravaMetrics.kilojoules) + ' kJ' : '-' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-2">
+                                    <h4 class="text-xs font-semibold text-white">Elevasi & Lingkungan</h4>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Total Elevasi Naik</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.total_elevation_gain ? Math.round(stravaMetrics.total_elevation_gain) + ' m' : '0 m' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Titik Tertinggi</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.elev_high ? Math.round(stravaMetrics.elev_high) + ' m' : '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1 border-b border-slate-900">
+                                            <span class="text-slate-400">Titik Terendah</span>
+                                            <span class="text-white font-mono">@{{ stravaMetrics?.elev_low ? Math.round(stravaMetrics.elev_low) + ' m' : '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between py-1">
+                                            <span class="text-slate-400">Perangkat Rekam</span>
+                                            <span class="text-white">@{{ stravaMetrics?.device_name || 'GPS Device' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Best Efforts -->
+                            <div v-if="stravaMetrics?.best_efforts && stravaMetrics.best_efforts.length > 0" class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                                <h4 class="text-xs font-semibold text-white mb-2.5">Best Efforts (Segmen Jarak Tertentu)</h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <div v-for="(be, bIdx) in stravaMetrics.best_efforts" :key="bIdx" class="bg-slate-900 p-2.5 rounded-md border border-slate-800">
+                                        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+                                            <span class="font-semibold text-slate-200">@{{ be.name }}</span>
+                                            <span v-if="be.pr_rank" class="bg-amber-500/20 text-amber-300 font-mono text-[10px] px-1 rounded">PR #@{{ be.pr_rank }}</span>
+                                        </div>
+                                        <div class="text-white font-mono font-bold text-sm">
+                                            @{{ be.moving_time_s ? (new Date(be.moving_time_s * 1000).toISOString().substr(11, 8)) : '-' }}
+                                        </div>
+                                        <div class="text-[11px] text-neon font-mono mt-0.5">
+                                            @{{ be.pace ? be.pace + ' /km' : '-' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: GRAFIK TELEMETRI -->
+                        <div v-show="stravaModalTab === 'telemetry'" class="space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <div class="text-xs font-medium text-slate-300">Tampilkan Grafik:</div>
+                                <div class="flex flex-wrap items-center gap-3 text-xs">
+                                    <label class="inline-flex items-center gap-1.5 text-sky-400 cursor-pointer">
+                                        <input type="checkbox" v-model="telemetryFilters.pace" @change="renderTelemetryChart" class="rounded bg-slate-900 border-slate-700 text-sky-500">
+                                        <span>Pace (min/km)</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-rose-400 cursor-pointer">
+                                        <input type="checkbox" v-model="telemetryFilters.heartrate" @change="renderTelemetryChart" class="rounded bg-slate-900 border-slate-700 text-rose-500">
+                                        <span>Heart Rate (bpm)</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-slate-400 cursor-pointer">
+                                        <input type="checkbox" v-model="telemetryFilters.altitude" @change="renderTelemetryChart" class="rounded bg-slate-900 border-slate-700 text-slate-400">
+                                        <span>Elevasi (m)</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-amber-400 cursor-pointer">
+                                        <input type="checkbox" v-model="telemetryFilters.cadence" @change="renderTelemetryChart" class="rounded bg-slate-900 border-slate-700 text-amber-500">
+                                        <span>Cadence (spm)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 relative h-72 sm:h-80">
+                                <div v-if="stravaStreamsLoading" class="absolute inset-0 flex items-center justify-center bg-slate-950/80 z-10">
+                                    <div class="text-xs text-slate-400">Memuat telemetri streams...</div>
+                                </div>
+                                <div v-else-if="stravaStreamsError" class="absolute inset-0 flex items-center justify-center bg-slate-950/80 z-10">
+                                    <div class="text-xs text-rose-400">@{{ stravaStreamsError }}</div>
+                                </div>
+                                <canvas id="stravaChartCanvas" class="w-full h-full"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: LAPS & SPLITS KM -->
+                        <div v-if="stravaModalTab === 'splits'" class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="inline-flex rounded-md bg-slate-950 p-1 border border-slate-800">
+                                    <button type="button" @click="activeSplitType = 'splits'" class="px-3 py-1 text-xs rounded font-medium transition" :class="activeSplitType === 'splits' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'">
+                                        Splits per KM (@{{ stravaSplits?.length || 0 }})
+                                    </button>
+                                    <button type="button" @click="activeSplitType = 'laps'" class="px-3 py-1 text-xs rounded font-medium transition" :class="activeSplitType === 'laps' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'">
+                                        Laps (@{{ stravaLaps?.length || 0 }})
+                                    </button>
+                                </div>
+                                <div class="text-xs text-slate-400">
+                                    Total Sesi: <strong class="text-white font-mono">@{{ stravaMetrics?.distance_km || '-' }} km</strong>
+                                </div>
+                            </div>
+
+                            <!-- Splits Table -->
+                            <div v-if="activeSplitType === 'splits'" class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
+                                        <tr>
+                                            <th class="p-2.5">KM</th>
+                                            <th class="p-2.5">Pace (/km)</th>
+                                            <th class="p-2.5">Waktu</th>
+                                            <th class="p-2.5">Elevasi</th>
+                                            <th class="p-2.5">Avg HR</th>
+                                            <th class="p-2.5">Cadence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-850 font-mono">
+                                        <tr v-for="s in stravaSplits" :key="s.split" class="hover:bg-slate-900/50 transition">
+                                            <td class="p-2.5 font-bold text-slate-300">KM @{{ s.split }}</td>
+                                            <td class="p-2.5 font-bold text-white">@{{ s.pace || '-' }}</td>
+                                            <td class="p-2.5 text-slate-300">@{{ s.moving_time_s ? (new Date(s.moving_time_s * 1000).toISOString().substr(14, 5)) : '-' }}</td>
+                                            <td class="p-2.5 text-slate-300">
+                                                <span :class="(s.elevation_difference || 0) > 0 ? 'text-emerald-400' : ((s.elevation_difference || 0) < 0 ? 'text-sky-400' : 'text-slate-400')">
+                                                    @{{ s.elevation_difference ? (s.elevation_difference > 0 ? '+' : '') + Math.round(s.elevation_difference) + 'm' : '0m' }}
+                                                </span>
+                                            </td>
+                                            <td class="p-2.5 text-rose-400">@{{ s.average_heartrate ? Math.round(s.average_heartrate) + ' bpm' : '-' }}</td>
+                                            <td class="p-2.5 text-amber-400">@{{ s.average_cadence ? Math.round(s.average_cadence) + ' spm' : '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Laps Table -->
+                            <div v-else class="overflow-x-auto rounded-lg border border-slate-800 bg-slate-950">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px]">
+                                        <tr>
+                                            <th class="p-2.5">Lap</th>
+                                            <th class="p-2.5">Jarak</th>
+                                            <th class="p-2.5">Pace (/km)</th>
+                                            <th class="p-2.5">Durasi</th>
+                                            <th class="p-2.5">Avg / Max HR</th>
+                                            <th class="p-2.5">Cadence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-850 font-mono">
+                                        <tr v-for="l in stravaLaps" :key="l.lap_index" class="hover:bg-slate-900/50 transition">
+                                            <td class="p-2.5 font-bold text-slate-300">@{{ l.name || ('Lap ' + l.lap_index) }}</td>
+                                            <td class="p-2.5 text-white font-bold">@{{ l.distance_km ? l.distance_km + ' km' : ((l.distance_m / 1000).toFixed(2) + ' km') }}</td>
+                                            <td class="p-2.5 font-bold text-neon">@{{ l.pace || '-' }}</td>
+                                            <td class="p-2.5 text-slate-300">@{{ l.moving_time_s ? (new Date(l.moving_time_s * 1000).toISOString().substr(14, 5)) : '-' }}</td>
+                                            <td class="p-2.5 text-rose-400">
+                                                @{{ l.average_heartrate ? Math.round(l.average_heartrate) : '-' }} / @{{ l.max_heartrate ? Math.round(l.max_heartrate) : '-' }} bpm
+                                            </td>
+                                            <td class="p-2.5 text-amber-400">@{{ l.average_cadence ? Math.round(l.average_cadence) + ' spm' : '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: ANALISIS AI & KIRIM WHATSAPP -->
+                        <div v-if="stravaModalTab === 'ai_wa'" class="space-y-4">
+                            
+                            <!-- AI Workout Analysis Card -->
+                            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-850 pb-3">
+                                    <div>
+                                        <div class="text-xs font-semibold text-white">Analisis AI Ruang Lari</div>
+                                        <p class="text-[11px] text-slate-400">Klasifikasi otomatis, evaluasi konsistensi pacing, dan beban latihan</p>
+                                    </div>
+                                    <button type="button" @click="runStravaAiAnalysis(true)" :disabled="stravaAiLoading" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition disabled:opacity-50 flex items-center gap-1">
+                                        <span>@{{ stravaAiLoading ? 'Menganalisis...' : 'Analisis Ulang AI' }}</span>
+                                    </button>
+                                </div>
+
+                                <div v-if="stravaAiLoading" class="text-center py-6 text-slate-400 text-xs">
+                                    Sedang menganalisis telemetri dan struktur workout dengan AI...
+                                </div>
+                                <div v-else-if="stravaAiError" class="p-3 bg-rose-950/40 border border-rose-800/40 rounded-md text-xs text-rose-300">
+                                    @{{ stravaAiError }}
+                                </div>
+                                <div v-else-if="stravaAiAnalysis" class="space-y-3">
+                                    <!-- Classification Chip -->
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-xs text-slate-400">Klasifikasi:</span>
+                                        <span class="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wide">
+                                            @{{ stravaAiAnalysis.workout_classification?.type || 'Workout' }}
+                                        </span>
+                                        <span v-if="stravaAiAnalysis.pacing_evaluation?.cardiac_drift" class="text-xs text-slate-400 font-mono">
+                                            Cardiac Drift: <strong class="text-white">@{{ stravaAiAnalysis.pacing_evaluation.cardiac_drift }}</strong>
+                                        </span>
+                                    </div>
+
+                                    <!-- Summary Text -->
+                                    <div class="p-3 bg-slate-900 rounded-md border border-slate-800 text-xs text-slate-200 leading-relaxed">
+                                        @{{ stravaAiAnalysis.summary }}
+                                    </div>
+
+                                    <!-- Went Well & To Improve -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div class="p-3 bg-slate-900 rounded-md border border-slate-800">
+                                            <div class="font-semibold text-emerald-400 mb-1.5">Poin Positif</div>
+                                            <ul class="space-y-1 text-slate-300 list-disc list-inside">
+                                                <li v-for="(p, pIdx) in stravaAiAnalysis.what_went_well" :key="pIdx">@{{ p }}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="p-3 bg-slate-900 rounded-md border border-slate-800">
+                                            <div class="font-semibold text-amber-400 mb-1.5">Area Evaluasi & Catatan</div>
+                                            <ul class="space-y-1 text-slate-300 list-disc list-inside">
+                                                <li v-for="(ti, tIdx) in stravaAiAnalysis.what_to_improve" :key="tIdx">@{{ ti }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Next Workout Suggestion -->
+                                    <div v-if="stravaAiAnalysis.next_workout_suggestion" class="p-3 bg-slate-900 rounded-md border border-slate-800 text-xs">
+                                        <div class="font-semibold text-white mb-1">Rekomendasi Sesi Berikutnya:</div>
+                                        <div class="text-slate-300 leading-relaxed">
+                                            <span class="font-bold text-neon uppercase">@{{ stravaAiAnalysis.next_workout_suggestion.type }}</span>: @{{ stravaAiAnalysis.next_workout_suggestion.reason }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else class="text-center py-5">
+                                    <button type="button" @click="runStravaAiAnalysis(false)" :disabled="stravaAiLoading" class="px-4 py-2 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition">
+                                        Mulai Analisis AI Sekarang
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Coach WhatsApp Manual Dispatch Panel -->
+                            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="text-xs font-semibold text-white">Kirim Hasil Analisis ke WhatsApp Atlet</h4>
+                                        <p class="text-[11px] text-slate-400">Coach dapat memeriksa, mengedit, lalu mengirim pesan via WhatsApp secara manual</p>
+                                    </div>
+                                    <span v-if="copySuccess" class="text-xs text-emerald-400 font-semibold">Teks tersalin!</span>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div class="sm:col-span-1">
+                                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Nomor WhatsApp Atlet</label>
+                                        <input type="text" v-model="stravaAthletePhone" placeholder="08123456789 / 62812..." class="w-full bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-[11px] font-medium text-slate-400 mb-1">Draf Pesan WhatsApp (Dapat Diedit)</label>
+                                        <textarea v-model="stravaWaMessage" rows="6" class="w-full bg-slate-900 border border-slate-800 rounded-md p-2.5 text-white text-xs font-mono focus:ring-1 focus:ring-slate-500 outline-none leading-relaxed"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row justify-end items-center gap-2 pt-2 border-t border-slate-850">
+                                    <button type="button" @click="copyWaMessage" class="w-full sm:w-auto px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                        <span>Salin Teks Pesan</span>
+                                    </button>
+                                    <button type="button" @click="sendToWhatsApp" class="w-full sm:w-auto px-5 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span>Buka & Kirim ke WhatsApp</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1708,6 +2125,7 @@
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -1742,6 +2160,20 @@ createApp({
         const stravaStreams = ref(null);
         const stravaPaceZones = ref(null);
         const stravaHrZones = ref(null);
+        const showStravaModal = ref(false);
+        const stravaModalTab = ref('overview');
+        const stravaAiLoading = ref(false);
+        const stravaAiError = ref('');
+        const stravaAiAnalysis = ref(null);
+        const stravaWaMessage = ref('');
+        const stravaAthletePhone = ref('');
+        const stravaStreamsData = ref(null);
+        const stravaStreamsLoading = ref(false);
+        const stravaStreamsError = ref('');
+        const copySuccess = ref(false);
+        const activeSplitType = ref('splits');
+        let chartInstance = null;
+        const telemetryFilters = reactive({ pace: true, heartrate: true, altitude: true, cadence: false });
 
         const stravaWorkoutClassification = computed(() => {
             if (!stravaPaceZones.value && !stravaHrZones.value) return null;
@@ -2502,12 +2934,384 @@ createApp({
                     stravaMetrics.value = detailJson.activity || null;
                     stravaSplits.value = Array.isArray(detailJson.activity?.splits_metric) ? detailJson.activity.splits_metric : [];
                     stravaLaps.value = Array.isArray(detailJson.activity?.laps) ? detailJson.activity.laps : [];
+                    if (detailJson.activity?.ai_analysis) {
+                        stravaAiAnalysis.value = detailJson.activity.ai_analysis;
+                    }
                 }
             } catch (e) {
                 stravaDetailsError.value = 'Gagal memuat data Strava.';
             } finally {
                 stravaDetailsLoading.value = false;
             }
+        };
+
+        const openStravaModal = async (activityId = null) => {
+            let id = parseInt(activityId || 0, 10);
+            if (!id && selectedSession.value) {
+                const props = selectedSession.value.extendedProps || {};
+                if (props.strava_activity_id) id = parseInt(props.strava_activity_id, 10);
+                else if (props.tracking && props.tracking.strava_link) {
+                    const m = String(props.tracking.strava_link).match(/strava\.com\/activities\/(\d+)/i);
+                    if (m) id = parseInt(m[1], 10);
+                }
+            }
+            if (!id && stravaMetrics.value?.strava_activity_id) {
+                id = parseInt(stravaMetrics.value.strava_activity_id, 10);
+            }
+            if (!id) {
+                alert('Aktivitas Strava tidak ditemukan untuk sesi ini.');
+                return;
+            }
+
+            const defaultPhone = trainingProfile.phone || @json($enrollment->runner->phone ?? '') || '';
+            stravaAthletePhone.value = defaultPhone;
+            showStravaModal.value = true;
+            stravaModalTab.value = 'overview';
+
+            // If details not loaded or different ID, load details
+            if (!stravaMetrics.value || String(stravaMetrics.value.strava_activity_id) !== String(id)) {
+                await loadStravaForActivity(id);
+            }
+
+            // Pre-load streams in background
+            loadStravaStreams(id);
+
+            // If no AI analysis yet, build a draft WA template based on stats
+            if (stravaAiAnalysis.value) {
+                generateWaMessageFromAnalysis();
+            } else {
+                generateWaMessageFallback();
+            }
+        };
+
+        const loadStravaStreams = async (activityId) => {
+            const id = parseInt(activityId || 0, 10);
+            if (!id) return;
+            stravaStreamsLoading.value = true;
+            stravaStreamsError.value = '';
+            try {
+                const res = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/streams`, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                if (res.ok && data.success && data.streams) {
+                    stravaStreamsData.value = data.streams;
+                    if (stravaModalTab.value === 'telemetry') {
+                        setTimeout(() => renderTelemetryChart(), 100);
+                    }
+                } else {
+                    stravaStreamsError.value = data.message || 'Streams tidak tersedia.';
+                }
+            } catch (e) {
+                stravaStreamsError.value = 'Gagal memuat streams telemetri.';
+            } finally {
+                stravaStreamsLoading.value = false;
+            }
+        };
+
+        const switchStravaTab = (tab) => {
+            stravaModalTab.value = tab;
+            if (tab === 'telemetry') {
+                setTimeout(() => {
+                    if (stravaStreamsData.value) {
+                        renderTelemetryChart();
+                    } else if (stravaMetrics.value?.strava_activity_id) {
+                        loadStravaStreams(stravaMetrics.value.strava_activity_id);
+                    }
+                }, 150);
+            }
+        };
+
+        const renderTelemetryChart = () => {
+            const ctx = document.getElementById('stravaChartCanvas');
+            if (!ctx || typeof Chart === 'undefined' || !stravaStreamsData.value) return;
+
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+
+            const streams = stravaStreamsData.value;
+            const distanceKm = streams.distance_km || [];
+            const count = distanceKm.length;
+            if (count === 0) return;
+
+            // Downsample if more than 300 points for smooth performance
+            const step = Math.max(1, Math.floor(count / 250));
+            const labels = [];
+            const altitudeData = [];
+            const paceData = [];
+            const hrData = [];
+            const cadenceData = [];
+
+            for (let i = 0; i < count; i += step) {
+                labels.push(distanceKm[i] + ' km');
+                if (streams.altitude) altitudeData.push(streams.altitude[i] ?? null);
+                if (streams.pace_min_km) paceData.push(streams.pace_min_km[i] ?? null);
+                if (streams.heartrate) hrData.push(streams.heartrate[i] ?? null);
+                if (streams.cadence) cadenceData.push(streams.cadence[i] ? streams.cadence[i] * 2 : null);
+            }
+
+            const datasets = [];
+
+            // Altitude (Area Background)
+            if (altitudeData.length > 0 && telemetryFilters.altitude) {
+                datasets.push({
+                    label: 'Elevasi (m)',
+                    data: altitudeData,
+                    borderColor: '#475569',
+                    backgroundColor: 'rgba(51, 65, 85, 0.3)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    yAxisID: 'yElevation',
+                    order: 4
+                });
+            }
+
+            // Pace (min/km)
+            if (paceData.length > 0 && telemetryFilters.pace) {
+                datasets.push({
+                    label: 'Pace (min/km)',
+                    data: paceData,
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    yAxisID: 'yPace',
+                    order: 1
+                });
+            }
+
+            // Heart Rate (bpm)
+            if (hrData.length > 0 && telemetryFilters.heartrate) {
+                datasets.push({
+                    label: 'Heart Rate (bpm)',
+                    data: hrData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    yAxisID: 'yHr',
+                    order: 2
+                });
+            }
+
+            // Cadence (spm)
+            if (cadenceData.length > 0 && telemetryFilters.cadence) {
+                datasets.push({
+                    label: 'Cadence (spm)',
+                    data: cadenceData,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    yAxisID: 'yCadence',
+                    order: 3
+                });
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            titleColor: '#f8fafc',
+                            bodyColor: '#cbd5e1',
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    let val = context.parsed.y;
+                                    if (label.includes('Pace') && val) {
+                                        const m = Math.floor(val);
+                                        const s = Math.round((val - m) * 60);
+                                        return `Pace: ${m}:${s.toString().padStart(2, '0')} /km`;
+                                    }
+                                    return `${label}: ${val}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#64748b', maxTicksLimit: 10, font: { size: 10 } }
+                        },
+                        yElevation: {
+                            type: 'linear',
+                            display: telemetryFilters.altitude,
+                            position: 'left',
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        },
+                        yPace: {
+                            type: 'linear',
+                            display: telemetryFilters.pace,
+                            position: 'right',
+                            reverse: true,
+                            grid: { display: false },
+                            ticks: {
+                                color: '#38bdf8',
+                                font: { size: 10 },
+                                callback: function(value) {
+                                    const m = Math.floor(value);
+                                    const s = Math.round((value - m) * 60);
+                                    return `${m}:${s.toString().padStart(2, '0')}`;
+                                }
+                            }
+                        },
+                        yHr: {
+                            type: 'linear',
+                            display: telemetryFilters.heartrate,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: { color: '#ef4444', font: { size: 10 } }
+                        },
+                        yCadence: {
+                            type: 'linear',
+                            display: telemetryFilters.cadence,
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: { color: '#f59e0b', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        };
+
+        const runStravaAiAnalysis = async (force = false) => {
+            if (!stravaMetrics.value?.strava_activity_id) return;
+            stravaAiLoading.value = true;
+            stravaAiError.value = '';
+            try {
+                const id = stravaMetrics.value.strava_activity_id;
+                const res = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/ai-analysis?force=${force ? 1 : 0}`, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    stravaAiAnalysis.value = data.analysis;
+                    if (data.wa_message) {
+                        stravaWaMessage.value = data.wa_message;
+                    } else {
+                        generateWaMessageFromAnalysis();
+                    }
+                } else {
+                    stravaAiError.value = data.message || 'Gagal melakukan analisis AI.';
+                }
+            } catch (e) {
+                stravaAiError.value = 'Terjadi kesalahan sistem saat analisis AI.';
+            } finally {
+                stravaAiLoading.value = false;
+            }
+        };
+
+        const generateWaMessageFromAnalysis = () => {
+            if (!stravaAiAnalysis.value || !stravaMetrics.value) return;
+            const act = stravaMetrics.value;
+            const an = stravaAiAnalysis.value;
+            const runnerName = trainingProfile.name || 'Runner';
+            const coachName = @json(auth()->user()->name ?? 'Coach');
+            const actName = act.name || 'Sesi Lari';
+            const distKm = act.distance_km || (act.distance_m ? (act.distance_m / 1000).toFixed(2) : '-');
+            const durStr = act.moving_time_s ? (new Date(act.moving_time_s * 1000).toISOString().substr(11, 8)) : '-';
+            const paceStr = act.pace || '-';
+            const hrStr = act.average_heartrate ? Math.round(act.average_heartrate) + ' bpm' : '-';
+
+            let msg = `*EVALUASI SESI LATIHAN — ${coachName}*\n`;
+            msg += `Halo ${runnerName},\nBerikut review sesi latihan kamu:\n\n`;
+            msg += `Aktivitas: ${actName}\n`;
+            msg += `Jarak: ${distKm} km | Waktu: ${durStr} | Avg Pace: ${paceStr} /km\n`;
+            if (act.average_heartrate) msg += `Avg Heart Rate: ${hrStr}\n`;
+            msg += `\n--- ANALISIS SESI ---\n`;
+            if (an.summary) msg += `${an.summary}\n\n`;
+
+            if (Array.isArray(an.what_went_well) && an.what_went_well.length > 0) {
+                msg += `*Poin Positif:*\n`;
+                an.what_went_well.forEach(p => { msg += `- ${p}\n`; });
+                msg += `\n`;
+            }
+
+            if (Array.isArray(an.what_to_improve) && an.what_to_improve.length > 0) {
+                msg += `*Evaluasi & Catatan:*\n`;
+                an.what_to_improve.forEach(p => { msg += `- ${p}\n`; });
+                msg += `\n`;
+            }
+
+            if (an.next_workout_suggestion?.type) {
+                msg += `*Saran Sesi Berikutnya:*\n`;
+                msg += `- Tipe: ${String(an.next_workout_suggestion.type).toUpperCase()}\n`;
+                if (an.next_workout_suggestion.reason) msg += `- Fokus: ${an.next_workout_suggestion.reason}\n`;
+                msg += `\n`;
+            }
+
+            if (an.coach_recommendation) {
+                msg += `*Saran Pelatih:*\n${an.coach_recommendation}\n\n`;
+            }
+
+            msg += `Tetap konsisten dan jaga pemulihan!`;
+            stravaWaMessage.value = msg;
+        };
+
+        const generateWaMessageFallback = () => {
+            if (!stravaMetrics.value) return;
+            const act = stravaMetrics.value;
+            const runnerName = trainingProfile.name || 'Runner';
+            const coachName = @json(auth()->user()->name ?? 'Coach');
+            const actName = act.name || 'Sesi Lari';
+            const distKm = act.distance_km || (act.distance_m ? (act.distance_m / 1000).toFixed(2) : '-');
+            const durStr = act.moving_time_s ? (new Date(act.moving_time_s * 1000).toISOString().substr(11, 8)) : '-';
+            const paceStr = act.pace || '-';
+
+            stravaWaMessage.value = `*EVALUASI SESI LATIHAN — ${coachName}*\n`
+                + `Halo ${runnerName},\n`
+                + `Review sesi latihan kamu:\n\n`
+                + `Aktivitas: ${actName}\n`
+                + `Jarak: ${distKm} km | Waktu: ${durStr} | Avg Pace: ${paceStr} /km\n\n`
+                + `Sesi latihan berjalan dengan baik. Tetap jaga hidrasi dan pemulihan untuk sesi berikutnya!`;
+        };
+
+        const copyWaMessage = () => {
+            if (!stravaWaMessage.value) return;
+            navigator.clipboard.writeText(stravaWaMessage.value);
+            copySuccess.value = true;
+            setTimeout(() => { copySuccess.value = false; }, 2000);
+        };
+
+        const sendToWhatsApp = () => {
+            if (!stravaWaMessage.value.trim()) {
+                alert('Pesan evaluasi tidak boleh kosong.');
+                return;
+            }
+            let rawPhone = String(stravaAthletePhone.value || '').trim();
+            rawPhone = rawPhone.replace(/[^0-9]/g, '');
+            if (rawPhone.startsWith('0')) {
+                rawPhone = '62' + rawPhone.slice(1);
+            } else if (rawPhone.startsWith('8')) {
+                rawPhone = '62' + rawPhone;
+            }
+
+            if (!rawPhone || rawPhone.length < 9) {
+                const input = prompt('Masukkan nomor WhatsApp atlet (contoh: 08123456789):', rawPhone);
+                if (!input) return;
+                rawPhone = input.replace(/[^0-9]/g, '');
+                if (rawPhone.startsWith('0')) rawPhone = '62' + rawPhone.slice(1);
+                else if (rawPhone.startsWith('8')) rawPhone = '62' + rawPhone;
+                stravaAthletePhone.value = rawPhone;
+            }
+
+            const encoded = encodeURIComponent(stravaWaMessage.value);
+            window.open(`https://wa.me/${rawPhone}?text=${encoded}`, '_blank');
         };
 
         const saveFeedback = async () => {
@@ -3036,6 +3840,11 @@ createApp({
             exportCalendar,
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps,
             stravaWorkoutClassification,
+            showStravaModal, stravaModalTab, stravaAiLoading, stravaAiError, stravaAiAnalysis,
+            stravaWaMessage, stravaAthletePhone, stravaStreamsData, stravaStreamsLoading, stravaStreamsError,
+            copySuccess, activeSplitType, telemetryFilters,
+            openStravaModal, switchStravaTab, renderTelemetryChart, runStravaAiAnalysis,
+            copyWaMessage, sendToWhatsApp,
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent, hideEventDropdown,
             form, openForm, saveCustomWorkout, deleteCustomWorkout,
             builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise,

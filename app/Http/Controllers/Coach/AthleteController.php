@@ -452,6 +452,18 @@ class AthleteController extends Controller
                 return response()->json(['success' => false, 'message' => 'Gagal mengambil detail aktivitas Strava.'], 422);
             }
             $activity->update(['raw' => array_merge($raw, ['details' => $details])]);
+            $raw['details'] = $details;
+        }
+
+        // Also fetch streams if not present so we can calculate exact HR & pace zones
+        $streams = data_get($raw, 'streams');
+        if (! is_array($streams) || empty($streams)) {
+            $fetchedStreams = $api->fetchActivityStreams($runner, $activityId, ['distance', 'altitude', 'time', 'heartrate', 'cadence', 'velocity_smooth', 'watts']);
+            if (is_array($fetchedStreams) && ! empty($fetchedStreams)) {
+                $raw['streams'] = $fetchedStreams;
+                $activity->update(['raw' => $raw]);
+                $streams = $fetchedStreams;
+            }
         }
 
         $avgSpeed = data_get($details, 'average_speed', $activity->average_speed);
@@ -493,20 +505,22 @@ class AthleteController extends Controller
         $splits = data_get($details, 'splits_metric', []);
         $splitsOut = [];
         if (is_array($splits)) {
-            foreach ($splits as $s) {
+            foreach ($splits as $idx => $s) {
                 if (! is_array($s)) {
                     continue;
                 }
                 $splitSpeed = data_get($s, 'average_speed');
                 $splitsOut[] = [
-                    'split' => data_get($s, 'split'),
+                    'split' => data_get($s, 'split') ?: ($idx + 1),
                     'distance_m' => data_get($s, 'distance'),
+                    'distance_km' => round(((float) data_get($s, 'distance', 0)) / 1000, 2),
                     'moving_time_s' => data_get($s, 'moving_time'),
                     'elapsed_time_s' => data_get($s, 'elapsed_time'),
                     'elevation_difference' => data_get($s, 'elevation_difference'),
                     'average_speed' => $splitSpeed,
                     'pace' => $api->formatPaceFromSpeed($splitSpeed),
                     'average_heartrate' => data_get($s, 'average_heartrate'),
+                    'average_cadence' => data_get($s, 'average_cadence'),
                 ];
             }
         }
@@ -514,14 +528,16 @@ class AthleteController extends Controller
         $laps = data_get($details, 'laps', []);
         $lapsOut = [];
         if (is_array($laps)) {
-            foreach ($laps as $l) {
+            foreach ($laps as $idx => $l) {
                 if (! is_array($l)) {
                     continue;
                 }
                 $lapSpeed = data_get($l, 'average_speed');
                 $lapsOut[] = [
-                    'name' => data_get($l, 'name'),
+                    'lap_index' => $idx + 1,
+                    'name' => data_get($l, 'name') ?: 'Lap ' . ($idx + 1),
                     'distance_m' => data_get($l, 'distance'),
+                    'distance_km' => round(((float) data_get($l, 'distance', 0)) / 1000, 2),
                     'moving_time_s' => data_get($l, 'moving_time'),
                     'elapsed_time_s' => data_get($l, 'elapsed_time'),
                     'average_speed' => $lapSpeed,
@@ -529,9 +545,90 @@ class AthleteController extends Controller
                     'average_heartrate' => data_get($l, 'average_heartrate'),
                     'max_heartrate' => data_get($l, 'max_heartrate'),
                     'average_cadence' => data_get($l, 'average_cadence'),
+                    'elevation_difference' => data_get($l, 'elevation_difference', data_get($l, 'total_elevation_gain', 0)),
                 ];
             }
         }
+
+        // Best efforts extraction
+        $bestEfforts = data_get($details, 'best_efforts', []);
+        $bestEffortsOut = [];
+        if (is_array($bestEfforts)) {
+            foreach ($bestEfforts as $be) {
+                if (! is_array($be)) {
+                    continue;
+                }
+                $beDist = (float) data_get($be, 'distance', 0);
+                $beTime = (float) data_get($be, 'moving_time', data_get($be, 'elapsed_time', 0));
+                $beSpeed = ($beDist > 0 && $beTime > 0) ? ($beDist / $beTime) : 0;
+                $bestEffortsOut[] = [
+                    'name' => data_get($be, 'name'),
+                    'distance_m' => $beDist,
+                    'distance_km' => round($beDist / 1000, 2),
+                    'moving_time_s' => (int) $beTime,
+                    'elapsed_time_s' => (int) data_get($be, 'elapsed_time', $beTime),
+                    'pace' => $api->formatPaceFromSpeed($beSpeed),
+                    'pr_rank' => data_get($be, 'pr_rank'),
+                ];
+            }
+        }
+
+        // Calculate Heart Rate Zones
+        $age = $runner->date_of_birth ? Carbon::parse($runner->date_of_birth)->age : 30;
+        $maxHr = (int) (data_get($details, 'max_heartrate') ?: (220 - $age));
+        if ($maxHr < 140) $maxHr = 190;
+
+        $hrZonesDef = [
+            ['name' => 'Zone 1 (Recovery)', 'min' => round($maxHr * 0.50), 'max' => round($maxHr * 0.60), 'color' => '#64748b'],
+            ['name' => 'Zone 2 (Aerobic / Easy)', 'min' => round($maxHr * 0.60), 'max' => round($maxHr * 0.70), 'color' => '#22c55e'],
+            ['name' => 'Zone 3 (Tempo)', 'min' => round($maxHr * 0.70), 'max' => round($maxHr * 0.80), 'color' => '#eab308'],
+            ['name' => 'Zone 4 (Threshold)', 'min' => round($maxHr * 0.80), 'max' => round($maxHr * 0.90), 'color' => '#f97316'],
+            ['name' => 'Zone 5 (Anaerobic / VO2max)', 'min' => round($maxHr * 0.90), 'max' => $maxHr + 30, 'color' => '#ef4444'],
+        ];
+
+        $hrStream = data_get($streams, 'heartrate.data', []);
+        $timeStream = data_get($streams, 'time.data', []);
+        $hrZonesOut = [];
+
+        if (is_array($hrStream) && count($hrStream) > 0 && is_array($timeStream) && count($timeStream) === count($hrStream)) {
+            $totalStreamSeconds = 0;
+            $zoneTimes = [0, 0, 0, 0, 0];
+
+            for ($i = 0; $i < count($hrStream); $i++) {
+                $hr = $hrStream[$i];
+                if (! is_numeric($hr) || $hr <= 0) continue;
+                $deltaSec = ($i === 0) ? ($timeStream[$i] ?? 1) : max(1, ($timeStream[$i] - $timeStream[$i - 1]));
+                $totalStreamSeconds += $deltaSec;
+
+                if ($hr < $hrZonesDef[1]['min']) {
+                    $zoneTimes[0] += $deltaSec;
+                } elseif ($hr < $hrZonesDef[2]['min']) {
+                    $zoneTimes[1] += $deltaSec;
+                } elseif ($hr < $hrZonesDef[3]['min']) {
+                    $zoneTimes[2] += $deltaSec;
+                } elseif ($hr < $hrZonesDef[4]['min']) {
+                    $zoneTimes[3] += $deltaSec;
+                } else {
+                    $zoneTimes[4] += $deltaSec;
+                }
+            }
+
+            foreach ($hrZonesDef as $idx => $z) {
+                $secs = $zoneTimes[$idx];
+                $pct = $totalStreamSeconds > 0 ? round(($secs / $totalStreamSeconds) * 100, 1) : 0;
+                $hrZonesOut[] = [
+                    'name' => $z['name'],
+                    'range' => "{$z['min']} - " . ($idx === 4 ? "{$maxHr}+" : "{$z['max']}") . " bpm",
+                    'seconds' => $secs,
+                    'duration' => gmdate($secs >= 3600 ? 'H:i:s' : 'i:s', $secs),
+                    'percentage' => $pct,
+                    'color' => $z['color'],
+                ];
+            }
+        }
+
+        // Runner Training Profile Paces for context
+        $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
 
         return response()->json([
             'success' => true,
@@ -542,6 +639,7 @@ class AthleteController extends Controller
                 'start_date' => $activity->start_date?->toIso8601String(),
                 'end_date' => $endDate,
                 'distance_m' => $activity->distance_m,
+                'distance_km' => $activity->distance_m ? round(((float) $activity->distance_m) / 1000, 2) : 0,
                 'moving_time_s' => $activity->moving_time_s,
                 'elapsed_time_s' => $activity->elapsed_time_s,
                 'total_time_s' => $totalTime ?: null,
@@ -549,11 +647,21 @@ class AthleteController extends Controller
                 'average_speed' => $avgSpeed,
                 'pace' => $pace,
                 'average_heartrate' => data_get($details, 'average_heartrate'),
-                'max_heartrate' => data_get($details, 'max_heartrate'),
+                'max_heartrate' => data_get($details, 'max_heartrate', $maxHr),
                 'average_cadence' => data_get($details, 'average_cadence'),
+                'total_elevation_gain' => data_get($details, 'total_elevation_gain', $activity->total_elevation_gain),
+                'elev_high' => data_get($details, 'elev_high'),
+                'elev_low' => data_get($details, 'elev_low'),
+                'calories' => data_get($details, 'calories'),
+                'kilojoules' => data_get($details, 'kilojoules'),
+                'device_name' => data_get($details, 'device_name'),
                 'media' => $media,
                 'splits_metric' => $splitsOut,
                 'laps' => $lapsOut,
+                'best_efforts' => $bestEffortsOut,
+                'hr_zones' => $hrZonesOut,
+                'training_profile' => $trainingProfile,
+                'ai_analysis' => data_get($raw, 'ai_analysis.result'),
             ],
         ]);
     }
@@ -602,14 +710,14 @@ class AthleteController extends Controller
         $raw = is_array($activity->raw) ? $activity->raw : [];
         $streams = data_get($raw, 'streams');
         if (! is_array($streams) || empty($streams)) {
-            $streams = $api->fetchActivityStreams($runner, $activityId);
+            $streams = $api->fetchActivityStreams($runner, $activityId, ['distance', 'altitude', 'time', 'heartrate', 'cadence', 'velocity_smooth', 'watts', 'temp']);
             if (! $streams) {
                 return response()->json(['success' => false, 'message' => 'Gagal mengambil streams aktivitas Strava.'], 422);
             }
             $activity->update(['raw' => array_merge($raw, ['streams' => $streams])]);
         }
 
-        $keys = ['time', 'heartrate', 'cadence', 'velocity_smooth', 'watts'];
+        $keys = ['distance', 'altitude', 'time', 'heartrate', 'cadence', 'velocity_smooth', 'watts', 'temp'];
         $out = [];
         foreach ($keys as $k) {
             $data = data_get($streams, $k.'.data');
@@ -618,10 +726,251 @@ class AthleteController extends Controller
             }
         }
 
+        // Generate pace stream in min/km for charting (capped at max 12:00 /km for clean charts)
+        if (isset($out['velocity_smooth']) && is_array($out['velocity_smooth'])) {
+            $paceSeries = [];
+            foreach ($out['velocity_smooth'] as $speed) {
+                if (is_numeric($speed) && (float) $speed > 0.5) {
+                    $minPerKm = 1000 / (float) $speed / 60;
+                    $paceSeries[] = round(min(12.0, max(2.5, $minPerKm)), 2);
+                } else {
+                    $paceSeries[] = null;
+                }
+            }
+            $out['pace_min_km'] = $paceSeries;
+        }
+
+        // Distance in KM
+        if (isset($out['distance']) && is_array($out['distance'])) {
+            $out['distance_km'] = array_map(fn($m) => round(((float)$m) / 1000, 2), $out['distance']);
+        }
+
         return response()->json([
             'success' => true,
             'streams' => $out,
         ]);
+    }
+
+    /**
+     * AI Analysis for Coach Athlete Strava Activity
+     */
+    public function stravaActivityAiAnalysis(Request $request, $enrollmentId, string $stravaActivityId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
+            return response()->json(['success' => false, 'message' => 'Invalid activity id.'], 422);
+        }
+        $activityId = (string) $stravaActivityId;
+        $runner = $enrollment->runner;
+
+        $activity = StravaActivity::query()
+            ->where('user_id', $runner->id)
+            ->where('strava_activity_id', $activityId)
+            ->first();
+
+        if (! $activity) {
+            return response()->json(['success' => false, 'message' => 'Activity tidak ditemukan.'], 404);
+        }
+
+        try {
+            $api = app(StravaApiService::class);
+            $raw = is_array($activity->raw) ? $activity->raw : [];
+
+            $details = data_get($raw, 'details');
+            if (! is_array($details) || empty($details)) {
+                $details = $api->fetchActivityDetails($runner, $activityId);
+                if (! $details) {
+                    return response()->json(['success' => false, 'message' => 'Gagal mengambil detail aktivitas Strava.'], 422);
+                }
+                $raw['details'] = $details;
+            }
+
+            $streams = data_get($raw, 'streams');
+            if (! is_array($streams) || empty($streams)) {
+                $streams = $api->fetchActivityStreams($runner, $activityId, ['distance', 'altitude', 'time', 'heartrate', 'cadence', 'velocity_smooth', 'watts']);
+                if (is_array($streams) && ! empty($streams)) {
+                    $raw['streams'] = $streams;
+                } else {
+                    $streams = [];
+                }
+            }
+
+            $activity->update(['raw' => $raw]);
+
+            $runnerCtrl = app(\App\Http\Controllers\Runner\StravaController::class);
+            $profile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
+            $context = $runnerCtrl->buildRecentTrainingContext($runner->id, $activity, $profile);
+            $metrics = $runnerCtrl->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
+            $inputHash = md5(json_encode($metrics));
+
+            $cachedHash = data_get($raw, 'ai_analysis.input_hash');
+            $cachedResult = data_get($raw, 'ai_analysis.result');
+            $force = $request->boolean('force');
+
+            if (! $force && $cachedHash === $inputHash && is_array($cachedResult)) {
+                // Return cached with formatted WA text
+                $waText = $this->buildWhatsAppMessage($enrollment, $activity, $cachedResult);
+                return response()->json([
+                    'success' => true,
+                    'analysis' => $cachedResult,
+                    'wa_message' => $waText,
+                    'cached' => true,
+                ]);
+            }
+
+            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari yang sangat cerdas & teliti.\n"
+                ."PRINSIP UTAMA KLASIFIKASI JENIS WORKOUT (WAJIB DIPATUHI):\n"
+                ."1. Lari dengan jarak >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
+                ."2. Lari 'interval' HANYA berlaku untuk sesi dengan repetisi cepat-lambat berulang (sawtooth) dengan total jarak biasanya <= 14 km.\n"
+                ."3. Adanya variasi pace akibat water stop, lampu merah, atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
+                ."4. Jika jarak lari >= 14 km dan terdapat segmen tempo/fast finish di dalamnya, gunakan tipe 'long_run_quality'.\n\n"
+                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan presisi. Return HARUS JSON valid.";
+
+            $userPrompt = "Analisis workout berikut untuk pelatih (coach) dan berikan insight evaluasi komprehensif.\n"
+                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream), jarak total, dan konteks pace latihan runner.\n"
+                ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
+                ."Format output JSON:\n"
+                ."{\n"
+                ."  \"workout_classification\": {\n"
+                ."    \"type\": \"easy_run|long_run|long_run_quality|interval|tempo|threshold|recovery|mixed|unknown\",\n"
+                ."    \"evidence\": [\"...\"]\n"
+                ."  },\n"
+                ."  \"summary\": \"...\",\n"
+                ."  \"what_went_well\": [\"...\"],\n"
+                ."  \"what_to_improve\": [\"...\"],\n"
+                ."  \"risk_flags\": [\"...\"],\n"
+                ."  \"pacing_evaluation\": {\n"
+                ."    \"split_consistency\": \"stabil|progresif|melambat_di_akhir|fluktuatif\",\n"
+                ."    \"cardiac_drift\": \"rendah|sedang|tinggi|tidak_ada_data_hr\",\n"
+                ."    \"notes\": \"...\"\n"
+                ."  },\n"
+                ."  \"next_workout_suggestion\": {\n"
+                ."    \"type\": \"easy_run|recovery|tempo|interval|long_run|rest|cross_training\",\n"
+                ."    \"reason\": \"...\",\n"
+                ."    \"duration\": \"...\",\n"
+                ."    \"target\": \"...\"\n"
+                ."  },\n"
+                ."  \"recovery_advice\": [\"...\"],\n"
+                ."  \"improve_next_time\": [\"...\"],\n"
+                ."  \"coach_recommendation\": \"...\",\n"
+                ."  \"confidence\": \"low|medium|high\"\n"
+                ."}\n\n"
+                ."Data workout:\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            $aiRaw = app(\App\Services\OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
+            if (! $aiRaw) {
+                return response()->json(['success' => false, 'message' => 'AI tidak mengembalikan respons.'], 502);
+            }
+
+            $jsonStr = trim(str_replace(["```json", "```"], '', $aiRaw));
+            if (preg_match('/\{[\s\S]*\}/', $jsonStr, $matches)) {
+                $jsonStr = $matches[0];
+            }
+
+            $decoded = json_decode($jsonStr, true);
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+                return response()->json(['success' => false, 'message' => 'AI mengembalikan format yang tidak valid.', 'raw' => $aiRaw], 500);
+            }
+
+            // Guardrail distance >= 14km
+            $distKm = (float) data_get($metrics, 'activity.distance_km', 0);
+            if ($distKm >= 14 && in_array(data_get($decoded, 'workout_classification.type'), ['interval', 'easy', 'mixed', 'unknown'], true)) {
+                $hasVariation = data_get($metrics, 'activity.split_pace_stats.cv', 0) >= 0.15;
+                $newType = $hasVariation ? 'long_run_quality' : 'long_run';
+                $decoded['workout_classification']['type'] = $newType;
+            }
+
+            $raw['ai_analysis'] = [
+                'model' => 'gpt-4o',
+                'created_at' => now()->toIso8601String(),
+                'input_hash' => $inputHash,
+                'result' => $decoded,
+            ];
+            $activity->update(['raw' => $raw]);
+
+            $waText = $this->buildWhatsAppMessage($enrollment, $activity, $decoded);
+
+            return response()->json([
+                'success' => true,
+                'analysis' => $decoded,
+                'wa_message' => $waText,
+                'cached' => false,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Coach Strava AI Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Gagal menganalisis workout: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Helper to build a clean, professional WhatsApp review message
+     */
+    private function buildWhatsAppMessage(ProgramEnrollment $enrollment, StravaActivity $activity, array $analysis): string
+    {
+        $runnerName = $enrollment->runner->name ?? 'Runner';
+        $coachName = auth()->user()->name ?? 'Coach';
+        $actName = $activity->name ?? 'Sesi Lari';
+        $dateStr = $activity->start_date ? Carbon::parse($activity->start_date)->format('d M Y') : date('d M Y');
+        $distKm = $activity->distance_m ? number_format($activity->distance_m / 1000, 2) : '-';
+        $durStr = $activity->moving_time_s ? gmdate('H:i:s', (int) $activity->moving_time_s) : '-';
+        $paceStr = app(StravaApiService::class)->formatPaceFromSpeed($activity->average_speed) ?? '-';
+
+        $summary = data_get($analysis, 'summary', '');
+        $classification = data_get($analysis, 'workout_classification.type', 'Lari');
+        $wentWell = (array) data_get($analysis, 'what_went_well', []);
+        $toImprove = (array) data_get($analysis, 'what_to_improve', []);
+        $nextSuggestion = data_get($analysis, 'next_workout_suggestion.type', '');
+        $nextReason = data_get($analysis, 'next_workout_suggestion.reason', '');
+        $coachRec = data_get($analysis, 'coach_recommendation', '');
+
+        $msg = "*EVALUASI SESI LATIHAN — {$coachName}*\n";
+        $msg .= "Halo {$runnerName},\nBerikut hasil review dan analisis sesi latihan Anda:\n\n";
+        $msg .= "Aktivitas: {$actName}\n";
+        $msg .= "Tanggal: {$dateStr}\n";
+        $msg .= "Jarak: {$distKm} km | Waktu: {$durStr} | Pace Rata-rata: {$paceStr} /km\n";
+        if ($activity->average_heartrate) {
+            $msg .= "Heart Rate Rata-rata: " . round($activity->average_heartrate) . " bpm\n";
+        }
+        $msg .= "\n--- RINGKASAN ANALISIS ---\n";
+        $msg .= "{$summary}\n\n";
+
+        if (! empty($wentWell)) {
+            $msg .= "*Poin Positif:*\n";
+            foreach ($wentWell as $w) {
+                $msg .= "- {$w}\n";
+            }
+            $msg .= "\n";
+        }
+
+        if (! empty($toImprove)) {
+            $msg .= "*Evaluasi & Catatan:*\n";
+            foreach ($toImprove as $ti) {
+                $msg .= "- {$ti}\n";
+            }
+            $msg .= "\n";
+        }
+
+        if ($nextSuggestion) {
+            $msg .= "*Rekomendasi Sesi Berikutnya:*\n";
+            $msg .= "- Tipe: " . strtoupper(str_replace('_', ' ', $nextSuggestion)) . "\n";
+            if ($nextReason) {
+                $msg .= "- Fokus: {$nextReason}\n";
+            }
+            $msg .= "\n";
+        }
+
+        if ($coachRec) {
+            $msg .= "*Saran Pemulihan & Pelatih:*\n";
+            $msg .= "{$coachRec}\n\n";
+        }
+
+        $msg .= "Tetap konsisten dan jaga pemulihan dengan baik!";
+
+        return $msg;
     }
 
     /**
@@ -2122,180 +2471,7 @@ class AthleteController extends Controller
         ]);
     }
 
-    /**
-     * Athlete Strava Activity AI Analysis
-     */
-    public function stravaActivityAiAnalysis(Request $request, $enrollmentId, $stravaActivityId)
-    {
-        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
-        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
-            abort(403);
-        }
 
-        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid activity id.',
-            ], 422);
-        }
-
-        $runner = $enrollment->runner;
-        $activity = StravaActivity::query()
-            ->where('user_id', $runner->id)
-            ->where('strava_activity_id', $stravaActivityId)
-            ->first();
-
-        if (! $activity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Activity tidak ditemukan.',
-            ], 404);
-        }
-
-        try {
-            $api = app(StravaApiService::class);
-            $raw = is_array($activity->raw) ? $activity->raw : [];
-
-            $details = data_get($raw, 'details');
-            if (! is_array($details) || empty($details)) {
-                $details = $api->fetchActivityDetails($runner, $stravaActivityId);
-                if (! $details) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Gagal mengambil detail aktivitas Strava untuk AI.',
-                    ], 422);
-                }
-                $raw['details'] = $details;
-            }
-
-            $streams = data_get($raw, 'streams');
-            if (! is_array($streams) || empty($streams)) {
-                $streams = $api->fetchActivityStreams($runner, $stravaActivityId);
-                if (is_array($streams) && ! empty($streams)) {
-                    $raw['streams'] = $streams;
-                } else {
-                    $streams = [];
-                }
-            }
-
-            $activity->update(['raw' => $raw]);
-
-            $profile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
-            
-            $stravaCtrl = new \App\Http\Controllers\Runner\StravaController();
-            $context = $stravaCtrl->buildRecentTrainingContext($runner->id, $activity, $profile);
-            $metrics = $stravaCtrl->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
-            $inputHash = md5(json_encode($metrics));
-
-            $cachedHash = data_get($raw, 'ai_analysis.input_hash');
-            $cachedResult = data_get($raw, 'ai_analysis.result');
-            $force = $request->boolean('force');
-
-            if (! $force && $cachedHash === $inputHash && is_array($cachedResult)) {
-                return response()->json([
-                    'success' => true,
-                    'analysis' => $cachedResult,
-                    'cached' => true,
-                ]);
-            }
-
-            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari yang sangat cerdas & teliti.\n"
-                ."PRINSIP UTAMA KLASIFIKASI JENIS WORKOUT (WAJIB DIPATUHI):\n"
-                ."1. Lari dengan jarak >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
-                ."2. Lari 'interval' HANYA berlaku untuk sesi dengan repetisi cepat-lambat berulang (sawtooth) dengan total jarak biasanya <= 14 km.\n"
-                ."3. Adanya variasi pace akibat water stop, lampu merah, atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
-                ."4. Jika jarak lari >= 14 km dan terdapat segmen tempo/fast finish di dalamnya, gunakan tipe 'long_run_quality'.\n\n"
-                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan presisi. Return HARUS JSON valid.";
-
-            $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
-                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream), jarak total, dan konteks pace latihan runner.\n"
-                ."Jika konteks menyebut 'junk_miles_risk.level' = medium/high, tambahkan 1 item ke risk_flags dengan format: \"Junk miles risk: <level> - <alasan singkat>\".\n"
-                ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
-                ."Format output JSON:\n"
-                ."{\n"
-                ."  \"workout_classification\": {\n"
-                ."    \"type\": \"easy_run|long_run|long_run_quality|interval|tempo|threshold|recovery|mixed|unknown\",\n"
-                ."    \"evidence\": [\"...\"]\n"
-                ."  },\n"
-                ."  \"summary\": \"...\",\n"
-                ."  \"what_went_well\": [\"...\"],\n"
-                ."  \"what_to_improve\": [\"...\"],\n"
-                ."  \"risk_flags\": [\"...\"],\n"
-                ."  \"next_workout_suggestion\": {\n"
-                ."    \"type\": \"easy_run|recovery|tempo|interval|long_run|rest|cross_training\",\n"
-                ."    \"reason\": \"...\",\n"
-                ."    \"duration\": \"...\",\n"
-                ."    \"target\": \"...\"\n"
-                ."  },\n"
-                ."  \"recovery_advice\": [\"...\"],\n"
-                ."  \"improve_next_time\": [\"...\"],\n"
-                ."  \"confidence\": \"low|medium|high\"\n"
-                ."}\n\n"
-                ."Data workout:\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-            $aiRaw = app(\App\Services\OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
-            if (! $aiRaw) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'AI tidak mengembalikan respons.',
-                ], 502);
-            }
-
-            $jsonStr = trim(str_replace(["```json", "```"], '', $aiRaw));
-            if (preg_match('/\{[\s\S]*\}/', $jsonStr, $matches)) {
-                $jsonStr = $matches[0];
-            }
-
-            $decoded = json_decode($jsonStr, true);
-            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'AI mengembalikan format analisis yang tidak valid.',
-                    'raw' => $aiRaw,
-                ], 500);
-            }
-
-            $decoded = $this->normalizeAiAnalysis($decoded);
-
-            // Post-AI Safety Guardrail: Force distance >= 14km to be long_run or long_run_quality
-            $distKm = (float) data_get($metrics, 'activity.distance_km', 0);
-            if ($distKm >= 14 && in_array(data_get($decoded, 'workout_classification.type'), ['interval', 'easy', 'mixed', 'unknown'], true)) {
-                $hasVariation = data_get($metrics, 'activity.split_pace_stats.cv', 0) >= 0.15;
-                $newType = $hasVariation ? 'long_run_quality' : 'long_run';
-                $decoded['workout_classification']['type'] = $newType;
-                $decoded['workout_classification']['evidence'] = array_merge(
-                    ["Jarak total {$distKm} km diklasifikasikan secara definitif sebagai Long Run."],
-                    $decoded['workout_classification']['evidence'] ?? []
-                );
-                if (isset($decoded['summary']) && str_contains($decoded['summary'], 'Jenis sesi:')) {
-                    $decoded['summary'] = preg_replace('/Jenis sesi:\s*[^.]+\./i', 'Jenis sesi: ' . ($hasVariation ? 'Long Run Quality' : 'Long Run') . '.', $decoded['summary']);
-                }
-            }
-
-            $decoded['junk_miles_risk'] = data_get($metrics, 'recent_training_context.junk_miles_risk', [
-                'level' => 'unknown',
-                'evidence' => [],
-            ]);
-            $raw['ai_analysis'] = [
-                'model' => 'gpt-4o',
-                'created_at' => now()->toIso8601String(),
-                'input_hash' => $inputHash,
-                'result' => $decoded,
-            ];
-            $activity->update(['raw' => $raw]);
-
-            return response()->json([
-                'success' => true,
-                'analysis' => $decoded,
-                'cached' => false,
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menganalisis workout: '.$e->getMessage(),
-            ], 500);
-        }
-    }
 
     /**
      * Send manual program reminder to runner (coach action)
