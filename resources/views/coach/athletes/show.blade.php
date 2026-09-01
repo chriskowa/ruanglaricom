@@ -2056,6 +2056,31 @@
                                         @{{ stravaAiAnalysis.summary }}
                                     </div>
 
+                                    <!-- Interval & Repetition Scorecard -->
+                                    <div v-if="stravaAiAnalysis.interval_analysis && stravaAiAnalysis.interval_analysis.detected_structure && !stravaAiAnalysis.interval_analysis.detected_structure.toLowerCase().includes('tidak ada')" class="p-3 bg-slate-900 rounded-md border border-orange-500/30 text-xs space-y-2">
+                                        <div class="flex flex-wrap items-center justify-between gap-1">
+                                            <div class="font-bold text-orange-400 uppercase tracking-wide">
+                                                Struktur Repetisi / Interval Terdeteksi
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px] font-semibold border border-orange-500/30">
+                                                @{{ stravaAiAnalysis.interval_analysis.detected_structure }}
+                                            </span>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                                            <div v-if="stravaAiAnalysis.interval_analysis.pacing_consistency" class="bg-slate-950 p-2 rounded border border-slate-800">
+                                                <span class="text-slate-400">Konsistensi Pace:</span>
+                                                <span class="text-white font-semibold ml-1 capitalize font-mono">@{{ stravaAiAnalysis.interval_analysis.pacing_consistency.replace(/_/g, ' ') }}</span>
+                                            </div>
+                                            <div v-if="stravaAiAnalysis.interval_analysis.recovery_quality" class="bg-slate-950 p-2 rounded border border-slate-800">
+                                                <span class="text-slate-400">Kualitas Recovery:</span>
+                                                <span class="text-white font-semibold ml-1 capitalize font-mono">@{{ stravaAiAnalysis.interval_analysis.recovery_quality.replace(/_/g, ' ') }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-if="stravaAiAnalysis.interval_analysis.notes" class="text-slate-300 text-[11px] italic bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                                            @{{ stravaAiAnalysis.interval_analysis.notes }}
+                                        </div>
+                                    </div>
+
                                     <!-- Went Well & To Improve -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                         <div class="p-3 bg-slate-900 rounded-md border border-slate-800">
@@ -3241,6 +3266,21 @@ createApp({
             if (act.average_heartrate) msg += `Avg Heart Rate: ${hrStr}\n`;
             msg += `\n--- ANALISIS SESI ---\n`;
             if (an.summary) msg += `${an.summary}\n\n`;
+
+            if (an.interval_analysis && an.interval_analysis.detected_structure && !an.interval_analysis.detected_structure.toLowerCase().includes('tidak ada')) {
+                msg += `*Analisis Repetisi & Interval:*\n`;
+                msg += `- Struktur: ${an.interval_analysis.detected_structure}\n`;
+                if (an.interval_analysis.pacing_consistency) {
+                    msg += `- Konsistensi Pace: ${an.interval_analysis.pacing_consistency.replace(/_/g, ' ')}\n`;
+                }
+                if (an.interval_analysis.recovery_quality) {
+                    msg += `- Pemulihan / Rest: ${an.interval_analysis.recovery_quality.replace(/_/g, ' ')}\n`;
+                }
+                if (an.interval_analysis.notes) {
+                    msg += `- Catatan: ${an.interval_analysis.notes}\n`;
+                }
+                msg += `\n`;
+            }
 
             if (Array.isArray(an.what_went_well) && an.what_went_well.length > 0) {
                 msg += `*Poin Positif:*\n`;

@@ -822,22 +822,31 @@ class AthleteController extends Controller
                 ]);
             }
 
-            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari yang sangat cerdas & teliti.\n"
-                ."PRINSIP UTAMA KLASIFIKASI JENIS WORKOUT (WAJIB DIPATUHI):\n"
-                ."1. Lari dengan jarak >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
-                ."2. Lari 'interval' HANYA berlaku untuk sesi dengan repetisi cepat-lambat berulang (sawtooth) dengan total jarak biasanya <= 14 km.\n"
-                ."3. Adanya variasi pace akibat water stop, lampu merah, atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
-                ."4. Jika jarak lari >= 14 km dan terdapat segmen tempo/fast finish di dalamnya, gunakan tipe 'long_run_quality'.\n\n"
-                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan presisi. Return HARUS JSON valid.";
+            $systemPrompt = "Anda adalah AI Senior Running Coach Ruang Lari yang sangat teliti dan ahli dalam menganalisis telemetri dan lap sesi latihan atlet.\n"
+                ."PRINSIP UTAMA KLASIFIKASI & EVALUASI WORKOUT (WAJIB DIPATUHI):\n"
+                ."1. DETEKSI INTERVAL / REPETISI PENDEK (200m, 300m, 400m, 600m, 800m, 1000m, 1200m, 1600m):\n"
+                ."   - WAJIB periksa data 'laps_summary', 'detected_interval_structure', dan 'telemetry_surge_analysis'.\n"
+                ."   - Jika atlet melakukan repetisi interval (misal 10x 200m, 8x 400m, 5x 1km), klasifikasikan sebagai 'interval'.\n"
+                ."   - Tuliskan struktur repetisi pada 'summary' secara spesifik (contoh: 'Jenis sesi: Interval (10x 200m Repetisi).')\n"
+                ."   - Evaluasi konsistensi pacing per repetisi: apakah merata/konsisten, terlalu kencang di awal (front-loaded), atau mengalami dropoff pace di repetisi akhir.\n"
+                ."   - Evaluasi fase recovery: apakah waktu istirahat antar repetisi cukup untuk mengembalikan detak jantung.\n"
+                ."2. Lari dengan jarak total >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
+                ."3. Adanya variasi pace sesaat akibat water stop atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
+                ."4. Jawab hanya dalam Bahasa Indonesia yang ringkas, berbobot teknis pelatih lari, dan objektif. Return HARUS JSON valid.";
 
-            $userPrompt = "Analisis workout berikut untuk pelatih (coach) dan berikan insight evaluasi komprehensif.\n"
-                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream), jarak total, dan konteks pace latihan runner.\n"
+            $userPrompt = "Analisis workout berikut untuk pelatih (coach) dengan memperhatikan detail laps dan telemetri repetisi pendek.\n"
                 ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
                 ."Format output JSON:\n"
                 ."{\n"
                 ."  \"workout_classification\": {\n"
                 ."    \"type\": \"easy_run|long_run|long_run_quality|interval|tempo|threshold|recovery|mixed|unknown\",\n"
                 ."    \"evidence\": [\"...\"]\n"
+                ."  },\n"
+                ."  \"interval_analysis\": {\n"
+                ."    \"detected_structure\": \"misal: 10x 200m / 8x 400m / Tidak ada repetisi\",\n"
+                ."    \"pacing_consistency\": \"konsisten|dropoff_di_akhir|progresif|tidak_teratur\",\n"
+                ."    \"recovery_quality\": \"optimal|terlalu_singkat|terlalu_panjang|tidak_terekam\",\n"
+                ."    \"notes\": \"...\"\n"
                 ."  },\n"
                 ."  \"summary\": \"...\",\n"
                 ."  \"what_went_well\": [\"...\"],\n"
@@ -859,7 +868,7 @@ class AthleteController extends Controller
                 ."  \"coach_recommendation\": \"...\",\n"
                 ."  \"confidence\": \"low|medium|high\"\n"
                 ."}\n\n"
-                ."Data workout:\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                ."Data workout lengkap (termasuk laps dan stream telemetri):\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             $aiRaw = app(\App\Services\OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
             if (! $aiRaw) {
@@ -921,6 +930,7 @@ class AthleteController extends Controller
 
         $summary = data_get($analysis, 'summary', '');
         $classification = data_get($analysis, 'workout_classification.type', 'Lari');
+        $intervalAnalysis = data_get($analysis, 'interval_analysis');
         $wentWell = (array) data_get($analysis, 'what_went_well', []);
         $toImprove = (array) data_get($analysis, 'what_to_improve', []);
         $nextSuggestion = data_get($analysis, 'next_workout_suggestion.type', '');
@@ -937,6 +947,21 @@ class AthleteController extends Controller
         }
         $msg .= "\n--- RINGKASAN ANALISIS ---\n";
         $msg .= "{$summary}\n\n";
+
+        if (is_array($intervalAnalysis) && !empty($intervalAnalysis['detected_structure']) && !str_contains(strtolower($intervalAnalysis['detected_structure']), 'tidak ada')) {
+            $msg .= "*Analisis Repetisi & Interval:*\n";
+            $msg .= "- Struktur: {$intervalAnalysis['detected_structure']}\n";
+            if (!empty($intervalAnalysis['pacing_consistency'])) {
+                $msg .= "- Konsistensi Pace: " . ucfirst(str_replace('_', ' ', $intervalAnalysis['pacing_consistency'])) . "\n";
+            }
+            if (!empty($intervalAnalysis['recovery_quality'])) {
+                $msg .= "- Pemulihan / Rest: " . ucfirst(str_replace('_', ' ', $intervalAnalysis['recovery_quality'])) . "\n";
+            }
+            if (!empty($intervalAnalysis['notes'])) {
+                $msg .= "- Catatan: {$intervalAnalysis['notes']}\n";
+            }
+            $msg .= "\n";
+        }
 
         if (! empty($wentWell)) {
             $msg .= "*Poin Positif:*\n";

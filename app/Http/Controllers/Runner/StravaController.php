@@ -987,10 +987,19 @@ class StravaController extends Controller
         $avgSpeed = (float) data_get($details, 'average_speed', $activity->average_speed);
         $distanceKm = round(((float) data_get($details, 'distance', $activity->distance_m ?? 0)) / 1000, 2);
         $splits = data_get($details, 'splits_metric', []);
+        $rawLaps = data_get($details, 'laps', []);
+        
         $avgPaceSeconds = $avgSpeed > 0 ? round((float) (1000 / $avgSpeed), 1) : null;
         $splitPaceSeconds = $this->extractSplitPaceSeconds($splits);
         $splitStats = $this->summarizeSeconds($splitPaceSeconds);
-        $hint = $this->inferWorkoutTypeHint($distanceKm, $splitStats, $profile);
+
+        // Analyze Laps (200m, 400m, 800m, 1000m repetitions)
+        $lapsAnalysis = $this->analyzeLapsForIntervals($rawLaps, $profile, $api);
+
+        // Analyze Stream Surges (High intensity bursts from velocity stream)
+        $streamSurges = $this->analyzeVelocityStreamForSurges($streams, $profile, $api);
+
+        $hint = $this->inferWorkoutTypeHint($distanceKm, $splitStats, $profile, $lapsAnalysis, $streamSurges);
         $paceBucket = $this->inferPaceBucket($avgPaceSeconds, $profile);
 
         return [
@@ -1013,6 +1022,10 @@ class StravaController extends Controller
                 'last_split_pace' => $this->extractSplitPace($splits, -1, $api),
                 'split_pace_seconds' => array_slice($splitPaceSeconds, 0, 30),
                 'split_pace_stats' => $splitStats,
+                'laps_count' => count($lapsAnalysis['laps_list']),
+                'laps_summary' => array_slice($lapsAnalysis['laps_list'], 0, 40),
+                'detected_interval_structure' => $lapsAnalysis['interval_structure'],
+                'telemetry_surge_analysis' => $streamSurges,
                 'workout_type_hint' => (string) data_get($hint, 'type', 'unknown'),
                 'workout_type_hint_evidence' => data_get($hint, 'evidence', []),
                 'pace_bucket' => (string) data_get($paceBucket, 'bucket', 'unknown'),
@@ -1030,6 +1043,170 @@ class StravaController extends Controller
                 'paces' => $profile['paces'] ?? null,
             ],
             'recent_training_context' => $context,
+        ];
+    }
+
+    public function analyzeLapsForIntervals(array $rawLaps, array $profile, StravaApiService $api): array
+    {
+        $lapsList = [];
+        if (! is_array($rawLaps) || empty($rawLaps)) {
+            return [
+                'laps_list' => [],
+                'interval_structure' => null,
+                'is_structured_interval' => false,
+            ];
+        }
+
+        $workLaps = [];
+        $recoveryLaps = [];
+        $paces = is_array($profile['paces'] ?? null) ? $profile['paces'] : [];
+        $easyPaceSec = $this->minutesPerKmToSeconds(data_get($paces, 'E', 360));
+
+        foreach ($rawLaps as $idx => $lap) {
+            if (! is_array($lap)) continue;
+            $distM = (float) data_get($lap, 'distance', 0);
+            $movSec = (int) data_get($lap, 'moving_time', data_get($lap, 'elapsed_time', 0));
+            $speed = ($distM > 0 && $movSec > 0) ? ($distM / $movSec) : 0;
+            $paceStr = $api->formatPaceFromSpeed($speed);
+            $paceSec = $speed > 0 ? (1000 / $speed) : null;
+
+            $item = [
+                'lap' => $idx + 1,
+                'name' => data_get($lap, 'name') ?: 'Lap ' . ($idx + 1),
+                'distance_m' => round($distM),
+                'moving_time_s' => $movSec,
+                'pace' => $paceStr,
+                'pace_seconds' => $paceSec ? round($paceSec, 1) : null,
+                'avg_hr' => data_get($lap, 'average_heartrate'),
+                'max_hr' => data_get($lap, 'max_heartrate'),
+                'avg_cadence' => data_get($lap, 'average_cadence'),
+            ];
+            $lapsList[] = $item;
+
+            // Classify short repetition laps vs recovery laps
+            if ($distM >= 120 && $distM <= 1800 && $paceSec) {
+                if ($paceSec <= ($easyPaceSec * 0.92) || ($distM <= 600 && $paceSec < $easyPaceSec)) {
+                    $workLaps[] = $item;
+                } elseif ($distM <= 600 && $paceSec >= $easyPaceSec) {
+                    $recoveryLaps[] = $item;
+                }
+            }
+        }
+
+        $workCount = count($workLaps);
+        $structure = null;
+        $isInterval = false;
+
+        if ($workCount >= 3) {
+            $isInterval = true;
+            $distances = array_column($workLaps, 'distance_m');
+            $avgDist = array_sum($distances) / $workCount;
+            
+            $approxDist = 'Custom';
+            if ($avgDist >= 150 && $avgDist <= 280) $approxDist = '200m';
+            elseif ($avgDist >= 281 && $avgDist <= 380) $approxDist = '300m';
+            elseif ($avgDist >= 381 && $avgDist <= 550) $approxDist = '400m';
+            elseif ($avgDist >= 551 && $avgDist <= 750) $approxDist = '600m';
+            elseif ($avgDist >= 751 && $avgDist <= 950) $approxDist = '800m';
+            elseif ($avgDist >= 951 && $avgDist <= 1150) $approxDist = '1000m / 1K';
+            elseif ($avgDist >= 1151 && $avgDist <= 1400) $approxDist = '1200m';
+            elseif ($avgDist >= 1401 && $avgDist <= 1800) $approxDist = '1600m / 1 Mil';
+            else $approxDist = round($avgDist) . 'm';
+
+            $workPaceSecs = array_values(array_filter(array_column($workLaps, 'pace_seconds')));
+            $avgWorkPaceSec = !empty($workPaceSecs) ? (array_sum($workPaceSecs) / count($workPaceSecs)) : 0;
+            $minWorkPaceSec = !empty($workPaceSecs) ? min($workPaceSecs) : 0;
+            $maxWorkPaceSec = !empty($workPaceSecs) ? max($workPaceSecs) : 0;
+
+            // Pacing dropoff: compare last chunk of reps vs first chunk of reps
+            $dropoffSec = 0;
+            if ($workCount >= 4) {
+                $firstChunk = array_slice($workPaceSecs, 0, (int) ceil($workCount / 3));
+                $lastChunk = array_slice($workPaceSecs, - (int) ceil($workCount / 3));
+                $avgFirst = array_sum($firstChunk) / count($firstChunk);
+                $avgLast = array_sum($lastChunk) / count($lastChunk);
+                $dropoffSec = round($avgLast - $avgFirst, 1);
+            }
+
+            $recDurations = array_column($recoveryLaps, 'moving_time_s');
+            $avgRecSec = !empty($recDurations) ? round(array_sum($recDurations) / count($recDurations)) : null;
+
+            $structure = [
+                'repetition_count' => $workCount,
+                'target_distance_approx' => $approxDist,
+                'avg_rep_distance_m' => round($avgDist),
+                'avg_work_pace' => $this->formatPaceSeconds($avgWorkPaceSec) . ' /km',
+                'fastest_rep_pace' => $this->formatPaceSeconds($minWorkPaceSec) . ' /km',
+                'slowest_rep_pace' => $this->formatPaceSeconds($maxWorkPaceSec) . ' /km',
+                'pace_dropoff_seconds' => $dropoffSec,
+                'pacing_trend' => ($dropoffSec > 5 ? 'fatigue_slowdown' : ($dropoffSec < -5 ? 'progressive_negative_split' : 'consistent_even')),
+                'avg_recovery_seconds' => $avgRecSec,
+                'rep_paces_summary' => array_map(fn($w) => "Lap {$w['lap']} ({$w['distance_m']}m @ {$w['pace']})", array_slice($workLaps, 0, 20)),
+                'title' => "{$workCount}x {$approxDist} Repetisi (Avg {$this->formatPaceSeconds($avgWorkPaceSec)} /km)",
+            ];
+        }
+
+        return [
+            'laps_list' => $lapsList,
+            'interval_structure' => $structure,
+            'is_structured_interval' => $isInterval,
+            'detected_workout_title' => $structure['title'] ?? null,
+        ];
+    }
+
+    public function analyzeVelocityStreamForSurges(array $streams, array $profile, StravaApiService $api): array
+    {
+        $velocities = data_get($streams, 'velocity_smooth.data', []);
+        $times = data_get($streams, 'time.data', []);
+        $distances = data_get($streams, 'distance.data', []);
+        $heartrates = data_get($streams, 'heartrate.data', []);
+
+        if (! is_array($velocities) || count($velocities) < 30 || ! is_array($times) || count($times) !== count($velocities)) {
+            return ['detected_surge_count' => 0, 'surges' => []];
+        }
+
+        $validSpeeds = array_values(array_filter($velocities, fn($v) => is_numeric($v) && (float)$v > 0.5));
+        if (count($validSpeeds) < 30) return ['detected_surge_count' => 0, 'surges' => []];
+        
+        sort($validSpeeds);
+        $medianSpeed = $validSpeeds[(int) floor(count($validSpeeds) / 2)];
+        $surgeThresholdSpeed = max(3.2, $medianSpeed * 1.20);
+
+        $surges = [];
+        $inSurge = false;
+        $surgeStartIdx = 0;
+
+        for ($i = 0; $i < count($velocities); $i++) {
+            $speed = (float) ($velocities[$i] ?? 0);
+            if ($speed >= $surgeThresholdSpeed) {
+                if (! $inSurge) {
+                    $inSurge = true;
+                    $surgeStartIdx = $i;
+                }
+            } else {
+                if ($inSurge) {
+                    $inSurge = false;
+                    $durSec = ($times[$i] ?? 0) - ($times[$surgeStartIdx] ?? 0);
+                    $distM = ($distances[$i] ?? 0) - ($distances[$surgeStartIdx] ?? 0);
+                    if ($durSec >= 15 && $durSec <= 400 && $distM >= 80) {
+                        $surgeSpeeds = array_slice($velocities, $surgeStartIdx, $i - $surgeStartIdx + 1);
+                        $avgSurgeSpeed = array_sum($surgeSpeeds) / count($surgeSpeeds);
+                        $surges[] = [
+                            'duration_s' => $durSec,
+                            'distance_m' => round($distM),
+                            'pace' => $api->formatPaceFromSpeed($avgSurgeSpeed),
+                            'avg_hr' => !empty($heartrates) ? round(array_sum(array_slice($heartrates, $surgeStartIdx, $i - $surgeStartIdx + 1)) / max(1, $i - $surgeStartIdx + 1)) : null,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'detected_surge_count' => count($surges),
+            'surges' => array_slice($surges, 0, 20),
+            'avg_surge_duration_s' => !empty($surges) ? round(array_sum(array_column($surges, 'duration_s')) / count($surges)) : null,
+            'avg_surge_distance_m' => !empty($surges) ? round(array_sum(array_column($surges, 'distance_m')) / count($surges)) : null,
         ];
     }
 
@@ -1147,8 +1324,13 @@ class StravaController extends Controller
         ];
     }
 
-    private function inferWorkoutTypeHint(float $distanceKm, ?array $splitStats, array $profile): array
-    {
+    private function inferWorkoutTypeHint(
+        float $distanceKm,
+        ?array $splitStats,
+        array $profile,
+        array $lapsAnalysis = [],
+        array $streamSurges = []
+    ): array {
         $type = 'unknown';
         $evidence = [];
 
@@ -1175,7 +1357,27 @@ class StravaController extends Controller
             ];
         }
 
-        // RULE 2: Interval detection strictly for runs < 14 km with true repeating high-intensity sawtooth splits
+        // RULE 2: Laps based interval detection (e.g. 10x 200m, 8x 400m, 5x 1km)
+        if ($distanceKm < 14 && !empty($lapsAnalysis['is_structured_interval'])) {
+            $struct = $lapsAnalysis['interval_structure'] ?? [];
+            return [
+                'type' => 'interval',
+                'evidence' => [
+                    "Terdeteksi struktur latihan {$struct['title']} dari rekaman lap jam tangan atlet.",
+                    "Konsistensi repetisi: {$struct['pacing_trend']} (Fastest: {$struct['fastest_rep_pace']}, Slowest: {$struct['slowest_rep_pace']})."
+                ],
+            ];
+        }
+
+        // RULE 3: Telemetry Stream Surges interval detection
+        if ($distanceKm < 14 && ($streamSurges['detected_surge_count'] ?? 0) >= 4) {
+            return [
+                'type' => 'interval',
+                'evidence' => ["Terdeteksi {$streamSurges['detected_surge_count']} surge/lonjakan kecepatan tinggi dari grafik telemetri."],
+            ];
+        }
+
+        // RULE 4: Split metric variation
         if ($distanceKm < 14 && $splitStats && $count >= 4 && ($ratio >= 1.30 || $cv >= 0.14)) {
             return [
                 'type' => 'interval',
