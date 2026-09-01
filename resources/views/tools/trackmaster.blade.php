@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- SEO Halaman -->
-    <title>TrackMaster | Stopwatch Interval dan Pace Tracker untuk Pelatih Lari</title>
-    <meta name="description" content="Gunakan TrackMaster untuk mencatat split, pace, interval, target latihan, dan progres banyak atlet dalam satu sesi latihan lari.">
-    <meta name="keywords" content="stopwatch lari, interval timer lari, pace tracker, split timer lari, tools pelatih lari, latihan interval lari, catatan latihan lari">
+    <!-- SEO & Performance Meta -->
+    <title>TrackMaster | Stopwatch Interval & Telemetri Lari Pelatih</title>
+    <meta name="description" content="Instrumen stopwatch interval, split timing, pace telemetri, dan analisis performa lari presisi untuk pelatih dan komunitas atletik.">
+    <meta name="keywords" content="stopwatch lari, interval timer lari, pace tracker, split timer lari, tools pelatih lari, latihan interval lari, track coach timing">
     <meta name="author" content="Ruang Lari">
     <meta name="robots" content="index, follow">
 
@@ -18,400 +18,575 @@
     <link class="favicon" rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
     <link class="favicon" rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/green/apple-touch-icon.png') }}">
 
-    <meta name="theme-color" content="#08111F">
+    <meta name="theme-color" content="#080A0D">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="TrackMaster | Stopwatch Interval dan Pace Tracker untuk Pelatih Lari">
-    <meta property="og:description" content="Gunakan TrackMaster untuk mencatat split, pace, interval, target latihan, dan progres banyak atlet dalam satu sesi latihan lari.">
-    <meta property="og:image" content="{{ asset('images/logo-full.png') }}">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="TrackMaster | Stopwatch Interval dan Pace Tracker">
-    
-    <!-- CDNs -->
+    <!-- CDNs & Sports Typography -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                fontFamily: { 
-                    sans: ['Inter', 'sans-serif'], 
-                    mono: ['JetBrains Mono', 'monospace'] 
-                },
-                extend: {
-                    colors: {
-                        tm: {
-                            bg: 'var(--tm-bg)',
-                            surface: 'var(--tm-surface)',
-                            surface2: 'var(--tm-surface-2)',
-                            border: 'var(--tm-border)',
-                            text: 'var(--tm-text)',
-                            muted: 'var(--tm-muted)',
-                            primary: 'var(--tm-primary)',
-                            primaryHover: 'var(--tm-primary-hover)',
-                            primarySoft: 'var(--tm-primary-soft)',
-                            warning: 'var(--tm-warning)',
-                            danger: 'var(--tm-danger)',
-                            success: 'var(--tm-success)'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS Tokens System */
-        :root {
-            /* Light Theme Palette */
-            --tm-bg: #F8FAFC;
-            --tm-surface: #FFFFFF;
-            --tm-surface-2: #F1F5F9;
-            --tm-border: #CBD5E1;
-            --tm-text: #0F172A;
-            --tm-muted: #475569;
-            --tm-primary: #10B981;
-            --tm-primary-hover: #059669;
-            --tm-primary-soft: #D1FAE5;
-            --tm-warning: #F59E0B;
-            --tm-danger: #EF4444;
-            --tm-success: #10B981;
-        }
-
-        :root.dark {
-            /* Dark Theme Palette */
-            --tm-bg: #030712;
-            --tm-surface: #080d1a;
-            --tm-surface-2: #0f172a;
-            --tm-border: #1e293b;
-            --tm-text: #F8FAFC;
-            --tm-muted: #94A3B8;
-            --tm-primary: #10B981;
-            --tm-primary-hover: #059669;
-            --tm-primary-soft: rgba(16, 185, 129, 0.1);
+        /* Dual Theme CSS Variables (Dark & Light) */
+        :root, html.dark {
+            --tm-bg: #080A0D;
+            --tm-surface: #12161D;
+            --tm-surface-2: #191F28;
+            --tm-surface-hover: #1E2532;
+            --tm-border: rgba(255, 255, 255, 0.09);
+            --tm-border-hover: rgba(255, 255, 255, 0.20);
+            --tm-text: #FFFFFF;
+            --tm-muted: #8E95A5;
+            --tm-orange: #FF6B00;
+            --tm-green: #22C55E;
             --tm-warning: #FACC15;
             --tm-danger: #EF4444;
-            --tm-success: #10B981;
+            --tm-input-bg: #080A0D;
+            --tm-nav-active-bg: #FF6B00;
+            --tm-nav-active-text: #000000;
         }
 
-        body { 
-            background-color: var(--tm-bg); 
-            color: var(--tm-text); 
-            font-size: 16px;
-            touch-action: manipulation; 
-            transition: background-color 0.2s ease, color 0.2s ease;
+        html.light {
+            --tm-bg: #F1F4F9;
+            --tm-surface: #FFFFFF;
+            --tm-surface-2: #E5E9F0;
+            --tm-surface-hover: #DDE2EC;
+            --tm-border: #CBD5E1;
+            --tm-border-hover: #94A3B8;
+            --tm-text: #0F172A;
+            --tm-muted: #475569;
+            --tm-orange: #EA580C;
+            --tm-green: #16A34A;
+            --tm-warning: #CA8A04;
+            --tm-danger: #DC2626;
+            --tm-input-bg: #F8FAFC;
+            --tm-nav-active-bg: #EA580C;
+            --tm-nav-active-text: #FFFFFF;
         }
-        input, select, textarea {
-            font-size: 16px !important;
+
+        body {
+            background-color: var(--tm-bg);
+            color: var(--tm-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition: background-color 0.15s ease, color 0.15s ease;
         }
+
+        .font-sports-head {
+            font-family: 'Oswald', 'Bebas Neue', sans-serif;
+            letter-spacing: 0.04em;
+        }
+
+        .font-sports-condensed {
+            font-family: 'Bebas Neue', 'Oswald', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        .font-telemetry {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         [v-cloak] { display: none; }
-        
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--tm-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--tm-border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--tm-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--tm-border); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--tm-orange); }
+
+        /* Theme tokens helper classes */
+        .tm-bg { background-color: var(--tm-bg); }
+        .tm-surface { background-color: var(--tm-surface); }
+        .tm-surface-2 { background-color: var(--tm-surface-2); }
+        .tm-border { border-color: var(--tm-border); }
+        .tm-text { color: var(--tm-text); }
+        .tm-muted { color: var(--tm-muted); }
+        .tm-orange { color: var(--tm-orange); }
+        .tm-green { color: var(--tm-green); }
+        .tm-warning { color: var(--tm-warning); }
+        .tm-danger { color: var(--tm-danger); }
+
+        /* Navigation Tab Active/Inactive Styling */
+        .nav-tab-btn {
+            background-color: transparent;
+            color: var(--tm-muted);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        .nav-tab-btn:hover {
+            color: var(--tm-text);
+            background-color: var(--tm-surface-hover);
+        }
+        .nav-tab-btn.is-active {
+            background-color: var(--tm-nav-active-bg) !important;
+            color: var(--tm-nav-active-text) !important;
+            border-color: var(--tm-nav-active-bg) !important;
+            font-weight: 800 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
 
         /* Print Media Styles */
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .print-card { background: white !important; border: 1px solid #ddd !important; color: black !important; box-shadow: none !important; }
-            h1, h2, h3, h4, p, span, td, th { color: black !important; }
-            canvas { max-height: 200px !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            .print-card { background: #ffffff !important; border: 1px solid #cccccc !important; color: #000000 !important; }
+            h1, h2, h3, h4, p, span, td, th { color: #000000 !important; }
+            canvas { max-height: 180px !important; }
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col font-sans bg-tm-bg text-tm-text">
+<body class="antialiased min-h-screen flex flex-col">
 
-<div id="app" v-cloak class="flex-grow flex flex-col min-h-screen max-w-5xl mx-auto w-full px-4 py-4 relative pb-28">
+<div id="app" v-cloak class="flex-grow flex flex-col min-h-screen max-w-5xl mx-auto w-full px-3.5 sm:px-6 py-4 pb-28 relative">
 
-    <!-- Header Ringkas (no-print) -->
-    <header class="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-tm-border pb-3 mb-5 gap-3">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('tools.index') }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-tm-surface2 text-tm-muted hover:text-tm-primary border border-tm-border transition">
-                <i class="fa-solid fa-chevron-left"></i>
-            </a>
-            <div>
-                <span class="text-lg font-black tracking-tight text-tm-text">TRACK<span class="text-tm-primary">MASTER</span></span>
-                <p class="text-xs text-tm-muted leading-none">Stopwatch Interval Lari Mandiri</p>
+    <!-- COMPACT SPORTS NAVIGATION HEADER (no-print) -->
+    <header class="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b tm-border pb-3.5 mb-5 gap-3.5">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('tools.index') }}" 
+                    class="w-10 h-10 flex items-center justify-center rounded-lg tm-surface tm-muted hover:tm-text border tm-border transition shrink-0" 
+                    title="Kembali ke Dashboard Tools">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </a>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-sports-head text-xl font-bold tracking-wider tm-text">
+                            TRACK<span class="tm-orange">MASTER</span>
+                        </span>
+                        <span class="px-1.5 py-0.5 rounded tm-surface-2 border tm-border text-[10px] font-telemetry tm-muted uppercase font-bold">
+                            PRO
+                        </span>
+                    </div>
+                    <p class="text-[11px] tm-muted leading-none mt-0.5 font-medium">Interval Coach Instrument</p>
+                </div>
             </div>
+
+            <!-- Mobile Theme Switcher -->
+            <button @click="toggleTheme" 
+                class="sm:hidden w-10 h-10 rounded-lg tm-surface border tm-border flex items-center justify-center tm-muted hover:tm-text transition"
+                title="Ganti Mode Terang / Gelap">
+                <i class="fa-solid" :class="activeTheme === 'dark' ? 'fa-sun text-amber-400' : 'fa-moon text-slate-700'"></i>
+            </button>
         </div>
         
-        <div class="flex items-center justify-between sm:justify-end gap-1.5">
-            <button @click="changeView('setup')" :class="view==='setup' ? 'bg-tm-primary text-tm-bg font-extrabold' : 'bg-tm-surface2 text-tm-muted border border-tm-border'" class="flex-1 sm:flex-none text-center px-3 py-2 rounded-xl text-xs font-bold uppercase transition">Setup</button>
-            <button @click="changeView('track')" :class="view==='track' ? 'bg-tm-primary text-tm-bg font-extrabold' : 'bg-tm-surface2 text-tm-muted border border-tm-border'" class="flex-1 sm:flex-none text-center px-3 py-2 rounded-xl text-xs font-bold uppercase transition" :disabled="!hasStarted">Track</button>
-            <button @click="changeView('summary')" :class="view==='summary' ? 'bg-tm-primary text-tm-bg font-extrabold' : 'bg-tm-surface2 text-tm-muted border border-tm-border'" class="flex-1 sm:flex-none text-center px-3 py-2 rounded-xl text-xs font-bold uppercase transition" :disabled="logs.length === 0">Summary</button>
-            <button @click="changeView('history')" :class="view==='history' ? 'bg-tm-primary text-tm-bg font-extrabold' : 'bg-tm-surface2 text-tm-muted border border-tm-border'" class="flex-1 sm:flex-none text-center px-3 py-2 rounded-xl text-xs font-bold uppercase transition">History</button>
-            
-            <!-- Theme Switcher Toggle -->
-            <button @click="toggleTheme" class="w-10 h-10 flex items-center justify-center rounded-xl bg-tm-surface2 text-tm-muted hover:text-tm-primary border border-tm-border transition" title="Toggle Theme">
-                <i class="fa-solid" :class="activeTheme === 'dark' ? 'fa-moon' : 'fa-sun'"></i>
+        <!-- Sports Tab Navigation Bar with Theme Switcher (Desktop) -->
+        <div class="flex items-center gap-2">
+            <nav class="flex-1 sm:flex-none flex items-center tm-surface p-1 rounded-lg border tm-border gap-1 text-xs">
+                <button type="button" @click="changeView('setup')" 
+                    :class="{'is-active': view === 'setup'}"
+                    class="nav-tab-btn flex-1 sm:flex-none px-3.5 py-2 rounded-md font-bold uppercase tracking-wider text-xs">
+                    Setup
+                </button>
+                <button type="button" @click="changeView('track')" 
+                    :class="{'is-active': view === 'track'}"
+                    class="nav-tab-btn flex-1 sm:flex-none px-3.5 py-2 rounded-md font-bold uppercase tracking-wider text-xs">
+                    Live
+                </button>
+                <button type="button" @click="changeView('summary')" 
+                    :class="{'is-active': view === 'summary'}"
+                    class="nav-tab-btn flex-1 sm:flex-none px-3.5 py-2 rounded-md font-bold uppercase tracking-wider text-xs">
+                    Results
+                </button>
+                <button type="button" @click="changeView('history')" 
+                    :class="{'is-active': view === 'history' || view === 'history_detail'}"
+                    class="nav-tab-btn flex-1 sm:flex-none px-3.5 py-2 rounded-md font-bold uppercase tracking-wider text-xs">
+                    History
+                </button>
+            </nav>
+
+            <!-- Desktop Theme Toggle Button -->
+            <button @click="toggleTheme" 
+                class="hidden sm:flex w-10 h-10 rounded-lg tm-surface border tm-border items-center justify-center tm-muted hover:tm-text transition shrink-0" 
+                title="Ganti Mode Terang / Gelap">
+                <i class="fa-solid" :class="activeTheme === 'dark' ? 'fa-sun text-amber-400' : 'fa-moon text-slate-700'"></i>
             </button>
         </div>
     </header>
 
-    <!-- SECTION 1: SETUP SESSION -->
-    <section v-if="view === 'setup'" class="flex-grow space-y-6 animate-[fadeIn_0.2s]">
-        <div class="bg-tm-surface border border-tm-border p-5 rounded-2xl">
-            <!-- H1 & Intro -->
-            <div class="mb-5">
-                <h1 class="text-xl font-extrabold text-tm-text tracking-tight">TrackMaster: Stopwatch Interval untuk Pelatih Lari</h1>
-                <p class="text-sm text-tm-muted mt-1 leading-relaxed">
-                    TrackMaster membantu pelatih dan komunitas lari mencatat split, pace, interval, target latihan, dan progres banyak atlet dalam satu sesi latihan lari.
-                </p>
+    <!-- ========================================================================= -->
+    <!-- SECTION 1: SETUP SCREEN                                                   -->
+    <!-- ========================================================================= -->
+    <section v-if="view === 'setup'" class="flex-grow space-y-5">
+        
+        <!-- Hero Header Box -->
+        <div class="tm-surface border tm-border p-5 sm:p-6 rounded-xl relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5" style="background-color: var(--tm-orange);"></div>
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <span class="text-[10px] font-telemetry uppercase tracking-widest tm-orange font-bold block mb-1">
+                        TRAINING INSTRUMENT CONFIGURATION
+                    </span>
+                    <h1 class="font-sports-head text-2xl sm:text-3xl font-bold uppercase tm-text tracking-wide">
+                        CREATE TRAINING SESSION
+                    </h1>
+                    <p class="text-xs tm-muted mt-1 max-w-xl leading-relaxed">
+                        Konfigurasikan jarak repetisi, target waktu lap, durasi pemulihan (rest), dan daftar atlet yang akan dimonitor secara bersamaan.
+                    </p>
+                </div>
+
+                <div class="hidden sm:flex items-center gap-3 shrink-0">
+                    <button @click="startSession" 
+                        class="h-12 px-6 font-sports-head text-base font-bold uppercase rounded-lg transition active:scale-95 flex items-center gap-2 shadow-lg"
+                        style="background-color: var(--tm-orange); color: #000000;">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Start Session</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. WORKOUT SECTION -->
+        <div class="tm-surface border tm-border p-5 rounded-xl space-y-4">
+            <div class="flex items-center justify-between border-b tm-border pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded tm-surface-2 border tm-border tm-text font-telemetry font-bold text-xs flex items-center justify-center">1</span>
+                    <h2 class="font-sports-head text-base font-bold uppercase tracking-wider tm-text">WORKOUT SPECIFICATION</h2>
+                </div>
+                <span class="text-[11px] font-telemetry tm-muted">Interval Parameters</span>
             </div>
 
-            <!-- Step 1: Detail Sesi -->
-            <div class="border-b border-tm-border pb-4 mb-4">
-                <h2 class="text-sm font-bold text-tm-primary uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-tm-primary text-tm-bg flex items-center justify-center font-extrabold text-[10px]">1</span>
-                    Konfigurasi Latihan & Sesi
-                </h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Nama Sesi Latihan</label>
-                        <input v-model="program.name" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Sesi Interval Selasa Sore">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Lokasi Latihan (Opsional)</label>
-                        <input v-model="program.location" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Stadion Lapangan Atletik">
-                    </div>
+            <!-- Session Name & Location -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Nama Sesi Latihan</label>
+                    <input v-model="program.name" type="text" 
+                        class="w-full h-11 border tm-border text-sm tm-text px-3.5 rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="Contoh: 10 x 400m VO2Max Track Session">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Lokasi Track (Opsional)</label>
+                    <input v-model="program.location" type="text" 
+                        class="w-full h-11 border tm-border text-sm tm-text px-3.5 rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="Contoh: Stadion Atletik Madya GBK">
                 </div>
             </div>
 
-            <!-- Step 2: Pilih Preset Interval -->
-            <div class="border-b border-tm-border pb-4 mb-4">
-                <h2 class="text-sm font-bold text-tm-primary uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <span class="w-5 h-5 rounded-full bg-tm-primary text-tm-bg flex items-center justify-center font-extrabold text-[10px]">2</span>
-                    Pilih Preset Interval
-                </h2>
-                
-                <div class="flex gap-2 overflow-x-auto pb-2 scroll-smooth">
+            <!-- Workout Presets (Sports Program Style) -->
+            <div>
+                <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-2">Preset Program Latihan</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button v-for="p in presets" :key="p.name" @click="selectPreset(p)"
-                        :class="selectedPresetName === p.name ? 'border-tm-primary text-tm-primary bg-tm-surface2' : 'border-tm-border text-tm-muted bg-tm-bg'"
-                        class="shrink-0 text-left p-3 rounded-xl border transition-all flex flex-col justify-between min-w-[130px]">
-                        <span class="text-xs font-bold text-tm-text leading-tight mb-1">@{{ p.name }}</span>
-                        <span class="text-[10px] font-mono opacity-85">@{{ p.reps }}x @{{ p.distance }}m</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3 mt-4">
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Repetisi</label>
-                        <input v-model.number="program.reps" type="number" min="1" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Jarak (m)</label>
-                        <input v-model.number="program.distance" type="number" min="1" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="recalculateAllTargetsFromPace">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Rest (detik)</label>
-                        <input v-model.number="program.rest" type="number" min="0" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="syncRestTimeToAthletes">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mt-3">
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Target Pace (Min:Det /km)</label>
-                        <input v-model="program.targetPace" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 04:00" @input="recalculateTargetTimeFromPace">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Target Lap (detik)</label>
-                        <input v-model.number="program.targetTime" type="number" min="0" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 96" @input="recalculateTargetPaceFromTime">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 3: Tambah Atlet -->
-            <div class="pb-4">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-bold text-tm-primary uppercase tracking-wider flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-tm-primary text-tm-bg flex items-center justify-center font-extrabold text-[10px]">3</span>
-                        Daftar Atlet Latihan
-                    </h2>
-                    <button @click="addSetupAthlete" class="text-tm-primary hover:text-tm-primaryHover text-xs font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-plus-circle"></i> Tambah Atlet
-                    </button>
-                </div>
-
-                <div class="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-                    <div v-for="(a, i) in setupAthletes" :key="i" class="bg-tm-surface2 border border-tm-border p-3.5 rounded-xl relative hover:border-tm-primary/30 transition-all duration-200">
-                        <!-- Absolute positioned delete button -->
-                        <button @click="removeSetupAthlete(i)" class="absolute top-3.5 right-3.5 w-8 h-8 bg-tm-danger/10 hover:bg-tm-danger text-tm-danger hover:text-tm-bg rounded-xl transition border border-tm-danger/20 flex items-center justify-center z-10" title="Hapus Atlet">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end pr-8 sm:pr-0">
-                            <div class="sm:col-span-6">
-                                <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Nama Atlet</label>
-                                <input v-model="a.name" class="w-full h-10 bg-tm-surface2 border border-tm-border text-sm text-tm-text font-bold px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="Masukkan nama atlet">
-                            </div>
-                            <div class="sm:col-span-3">
-                                <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Target Waktu (s)</label>
-                                <input v-model.number="a.target" type="number" class="w-full h-10 bg-tm-surface2 border border-tm-border text-center font-mono text-sm text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" @input="onSetupAthleteTargetTimeChange(a)">
-                            </div>
-                            <div class="sm:col-span-3">
-                                <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Kesiapan</label>
-                                <select v-model="a.readiness" class="w-full h-10 bg-tm-surface2 border border-tm-border text-xs text-tm-text font-bold px-2 rounded-xl focus:border-tm-primary focus:outline-none transition">
-                                    <option value="green">🟢 Siap</option>
-                                    <option value="yellow">🟡 Lelah</option>
-                                    <option value="red">🔴 Cedera</option>
-                                </select>
-                            </div>
+                        :class="selectedPresetName === p.name ? 'border-2 tm-surface-2 tm-text font-bold' : 'border tm-border tm-muted hover:tm-text'"
+                        :style="selectedPresetName === p.name ? 'border-color: var(--tm-orange);' : ''"
+                        class="p-3 rounded-lg text-left transition flex flex-col justify-between min-h-[64px]"
+                        style="background-color: var(--tm-input-bg);">
+                        <div class="font-sports-head text-xs font-bold uppercase tracking-wide truncate">
+                            @{{ p.name }}
                         </div>
-                    </div>
+                        <div class="text-[10px] font-telemetry tm-muted mt-1">
+                            @{{ p.reps }}x @{{ p.distance }}m &bull; @{{ p.rest }}s rest
+                        </div>
+                    </button>
                 </div>
             </div>
 
-            <!-- Voice cue toggle & start button -->
-            <div class="mt-4 pt-4 border-t border-tm-border flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" v-model="ttsEnabled" class="sr-only peer">
-                        <div class="w-10 h-6 bg-tm-surface2 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-tm-muted after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tm-primary peer-checked:after:bg-tm-bg"></div>
-                    </label>
-                    <div>
-                        <span class="text-xs font-bold text-tm-text block">Voice Assistant Suara</span>
-                        <span class="text-[10px] text-tm-muted">Panduan rest & target selesai via browser audio</span>
-                    </div>
+            <!-- Reps, Distance, Rest Inputs -->
+            <div class="grid grid-cols-3 gap-3 pt-2">
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Repetisi</label>
+                    <input v-model.number="program.reps" type="number" min="1" 
+                        class="w-full h-11 border tm-border text-center font-telemetry text-base font-bold tm-text rounded-lg focus:outline-none transition"
+                        style="background-color: var(--tm-input-bg);">
                 </div>
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Jarak per Lap (m)</label>
+                    <input v-model.number="program.distance" type="number" min="1" 
+                        class="w-full h-11 border tm-border text-center font-telemetry text-base font-bold tm-text rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        @change="recalculateAllTargetsFromPace">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Rest Pemulihan (s)</label>
+                    <input v-model.number="program.rest" type="number" min="0" 
+                        class="w-full h-11 border tm-border text-center font-telemetry text-base font-bold tm-orange rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        @change="syncRestTimeToAthletes">
+                </div>
+            </div>
+        </div>
 
-                <!-- Inline button for desktop -->
-                <button @click="startSession" class="hidden sm:flex h-12 px-8 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-extrabold rounded-xl transition transform active:scale-95 items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> MULAI SESI LATIHAN
+        <!-- 2. TARGET PACE SECTION -->
+        <div class="tm-surface border tm-border p-5 rounded-xl space-y-3.5">
+            <div class="flex items-center justify-between border-b tm-border pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded tm-surface-2 border tm-border tm-text font-telemetry font-bold text-xs flex items-center justify-center">2</span>
+                    <h2 class="font-sports-head text-base font-bold uppercase tracking-wider tm-text">TARGET PACING & TIMING</h2>
+                </div>
+                <span class="text-[11px] font-telemetry tm-muted">Pace Calculator</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Target Pace (Min:Det /km)</label>
+                    <input v-model="program.targetPace" type="text" 
+                        class="w-full h-11 border tm-border text-center font-telemetry text-base font-bold tm-green rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="04:00" @input="recalculateTargetTimeFromPace">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider tm-muted block mb-1.5">Target Waktu per Lap (detik)</label>
+                    <input v-model.number="program.targetTime" type="number" min="0" 
+                        class="w-full h-11 border tm-border text-center font-telemetry text-base font-bold tm-text rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="96" @input="recalculateTargetPaceFromTime">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ATHLETES SECTION -->
+        <div class="tm-surface border tm-border p-5 rounded-xl space-y-4">
+            <div class="flex items-center justify-between border-b tm-border pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded tm-surface-2 border tm-border tm-text font-telemetry font-bold text-xs flex items-center justify-center">3</span>
+                    <h2 class="font-sports-head text-base font-bold uppercase tracking-wider tm-text">ATHLETE ROSTER</h2>
+                </div>
+                <button @click="addSetupAthlete" 
+                    class="px-3 py-1.5 rounded-md tm-surface-2 hover:bg-slate-700/20 border tm-border tm-text text-xs font-semibold uppercase tracking-wider transition flex items-center gap-1.5">
+                    <span>+ Tambah Atlet</span>
                 </button>
             </div>
+
+            <!-- Athlete Cards List in Setup -->
+            <div class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+                <div v-for="(a, i) in setupAthletes" :key="i" 
+                    class="border tm-border p-3.5 rounded-lg flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition"
+                    style="background-color: var(--tm-input-bg);">
+                    
+                    <div class="flex-1">
+                        <label class="text-[10px] font-semibold uppercase tracking-wider tm-muted block mb-1">Nama Atlet #@{{ i + 1 }}</label>
+                        <input v-model="a.name" 
+                            class="w-full h-10 tm-surface border tm-border text-sm tm-text font-bold px-3 rounded-md focus:outline-none transition" 
+                            placeholder="Ketik nama atlet...">
+                    </div>
+
+                    <div class="w-full sm:w-36">
+                        <label class="text-[10px] font-semibold uppercase tracking-wider tm-muted block mb-1">Target Lap (s)</label>
+                        <input v-model.number="a.target" type="number" 
+                            class="w-full h-10 tm-surface border tm-border text-center font-telemetry text-sm font-bold tm-text px-2 rounded-md focus:outline-none transition" 
+                            @input="onSetupAthleteTargetTimeChange(a)">
+                    </div>
+
+                    <div class="w-full sm:w-36">
+                        <label class="text-[10px] font-semibold uppercase tracking-wider tm-muted block mb-1">Status Kesiapan</label>
+                        <select v-model="a.readiness" 
+                            class="w-full h-10 tm-surface border tm-border text-xs font-semibold tm-text px-2.5 rounded-md focus:outline-none transition">
+                            <option value="green">🟢 Siap</option>
+                            <option value="yellow">🟡 Lelah</option>
+                            <option value="red">🔴 Cedera</option>
+                        </select>
+                    </div>
+
+                    <button @click="removeSetupAthlete(i)" 
+                        class="w-10 h-10 self-end sm:self-auto rounded-md tm-surface-2 hover:bg-red-500/20 border tm-border tm-muted hover:tm-danger transition flex items-center justify-center shrink-0" 
+                        title="Hapus Atlet">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Voice Cue Assistant & Global Setting -->
+            <div class="pt-3 border-t tm-border flex items-center justify-between">
+                <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="checkbox" v-model="ttsEnabled" class="w-4 h-4 rounded tm-surface border tm-border text-orange-500 focus:ring-0">
+                    <div>
+                        <span class="text-xs font-semibold tm-text block">Voice Telemetry Audio</span>
+                        <span class="text-[10px] tm-muted">Panduan suara otomatis saat lap & rest selesai</span>
+                    </div>
+                </label>
+
+                <span class="text-xs font-telemetry tm-muted">@{{ setupAthletes.length }} Atlet Terdaftar</span>
+            </div>
         </div>
+
     </section>
 
-    <!-- SECTION 2: LIVE SESSION SCREEN -->
-    <section v-if="view === 'track'" class="flex-grow flex flex-col lg:grid lg:grid-cols-12 lg:gap-6 animate-[fadeIn_0.2s]">
+    <!-- ========================================================================= -->
+    <!-- SECTION 2: LIVE TRACK SCREEN (HERO STOPWATCH SCREEN)                      -->
+    <!-- ========================================================================= -->
+    <section v-if="view === 'track'" class="flex-grow flex flex-col lg:grid lg:grid-cols-12 lg:gap-6 space-y-5 lg:space-y-0">
         
-        <!-- Main Panel: Giant Timer & Active Runner Cards -->
-        <div class="lg:col-span-8 flex flex-col space-y-6">
+        <!-- Left: Stopwatch Hero & Athlete Cards -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
             
-            <!-- Outdoor High Contrast Timer Card -->
+            <!-- MASTER STOPWATCH INSTRUMENT (HERO DISPLAY) -->
             <div @click="!hasStarted ? startTimerNow() : togglePause()" 
-                class="bg-tm-surface border border-tm-border p-5 rounded-2xl text-center shadow-lg relative overflow-hidden cursor-pointer hover:border-tm-primary/50 transition">
-                <span class="text-[10px] text-tm-muted font-mono uppercase tracking-widest block mb-1">Sesi: @{{ program.name }}</span>
+                class="tm-surface border tm-border p-6 rounded-xl text-center shadow-xl relative overflow-hidden cursor-pointer hover:opacity-95 transition select-none group">
                 
-                <div class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-tm-text leading-none my-3" :class="{'text-tm-warning animate-pulse': isPaused}">
-                    @{{ formatTime(elapsedTime) }}
+                <!-- Status Top Bar -->
+                <div class="flex items-center justify-between gap-3 text-xs border-b tm-border pb-3 mb-2">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-[11px] font-sports-head tm-muted uppercase tracking-wider">SESSION</span>
+                        <span class="text-xs font-bold tm-text truncate">@{{ program.name }}</span>
+                    </div>
+
+                    <div class="shrink-0 flex items-center gap-2 font-telemetry text-xs">
+                        <span v-if="!hasStarted" class="px-2 py-0.5 rounded tm-surface-2 border tm-border tm-muted font-bold uppercase flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span> READY
+                        </span>
+                        <span v-else-if="isPaused" class="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-500 font-bold uppercase flex items-center gap-1.5 animate-pulse">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> PAUSED
+                        </span>
+                        <span v-else class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 font-bold uppercase flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> RUNNING
+                        </span>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-center gap-3 mt-3">
-                    <span class="text-xs text-tm-primary bg-tm-primarySoft border border-tm-primary/20 px-3 py-1 rounded font-mono font-bold">@{{ program.reps }}x @{{ program.distance }}m</span>
-                    <span v-if="!hasStarted" class="text-xs text-tm-muted bg-tm-surface2 border border-tm-border px-3 py-1 rounded font-bold uppercase flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-tm-muted animate-ping"></span> READY
+                <!-- Giant Digital Stopwatch Display -->
+                <div class="my-2 py-1">
+                    <div class="text-6xl sm:text-7xl md:text-8xl font-black font-telemetry tracking-tight tm-text leading-none" 
+                        :class="{'text-amber-500': isPaused}">
+                        @{{ formatTime(elapsedTime) }}
+                    </div>
+                </div>
+
+                <!-- Parameters Badge Info -->
+                <div class="flex items-center justify-center gap-3 pt-2">
+                    <span class="px-3 py-1 rounded tm-surface-2 border tm-border font-telemetry text-xs font-semibold tm-text">
+                        @{{ program.reps }}x @{{ program.distance }}m
                     </span>
-                    <span v-else-if="isPaused" class="text-xs text-tm-warning bg-tm-warning/10 border border-tm-warning/20 px-3 py-1 rounded font-bold uppercase flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-tm-warning"></span> PAUSED
+                    <span class="px-3 py-1 rounded tm-surface-2 border tm-border font-telemetry text-xs font-semibold tm-orange">
+                        REST @{{ program.rest }}s
                     </span>
-                    <span v-else class="text-xs text-tm-primary bg-tm-primarySoft border border-tm-primary/20 px-3 py-1 rounded font-bold uppercase flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-tm-primary animate-pulse"></span> RUNNING
+                    <span class="px-3 py-1 rounded tm-surface-2 border tm-border font-telemetry text-xs font-semibold tm-green">
+                        PACE @{{ program.targetPace }}/km
                     </span>
                 </div>
             </div>
 
-            <!-- List of Athletes in Mobile-optimized Card Form -->
+            <!-- ATHLETE PERFORMANCE CARDS -->
             <div class="space-y-3">
-                <h3 class="text-sm font-bold text-tm-muted uppercase tracking-wider block">Catat Lap Atlet</h3>
-                
-                <div v-for="(a, idx) in athletes" :key="idx" class="bg-tm-surface border border-tm-border p-4 rounded-xl relative overflow-hidden transition-all duration-200"
-                    :class="a.status === 'resting' ? 'border-tm-warning/30' : (a.status === 'completed' ? 'opacity-60' : 'hover:border-tm-primary/30')">
-                    
-                    <!-- Progress Bar at bottom of card -->
-                    <div class="absolute inset-x-0 bottom-0 h-1 bg-tm-surface2">
-                        <div class="h-full bg-tm-primary transition-all duration-300" :style="{width: ((a.laps.length/program.reps)*100) + '%'}"></div>
-                    </div>
+                <div class="flex items-center justify-between">
+                    <h3 class="font-sports-head text-base font-bold uppercase tracking-wider tm-text">
+                        ATHLETE TELEMETRY & SPLITS
+                    </h3>
+                    <span class="text-xs font-telemetry tm-muted">@{{ athletes.length }} Aktif</span>
+                </div>
 
-                    <div class="flex items-center justify-between gap-4 mb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full" :class="{'bg-tm-primary': a.readiness==='green', 'bg-tm-warning': a.readiness==='yellow', 'bg-tm-danger': a.readiness==='red'}"></span>
-                            <span class="font-extrabold text-base text-tm-text">@{{ a.name }}</span>
+                <div class="grid grid-cols-1 gap-3">
+                    <div v-for="(a, idx) in athletes" :key="idx" 
+                        class="tm-surface border tm-border p-4 rounded-xl relative overflow-hidden transition"
+                        :class="a.status === 'resting' ? 'border-amber-500/40' : (a.status === 'completed' ? 'opacity-50' : 'hover:border-slate-500')">
+                        
+                        <!-- Top Progress Bar -->
+                        <div class="absolute inset-x-0 top-0 h-1 tm-surface-2">
+                            <div class="h-full transition-all duration-300" 
+                                style="background-color: var(--tm-orange);"
+                                :style="{width: ((a.laps.length/program.reps)*100) + '%'}"></div>
                         </div>
 
-                        <!-- Mini status badge -->
-                        <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border" :class="getAthleteStatusBadgeClass(a)">
-                            @{{ formatAthleteStatusText(a) }}
-                        </span>
-                    </div>
+                        <!-- Card Header -->
+                        <div class="flex items-center justify-between gap-3 mb-3 pt-1">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" 
+                                    :class="{'bg-emerald-500': a.readiness==='green', 'bg-amber-500': a.readiness==='yellow', 'bg-rose-500': a.readiness==='red'}"></span>
+                                <span class="font-sports-head text-xl font-bold uppercase tm-text tracking-wide">
+                                    @{{ a.name }}
+                                </span>
+                            </div>
 
-                    <!-- Lap & Split Info Grid -->
-                    <div class="grid grid-cols-3 gap-2 bg-tm-bg/50 p-2.5 rounded-lg border border-tm-border text-center text-xs font-mono mb-3">
-                        <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Repetisi</span>
-                            <span class="font-bold text-tm-text">@{{ a.status === 'completed' ? a.laps.length : a.laps.length + 1 }} / @{{ program.reps }}</span>
-                        </div>
-                        <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Split Terakhir</span>
-                            <span class="font-bold text-tm-text">@{{ a.laps.length > 0 ? a.laps[a.laps.length-1].time.toFixed(1) + 's' : '-' }}</span>
-                        </div>
-                        <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Delta</span>
-                            <span class="font-bold" :class="a.laps.length > 0 ? getDeltaClass(a.laps[a.laps.length-1].diff) : 'text-tm-muted'">
-                                @{{ a.laps.length > 0 && a.target > 0 ? (a.laps[a.laps.length-1].diff > 0 ? '+' : '') + a.laps[a.laps.length-1].diff.toFixed(1) + 's' : '-' }}
+                            <span class="text-[11px] font-telemetry font-bold uppercase px-2 py-0.5 rounded border" 
+                                :class="getAthleteStatusBadgeClass(a)">
+                                @{{ formatAthleteStatusText(a) }}
                             </span>
                         </div>
-                    </div>
 
-                    <!-- Individual Lap action button -->
-                    <div class="flex gap-2">
-                        <button v-if="a.status === 'active'" @click="recordAthleteLap(idx)" :disabled="isPaused || !hasStarted"
-                            class="flex-grow h-12 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-extrabold rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 text-sm">
-                            <i class="fa-solid fa-stopwatch"></i> CATAT LAP (@{{ getAthleteActiveTimerFormatted(a) }})
-                        </button>
-                        <button v-else-if="a.status === 'resting'" @click="skipRestForAthlete(idx)"
-                            class="flex-grow h-12 bg-tm-warning hover:bg-yellow-600 text-tm-bg font-extrabold rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1 text-xs">
-                            <i class="fa-solid fa-forward"></i> SKIP REST (@{{ Math.ceil(a.restCountdown) }}s)
-                        </button>
-                        <div v-else class="flex-grow h-12 bg-tm-surface2 text-tm-muted text-xs font-bold rounded-xl border border-tm-border flex items-center justify-center">
-                            ✅ Sesi Selesai
+                        <!-- Telemetry Grid (Rep, Last Split, Delta) -->
+                        <div class="grid grid-cols-3 gap-2 p-3 rounded-lg border tm-border text-center font-telemetry mb-3"
+                            style="background-color: var(--tm-input-bg);">
+                            <div>
+                                <span class="text-[10px] tm-muted uppercase font-bold block mb-0.5">Repetisi</span>
+                                <span class="text-sm font-bold tm-text">
+                                    @{{ a.status === 'completed' ? a.laps.length : a.laps.length + 1 }} / @{{ program.reps }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] tm-muted uppercase font-bold block mb-0.5">Split Terakhir</span>
+                                <span class="text-sm font-bold tm-text">
+                                    @{{ a.laps.length > 0 ? a.laps[a.laps.length-1].time.toFixed(1) + 's' : '-' }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] tm-muted uppercase font-bold block mb-0.5">Delta Target</span>
+                                <span class="text-sm font-bold" 
+                                    :class="a.laps.length > 0 ? getDeltaClass(a.laps[a.laps.length-1].diff) : 'tm-muted'">
+                                    @{{ a.laps.length > 0 && a.target > 0 ? (a.laps[a.laps.length-1].diff > 0 ? '+' : '') + a.laps[a.laps.length-1].diff.toFixed(1) + 's' : '-' }}
+                                </span>
+                            </div>
                         </div>
-                        
-                        <button @click="openNotesModalForAthlete(a)" class="bg-tm-surface2 hover:bg-tm-surface border border-tm-border text-tm-muted px-4 rounded-xl transition flex items-center justify-center">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
+
+                        <!-- Action Button per Athlete -->
+                        <div class="flex gap-2">
+                            <button v-if="a.status === 'active'" @click="recordAthleteLap(idx)" :disabled="isPaused || !hasStarted"
+                                class="flex-grow h-12 font-sports-head text-base font-bold uppercase rounded-lg shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2"
+                                style="background-color: var(--tm-orange); color: #000000;">
+                                <i class="fa-solid fa-stopwatch text-sm"></i>
+                                <span>Catat Lap (@{{ getAthleteActiveTimerFormatted(a) }})</span>
+                            </button>
+                            <button v-else-if="a.status === 'resting'" @click="skipRestForAthlete(idx)"
+                                class="flex-grow h-12 bg-amber-500 hover:bg-amber-600 text-black font-sports-head text-sm font-bold uppercase rounded-lg shadow-md transition active:scale-[0.98] flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-forward text-xs"></i>
+                                <span>Skip Rest (@{{ Math.ceil(a.restCountdown) }}s)</span>
+                            </button>
+                            <div v-else 
+                                class="flex-grow h-12 tm-surface-2 tm-muted text-xs font-bold rounded-lg border tm-border flex items-center justify-center uppercase tracking-wider">
+                                Selesai Seluruh Repetisi
+                            </div>
+                            
+                            <button @click="openNotesModalForAthlete(a)" 
+                                class="h-12 w-12 tm-surface-2 hover:bg-slate-700/20 border tm-border tm-muted hover:tm-text rounded-lg transition flex items-center justify-center shrink-0" 
+                                title="Catat Evaluasi Pelatih">
+                                <i class="fa-solid fa-pen-to-square text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Live Log Feed -->
-        <div class="lg:col-span-4 mt-6 lg:mt-0 flex flex-col space-y-6">
-            <div class="bg-tm-surface border border-tm-border p-5 rounded-2xl">
-                <h3 class="text-sm font-bold text-tm-muted uppercase tracking-wider mb-3">Live Split Feed</h3>
+        <!-- Right: Telemetry Live Split Feed -->
+        <div class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="tm-surface border tm-border p-5 rounded-xl">
+                <div class="flex items-center justify-between border-b tm-border pb-3 mb-3">
+                    <h3 class="font-sports-head text-base font-bold uppercase tracking-wider tm-text">
+                        RACE TELEMETRY STREAM
+                    </h3>
+                    <span class="text-[10px] font-telemetry px-1.5 py-0.5 rounded tm-surface-2 border tm-border tm-green font-bold">
+                        LIVE
+                    </span>
+                </div>
                 
-                <div class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1 font-telemetry">
                     <div v-for="log in logs.slice().reverse()" :key="log.athleteName + log.rep" 
-                        class="bg-tm-bg border border-tm-border p-3 rounded-xl flex items-center justify-between text-xs hover:border-tm-primary/20 transition">
+                        class="border tm-border p-3 rounded-lg flex items-center justify-between text-xs transition"
+                        style="background-color: var(--tm-input-bg);">
                         <div>
-                            <span class="font-extrabold text-tm-text">@{{ log.athleteName }}</span>
-                            <span class="text-[10px] text-tm-muted block">Rep #@{{ log.rep }} · Pace: @{{ log.pace }}</span>
+                            <div class="font-bold tm-text">@{{ log.athleteName }}</div>
+                            <div class="text-[10px] tm-muted mt-0.5">
+                                REP #@{{ log.rep }} &bull; Pace @{{ log.pace }}
+                            </div>
                         </div>
                         <div class="text-right">
-                            <span class="font-mono font-bold text-tm-primary block">@{{ log.time.toFixed(1) }}s</span>
-                            <span v-if="log.diff !== undefined" class="text-[10px] font-mono font-bold block" :class="getDeltaClass(log.diff)">
+                            <div class="font-bold tm-text text-sm">@{{ log.time.toFixed(1) }}s</div>
+                            <div v-if="log.diff !== undefined" class="text-[10px] font-bold" :class="getDeltaClass(log.diff)">
                                 @{{ log.diff > 0 ? '+' : '' }}@{{ log.diff.toFixed(1) }}s
-                            </span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div v-if="logs.length === 0" class="text-center py-6 text-tm-muted text-xs">
-                        Belum ada split tercatat
+                    <div v-if="logs.length === 0" class="text-center py-12 tm-muted text-xs">
+                        <i class="fa-solid fa-stopwatch text-2xl mb-2 opacity-20 block"></i>
+                        Belum ada split lap tercatat
                     </div>
                 </div>
             </div>
@@ -419,167 +594,184 @@
 
         <!-- QUICK ASSIGN OVERLAY DRAWER -->
         <div v-if="showLapAssignOverlay" class="no-print fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-4" @click.self="showLapAssignOverlay = false">
-            <div class="bg-tm-surface border border-tm-border w-full max-w-md rounded-t-2xl p-5 shadow-2xl animate-[slideUp_0.2s]">
-                <div class="flex justify-between items-center mb-4">
+            <div class="tm-surface border tm-border w-full max-w-md rounded-t-2xl p-5 shadow-2xl">
+                <div class="flex justify-between items-center mb-4 border-b tm-border pb-3">
                     <div>
-                        <span class="text-xs text-tm-muted uppercase font-mono">Lap: @{{ formatTime(pendingLapTime) }}</span>
-                        <h4 class="text-sm font-extrabold text-tm-text">Pilih Atlet untuk Menyematkan Lap</h4>
+                        <span class="text-xs tm-orange font-telemetry uppercase font-bold">WAKTU LAP: @{{ formatTime(pendingLapTime) }}</span>
+                        <h4 class="font-sports-head text-base font-bold uppercase tm-text">PILIH ATLET UNTUK LAP INI</h4>
                     </div>
-                    <button @click="showLapAssignOverlay = false" class="text-tm-muted hover:text-tm-text text-lg"><i class="fa-solid fa-xmark"></i></button>
+                    <button @click="showLapAssignOverlay = false" class="tm-muted hover:tm-text text-lg">&times;</button>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-3 mb-2">
+                <div class="grid grid-cols-2 gap-2.5 mb-2">
                     <button v-for="(a, idx) in athletes" :key="a.name" v-show="a.status === 'active'"
                         @click="assignPendingLapToAthlete(idx)"
-                        class="h-14 bg-tm-surface2 hover:border-tm-primary text-tm-text font-bold rounded-xl border border-tm-border flex items-center justify-center gap-1.5 transition active:scale-95 text-base">
-                        🏃 @{{ a.name }}
+                        class="h-14 tm-surface-2 hover:border-orange-500 tm-text font-sports-head text-base font-bold uppercase rounded-lg border tm-border flex items-center justify-center transition active:scale-95">
+                        @{{ a.name }}
                     </button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 3: SESSION SUMMARY -->
-    <section v-if="view === 'summary'" class="flex-grow max-w-3xl mx-auto w-full space-y-6 animate-[fadeIn_0.2s]">
+    <!-- ========================================================================= -->
+    <!-- SECTION 3: SESSION RESULTS & SUMMARY (COACH REPORT)                       -->
+    <!-- ========================================================================= -->
+    <section v-if="view === 'summary'" class="flex-grow max-w-3xl mx-auto w-full space-y-5">
         
-        <div id="summary-print-container" class="bg-tm-surface border border-tm-border p-5 sm:p-7 rounded-2xl shadow-xl print-card">
+        <div id="summary-print-container" class="tm-surface border tm-border p-5 sm:p-7 rounded-xl shadow-xl print-card">
             
-            <div class="flex flex-col sm:flex-row items-center justify-between border-b border-tm-border pb-4 mb-4 gap-4">
-                <div class="text-center sm:text-left">
-                    <h2 class="text-xl font-black text-tm-text tracking-tight">Evaluasi Latihan Interval</h2>
-                    <p class="text-xs text-tm-muted mt-0.5">Sesi: @{{ program.name }} · Lokasi: @{{ program.location || 'Stadion / Track' }}</p>
+            <!-- Header Report -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b tm-border pb-4 mb-5 gap-3">
+                <div>
+                    <span class="text-[10px] font-telemetry uppercase tracking-widest tm-orange font-bold block mb-1">
+                        PERFORMANCE EVALUATION REPORT
+                    </span>
+                    <h2 class="font-sports-head text-2xl font-bold uppercase tm-text tracking-wide">
+                        @{{ program.name }}
+                    </h2>
+                    <p class="text-xs tm-muted mt-0.5">Lokasi: @{{ program.location || 'Stadion / Track' }} &bull; Latihan: @{{ program.reps }}x@{{ program.distance }}m</p>
                 </div>
-                <div class="text-center sm:text-right font-mono text-xs text-tm-muted">
-                    Tanggal: @{{ new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+                <div class="text-left sm:text-right font-telemetry text-xs tm-muted">
+                    @{{ new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
                 </div>
             </div>
 
-            <!-- Key metrics row -->
+            <!-- Key Performance Metrics Row -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Total Atlet</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ athleteAnalysis.length }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center print-card font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Total Atlet</span>
+                    <span class="text-xl font-bold tm-text">@{{ athleteAnalysis.length }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Total Reps</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ logs.length }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center print-card font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Total Reps</span>
+                    <span class="text-xl font-bold tm-text">@{{ logs.length }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Avg Pace</span>
-                    <span class="text-lg font-black text-tm-primary font-mono">@{{ formatAvgPaceOfSession() }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center print-card font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Avg Pace</span>
+                    <span class="text-xl font-bold tm-green">@{{ formatAvgPaceOfSession() }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Durasi Sesi</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ formatTime(elapsedTime) }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center print-card font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Total Durasi</span>
+                    <span class="text-xl font-bold tm-text">@{{ formatTime(elapsedTime) }}</span>
                 </div>
             </div>
 
-            <!-- Athlete Performances Detail -->
-            <div class="space-y-6">
+            <!-- Athlete Performance Details -->
+            <div class="space-y-4">
                 <div v-for="(a, index) in athleteAnalysis" :key="a.name" 
-                    class="bg-tm-surface2 border border-tm-border p-4 rounded-xl space-y-3 print-card">
+                    class="border tm-border p-4 rounded-xl space-y-3 print-card" style="background-color: var(--tm-input-bg);">
                     
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-tm-border/60 pb-2">
-                        <div>
-                            <span class="w-2.5 h-2.5 rounded-full inline-block mr-1.5" :class="{'bg-tm-primary': a.readiness==='green', 'bg-tm-warning': a.readiness==='yellow', 'bg-tm-danger': a.readiness==='red'}"></span>
-                            <span class="text-base font-black text-tm-text inline-block">@{{ a.name }}</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b tm-border pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" 
+                                :class="{'bg-emerald-500': a.readiness==='green', 'bg-amber-500': a.readiness==='yellow', 'bg-rose-500': a.readiness==='red'}"></span>
+                            <span class="font-sports-head text-lg font-bold uppercase tm-text">@{{ a.name }}</span>
                         </div>
-                        <div class="flex gap-3 text-xs font-mono text-tm-muted">
-                            <span>Avg Lap: <strong class="text-tm-primary">@{{ a.stats.avgTime.toFixed(1) }}s</strong></span>
-                            <span>Consistency: <strong class="text-tm-primary">@{{ a.stats.consistency }}%</strong></span>
+                        <div class="flex gap-4 text-xs font-telemetry tm-muted">
+                            <span>Avg Lap: <strong class="tm-text">@{{ a.stats.avgTime.toFixed(1) }}s</strong></span>
+                            <span>Consistency: <strong class="tm-green">@{{ a.stats.consistency }}%</strong></span>
                         </div>
                     </div>
 
-                    <!-- Performance Coach Insights -->
-                    <div class="bg-tm-bg p-3 rounded-lg border border-tm-border/60 text-xs leading-relaxed print-card">
-                        <span class="font-bold text-tm-primary block mb-1 font-mono uppercase text-[9px] tracking-wider">Sport Performance Analyst Insight</span>
-                        @{{ a.feedback }}
+                    <!-- Coach Performance Insight Box -->
+                    <div class="tm-surface p-3 rounded-lg border tm-border text-xs leading-relaxed print-card">
+                        <span class="font-sports-head text-xs font-bold uppercase tm-orange block mb-1">ANALYST INSIGHT</span>
+                        <p class="tm-text">@{{ a.feedback }}</p>
                     </div>
 
                     <!-- Expandable Performance Graph Drawer -->
-                    <div class="no-print border border-tm-border rounded-lg overflow-hidden">
-                        <button @click="showGraphs = !showGraphs" class="w-full bg-tm-bg hover:bg-tm-surface px-4 py-2 text-xs font-bold text-tm-muted flex items-center justify-between transition">
-                            <span>@{{ showGraphs ? 'Sembunyikan' : 'Tampilkan' }} Grafik Performa</span>
+                    <div class="no-print border tm-border rounded-lg overflow-hidden">
+                        <button @click="showGraphs = !showGraphs" class="w-full tm-surface hover:bg-slate-700/10 px-4 py-2 text-xs font-semibold tm-muted flex items-center justify-between transition">
+                            <span>@{{ showGraphs ? 'Sembunyikan' : 'Tampilkan' }} Grafik Laju Repetisi</span>
                             <i class="fa-solid" :class="showGraphs ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                         </button>
                         
-                        <div v-show="showGraphs" class="p-3 bg-tm-bg h-40 w-full relative">
+                        <div v-show="showGraphs" class="p-3 tm-surface-2 h-40 w-full relative">
                             <canvas :id="'chart_' + index"></canvas>
                         </div>
                     </div>
 
-                    <!-- Print-only chart space -->
-                    <div class="hidden print-only h-40 w-full relative">
-                        <canvas :id="'print_chart_' + index"></canvas>
-                    </div>
-
-                    <!-- Coach Notes Form -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-tm-border/60 pt-3">
+                    <!-- Coach Notes Evaluation Form -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t tm-border pt-3">
                         <div>
-                            <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-0.5">Evaluasi Kondisi & Teknik</label>
-                            <div class="flex gap-2">
-                                <input v-model="a.notes.condition" type="text" placeholder="e.g. Lelah di lap akhir" 
-                                    class="w-1/2 bg-tm-bg border border-tm-border text-xs text-tm-text p-2.5 rounded-lg focus:border-tm-primary focus:outline-none transition print-card">
-                                <input v-model="a.notes.technique" type="text" placeholder="e.g. Arm swing berlebihan" 
-                                    class="w-1/2 bg-tm-bg border border-tm-border text-xs text-tm-text p-2.5 rounded-lg focus:border-tm-primary focus:outline-none transition print-card">
-                            </div>
+                            <label class="text-[10px] font-semibold uppercase tracking-wider tm-muted block mb-1">Evaluasi Teknik</label>
+                            <input v-model="a.notes.technique" type="text" placeholder="Contoh: Pendaratan kaki stabil" 
+                                class="w-full tm-surface border tm-border text-xs tm-text p-2.5 rounded-lg focus:outline-none transition print-card">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-0.5">Rekomendasi Latihan</label>
-                            <input v-model="a.notes.recommendation" type="text" placeholder="e.g. Fokus pada cadence di repetisi awal" 
-                                class="w-full bg-tm-bg border border-tm-border text-xs text-tm-text p-2.5 rounded-lg focus:border-tm-primary focus:outline-none transition print-card">
+                            <label class="text-[10px] font-semibold uppercase tracking-wider tm-muted block mb-1">Rekomendasi Latihan</label>
+                            <input v-model="a.notes.recommendation" type="text" placeholder="Contoh: Pertahankan ritme lap awal" 
+                                class="w-full tm-surface border tm-border text-xs tm-text p-2.5 rounded-lg focus:outline-none transition print-card">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Action buttons -->
-            <div class="flex gap-2.5 flex-wrap mt-6 border-t border-tm-border pt-4 no-print">
-                <button @click="copySummary(null)" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-copy"></i> SALIN RINGKASAN
+            <!-- Action Buttons Grid -->
+            <div class="flex gap-2 flex-wrap mt-6 border-t tm-border pt-4 no-print">
+                <button @click="copySummary(null)" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Salin Laporan</span>
                 </button>
-                <button @click="shareWhatsApp(null)" class="flex-grow bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-brands fa-whatsapp"></i> WA SHARE
+                <button @click="shareWhatsApp(null)" class="flex-grow bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>Kirim WhatsApp</span>
                 </button>
-                <button @click="exportCSV(null)" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-file-csv"></i> CSV
+                <button @click="exportCSV(null)" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-file-csv"></i>
+                    <span>Export CSV</span>
                 </button>
-                <button @click="printPDF" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-file-pdf"></i> PRINT
+                <button @click="printPDF" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print PDF</span>
                 </button>
-                <button @click="resetSession" class="w-full bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-extrabold py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs mt-2">
-                    <i class="fa-solid fa-rotate-right"></i> MULAI SESI BARU
+                <button @click="resetSession" 
+                    class="w-full font-sports-head text-sm font-bold uppercase py-3 px-4 rounded-lg transition text-center mt-2"
+                    style="background-color: var(--tm-orange); color: #000000;">
+                    Mulai Sesi Latihan Baru
                 </button>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 4: SESSION HISTORY -->
-    <section v-if="view === 'history'" class="flex-grow max-w-3xl mx-auto w-full space-y-6 animate-[fadeIn_0.2s]">
-        <div class="bg-tm-surface border border-tm-border p-5 rounded-2xl">
-            <div class="flex justify-between items-center mb-5 border-b border-tm-border pb-3">
+    <!-- ========================================================================= -->
+    <!-- SECTION 4: TRAINING ARCHIVE (HISTORY)                                     -->
+    <!-- ========================================================================= -->
+    <section v-if="view === 'history'" class="flex-grow max-w-3xl mx-auto w-full space-y-4">
+        <div class="tm-surface border tm-border p-5 rounded-xl">
+            <div class="flex justify-between items-center mb-4 border-b tm-border pb-3">
                 <div>
-                    <h2 class="text-base font-bold text-tm-text">Riwayat Sesi Latihan</h2>
-                    <p class="text-xs text-tm-muted">Tinjau kembali log latihan interval dan evaluasi atlet dari sesi sebelumnya.</p>
+                    <h2 class="font-sports-head text-xl font-bold uppercase tm-text tracking-wide">TRAINING SESSION ARCHIVE</h2>
+                    <p class="text-xs tm-muted">Log rekaman sesi interval dan telemetri atlet terdahulu.</p>
                 </div>
-                <button v-if="sessionHistory.length > 0" @click="clearAllHistory" class="text-xs font-bold text-tm-danger border border-tm-danger/30 bg-tm-danger/10 px-3 py-1.5 rounded-xl hover:bg-tm-danger hover:text-tm-text transition">
+                <button v-if="sessionHistory.length > 0" @click="clearAllHistory" 
+                    class="text-xs font-semibold text-rose-500 border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 rounded-md hover:bg-rose-500 hover:text-white transition">
                     Hapus Semua
                 </button>
             </div>
 
-            <!-- List of past sessions -->
-            <div v-if="sessionHistory.length === 0" class="text-center py-12 text-tm-muted">
-                <i class="fa-solid fa-clock-rotate-left text-4xl mb-3 block opacity-20"></i>
-                <p class="text-sm">Belum ada riwayat sesi tersimpan.</p>
-                <button @click="changeView('setup')" class="mt-3 bg-tm-primary text-tm-bg font-extrabold text-xs px-4 py-2 rounded-xl">Mulai Setup</button>
+            <!-- Empty State -->
+            <div v-if="sessionHistory.length === 0" class="text-center py-12 tm-muted">
+                <i class="fa-solid fa-clock-rotate-left text-3xl mb-3 block opacity-20"></i>
+                <p class="text-xs">Belum ada riwayat sesi tersimpan di peramban ini.</p>
+                <button @click="changeView('setup')" 
+                    class="mt-3 font-sports-head text-xs font-bold uppercase px-4 py-2 rounded-lg"
+                    style="background-color: var(--tm-orange); color: #000000;">
+                    Buat Sesi Latihan
+                </button>
             </div>
 
+            <!-- Archive Sessions List -->
             <div v-else class="space-y-3">
-                <div v-for="s in sessionHistory" :key="s.id" class="bg-tm-surface2 border border-tm-border p-4 rounded-xl hover:border-tm-primary/30 transition-all duration-150">
+                <div v-for="s in sessionHistory" :key="s.id" 
+                    class="border tm-border p-4 rounded-xl hover:border-slate-500 transition"
+                    style="background-color: var(--tm-input-bg);">
+                    
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div>
-                            <h3 class="font-extrabold text-base text-tm-text">@{{ s.name }}</h3>
-                            <div class="flex gap-3 text-xs text-tm-muted mt-1">
+                            <h3 class="font-sports-head text-base font-bold uppercase tm-text">@{{ s.name }}</h3>
+                            <div class="flex flex-wrap gap-3 text-xs font-telemetry tm-muted mt-1">
                                 <span>📅 @{{ s.date }}</span>
                                 <span>🏃 @{{ s.workoutType }}</span>
                                 <span>📍 @{{ s.location }}</span>
@@ -587,28 +779,30 @@
                         </div>
                         
                         <div class="flex gap-2">
-                            <button @click="viewHistorySession(s)" class="bg-tm-primary text-tm-bg font-extrabold text-xs px-3.5 py-2 rounded-lg transition">
-                                Lihat Detail
+                            <button @click="viewHistorySession(s)" 
+                                class="font-sports-head text-xs font-bold uppercase px-3.5 py-1.5 rounded-md transition"
+                                style="background-color: var(--tm-orange); color: #000000;">
+                                Buka Detail
                             </button>
-                            <button @click="deleteHistorySession(s.id)" class="bg-tm-danger/10 border border-tm-danger/20 text-tm-danger hover:bg-tm-danger hover:text-tm-text text-xs p-2 rounded-lg transition">
+                            <button @click="deleteHistorySession(s.id)" 
+                                class="tm-surface-2 hover:bg-rose-500/20 border tm-border tm-muted hover:text-rose-500 text-xs p-2 rounded-md transition">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Mini status grid -->
-                    <div class="grid grid-cols-3 gap-2 bg-tm-bg/50 p-2.5 rounded-lg border border-tm-border text-center text-xs">
+                    <div class="grid grid-cols-3 gap-2 tm-surface p-2.5 rounded-lg border tm-border text-center font-telemetry text-xs">
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Jumlah Atlet</span>
-                            <span class="font-mono font-bold text-tm-text">@{{ s.athletes.length }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Atlet</span>
+                            <span class="font-bold tm-text">@{{ s.athletes.length }}</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Total Split</span>
-                            <span class="font-mono font-bold text-tm-text">@{{ s.logs.length }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Total Split</span>
+                            <span class="font-bold tm-text">@{{ s.logs.length }}</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Rata-rata Pace</span>
-                            <span class="font-mono font-bold text-tm-primary">@{{ formatAvgPaceOfSession(s) }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Avg Pace</span>
+                            <span class="font-bold tm-green">@{{ formatAvgPaceOfSession(s) }}</span>
                         </div>
                     </div>
                 </div>
@@ -616,200 +810,222 @@
         </div>
     </section>
 
-    <!-- SECTION 5: HISTORICAL SESSION DETAIL VIEW -->
-    <section v-if="view === 'history_detail' && selectedHistorySession" class="flex-grow max-w-3xl mx-auto w-full space-y-6 animate-[fadeIn_0.2s]">
-        <div class="bg-tm-surface border border-tm-border p-5 sm:p-7 rounded-2xl shadow-xl print-card">
+    <!-- ========================================================================= -->
+    <!-- SECTION 5: HISTORICAL SESSION DETAIL                                      -->
+    <!-- ========================================================================= -->
+    <section v-if="view === 'history_detail' && selectedHistorySession" class="flex-grow max-w-3xl mx-auto w-full space-y-5">
+        <div class="tm-surface border tm-border p-5 sm:p-7 rounded-xl shadow-xl print-card">
             
-            <div class="flex flex-col sm:flex-row items-center justify-between border-b border-tm-border pb-4 mb-4 gap-4">
-                <div class="text-center sm:text-left">
-                    <button @click="changeView('history')" class="no-print bg-tm-surface2 hover:text-tm-primary border border-tm-border text-tm-muted text-xs font-bold px-3 py-1.5 rounded-lg transition mb-2 flex items-center gap-1">
-                        <i class="fa-solid fa-chevron-left"></i> Kembali ke Riwayat
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b tm-border pb-4 mb-4 gap-3">
+                <div>
+                    <button @click="changeView('history')" class="no-print tm-surface-2 hover:bg-slate-700/20 border tm-border tm-muted hover:tm-text text-xs font-semibold px-3 py-1.5 rounded-md transition mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        <span>Kembali ke Arsip</span>
                     </button>
-                    <h2 class="text-xl font-black text-tm-text tracking-tight">@{{ selectedHistorySession.name }}</h2>
-                    <p class="text-xs text-tm-muted mt-0.5">📍 @{{ selectedHistorySession.location }} · Latihan: @{{ selectedHistorySession.workoutType }} (@{{ selectedHistorySession.program.reps }}x@{{ selectedHistorySession.program.distance }}m)</p>
+                    <h2 class="font-sports-head text-2xl font-bold uppercase tm-text">@{{ selectedHistorySession.name }}</h2>
+                    <p class="text-xs tm-muted mt-0.5">📍 @{{ selectedHistorySession.location }} &bull; @{{ selectedHistorySession.workoutType }} (@{{ selectedHistorySession.program.reps }}x@{{ selectedHistorySession.program.distance }}m)</p>
                 </div>
-                <div class="text-center sm:text-right font-mono text-xs text-tm-muted">
-                    Tanggal: @{{ selectedHistorySession.date }} - @{{ selectedHistorySession.time }}
+                <div class="font-telemetry text-xs tm-muted">
+                    @{{ selectedHistorySession.date }} &bull; @{{ selectedHistorySession.time }}
                 </div>
             </div>
 
-            <!-- Key metrics row -->
+            <!-- Key metrics -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Total Atlet</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ selectedHistorySession.athletes.length }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Atlet</span>
+                    <span class="text-xl font-bold tm-text">@{{ selectedHistorySession.athletes.length }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Total Reps</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ selectedHistorySession.logs.length }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Total Reps</span>
+                    <span class="text-xl font-bold tm-text">@{{ selectedHistorySession.logs.length }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Avg Pace</span>
-                    <span class="text-lg font-black text-tm-primary font-mono">@{{ formatAvgPaceOfSession(selectedHistorySession) }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Avg Pace</span>
+                    <span class="text-xl font-bold tm-green">@{{ formatAvgPaceOfSession(selectedHistorySession) }}</span>
                 </div>
-                <div class="bg-tm-bg border border-tm-border p-3.5 rounded-xl text-center print-card">
-                    <span class="text-[10px] text-tm-muted uppercase font-bold block mb-1">Total Durasi</span>
-                    <span class="text-lg font-black text-tm-text font-mono">@{{ formatTime(selectedHistorySession.program.elapsedTime || 0) }}</span>
+                <div class="border tm-border p-3.5 rounded-lg text-center font-telemetry" style="background-color: var(--tm-input-bg);">
+                    <span class="text-[10px] tm-muted uppercase font-bold block mb-1">Durasi</span>
+                    <span class="text-xl font-bold tm-text">@{{ formatTime(selectedHistorySession.program.elapsedTime || 0) }}</span>
                 </div>
             </div>
 
-            <!-- Athlete Performances Detail -->
-            <div class="space-y-6">
+            <!-- Athletes list -->
+            <div class="space-y-4">
                 <div v-for="(a, index) in selectedHistorySession.athletes" :key="a.name" 
-                    class="bg-tm-surface2 border border-tm-border p-4 rounded-xl space-y-3 print-card">
+                    class="border tm-border p-4 rounded-xl space-y-3 print-card" style="background-color: var(--tm-input-bg);">
                     
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-tm-border/60 pb-2">
-                        <div>
-                            <span class="w-2.5 h-2.5 rounded-full inline-block mr-1.5" :class="{'bg-tm-primary': a.readiness==='green', 'bg-tm-warning': a.readiness==='yellow', 'bg-tm-danger': a.readiness==='red'}"></span>
-                            <span class="text-base font-black text-tm-text inline-block">@{{ a.name }}</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b tm-border pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" 
+                                :class="{'bg-emerald-500': a.readiness==='green', 'bg-amber-500': a.readiness==='yellow', 'bg-rose-500': a.readiness==='red'}"></span>
+                            <span class="font-sports-head text-lg font-bold uppercase tm-text">@{{ a.name }}</span>
                         </div>
-                        <div class="flex gap-3 text-xs font-mono text-tm-muted">
-                            <span>Avg Lap: <strong class="text-tm-primary">@{{ getAthleteAvgTime(a).toFixed(1) }}s</strong></span>
-                            <span>Consistency: <strong class="text-tm-primary">@{{ getAthleteConsistencyScore(a) }}%</strong></span>
-                        </div>
-                    </div>
-
-                    <!-- Performance Coach Insights -->
-                    <div class="bg-tm-bg p-3 rounded-lg border border-tm-border/60 text-xs leading-relaxed print-card">
-                        <span class="font-bold text-tm-primary block mb-1 font-mono uppercase text-[9px] tracking-wider">Sport Performance Analyst Insight</span>
-                        @{{ getHistoryAthleteFeedback(a, selectedHistorySession.program) }}
-                    </div>
-
-                    <!-- Expandable Performance Graph Drawer -->
-                    <div class="no-print border border-tm-border rounded-lg overflow-hidden">
-                        <button @click="showGraphs = !showGraphs" class="w-full bg-tm-bg hover:bg-tm-surface px-4 py-2 text-xs font-bold text-tm-muted flex items-center justify-between transition">
-                            <span>@{{ showGraphs ? 'Sembunyikan' : 'Tampilkan' }} Grafik Performa</span>
-                            <i class="fa-solid" :class="showGraphs ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                        </button>
-                        
-                        <div v-show="showGraphs" class="p-3 bg-tm-bg h-40 w-full relative">
-                            <canvas :id="'history_chart_' + index"></canvas>
+                        <div class="flex gap-4 text-xs font-telemetry tm-muted">
+                            <span>Avg Lap: <strong class="tm-text">@{{ getAthleteAvgTime(a).toFixed(1) }}s</strong></span>
+                            <span>Consistency: <strong class="tm-green">@{{ getAthleteConsistencyScore(a) }}%</strong></span>
                         </div>
                     </div>
 
-                    <!-- Print-only chart space -->
-                    <div class="hidden print-only h-40 w-full relative">
-                        <canvas :id="'print_history_chart_' + index"></canvas>
-                    </div>
-
-                    <!-- Coach Notes Display -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-tm-bg p-4 rounded-xl border border-tm-border/60 text-xs print-card">
+                    <!-- Coach notes review -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 tm-surface p-3 rounded-lg border tm-border text-xs">
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Kondisi Fisik</span>
-                            <span class="text-tm-text font-semibold">@{{ a.notes.condition || 'N/A' }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Kondisi</span>
+                            <span class="tm-text font-medium">@{{ a.notes.condition || 'Fit' }}</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Evaluasi Teknik</span>
-                            <span class="text-tm-text font-semibold">@{{ a.notes.technique || 'N/A' }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Teknik</span>
+                            <span class="tm-text font-medium">@{{ a.notes.technique || '-' }}</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Cedera Ringan</span>
-                            <span class="text-tm-text font-semibold">@{{ a.notes.injury || 'Tidak Ada' }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Cedera</span>
+                            <span class="tm-text font-medium">@{{ a.notes.injury || 'Tidak ada' }}</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-tm-muted uppercase font-bold block mb-0.5">Rekomendasi</span>
-                            <span class="text-tm-text font-semibold">@{{ a.notes.recommendation || 'N/A' }}</span>
+                            <span class="text-[9px] tm-muted uppercase font-bold block mb-0.5">Rekomendasi</span>
+                            <span class="tm-text font-medium">@{{ a.notes.recommendation || '-' }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Action buttons -->
-            <div class="flex gap-2.5 flex-wrap mt-6 border-t border-tm-border pt-4 no-print">
-                <button @click="copySummary(selectedHistorySession)" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-copy"></i> SALIN RINGKASAN
+            <!-- Export Buttons -->
+            <div class="flex gap-2 flex-wrap mt-6 border-t tm-border pt-4 no-print">
+                <button @click="copySummary(selectedHistorySession)" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Salin Laporan</span>
                 </button>
-                <button @click="shareWhatsApp(selectedHistorySession)" class="flex-grow bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-brands fa-whatsapp"></i> WA SHARE
+                <button @click="shareWhatsApp(selectedHistorySession)" class="flex-grow bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>WhatsApp</span>
                 </button>
-                <button @click="exportCSV(selectedHistorySession)" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-file-csv"></i> CSV
+                <button @click="exportCSV(selectedHistorySession)" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-file-csv"></i>
+                    <span>Export CSV</span>
                 </button>
-                <button @click="printPDF" class="flex-grow bg-tm-surface2 hover:bg-tm-surface text-tm-text border border-tm-border font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-file-pdf"></i> PRINT
+                <button @click="printPDF" class="flex-grow tm-surface-2 hover:bg-slate-700/20 tm-text border tm-border font-semibold py-2.5 px-3 rounded-lg transition text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print PDF</span>
                 </button>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 6: COACH NOTES MODAL -->
-    <div v-if="showNotesModal && activeAthleteForNotes" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm no-print" @click.self="showNotesModal = false">
-        <div class="bg-tm-surface border border-tm-border w-full max-w-md rounded-2xl p-5 shadow-2xl animate-[fadeIn_0.2s]">
-            <div class="flex justify-between items-center mb-4 border-b border-tm-border pb-2">
+    <!-- ========================================================================= -->
+    <!-- COACH EVALUATION MODAL                                                    -->
+    <!-- ========================================================================= -->
+    <div v-if="showNotesModal && activeAthleteForNotes" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 no-print" 
+        @click.self="showNotesModal = false">
+        <div class="tm-surface border tm-border w-full max-w-md rounded-xl p-5 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b tm-border pb-3">
                 <div>
-                    <h3 class="font-extrabold text-tm-text text-base">Evaluasi Atlet: @{{ activeAthleteForNotes.name }}</h3>
-                    <p class="text-[10px] text-tm-muted uppercase font-mono">Input Catatan Pelatih Real-time</p>
+                    <span class="text-[10px] font-telemetry uppercase tm-orange font-bold">COACH EVALUATION</span>
+                    <h3 class="font-sports-head text-lg font-bold uppercase tm-text">@{{ activeAthleteForNotes.name }}</h3>
                 </div>
-                <button @click="showNotesModal = false" class="text-tm-muted hover:text-tm-text text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button @click="showNotesModal = false" class="tm-muted hover:tm-text text-xl leading-none">&times;</button>
             </div>
 
-            <div class="space-y-3 mb-5">
+            <div class="space-y-3 text-xs">
                 <div>
-                    <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Kondisi Atlet</label>
-                    <input v-model="coachNotes.condition" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Segar / Lelah / Kaki berat">
+                    <label class="font-semibold uppercase tracking-wider tm-muted block mb-1">Kondisi Atlet</label>
+                    <input v-model="coachNotes.condition" type="text" 
+                        class="w-full h-10 border tm-border tm-text px-3 rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="e.g. Segar / Lelah / Kaki berat">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Evaluasi Teknik</label>
-                    <textarea v-model="coachNotes.technique" class="w-full bg-tm-surface2 border border-tm-border text-base text-tm-text p-3 rounded-xl focus:border-tm-primary focus:outline-none transition h-20" placeholder="e.g. Langkah kaki stabil, pendaratan forefoot bagus"></textarea>
+                    <label class="font-semibold uppercase tracking-wider tm-muted block mb-1">Evaluasi Teknik</label>
+                    <textarea v-model="coachNotes.technique" rows="2" 
+                        class="w-full border tm-border tm-text p-3 rounded-lg focus:outline-none transition resize-none" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="e.g. Langkah kaki stabil, pendaratan forefoot bagus"></textarea>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Rekomendasi Latihan</label>
-                    <input v-model="coachNotes.recommendation" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Kurangi pace di lap awal pada sesi berikutnya">
+                    <label class="font-semibold uppercase tracking-wider tm-muted block mb-1">Rekomendasi Pelatih</label>
+                    <input v-model="coachNotes.recommendation" type="text" 
+                        class="w-full h-10 border tm-border tm-text px-3 rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="e.g. Pertahankan cadence di paruh akhir">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Catatan Cedera Ringan (Jika Ada)</label>
-                    <input v-model="coachNotes.injury" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Nyeri betis kanan ringan / Tidak ada">
+                    <label class="font-semibold uppercase tracking-wider tm-muted block mb-1">Catatan Cedera (Jika Ada)</label>
+                    <input v-model="coachNotes.injury" type="text" 
+                        class="w-full h-10 border tm-border tm-text px-3 rounded-lg focus:outline-none transition" 
+                        style="background-color: var(--tm-input-bg);"
+                        placeholder="e.g. Nyeri betis kanan ringan / Tidak ada">
                 </div>
             </div>
 
-            <button @click="saveCoachNotes" class="w-full h-12 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-extrabold rounded-xl transition">SIMPAN CATATAN</button>
+            <button @click="saveCoachNotes" 
+                class="w-full h-11 font-sports-head text-sm font-bold uppercase rounded-lg transition"
+                style="background-color: var(--tm-orange); color: #000000;">
+                Simpan Catatan Pelatih
+            </button>
         </div>
     </div>
 
-    <!-- STICKY ACTION BARS (PLACED OUTSIDE ANIMATED CONTAINER FOR TRUE POSITION:FIXED VIEWPORT STACKING CONTEXT) -->
-    <!-- 1. Setup screen sticky start button -->
-    <div v-if="view === 'setup'" class="no-print fixed bottom-0 inset-x-0 bg-tm-surface border-t border-tm-border p-3 shadow-2xl z-50 block sm:hidden" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));">
-        <button @click="startSession" class="w-full h-14 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-black rounded-xl text-base tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-tm-primary/10 transition transform active:scale-[0.98]">
-            <i class="fa-solid fa-play text-lg"></i> MULAI SESI LATIHAN
+    <!-- ========================================================================= -->
+    <!-- STICKY ACTION BARS (LARGE OUTDOOR TOUCH TARGETS - MIN 80PX FOR HERO LAP)  -->
+    <!-- ========================================================================= -->
+    
+    <!-- 1. Setup screen sticky start button (mobile) -->
+    <div v-if="view === 'setup'" 
+        class="no-print fixed bottom-0 inset-x-0 tm-surface border-t tm-border p-3 shadow-2xl z-50 block sm:hidden">
+        <button @click="startSession" 
+            class="w-full h-14 font-sports-head text-lg font-bold uppercase rounded-lg flex items-center justify-center gap-2 active:scale-[0.98] transition shadow-lg"
+            style="background-color: var(--tm-orange); color: #000000;">
+            <i class="fa-solid fa-play text-sm"></i>
+            <span>Mulai Sesi Latihan</span>
         </button>
     </div>
 
-    <!-- 2. Live stopwatch/tracking screen sticky controls -->
-    <div v-if="view === 'track'" class="no-print fixed bottom-0 inset-x-0 bg-tm-surface border-t border-tm-border p-3 shadow-2xl z-50 flex items-center gap-3" style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));">
+    <!-- 2. Live tracking giant outdoor sticky controls -->
+    <div v-if="view === 'track'" 
+        class="no-print fixed bottom-0 inset-x-0 tm-surface border-t tm-border p-3 shadow-2xl z-50 flex items-center gap-2.5">
+        
+        <!-- Giant LAP Button (min 80px height for rapid outdoor track tapping) -->
         <div class="flex-grow">
             <button v-if="!hasStarted" @click="startTimerNow"
-                class="w-full h-14 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-black rounded-xl text-base tracking-wide flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-tm-primary/10">
-                <i class="fa-solid fa-play text-lg animate-pulse"></i> START STOPWATCH
+                class="w-full h-20 bg-emerald-500 hover:bg-emerald-600 text-black font-sports-head text-2xl font-bold uppercase rounded-xl flex items-center justify-center gap-3 active:scale-[0.98] transition shadow-2xl">
+                <i class="fa-solid fa-play text-xl"></i>
+                <span>START STOPWATCH</span>
             </button>
             <button v-else @click="triggerMainLapButton" :disabled="isPaused"
-                class="w-full h-14 bg-tm-primary hover:bg-tm-primaryHover text-tm-bg font-black rounded-xl text-base tracking-wide flex items-center justify-center gap-2 active:scale-95 transition shadow-lg shadow-tm-primary/10">
-                <i class="fa-solid fa-stopwatch text-lg"></i> LAP stopwatch
+                class="w-full h-20 font-sports-head text-3xl font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-3 active:scale-[0.97] transition shadow-2xl"
+                style="background-color: var(--tm-orange); color: #000000;">
+                <i class="fa-solid fa-stopwatch text-2xl"></i>
+                <span>RECORD LAP</span>
             </button>
         </div>
         
-        <div class="flex gap-2">
-            <button @click="togglePause" :disabled="!hasStarted"
-                :class="isPaused ? 'bg-tm-primary/10 border-tm-primary text-tm-primary' : 'bg-tm-warning/10 border-tm-warning text-tm-warning'"
-                class="w-12 h-14 rounded-xl border flex items-center justify-center transition active:scale-95">
-                <i class="fa-solid text-base" :class="isPaused ? 'fa-play' : 'fa-pause'"></i>
-            </button>
-            <button @click="finishSession"
-                class="w-12 h-14 bg-tm-danger/10 border border-tm-danger/30 text-tm-danger hover:bg-tm-danger hover:text-tm-text rounded-xl flex items-center justify-center transition active:scale-95">
-                <i class="fa-solid fa-flag-checkered text-base"></i>
-            </button>
-        </div>
+        <!-- Pause / Resume button -->
+        <button @click="togglePause" :disabled="!hasStarted"
+            :class="isPaused ? 'bg-emerald-500 text-black' : 'tm-surface-2 tm-warning hover:bg-slate-700/20'"
+            class="w-16 h-20 rounded-xl border tm-border flex flex-col items-center justify-center gap-1 transition active:scale-95 shrink-0" 
+            title="Pause / Resume Timer">
+            <i class="fa-solid text-lg" :class="isPaused ? 'fa-play' : 'fa-pause'"></i>
+            <span class="text-[9px] font-telemetry uppercase font-bold">@{{ isPaused ? 'RESUME' : 'PAUSE' }}</span>
+        </button>
+
+        <!-- Finish Session button -->
+        <button @click="finishSession"
+            class="w-16 h-20 tm-surface-2 hover:bg-rose-600 hover:text-white border tm-border text-rose-500 rounded-xl flex flex-col items-center justify-center gap-1 transition active:scale-95 shrink-0" 
+            title="Selesaikan Sesi Latihan">
+            <i class="fa-solid fa-flag-checkered text-lg"></i>
+            <span class="text-[9px] font-telemetry uppercase font-bold">FINISH</span>
+        </button>
     </div>
 
 </div>
 
+<!-- Vue 3 Engine Code -->
 <script>
     const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
 
     createApp({
         setup() {
-            // ----------------------------------------------------
-            // HOISTED HELPER FUNCTIONS (To prevent ReferenceError)
-            // ----------------------------------------------------
+            // Helper Formatter Functions
             const formatTime = (s) => {
                 const m = Math.floor(s / 60);
                 const sec = Math.floor(s % 60);
@@ -901,7 +1117,7 @@
             const isPaused = ref(false);
             const ttsEnabled = ref(false);
             const elapsedTime = ref(0);
-            const activeTheme = ref('dark'); // 'dark' or 'light'
+            const activeTheme = ref('dark');
 
             let timerInterval = null;
             let lastTime = 0;
@@ -911,18 +1127,18 @@
             const presets = [
                 { name: '10 x 400 m', reps: 10, distance: 400, rest: 60, pace: '04:00', target: 96 },
                 { name: '6 x 800 m', reps: 6, distance: 800, rest: 90, pace: '04:00', target: 192 },
-                { name: '5 h-1 km', reps: 5, distance: 1000, rest: 120, pace: '04:00', target: 240 },
-                { name: '3 x 2 km', reps: 3, distance: 2000, rest: 180, pace: '04:00', target: 480 },
-                { name: 'Tempo run 30 menit', reps: 1, distance: 6000, rest: 0, pace: '05:00', target: 1800 },
-                { name: '5K time trial', reps: 1, distance: 5000, rest: 0, pace: '04:30', target: 1350 },
-                { name: 'Cooper test 12 menit', reps: 1, distance: 3000, rest: 0, pace: '04:00', target: 720 },
-                { name: 'Custom', reps: 5, distance: 400, rest: 60, pace: '04:00', target: 96 }
+                { name: '5 x 1000 m', reps: 5, distance: 1000, rest: 120, pace: '04:00', target: 240 },
+                { name: '3 x 2000 m', reps: 3, distance: 2000, rest: 180, pace: '04:00', target: 480 },
+                { name: 'Tempo 30m', reps: 1, distance: 6000, rest: 0, pace: '05:00', target: 1800 },
+                { name: '5K Time Trial', reps: 1, distance: 5000, rest: 0, pace: '04:30', target: 1350 },
+                { name: 'Cooper 12m', reps: 1, distance: 3000, rest: 0, pace: '04:00', target: 720 },
+                { name: 'Custom Run', reps: 5, distance: 400, rest: 60, pace: '04:00', target: 96 }
             ];
 
             const program = reactive({
-                name: 'Sesi Latihan Interval',
+                name: 'Sesi Interval Pagi',
                 location: '',
-                weather: 'Berawan',
+                weather: 'Cerah',
                 reps: 10,
                 distance: 400,
                 rest: 60,
@@ -949,9 +1165,9 @@
             const showNotesModal = ref(false);
             const activeAthleteForNotes = ref(null);
             const coachNotes = reactive({
-                condition: 'Fresh',
-                technique: 'Good running technique.',
-                recommendation: 'Maintain target pace.',
+                condition: 'Fit',
+                technique: 'Teknik lari stabil.',
+                recommendation: 'Jaga ritme lap awal.',
                 injury: 'Tidak ada'
             });
 
@@ -1040,7 +1256,7 @@
 
             // Session timer loops
             const startSession = () => {
-                const valid = setupAthletes.value.filter(a => a.name.trim() !== '');
+                const valid = setupAthletes.value.filter(a => a.name && a.name.trim() !== '');
                 if (valid.length === 0) {
                     alert('Masukkan minimal satu nama atlet untuk memulai.');
                     return;
@@ -1058,7 +1274,7 @@
                     laps: [],
                     notes: {
                         condition: a.readiness === 'green' ? 'Fit' : (a.readiness === 'yellow' ? 'Lelah' : 'Cedera ringan'),
-                        technique: 'Form lari terkendali.',
+                        technique: 'Teknik lari terkendali.',
                         recommendation: 'Fokus menjaga ritme lap.',
                         injury: 'Tidak ada'
                     }
@@ -1330,8 +1546,6 @@
                 }
             };
 
-            // Math analysis statistics
-
             const generateAnalysis = () => {
                 athleteAnalysis.value = athletes.value.map(a => {
                     const stats = computeAthleteStats(a.laps, a.target);
@@ -1344,7 +1558,7 @@
                         feedback: getAthleteFeedback(a, stats),
                         notes: {
                             condition: safeNotes.condition || (a.readiness === 'green' ? 'Fit' : (a.readiness === 'yellow' ? 'Lelah' : 'Cedera ringan')),
-                            technique: safeNotes.technique || 'Form lari terkendali.',
+                            technique: safeNotes.technique || 'Teknik lari terkendali.',
                             recommendation: safeNotes.recommendation || 'Fokus menjaga ritme lap.',
                             injury: safeNotes.injury || 'Tidak ada'
                         }
@@ -1352,36 +1566,15 @@
                 });
             };
 
-            // Adaptive graph styling colors based on theme
-            const getThemeColors = () => {
-                if (activeTheme.value === 'dark') {
-                    return {
-                        grid: '#1F2D44',
-                        label: '#94A3B8',
-                        primary: '#B8FF00',
-                        primarySoft: 'rgba(184, 255, 0, 0.05)',
-                        target: '#EF4444'
-                    };
-                } else {
-                    return {
-                        grid: '#CBD5E1',
-                        label: '#475569',
-                        primary: '#65A30D',
-                        primarySoft: 'rgba(101, 163, 13, 0.05)',
-                        target: '#DC2626'
-                    };
-                }
-            };
-
             const renderCharts = () => {
-                if (typeof Chart === 'undefined') {
-                    console.warn('Chart.js is not loaded.');
-                    return;
-                }
+                if (typeof Chart === 'undefined') return;
                 try {
-                    const cColors = getThemeColors();
+                    const isDark = activeTheme.value === 'dark';
+                    const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+                    const labelColor = isDark ? '#8E95A5' : '#475569';
+                    const orangeColor = isDark ? '#FF6B00' : '#EA580C';
+
                     athleteAnalysis.value.forEach((a, index) => {
-                        // Regular canvas
                         const canvasId = `chart_${index}`;
                         const ctx = document.getElementById(canvasId);
                         if (ctx) {
@@ -1396,20 +1589,20 @@
                                         {
                                             label: 'Split Time (s)',
                                             data: (a.laps || []).map(l => l.time),
-                                            borderColor: cColors.primary,
-                                            backgroundColor: cColors.primarySoft,
-                                            borderWidth: 2,
+                                            borderColor: orangeColor,
+                                            backgroundColor: isDark ? 'rgba(255, 107, 0, 0.1)' : 'rgba(234, 88, 12, 0.1)',
+                                            borderWidth: 2.5,
                                             tension: 0.15,
-                                            pointBackgroundColor: cColors.primary,
+                                            pointBackgroundColor: orangeColor,
                                             pointRadius: 4,
                                             fill: true
                                         },
                                         {
                                             label: 'Target',
                                             data: Array((a.laps || []).length).fill(a.stats ? a.stats.avgTime : 0),
-                                            borderColor: cColors.target,
+                                            borderColor: '#EF4444',
                                             borderWidth: 1.5,
-                                            borderDash: [5, 5],
+                                            borderDash: [4, 4],
                                             pointRadius: 0,
                                             fill: false
                                         }
@@ -1420,42 +1613,8 @@
                                     maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: {
-                                        y: { grid: { color: cColors.grid }, ticks: { color: cColors.label } },
-                                        x: { grid: { color: cColors.grid }, ticks: { color: cColors.label } }
-                                    }
-                                }
-                            });
-                        }
-
-                        // Print canvas
-                        const printCanvasId = `print_chart_${index}`;
-                        const printCtx = document.getElementById(printCanvasId);
-                        if (printCtx) {
-                            const existing = Chart.getChart(printCtx);
-                            if (existing) existing.destroy();
-
-                            new Chart(printCtx, {
-                                type: 'line',
-                                data: {
-                                    labels: (a.laps || []).map(l => `Rep ${l.rep}`),
-                                    datasets: [
-                                        {
-                                            label: 'Split Time',
-                                            data: (a.laps || []).map(l => l.time),
-                                            borderColor: '#65A30D',
-                                            borderWidth: 2,
-                                            tension: 0.1,
-                                            fill: false
-                                        }
-                                    ]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: { legend: { display: false } },
-                                    scales: {
-                                        y: { ticks: { color: '#000000' } },
-                                        x: { ticks: { color: '#000000' } }
+                                        y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono' } } },
+                                        x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono' } } }
                                     }
                                 }
                             });
@@ -1467,12 +1626,13 @@
             };
 
             const renderHistoryCharts = (session) => {
-                if (typeof Chart === 'undefined') {
-                    console.warn('Chart.js is not loaded.');
-                    return;
-                }
+                if (typeof Chart === 'undefined') return;
                 try {
-                    const cColors = getThemeColors();
+                    const isDark = activeTheme.value === 'dark';
+                    const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+                    const labelColor = isDark ? '#8E95A5' : '#475569';
+                    const orangeColor = isDark ? '#FF6B00' : '#EA580C';
+
                     session.athletes.forEach((a, index) => {
                         const canvasId = `history_chart_${index}`;
                         const ctx = document.getElementById(canvasId);
@@ -1488,11 +1648,11 @@
                                         {
                                             label: 'Split Time',
                                             data: (a.laps || []).map(l => l.time),
-                                            borderColor: cColors.primary,
-                                            backgroundColor: cColors.primarySoft,
+                                            borderColor: orangeColor,
+                                            backgroundColor: isDark ? 'rgba(255, 107, 0, 0.1)' : 'rgba(234, 88, 12, 0.1)',
                                             borderWidth: 2,
                                             tension: 0.15,
-                                            pointBackgroundColor: cColors.primary,
+                                            pointBackgroundColor: orangeColor,
                                             pointRadius: 4,
                                             fill: true
                                         }
@@ -1503,42 +1663,8 @@
                                     maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: {
-                                        y: { grid: { color: cColors.grid }, ticks: { color: cColors.label } },
-                                        x: { grid: { color: cColors.grid }, ticks: { color: cColors.label } }
-                                    }
-                                }
-                            });
-                        }
-
-                        // Historical print chart
-                        const printHistoryCanvasId = `print_history_chart_${index}`;
-                        const printCtx = document.getElementById(printHistoryCanvasId);
-                        if (printCtx) {
-                            const existing = Chart.getChart(printCtx);
-                            if (existing) existing.destroy();
-
-                            new Chart(printCtx, {
-                                type: 'line',
-                                data: {
-                                    labels: (a.laps || []).map(l => `Rep ${l.rep}`),
-                                    datasets: [
-                                        {
-                                            label: 'Split Time',
-                                            data: (a.laps || []).map(l => l.time),
-                                            borderColor: '#65A30D',
-                                            borderWidth: 2,
-                                            tension: 0.1,
-                                            fill: false
-                                        }
-                                    ]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: { legend: { display: false } },
-                                    scales: {
-                                        y: { ticks: { color: '#000000' } },
-                                        x: { ticks: { color: '#000000' } }
+                                        y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono' } } },
+                                        x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { family: 'JetBrains Mono' } } }
                                     }
                                 }
                             });
@@ -1567,32 +1693,31 @@
 
             const formatAthleteStatusText = (a) => {
                 if (a.status === 'completed') return 'Selesai';
-                if (a.status === 'resting') return 'Rest';
+                if (a.status === 'resting') return `Resting (${Math.ceil(a.restCountdown)}s)`;
                 if (a.laps.length === 0) return 'Running';
                 
                 const lastLap = a.laps[a.laps.length - 1];
                 if (lastLap.status === 'on target') return 'On Target';
-                if (lastLap.status === 'too fast') return 'Too Fast';
-                if (lastLap.status === 'too slow') return 'Too Slow';
+                if (lastLap.status === 'too fast') return 'Fast Lap';
+                if (lastLap.status === 'too slow') return 'Slow Lap';
                 return 'Running';
             };
 
             const getAthleteStatusBadgeClass = (a) => {
-                if (a.status === 'completed') return 'border-tm-border text-tm-muted bg-tm-surface2';
-                if (a.status === 'resting') return 'border-tm-warning/30 text-tm-warning bg-tm-warning/10';
-                if (a.laps.length === 0) return 'border-tm-primary/30 text-tm-primary bg-tm-primarySoft';
+                if (a.status === 'completed') return 'border tm-border tm-muted tm-surface-2';
+                if (a.status === 'resting') return 'border-amber-500/30 text-amber-500 bg-amber-500/10';
+                if (a.laps.length === 0) return 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10';
                 
                 const lastLap = a.laps[a.laps.length - 1];
-                if (lastLap.status === 'on target') return 'border-tm-success/30 text-tm-success bg-tm-success/10';
-                if (lastLap.status === 'too fast') return 'border-tm-warning/30 text-tm-warning bg-tm-warning/10';
-                if (lastLap.status === 'too slow') return 'border-tm-danger/30 text-tm-danger bg-tm-danger/10';
-                if (lastLap.status === 'fatigue risk') return 'border-tm-warning/30 text-tm-warning bg-tm-warning/10';
-                return 'border-tm-border text-tm-text';
+                if (lastLap.status === 'on target') return 'border-emerald-500/30 text-emerald-500 bg-emerald-500/10';
+                if (lastLap.status === 'too fast') return 'border-orange-500/30 text-orange-500 bg-orange-500/10';
+                if (lastLap.status === 'too slow') return 'border-rose-500/30 text-rose-500 bg-rose-500/10';
+                return 'border tm-border tm-text tm-surface-2';
             };
 
             const getDeltaClass = (d) => {
-                if (Math.abs(d) <= 1.5) return 'text-tm-primary';
-                return d < -1.5 ? 'text-cyan-500' : 'text-tm-danger';
+                if (Math.abs(d) <= 1.5) return 'tm-green font-bold';
+                return d < -1.5 ? 'tm-orange font-bold' : 'tm-danger font-bold';
             };
 
             const openNotesModalForAthlete = (athlete) => {
@@ -1656,7 +1781,7 @@
                             laps: a.laps || [],
                             notes: {
                                 condition: safeNotes.condition || (a.readiness === 'green' ? 'Fit' : (a.readiness === 'yellow' ? 'Lelah' : 'Cedera ringan')),
-                                technique: safeNotes.technique || 'Form lari terkendali.',
+                                technique: safeNotes.technique || 'Teknik lari terkendali.',
                                 recommendation: safeNotes.recommendation || 'Fokus menjaga ritme lap.',
                                 injury: safeNotes.injury || 'Tidak ada'
                             }
@@ -1714,21 +1839,6 @@
                 return Math.max(0, Math.min(100, Math.round(100 - cv)));
             };
 
-            const getHistoryAthleteFeedback = (a, prog) => {
-                const consistencyVal = getAthleteConsistencyScore(a);
-
-                let feedback = "";
-                if (consistencyVal > 92) {
-                    feedback += `${a.name} berlari sangat stabil (Consistency: ${consistencyVal}%). Ritme interval terjaga sempurna. `;
-                } else if (consistencyVal >= 80) {
-                    feedback += `Transisi pace ${a.name} stabil (Consistency: ${consistencyVal}%). Distribusi energi terkontrol. `;
-                } else {
-                    feedback += `Terdeteksi fluktuasi pace yang tinggi (Consistency: ${consistencyVal}%). Disarankan menjaga tempo agar lebih tenang di repetisi awal. `;
-                }
-
-                return feedback;
-            };
-
             const copySummary = (session = null) => {
                 const target = session || {
                     name: program.name,
@@ -1754,16 +1864,16 @@
                 target.athletes.forEach(a => {
                     const stats = computeAthleteStats(a.laps, a.target);
                     text += `*Atlet: ${a.name}*\n`;
-                    text += `- Kesiapan: ${a.readiness === 'green' ? '🟢 Siap' : (a.readiness === 'yellow' ? '🟡 Lelah' : '🔴 Cedera')}\n`;
+                    text += `- Status: ${a.readiness === 'green' ? '🟢 Siap' : (a.readiness === 'yellow' ? '🟡 Lelah' : '🔴 Cedera')}\n`;
                     text += `- Avg Pace: ${stats.avgPace} / km\n`;
                     text += `- Avg Time: ${stats.avgTime.toFixed(1)}s\n`;
                     text += `- Konsistensi: ${stats.consistency}%\n`;
-                    text += `- Evaluasi: ${a.notes.technique || 'N/A'}\n`;
-                    text += `- Rekomendasi: ${a.notes.recommendation || 'N/A'}\n\n`;
+                    text += `- Evaluasi: ${a.notes.technique || '-'}\n`;
+                    text += `- Rekomendasi: ${a.notes.recommendation || '-'}\n\n`;
                 });
 
                 navigator.clipboard.writeText(text).then(() => {
-                    alert('Ringkasan sesi disalin ke clipboard!');
+                    alert('Laporan sesi disalin ke clipboard!');
                 });
             };
 
@@ -1788,10 +1898,10 @@
                 target.athletes.forEach(a => {
                     const stats = computeAthleteStats(a.laps, a.target);
                     text += `*${a.name}* -> Avg Pace: ${stats.avgPace} (Consistency: ${stats.consistency}%)\n`;
-                    text += `Rekomendasi: ${a.notes.recommendation || 'N/A'}\n\n`;
+                    text += `Rekomendasi: ${a.notes.recommendation || '-'}\n\n`;
                 });
 
-                text += `Detail lengkap di TrackMaster.`;
+                text += `Detail lengkap via TrackMaster RuangLari.`;
                 const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
                 window.open(url, '_blank');
             };
@@ -1828,15 +1938,24 @@
             };
 
             const changeView = (newView) => {
-                view.value = newView;
+                // If user clicks on track but athletes not initialized yet, initialize from setup
+                if (newView === 'track' && (!athletes.value || athletes.value.length === 0)) {
+                    startSession();
+                    return;
+                }
+                // If user clicks on summary but no analysis generated yet, generate from current state
                 if (newView === 'summary') {
+                    generateAnalysis();
+                    view.value = newView;
                     nextTick(() => {
                         renderCharts();
                     });
+                    return;
                 }
+                view.value = newView;
             };
 
-            // Theme Switching functionality
+            // Theme Switching functionality (Light / Dark mode)
             const toggleTheme = () => {
                 activeTheme.value = activeTheme.value === 'dark' ? 'light' : 'dark';
                 applyTheme();
@@ -1844,15 +1963,17 @@
 
             const applyTheme = () => {
                 localStorage.setItem('tm_theme_v2', activeTheme.value);
-                if (activeTheme.value === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.body.style.backgroundColor = '#08111F';
+                const htmlEl = document.documentElement;
+                if (activeTheme.value === 'light') {
+                    htmlEl.classList.remove('dark');
+                    htmlEl.classList.add('light');
+                    document.body.style.backgroundColor = '#F1F4F9';
                 } else {
-                    document.documentElement.classList.remove('dark');
-                    document.body.style.backgroundColor = '#F8FAFC';
+                    htmlEl.classList.remove('light');
+                    htmlEl.classList.add('dark');
+                    document.body.style.backgroundColor = '#080A0D';
                 }
                 
-                // Refresh active charts with correct theme coloring
                 nextTick(() => {
                     if (view.value === 'summary') {
                         renderCharts();
@@ -1874,7 +1995,7 @@
             };
 
             onMounted(() => {
-                // Initialize theme first
+                // Initialize theme
                 initTheme();
 
                 const saved = localStorage.getItem('trackmaster_history');
@@ -1886,19 +2007,12 @@
                                 if (session.athletes) {
                                     session.athletes.forEach(a => {
                                         if (!a.notes) {
-                                            a.notes = { condition: 'Fit', technique: 'Form lari terkendali.', recommendation: 'Fokus menjaga ritme lap.', injury: 'Tidak ada' };
-                                        } else {
-                                            a.notes.condition = a.notes.condition || 'Fit';
-                                            a.notes.technique = a.notes.technique || 'Form lari terkendali.';
-                                            a.notes.recommendation = a.notes.recommendation || 'Fokus menjaga ritme lap.';
-                                            a.notes.injury = a.notes.injury || 'Tidak ada';
+                                            a.notes = { condition: 'Fit', technique: 'Teknik lari terkendali.', recommendation: 'Fokus menjaga ritme lap.', injury: 'Tidak ada' };
                                         }
                                     });
                                 }
                             });
                             sessionHistory.value = parsed;
-                        } else {
-                            sessionHistory.value = [];
                         }
                     } catch (e) {
                         sessionHistory.value = [];
@@ -1910,17 +2024,12 @@
                     try {
                         const parsed = JSON.parse(active);
                         if (parsed.hasStarted && !parsed.completed) {
-                            if (confirm('Lanjutkan sesi latihan sebelumnya?')) {
+                            if (confirm('Lanjutkan sesi latihan interval sebelumnya?')) {
                                 Object.assign(program, parsed.program);
                                 if (parsed.athletes) {
                                     parsed.athletes.forEach(a => {
                                         if (!a.notes) {
-                                            a.notes = { condition: 'Fit', technique: 'Form lari terkendali.', recommendation: 'Fokus menjaga ritme lap.', injury: 'Tidak ada' };
-                                        } else {
-                                            a.notes.condition = a.notes.condition || 'Fit';
-                                            a.notes.technique = a.notes.technique || 'Form lari terkendali.';
-                                            a.notes.recommendation = a.notes.recommendation || 'Fokus menjaga ritme lap.';
-                                            a.notes.injury = a.notes.injury || 'Tidak ada';
+                                            a.notes = { condition: 'Fit', technique: 'Teknik lari terkendali.', recommendation: 'Fokus menjaga ritme lap.', injury: 'Tidak ada' };
                                         }
                                     });
                                 }
@@ -1936,7 +2045,6 @@
                             }
                         }
                     } catch (e) {
-                        console.error('Failed to parse active session:', e);
                         localStorage.removeItem('trackmaster_active_session');
                     }
                 }
@@ -2000,7 +2108,6 @@
                 getAthleteAvgTime,
                 getAthleteAvgPace,
                 getAthleteConsistencyScore,
-                getHistoryAthleteFeedback,
                 recalculateTargetTimeFromPace,
                 recalculateTargetPaceFromTime,
                 recalculateAllTargetsFromPace,
