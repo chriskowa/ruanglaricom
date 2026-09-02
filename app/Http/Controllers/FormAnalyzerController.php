@@ -21,20 +21,7 @@ class FormAnalyzerController extends Controller
 
     public function index()
     {
-        $user = auth()->user();
-        $hasPaidFeature = false;
-        
-        if ($user) {
-            $hasPaidFeature = PaidFeature::query()
-                ->where('user_id', $user->id)
-                ->where('feature_slug', 'motion-capture-expert')
-                ->where('status', 'paid')
-                ->where(function ($query) {
-                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })
-                ->exists();
-        }
-
+        $hasPaidFeature = true;
         return view('tools.form-analyzer', compact('hasPaidFeature'));
     }
 
@@ -46,20 +33,12 @@ class FormAnalyzerController extends Controller
         $slotLock = null;
         try {
             $data = $request->validate([
-                'upload_video' => ['nullable', 'boolean'],
-                'video' => [
-                    'nullable',
-                    'file',
-                    'max:153600',
-                    'mimetypes:video/mp4,video/quicktime,video/webm,video/x-matroska',
-                    'mimes:mp4,mov,webm,mkv',
-                ],
-                'metrics' => ['nullable', 'string', 'max:20000'],
-                'client_duration' => ['nullable', 'numeric', 'min:0', 'max:3600'],
-                'client_width' => ['nullable', 'integer', 'min:0', 'max:20000'],
-                'client_height' => ['nullable', 'integer', 'min:0', 'max:20000'],
-            ], [
-                'metrics.max' => 'Data analisis (metrics) terlalu besar. Maksimal 20000 karakter. Coba ulang tanpa mengirim visualisasi atau gunakan resolusi lebih kecil.',
+                'upload_video' => ['nullable'],
+                'video' => ['nullable', 'file', 'max:204800'],
+                'metrics' => ['nullable', 'string'],
+                'client_duration' => ['nullable'],
+                'client_width' => ['nullable'],
+                'client_height' => ['nullable'],
             ]);
 
             $user = $request->user();
@@ -77,34 +56,12 @@ class FormAnalyzerController extends Controller
                     ->exists();
             }
 
-            if (! $isAdmin && ! $hasPaidFeature) {
-                $ip = $request->ip();
-                $sessionId = $request->session()->getId();
-                $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
-                $usage = (int) Cache::get($usageKey, 0);
-                if ($usage >= self::MAX_TRIES) {
-                    return response()->json([
-                        'ok' => false,
-                        'error' => 'Batas percobaan tercapai.',
-                        'code' => 'limit_reached',
-                        'message' => 'Kamu sudah mencoba Form Analyzer '.self::MAX_TRIES.'x di perangkat ini. Dukung pengembangan RuangLari untuk akses tanpa batas.',
-                    ], 429);
-                }
-                Cache::put($usageKey, $usage + 1, now()->addDay());
-            }
-
             $uuid = (string) Str::uuid();
             $uploadVideo = filter_var($data['upload_video'] ?? false, FILTER_VALIDATE_BOOL);
             $hasVideo = $request->hasFile('video');
+            $metrics = $this->parseMetrics($data['metrics'] ?? null);
 
-            if ($uploadVideo && ! $hasVideo) {
-                return response()->json([
-                    'ok' => false,
-                    'error' => 'Video wajib diupload.',
-                    'message' => 'Aktifkan upload video hanya jika Anda benar-benar ingin mengirim file ke server.',
-                ], 422);
-            }
-            if (! $hasVideo && empty($data['metrics'])) {
+            if (! $hasVideo && empty($metrics)) {
                 return response()->json([
                     'ok' => false,
                     'error' => 'Tidak ada data analisis.',
@@ -130,17 +87,6 @@ class FormAnalyzerController extends Controller
             $analysisService = app(BiomechanicsAnalysisService::class);
             $biomech = $analysisService->normalizeBiomechMetrics($metrics);
             
-            // Enforce Expert Mode limit
-            if (isset($metrics['samples']) && $metrics['samples'] > 100) {
-                if (! $isAdmin && ! $hasPaidFeature) {
-                    return response()->json([
-                        'ok' => false,
-                        'error' => 'Akses ditolak.',
-                        'message' => 'Video terlalu detail (Expert Mode). Silakan upgrade untuk analisis ini.',
-                    ], 403);
-                }
-            }
-
             $originalMeta = $this->buildMeta(null, $data, 0);
             $optimizedMeta = null;
             $compression = [
@@ -380,6 +326,117 @@ class FormAnalyzerController extends Controller
         ]);
     }
 
+
+    private function buildMeta(?array $probe, array $data, int $sizeBytes): array
+    {
+        $duration = (float) ($probe['duration'] ?? $data['client_duration'] ?? 0);
+        $width = (int) ($probe['width'] ?? $data['client_width'] ?? 0);
+        $height = (int) ($probe['height'] ?? $data['client_height'] ?? 0);
+        $fps = (float) ($probe['fps'] ?? 30);
+
+        return [
+            'duration_seconds' => $duration,
+            'width' => $width,
+            'height' => $height,
+            'fps' => $fps,
+            'size_bytes' => $sizeBytes,
+            'formatted_duration' => $duration > 0 ? gmdate('i:s', (int) $duration) : '--',
+            'formatted_resolution' => ($width && $height) ? "{$width}x{$height}" : '--',
+            'formatted_size' => $sizeBytes > 0 ? round($sizeBytes / 1048576, 2).' MB' : '--',
+        ];
+    }
+
+    private function probeVideo(string $path): ?array
+    {
+        if (! file_exists($path)) {
+            return null;
+        }
+
+        try {
+            $cmd = [
+                'ffprobe',
+                '-v', 'error',
+                '-select_streams', 'v:0',
+                '-show_entries', 'stream=width,height,r_frame_rate,duration',
+                '-show_entries', 'format=duration',
+                '-of', 'json',
+                $path,
+            ];
+            $process = new Process($cmd);
+            $process->setTimeout(10);
+            $process->run();
+
+            if (! $process->isSuccessful()) {
+                return null;
+            }
+
+            $info = json_decode($process->getOutput(), true);
+            $stream = $info['streams'][0] ?? [];
+            $format = $info['format'] ?? [];
+
+            $duration = (float) ($stream['duration'] ?? $format['duration'] ?? 0);
+            $width = (int) ($stream['width'] ?? 0);
+            $height = (int) ($stream['height'] ?? 0);
+
+            $fps = 30;
+            if (! empty($stream['r_frame_rate'])) {
+                $parts = explode('/', $stream['r_frame_rate']);
+                if (count($parts) === 2 && (float) $parts[1] > 0) {
+                    $fps = round((float) $parts[0] / (float) $parts[1], 2);
+                }
+            }
+
+            return [
+                'duration' => $duration,
+                'width' => $width,
+                'height' => $height,
+                'fps' => $fps,
+            ];
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function compressVideoIfPossible(string $originalAbs, string $dir, ?array $probe): array
+    {
+        $compressedPath = "{$dir}/optimized.mp4";
+        $compressedAbs = storage_path('app/'.$compressedPath);
+
+        try {
+            $cmd = [
+                'ffmpeg',
+                '-y',
+                '-i', $originalAbs,
+                '-c:v', 'libx264',
+                '-preset', 'fast',
+                '-crf', '28',
+                '-vf', 'scale=trunc(iw*min(720/iw\,1280/ih)/2)*2:trunc(ih*min(720/iw\,1280/ih)/2)*2',
+                '-an',
+                $compressedAbs,
+            ];
+            $process = new Process($cmd);
+            $process->setTimeout(60);
+            $process->run();
+
+            if ($process->isSuccessful() && file_exists($compressedAbs)) {
+                $size = filesize($compressedAbs);
+                return [
+                    'used' => true,
+                    'compressed_abs' => $compressedAbs,
+                    'compressed_size' => $size,
+                    'warnings' => [],
+                ];
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return [
+            'used' => false,
+            'compressed_abs' => null,
+            'compressed_size' => null,
+            'warnings' => [],
+        ];
+    }
 
     private function acquireSlot(): array
     {

@@ -32,15 +32,7 @@
 </style>
 @endpush
 
-@php
-    $featuredEvents = \App\Models\Event::query()
-        ->where('is_featured', true)
-        ->where('is_active', true)
-        ->where('status', 'published')
-        ->orderBy('start_at', 'asc')
-        ->limit(1)
-        ->get(['id','name','slug','start_at','location_name','hero_image','hero_image_url']);
-@endphp
+
 
 @section('content')
 <div class="relative overflow-hidden">
@@ -57,8 +49,7 @@
             </div>
 
             <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6 text-white">
-                Lari Kencang Percuma <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-emerald-400 text-glow">Kalau Menuju Cedera.</span>
+                Analisis Form Lari                
             </h1>
 
             <p class="text-base md:text-lg text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto">
@@ -72,38 +63,7 @@
                 <div class="text-xs text-slate-500 font-mono mt-2 sm:mt-0">
                     *Beta — hasil makin akurat jika video sesuai panduan
                 </div>
-            </div>
-
-            @if(isset($featuredEvents) && $featuredEvents->count())
-                @php
-                    $event = $featuredEvents->first();
-                @endphp
-                <div class="mt-10 flex justify-center">
-                    <a href="{{ route('events.show', $event->slug) }}" class="group w-full max-w-xl bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex items-center gap-4 hover:border-neon/60 hover:bg-slate-900 transition">
-                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
-                            @if($event->hero_image_url)
-                                <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
-                            @elseif($event->hero_image)
-                                <img src="{{ asset('storage/'.$event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-500 text-xs">Event</div>
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-neon mb-1">Featured Event</div>
-                            <div class="text-sm font-semibold text-white group-hover:text-neon transition">
-                                {{ $event->name }}
-                            </div>
-                            <div class="mt-1 text-xs text-slate-400">
-                                {{ optional($event->start_at)->format('d M Y') ?? 'Tanggal menyusul' }} • {{ $event->location_name ?? 'Lokasi menyusul' }}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <i class="fa-solid fa-arrow-right text-neon text-sm group-hover:translate-x-1 transition-transform"></i>
-                        </div>
-                    </a>
-                </div>
-            @endif
+            </div>            
         </div>
     </section>
 
@@ -187,8 +147,7 @@
                                         </div>
                                     </div>
 
-                                    <button id="rlfa-upload-btn" type="button" class="w-full bg-neon text-dark font-bold py-4 rounded-xl hover:bg-white transition flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <button id="rlfa-upload-btn" type="button" class="w-full bg-neon text-dark font-bold py-4 rounded-xl hover:bg-white transition flex items-center justify-center gap-2">                                        
                                         Upload Video & Analisis
                                     </button>
 
@@ -197,11 +156,10 @@
                                         <button id="rlfa-inputmode-photos" type="button" class="px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-300 font-bold text-xs hover:text-white">Mode 5 Foto</button>
                                     </div>
                                     <div class="mt-2">
-                                        <button id="rlfa-expert-btn" type="button" class="w-full px-3 py-2 rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-300 font-bold text-xs hover:text-white hover:border-yellow-400 transition flex items-center justify-center gap-2">
-                                            <i class="fa-solid fa-crown text-yellow-400/80"></i>
-                                            <span>Fitur Expert / Advance</span>
-                                        </button>
-                                        <div id="rlfa-expert-status" class="text-[10px] text-slate-400 mt-1 hidden"></div>
+                                        <div id="rlfa-expert-badge" class="w-full px-3 py-2 rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-300 font-bold text-xs flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-crown text-yellow-400"></i>
+                                            <span>Fitur Expert / Advance Aktif</span>
+                                        </div>
                                     </div>
 
                                     <div id="rlfa-photo-slots" class="mt-4 hidden space-y-2">
@@ -502,29 +460,27 @@
                                         </div>
                                     </details>
 
-                                    <div class="sticky bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pt-6 pb-4 -mx-5 px-5 mt-auto z-20 space-y-2">
-                                        <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)]">
-                                            Lihat Analisis Lari
-                                        </button>
+                                    <div class="sticky bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-4 pb-3 -mx-5 px-5 mt-auto z-20 space-y-1.5">
+                                        <button id="rlfa-advanced-btn" type="button" class="hidden"></button>
                                         <div class="flex gap-2">
-                                            <button id="rlfa-download-pdf-btn" type="button" class="flex-1 bg-slate-800 text-slate-100 font-bold py-3 rounded-xl text-sm hover:bg-slate-700 border border-slate-700 transition">
+                                            <button id="rlfa-download-pdf-btn" type="button" class="flex-1 bg-slate-800 text-slate-100 font-bold py-2 rounded-lg text-xs hover:bg-slate-700 border border-slate-700 transition">
                                                 Unduh PDF
                                             </button>
-                                            <button id="rlfa-retry-btn" type="button" class="flex-1 bg-white text-dark font-bold py-3 rounded-xl text-sm hover:bg-slate-200 transition">
+                                            <button id="rlfa-retry-btn" type="button" class="flex-1 bg-white text-dark font-bold py-2 rounded-lg text-xs hover:bg-slate-200 transition">
                                                 Ulangi
                                             </button>
                                         </div>
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2 rounded-xl text-xs hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <div class="grid grid-cols-2 gap-1.5">
+                                            <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <i class="fa-solid fa-film"></i> GIF (Skeleton)
                                             </button>
-                                            <button id="rlfa-download-mp4-btn" type="button" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-2 rounded-xl text-xs hover:from-indigo-500 hover:to-violet-500 transition flex items-center justify-center gap-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <button id="rlfa-download-mp4-btn" type="button" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-1.5 rounded-lg text-[11px] hover:from-indigo-500 hover:to-violet-500 transition flex items-center justify-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <i class="fa-solid fa-video"></i> MP4 (Pro)
                                             </button>
-                                            <button id="rlfa-download-image-btn" type="button" class="w-full bg-slate-900 text-slate-400 font-bold py-2 rounded-xl text-[10px] border border-slate-700 hover:bg-slate-800 hover:text-white transition">
+                                            <button id="rlfa-download-image-btn" type="button" class="w-full bg-slate-900 text-slate-300 font-bold py-1.5 rounded-lg text-[10px] border border-slate-700 hover:bg-slate-800 hover:text-white transition">
                                                 Unduh Gambar
                                             </button>
-                                            <button id="rlfa-back-btn" type="button" class="w-full text-slate-500 text-[10px] py-2 hover:text-white transition font-bold">
+                                            <button id="rlfa-back-btn" type="button" class="w-full text-slate-400 text-[10px] py-1.5 hover:text-white transition font-bold">
                                                 Kembali
                                             </button>
                                         </div>
@@ -682,7 +638,7 @@
                     <div class="text-xs font-bold text-neon uppercase tracking-[0.2em]">Buy Me A Coffee</div>
                     <div class="text-white font-black text-lg mt-1">Dukung RuangLari</div>
                     <p class="text-xs text-slate-400 mt-2">
-                        Kamu sudah 2x coba Form Analyzer. Scan QRIS ini untuk dukung pengembangan fitur dan akses tanpa batas.
+                        Scan QRIS ini untuk mendukung pengembangan fitur dan server RuangLari.
                     </p>
                 </div>
                 <button id="rlfa-qris-close" type="button" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white">
@@ -747,174 +703,7 @@
         </div>
     </div>
 
-    <section class="py-16 border-t border-slate-800 bg-slate-950/60">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Other Tools</p>
-                    <h2 class="mt-2 text-2xl md:text-3xl font-bold text-white">Eksplor tools lain di RuangLari</h2>
-                    <p class="mt-2 text-sm text-slate-400 max-w-xl">
-                        Setelah analisis form lari, kamu bisa lanjut pakai tools lain untuk merencanakan race, buat rute, atau cek “nyawa” sepatu lari kamu.
-                    </p>
-                </div>
-            </div>
-
-            <div class="relative">
-                <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
-                <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
-
-                <button
-                    id="rlfa-tools-prev"
-                    type="button"
-                    class="hidden md:flex absolute left-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300 items-center justify-center hover:bg-slate-800 hover:text-white hover:border-neon/60 transition"
-                >
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
-                </button>
-                <button
-                    id="rlfa-tools-next"
-                    type="button"
-                    class="hidden md:flex absolute right-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300 items-center justify-center hover:bg-slate-800 hover:text-white hover:border-neon/60 transition"
-                >
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
-                </button>
-
-                <div
-                    id="rlfa-tools-carousel"
-                    class="overflow-x-auto no-scrollbar"
-                >
-                    <div class="flex gap-4 py-4 min-w-max" data-rlfa-tools-track>
-                        <a href="{{ route('tools.pace-pro') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-blue-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-gauge-high"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">Race Planning</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">Pace Pro</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Kalkulator strategi lomba: target waktu, split, dan pacing plan.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-blue-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.buat-rute-lari') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-emerald-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-route"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">Route Builder</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">Buat Rute Lari</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Desain rute dengan jarak dan elevasi jelas, siap di-export ke GPS.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-emerald-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.race-master') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-indigo-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-stopwatch"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Race Management</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">Race Master</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Kelola race komunitas: BIB, timing manual, dan leaderboard live.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-indigo-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('calculator') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-amber-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-calculator"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest">Race Predictor</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">Race Calculator</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Prediksi waktu 5K–FM dari hasil lari terakhir dengan formula Riegel.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-amber-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.qr-generator') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-purple-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-qrcode"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-purple-300 uppercase tracking-widest">QR Generator</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">QR Generator</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Buat QR untuk link race, komunitas, atau landing page event.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-purple-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.trackmaster') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-[#ccff00]/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center">
-                                    <i class="fa-solid fa-person-running"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-[#ccff00] uppercase tracking-widest">Track Sessions</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">TrackMaster Pro</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Kelola sesi interval multi-atlet dengan pacing dan voice feedback.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-[#ccff00] group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.form-analyzer') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-slate-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-slate-700/60 text-slate-200 flex items-center justify-center">
-                                    <i class="fa-solid fa-person-chalkboard"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Form Analyzer</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">Form Analyzer</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Analisis landing, postur, dan ayunan tangan dengan AI biomekanik.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-slate-300 group-hover:translate-x-1 transition-transform">
-                                Lihat lagi <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-
-                        <a href="{{ route('tools.shoe-analyzer') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-emerald-500/60 hover:bg-slate-900 transition-all duration-300">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center">
-                                    <i class="fa-solid fa-shoe-prints"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">Shoe Analyzer</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1">TreadAI Shoe Analyzer</h3>
-                            <p class="text-xs text-slate-400 mb-3">
-                                Foto outsole → estimasi nyawa sepatu, risiko cedera, dan rekomendasi sepatu.
-                            </p>
-                            <span class="inline-flex items-center text-[11px] font-semibold text-emerald-300 group-hover:translate-x-1 transition-transform">
-                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    
 </div>
 @endsection
 
@@ -930,6 +719,17 @@
         script.onerror = () => console.error('gifshot.js failed to load from CDN');
         document.head.appendChild(script);
     }
+
+    // Filter noisy TensorFlow Lite / Wasm internal delegate notices
+    (function() {
+        const origInfo = console.info;
+        const origWarn = console.warn;
+        const origError = console.error;
+        const isXnnpack = (args) => args.some(a => typeof a === 'string' && (a.includes('XNNPACK delegate') || a.includes('Created TensorFlow Lite')));
+        console.info = function(...args) { if (!isXnnpack(args)) origInfo.apply(console, args); };
+        console.warn = function(...args) { if (!isXnnpack(args)) origWarn.apply(console, args); };
+        console.error = function(...args) { if (!isXnnpack(args)) origError.apply(console, args); };
+    })();
 </script>
 <script type="module">
     import { FilesetResolver, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -954,16 +754,31 @@
         if (landmarkerPromise) return landmarkerPromise;
         landmarkerPromise = (async () => {
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-            return await PoseLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
-                },
-                runningMode: "VIDEO",
-                numPoses: 1,
-                minPoseDetectionConfidence: 0.5,
-                minPosePresenceConfidence: 0.5,
-                minTrackingConfidence: 0.5,
-            });
+            try {
+                return await PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+                        delegate: "GPU",
+                    },
+                    runningMode: "VIDEO",
+                    numPoses: 1,
+                    minPoseDetectionConfidence: 0.5,
+                    minPosePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                });
+            } catch (gpuErr) {
+                return await PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+                        delegate: "CPU",
+                    },
+                    runningMode: "VIDEO",
+                    numPoses: 1,
+                    minPoseDetectionConfidence: 0.5,
+                    minPosePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                });
+            }
         })();
         return landmarkerPromise;
     };
@@ -972,16 +787,31 @@
         if (landmarkerImagePromise) return landmarkerImagePromise;
         landmarkerImagePromise = (async () => {
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-            return await PoseLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
-                },
-                runningMode: "IMAGE",
-                numPoses: 1,
-                minPoseDetectionConfidence: 0.5,
-                minPosePresenceConfidence: 0.5,
-                minTrackingConfidence: 0.5,
-            });
+            try {
+                return await PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+                        delegate: "GPU",
+                    },
+                    runningMode: "IMAGE",
+                    numPoses: 1,
+                    minPoseDetectionConfidence: 0.5,
+                    minPosePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                });
+            } catch (gpuErr) {
+                return await PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
+                        delegate: "CPU",
+                    },
+                    runningMode: "IMAGE",
+                    numPoses: 1,
+                    minPoseDetectionConfidence: 0.5,
+                    minPosePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
+                });
+            }
         })();
         return landmarkerImagePromise;
     };
@@ -2095,7 +1925,10 @@
         const advSuggestions = document.getElementById('rlfa-adv-suggestions');
         const advRecovery = document.getElementById('rlfa-adv-recovery');
         const downloadPdfBtn = document.getElementById('rlfa-download-pdf-btn');
+        const downloadGifBtn = document.getElementById('rlfa-download-gif-btn');
+        const downloadMp4Btn = document.getElementById('rlfa-download-mp4-btn');
         const downloadImageBtn = document.getElementById('rlfa-download-image-btn');
+        const visToggleWrap = visToggleGif ? visToggleGif.parentElement : null;
         const qrisModal = document.getElementById('rlfa-qris-modal');
         const qrisClose = document.getElementById('rlfa-qris-close');
         const qrisForm = document.getElementById('rlfa-qris-form');
@@ -2115,10 +1948,9 @@
         const expertSubmit = document.getElementById('rlfa-expert-submit');
         const expertFeedback = document.getElementById('rlfa-expert-feedback');
         let qrisSubmitting = false;
-        let expertSubmitting = false;
-        let expertAccess = @json($hasPaidFeature);
-        let expertEnabled = expertAccess; // Aktif jika punya akses
-        window.RLFA_EXPERT_MODE = expertEnabled;
+        let expertAccess = true;
+        let expertEnabled = true;
+        window.RLFA_EXPERT_MODE = true;
         let lastResult = null;
         let currentVisGif = null;
         let currentVisPhoto = null;
@@ -3537,7 +3369,7 @@
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-        const METRICS_MAX_CHARS = 20000;
+        const METRICS_MAX_CHARS = 300000;
 
         const stripLargeMetricFields = (value) => {
             if (!value || typeof value !== 'object') return value;
@@ -3636,11 +3468,11 @@
 
                     const fd = new FormData();
                     fd.append('upload_video', uploadVideo ? '1' : '0');
-                    if (uploadVideo) fd.append('video', file);
+                    if (file) fd.append('video', file);
                     if (metricsPayload && metricsPayload.ok && metricsPayload.json) fd.append('metrics', metricsPayload.json);
-                    fd.append('client_duration', String(clientMeta?.duration || ''));
-                    fd.append('client_width', String(clientMeta?.width || ''));
-                    fd.append('client_height', String(clientMeta?.height || ''));
+                    if (clientMeta && clientMeta.duration) fd.append('client_duration', String(clientMeta.duration));
+                    if (clientMeta && clientMeta.width) fd.append('client_width', String(clientMeta.width));
+                    if (clientMeta && clientMeta.height) fd.append('client_height', String(clientMeta.height));
                     xhr.send(fd);
 
                     if (!uploadVideo) {
@@ -3681,11 +3513,6 @@
             if (!file) return;
             const v = await validateClient(file);
             if (!v.ok) return;
-
-            if (!isAdmin && !expertAccess && !isSupporter() && getUsageCount() >= MAX_TRIES) {
-                openQrisModal();
-                return;
-            }
 
             try {
                 showScanning();
@@ -3818,11 +3645,6 @@
             const ok = requiredPhotoPhases.every((p) => !!photoFiles[p]);
             if (!ok) {
                 pushWarning('Minimal 4 foto wajib diisi: Landing, Lever, Push, Pull.');
-                return;
-            }
-
-            if (!isAdmin && !expertAccess && getUsageCount() >= MAX_TRIES) {
-                openQrisModal();
                 return;
             }
 
