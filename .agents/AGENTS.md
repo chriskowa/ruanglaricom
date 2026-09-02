@@ -1,6 +1,7 @@
 # Workspace Rules
 
 - **Do not automatically perform `git commit` or `git push`**: Do not stage, commit, or push code changes to the Git repository unless explicitly requested by the user. Leave all changes unstaged in the workspace for manual review.
+- **Ponytail Pragmatic Engineering (The Lazy Senior Dev)**: Always apply the Ponytail Decision Ladder (`.agents/skills/ponytail`). *"The best code is the code you never wrote."* Prioritize YAGNI, code reuse, standard/native features, and simplicity before writing new code. Never over-engineer, over-abstract, or write speculative code.
 
 ---
 
@@ -8,10 +9,13 @@
 
 ## 0. Mandatory Execution Workflow
 
-Sebelum melakukan perubahan kode antarmuka atau UI/UX, WAJIB mengacu pada `AGENTS.md` dan mengeksekusi tahapan 3 skills ini secara berurutan:
+Sebelum melakukan perubahan kode atau antarmuka UI/UX, WAJIB mengacu pada `AGENTS.md` dan mengeksekusi tahapan skills ini secara berurutan:
 
 ```
 AGENTS.md
+│
+├── ponytail (.agents/skills/ponytail)
+│   → Evaluasi Decision Ladder: YAGNI, Reuse, Native/Standard Library, Simplicity & Zero Over-Engineering
 │
 ├── design-intelligence (.agents/skills/design-intelligence)
 │   → Menentukan arah desain, konteks produk, palet warna, tipografi, dan komposisi layout

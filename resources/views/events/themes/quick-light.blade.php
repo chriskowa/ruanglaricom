@@ -990,16 +990,16 @@
                                                 <div class="grid sm:grid-cols-2 gap-3">
                                                     <div>
                                                         <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Kontak Darurat</label>
-                                                        <input class="field mt-1" data-field="emergency_contact" placeholder="Nama kontak darurat" required>
+                                                        <input class="field mt-1" data-field="emergency_contact_name" placeholder="Nama kontak darurat" required>
                                                     </div>
                                                     <div>
-                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Kontak Darurat</label>
-                                                        <input class="field mt-1" data-field="emergency_phone" inputmode="numeric" placeholder="08xxxxxxxxxx" required>
+                                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. HP Darurat</label>
+                                                        <input class="field mt-1" data-field="emergency_contact_number" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
                                                     </div>
                                                 </div>
                                             @else
-                                                <input type="hidden" data-hidden-auto="emergency_contact" value="">
-                                                <input type="hidden" data-hidden-auto="emergency_phone" value="">
+                                                <input type="hidden" data-hidden-auto="emergency_contact_name" value="">
+                                                <input type="hidden" data-hidden-auto="emergency_contact_number" value="">
                                             @endif
 
                                             @if($showDob)

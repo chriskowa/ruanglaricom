@@ -86,6 +86,29 @@ class StoreRegistrationAction
 
         $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?? env('RECAPTCHA_SECRET_KEY');
 
+        $formFields = $event->premium_amenities['form_fields'] ?? null;
+        $isQuickLight = ($event->theme ?? '') === 'quick-light' || ($event->template ?? '') === 'quick-light';
+
+        $emergencyRequired = true;
+        $addressRequired = true;
+        $idCardRequired = true;
+        $dobRequired = true;
+        $jerseyRequired = true;
+
+        if ($formFields !== null && is_array($formFields)) {
+            $emergencyRequired = ! empty($formFields['emergency_contact']);
+            $addressRequired = ! empty($formFields['address']);
+            $idCardRequired = ! empty($formFields['id_card']);
+            $dobRequired = ! empty($formFields['date_of_birth']);
+            $jerseyRequired = ! empty($formFields['jersey_size']);
+        } elseif ($isQuickLight) {
+            $emergencyRequired = false;
+            $addressRequired = false;
+            $idCardRequired = false;
+            $dobRequired = false;
+            $jerseyRequired = false;
+        }
+
         // Validate input
         $rules = [
             'pic_name' => 'required|string|max:255',
@@ -96,8 +119,8 @@ class StoreRegistrationAction
             'participants.*.gender' => 'required|in:male,female',
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
-            'participants.*.id_card' => 'required|string|max:50|distinct',
-            'participants.*.address' => 'required|string|max:500',
+            'participants.*.id_card' => $idCardRequired ? 'required|string|max:50|distinct' : 'nullable|string|max:50',
+            'participants.*.address' => $addressRequired ? 'required|string|max:500' : 'nullable|string|max:500',
             'participants.*.category_id' => [
                 'required',
                 'exists:race_categories,id',
@@ -109,11 +132,11 @@ class StoreRegistrationAction
                     }
                 },
             ],
-            'participants.*.emergency_contact_name' => 'required|string|max:255',
-            'participants.*.emergency_contact_number' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
-            'participants.*.date_of_birth' => 'required|date|before:today',
+            'participants.*.emergency_contact_name' => $emergencyRequired ? 'required|string|max:255' : 'nullable|string|max:255',
+            'participants.*.emergency_contact_number' => $emergencyRequired ? 'required|string|min:10|max:15|regex:/^[0-9]+$/' : 'nullable|string|max:20',
+            'participants.*.date_of_birth' => $dobRequired ? 'required|date|before:today' : 'nullable|date|before:today',
             'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
-            'participants.*.jersey_size' => 'required|string|max:10',
+            'participants.*.jersey_size' => $jerseyRequired ? 'required|string|max:10' : 'nullable|string|max:10',
             'participants.*.blood_type' => 'nullable|string|in:A,B,AB,O',
             'participants.*.strava_url' => 'nullable|string|max:500',
             'participants.*.strava_activity' => 'nullable|string|max:500',
@@ -511,6 +534,22 @@ class StoreRegistrationAction
 
                 $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
 
+                $emName = ! empty($participantData['emergency_contact_name'])
+                    ? $participantData['emergency_contact_name']
+                    : ($participantData['name'] ?? '-');
+                $emPhone = ! empty($participantData['emergency_contact_number'])
+                    ? $participantData['emergency_contact_number']
+                    : ($participantData['phone'] ?? '-');
+                $idCard = ! empty($participantData['id_card'])
+                    ? $participantData['id_card']
+                    : ('ID-'.time().'-'.$pIndex);
+                $address = ! empty($participantData['address'])
+                    ? $participantData['address']
+                    : '-';
+                $jerseySize = ! empty($participantData['jersey_size'])
+                    ? $participantData['jersey_size']
+                    : (collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L');
+
                 // Create participant
                 Participant::create([
                     'transaction_id' => $transaction->id,
@@ -519,13 +558,13 @@ class StoreRegistrationAction
                     'gender' => $participantData['gender'],
                     'phone' => $participantData['phone'],
                     'email' => $participantData['email'],
-                    'id_card' => $participantData['id_card'],
-                    'address' => $participantData['address'],
-                    'emergency_contact_name' => $participantData['emergency_contact_name'],
-                    'emergency_contact_number' => $participantData['emergency_contact_number'],
+                    'id_card' => $idCard,
+                    'address' => $address,
+                    'emergency_contact_name' => $emName,
+                    'emergency_contact_number' => $emPhone,
                     'date_of_birth' => $participantData['date_of_birth'] ?? null,
                     'target_time' => $participantData['target_time'] ?? null,
-                    'jersey_size' => $participantData['jersey_size'] ?? null,
+                    'jersey_size' => $jerseySize,
                     'blood_type' => $participantData['blood_type'] ?? null,
                     'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),
                     'photo' => $photoPath,
