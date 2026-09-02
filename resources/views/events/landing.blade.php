@@ -19,9 +19,7 @@
 @section('og_image', 'https://ruanglari.com/storage/blog/media/012cce42-9e25-41b8-9e03-dc3a177fd595.webp')
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
@@ -484,43 +482,208 @@
         line-height:1.7;
     }
 
-    /* MODAL */
+    /* MODAL SUBMIT EVENT */
     #submit-event-modal .ep-modal{
         width:100%;max-width:1080px;max-height:92vh;
         display:flex;flex-direction:column;
-        border:1px solid rgba(255,255,255,.12);
-        border-radius:5px;
+        border:1px solid rgba(255,255,255,.18);
+        border-radius:8px;
         background:#08111f;
         color:#fff;
+        box-shadow:0 25px 50px -12px rgba(0,0,0,.75);
         overflow:hidden;
     }
     #submit-event-modal .ep-modal-head,
     #submit-event-modal .ep-modal-foot{
         flex:0 0 auto;
         display:flex;align-items:center;justify-content:space-between;gap:1rem;
-        padding:1rem 1.25rem;
-        border-bottom:1px solid rgba(255,255,255,.09);
-        background:#07101c;
+        padding:1.1rem 1.5rem;
+        border-bottom:1px solid rgba(255,255,255,.12);
+        background:#060d18;
     }
-    #submit-event-modal .ep-modal-foot{border-top:1px solid rgba(255,255,255,.09);border-bottom:0}
-    #submit-event-modal .ep-modal-body{overflow:auto;padding:1rem 1.25rem}
+    #submit-event-modal .ep-modal-foot{border-top:1px solid rgba(255,255,255,.12);border-bottom:0}
+    #submit-event-modal .ep-modal-body{overflow-y:auto;padding:1.25rem 1.5rem;background:#08111f}
     #submit-event-modal .ep-form-section{
-        padding:1rem;
-        border:1px solid rgba(255,255,255,.09);
-        background:rgba(255,255,255,.012);
+        padding:1.1rem;
+        border:1px solid rgba(255,255,255,.1);
+        border-radius:6px;
+        background:#0c1827;
     }
     #submit-event-modal .ep-form-section-title{
-        padding-bottom:.6rem;margin-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.08);
-        color:rgba(255,255,255,.52);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+        padding-bottom:.6rem;margin-bottom:.85rem;border-bottom:1px solid rgba(255,255,255,.08);
+        color:#b8ff00;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;
+    }
+    #submit-event-modal label{
+        display:block;
+        font-size:11px;
+        font-weight:700;
+        color:#cbd5e1;
+        margin-bottom:5px;
+        letter-spacing:.02em;
+    }
+    #submit-event-modal input[type="text"],
+    #submit-event-modal input[type="date"],
+    #submit-event-modal input[type="time"],
+    #submit-event-modal input[type="email"],
+    #submit-event-modal select,
+    #submit-event-modal textarea{
+        width:100%;
+        height:40px;
+        padding:8px 12px;
+        background:#111f32;
+        border:1px solid rgba(255,255,255,.18);
+        border-radius:6px;
+        color:#ffffff;
+        font-size:13px;
+        font-family:inherit;
+        outline:none;
+        box-sizing:border-box;
+        transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+        color-scheme:dark;
+    }
+    #submit-event-modal textarea{
+        height:auto;
+        min-height:70px;
+        resize:vertical;
+    }
+    #submit-event-modal input[type="text"]:focus,
+    #submit-event-modal input[type="date"]:focus,
+    #submit-event-modal input[type="time"]:focus,
+    #submit-event-modal input[type="email"]:focus,
+    #submit-event-modal select:focus,
+    #submit-event-modal textarea:focus{
+        border-color:#b8ff00;
+        background:#14253c;
+        box-shadow:0 0 0 1px #b8ff00;
+    }
+    #submit-event-modal input::placeholder,
+    #submit-event-modal textarea::placeholder{
+        color:rgba(255,255,255,.38);
+    }
+    #submit-event-modal select option{
+        background:#0f1c2e;
+        color:#ffffff;
+    }
+    #submit-event-modal .race-distance-cb{
+        width:16px;
+        height:16px;
+        accent-color:#b8ff00;
+        cursor:pointer;
+    }
+    #submit-event-modal .ep-form-section label.race-distance-item{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        border:1px solid rgba(255,255,255,.14);
+        background:#111f32;
+        border-radius:6px;
+        padding:8px 10px;
+        color:#e2e8f0;
+        font-size:12px;
+        font-weight:600;
+        cursor:pointer;
+        transition:border-color .15s ease, background .15s ease;
+        margin-bottom:0!important;
+        user-select:none;
+    }
+    #submit-event-modal .ep-form-section label.race-distance-item:hover{
+        border-color:rgba(184,255,0,.4);
+        background:#14253c;
+    }
+    #submit-event-modal #banner-dropzone{
+        border:1px dashed rgba(255,255,255,.22);
+        border-radius:6px;
+        background:#111f32;
+        padding:1.25rem;
+        text-align:center;
+        cursor:pointer;
+        transition:border-color .15s ease, background .15s ease;
+    }
+    #submit-event-modal #banner-dropzone:hover{
+        border-color:#b8ff00;
+        background:#14253c;
+    }
+    #submit-event-modal #map-search-results{
+        background:#111f32;
+        border:1px solid rgba(255,255,255,.2);
+        border-radius:6px;
+        max-height:180px;
+        overflow-y:auto;
+        color:#ffffff;
+        font-size:12px;
+        margin-top:4px;
+        box-shadow:0 10px 25px rgba(0,0,0,.5);
+    }
+    #submit-event-modal #map-search-results div{
+        padding:8px 12px;
+        border-bottom:1px solid rgba(255,255,255,.08);
+        cursor:pointer;
+        transition:background .12s ease;
+    }
+    #submit-event-modal #map-search-results div:hover{
+        background:#192e4a;
+        color:#b8ff00;
+    }
+    #submit-event-modal #event-map{
+        border-radius:6px;
+        border:1px solid rgba(255,255,255,.15);
     }
 
-    /* LEAFLET */
-    .leaflet-control-attribution{display:none!important}
-    .events-cluster-wrapper{background:transparent!important;border:0!important}
-    .events-map-cluster{width:100%;height:100%;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#b8ff00;color:#07101c;font:900 11px monospace;border:2px solid #07101c}
-    .events-custom-leaflet-popup .leaflet-popup-content-wrapper{background:#07101c!important;color:#fff!important;border-radius:3px!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 14px 36px rgba(0,0,0,.55)!important;padding:0!important;overflow:hidden}
-    .events-custom-leaflet-popup .leaflet-popup-content{margin:0!important;min-width:255px;max-width:290px}
-    .events-custom-leaflet-popup .leaflet-popup-tip{background:#07101c!important}
+    /* MAPBOX GL CUSTOM STYLING */
+    .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
+        display: none !important;
+    }
+    .mapboxgl-ctrl-group {
+        background: #07101c !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 4px !important;
+        overflow: hidden;
+    }
+    .mapboxgl-ctrl-group button {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+        filter: invert(1) brightness(2);
+    }
+    .mapboxgl-popup {
+        max-width: 290px !important;
+        z-index: 1000 !important;
+    }
+    .mapboxgl-popup-content {
+        background: #07101c !important;
+        color: #fff !important;
+        border-radius: 4px !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7) !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+    .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #07101c !important; }
+    .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #07101c !important; }
+    .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #07101c !important; }
+    .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #07101c !important; }
+    .mapboxgl-popup-close-button {
+        color: #fff !important;
+        font-size: 16px !important;
+        padding: 4px 8px !important;
+        background: rgba(0,0,0,0.6) !important;
+        border-radius: 0 0 0 4px !important;
+        right: 0 !important;
+        top: 0 !important;
+        z-index: 10 !important;
+    }
+    .mapboxgl-popup-close-button:hover {
+        background: rgba(0,0,0,0.85) !important;
+        color: #b8ff00 !important;
+    }
+    .custom-event-pin {
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
+    .custom-event-pin:hover {
+        transform: scale(1.18);
+        z-index: 10;
+    }
 
     @media(max-width:1023px){
         #events-page .ep-hero-grid{grid-template-columns:1fr;gap:1.5rem}
@@ -685,7 +848,7 @@
                 <div class="ep-map-tools">
                     <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
                         <i class="fas fa-layer-group text-[#B8FF00]"></i>
-                        <span id="label-events-active-layer">Voyager</span>
+                        <span id="label-events-active-layer">Dark Tactical</span>
                     </button>
                     <button type="button" id="btn-events-map-locate-me" class="ep-tool-btn">
                         <i class="fas fa-location-crosshairs text-[#B8FF00]"></i>
@@ -705,10 +868,10 @@
                 <div id="events-map-layer-dropdown-wrap" class="relative">
                     <div id="events-map-layer-menu" class="hidden absolute right-0 top-10 z-[9999] min-w-[160px] border border-white/10 bg-[#07101c]">
                         @foreach([
-                            'voyager' => 'Voyager',
-                            'osm' => 'OSM Street',
                             'dark' => 'Dark Tactical',
-                            'satellite' => 'Satelit Esri',
+                            'streets' => 'Streets',
+                            'outdoors' => 'Outdoors Terrain',
+                            'satellite' => 'Satelit Mapbox',
                         ] as $layerKey => $layerLabel)
                             <button type="button"
                                     onclick="setEventsMapLayer('{{ $layerKey }}')"
@@ -942,17 +1105,17 @@
 
 {{-- Submit Event modal: IDs retained for existing JS --}}
 <div id="submit-event-modal" class="fixed inset-0 z-[9999] hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-black/80"></div>
+    <div class="fixed inset-0 bg-black/85"></div>
 
     <div class="relative min-h-screen flex items-center justify-center p-3 sm:p-6">
         <div class="ep-modal">
             <div class="ep-modal-head">
                 <div>
-                    <div class="text-[9px] uppercase tracking-[.16em] font-black text-[#B8FF00]">RuangLari / Event Submission</div>
-                    <h3 class="mt-1 text-lg sm:text-xl font-black uppercase tracking-tight">Ajukan Event Lari Baru</h3>
+                    <div class="text-[10px] uppercase tracking-[.16em] font-black text-[#B8FF00]">RuangLari / Event Submission</div>
+                    <h3 class="mt-1 text-lg sm:text-xl font-bold uppercase tracking-tight text-white">Ajukan Event Lari Baru</h3>
                 </div>
-                <button type="button" id="btn-close-submit-event" class="w-8 h-8 border border-white/10 text-white/60 hover:text-white">
-                    <i class="fas fa-times"></i>
+                <button type="button" id="btn-close-submit-event" class="w-8 h-8 rounded-md border border-white/20 text-slate-300 hover:text-white hover:border-white/40 flex items-center justify-center transition">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
@@ -970,23 +1133,23 @@
 
                             <div class="space-y-3">
                                 <div>
-                                    <label>Nama Event *</label>
-                                    <input type="text" name="event_name" id="submit_event_name" placeholder="Jakarta City Run 2026" required>
+                                    <label for="submit_event_name">Nama Event *</label>
+                                    <input type="text" name="event_name" id="submit_event_name" placeholder="Contoh: Jakarta City Run 2026" required>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label>Tanggal Event *</label>
+                                        <label for="submit_event_date">Tanggal Event *</label>
                                         <input type="date" name="event_date" id="submit_event_date" required>
                                     </div>
                                     <div>
-                                        <label>Jam Mulai</label>
+                                        <label for="submit_event_time">Jam Mulai</label>
                                         <input type="time" name="start_time" id="submit_event_time" value="05:00">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label>Jenis Lomba</label>
+                                    <label for="submit_event_race_type_id">Jenis Lomba</label>
                                     <select name="race_type_id" id="submit_event_race_type_id">
                                         <option value="">Pilih Jenis</option>
                                         @foreach($raceTypes as $type)
@@ -1000,19 +1163,19 @@
                         <section class="ep-form-section">
                             <div class="ep-form-section-title">02 / Banner Event</div>
 
-                            <div id="banner-dropzone" class="border border-dashed border-white/15 p-5 text-center cursor-pointer hover:border-[#B8FF00]/50">
+                            <div id="banner-dropzone">
                                 <input type="file" name="banner" id="submit_event_banner" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden">
 
                                 <div id="banner-dropzone-default">
-                                    <i class="fas fa-upload text-[#B8FF00]"></i>
-                                    <p class="mt-2 text-xs font-bold text-white">Upload banner landscape</p>
-                                    <p class="mt-1 text-[10px] text-white/45">PNG, JPG, WEBP · maksimum 2MB</p>
+                                    <i class="fas fa-upload text-xl text-[#B8FF00]"></i>
+                                    <p class="mt-2 text-xs font-bold text-white">Upload Banner Landscape</p>
+                                    <p class="mt-1 text-[10px] text-slate-400">PNG, JPG, WEBP · Maksimum 2MB</p>
                                 </div>
 
                                 <div id="banner-dropzone-preview" class="hidden">
-                                    <img id="banner-preview-img" src="" class="max-h-36 mx-auto object-cover">
-                                    <span id="banner-filename" class="block mt-2 text-[10px] text-white/55"></span>
-                                    <button type="button" id="btn-remove-banner" class="mt-2 text-[10px] font-bold text-red-300">Ganti Banner</button>
+                                    <img id="banner-preview-img" src="" class="max-h-36 mx-auto object-cover rounded">
+                                    <span id="banner-filename" class="block mt-2 text-[11px] text-slate-300 font-mono"></span>
+                                    <button type="button" id="btn-remove-banner" class="mt-2 text-xs font-bold text-red-400 hover:text-red-300 transition">Ganti Banner</button>
                                 </div>
                             </div>
                         </section>
@@ -1021,15 +1184,15 @@
                             <div class="ep-form-section-title">03 / Kategori Jarak</div>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 @foreach($raceDistances as $distance)
-                                    <label class="flex items-center gap-2 border border-white/10 px-2.5 py-2 cursor-pointer !mb-0">
+                                    <label class="race-distance-item">
                                         <input type="checkbox" name="race_distance_ids[]" value="{{ $distance->id }}" class="race-distance-cb">
                                         <span>{{ $distance->name }}</span>
                                     </label>
                                 @endforeach
                             </div>
                             <div class="mt-3">
-                                <label>Jarak Custom</label>
-                                <input type="text" name="custom_distances" id="submit_event_custom_distances" placeholder="7K, 100K, 50 mil">
+                                <label for="submit_event_custom_distances">Jarak Custom (Opsional)</label>
+                                <input type="text" name="custom_distances" id="submit_event_custom_distances" placeholder="Contoh: 7K, 100K, 50 mil">
                             </div>
                         </section>
                     </div>
@@ -1039,8 +1202,8 @@
                             <div class="ep-form-section-title">04 / Lokasi Event</div>
 
                             <div class="flex gap-2 mb-3">
-                                <input type="text" id="submit_map_search_input" placeholder="Cari venue atau alamat..." autocomplete="off">
-                                <button type="button" id="btn-geolocation" class="ep-btn !min-h-[42px] shrink-0">
+                                <input type="text" id="submit_map_search_input" placeholder="Cari venue atau alamat di peta..." autocomplete="off">
+                                <button type="button" id="btn-geolocation" class="ep-btn !min-h-[40px] shrink-0" title="Gunakan Lokasi Saya">
                                     <i class="fas fa-crosshairs text-[#B8FF00]"></i>
                                 </button>
                             </div>
@@ -1050,13 +1213,13 @@
                             <div id="map-search-results" class="hidden"></div>
 
                             <div class="relative mb-3">
-                                <div id="event-map" class="w-full h-44 border border-white/10 bg-[#07101c]"></div>
-                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[9px] bg-[#07101c] text-[#B8FF00]"></div>
+                                <div id="event-map" class="w-full h-44 bg-[#07101c]"></div>
+                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#07101c]/90 text-[#B8FF00]"></div>
                             </div>
 
                             <div class="space-y-3">
                                 <div>
-                                    <label>Kota / Kabupaten</label>
+                                    <label for="submit_event_city_id">Kota / Kabupaten</label>
                                     <select name="city_id" id="submit_event_city_id">
                                         <option value="">Pilih Kota</option>
                                         @foreach($cities as $city)
@@ -1065,12 +1228,12 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label>Nama Venue *</label>
-                                    <input type="text" name="location_name" id="submit_event_location" required>
+                                    <label for="submit_event_location">Nama Venue *</label>
+                                    <input type="text" name="location_name" id="submit_event_location" placeholder="Contoh: Plaza Parkir Timur GBK Senayan" required>
                                 </div>
                                 <div>
-                                    <label>Alamat Lengkap</label>
-                                    <input type="text" name="location_address" id="submit_event_address">
+                                    <label for="submit_event_address">Alamat Lengkap</label>
+                                    <input type="text" name="location_address" id="submit_event_address" placeholder="Contoh: Jl. Pintu Satu Senayan, Gelora, Jakarta Pusat">
                                 </div>
                             </div>
                         </section>
@@ -1079,16 +1242,22 @@
                             <div class="ep-form-section-title">05 / Link & Penyelenggara</div>
                             <div class="space-y-3">
                                 <div>
-                                    <label>Link Pendaftaran</label>
+                                    <label for="submit_event_registration_link">Link Pendaftaran Resmi</label>
                                     <input type="text" name="registration_link" id="submit_event_registration_link" placeholder="https://...">
                                 </div>
                                 <div>
-                                    <label>Instagram / Sosial Media</label>
-                                    <input type="text" name="social_media_link" id="submit_event_social_media_link" placeholder="@username">
+                                    <label for="submit_event_social_media_link">Instagram / Media Sosial Event</label>
+                                    <input type="text" name="social_media_link" id="submit_event_social_media_link" placeholder="@jakartarun / https://instagram.com/...">
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <div><label>EO / Penyelenggara</label><input type="text" name="organizer_name" id="submit_event_organizer_name"></div>
-                                    <div><label>Kontak</label><input type="text" name="organizer_contact" id="submit_event_organizer_contact"></div>
+                                    <div>
+                                        <label for="submit_event_organizer_name">Penyelenggara / EO</label>
+                                        <input type="text" name="organizer_name" id="submit_event_organizer_name" placeholder="Nama EO / Komunitas">
+                                    </div>
+                                    <div>
+                                        <label for="submit_event_organizer_contact">Kontak EO</label>
+                                        <input type="text" name="organizer_contact" id="submit_event_organizer_contact" placeholder="Email / No. WA">
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -1096,18 +1265,27 @@
                         <section class="ep-form-section">
                             <div class="ep-form-section-title">06 / Kontributor & OTP</div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div><label>Nama Kamu</label><input type="text" name="contributor_name" id="submit_event_contributor_name"></div>
-                                <div><label>Email *</label><input type="email" name="contributor_email" id="submit_event_contributor_email" required></div>
+                                <div>
+                                    <label for="submit_event_contributor_name">Nama Pengirim</label>
+                                    <input type="text" name="contributor_name" id="submit_event_contributor_name" placeholder="Nama kamu">
+                                </div>
+                                <div>
+                                    <label for="submit_event_contributor_email">Email Verifikasi *</label>
+                                    <input type="email" name="contributor_email" id="submit_event_contributor_email" placeholder="email@domain.com" required>
+                                </div>
                             </div>
 
                             <div class="mt-3">
-                                <label>Catatan Tambahan</label>
-                                <textarea name="notes" id="submit_event_notes" rows="2"></textarea>
+                                <label for="submit_event_notes">Catatan Tambahan</label>
+                                <textarea name="notes" id="submit_event_notes" rows="2" placeholder="Informasi biaya pendaftaran, racepack, atau detail lainnya..."></textarea>
                             </div>
 
-                            <div class="grid grid-cols-[1fr_auto] gap-2 mt-3">
-                                <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" placeholder="6 digit OTP">
-                                <button type="button" id="btn-submit-event-send-otp" class="ep-btn">Kirim OTP</button>
+                            <div class="grid grid-cols-[1fr_auto] gap-2 mt-3 items-end">
+                                <div>
+                                    <label for="submit_event_otp_code">Kode OTP *</label>
+                                    <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" placeholder="6 digit kode OTP">
+                                </div>
+                                <button type="button" id="btn-submit-event-send-otp" class="ep-btn !min-h-[40px] shrink-0">Kirim OTP</button>
                             </div>
                         </section>
                     </div>
@@ -1115,7 +1293,7 @@
             </form>
 
             <div class="ep-modal-foot">
-                <div class="text-[10px] text-white/45">OTP email wajib sebelum pengajuan event.</div>
+                <div class="text-[11px] text-slate-400">OTP email wajib diverifikasi sebelum pengajuan event disubmit.</div>
                 <div class="flex gap-2">
                     <button type="button" id="btn-submit-event-cancel" class="ep-btn">Batal</button>
                     <button type="button" id="btn-submit-event-submit" class="ep-btn ep-btn--primary">Submit Event</button>
@@ -1126,99 +1304,51 @@
 </div>
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const mapboxToken = '{{ config("services.mapbox.token") }}';
+    if (typeof mapboxgl !== 'undefined' && mapboxToken) {
+        mapboxgl.accessToken = mapboxToken;
+    }
+
     // ----------------------------------------------------
-    // 1. EXPLORER MAP ENGINE
+    // 1. EXPLORER MAP ENGINE (MAPBOX GL)
     // ----------------------------------------------------
     let initialEvents = @json($mapEvents ?? []);
     let currentMapEvents = Array.isArray(initialEvents) ? initialEvents : [];
     let eventsExplorerMap = null;
-    let eventsClusterGroup = null;
+    let explorerMarkers = [];
     let userLocationMarker = null;
-    let activeLayerKey = 'voyager';
-    let currentTileLayer = null;
+    let activeLayerKey = 'dark';
     let activeTypeFilter = '';
 
-    const tileLayers = {
-        voyager: {
-            url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-            options: { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO' }
-        },
-        osm: {
-            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            options: { maxZoom: 19, attribution: '&copy; OpenStreetMap' }
-        },
-        dark: {
-            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-            options: { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO' }
-        },
-        satellite: {
-            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            options: { maxZoom: 19, attribution: '&copy; Esri' }
-        }
+    const mapStyles = {
+        dark: 'mapbox://styles/mapbox/dark-v11',
+        streets: 'mapbox://styles/mapbox/streets-v12',
+        outdoors: 'mapbox://styles/mapbox/outdoors-v12',
+        satellite: 'mapbox://styles/mapbox/satellite-streets-v12'
     };
 
     function initEventsExplorerMap() {
         const mapContainer = document.getElementById('events-explorer-map');
-        if (!mapContainer || eventsExplorerMap) return;
+        if (!mapContainer || eventsExplorerMap || typeof mapboxgl === 'undefined' || !mapboxToken) return;
 
-        const defaultCenter = [-2.5489, 118.0149]; // Center of Indonesia
-        const defaultZoom = 5;
+        const defaultCenter = [118.0149, -2.5489]; // [lng, lat] Indonesia Center
+        const defaultZoom = 4.2;
 
-        eventsExplorerMap = L.map('events-explorer-map', {
-            zoomControl: true,
-            attributionControl: false,
-            scrollWheelZoom: true
-        }).setView(defaultCenter, defaultZoom);
-
-        // Apply Tile Layer
-        currentTileLayer = L.tileLayer(tileLayers[activeLayerKey].url, tileLayers[activeLayerKey].options).addTo(eventsExplorerMap);
-
-        // Cluster Group
-        eventsClusterGroup = L.markerClusterGroup({
-            showCoverageOnHover: false,
-            maxClusterRadius: 40,
-            spiderfyOnMaxZoom: true,
-            iconCreateFunction: function (cluster) {
-                const count = cluster.getChildCount();
-                return L.divIcon({
-                    html: `<div class="events-map-cluster"><span>${count}</span></div>`,
-                    className: 'events-cluster-wrapper',
-                    iconSize: L.point(34, 34)
-                });
-            }
+        eventsExplorerMap = new mapboxgl.Map({
+            container: 'events-explorer-map',
+            style: mapStyles[activeLayerKey],
+            center: defaultCenter,
+            zoom: defaultZoom
         });
 
-        eventsExplorerMap.addLayer(eventsClusterGroup);
-        renderMapMarkers(currentMapEvents, true);
-    }
+        eventsExplorerMap.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
 
-    function createEventMarkerIcon(event) {
-        const isFeatured = event.is_featured;
-        return L.divIcon({
-            className: 'custom-event-pin',
-            html: `
-                <div style="
-                    width: 28px; height: 28px;
-                    border-radius: 9999px;
-                    background: ${isFeatured ? '#b8ff00' : '#0b1522'};
-                    border: 2px solid ${isFeatured ? '#07101c' : '#b8ff00'};
-                    color: ${isFeatured ? '#07101c' : '#b8ff00'};
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 11px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-                    cursor: pointer;
-                ">
-                    <i class="fa-solid fa-person-running"></i>
-                </div>
-            `,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-            popupAnchor: [0, -14]
+        eventsExplorerMap.on('load', function () {
+            renderMapMarkers(currentMapEvents, true);
         });
     }
 
@@ -1260,38 +1390,60 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderMapMarkers(events, shouldFitBounds = false) {
-        if (!eventsClusterGroup) return;
-        eventsClusterGroup.clearLayers();
+        if (!eventsExplorerMap) return;
+
+        // Clear existing markers
+        explorerMarkers.forEach(m => m.remove());
+        explorerMarkers = [];
 
         let filtered = events;
         if (activeTypeFilter) {
             filtered = events.filter(e => String(e.race_type_id) === String(activeTypeFilter));
         }
 
-        const validMarkers = [];
+        const bounds = new mapboxgl.LngLatBounds();
+        let validCount = 0;
 
         filtered.forEach(event => {
-            if (!event.lat || !event.lng) return;
-            const marker = L.marker([event.lat, event.lng], {
-                icon: createEventMarkerIcon(event)
-            });
+            const lat = parseFloat(event.lat);
+            const lng = parseFloat(event.lng);
+            if (isNaN(lat) || isNaN(lng)) return;
 
-            marker.bindPopup(buildEventPopupHtml(event), {
-                className: 'events-custom-leaflet-popup',
-                maxWidth: 290,
-                minWidth: 250
-            });
+            const isFeatured = !!event.is_featured;
+            const el = document.createElement('div');
+            el.className = 'custom-event-pin';
+            el.innerHTML = `
+                <div style="
+                    width: 28px; height: 28px;
+                    border-radius: 9999px;
+                    background: ${isFeatured ? '#b8ff00' : '#0b1522'};
+                    border: 2px solid ${isFeatured ? '#07101c' : '#b8ff00'};
+                    color: ${isFeatured ? '#07101c' : '#b8ff00'};
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 11px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+                    cursor: pointer;
+                ">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+            `;
 
-            eventsClusterGroup.addLayer(marker);
-            validMarkers.push([event.lat, event.lng]);
+            const popup = new mapboxgl.Popup({ offset: 18, closeButton: true })
+                .setHTML(buildEventPopupHtml(event));
+
+            const marker = new mapboxgl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .setPopup(popup)
+                .addTo(eventsExplorerMap);
+
+            explorerMarkers.push(marker);
+            bounds.extend([lng, lat]);
+            validCount++;
         });
 
-        if (shouldFitBounds && validMarkers.length > 0 && eventsExplorerMap) {
+        if (shouldFitBounds && validCount > 0 && eventsExplorerMap) {
             try {
-                const bounds = eventsClusterGroup.getBounds();
-                if (bounds.isValid()) {
-                    eventsExplorerMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
-                }
+                eventsExplorerMap.fitBounds(bounds, { padding: 50, maxZoom: 12 });
             } catch (e) {}
         }
     }
@@ -1303,18 +1455,17 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.setEventsMapLayer = function (layerKey) {
-        if (!tileLayers[layerKey] || !eventsExplorerMap) return;
+        if (!mapStyles[layerKey] || !eventsExplorerMap) return;
         activeLayerKey = layerKey;
 
-        if (currentTileLayer) {
-            eventsExplorerMap.removeLayer(currentTileLayer);
-        }
+        eventsExplorerMap.setStyle(mapStyles[layerKey]);
+        eventsExplorerMap.once('style.load', function () {
+            renderMapMarkers(currentMapEvents, false);
+        });
 
-        currentTileLayer = L.tileLayer(tileLayers[layerKey].url, tileLayers[layerKey].options).addTo(eventsExplorerMap);
-        
         const label = document.getElementById('label-events-active-layer');
         if (label) {
-            const labels = { voyager: 'Voyager', osm: 'OSM Street', dark: 'Dark Tactical', satellite: 'Satelit Esri' };
+            const labels = { dark: 'Dark Tactical', streets: 'Streets', outdoors: 'Outdoors Terrain', satellite: 'Satelit Mapbox' };
             label.textContent = labels[layerKey] || layerKey;
         }
 
@@ -1353,12 +1504,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnRecenter) {
         btnRecenter.addEventListener('click', function (e) {
             e.stopPropagation();
-            if (eventsExplorerMap && eventsClusterGroup) {
+            if (eventsExplorerMap && explorerMarkers.length > 0) {
                 try {
-                    const bounds = eventsClusterGroup.getBounds();
-                    if (bounds.isValid()) {
-                        eventsExplorerMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
-                    }
+                    const bounds = new mapboxgl.LngLatBounds();
+                    explorerMarkers.forEach(m => bounds.extend(m.getLngLat()));
+                    eventsExplorerMap.fitBounds(bounds, { padding: 50, maxZoom: 12 });
                 } catch (err) {}
             }
         });
@@ -1380,16 +1530,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     if (eventsExplorerMap) {
-                        eventsExplorerMap.setView([lat, lng], 12);
-                        if (userLocationMarker) eventsExplorerMap.removeLayer(userLocationMarker);
-                        userLocationMarker = L.marker([lat, lng], {
-                            icon: L.divIcon({
-                                className: 'user-location-pin',
-                                html: '<div style="width:16px;height:16px;border-radius:999px;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 10px rgba(59,130,246,0.8);"></div>',
-                                iconSize: [16, 16],
-                                iconAnchor: [8, 8]
-                            })
-                        }).addTo(eventsExplorerMap).bindPopup('Lokasi Anda saat ini').openPopup();
+                        eventsExplorerMap.flyTo({ center: [lng, lat], zoom: 12 });
+                        if (userLocationMarker) userLocationMarker.remove();
+
+                        const el = document.createElement('div');
+                        el.style.width = '16px';
+                        el.style.height = '16px';
+                        el.style.borderRadius = '9999px';
+                        el.style.background = '#3b82f6';
+                        el.style.border = '3px solid #fff';
+                        el.style.boxShadow = '0 0 10px rgba(59,130,246,0.8)';
+
+                        userLocationMarker = new mapboxgl.Marker({ element: el })
+                            .setLngLat([lng, lat])
+                            .addTo(eventsExplorerMap);
                     }
                 },
                 function () {
@@ -1415,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (labelMinimize) labelMinimize.textContent = 'Sembunyikan';
                 if (iconMinimize) iconMinimize.className = 'fas fa-chevron-up text-[8px]';
                 setTimeout(() => {
-                    if (eventsExplorerMap) eventsExplorerMap.invalidateSize();
+                    if (eventsExplorerMap) eventsExplorerMap.resize();
                 }, 150);
             } else {
                 mapCollapseWrap.classList.add('hidden');
@@ -1561,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----------------------------------------------------
-    // 3. SUBMIT EVENT MODAL & MINI MAP
+    // 3. SUBMIT EVENT MODAL & MINI MAP (MAPBOX GL)
     // ----------------------------------------------------
     const submitModal = document.getElementById('submit-event-modal');
     const btnOpenSubmit = document.getElementById('btn-open-submit-event');
@@ -1592,27 +1746,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initSubmitModalMap() {
         const container = document.getElementById('event-map');
-        if (!container) return;
+        if (!container || typeof mapboxgl === 'undefined' || !mapboxToken) return;
 
         if (modalMap) {
-            modalMap.invalidateSize();
+            modalMap.resize();
             return;
         }
 
-        const defaultPos = [-6.2088, 106.8456]; // Jakarta
-        modalMap = L.map('event-map', { zoomControl: true, attributionControl: false }).setView(defaultPos, 13);
-        L.tileLayer(tileLayers.voyager.url, tileLayers.voyager.options).addTo(modalMap);
+        const defaultLat = -6.2088;
+        const defaultLng = 106.8456; // Jakarta
 
-        modalMarker = L.marker(defaultPos, { draggable: true }).addTo(modalMap);
+        modalMap = new mapboxgl.Map({
+            container: 'event-map',
+            style: 'mapbox://styles/mapbox/dark-v11',
+            center: [defaultLng, defaultLat],
+            zoom: 13
+        });
 
-        modalMarker.on('dragend', function (e) {
-            const pos = e.target.getLatLng();
+        modalMap.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+        modalMarker = new mapboxgl.Marker({
+            draggable: true,
+            color: '#b8ff00'
+        })
+        .setLngLat([defaultLng, defaultLat])
+        .addTo(modalMap);
+
+        modalMarker.on('dragend', function () {
+            const pos = modalMarker.getLngLat();
             reverseGeocode(pos.lat, pos.lng);
         });
 
         modalMap.on('click', function (e) {
-            if (modalMarker) modalMarker.setLatLng(e.latlng);
-            reverseGeocode(e.latlng.lat, e.latlng.lng);
+            modalMarker.setLngLat(e.lngLat);
+            reverseGeocode(e.lngLat.lat, e.lngLat.lng);
         });
     }
 
@@ -1645,8 +1812,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
                 if (modalMap) {
-                    modalMap.setView([lat, lng], 15);
-                    if (modalMarker) modalMarker.setLatLng([lat, lng]);
+                    modalMap.flyTo({ center: [lng, lat], zoom: 15 });
+                    if (modalMarker) modalMarker.setLngLat([lng, lat]);
                     reverseGeocode(lat, lng);
                 }
             });
@@ -1695,8 +1862,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const name = item.getAttribute('data-name');
 
                 if (modalMap) {
-                    modalMap.setView([lat, lng], 15);
-                    if (modalMarker) modalMarker.setLatLng([lat, lng]);
+                    modalMap.flyTo({ center: [lng, lat], zoom: 15 });
+                    if (modalMarker) modalMarker.setLngLat([lng, lat]);
                 }
                 const locInput = document.getElementById('submit_event_location');
                 if (locInput && !locInput.value) locInput.value = name.split(',')[0];
@@ -1812,7 +1979,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(submitForm);
 
             if (modalMarker) {
-                const pos = modalMarker.getLatLng();
+                const pos = modalMarker.getLngLat();
                 formData.append('latitude', pos.lat);
                 formData.append('longitude', pos.lng);
             }
