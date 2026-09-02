@@ -165,6 +165,9 @@
     @if(env('RECAPTCHA_SITE_KEY_v3'))
         <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
     @endif
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { 
             --primary: {{ $primaryColor }}; 
@@ -191,7 +194,7 @@
         body { 
             background: #f8fafc;
             color: #0f172a; 
-            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif; 
+            font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif; 
         }
         .hero-section {
             background: #0f172a;
@@ -211,7 +214,7 @@
         .pro-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 20px;
+            border-radius: 16px;
             box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
             max-width: 100%;
             overflow: hidden;
@@ -221,7 +224,7 @@
         .field { 
             width: 100%; 
             border: 1.5px solid #e2e8f0; 
-            border-radius: 14px; 
+            border-radius: 12px; 
             padding: 12px 16px; 
             font-weight: 600; 
             font-size: 0.9rem;
@@ -250,7 +253,7 @@
         .choice input { position: absolute; opacity: 0; pointer-events: none; }
         .choice-box { 
             border: 1.5px solid #e2e8f0; 
-            border-radius: 14px; 
+            border-radius: 12px; 
             padding: 14px 16px; 
             background: #ffffff; 
             transition: all 0.2s ease; 
@@ -270,7 +273,6 @@
         .ql-gallery-dot[data-active="1"] { background: var(--primary); transform: scale(1.25); }
         #qlSponsorDots .ql-gallery-dot { background: rgba(15,23,42,0.2); }
         #qlSponsorDots .ql-gallery-dot[data-active="1"] { background: var(--primary); }
-        i { color: #ffffff !important; }
         @if(env('RECAPTCHA_SITE_KEY_v3'))
         .grecaptcha-badge { visibility: hidden !important; }
         @endif
@@ -330,7 +332,7 @@
                 </div>
 
                 <!-- Event Main Title -->
-                <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight sm:leading-none drop-shadow-md">
+                <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight sm:leading-tight drop-shadow-md">
                     {{ $event->name }}
                 </h1>
 
