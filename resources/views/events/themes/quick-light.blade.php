@@ -2254,22 +2254,37 @@
                     credentials: 'same-origin',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     },
                     body: formData
                 })
                 .then(async function(response) {
                     const contentType = response.headers.get('content-type') || '';
-                    if (!contentType.includes('application/json')) {
-                        throw new Error('Respons server tidak valid.');
+                    let data = null;
+                    if (contentType.includes('application/json')) {
+                        try {
+                            data = await response.json();
+                        } catch (e) {}
                     }
-                    const data = await response.json();
                     if (!response.ok) {
-                        if (response.status === 422 && data.errors) {
+                        if (data && data.message) {
+                            throw new Error(data.message);
+                        }
+                        if (data && data.errors) {
                             const first = Object.values(data.errors)[0];
                             throw new Error(Array.isArray(first) ? first[0] : 'Data pendaftaran belum lengkap.');
                         }
-                        throw new Error(data.message || 'Terjadi kesalahan pada server.');
+                        if (response.status === 419) {
+                            throw new Error('Sesi pendaftaran telah berakhir (CSRF expired). Silakan refresh halaman.');
+                        }
+                        if (response.status === 422) {
+                            throw new Error('Data pendaftaran belum lengkap atau tidak valid.');
+                        }
+                        throw new Error('Terjadi kesalahan pada server (Status ' + response.status + ').');
+                    }
+                    if (!data) {
+                        throw new Error('Respons server tidak valid.');
                     }
                     return data;
                 })

@@ -58,15 +58,31 @@
 
                         if (isset($featuredEvents) && $featuredEvents) {
                             foreach ($featuredEvents as $ev) {
+                                $catList = $ev->categories ? $ev->categories->pluck('name')->filter()->values() : collect();
+                                $daysLeft = null;
+                                if ($ev->start_at) {
+                                    $diff = (int) now()->diffInDays($ev->start_at, false);
+                                    if ($diff > 0) {
+                                        $daysLeft = $diff . ' HARI LAGI';
+                                    } elseif ($diff === 0) {
+                                        $daysLeft = 'HARI INI';
+                                    }
+                                }
+
+                                $isOpen = method_exists($ev, 'isRegistrationOpen') ? $ev->isRegistrationOpen() : true;
+
                                 $slides->push([
                                     'type' => 'event',
                                     'title' => $ev->name,
                                     'href' => $ev->public_url,
-                                    'image' => $ev->getHeroImageUrl(),
-                                    'category' => $ev->raceType?->name ?: 'Race',
-                                    'eyebrow' => 'Race',
-                                    'meta_1' => optional($ev->start_at)->translatedFormat('d M Y') ?: null,
-                                    'meta_2' => $ev->location_name ?: null,
+                                    'image' => $ev->getHeroImageUrl() ?: $fallbackHero,
+                                    'category' => $ev->raceType?->name ?: 'Official Race',
+                                    'eyebrow' => 'RACE MENDATANG',
+                                    'date_formatted' => optional($ev->start_at)->translatedFormat('d M Y') ?: 'TBA',
+                                    'location' => $ev->location_name ?: ($ev->location_address ?: 'Indonesia'),
+                                    'categories_list' => $catList,
+                                    'days_left' => $daysLeft,
+                                    'is_open' => $isOpen,
                                     'date' => $ev->start_at ?: $ev->created_at,
                                 ]);
                             }
@@ -84,9 +100,12 @@
                                     'href' => route('blog.show', $a->slug),
                                     'image' => $img ?: asset('ruanglari.webp'),
                                     'category' => optional($a->category)->name ?: 'Journal',
-                                    'eyebrow' => 'Journal',
-                                    'meta_1' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
-                                    'meta_2' => optional($a->category)->name ?: null,
+                                    'eyebrow' => 'JOURNAL & INSIGHT',
+                                    'date_formatted' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
+                                    'location' => optional($a->category)->name ?: 'RuangLari Journal',
+                                    'categories_list' => collect(),
+                                    'days_left' => null,
+                                    'is_open' => true,
                                     'date' => $a->published_at ?: $a->created_at,
                                 ]);
                             }
@@ -107,62 +126,87 @@
                                 <article class="rl-featured-slide" data-slide-index="{{ $i }}">
                                     <a href="{{ $slide['href'] }}"
                                        aria-label="{{ $slide['category'] ?? $slide['eyebrow'] }}: {{ $slide['title'] }}"
-                                       draggable="false">
+                                       draggable="false"
+                                       class="rl-slide-link">
                                         <img
                                             src="{{ $slide['image'] ?: $fallbackHero }}"
                                             alt="{{ $slide['title'] }}"
                                             draggable="false"
                                             @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
                                             onerror="this.onerror=null; this.src='{{ $fallbackHero }}';"
+                                            class="rl-slide-bg"
                                         >
 
                                         <div class="rl-featured-shade"></div>
 
                                         <div class="rl-featured-top">
-                                            <div class="rl-counter">
+                                            <div class="rl-counter font-mono">
                                                 <b>{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</b>
                                                 <span>/</span>
                                                 {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}
                                             </div>
-                                            <span class="rl-featured-badge">{{ $slide['category'] ?? $slide['eyebrow'] }}</span>
+
+                                            <div class="flex items-center gap-2">
+                                                @if(!empty($slide['days_left']))
+                                                    <span class="rl-countdown-badge font-mono">
+                                                        <svg class="w-3 h-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                        {{ $slide['days_left'] }}
+                                                    </span>
+                                                @elseif($slide['type'] === 'event' && $slide['is_open'])
+                                                    <span class="rl-status-open-badge font-mono">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                        REGISTRASI DIBUKA
+                                                    </span>
+                                                @endif
+                                                <span class="rl-featured-badge font-mono">{{ $slide['category'] }}</span>
+                                            </div>
                                         </div>
 
                                         <div class="rl-featured-copy">
-                                            <div class="rl-featured-type">
+                                            <div class="rl-featured-type font-mono">
                                                 <span></span>{{ $slide['eyebrow'] }}
                                             </div>
 
-                                            <h2>{{ $slide['title'] }}</h2>
+                                            <h2 class="rl-slide-title">{{ $slide['title'] }}</h2>
+
+                                            @if(!empty($slide['categories_list']) && $slide['categories_list']->count() > 0)
+                                                <div class="rl-dist-chips">
+                                                    @foreach($slide['categories_list']->take(4) as $cName)
+                                                        <span class="rl-chip">{{ $cName }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
 
                                             <div class="rl-featured-meta">
-                                                @if(!empty($slide['meta_1']))
-                                                    <strong>{{ $slide['meta_1'] }}</strong>
+                                                @if(!empty($slide['date_formatted']))
+                                                    <div class="rl-meta-item font-mono">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                        <strong>{{ $slide['date_formatted'] }}</strong>
+                                                    </div>
                                                 @endif
 
-                                                @if(!empty($slide['meta_1']) && !empty($slide['meta_2']))
-                                                    <i>/</i>
+                                                @if(!empty($slide['location']))
+                                                    <div class="rl-meta-item">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        <span class="truncate max-w-[200px] sm:max-w-[280px]">{{ $slide['location'] }}</span>
+                                                    </div>
                                                 @endif
+                                            </div>
 
-                                                @if(!empty($slide['meta_2']))
-                                                    <span>{{ $slide['meta_2'] }}</span>
-                                                @endif
-
-                                                <u>
-                                                    {{ $slide['type'] === 'event' ? 'Lihat event' : 'Baca artikel' }}
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                        <path d="M5 12h14M13 6l6 6-6 6"
-                                                              stroke-width="1.7"
-                                                              stroke-linecap="round"
-                                                              stroke-linejoin="round"/>
+                                            <div class="rl-slide-action">
+                                                <span class="rl-action-btn">
+                                                    <span>{{ $slide['type'] === 'event' ? 'Lihat Detail & Daftar' : 'Baca Artikel Lengkap' }}</span>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-3.5 h-3.5">
+                                                        <path d="M5 12h14M13 6l6 6-6 6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
-                                                </u>
+                                                </span>
                                             </div>
                                         </div>
                                     </a>
                                 </article>
                             @empty
                                 <article class="rl-featured-slide">
-                                    <img src="{{ $fallbackHero }}" alt="RuangLari">
+                                    <img src="{{ $fallbackHero }}" alt="RuangLari" class="rl-slide-bg">
                                     <div class="rl-featured-shade"></div>
                                 </article>
                             @endforelse
@@ -175,7 +219,7 @@
                                 <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path d="M19 12H5m6-6-6 6 6 6"
-                                              stroke-width="1.7"
+                                              stroke-width="2"
                                               stroke-linecap="round"
                                               stroke-linejoin="round"/>
                                     </svg>
@@ -183,7 +227,7 @@
                                 <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <path d="M5 12h14m-6-6 6 6-6 6"
-                                              stroke-width="1.7"
+                                              stroke-width="2"
                                               stroke-linecap="round"
                                               stroke-linejoin="round"/>
                                     </svg>
@@ -823,10 +867,10 @@
     .rl-featured-frame {
         position: relative;
         overflow: hidden;
-        background: #050B13;
+        background: #080C14;
         border: 1px solid rgba(255,255,255,.12);
-        border-radius: 2px;
-        box-shadow: 0 40px 100px rgba(0,0,0,.3);
+        border-radius: 8px; /* rounded-lg per AGENTS.md */
+        box-shadow: 0 25px 60px -15px rgba(0,0,0,.6);
     }
 
     .rl-featured-track {
@@ -851,7 +895,7 @@
         width: 100%;
         flex: 0 0 100%;
         scroll-snap-align: start;
-        min-height: clamp(31rem, 49vw, 39rem);
+        min-height: clamp(32rem, 50vw, 40rem);
         user-select: none;
         -webkit-user-select: none;
     }
@@ -881,8 +925,9 @@
         position: absolute;
         inset: 0;
         background:
-            linear-gradient(to top, rgba(5,11,19,.98) 0%, rgba(5,11,19,.55) 38%, rgba(5,11,19,.05) 72%),
-            linear-gradient(to right, rgba(5,11,19,.2), transparent);
+            linear-gradient(to top, rgba(8,12,20,.98) 0%, rgba(8,12,20,.78) 42%, rgba(8,12,20,.2) 75%, rgba(8,12,20,.05) 100%),
+            linear-gradient(to right, rgba(8,12,20,.5) 0%, transparent 60%);
+        pointer-events: none;
     }
 
     .rl-featured-top,
@@ -916,8 +961,38 @@
         font-weight: 900;
         letter-spacing: .1em;
         text-transform: uppercase;
-        border-radius: 2px;
+        border-radius: 4px; /* rounded */
         line-height: 1;
+    }
+
+    .rl-countdown-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .65rem;
+        background: #0F172A;
+        color: var(--rl-lime);
+        border: 1px solid rgba(204,255,0,.3);
+        border-radius: 4px; /* rounded */
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .rl-status-open-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .3rem .65rem;
+        background: rgba(6, 78, 59, .4);
+        color: #34D399;
+        border: 1px solid rgba(52, 211, 153, .3);
+        border-radius: 4px; /* rounded */
+        font-size: .62rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
     }
 
     .rl-counter {
@@ -931,11 +1006,11 @@
 
     .rl-featured-copy {
         bottom: clamp(2.6rem, 5vw, 4rem);
-        max-width: 88%;
+        max-width: 90%;
     }
 
     .rl-featured-type {
-        margin-bottom: .9rem;
+        margin-bottom: .6rem;
         display: flex;
         align-items: center;
         gap: .7rem;
@@ -952,14 +1027,14 @@
         background: var(--rl-lime);
     }
 
-    .rl-featured-copy h2 {
-        max-width: 37rem;
+    .rl-slide-title {
+        max-width: 38rem;
         margin: 0;
         color: #fff;
-        font-size: clamp(1.35rem, 2.3vw, 1.95rem);
+        font-size: clamp(1.4rem, 2.4vw, 2.1rem);
         font-weight: 900;
         letter-spacing: -.03em;
-        line-height: 1.22;
+        line-height: 1.2;
         text-transform: uppercase;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -968,32 +1043,73 @@
         text-overflow: ellipsis;
     }
 
-    .rl-featured-meta {
-        margin-top: 1.35rem;
+    .rl-dist-chips {
         display: flex;
-        align-items: center;
         flex-wrap: wrap;
-        gap: .65rem;
-        color: rgba(255,255,255,.62);
-        font-size: .68rem;
+        gap: .4rem;
+        margin-top: .85rem;
+    }
+
+    .rl-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: .2rem .55rem;
+        background: rgba(30, 41, 59, .85);
+        color: #E2E8F0;
+        border: 1px solid rgba(148, 163, 184, .2);
+        border-radius: 4px; /* rounded */
+        font-size: .65rem;
         font-weight: 700;
-        letter-spacing: .07em;
+        font-family: var(--font-mono, monospace);
+        letter-spacing: .05em;
         text-transform: uppercase;
     }
 
-    .rl-featured-meta strong { color: #fff; }
-    .rl-featured-meta i { color: rgba(255,255,255,.25); font-style: normal; }
+    .rl-featured-meta {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        color: rgba(255,255,255,.7);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+    }
 
-    .rl-featured-meta u {
-        margin-left: .25rem;
+    .rl-meta-item {
         display: inline-flex;
         align-items: center;
         gap: .45rem;
-        color: #fff;
-        text-decoration: none;
+        color: #CBD5E1;
     }
 
-    .rl-featured-meta svg { width: 1rem; height: 1rem; }
+    .rl-meta-item strong { color: #fff; }
+
+    .rl-slide-action {
+        margin-top: 1.25rem;
+    }
+
+    .rl-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .65rem 1.25rem;
+        background: var(--rl-lime);
+        color: #080C14;
+        border-radius: 6px; /* rounded-md */
+        font-size: .72rem;
+        font-weight: 950;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        transition: background .15s ease, transform .15s ease, color .15s ease;
+    }
+
+    .rl-featured-slide:hover .rl-action-btn {
+        background: #fff;
+        color: #080C14;
+        transform: translateY(-1px);
+    }
 
     .rl-featured-controls {
         position: absolute;
@@ -1005,20 +1121,21 @@
     }
 
     .rl-featured-controls button {
-        width: 2.65rem;
-        height: 2.65rem;
+        width: 2.5rem;
+        height: 2.5rem;
         display: inline-grid;
         place-items: center;
-        color: #fff;
-        background: rgba(5,11,19,.72);
-        border: 1px solid rgba(255,255,255,.14);
-        backdrop-filter: blur(10px);
-        transition: .2s ease;
+        color: #E2E8F0;
+        background: rgba(15, 23, 42, .85);
+        border: 1px solid rgba(255, 255, 255, .15);
+        border-radius: 6px; /* rounded-md */
+        transition: color .15s ease, border-color .15s ease, background .15s ease;
     }
 
     .rl-featured-controls button:hover {
         color: var(--rl-lime);
-        border-color: rgba(184,255,0,.55);
+        border-color: rgba(204, 255, 0, .5);
+        background: #0F172A;
     }
 
     .rl-featured-controls svg { width: 1.1rem; height: 1.1rem; }
@@ -1040,6 +1157,7 @@
         height: 2px;
         overflow: hidden;
         background: rgba(255,255,255,.18);
+        border-radius: 2px; /* rounded-sm */
     }
 
     .rl-progress-item::after {
@@ -1938,19 +2056,18 @@
         .rl-proof { margin-top: 2.2rem; }
 
         .rl-featured-frame {
-            margin-inline: -1rem;
-            border-inline: 0;
+            margin-inline: 0;
+            border-radius: 8px;
         }
 
-        .rl-featured-slide { min-height: 28rem; }
+        .rl-featured-slide { min-height: 29rem; }
         .rl-featured-top { font-size: .56rem; }
-        .rl-featured-copy { max-width: 100%; bottom: 3.8rem; }
-        .rl-featured-copy h2 {
-            font-size: clamp(1.15rem, 5vw, 1.45rem);
-            line-height: 1.25;
+        .rl-featured-copy { max-width: 100%; bottom: 3.6rem; }
+        .rl-slide-title {
+            font-size: clamp(1.2rem, 5.2vw, 1.55rem);
+            line-height: 1.22;
             -webkit-line-clamp: 2;
         }
-        .rl-featured-meta u { width: 100%; margin-left: 0; }
 
         .rl-featured-controls {
             right: 1rem;

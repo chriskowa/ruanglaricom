@@ -3,551 +3,88 @@ name: ux-review
 description: Audits UI/UX against user flows, accessibility, usability frictions, and anti-AI compliance before final delivery.
 ---
 
-# UX REVIEW SKILL
+# UX REVIEW & ANTI-AI AUDIT SKILL
+
+> *"Ensure every screen is frictionless, accessible, and 100% free of AI-generated design slop before shipping."*
 
 ## PURPOSE
+Conduct a rigorous audit of frontend interfaces before release. It detects usability frictions, enforces accessibility standards, and executes the `avoid-ai-design` quality gate to remove generic template patterns.
 
-Analyze existing interfaces and identify UX problems before release.
+================================================
 
-This skill helps agents:
+# AUDIT WORKFLOW
 
-- review existing UI
-- detect usability issues
-- find unnecessary elements
-- improve user experience
-- prioritize fixes
+```
+[1] CONTEXT AUDIT (Does the interface match user goals & product domain?)
+ └── [2] AI-SLOP DETECTION (Scan and flag all AI design clichés)
+      └── [3] FRICTION & USABILITY (Analyze navigation, form fields, and click depth)
+           └── [4] ACCESSIBILITY & CONTRAST (Verify WCAG AA, readability, touch targets)
+                └── [5] REFACTORING & POLISH (Apply concrete human-crafted fixes)
+```
 
-The goal is not to redesign everything.
+================================================
 
-The goal is:
+# PHASE 1 — THE AVOID-AI-DESIGN AUDIT CHECKLIST
 
-"Make the product easier, clearer, and more useful."
+Scan the interface and immediately flag any of the following 10 AI Slop Telltales:
 
----
+### 1. Color & Gradient Slop
+- [ ] Are there purple-blue-pink gradient buttons or hero headers? → **Replace with solid brand color.**
+- [ ] Are there neon glowing borders or neon text? → **Replace with clean border tokens.**
+- [ ] Are there low-contrast washed-out text colors (`text-slate-500` on dark)? → **Fix to `text-slate-200` or `text-white`.**
 
-# REVIEW PRINCIPLE
+### 2. Layout & Composition Slop
+- [ ] Is there an uninspired "3 identical cards in a row" layout? → **Redesign to match true content hierarchy.**
+- [ ] Are there empty or under-utilized bento grids? → **Consolidate into dense, meaningful panels.**
+- [ ] Are there floating background blur orbs (`blur-3xl bg-purple-500/20`)? → **Delete all background orbs.**
+- [ ] Is there a fake terminal / code editor on a non-developer tool? → **Replace with real product telemetry/UI.**
 
-Never judge design only by appearance.
+### 3. Typography & Copy Slop
+- [ ] Is default `Inter` used everywhere without deliberate font choice? → **Adopt domain-specific typography.**
+- [ ] Are numbers and telemetries in standard proportional font? → **Switch to `font-mono`.**
+- [ ] Are there AI marketing clichés ("Unlock the power of...", "Not just X, it's Y")? → **Rewrite to clear, direct human copy.**
+- [ ] Are there excessive em dashes (`—`)? → **Replace with clean periods and commas.**
 
-A beautiful interface can still fail if:
+### 4. Component & Element Slop
+- [ ] Are non-avatar elements styled as pills (`rounded-full`)? → **Enforce `rounded-md` for buttons/inputs and `rounded-lg` for cards.**
+- [ ] Are there emojis (🏃, ⚡, 🚀, ✨, dll.) anywhere in the UI? → **Remove all emojis completely.**
+- [ ] Are there sparkle icons (✨ / `fa-sparkles`)? → **Remove sparkles and replace with real metrics.**
+- [ ] Is there liquid glassmorphism (`backdrop-blur` with semi-transparent background)? → **Make cards 100% solid and opaque.**
+- [ ] Are there decorative Lucide/FontAwesome icons before every heading and text button? → **Remove purely decorative icons.**
 
-- users cannot understand it
-- users cannot complete tasks
-- information is unclear
-- interactions are confusing
+================================================
 
+# PHASE 2 — USABILITY & FRICTION AUDIT
 
-Always review:
+## 1. Interaction & Flow
+- **Click Depth**: Can the user achieve the main action in the fewest possible clicks?
+- **Form Friction**: Are all required inputs actually visible? (No hidden required fields that cause validation errors).
+- **Destructive Actions**: Do deletion / cancel buttons have clear confirmation states?
+- **Feedback States**: Does every interactive element give immediate visual feedback on click/submit?
 
-1. User goal
-2. User flow
-3. Visual hierarchy
-4. Interaction
-5. Accessibility
-6. Performance perception
+## 2. UI State Coverage (The 4 Essential States)
+Verify that the interface explicitly handles:
+1. **Loading State**: Subtle skeleton loader (no jarring layout shifts).
+2. **Empty State**: Clear, friendly message with an actionable next step when data is empty.
+3. **Error State**: Non-blocking alert banners with understandable guidance.
+4. **Success State**: Clear confirmation feedback upon completion.
 
----
+================================================
 
-# REVIEW PROCESS
+# PHASE 3 — ACCESSIBILITY & CONTRAST (WCAG AA)
 
-Follow this order:
+- **Color Contrast**: Body text must achieve at least **4.5:1** contrast ratio against its background.
+- **Touch Target Size**: Interactive mobile buttons/links must have a minimum clickable area of **44x44px** or `py-2 px-3`.
+- **Keyboard Navigation**: Form inputs, buttons, and modals must have visible focus rings (`focus:ring-2 focus:ring-slate-400 focus:outline-none`).
+- **Semantic Structure**: Exactly one `<h1>` per page, followed by logical `<h2>`, `<h3>` hierarchy.
 
+================================================
 
-UNDERSTAND
-↓
-OBSERVE
-↓
-IDENTIFY PROBLEMS
-↓
-PRIORITIZE FIXES
-↓
-RECOMMEND IMPROVEMENTS
+# PHASE 4 — REFACTORING PROTOCOL
 
-
-Do not immediately redesign.
-
----
-
-# PHASE 1 — PRODUCT UNDERSTANDING
-
-Before reviewing, identify:
-
-
-## Product Type
-
-Example:
-
-- SaaS dashboard
-- Mobile app
-- Landing page
-- Marketplace
-- Internal tool
-- Portfolio
-
-
-## Primary User
-
-Define:
-
-- Who uses it?
-- What is their skill level?
-- What device do they use?
-
-
-## Main User Goal
-
-Ask:
-
-"What is the most important action users need to complete?"
-
-Examples:
-
-- buy product
-- submit form
-- track performance
-- read information
-- manage data
-
----
-
-# PHASE 2 — USER FLOW REVIEW
-
-Analyze the journey.
-
-Check:
-
-## Entry Point
-
-Can users immediately understand:
-
-- where they are?
-- what the product does?
-- what they should do?
-
-
-## Navigation
-
-Check:
-
-- Is navigation predictable?
-- Are important pages easy to find?
-- Are menus overloaded?
-
-
-## Task Completion
-
-Ask:
-
-"How many steps are needed to complete the main action?"
-
-
-Reduce unnecessary steps.
-
----
-
-# PHASE 3 — VISUAL HIERARCHY REVIEW
-
-Check:
-
-## First Impression
-
-Within 3 seconds:
-
-Can users understand:
-
-- product purpose?
-- primary action?
-- important information?
-
-
-If not:
-
-Improve:
-
-- headline
-- spacing
-- contrast
-- layout
-
-
----
-
-# INFORMATION HIERARCHY
-
-Review:
-
-## Priority Levels
-
-Level 1:
-
-Most important information
-
-Level 2:
-
-Supporting information
-
-Level 3:
-
-Secondary details
-
-
-Avoid:
-
-Everything looking equally important.
-
----
-
-# PHASE 4 — AI DESIGN DETECTION
-
-Identify generic AI patterns.
-
-Flag:
-
-## Visual Problems
-
-☐ Excessive gradients
-
-☐ Glassmorphism without purpose
-
-☐ Too many rounded cards
-
-☐ Random icons
-
-☐ Decorative illustrations
-
-☐ Empty bento grids
-
-☐ Neon colors
-
-☐ Excessive shadows
-
-☐ Template layouts
-
-
-Recommendation:
-
-Remove before adding.
-
----
-
-# PHASE 5 — COMPONENT REVIEW
-
-
-Review each component:
-
-
-## Buttons
-
-Check:
-
-- Is the purpose clear?
-- Is hierarchy obvious?
-- Is the primary action visible?
-
-
-Avoid:
-
-Multiple primary buttons competing.
-
-
----
-
-## Forms
-
-Check:
-
-- Are labels clear?
-- Are errors understandable?
-- Is validation helpful?
-
-
-Avoid:
-
-Placeholder-only forms.
-
----
-
-## Cards
-
-Ask:
-
-"Does this information need a card?"
-
-
-Remove cards when:
-
-- simple text is enough
-- grouping has no meaning
-
----
-
-## Tables
-
-Check:
-
-- readability
-- sorting
-- filtering
-- scanning speed
-
-
-Avoid:
-
-Showing too much data at once.
-
----
-
-# PHASE 6 — ACCESSIBILITY REVIEW
-
-
-Check:
-
-## Contrast
-
-Ensure:
-
-- text readable
-- buttons visible
-- states understandable
-
-
-Avoid:
-
-Light gray text on white backgrounds.
-
-
----
-
-## Typography
-
-Check:
-
-- font size
-- line height
-- readability
-
-
----
-
-## Interaction
-
-Check:
-
-- touch target size
-- keyboard navigation
-- focus state
-
-
-Minimum touch target:
-
-48px
-
----
-
-# PHASE 7 — MOBILE REVIEW
-
-
-Review mobile experience.
-
-Check:
-
-## Layout
-
-- Does content fit?
-- Are buttons reachable?
-- Is scrolling reasonable?
-
-
-## Interaction
-
-- Are actions easy with one hand?
-- Are important controls accessible?
-
-
----
-
-# PHASE 8 — STATE REVIEW
-
-
-Every application needs:
-
-
-## Loading
-
-Question:
-
-"What does user see while waiting?"
-
-
-Avoid:
-
-Blank screen.
-
-
----
-
-## Empty State
-
-Explain:
-
-- why it is empty
-- what user can do
-
-
----
-
-## Error State
-
-Provide:
-
-- understandable message
-- recovery action
-
-
----
-
-## Success Feedback
-
-Confirm:
-
-- action completed
-- next step
-
----
-
-# PRIORITY SYSTEM
-
-
-Classify findings:
-
-
-## Critical
-
-Blocks users from completing tasks.
-
-Example:
-
-- broken flow
-- unclear primary action
-- inaccessible feature
-
-
-Fix immediately.
-
-
----
-
-## High
-
-Creates frustration.
-
-Example:
-
-- confusing navigation
-- poor hierarchy
-- unnecessary steps
-
-
-Fix before release.
-
-
----
-
-## Medium
-
-Improves quality.
-
-Example:
-
-- spacing
-- typography
-- visual consistency
-
-
----
-
-## Low
-
-Minor polish.
-
-Example:
-
-- small animation
-- decorative improvement
-
----
-
-# REVIEW OUTPUT FORMAT
-
-
-When reviewing UI, always provide:
-
-
-## 1. Overall Assessment
-
-Example:
-
-"The interface is functional but feels like a generic dashboard."
-
-
-## 2. Main Problems
-
-List:
-
-- issue
-- impact
-- recommendation
-
-
-Format:
-
-Problem:
-
-Impact:
-
-Fix:
-
-
-## 3. Priority Fix List
-
-
-P0:
-Critical changes
-
-
-P1:
-Important improvements
-
-
-P2:
-Polish
-
-
-## 4. Final Recommendation
-
-Explain:
-
-What should be changed first.
-
----
-
-# FINAL RULE
-
-Do not say:
-
-"This design is bad."
-
-Say:
-
-"This design creates friction because..."
-
-
-The purpose of UX review is improvement, not criticism.
-
----
-
-# GOLDEN PRINCIPLE
-
-Good UX removes confusion.
-
-Great UX makes the correct action feel obvious.
+When issues are detected:
+1. **Do Not Rewrite Blindly**: First identify what is working well.
+2. **Strip the Fluff First**: Remove fake decorative borders, unneeded icons, emojis, and glassmorphism.
+3. **Solidify Surfaces**: Convert translucent containers to opaque, well-padded cards (`p-5`, `p-6`).
+4. **Sharpen Typography & Spacing**: Establish strong visual hierarchy with distinct font weights and monospace numbers.
+5. **Verify Mobile Responsiveness**: Ensure full functionality and comfortable tap targets across mobile viewports.

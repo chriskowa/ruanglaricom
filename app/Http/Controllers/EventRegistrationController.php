@@ -246,10 +246,25 @@ class EventRegistrationController extends Controller
                 ->with('success', 'Registrasi berhasil!')
                 ->with('snap_token', $transaction->snap_token);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
+            $firstError = collect($e->errors())->flatten()->first() ?? 'Data pendaftaran belum lengkap.';
+            if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json' || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $firstError,
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            return redirect()->route('events.show', [
+                'slug' => $slug,
+                'payment' => 'failed',
+                'error_message' => $firstError,
+            ])
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
             // If AJAX request, return JSON error
-            if ($request->ajax() || $request->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json' || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),
