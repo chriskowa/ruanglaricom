@@ -563,7 +563,7 @@
             </section>
 
             <!-- RIGHT COLUMN: Sticky Registration Card -->
-            <aside id="register" class="lg:sticky lg:top-24 self-start w-full max-w-full">
+            <aside id="register" class="lg:col-span-5 lg:sticky lg:top-24 self-start w-full max-w-full">
                 <div class="pro-card overflow-hidden">
                     <!-- Card Header -->
                     <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white">
@@ -1231,23 +1231,23 @@
                         @endif
                     </div>
                 </div>
-
-                <!-- Participants List Table (Vue Component) -->
-                @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden mt-6" id="participants-list">
-                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-3">
-                            <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
-                                <i class="fa-solid fa-users text-white"></i>
-                            </span>
-                            Daftar Peserta Terdaftar
-                        </div>
-                        <div id="vue-participants-app" class="w-full max-w-full overflow-hidden">
-                            @include('events.partials.participants-table-light')
-                        </div>
-                    </div>
-                @endif
             </aside>
         </div>
+
+        <!-- Participants List Table (Full Width Below 2-Column Grid) -->
+        @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+            <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden mt-8 sm:mt-10" id="participants-list">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                    <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                        <i class="fa-solid fa-users text-white"></i>
+                    </span>
+                    Daftar Peserta Terdaftar
+                </div>
+                <div id="vue-participants-app" class="w-full max-w-full overflow-hidden">
+                    @include('events.partials.participants-table-light')
+                </div>
+            </div>
+        @endif
     </main>
 
     @include('events.partials.moota-payment-modal')
