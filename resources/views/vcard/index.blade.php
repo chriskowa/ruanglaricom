@@ -29,8 +29,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <style>
+        [x-cloak] { display: none !important; }
         :root {
             --bg-primary: #090B0F;
             --surface: #151922;
@@ -377,7 +379,7 @@
     </main>
 
     <!-- DYNAMIC VCARD MODAL POPUP -->
-    <div x-show="activeModal" x-cloak 
+    <div x-show="activeModal" x-cloak style="display: none;"
          class="fixed inset-0 z-50 flex items-center justify-center p-4"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
