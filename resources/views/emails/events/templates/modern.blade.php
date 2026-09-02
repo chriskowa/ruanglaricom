@@ -109,10 +109,71 @@
                         </td>
                     </tr>
 
-                    @if($event->ticket_email_show_jersey ?? true)
+                    @php
+                        $formFields = $event->premium_amenities['form_fields'] ?? [];
+                    @endphp
+
+                    @if(!empty($formFields['id_card']) && !empty($participant->id_card))
+                    <tr>
+                        <td class="ticket-label">No. Identitas (KTP/SIM)</td>
+                        <td class="ticket-value">{{ $participant->id_card }}</td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['date_of_birth']) && !empty($participant->date_of_birth))
+                    <tr>
+                        <td class="ticket-label">Tanggal Lahir</td>
+                        <td class="ticket-value">
+                            {{ $participant->date_of_birth instanceof \Carbon\Carbon ? $participant->date_of_birth->format('d F Y') : \Carbon\Carbon::parse($participant->date_of_birth)->format('d F Y') }}
+                        </td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['blood_type']) && !empty($participant->blood_type))
+                    <tr>
+                        <td class="ticket-label">Golongan Darah</td>
+                        <td class="ticket-value">{{ strtoupper($participant->blood_type) }}</td>
+                    </tr>
+                    @endif
+
+                    @if((!empty($formFields['jersey_size']) || ($event->ticket_email_show_jersey ?? true)) && !empty($participant->jersey_size))
                     <tr>
                         <td class="ticket-label">Ukuran Jersey</td>
-                        <td class="ticket-value">{{ $participant->jersey_size ?? '-' }}</td>
+                        <td class="ticket-value">{{ $participant->jersey_size }}</td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['target_time']) && !empty($participant->target_time))
+                    <tr>
+                        <td class="ticket-label">Target Waktu</td>
+                        <td class="ticket-value">{{ $participant->target_time }}</td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['emergency_contact']) && (!empty($participant->emergency_contact_name) || !empty($participant->emergency_contact_number)))
+                    <tr>
+                        <td class="ticket-label">Kontak Darurat</td>
+                        <td class="ticket-value">
+                            {{ $participant->emergency_contact_name ?? '-' }} ({{ $participant->emergency_contact_number ?? '-' }})
+                        </td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['address']) && (!empty($participant->address) || !empty($participant->city)))
+                    <tr>
+                        <td class="ticket-label">Alamat</td>
+                        <td class="ticket-value">
+                            {{ collect([$participant->address, $participant->city, $participant->province, $participant->postal_code])->filter()->implode(', ') }}
+                        </td>
+                    </tr>
+                    @endif
+
+                    @if(!empty($formFields['strava_activity']) && !empty($participant->strava_url))
+                    <tr>
+                        <td class="ticket-label">Link Strava</td>
+                        <td class="ticket-value">
+                            <a href="{{ $participant->strava_url }}" target="_blank" style="color: #ccff00; text-decoration: underline;">{{ $participant->strava_url }}</a>
+                        </td>
                     </tr>
                     @endif
 
