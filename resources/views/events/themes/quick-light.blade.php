@@ -22,6 +22,16 @@
     $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
     $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
     $categories = $categories ?? ($event->categories ?? collect());
+    $gpxList = $gpxList ?? ($categories ? $categories->filter(function($cat) {
+        return $cat->master_gpx_id && $cat->masterGpx;
+    })->map(function($cat) {
+        return (object)[
+            'category_name' => $cat->name,
+            'file_path' => $cat->masterGpx->gpx_path ?? $cat->masterGpx->file_path ?? '',
+            'distance_km' => $cat->masterGpx->distance_km ?? null,
+            'elevation_gain_m' => $cat->masterGpx->elevation_gain_m ?? null,
+        ];
+    })->values() : collect());
     $addons = is_array($event->addons ?? null) ? $event->addons : [];
     $isRegOpen = method_exists($event, 'isRegistrationOpen') ? $event->isRegistrationOpen() : true;
     $heroImage = $event->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
@@ -1297,7 +1307,7 @@
 
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full">
-                        @if($gpxList->isNotEmpty())
+                        @if(!empty($gpxList) && $gpxList->isNotEmpty())
                             @foreach($gpxList as $idx => $gpx)
                                 <button type="button" onclick="selectGpxTrack(this)" data-gpx-url="{{ asset('storage/'.$gpx->file_path) }}" class="gpx-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition border {{ $idx === 0 ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100' }}">
                                     {{ $gpx->category_name ?: 'Rute '.($idx+1) }}
@@ -1307,7 +1317,7 @@
                             <span class="text-xs text-slate-500 font-medium">Titik Lokasi Event: {{ $event->location_name }}</span>
                         @endif
                     </div>
-                    @if($gpxList->isNotEmpty())
+                    @if(!empty($gpxList) && $gpxList->isNotEmpty())
                         <a id="gpx-download-link" href="{{ asset('storage/'.$gpxList[0]->file_path) }}" download class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 text-xs font-bold transition-colors shrink-0">
                             <i class="fa-solid fa-download text-white"></i> Unduh File GPX
                         </a>
@@ -1417,10 +1427,10 @@
         var routeMap = null;
         var startMarker = null;
         var finishMarker = null;
-        var gpxTracks = @json($gpxList);
+        var gpxTracks = @json($gpxList ?? []);
         var eventLat = {{ $event->location_lat ?: 'null' }};
         var eventLng = {{ $event->location_lng ?: 'null' }};
-        var hasGpx = {{ $gpxList->isNotEmpty() ? 'true' : 'false' }};
+        var hasGpx = {{ (!empty($gpxList) && $gpxList->isNotEmpty()) ? 'true' : 'false' }};
         var mapEmbedUrl = "{{ $event->map_embed_url ?: '' }}";
 
         function openRouteModal() {
