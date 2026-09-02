@@ -266,6 +266,7 @@ class PublicEventReportController extends Controller
                 $p->setAttribute('pic_email', $p->transaction->pic_data['email'] ?? ($p->transaction->user->email ?? '-'));
                 $p->setAttribute('transaction_date', $p->transaction_created_at ? \Carbon\Carbon::parse($p->transaction_created_at)->format('d M Y H:i') : '-');
                 $p->setAttribute('payment_method', $p->payment_gateway ?? '-');
+                $p->setAttribute('photo_url', $p->photo ? asset('storage/' . $p->photo) : null);
             });
 
             $reportFilters = [

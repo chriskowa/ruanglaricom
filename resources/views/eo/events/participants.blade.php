@@ -614,18 +614,27 @@
                             'coupon_id' => $participant->transaction->coupon_id ?? null,
                             'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
+                            'photo' => $participant->photo ? asset('storage/' . $participant->photo) : null,
+                            'photo_path' => $participant->photo,
                             'notes' => $participant->notes,
                         ]) }}">
                         <td class="px-6 py-4" onclick="event.stopPropagation()">
                             <input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="{{ $participant->id }}">
                         </td>
                         <td class="px-6 py-4">
-                            <div class="font-medium text-white">{{ $participant->name }}</div>
-                            <div class="text-xs text-slate-500 mb-1">
-                                {{ ucfirst($participant->gender) }} • Reg: {{ $participant->created_at->format('d M') }}
+                            <div class="flex items-center gap-2.5">
+                                @if($participant->photo)
+                                    <img src="{{ asset('storage/' . $participant->photo) }}" alt="Foto" class="w-9 h-9 rounded-lg object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/' . $participant->photo) }}')" title="Klik untuk lihat foto COD">
+                                @endif
+                                <div class="min-w-0">
+                                    <div class="font-medium text-white truncate">{{ $participant->name }}</div>
+                                    <div class="text-xs text-slate-500 mb-1">
+                                        {{ ucfirst($participant->gender) }} • Reg: {{ $participant->created_at->format('d M') }}
+                                    </div>
+                                    <div class="text-xs text-slate-400">{{ $participant->email }}</div>
+                                    <div class="text-xs text-slate-400">{{ $participant->phone }}</div>
+                                </div>
                             </div>
-                            <div class="text-xs text-slate-400">{{ $participant->email }}</div>
-                            <div class="text-xs text-slate-400">{{ $participant->phone }}</div>
                         </td>
                         <td class="px-6 py-4 text-white font-mono text-xs">
                             {{ $participant->id_card ?? '-' }}
@@ -1770,6 +1779,41 @@
                             <!-- Personal Info -->
                             <div>
                                 <h4 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-3">Personal Info</h4>
+                                
+                                <!-- Photo Verification Box (COD / Biometrics) -->
+                                <div id="dm_photo_container" class="mb-4 p-3.5 rounded-xl bg-slate-900/70 border border-slate-700/80">
+                                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            Foto Wajah / Identitas (COD)
+                                        </span>
+                                        <span id="dm_photo_badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Tidak Ada Foto</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                                            <img id="dm_photo_img" src="" alt="Foto Peserta" class="w-full h-full object-cover hidden cursor-pointer hover:opacity-90 transition" onclick="openPhotoViewer(this.src)" title="Klik untuk perbesar foto">
+                                            <div id="dm_photo_empty" class="flex flex-col items-center justify-center text-slate-500 p-2 text-center">
+                                                <svg class="w-6 h-6 text-slate-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                                <span class="text-[10px] leading-tight">Tidak Ada Foto</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0 space-y-1.5">
+                                            <p class="text-xs text-slate-400 leading-relaxed" id="dm_photo_help">
+                                                Foto verifikasi peserta saat registrasi (kamera/upload).
+                                            </p>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" id="dm_photo_view_btn" onclick="openPhotoViewer(document.getElementById('dm_photo_img').src)" class="hidden px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1">
+                                                    <svg class="w-3 h-3 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                    Perbesar Foto
+                                                </button>
+                                                <a id="dm_photo_link" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-xs text-yellow-400 hover:text-yellow-300 underline font-medium">
+                                                    Unduh
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="space-y-3">
                                     <!-- Name -->
                                     <div>
@@ -2008,6 +2052,34 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photo Fullscreen Viewer Modal -->
+<div id="photoViewerModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onclick="closePhotoViewer()">
+    <div class="relative max-w-2xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+        <div class="w-full flex justify-between items-center pb-2 text-white text-xs font-bold">
+            <span class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                Foto Wajah / Identitas Peserta
+            </span>
+            <button type="button" onclick="closePhotoViewer()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                Tutup
+            </button>
+        </div>
+        <div class="rounded-xl overflow-hidden border border-slate-700 shadow-2xl bg-slate-900 max-h-[80vh] flex items-center justify-center">
+            <img id="fullPhotoImg" src="" alt="Foto Peserta" class="max-w-full max-h-[80vh] object-contain">
+        </div>
+        <div class="mt-3 flex items-center gap-3">
+            <a id="fullPhotoDownloadLink" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-bold transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Buka di Tab Baru / Download
+            </a>
+            <button type="button" onclick="closePhotoViewer()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                Tutup
+            </button>
         </div>
     </div>
 </div>
@@ -2434,6 +2506,8 @@
                     coupon_code: p.coupon_code,
                     coupon_id: p.coupon_id,
                     addons: p.addons,
+                    photo: p.photo,
+                    photo_path: p.photo_path,
                     notes: p.notes
                 }).replace(/'/g, "&#39;");
 
@@ -2452,11 +2526,23 @@
                     '</div>';
                 }
 
+                var photoThumbHtml = p.photo ? '<img src="'+ p.photo +'" alt="Foto" class="w-9 h-9 rounded-lg object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="event.stopPropagation(); openPhotoViewer(\''+ p.photo +'\')" title="Klik untuk lihat foto COD">' : '';
+
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
                     '<td class="px-6 py-4" onclick="event.stopPropagation()">'+
                         '<input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="'+ p.id +'">'+
                     '</td>'+
-                    '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
+                    '<td class="px-6 py-4">'+
+                        '<div class="flex items-center gap-2.5">'+
+                            photoThumbHtml +
+                            '<div class="min-w-0">'+
+                                '<div class="font-medium text-white truncate">'+ p.name +'</div>'+
+                                '<div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div>'+
+                                '<div class="text-xs text-slate-400">'+ (p.email || '') +'</div>'+
+                                '<div class="text-xs text-slate-400">'+ (p.phone || '') +'</div>'+
+                            '</div>'+
+                        '</div>'+
+                    '</td>'+
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4 text-xs text-slate-300">'+ (p.notes || '-') +'</td>'+
@@ -3324,6 +3410,46 @@
 
         // Populate Personal Info
         document.getElementById('dm_name').textContent = data.name;
+        
+        // Populate Photo (COD / Biometrics)
+        var photoImg = document.getElementById('dm_photo_img');
+        var photoEmpty = document.getElementById('dm_photo_empty');
+        var photoLink = document.getElementById('dm_photo_link');
+        var photoBadge = document.getElementById('dm_photo_badge');
+        var photoHelp = document.getElementById('dm_photo_help');
+        var photoViewBtn = document.getElementById('dm_photo_view_btn');
+
+        if (photoImg && photoEmpty) {
+            if (data.photo) {
+                photoImg.src = data.photo;
+                photoImg.classList.remove('hidden');
+                photoEmpty.classList.add('hidden');
+                if (photoLink) {
+                    photoLink.href = data.photo;
+                    photoLink.classList.remove('hidden');
+                }
+                if (photoViewBtn) photoViewBtn.classList.remove('hidden');
+                if (photoBadge) {
+                    photoBadge.textContent = 'Foto Tersedia';
+                    photoBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60';
+                }
+                if (photoHelp) photoHelp.textContent = 'Foto verifikasi identitas / COD saat registrasi.';
+            } else {
+                photoImg.src = '';
+                photoImg.classList.add('hidden');
+                photoEmpty.classList.remove('hidden');
+                if (photoLink) {
+                    photoLink.href = '#';
+                    photoLink.classList.add('hidden');
+                }
+                if (photoViewBtn) photoViewBtn.classList.add('hidden');
+                if (photoBadge) {
+                    photoBadge.textContent = 'Tidak Ada Foto';
+                    photoBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700';
+                }
+                if (photoHelp) photoHelp.textContent = 'Peserta tidak mengunggah foto wajah / identitas.';
+            }
+        }
         
         document.getElementById('dm_id_card').textContent = data.id_card || '-';
         
@@ -5663,6 +5789,25 @@
             console.error("Right click load failed:", err);
         }
     }
+    
+    window.openPhotoViewer = function(src) {
+        if (!src) return;
+        var modal = document.getElementById('photoViewerModal');
+        var img = document.getElementById('fullPhotoImg');
+        var dl = document.getElementById('fullPhotoDownloadLink');
+        if (modal && img) {
+            img.src = src;
+            if (dl) dl.href = src;
+            modal.classList.remove('hidden');
+        }
+    };
+
+    window.closePhotoViewer = function() {
+        var modal = document.getElementById('photoViewerModal');
+        var img = document.getElementById('fullPhotoImg');
+        if (modal) modal.classList.add('hidden');
+        if (img) img.src = '';
+    };
     
     initRightClick();
     document.addEventListener('DOMContentLoaded', initRightClick);

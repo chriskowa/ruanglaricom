@@ -1254,6 +1254,8 @@ class EventController extends Controller
                     'coupon_code' => $p->transaction->coupon?->code ?? null,
                     'coupon_id' => $p->transaction->coupon_id ?? null,
                     'addons' => $p->addons,
+                    'photo' => $p->photo ? asset('storage/' . $p->photo) : null,
+                    'photo_path' => $p->photo,
                     'notes' => $p->notes,
                 ];
             });
@@ -1552,6 +1554,8 @@ class EventController extends Controller
                 'pic_phone' => $p->pic_phone,
                 'pic_email' => $p->pic_email,
                 'addons' => $p->addons,
+                'photo' => $p->photo ? asset('storage/' . $p->photo) : null,
+                'photo_path' => $p->photo,
             ];
         });
 
