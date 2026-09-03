@@ -40,6 +40,11 @@ class ProgramController extends Controller
             $query->where('is_featured', (bool) $request->featured);
         }
 
+        // Filter by publish status
+        if ($request->has('published') && $request->published !== '') {
+            $query->where('is_published', (bool) $request->published);
+        }
+
         // Sort
         $sort = $request->get('sort', 'newest');
         switch ($sort) {
@@ -62,8 +67,31 @@ class ProgramController extends Controller
 
         return view('admin.programs.index', [
             'programs' => $programs,
-            'filters' => $request->only(['search', 'category', 'featured', 'sort']),
+            'filters' => $request->only(['search', 'category', 'featured', 'published', 'sort']),
         ]);
+    }
+
+    /**
+     * Toggle publish status of a program
+     */
+    public function togglePublish(Request $request, Program $program)
+    {
+        $newStatus = ! $program->is_published;
+        $program->update(['is_published' => $newStatus]);
+
+        $message = $newStatus 
+            ? "Program \"{$program->title}\" berhasil dipublikasikan!" 
+            : "Program \"{$program->title}\" berhasil diubah menjadi draft (unpublish).";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'is_published' => $newStatus,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     /**

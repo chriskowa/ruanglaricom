@@ -1041,7 +1041,11 @@ Route::middleware('auth')->group(function () {
 
         // Program Management (Admin)
         Route::get('programs', [App\Http\Controllers\Admin\ProgramController::class, 'index'])->name('programs.index');
+        Route::get('programs/{program}', [App\Http\Controllers\Admin\ProgramController::class, 'show'])->name('programs.show');
+        Route::post('programs/{program}/toggle-publish', [App\Http\Controllers\Admin\ProgramController::class, 'togglePublish'])->name('programs.toggle-publish');
         Route::post('programs/{program}/toggle-featured', [App\Http\Controllers\Admin\ProgramController::class, 'toggleFeatured'])->name('programs.toggle-featured');
+        Route::post('programs/{program}/toggle-active', [App\Http\Controllers\Admin\ProgramController::class, 'toggleActive'])->name('programs.toggle-active');
+        Route::post('programs/bulk-status', [App\Http\Controllers\Admin\ProgramController::class, 'bulkUpdateStatus'])->name('programs.bulk-status');
         Route::delete('programs/{program}', [App\Http\Controllers\Admin\ProgramController::class, 'destroy'])->name('programs.destroy');
 
         // Page Management

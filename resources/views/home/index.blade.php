@@ -9,49 +9,63 @@
 <div class="rl-home">
 
     {{-- =========================================================
-        HERO / FEATURED
+        HERO / EDITORIAL RUNNING CHASSIS
     ========================================================== --}}
     <header class="rl-hero">
         <div class="rl-shell">
             <div class="rl-hero-grid">
+                
+                {{-- Hero Copy --}}
                 <div class="rl-hero-copy">
                     <div class="rl-kicker">
-                        <span></span>
-                        RuangLari / Indonesia
+                        <span class="rl-kicker-mark"></span>
+                        <span class="rl-kicker-text">RUANGLARI &bull; ENGINE &amp; ECOSYSTEM</span>
                     </div>
- 
+
                     <h1 class="rl-hero-title">
-                        Media dan Platform Lari<br>
-                        <em>Indonesia.</em>
+                        Platform &amp; Media Lari
+                        <span class="rl-title-accent">Indonesia.</span>
                     </h1>
 
                     <p class="rl-hero-lead">
-                        Berita dan insight running, program latihan gratis, kalender race Indonesia, rute lari, komunitas, hingga tools untuk membantu pelari berkembang lebih terarah.
+                        Pusat direktori race terverifikasi, kalkulator pace VDOT fisiologis, bank rute GPX, dan ruang kolaborasi pelari dalam satu ekosistem terintegrasi.
                     </p>
 
                     <div class="rl-hero-actions">
                         <a href="#vdot-section"
                            onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});"
                            class="rl-btn rl-btn-primary">
-                            Buat Program Lari
+                            <span>Hitung Pace &amp; VDOT</span>
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </a>
 
-                        <a href="#events" class="rl-text-link">
-                            Jelajahi Event
-                            <span></span>
+                        <a href="{{ route('events.index') }}" class="rl-btn rl-btn-outline">
+                            Jelajahi Race
                         </a>
                     </div>
 
-                    <div class="rl-proof">
-                        <strong>1.000+</strong>
-                        <span>pelari dalam ekosistem RuangLari</span>
+                    <div class="rl-hero-telemetry">
+                        <div class="rl-tele-cell">
+                            <span class="rl-tele-val font-mono">1.000+</span>
+                            <span class="rl-tele-lbl">Pelari Aktif</span>
+                        </div>
+                        <div class="rl-tele-pipe"></div>
+                        <div class="rl-tele-cell">
+                            <span class="rl-tele-val font-mono">50+</span>
+                            <span class="rl-tele-lbl">Verified Race</span>
+                        </div>
+                        <div class="rl-tele-pipe"></div>
+                        <div class="rl-tele-cell">
+                            <span class="rl-tele-val font-mono">VDOT</span>
+                            <span class="rl-tele-lbl">Training Model</span>
+                        </div>
                     </div>
                 </div>
 
+                {{-- Hero Featured Spotlight Deck --}}
                 <div class="rl-featured">
                     @php
                         $slides = collect();
-
                         $fallbackHero = $homepageContent && $homepageContent->floating_image
                             ? asset($homepageContent->floating_image)
                             : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg';
@@ -68,7 +82,6 @@
                                         $daysLeft = 'HARI INI';
                                     }
                                 }
-
                                 $isOpen = method_exists($ev, 'isRegistrationOpen') ? $ev->isRegistrationOpen() : true;
 
                                 $slides->push([
@@ -77,7 +90,7 @@
                                     'href' => $ev->public_url,
                                     'image' => $ev->getHeroImageUrl() ?: $fallbackHero,
                                     'category' => $ev->raceType?->name ?: 'Official Race',
-                                    'eyebrow' => 'RACE MENDATANG',
+                                    'eyebrow' => 'UPCOMING RACE',
                                     'date_formatted' => optional($ev->start_at)->translatedFormat('d M Y') ?: 'TBA',
                                     'location' => $ev->location_name ?: ($ev->location_address ?: 'Indonesia'),
                                     'categories_list' => $catList,
@@ -100,7 +113,7 @@
                                     'href' => route('blog.show', $a->slug),
                                     'image' => $img ?: asset('ruanglari.webp'),
                                     'category' => optional($a->category)->name ?: 'Journal',
-                                    'eyebrow' => 'JOURNAL & INSIGHT',
+                                    'eyebrow' => 'EDITORIAL DISPATCH',
                                     'date_formatted' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
                                     'location' => optional($a->category)->name ?: 'RuangLari Journal',
                                     'categories_list' => collect(),
@@ -118,124 +131,139 @@
                             ->take(5);
                     @endphp
 
-                    <div id="heroFeatured" class="rl-featured-frame">
-                        <div id="heroFeaturedTrack"
-                             class="rl-featured-track no-scrollbar"
-                             style="touch-action: pan-y; overscroll-behavior-x: contain;">
+                    <div id="heroFeatured" class="rl-deck">
+                        {{-- Top Header Deck --}}
+                        <div class="rl-deck-head">
+                            <div class="rl-deck-status">
+                                <span class="rl-pulse-beacon"></span>
+                                <span class="rl-deck-tag font-mono">SPOTLIGHT DISPATCH</span>
+                            </div>
+                            
+                            <div class="rl-deck-pager">
+                                <span class="rl-deck-index-wrap font-mono">
+                                    <b id="heroCurrentIndex">01</b>
+                                    <span class="rl-divider-slash">/</span>
+                                    <span class="rl-total-slides">{{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}</span>
+                                </span>
+                                <div class="rl-deck-buttons">
+                                    <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya" class="rl-btn-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya" class="rl-btn-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Track Slider --}}
+                        <div id="heroFeaturedTrack" class="rl-deck-track no-scrollbar">
                             @forelse($slides as $i => $slide)
-                                <article class="rl-featured-slide" data-slide-index="{{ $i }}">
-                                    <a href="{{ $slide['href'] }}"
-                                       aria-label="{{ $slide['category'] ?? $slide['eyebrow'] }}: {{ $slide['title'] }}"
-                                       draggable="false"
-                                       class="rl-slide-link">
+                                <article class="rl-deck-slide" data-slide-index="{{ $i }}">
+                                    <div class="rl-slide-viewport">
                                         <img
                                             src="{{ $slide['image'] ?: $fallbackHero }}"
                                             alt="{{ $slide['title'] }}"
                                             draggable="false"
                                             @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
                                             onerror="this.onerror=null; this.src='{{ $fallbackHero }}';"
-                                            class="rl-slide-bg"
+                                            class="rl-slide-photo"
                                         >
+                                        <div class="rl-slide-gradient"></div>
 
-                                        <div class="rl-featured-shade"></div>
+                                        {{-- Badges Floating Top --}}
+                                        <div class="rl-float-badges">
+                                            <span class="rl-badge-category font-mono">
+                                                {{ $slide['category'] }}
+                                            </span>
 
-                                        <div class="rl-featured-top">
-                                            <div class="rl-counter font-mono">
-                                                <b>{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</b>
-                                                <span>/</span>
-                                                {{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}
-                                            </div>
-
-                                            <div class="flex items-center gap-2">
-                                                @if(!empty($slide['days_left']))
-                                                    <span class="rl-countdown-badge font-mono">
-                                                        <svg class="w-3 h-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                        {{ $slide['days_left'] }}
-                                                    </span>
-                                                @elseif($slide['type'] === 'event' && $slide['is_open'])
-                                                    <span class="rl-status-open-badge font-mono">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                                        REGISTRASI DIBUKA
-                                                    </span>
-                                                @endif
-                                                <span class="rl-featured-badge font-mono">{{ $slide['category'] }}</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="rl-featured-copy">
-                                            <div class="rl-featured-type font-mono">
-                                                <span></span>{{ $slide['eyebrow'] }}
-                                            </div>
-
-                                            <h2 class="rl-slide-title">{{ $slide['title'] }}</h2>
-
-                                            @if(!empty($slide['categories_list']) && $slide['categories_list']->count() > 0)
-                                                <div class="rl-dist-chips">
-                                                    @foreach($slide['categories_list']->take(4) as $cName)
-                                                        <span class="rl-chip">{{ $cName }}</span>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-
-                                            <div class="rl-featured-meta">
-                                                @if(!empty($slide['date_formatted']))
-                                                    <div class="rl-meta-item font-mono">
-                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                        <strong>{{ $slide['date_formatted'] }}</strong>
-                                                    </div>
-                                                @endif
-
-                                                @if(!empty($slide['location']))
-                                                    <div class="rl-meta-item">
-                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                        <span class="truncate max-w-[200px] sm:max-w-[280px]">{{ $slide['location'] }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <div class="rl-slide-action">
-                                                <span class="rl-action-btn">
-                                                    <span>{{ $slide['type'] === 'event' ? 'Lihat Detail & Daftar' : 'Baca Artikel Lengkap' }}</span>
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-3.5 h-3.5">
-                                                        <path d="M5 12h14M13 6l6 6-6 6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
+                                            @if(!empty($slide['days_left']))
+                                                <span class="rl-badge-countdown font-mono">
+                                                    <span class="rl-mini-dot"></span>
+                                                    {{ $slide['days_left'] }}
                                                 </span>
-                                            </div>
+                                            @elseif($slide['type'] === 'event' && $slide['is_open'])
+                                                <span class="rl-badge-live font-mono">
+                                                    <span class="rl-mini-dot-live"></span>
+                                                    REGISTRATION OPEN
+                                                </span>
+                                            @endif
                                         </div>
-                                    </a>
+                                    </div>
+
+                                    <div class="rl-slide-details">
+                                        <div class="rl-slide-meta-row font-mono">
+                                            <span class="rl-meta-eyebrow">{{ $slide['eyebrow'] }}</span>
+                                            @if(!empty($slide['date_formatted']))
+                                                <span class="rl-meta-pipe">&bull;</span>
+                                                <span class="rl-meta-date">{{ $slide['date_formatted'] }}</span>
+                                            @endif
+                                        </div>
+
+                                        <h2 class="rl-slide-headline">
+                                            <a href="{{ $slide['href'] }}">{{ $slide['title'] }}</a>
+                                        </h2>
+
+                                        @if(!empty($slide['location']))
+                                            <div class="rl-slide-location">
+                                                <svg class="w-3.5 h-3.5 text-lime" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                <span class="truncate max-w-[280px]">{{ $slide['location'] }}</span>
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($slide['categories_list']) && $slide['categories_list']->count() > 0)
+                                            <div class="rl-slide-pills">
+                                                @foreach($slide['categories_list']->take(4) as $cName)
+                                                    <span class="rl-pill font-mono">{{ $cName }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        <div class="rl-slide-cta">
+                                            <a href="{{ $slide['href'] }}" class="rl-cta-button font-mono">
+                                                <span>{{ $slide['type'] === 'event' ? 'LIHAT DETAIL & REGISTRASI' : 'BACA JURNAL LENGKAP' }}</span>
+                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </article>
                             @empty
-                                <article class="rl-featured-slide">
-                                    <img src="{{ $fallbackHero }}" alt="RuangLari" class="rl-slide-bg">
-                                    <div class="rl-featured-shade"></div>
+                                <article class="rl-deck-slide">
+                                    <div class="rl-slide-viewport">
+                                        <img src="{{ $fallbackHero }}" alt="RuangLari" class="rl-slide-photo">
+                                    </div>
+                                    <div class="rl-slide-details">
+                                        <h2 class="rl-slide-headline">Ruang Lari Hub</h2>
+                                    </div>
                                 </article>
                             @endforelse
                         </div>
 
-                        @if($slides->count() > 1)
-                            <div id="heroFeaturedDots" class="rl-featured-progress"></div>
-
-                            <div class="rl-featured-controls">
-                                <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path d="M19 12H5m6-6-6 6 6 6"
-                                              stroke-width="2"
-                                              stroke-linecap="round"
-                                              stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
-                                <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path d="M5 12h14m-6-6 6 6-6 6"
-                                              stroke-width="2"
-                                              stroke-linecap="round"
-                                              stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        @endif
+                        {{-- Progress Segments --}}
+                        <div id="heroFeaturedDots" class="rl-deck-progress"></div>
                     </div>
+
+                    {{-- Bottom Selector Strips --}}
+                    @if($slides->count() > 1)
+                        <nav class="rl-playlist" id="heroFeaturedPlaylist" aria-label="Index Spotlight">
+                            <div class="rl-playlist-inner no-scrollbar">
+                                @foreach($slides as $i => $s)
+                                    <button type="button"
+                                            class="rl-playlist-item {{ $i === 0 ? 'is-active' : '' }}"
+                                            data-tab-index="{{ $i }}"
+                                            aria-label="Pilih: {{ $s['title'] }}">
+                                        <span class="rl-item-num font-mono">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="rl-item-content">
+                                            <span class="rl-item-tag font-mono">{{ $s['type'] === 'event' ? ($s['category'] ?? 'RACE') : 'JOURNAL' }}</span>
+                                            <span class="rl-item-title">{{ Str::limit($s['title'], 28) }}</span>
+                                        </span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </nav>
+                    @endif
                 </div>
+
             </div>
         </div>
     </header>
@@ -345,7 +373,7 @@
                         </label>
 
                         <button type="button" id="btn-vdot-calculate" class="rl-btn rl-btn-primary rl-btn-block">
-                            Hitung VDOT & target pace
+                            Hitung VDOT &amp; target pace
                         </button>
                     </div>
 
@@ -516,7 +544,7 @@
                 <article>
                     <span>01</span>
                     <div>
-                        <h3>Training & Performance</h3>
+                        <h3>Training &amp; Performance</h3>
                         <p>Kalkulator, kalender, program latihan, pacer, dan tools untuk merencanakan progres.</p>
                     </div>
                     <div class="rl-service-links">
@@ -530,7 +558,7 @@
                 <article>
                     <span>02</span>
                     <div>
-                        <h3>Community & Network</h3>
+                        <h3>Community &amp; Network</h3>
                         <p>Temukan pelari, buat sesi lari bersama, dan bangun koneksi di kota yang sama.</p>
                     </div>
                     <div class="rl-service-links">
@@ -542,7 +570,7 @@
                 <article>
                     <span>03</span>
                     <div>
-                        <h3>Race & Ticketing</h3>
+                        <h3>Race &amp; Ticketing</h3>
                         <p>Kalender event untuk pelari dan sistem registrasi/ticketing untuk event organizer.</p>
                     </div>
                     <div class="rl-service-links">
@@ -686,14 +714,16 @@
 @push('styles')
 <style>
     :root {
-        --rl-bg: #08111F;
-        --rl-bg-2: #0B1526;
-        --rl-panel: #0E1A2D;
-        --rl-line: #223049;
+        --rl-bg: #060B14;
+        --rl-bg-2: #091222;
+        --rl-panel: #0E182A;
+        --rl-line: #1E2D44;
+        --rl-border-subtle: rgba(255, 255, 255, 0.08);
         --rl-text: #F8FAFC;
-        --rl-muted: #AAB5C4;
+        --rl-muted: #94A3B8;
         --rl-lime: #B8FF00;
         --rl-lime-hover: #CBFF4A;
+        --rl-mono: 'Space Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     html { scroll-behavior: smooth; }
@@ -701,32 +731,641 @@
     .rl-home {
         background: var(--rl-bg);
         color: var(--rl-text);
-        overflow: hidden;
+        overflow-x: hidden;
+        width: 100%;
     }
 
     .rl-shell {
         width: min(100% - 2rem, 80rem);
         margin-inline: auto;
+        box-sizing: border-box;
     }
 
+    /* ----------------------------------------------------
+       HERO FOUNDATION & GRID
+    ---------------------------------------------------- */
     .rl-hero {
         position: relative;
-        min-height: min(850px, calc(100vh - 72px));
-        padding: clamp(3.5rem, 7vw, 7rem) 0;
-        display: flex;
-        align-items: center;
-        background-color: var(--rl-bg);
+        background: radial-gradient(circle at 85% 15%, rgba(184, 255, 0, 0.04) 0%, transparent 40%),
+                    linear-gradient(180deg, #070D18 0%, #050912 100%);
         border-bottom: 1px solid var(--rl-line);
+        padding: clamp(3.5rem, 6.5vw, 6rem) 0;
+        overflow: hidden;
     }
 
     .rl-hero-grid {
         display: grid;
-        grid-template-columns: minmax(0,.88fr) minmax(0,1.12fr);
-        gap: clamp(2.5rem, 5vw, 5rem);
+        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+        gap: clamp(2.5rem, 4.5vw, 4.5rem);
         align-items: center;
+        width: 100%;
     }
 
-    .rl-kicker,
+    /* Kicker & Athletic Headline */
+    .rl-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        background: #0D1626;
+        border: 1px solid rgba(184, 255, 0, 0.3);
+        padding: 0.35rem 0.75rem;
+        border-radius: 2px;
+    }
+
+    .rl-kicker-mark {
+        width: 6px;
+        height: 6px;
+        background: var(--rl-lime);
+        border-radius: 1px;
+    }
+
+    .rl-kicker-text {
+        color: var(--rl-lime);
+        font-family: var(--rl-mono);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        line-height: 1;
+    }
+
+    .rl-hero-title {
+        margin: 1.25rem 0 0;
+        color: #FFFFFF;
+        font-size: clamp(2.4rem, 4.2vw, 3.8rem);
+        font-weight: 950;
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+        text-transform: uppercase;
+    }
+
+    .rl-title-accent {
+        display: block;
+        color: var(--rl-lime);
+    }
+
+    .rl-hero-lead {
+        margin: 1.5rem 0 0;
+        color: #94A3B8;
+        font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+        line-height: 1.7;
+        max-width: 32rem;
+    }
+
+    /* Action Buttons */
+    .rl-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .rl-btn {
+        min-height: 3.1rem;
+        padding: 0 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-radius: 2px;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+
+    .rl-btn-primary {
+        background: var(--rl-lime);
+        color: #05080E;
+        border: 1px solid var(--rl-lime);
+    }
+    .rl-btn-primary:hover {
+        background: var(--rl-lime-hover);
+        border-color: var(--rl-lime-hover);
+        transform: translateY(-1px);
+    }
+
+    .rl-btn-outline {
+        background: rgba(255, 255, 255, 0.02);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .rl-btn-outline:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .rl-btn-dark {
+        background: var(--rl-bg);
+        color: #fff;
+    }
+    .rl-btn-dark:hover {
+        background: #fff;
+        color: var(--rl-bg);
+    }
+
+    .rl-btn-block { width: 100%; }
+
+    /* Telemetry Bar */
+    .rl-hero-telemetry {
+        margin-top: 2.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--rl-line);
+        display: flex;
+        align-items: center;
+        gap: 1.75rem;
+    }
+
+    .rl-tele-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .rl-tele-val {
+        color: #FFFFFF;
+        font-size: 1.3rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .rl-tele-lbl {
+        color: #64748B;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .rl-tele-pipe {
+        width: 1px;
+        height: 1.75rem;
+        background: var(--rl-line);
+    }
+
+    /* ----------------------------------------------------
+       SPORTY EDITORIAL SPOTLIGHT DECK
+    ---------------------------------------------------- */
+    .rl-featured {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        box-sizing: border-box;
+    }
+
+    .rl-deck {
+        background: #080E18;
+        border: 1px solid #1E2D44;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8);
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .rl-deck-head {
+        background: #04070D;
+        border-bottom: 1px solid #162234;
+        padding: 0.65rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .rl-deck-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .rl-pulse-beacon {
+        width: 6px;
+        height: 6px;
+        background: var(--rl-lime);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--rl-lime);
+    }
+
+    .rl-deck-tag {
+        color: #FFFFFF;
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+    }
+
+    .rl-deck-pager {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .rl-deck-index-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+
+    .rl-deck-index-wrap b {
+        color: var(--rl-lime);
+        font-size: 0.85rem;
+    }
+
+    .rl-divider-slash { color: #334155; }
+    .rl-total-slides { color: #64748B; }
+
+    .rl-deck-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .rl-btn-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #0B1322;
+        border: 1px solid #20314A;
+        border-radius: 2px;
+        color: #94A3B8;
+        cursor: pointer;
+        transition: all 0.12s ease;
+    }
+
+    .rl-btn-icon svg {
+        width: 0.85rem;
+        height: 0.85rem;
+    }
+
+    .rl-btn-icon:hover {
+        background: #142138;
+        border-color: var(--rl-lime);
+        color: var(--rl-lime);
+    }
+
+    /* Slider Track */
+    .rl-deck-track {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        cursor: grab;
+    }
+
+    .rl-deck-track.is-dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+    }
+
+    .rl-deck-slide {
+        flex: 0 0 100%;
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    .rl-slide-viewport {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 8.8;
+        max-height: 245px;
+        background: #03060B;
+        overflow: hidden;
+    }
+
+    .rl-slide-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+    }
+
+    .rl-deck-slide:hover .rl-slide-photo {
+        transform: scale(1.025);
+    }
+
+    .rl-slide-gradient {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(8, 14, 24, 0.85) 85%, #080E18 100%);
+        pointer-events: none;
+    }
+
+    /* Badges with Solid High Contrast */
+    .rl-float-badges {
+        position: absolute;
+        top: 0.85rem;
+        left: 0.85rem;
+        right: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        pointer-events: none;
+    }
+
+    .rl-badge-category {
+        background: #030712;
+        color: #FFFFFF;
+        border: 1px solid #374151;
+        padding: 0.3rem 0.65rem;
+        border-radius: 2px;
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .rl-badge-countdown {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #030712;
+        color: var(--rl-lime);
+        border: 1px solid rgba(184, 255, 0, 0.4);
+        padding: 0.3rem 0.65rem;
+        border-radius: 2px;
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .rl-badge-live {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #022c22;
+        color: #34d399;
+        border: 1px solid #059669;
+        padding: 0.3rem 0.65rem;
+        border-radius: 2px;
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+    }
+
+    .rl-mini-dot {
+        width: 5px;
+        height: 5px;
+        background: var(--rl-lime);
+        border-radius: 50%;
+    }
+
+    .rl-mini-dot-live {
+        width: 5px;
+        height: 5px;
+        background: #34d399;
+        border-radius: 50%;
+    }
+
+    /* Details Panel */
+    .rl-slide-details {
+        padding: 1.25rem 1.4rem 1.4rem;
+        background: #080E18;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        box-sizing: border-box;
+    }
+
+    .rl-slide-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 0.45rem;
+    }
+
+    .rl-meta-eyebrow { color: var(--rl-lime); }
+    .rl-meta-pipe { color: #334155; }
+    .rl-meta-date { color: #94A3B8; }
+
+    .rl-slide-headline {
+        margin: 0;
+        font-size: clamp(1.2rem, 2vw, 1.55rem);
+        font-weight: 900;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .rl-slide-headline a {
+        color: #FFFFFF;
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+
+    .rl-slide-headline a:hover {
+        color: var(--rl-lime);
+    }
+
+    .rl-slide-location {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #CBD5E1;
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-top: 0.65rem;
+    }
+
+    .rl-slide-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.75rem;
+    }
+
+    .rl-pill {
+        background: #0E1A2E;
+        color: #E2E8F0;
+        border: 1px solid #1E2D45;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border-radius: 2px;
+    }
+
+    .rl-slide-cta {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #162234;
+    }
+
+    .rl-cta-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        background: #0D1726;
+        color: #FFFFFF;
+        border: 1px solid #22344E;
+        padding: 0.75rem 1rem;
+        border-radius: 2px;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .rl-cta-button svg {
+        color: var(--rl-lime);
+        transition: transform 0.15s ease;
+    }
+
+    .rl-cta-button:hover {
+        background: var(--rl-lime);
+        border-color: var(--rl-lime);
+        color: #05080E;
+    }
+
+    .rl-cta-button:hover svg {
+        color: #05080E;
+        transform: translateX(3px);
+    }
+
+    /* Deck Progress Bar */
+    .rl-deck-progress {
+        height: 2px;
+        background: #111A29;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 1px;
+    }
+
+    .rl-progress-segment {
+        background: #1E2D44;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .rl-progress-segment.is-active {
+        background: var(--rl-lime);
+    }
+
+    /* Playlist Tabs (Athletic Dashboard Format) */
+    .rl-playlist {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .rl-playlist-inner {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        gap: 0.4rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .rl-playlist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: #080E18;
+        border: 1px solid #162337;
+        border-radius: 2px;
+        padding: 0.55rem 0.7rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.12s ease;
+        box-sizing: border-box;
+    }
+
+    .rl-playlist-item:hover {
+        background: #0E1726;
+        border-color: #243652;
+    }
+
+    .rl-playlist-item.is-active {
+        background: #0B1422;
+        border-color: var(--rl-lime);
+        box-shadow: inset 0 -2px 0 var(--rl-lime);
+    }
+
+    .rl-item-num {
+        color: #475569;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+
+    .rl-playlist-item.is-active .rl-item-num {
+        color: var(--rl-lime);
+    }
+
+    .rl-item-content {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .rl-item-tag {
+        color: var(--rl-lime);
+        font-size: 0.55rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        line-height: 1;
+    }
+
+    .rl-item-title {
+        color: #94A3B8;
+        font-size: 0.68rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 0.2rem;
+    }
+
+    .rl-playlist-item.is-active .rl-item-title {
+        color: #FFFFFF;
+    }
+
+    /* ----------------------------------------------------
+       COMMON SECTIONS & LAB
+    ---------------------------------------------------- */
     .rl-overline {
         display: flex;
         align-items: center;
@@ -739,441 +1378,8 @@
         text-transform: uppercase;
     }
 
-    .rl-kicker > span {
-        width: 2.5rem;
-        height: 2px;
-        background: var(--rl-lime);
-    }
-
-    .rl-hero-title {
-        margin: 1.25rem 0 0;
-        color: #fff;
-        font-size: clamp(2.5rem, 4.5vw, 4.25rem);
-        font-weight: 900;
-        line-height: 1.08;
-        letter-spacing: -.035em;
-        text-transform: uppercase;
-    }
-
-    .rl-hero-title em,
-    .rl-training-copy h2 em,
-    .rl-route-copy h2 em,
-    .rl-connect-copy h2 em {
-        color: var(--rl-lime);
-        font-style: normal;
-    }
-
-    .rl-hero-lead {
-        max-width: 31rem;
-        margin: 2rem 0 0;
-        color: #E2E8F0;
-        font-size: clamp(1rem, 1.4vw, 1.1rem);
-        line-height: 1.75;
-    }
-
-    .rl-hero-actions,
-    .rl-inline-actions,
-    .rl-head-actions {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .rl-hero-actions { margin-top: 2rem; }
-
-    .rl-btn {
-        min-height: 3.15rem;
-        padding: .9rem 1.45rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 2px;
-        font-size: .72rem;
-        font-weight: 950;
-        letter-spacing: .11em;
-        line-height: 1;
-        text-transform: uppercase;
-        transition: background .2s ease, color .2s ease, border-color .2s ease;
-    }
-
-    .rl-btn-primary {
-        background: var(--rl-lime);
-        color: var(--rl-bg);
-    }
-
-    .rl-btn-primary:hover { background: #fff; }
-
-    .rl-btn-dark {
-        background: var(--rl-bg);
-        color: #fff;
-    }
-
-    .rl-btn-dark:hover {
-        background: #fff;
-        color: var(--rl-bg);
-    }
-
-    .rl-btn-block { width: 100%; }
-
-    .rl-text-link {
-        display: inline-flex;
-        align-items: center;
-        gap: .75rem;
-        color: var(--rl-bg);
-        font-size: .72rem;
-        font-weight: 900;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-    }
-
-    .rl-text-link-light { color: #fff; }
-
-    .rl-text-link > span {
-        display: block;
-        width: 2rem;
-        height: 1px;
-        background: currentColor;
-        transition: width .2s ease, background .2s ease;
-    }
-
-    .rl-text-link:hover { color: var(--rl-lime); }
-    .rl-text-link:hover > span { width: 3rem; }
-
-    .rl-proof {
-        max-width: 24rem;
-        margin-top: 3.2rem;
-        padding-top: 1rem;
-        display: flex;
-        gap: .85rem;
-        align-items: baseline;
-        border-top: 1px solid rgba(255,255,255,.16);
-    }
-
-    .rl-proof strong {
-        color: #fff;
-        font-size: 1.4rem;
-        font-weight: 950;
-    }
-
-    .rl-proof span {
-        color: rgba(255,255,255,.8);
-        font-size: .69rem;
-        font-weight: 700;
-        letter-spacing: .09em;
-        text-transform: uppercase;
-    }
-
-    .rl-featured-frame {
-        position: relative;
-        overflow: hidden;
-        background: #080C14;
-        border: 1px solid rgba(255,255,255,.12);
-        border-radius: 8px; /* rounded-lg per AGENTS.md */
-        box-shadow: 0 25px 60px -15px rgba(0,0,0,.6);
-    }
-
-    .rl-featured-track {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
-        cursor: grab;
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .rl-featured-track.is-dragging {
-        cursor: grabbing;
-        scroll-snap-type: none;
-        scroll-behavior: auto;
-    }
-
-    .rl-featured-slide {
-        position: relative;
-        width: 100%;
-        flex: 0 0 100%;
-        scroll-snap-align: start;
-        min-height: clamp(32rem, 50vw, 40rem);
-        user-select: none;
-        -webkit-user-select: none;
-    }
-
-    .rl-featured-slide > a {
-        position: absolute;
-        inset: 0;
-        display: block;
-        -webkit-user-drag: none;
-    }
-
-    .rl-featured-slide img {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        inset: 0;
-        object-fit: cover;
-        transition: transform 1.2s cubic-bezier(.16,1,.3,1);
-        pointer-events: none;
-        -webkit-user-drag: none;
-        user-drag: none;
-    }
-
-    .rl-featured-slide:hover img { transform: scale(1.035); }
-
-    .rl-featured-shade {
-        position: absolute;
-        inset: 0;
-        background:
-            linear-gradient(to top, rgba(8,12,20,.98) 0%, rgba(8,12,20,.78) 42%, rgba(8,12,20,.2) 75%, rgba(8,12,20,.05) 100%),
-            linear-gradient(to right, rgba(8,12,20,.5) 0%, transparent 60%);
-        pointer-events: none;
-    }
-
-    .rl-featured-top,
-    .rl-featured-copy {
-        position: absolute;
-        z-index: 10;
-        left: clamp(1.25rem, 3vw, 2.5rem);
-        right: clamp(1.25rem, 3vw, 2.5rem);
-    }
-
-    .rl-featured-top {
-        top: clamp(1.25rem, 3vw, 2rem);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        color: rgba(255,255,255,.65);
-        font-size: .62rem;
-        font-weight: 800;
-        letter-spacing: .15em;
-        text-transform: uppercase;
-    }
-
-    .rl-featured-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: .28rem .6rem;
-        background: #fff;
-        color: #07090b;
-        font-size: .62rem;
-        font-weight: 900;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        border-radius: 4px; /* rounded */
-        line-height: 1;
-    }
-
-    .rl-countdown-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        padding: .3rem .65rem;
-        background: #0F172A;
-        color: var(--rl-lime);
-        border: 1px solid rgba(204,255,0,.3);
-        border-radius: 4px; /* rounded */
-        font-size: .62rem;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .rl-status-open-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: .4rem;
-        padding: .3rem .65rem;
-        background: rgba(6, 78, 59, .4);
-        color: #34D399;
-        border: 1px solid rgba(52, 211, 153, .3);
-        border-radius: 4px; /* rounded */
-        font-size: .62rem;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .rl-counter {
-        display: flex;
-        gap: .45rem;
-        align-items: center;
-    }
-
-    .rl-counter b { color: var(--rl-lime); }
-    .rl-counter span { color: rgba(255,255,255,.28); }
-
-    .rl-featured-copy {
-        bottom: clamp(2.6rem, 5vw, 4rem);
-        max-width: 90%;
-    }
-
-    .rl-featured-type {
-        margin-bottom: .6rem;
-        display: flex;
-        align-items: center;
-        gap: .7rem;
-        color: var(--rl-lime);
-        font-size: .66rem;
-        font-weight: 950;
-        letter-spacing: .16em;
-        text-transform: uppercase;
-    }
-
-    .rl-featured-type span {
-        width: 1.5rem;
-        height: 2px;
-        background: var(--rl-lime);
-    }
-
-    .rl-slide-title {
-        max-width: 38rem;
-        margin: 0;
-        color: #fff;
-        font-size: clamp(1.4rem, 2.4vw, 2.1rem);
-        font-weight: 900;
-        letter-spacing: -.03em;
-        line-height: 1.2;
-        text-transform: uppercase;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .rl-dist-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .4rem;
-        margin-top: .85rem;
-    }
-
-    .rl-chip {
-        display: inline-flex;
-        align-items: center;
-        padding: .2rem .55rem;
-        background: rgba(30, 41, 59, .85);
-        color: #E2E8F0;
-        border: 1px solid rgba(148, 163, 184, .2);
-        border-radius: 4px; /* rounded */
-        font-size: .65rem;
-        font-weight: 700;
-        font-family: var(--font-mono, monospace);
-        letter-spacing: .05em;
-        text-transform: uppercase;
-    }
-
-    .rl-featured-meta {
-        margin-top: 1rem;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1.25rem;
-        color: rgba(255,255,255,.7);
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .05em;
-    }
-
-    .rl-meta-item {
-        display: inline-flex;
-        align-items: center;
-        gap: .45rem;
-        color: #CBD5E1;
-    }
-
-    .rl-meta-item strong { color: #fff; }
-
-    .rl-slide-action {
-        margin-top: 1.25rem;
-    }
-
-    .rl-action-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: .6rem;
-        padding: .65rem 1.25rem;
-        background: var(--rl-lime);
-        color: #080C14;
-        border-radius: 6px; /* rounded-md */
-        font-size: .72rem;
-        font-weight: 950;
-        letter-spacing: .09em;
-        text-transform: uppercase;
-        transition: background .15s ease, transform .15s ease, color .15s ease;
-    }
-
-    .rl-featured-slide:hover .rl-action-btn {
-        background: #fff;
-        color: #080C14;
-        transform: translateY(-1px);
-    }
-
-    .rl-featured-controls {
-        position: absolute;
-        right: 1.5rem;
-        bottom: 1.25rem;
-        z-index: 20;
-        display: flex;
-        gap: .4rem;
-    }
-
-    .rl-featured-controls button {
-        width: 2.5rem;
-        height: 2.5rem;
-        display: inline-grid;
-        place-items: center;
-        color: #E2E8F0;
-        background: rgba(15, 23, 42, .85);
-        border: 1px solid rgba(255, 255, 255, .15);
-        border-radius: 6px; /* rounded-md */
-        transition: color .15s ease, border-color .15s ease, background .15s ease;
-    }
-
-    .rl-featured-controls button:hover {
-        color: var(--rl-lime);
-        border-color: rgba(204, 255, 0, .5);
-        background: #0F172A;
-    }
-
-    .rl-featured-controls svg { width: 1.1rem; height: 1.1rem; }
-
-    .rl-featured-progress {
-        position: absolute;
-        z-index: 20;
-        left: 1.5rem;
-        right: 8.2rem;
-        bottom: 1.25rem;
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: 1fr;
-        gap: .35rem;
-    }
-
-    .rl-progress-item {
-        position: relative;
-        height: 2px;
-        overflow: hidden;
-        background: rgba(255,255,255,.18);
-        border-radius: 2px; /* rounded-sm */
-    }
-
-    .rl-progress-item::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--rl-lime);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform .3s ease;
-    }
-
-    .rl-progress-item.is-active::after { transform: scaleX(1); }
-
     .rl-section {
-        padding: clamp(5rem, 8vw, 8rem) 0;
+        padding: clamp(4.5rem, 7vw, 7.5rem) 0;
         border-top: 1px solid var(--rl-line);
         background: var(--rl-bg);
     }
@@ -1181,7 +1387,7 @@
     .rl-section-alt { background: var(--rl-bg-2); }
 
     .rl-section-rail {
-        margin-bottom: clamp(3rem, 5vw, 5rem);
+        margin-bottom: clamp(2.5rem, 4vw, 4rem);
         display: grid;
         grid-template-columns: 4rem 1fr;
         align-items: center;
@@ -1209,7 +1415,7 @@
     }
 
     .rl-section-head {
-        margin-bottom: clamp(2.8rem, 5vw, 4.5rem);
+        margin-bottom: clamp(2.5rem, 4vw, 4rem);
         display: flex;
         justify-content: space-between;
         align-items: end;
@@ -1223,10 +1429,17 @@
     .rl-eo-intro h2 {
         margin: 1rem 0 0;
         color: #fff;
-        font-size: clamp(2.8rem, 5vw, 5.4rem);
+        font-size: clamp(2.6rem, 4.5vw, 4.8rem);
         font-weight: 950;
         letter-spacing: -.055em;
-        line-height: .94;
+        line-height: .96;
+    }
+
+    .rl-training-copy h2 em,
+    .rl-route-copy h2 em,
+    .rl-connect-copy h2 em {
+        color: var(--rl-lime);
+        font-style: normal;
     }
 
     .rl-section-head p,
@@ -1240,12 +1453,12 @@
         line-height: 1.8;
     }
 
-    .rl-training { background: #0A1423; }
+    .rl-training { background: #08101E; }
 
     .rl-training-grid {
         display: grid;
         grid-template-columns: minmax(0,1.08fr) minmax(26rem,.92fr);
-        gap: clamp(3rem, 7vw, 7rem);
+        gap: clamp(3rem, 6vw, 6rem);
         align-items: start;
     }
 
@@ -1279,6 +1492,31 @@
         color: #fff;
         font-size: .9rem;
     }
+
+    .rl-text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .75rem;
+        color: var(--rl-bg);
+        font-size: .72rem;
+        font-weight: 900;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+
+    .rl-text-link-light { color: #fff; }
+
+    .rl-text-link > span {
+        display: block;
+        width: 2rem;
+        height: 1px;
+        background: currentColor;
+        transition: width .2s ease;
+    }
+
+    .rl-text-link:hover { color: var(--rl-lime); }
+    .rl-text-link:hover > span { width: 3rem; }
 
     .rl-lab {
         border-top: 3px solid var(--rl-lime);
@@ -1332,6 +1570,7 @@
         font-size: .83rem;
         outline: none;
         transition: border-color .2s ease;
+        box-sizing: border-box;
     }
 
     .rl-lab-form select:focus,
@@ -1401,6 +1640,9 @@
         font-size: .7rem;
         font-weight: 800;
         text-transform: uppercase;
+        background: transparent;
+        border: none;
+        cursor: pointer;
     }
 
     .rl-tabbar button.is-active {
@@ -1485,18 +1727,18 @@
         font-size: .62rem;
     }
 
-    .rl-event-feed {
-        border-top: 1px solid var(--rl-line);
-    }
+    /* Events List */
+    .rl-event-feed { border-top: 1px solid var(--rl-line); }
 
     .rl-event-item {
-        min-height: 9rem;
+        min-height: 8.5rem;
         display: grid;
         grid-template-columns: 8rem minmax(0,1fr) minmax(12rem,.45fr) auto;
         gap: 1.5rem;
         align-items: center;
         border-bottom: 1px solid var(--rl-line);
         transition: background .2s ease;
+        text-decoration: none;
     }
 
     .rl-event-item:hover { background: rgba(255,255,255,.018); }
@@ -1528,7 +1770,7 @@
     .rl-event-main h3 {
         margin: 0;
         color: #fff;
-        font-size: clamp(1.25rem, 2vw, 1.75rem);
+        font-size: clamp(1.2rem, 1.8vw, 1.65rem);
         font-weight: 900;
         letter-spacing: -.025em;
     }
@@ -1558,8 +1800,7 @@
         text-transform: uppercase;
     }
 
-    .rl-event-arrow,
-    .rl-journal-arrow {
+    .rl-event-arrow {
         width: 2.8rem;
         height: 2.8rem;
         display: grid;
@@ -1569,15 +1810,13 @@
         transition: .2s ease;
     }
 
-    .rl-event-item:hover .rl-event-arrow,
-    .rl-journal-item:hover .rl-journal-arrow {
+    .rl-event-item:hover .rl-event-arrow {
         color: var(--rl-bg);
         background: var(--rl-lime);
         border-color: var(--rl-lime);
     }
 
-    .rl-event-arrow svg,
-    .rl-journal-arrow svg { width: 1rem; height: 1rem; }
+    .rl-event-arrow svg { width: 1rem; height: 1rem; }
 
     .rl-loading {
         padding: 4rem 0;
@@ -1602,18 +1841,19 @@
 
     @keyframes rlPulse { to { opacity: .25; } }
 
+    /* Routes & Connect */
     .rl-route-grid,
     .rl-connect-grid {
         display: grid;
         grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr);
-        gap: clamp(3rem, 7vw, 7rem);
+        gap: clamp(3rem, 6vw, 6rem);
         align-items: center;
     }
 
     .rl-route-visual,
     .rl-connect-photo {
         position: relative;
-        min-height: clamp(24rem, 46vw, 34rem);
+        min-height: clamp(24rem, 44vw, 32rem);
         overflow: hidden;
         margin: 0;
     }
@@ -1686,7 +1926,7 @@
     .rl-service-list { border-top: 1px solid var(--rl-line); }
 
     .rl-service-list article {
-        min-height: 10rem;
+        min-height: 9.5rem;
         padding: 1.8rem 0;
         display: grid;
         grid-template-columns: 4rem minmax(0,1fr) minmax(18rem,.7fr);
@@ -1705,7 +1945,7 @@
     .rl-service-list h3 {
         margin: 0 0 .5rem;
         color: #fff;
-        font-size: 1.55rem;
+        font-size: 1.45rem;
         font-weight: 900;
         letter-spacing: -.025em;
     }
@@ -1731,17 +1971,12 @@
         font-weight: 850;
         letter-spacing: .07em;
         text-transform: uppercase;
+        text-decoration: none;
     }
 
     .rl-service-links a:hover { color: var(--rl-lime); }
 
     .rl-connect { background: #07101C; }
-
-    .rl-connect-grid {
-        grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
-    }
-
-    .rl-connect-copy > p { max-width: 32rem; }
 
     .rl-connect-points {
         margin: 2rem 0 2.4rem;
@@ -1773,16 +2008,14 @@
         line-height: 1.5;
     }
 
+    /* EO Banner Section */
     .rl-eo {
         color: var(--rl-bg);
         background: var(--rl-lime);
         border-top-color: var(--rl-lime);
     }
 
-    .rl-eo .rl-section-rail {
-        color: rgba(8,17,31,.5);
-    }
-
+    .rl-eo .rl-section-rail { color: rgba(8,17,31,.5); }
     .rl-eo .rl-section-rail span { color: var(--rl-bg); }
     .rl-eo .rl-section-rail p::after { background: rgba(8,17,31,.25); }
     .rl-eo .rl-overline { color: var(--rl-bg); }
@@ -1812,21 +2045,17 @@
     }
 
     .rl-eo-grid article {
-        min-height: 15rem;
+        min-height: 14rem;
         padding: 1.4rem;
         border-right: 1px solid rgba(8,17,31,.3);
     }
 
     .rl-eo-grid article:first-child { padding-left: 0; }
     .rl-eo-grid article:last-child { border-right: 0; }
-
-    .rl-eo-grid b {
-        color: rgba(8,17,31,.48);
-        font-size: .65rem;
-    }
+    .rl-eo-grid b { color: rgba(8,17,31,.48); font-size: .65rem; }
 
     .rl-eo-grid h3 {
-        margin: 4.5rem 0 .6rem;
+        margin: 4rem 0 .6rem;
         color: var(--rl-bg);
         font-size: 1.45rem;
         font-weight: 950;
@@ -1839,6 +2068,7 @@
         line-height: 1.6;
     }
 
+    /* Journal Feed */
     .rl-journal-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1879,9 +2109,7 @@
         transition: transform .5s ease;
     }
 
-    .rl-journal-card:hover .rl-journal-thumb img {
-        transform: scale(1.05);
-    }
+    .rl-journal-card:hover .rl-journal-thumb img { transform: scale(1.05); }
 
     .rl-journal-body {
         padding: 1.35rem 1.4rem 1.1rem;
@@ -1902,14 +2130,8 @@
         letter-spacing: .08em;
     }
 
-    .rl-journal-date {
-        color: var(--rl-lime);
-    }
-
-    .rl-journal-cat {
-        color: var(--rl-muted);
-        font-size: .64rem;
-    }
+    .rl-journal-date { color: var(--rl-lime); }
+    .rl-journal-cat { color: var(--rl-muted); font-size: .64rem; }
 
     .rl-journal-title {
         margin: 0 0 1rem;
@@ -1924,9 +2146,7 @@
         transition: color .2s ease;
     }
 
-    .rl-journal-card:hover .rl-journal-title {
-        color: var(--rl-lime);
-    }
+    .rl-journal-card:hover .rl-journal-title { color: var(--rl-lime); }
 
     .rl-journal-footer {
         padding: .85rem 1.4rem 1.1rem;
@@ -1941,9 +2161,7 @@
         letter-spacing: .06em;
     }
 
-    .rl-journal-card:hover .rl-journal-footer {
-        color: #fff;
-    }
+    .rl-journal-card:hover .rl-journal-footer { color: #fff; }
 
     .rl-journal-arrow {
         width: 1.75rem;
@@ -1954,13 +2172,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background .2s ease, border-color .2s ease, transform .2s ease;
+        transition: all .2s ease;
     }
 
-    .rl-journal-arrow svg {
-        width: .85rem;
-        height: .85rem;
-    }
+    .rl-journal-arrow svg { width: .85rem; height: .85rem; }
 
     .rl-journal-card:hover .rl-journal-arrow {
         background: var(--rl-lime);
@@ -1978,40 +2193,40 @@
     .rl-home .translate-y-4 { transform: translateY(1rem); }
     .rl-home .translate-y-0 { transform: translateY(0); }
 
+    /* ----------------------------------------------------
+       RESPONSIVENESS (TABLET & MOBILE BUGPROOFING)
+    ---------------------------------------------------- */
     @media (max-width: 1024px) {
         .rl-hero-grid,
         .rl-training-grid,
         .rl-route-grid,
         .rl-connect-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr) !important;
+            width: 100%;
         }
 
-        .rl-hero-copy { max-width: 44rem; }
-        .rl-featured { width: 100%; }
+        .rl-hero-copy,
+        .rl-featured {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
         .rl-training-grid { gap: 4rem; }
         .rl-lab { max-width: 42rem; }
-        .rl-route-copy,
-        .rl-connect-copy { max-width: 42rem; }
+        .rl-route-copy, .rl-connect-copy { max-width: 42rem; }
 
-        .rl-event-item {
-            grid-template-columns: 7rem minmax(0,1fr) auto;
-        }
-
+        .rl-event-item { grid-template-columns: 7rem minmax(0,1fr) auto; }
         .rl-event-meta { display: none; }
 
-        .rl-service-list article {
-            grid-template-columns: 3rem 1fr;
-        }
-
+        .rl-service-list article { grid-template-columns: 3rem 1fr; }
         .rl-service-links {
             grid-column: 2;
             justify-content: flex-start;
         }
 
-        .rl-eo-intro {
-            grid-template-columns: 1fr 1fr;
-        }
-
+        .rl-eo-intro { grid-template-columns: 1fr 1fr; }
         .rl-eo-intro .rl-head-actions { grid-column: 1 / -1; }
 
         .rl-eo-grid { grid-template-columns: repeat(2,1fr); }
@@ -2025,83 +2240,146 @@
     }
 
     @media (max-width: 767px) {
-        .rl-shell { width: min(100% - 2rem, 80rem); }
-
-        .rl-hero {
-            min-height: auto;
-            padding: 2.5rem 0 4.5rem;
-            background-size: 48px 48px, 48px 48px, 16px 16px, 16px 16px;
+        .rl-shell {
+            width: calc(100% - 1.5rem);
+            max-width: 100%;
         }
 
-        .rl-hero-grid { gap: 2rem; }
+        .rl-hero {
+            padding: 2rem 0 3rem;
+            width: 100%;
+        }
+
+        /* Prevent Grid blow-out / horizontal page drift */
+        .rl-hero-grid,
+        .rl-hero-copy,
+        .rl-featured,
+        .rl-deck,
+        .rl-deck-slide {
+            min-width: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        .rl-hero-grid {
+            gap: 1.75rem;
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
         .rl-hero-copy { order: 2; }
         .rl-featured { order: 1; }
 
-        .rl-kicker { display: none; }
-
         .rl-hero-title {
-            margin-top: 0;
-            font-size: clamp(2.15rem, 8.5vw, 2.85rem);
+            font-size: clamp(1.85rem, 7.5vw, 2.4rem);
             line-height: 1.12;
             letter-spacing: -.03em;
+            word-break: break-word;
         }
 
-        .rl-hero-lead { margin-top: 1.5rem; }
+        .rl-hero-lead {
+            margin-top: 1.1rem;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
 
         .rl-hero-actions {
-            align-items: flex-start;
             flex-direction: column;
+            width: 100%;
+            gap: 0.65rem;
+            margin-top: 1.5rem;
         }
 
-        .rl-proof { margin-top: 2.2rem; }
-
-        .rl-featured-frame {
-            margin-inline: 0;
-            border-radius: 8px;
+        .rl-hero-actions .rl-btn {
+            width: 100%;
+            justify-content: center;
         }
 
-        .rl-featured-slide { min-height: 29rem; }
-        .rl-featured-top { font-size: .56rem; }
-        .rl-featured-copy { max-width: 100%; bottom: 3.6rem; }
-        .rl-slide-title {
-            font-size: clamp(1.2rem, 5.2vw, 1.55rem);
+        /* Mobile Telemetry Grid - Safe & balanced columns */
+        .rl-hero-telemetry {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding-top: 1.25rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .rl-tele-cell { text-align: center; min-width: 0; }
+        .rl-tele-val { font-size: 1.15rem; }
+        .rl-tele-lbl { font-size: 0.58rem; line-height: 1.2; }
+        .rl-tele-pipe { height: 1.5rem; }
+
+        /* Floating Badges Collision Safe */
+        .rl-float-badges {
+            top: 0.65rem;
+            left: 0.65rem;
+            right: 0.65rem;
+            gap: 0.35rem;
+        }
+
+        .rl-badge-category,
+        .rl-badge-countdown,
+        .rl-badge-live {
+            font-size: 0.58rem;
+            padding: 0.25rem 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rl-slide-viewport {
+            aspect-ratio: 16 / 9;
+            max-height: 205px;
+        }
+
+        .rl-slide-details {
+            padding: 1rem 1.15rem 1.25rem;
+        }
+
+        .rl-slide-headline {
+            font-size: clamp(1.1rem, 4.8vw, 1.35rem);
             line-height: 1.22;
-            -webkit-line-clamp: 2;
         }
 
-        .rl-featured-controls {
-            right: 1rem;
-            bottom: .9rem;
+        .rl-slide-cta {
+            margin-top: 1rem;
+            padding-top: 0.85rem;
         }
 
-        .rl-featured-progress {
-            left: 1rem;
-            right: 7.2rem;
-            bottom: .9rem;
+        /* Playlist swipeable strip on phone */
+        .rl-playlist-inner {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 0.35rem;
+            gap: 0.4rem;
         }
 
-        .rl-section { padding: 4.5rem 0; }
-
-        .rl-section-rail {
-            margin-bottom: 2.6rem;
-            grid-template-columns: 2.6rem 1fr;
+        .rl-playlist-item {
+            flex: 0 0 145px;
+            min-width: 145px;
+            max-width: 145px;
+            scroll-snap-align: start;
+            padding: 0.45rem 0.6rem;
         }
 
-        .rl-section-head {
-            align-items: flex-start;
-            flex-direction: column;
-        }
+        /* Common sections mobile */
+        .rl-section { padding: 4rem 0; }
+        .rl-section-rail { margin-bottom: 2.2rem; grid-template-columns: 2.6rem 1fr; }
+        .rl-section-head { flex-direction: column; align-items: flex-start; }
 
         .rl-section-head h2,
         .rl-training-copy h2,
         .rl-route-copy h2,
         .rl-connect-copy h2,
         .rl-eo-intro h2 {
-            font-size: clamp(2.7rem, 13vw, 4rem);
+            font-size: clamp(2.4rem, 11vw, 3.4rem);
         }
 
         .rl-training-grid { gap: 3rem; }
-        .rl-lab { margin-inline: -.25rem; }
+        .rl-lab { margin-inline: 0; }
 
         .rl-event-item {
             padding: 1.2rem 0;
@@ -2109,23 +2387,15 @@
             gap: .9rem;
         }
 
-        .rl-event-date {
-            padding-left: 0;
-            grid-template-columns: 1fr;
-            gap: .2rem;
-        }
-
+        .rl-event-date { grid-template-columns: 1fr; gap: .2rem; padding-left: 0; }
         .rl-event-date strong { font-size: 2rem; }
         .rl-event-main h3 { font-size: 1rem; }
         .rl-event-main p { font-size: .68rem; }
         .rl-event-distances { display: none; }
         .rl-event-arrow { width: 2.4rem; height: 2.4rem; }
 
-        .rl-route-grid,
-        .rl-connect-grid { gap: 2.6rem; }
-
-        .rl-route-visual,
-        .rl-connect-photo { min-height: 25rem; }
+        .rl-route-grid, .rl-connect-grid { gap: 2.6rem; }
+        .rl-route-visual, .rl-connect-photo { min-height: 22rem; }
 
         .rl-service-list article {
             padding: 1.4rem 0;
@@ -2137,42 +2407,31 @@
         .rl-service-links { gap: .5rem 1rem; }
 
         .rl-connect-points { grid-template-columns: 1fr; }
-
-        .rl-connect-points > div,
-        .rl-connect-points > div:first-child {
+        .rl-connect-points > div {
             padding: .8rem 0;
             border-right: 0;
             border-bottom: 1px solid var(--rl-line);
         }
-
         .rl-connect-points > div:last-child { border-bottom: 0; }
 
         .rl-eo-intro { grid-template-columns: 1fr; }
         .rl-eo-intro .rl-head-actions { grid-column: auto; }
         .rl-eo-grid { grid-template-columns: 1fr; }
-
-        .rl-eo-grid article,
-        .rl-eo-grid article:first-child {
+        .rl-eo-grid article {
             min-height: auto;
             padding: 1.2rem 0;
             border-right: 0;
             border-bottom: 1px solid rgba(8,17,31,.3);
         }
-
         .rl-eo-grid article:last-child { border-bottom: 0; }
         .rl-eo-grid h3 { margin: 2rem 0 .5rem; }
 
-        .rl-journal-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
+        .rl-journal-grid { grid-template-columns: 1fr; gap: 1rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
-        *,
-        *::before,
-        *::after {
+        *, *::before, *::after {
             scroll-behavior: auto !important;
             animation-duration: .001ms !important;
             animation-iteration-count: 1 !important;
@@ -2223,6 +2482,9 @@ function initFeaturedSlider() {
     const dots = document.getElementById('heroFeaturedDots');
     const prev = document.getElementById('heroFeaturedPrev');
     const next = document.getElementById('heroFeaturedNext');
+    const currentIndexEl = document.getElementById('heroCurrentIndex');
+    const playlist = document.getElementById('heroFeaturedPlaylist');
+    const playlistTabs = playlist ? [...playlist.querySelectorAll('.rl-playlist-item')] : [];
 
     if (!track) return;
 
@@ -2236,7 +2498,6 @@ function initFeaturedSlider() {
     let timer = null;
     let frame = null;
 
-    // Touch & Pointer Gesture Tracking
     let isPointerDown = false;
     let startX = 0;
     let startY = 0;
@@ -2247,11 +2508,26 @@ function initFeaturedSlider() {
     let preventClick = false;
 
     function updateNav() {
-        if (!dots) return;
-        [...dots.children].forEach((item, index) => {
-            item.classList.toggle('is-active', index === activeIndex);
-            item.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
-        });
+        if (currentIndexEl) {
+            currentIndexEl.textContent = String(activeIndex + 1).padStart(2, '0');
+        }
+
+        if (dots) {
+            [...dots.children].forEach((item, index) => {
+                item.classList.toggle('is-active', index === activeIndex);
+                item.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
+            });
+        }
+
+        if (playlistTabs.length) {
+            playlistTabs.forEach((tab, index) => {
+                tab.classList.toggle('is-active', index === activeIndex);
+            });
+            const activeTab = playlistTabs[activeIndex];
+            if (activeTab && activeTab.scrollIntoView) {
+                activeTab.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }
+        }
     }
 
     function goTo(index, smooth = true) {
@@ -2309,7 +2585,7 @@ function initFeaturedSlider() {
         slides.forEach((_, index) => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'rl-progress-item';
+            button.className = 'rl-progress-segment';
             button.setAttribute('aria-label', `Tampilkan slide ${index + 1}`);
             button.addEventListener('click', () => {
                 goTo(index);
@@ -2320,7 +2596,15 @@ function initFeaturedSlider() {
         updateNav();
     }
 
-    // Capture & prevent click on links if user was dragging/swiping
+    if (playlistTabs.length) {
+        playlistTabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                goTo(index);
+                restartAuto();
+            });
+        });
+    }
+
     track.addEventListener('click', (e) => {
         if (preventClick) {
             e.preventDefault();
@@ -2329,7 +2613,6 @@ function initFeaturedSlider() {
         }
     }, true);
 
-    // Touch events for mobile finger swipe
     track.addEventListener('touchstart', (e) => {
         if (e.touches.length > 1) return;
         stopAuto();
@@ -2349,7 +2632,6 @@ function initFeaturedSlider() {
         const deltaX = touch.clientX - startX;
         const deltaY = touch.clientY - startY;
 
-        // If horizontal movement exceeds vertical and is > 8px, lock horizontal swipe
         if (!isSwiping && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
             isSwiping = true;
             track.classList.add('is-dragging');
@@ -2392,7 +2674,6 @@ function initFeaturedSlider() {
     track.addEventListener('touchend', handleTouchEnd, { passive: true });
     track.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
-    // Pointer / Mouse drag support for desktop
     track.addEventListener('mousedown', (e) => {
         if (e.button !== 0) return;
         stopAuto();
@@ -2475,7 +2756,7 @@ async function loadUpcomingEvents() {
 
         container.innerHTML = '';
 
-        events.slice(0, 6).forEach((event, index) => {
+        events.slice(0, 6).forEach((event) => {
             const date = new Date(event.date + 'T' + (event.time || '00:00'));
             const day = String(date.getDate()).padStart(2, '0');
             const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
@@ -2497,7 +2778,7 @@ async function loadUpcomingEvents() {
 
                 <div class="rl-event-main">
                     <h3>${escapeHTML(event.name || 'Event Lari')}</h3>
-                    <p>${escapeHTML(event.location || 'Lokasi menyusul')} · ${escapeHTML(event.time || 'TBA')} WIB</p>
+                    <p>${escapeHTML(event.location || 'Lokasi menyusul')} &middot; ${escapeHTML(event.time || 'TBA')} WIB</p>
                 </div>
 
                 <div class="rl-event-meta">
@@ -2547,7 +2828,7 @@ async function loadLatestBlogs() {
 
         container.innerHTML = '';
 
-        posts.slice(0, 6).forEach((post, index) => {
+        posts.slice(0, 6).forEach((post) => {
             const url = post.url || '#';
             const title = post.title || 'Tanpa judul';
             const image = post.image || "{{ asset('ruanglari.webp') }}";
@@ -2764,7 +3045,7 @@ function initVdotWidget() {
         scoreDisplay.innerText = vdotVal.toFixed(1);
         fitnessLevelDisplay.innerText = level;
         easyPaceDisplay.innerText =
-            `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowSecPerKm)}`;
+            `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowLow || eLowSecPerKm)}`;
 
         if (marathonPaceDisplay) marathonPaceDisplay.innerText = formatSecToMinKm(mSecPerKm);
         tempoPaceDisplay.innerText = formatSecToMinKm(tSecPerKm);
