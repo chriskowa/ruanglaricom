@@ -926,10 +926,30 @@
         <div id="events-explorer-map-section" class="ep-map-shell">
             <div class="ep-map-toolbar" id="btn-toggle-events-map">
                 <div class="ep-map-tools">
-                    <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
-                        <i class="fas fa-layer-group text-[#B8FF00]"></i>
-                        <span id="label-events-active-layer">Dark Tactical</span>
-                    </button>
+                    <div id="events-map-layer-dropdown-wrap" class="relative inline-block">
+                        <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
+                            <i class="fas fa-layer-group text-[#B8FF00]"></i>
+                            <span id="label-events-active-layer">Streets</span>
+                            <i class="fas fa-chevron-down text-[8px] opacity-60 ml-0.5"></i>
+                        </button>
+
+                        <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-white/15 bg-[#0b1522] rounded-md shadow-2xl overflow-hidden divide-y divide-white/5">
+                            @foreach([
+                                'streets' => 'Streets (Default)',
+                                'outdoors' => 'Outdoors Terrain',
+                                'dark' => 'Dark Tactical',
+                                'satellite' => 'Satelit Mapbox',
+                            ] as $layerKey => $layerLabel)
+                                <button type="button"
+                                        onclick="setEventsMapLayer('{{ $layerKey }}')"
+                                        class="block w-full px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-200 hover:text-white hover:bg-slate-800/80 transition flex items-center justify-between">
+                                    <span>{{ $layerLabel }}</span>
+                                    <i class="fas fa-check text-[#B8FF00] text-[10px] layer-check-icon {{ $layerKey === 'streets' ? '' : 'hidden' }}" data-layer="{{ $layerKey }}"></i>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <button type="button" id="btn-events-map-locate-me" class="ep-tool-btn">
                         <i class="fas fa-location-crosshairs text-[#B8FF00]"></i>
                         Lokasi Saya
@@ -944,23 +964,6 @@
                     <span id="label-events-map-toggle">Sembunyikan</span>
                     <i id="icon-events-map-toggle" class="fas fa-chevron-up text-[8px]"></i>
                 </button>
-
-                <div id="events-map-layer-dropdown-wrap" class="relative">
-                    <div id="events-map-layer-menu" class="hidden absolute right-0 top-10 z-[9999] min-w-[160px] border border-white/10 bg-[#07101c]">
-                        @foreach([
-                            'dark' => 'Dark Tactical',
-                            'streets' => 'Streets',
-                            'outdoors' => 'Outdoors Terrain',
-                            'satellite' => 'Satelit Mapbox',
-                        ] as $layerKey => $layerLabel)
-                            <button type="button"
-                                    onclick="setEventsMapLayer('{{ $layerKey }}')"
-                                    class="block w-full px-3 py-2 text-left text-[10px] font-bold text-white/70 hover:bg-white/[.03]">
-                                {{ $layerLabel }}
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
             </div>
 
             <div id="events-map-collapse-wrap">
@@ -1401,13 +1404,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let eventsExplorerMap = null;
     let explorerMarkers = [];
     let userLocationMarker = null;
-    let activeLayerKey = 'dark';
+    let activeLayerKey = 'streets';
     let activeTypeFilter = '';
 
     const mapStyles = {
-        dark: 'mapbox://styles/mapbox/dark-v11',
         streets: 'mapbox://styles/mapbox/streets-v12',
         outdoors: 'mapbox://styles/mapbox/outdoors-v12',
+        dark: 'mapbox://styles/mapbox/dark-v11',
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12'
     };
 
@@ -1458,10 +1461,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
                         <i class="fa-solid fa-location-dot text-[#b8ff00] text-[9px]"></i>
-                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:210px;">${locStr}</span>
+                        <span>${locStr}</span>
                     </div>
-                    ${distancesHtml ? `<div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:8px;">${distancesHtml}</div>` : ''}
-                    <a href="${event.url}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:7px; background:#b8ff00; color:#07101c; font-weight:900; font-size:9px; text-transform:uppercase; border-radius:2px; text-decoration:none; letter-spacing:0.05em;">
+                    ${distancesHtml ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px;">${distancesHtml}</div>` : ''}
+                    <a href="${event.public_url || '#'}"
+                       style="display:block; text-align:center; padding:7px; background:#b8ff00; color:#07101c; font-weight:900; text-transform:uppercase; font-size:9px; border-radius:2px; text-decoration:none; letter-spacing:0.05em;">
                         Lihat Detail Event &rarr;
                     </a>
                 </div>
@@ -1545,9 +1549,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const label = document.getElementById('label-events-active-layer');
         if (label) {
-            const labels = { dark: 'Dark Tactical', streets: 'Streets', outdoors: 'Outdoors Terrain', satellite: 'Satelit Mapbox' };
+            const labels = { streets: 'Streets', outdoors: 'Outdoors Terrain', dark: 'Dark Tactical', satellite: 'Satelit Mapbox' };
             label.textContent = labels[layerKey] || layerKey;
         }
+
+        // Update active check icon in layer menu
+        document.querySelectorAll('.layer-check-icon').forEach(icon => {
+            if (icon.getAttribute('data-layer') === layerKey) {
+                icon.classList.remove('hidden');
+            } else {
+                icon.classList.add('hidden');
+            }
+        });
 
         const menu = document.getElementById('events-map-layer-menu');
         if (menu) menu.classList.add('hidden');
@@ -1838,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         modalMap = new mapboxgl.Map({
             container: 'event-map',
-            style: 'mapbox://styles/mapbox/dark-v11',
+            style: 'mapbox://styles/mapbox/streets-v12',
             center: [defaultLng, defaultLat],
             zoom: 13
         });
