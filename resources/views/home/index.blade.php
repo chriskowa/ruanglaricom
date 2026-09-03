@@ -62,205 +62,125 @@
                     </div>
                 </div>
 
-                {{-- Hero Featured Spotlight Deck --}}
+                {{-- Hero Featured Spotlight Deck — Premium Running Media Newsroom --}}
                 <div class="rl-featured">
                     @php
-                        $slides = collect();
-                        $fallbackHero = $homepageContent && $homepageContent->floating_image
-                            ? asset($homepageContent->floating_image)
-                            : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg';
-
-                        if (isset($featuredEvents) && $featuredEvents) {
-                            foreach ($featuredEvents as $ev) {
-                                $catList = $ev->categories ? $ev->categories->pluck('name')->filter()->values() : collect();
-                                $daysLeft = null;
-                                if ($ev->start_at) {
-                                    $diff = (int) now()->diffInDays($ev->start_at, false);
-                                    if ($diff > 0) {
-                                        $daysLeft = $diff . ' HARI LAGI';
-                                    } elseif ($diff === 0) {
-                                        $daysLeft = 'HARI INI';
-                                    }
-                                }
-                                $isOpen = method_exists($ev, 'isRegistrationOpen') ? $ev->isRegistrationOpen() : true;
-
-                                $slides->push([
-                                    'type' => 'event',
-                                    'title' => $ev->name,
-                                    'href' => $ev->public_url,
-                                    'image' => $ev->getHeroImageUrl() ?: $fallbackHero,
-                                    'category' => $ev->raceType?->name ?: 'Official Race',
-                                    'eyebrow' => 'UPCOMING RACE',
-                                    'date_formatted' => optional($ev->start_at)->translatedFormat('d M Y') ?: 'TBA',
-                                    'location' => $ev->location_name ?: ($ev->location_address ?: 'Indonesia'),
-                                    'categories_list' => $catList,
-                                    'days_left' => $daysLeft,
-                                    'is_open' => $isOpen,
-                                    'date' => $ev->start_at ?: $ev->created_at,
-                                ]);
-                            }
-                        }
-
-                        if (isset($featuredArticles) && $featuredArticles) {
-                            foreach ($featuredArticles as $a) {
-                                $img = method_exists($a, 'getFeaturedImageUrl')
-                                    ? $a->getFeaturedImageUrl()
-                                    : ($a->featured_image ? (Str::startsWith($a->featured_image, ['http://', 'https://']) ? $a->featured_image : asset('storage/' . ltrim($a->featured_image, '/'))) : asset('ruanglari.webp'));
-
-                                $slides->push([
-                                    'type' => 'article',
-                                    'title' => $a->title,
-                                    'href' => route('blog.show', $a->slug),
-                                    'image' => $img ?: asset('ruanglari.webp'),
-                                    'category' => optional($a->category)->name ?: 'Journal',
-                                    'eyebrow' => 'EDITORIAL DISPATCH',
-                                    'date_formatted' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
-                                    'location' => optional($a->category)->name ?: 'RuangLari Journal',
-                                    'categories_list' => collect(),
-                                    'days_left' => null,
-                                    'is_open' => true,
-                                    'date' => $a->published_at ?: $a->created_at,
-                                ]);
-                            }
-                        }
-
-                        $slides = $slides
-                            ->filter(fn ($slide) => ! empty($slide['href']))
-                            ->sortByDesc(fn ($slide) => optional($slide['date'])->timestamp ?? 0)
-                            ->values()
-                            ->take(5);
+                        $articles = ($featuredArticles ?? collect())->filter(fn($a) => !empty($a->slug))->take(5);
                     @endphp
 
-                    <div id="heroFeatured" class="rl-deck">
-                        {{-- Top Header Deck --}}
-                        <div class="rl-deck-head">
-                            <div class="rl-deck-status">
-                                <span class="rl-pulse-beacon"></span>
-                                <span class="rl-deck-tag font-mono">SPOTLIGHT DISPATCH</span>
-                            </div>
-                            
-                            <div class="rl-deck-pager">
-                                <span class="rl-deck-index-wrap font-mono">
-                                    <b id="heroCurrentIndex">01</b>
-                                    <span class="rl-divider-slash">/</span>
-                                    <span class="rl-total-slides">{{ str_pad($slides->count(), 2, '0', STR_PAD_LEFT) }}</span>
-                                </span>
-                                <div class="rl-deck-buttons">
-                                    <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya" class="rl-btn-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    </button>
-                                    <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya" class="rl-btn-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    </button>
+                    @if($articles->isNotEmpty())
+                        {{-- Magazine Newsroom Slider Deck --}}
+                        <div id="heroFeatured" class="rl-deck">
+                            {{-- Top Header Deck: RUNNING NEWS & Counter --}}
+                            <div class="rl-deck-head">
+                                <div class="rl-deck-status">
+                                    <span class="rl-deck-brand font-mono">RUNNING NEWS</span>
+                                </div>
+                                
+                                <div class="rl-deck-pager font-mono">
+                                    <span class="rl-deck-index-wrap">
+                                        <strong id="heroCurrentIndex" class="rl-idx-active">01</strong>
+                                        <span class="rl-divider-slash">/</span>
+                                        <span class="rl-total-slides">{{ str_pad($articles->count(), 2, '0', STR_PAD_LEFT) }}</span>
+                                    </span>
+                                    <div class="rl-deck-buttons">
+                                        <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya" class="rl-btn-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 19l-7-7 7-7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        </button>
+                                        <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya" class="rl-btn-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {{-- Track Slider --}}
-                        <div id="heroFeaturedTrack" class="rl-deck-track no-scrollbar">
-                            @forelse($slides as $i => $slide)
-                                <article class="rl-deck-slide" data-slide-index="{{ $i }}">
-                                    <div class="rl-slide-viewport">
-                                        <img
-                                            src="{{ $slide['image'] ?: $fallbackHero }}"
-                                            alt="{{ $slide['title'] }}"
-                                            draggable="false"
-                                            @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
-                                            onerror="this.onerror=null; this.src='{{ $fallbackHero }}';"
-                                            class="rl-slide-photo"
-                                        >
-                                        <div class="rl-slide-gradient"></div>
+                            {{-- Track Slider --}}
+                            <div id="heroFeaturedTrack" class="rl-deck-track no-scrollbar">
+                                @foreach($articles as $i => $article)
+                                    <article class="rl-deck-slide" data-slide-index="{{ $i }}">
+                                        {{-- Foto Full Width (Elemen Utama) --}}
+                                        <div class="rl-slide-viewport">
+                                            <img
+                                                src="{{ $article->getFeaturedImageUrl() }}"
+                                                alt="{{ $article->title }}"
+                                                draggable="false"
+                                                @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
+                                                onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';"
+                                                class="rl-slide-photo"
+                                            >
+                                            <div class="rl-slide-scrim"></div>
 
-                                        {{-- Badges Floating Top --}}
-                                        <div class="rl-float-badges">
-                                            <span class="rl-badge-category font-mono">
-                                                {{ $slide['category'] }}
-                                            </span>
-
-                                            @if(!empty($slide['days_left']))
-                                                <span class="rl-badge-countdown font-mono">
-                                                    <span class="rl-mini-dot"></span>
-                                                    {{ $slide['days_left'] }}
-                                                </span>
-                                            @elseif($slide['type'] === 'event' && $slide['is_open'])
-                                                <span class="rl-badge-live font-mono">
-                                                    <span class="rl-mini-dot-live"></span>
-                                                    REGISTRATION OPEN
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="rl-slide-details">
-                                        <div class="rl-slide-meta-row font-mono">
-                                            <span class="rl-meta-eyebrow">{{ $slide['eyebrow'] }}</span>
-                                            @if(!empty($slide['date_formatted']))
-                                                <span class="rl-meta-pipe">&bull;</span>
-                                                <span class="rl-meta-date">{{ $slide['date_formatted'] }}</span>
-                                            @endif
-                                        </div>
-
-                                        <h2 class="rl-slide-headline">
-                                            <a href="{{ $slide['href'] }}">{{ $slide['title'] }}</a>
-                                        </h2>
-
-                                        @if(!empty($slide['location']))
-                                            <div class="rl-slide-location">
-                                                <svg class="w-3.5 h-3.5 text-lime" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                <span class="truncate max-w-[280px]">{{ $slide['location'] }}</span>
+                                            {{-- Magazine Category Overlay --}}
+                                            <div class="rl-cover-headline-wrap">
+                                                <div class="rl-cover-display">
+                                                    {{ $article->category?->name ?: 'RUNNING JOURNAL' }}
+                                                </div>
                                             </div>
-                                        @endif
-
-                                        @if(!empty($slide['categories_list']) && $slide['categories_list']->count() > 0)
-                                            <div class="rl-slide-pills">
-                                                @foreach($slide['categories_list']->take(4) as $cName)
-                                                    <span class="rl-pill font-mono">{{ $cName }}</span>
-                                                @endforeach
-                                            </div>
-                                        @endif
-
-                                        <div class="rl-slide-cta">
-                                            <a href="{{ $slide['href'] }}" class="rl-cta-button font-mono">
-                                                <span>{{ $slide['type'] === 'event' ? 'LIHAT DETAIL & REGISTRASI' : 'BACA JURNAL LENGKAP' }}</span>
-                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14M13 6l6 6-6 6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                            </a>
                                         </div>
-                                    </div>
-                                </article>
-                            @empty
-                                <article class="rl-deck-slide">
-                                    <div class="rl-slide-viewport">
-                                        <img src="{{ $fallbackHero }}" alt="RuangLari" class="rl-slide-photo">
-                                    </div>
-                                    <div class="rl-slide-details">
-                                        <h2 class="rl-slide-headline">Ruang Lari Hub</h2>
-                                    </div>
-                                </article>
-                            @endforelse
-                        </div>
 
-                        {{-- Progress Segments --}}
-                        <div id="heroFeaturedDots" class="rl-deck-progress"></div>
-                    </div>
+                                        {{-- Editorial Dispatch Block (Under Photo) --}}
+                                        <div class="rl-slide-editorial">
+                                            <div class="rl-editorial-eyebrow font-mono">
+                                                <span class="rl-eyebrow-accent"></span>
+                                                <span class="rl-eyebrow-text">EDITORIAL DISPATCH</span>
+                                                @if($article->category)
+                                                    <span class="rl-eyebrow-sep">&bull;</span>
+                                                    <span class="rl-eyebrow-cat">{{ $article->category->name }}</span>
+                                                @endif
+                                            </div>
 
-                    {{-- Bottom Selector Strips --}}
-                    @if($slides->count() > 1)
-                        <nav class="rl-playlist" id="heroFeaturedPlaylist" aria-label="Index Spotlight">
-                            <div class="rl-playlist-inner no-scrollbar">
-                                @foreach($slides as $i => $s)
-                                    <button type="button"
-                                            class="rl-playlist-item {{ $i === 0 ? 'is-active' : '' }}"
-                                            data-tab-index="{{ $i }}"
-                                            aria-label="Pilih: {{ $s['title'] }}">
-                                        <span class="rl-item-num font-mono">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
-                                        <span class="rl-item-content">
-                                            <span class="rl-item-tag font-mono">{{ $s['type'] === 'event' ? ($s['category'] ?? 'RACE') : 'JOURNAL' }}</span>
-                                            <span class="rl-item-title">{{ Str::limit($s['title'], 28) }}</span>
-                                        </span>
-                                    </button>
+                                            <h2 class="rl-editorial-headline">
+                                                <a href="{{ route('blog.show', $article->slug) }}">
+                                                    {{ $article->title }}
+                                                </a>
+                                            </h2>
+
+                                            <div class="rl-editorial-meta font-mono">
+                                                @if($article->published_at)
+                                                    <span>{{ $article->published_at->translatedFormat('d M Y') }}</span>
+                                                @elseif($article->created_at)
+                                                    <span>{{ $article->created_at->translatedFormat('d M Y') }}</span>
+                                                @endif
+                                                @if($article->category)
+                                                    <span class="rl-meta-sep">&bull;</span>
+                                                    <span>{{ $article->category->name }}</span>
+                                                @endif
+                                            </div>
+
+                                            <div class="rl-editorial-action">
+                                                <a href="{{ route('blog.show', $article->slug) }}" class="rl-editorial-cta font-mono">
+                                                    <span>BACA CERITA</span>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                        <path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </article>
                                 @endforeach
                             </div>
-                        </nav>
+
+                            {{-- Progress Segments --}}
+                            <div id="heroFeaturedDots" class="rl-deck-progress"></div>
+                        </div>
+
+                        {{-- Bottom Slider: Indeks Majalah --}}
+                        @if($articles->count() > 1)
+                            <nav class="rl-magazine-index" id="heroFeaturedPlaylist" aria-label="Indeks Berita Majalah">
+                                <div class="rl-index-grid no-scrollbar">
+                                    @foreach($articles as $i => $article)
+                                        <button type="button"
+                                                class="rl-index-item {{ $i === 0 ? 'is-active' : '' }}"
+                                                data-tab-index="{{ $i }}"
+                                                aria-label="Pilih: {{ $article->title }}">
+                                            <span class="rl-index-num font-mono">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                                            <span class="rl-index-title">{{ Str::limit($article->title, 26) }}</span>
+                                            <span class="rl-index-indicator"></span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </nav>
+                        @endif
                     @endif
                 </div>
 
@@ -714,15 +634,17 @@
 @push('styles')
 <style>
     :root {
-        --rl-bg: #060B14;
-        --rl-bg-2: #091222;
-        --rl-panel: #0E182A;
-        --rl-line: #1E2D44;
+        --rl-bg: #050505;
+        --rl-bg-2: #090B0E;
+        --rl-panel: #0D0F12;
+        --rl-surface: #0D0F12;
+        --rl-line: #1F2228;
         --rl-border-subtle: rgba(255, 255, 255, 0.08);
-        --rl-text: #F8FAFC;
-        --rl-muted: #94A3B8;
+        --rl-text: #F5F5F0;
+        --rl-muted: #9E9E96;
         --rl-lime: #B8FF00;
         --rl-lime-hover: #CBFF4A;
+        --rl-font: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
         --rl-mono: 'Space Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -910,7 +832,7 @@
     }
 
     /* ----------------------------------------------------
-       SPORTY EDITORIAL SPOTLIGHT DECK
+       PREMIUM RUNNING MEDIA NEWSROOM — MAGAZINE COVER SLIDER
     ---------------------------------------------------- */
     .rl-featured {
         width: 100%;
@@ -918,25 +840,25 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
         box-sizing: border-box;
     }
 
     .rl-deck {
-        background: #080E18;
-        border: 1px solid #1E2D44;
+        background: #0D0F12;
+        border: 1px solid #1F2228;
         border-radius: 4px;
         overflow: hidden;
-        box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.9);
         width: 100%;
         min-width: 0;
         box-sizing: border-box;
     }
 
+    /* Magazine Top Header Rail */
     .rl-deck-head {
-        background: #04070D;
-        border-bottom: 1px solid #162234;
-        padding: 0.65rem 1rem;
+        background: #07090C;
+        border-bottom: 1px solid #1A1D23;
+        padding: 0.8rem 1.25rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -945,22 +867,27 @@
     .rl-deck-status {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
 
-    .rl-pulse-beacon {
-        width: 6px;
-        height: 6px;
+    .rl-deck-brand {
+        color: #F5F5F0;
+        font-family: var(--rl-mono);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .rl-deck-brand::before {
+        content: '';
+        display: inline-block;
+        width: 3px;
+        height: 10px;
         background: var(--rl-lime);
-        border-radius: 50%;
-        box-shadow: 0 0 8px var(--rl-lime);
-    }
-
-    .rl-deck-tag {
-        color: #FFFFFF;
-        font-size: 0.62rem;
-        font-weight: 900;
-        letter-spacing: 0.12em;
     }
 
     .rl-deck-pager {
@@ -972,37 +899,45 @@
     .rl-deck-index-wrap {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.3rem;
+        font-family: var(--rl-mono);
         font-size: 0.75rem;
-        font-weight: 800;
+        font-weight: 700;
+        letter-spacing: 0.08em;
     }
 
-    .rl-deck-index-wrap b {
+    .rl-idx-active {
         color: var(--rl-lime);
-        font-size: 0.85rem;
+        font-weight: 800;
+        font-size: 0.82rem;
     }
 
-    .rl-divider-slash { color: #334155; }
-    .rl-total-slides { color: #64748B; }
+    .rl-divider-slash {
+        color: #3F444E;
+    }
+
+    .rl-total-slides {
+        color: #73736C;
+    }
 
     .rl-deck-buttons {
         display: flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: 0.35rem;
     }
 
     .rl-btn-icon {
-        width: 1.75rem;
-        height: 1.75rem;
+        width: 1.85rem;
+        height: 1.85rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #0B1322;
-        border: 1px solid #20314A;
+        background: #101318;
+        border: 1px solid #222731;
         border-radius: 2px;
-        color: #94A3B8;
+        color: #9E9E96;
         cursor: pointer;
-        transition: all 0.12s ease;
+        transition: all 0.15s ease;
     }
 
     .rl-btn-icon svg {
@@ -1011,9 +946,9 @@
     }
 
     .rl-btn-icon:hover {
-        background: #142138;
-        border-color: var(--rl-lime);
-        color: var(--rl-lime);
+        background: #171C23;
+        border-color: #3B4353;
+        color: #F5F5F0;
     }
 
     /* Slider Track */
@@ -1046,12 +981,14 @@
         box-sizing: border-box;
     }
 
+    /* FOTO FULL WIDTH (Elemen Utama) */
     .rl-slide-viewport {
         position: relative;
         width: 100%;
-        aspect-ratio: 16 / 8.8;
-        max-height: 245px;
-        background: #03060B;
+        aspect-ratio: 16 / 10;
+        min-height: 250px;
+        max-height: 380px;
+        background: #050505;
         overflow: hidden;
     }
 
@@ -1059,121 +996,113 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        object-position: center;
+        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: none;
     }
 
     .rl-deck-slide:hover .rl-slide-photo {
-        transform: scale(1.025);
+        transform: scale(1.02);
     }
 
-    .rl-slide-gradient {
+    /* Subtle Scrim for Depth */
+    .rl-slide-scrim {
         position: absolute;
         inset: 0;
-        background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(8, 14, 24, 0.85) 85%, #080E18 100%);
+        background: linear-gradient(
+            180deg,
+            rgba(5, 5, 5, 0.08) 0%,
+            rgba(5, 5, 5, 0.15) 35%,
+            rgba(13, 15, 18, 0.6) 75%,
+            #0D0F12 100%
+        );
         pointer-events: none;
     }
 
-    /* Badges with Solid High Contrast */
-    .rl-float-badges {
+    /* Magazine Cover Typography Overlay (Inside Photo) */
+    .rl-cover-headline-wrap {
         position: absolute;
-        top: 0.85rem;
-        left: 0.85rem;
-        right: 0.85rem;
+        bottom: 1.25rem;
+        right: 1.25rem;
+        left: 1.25rem;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
+        flex-direction: column;
+        align-items: flex-end;
+        text-align: right;
         pointer-events: none;
+        z-index: 2;
     }
 
-    .rl-badge-category {
-        background: #030712;
-        color: #FFFFFF;
-        border: 1px solid #374151;
-        padding: 0.3rem 0.65rem;
-        border-radius: 2px;
-        font-size: 0.62rem;
-        font-weight: 900;
-        letter-spacing: 0.12em;
+    .rl-cover-display {
+        font-family: var(--rl-font);
+        font-size: clamp(1.4rem, 2.5vw, 2.15rem);
+        font-weight: 950;
+        line-height: 0.94;
+        letter-spacing: -0.04em;
         text-transform: uppercase;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+        color: #FFFFFF;
+        text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
+        max-width: 20ch;
     }
 
-    .rl-badge-countdown {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #030712;
-        color: var(--rl-lime);
-        border: 1px solid rgba(184, 255, 0, 0.4);
-        padding: 0.3rem 0.65rem;
-        border-radius: 2px;
-        font-size: 0.62rem;
-        font-weight: 900;
-        letter-spacing: 0.1em;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-    }
-
-    .rl-badge-live {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #022c22;
-        color: #34d399;
-        border: 1px solid #059669;
-        padding: 0.3rem 0.65rem;
-        border-radius: 2px;
-        font-size: 0.62rem;
-        font-weight: 900;
-        letter-spacing: 0.08em;
-    }
-
-    .rl-mini-dot {
-        width: 5px;
-        height: 5px;
-        background: var(--rl-lime);
-        border-radius: 50%;
-    }
-
-    .rl-mini-dot-live {
-        width: 5px;
-        height: 5px;
-        background: #34d399;
-        border-radius: 50%;
-    }
-
-    /* Details Panel */
-    .rl-slide-details {
-        padding: 1.25rem 1.4rem 1.4rem;
-        background: #080E18;
+    /* EDITORIAL DISPATCH BLOCK (Under Photo) */
+    .rl-slide-editorial {
+        background: #0D0F12;
+        border-top: 1px solid #1A1D23;
+        padding: 1.35rem 1.45rem 1.5rem;
         display: flex;
         flex-direction: column;
         flex: 1;
         box-sizing: border-box;
     }
 
-    .rl-slide-meta-row {
+    /* Badge Kategori Kecil (Typographic Eyebrow, Bukan Kotak) */
+    .rl-editorial-eyebrow {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-size: 0.65rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        font-family: var(--rl-mono);
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
-        margin-bottom: 0.45rem;
+        color: #9E9E96;
     }
 
-    .rl-meta-eyebrow { color: var(--rl-lime); }
-    .rl-meta-pipe { color: #334155; }
-    .rl-meta-date { color: #94A3B8; }
+    .rl-eyebrow-accent {
+        width: 5px;
+        height: 5px;
+        background: var(--rl-lime);
+        border-radius: 1px;
+    }
 
-    .rl-slide-headline {
-        margin: 0;
-        font-size: clamp(1.2rem, 2vw, 1.55rem);
+    .rl-eyebrow-text {
+        color: var(--rl-lime);
+        font-weight: 800;
+    }
+
+    .rl-eyebrow-sep {
+        color: #3F444E;
+    }
+
+    .rl-eyebrow-cat {
+        color: #D4D4CE;
+    }
+
+    .rl-eyebrow-status {
+        color: var(--rl-lime);
+        font-weight: 800;
+    }
+
+    /* Magazine Headline (Sleek, Athletic & Bold) */
+    .rl-editorial-headline {
+        margin: 0.65rem 0 0.75rem;
+        font-family: var(--rl-font);
+        font-size: clamp(1.2rem, 2vw, 1.6rem);
         font-weight: 900;
         line-height: 1.2;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.03em;
         text-transform: uppercase;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -1181,90 +1110,82 @@
         overflow: hidden;
     }
 
-    .rl-slide-headline a {
-        color: #FFFFFF;
+    .rl-editorial-headline a {
+        color: #F5F5F0;
         text-decoration: none;
         transition: color 0.15s ease;
     }
 
-    .rl-slide-headline a:hover {
+    .rl-editorial-headline a:hover {
         color: var(--rl-lime);
     }
 
-    .rl-slide-location {
+    /* Metadata Row (Date & Location) */
+    .rl-editorial-meta {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        color: #CBD5E1;
-        font-size: 0.72rem;
-        font-weight: 700;
-        margin-top: 0.65rem;
-    }
-
-    .rl-slide-pills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-        margin-top: 0.75rem;
-    }
-
-    .rl-pill {
-        background: #0E1A2E;
-        color: #E2E8F0;
-        border: 1px solid #1E2D45;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
+        gap: 0.5rem;
+        font-family: var(--rl-mono);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        border-radius: 2px;
+        color: #73736C;
+        margin-bottom: 1.25rem;
     }
 
-    .rl-slide-cta {
-        margin-top: 1.25rem;
+    .rl-meta-sep {
+        color: #3F444E;
+    }
+
+    /* CTA Button (BACA CERITA) */
+    .rl-editorial-action {
+        margin-top: auto;
         padding-top: 1rem;
-        border-top: 1px solid #162234;
+        border-top: 1px solid #171A20;
     }
 
-    .rl-cta-button {
+    .rl-editorial-cta {
         display: inline-flex;
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        background: #0D1726;
-        color: #FFFFFF;
-        border: 1px solid #22344E;
-        padding: 0.75rem 1rem;
-        border-radius: 2px;
-        font-size: 0.72rem;
-        font-weight: 900;
-        letter-spacing: 0.1em;
+        background: #11141A;
+        color: #F5F5F0;
+        border: 1px solid #222731;
+        padding: 0.75rem 1.15rem;
+        border-radius: 3px;
+        font-family: var(--rl-mono);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         text-decoration: none;
         transition: all 0.15s ease;
         box-sizing: border-box;
     }
 
-    .rl-cta-button svg {
+    .rl-editorial-cta svg {
+        width: 0.85rem;
+        height: 0.85rem;
         color: var(--rl-lime);
         transition: transform 0.15s ease;
     }
 
-    .rl-cta-button:hover {
-        background: var(--rl-lime);
+    .rl-editorial-cta:hover {
+        background: #171C24;
         border-color: var(--rl-lime);
-        color: #05080E;
+        color: #FFFFFF;
     }
 
-    .rl-cta-button:hover svg {
-        color: #05080E;
-        transform: translateX(3px);
+    .rl-editorial-cta:hover svg {
+        transform: translateX(4px);
     }
 
-    /* Deck Progress Bar */
+    /* Thin Segment Progress */
     .rl-deck-progress {
         height: 2px;
-        background: #111A29;
+        background: #0E1015;
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: 1fr;
@@ -1272,7 +1193,7 @@
     }
 
     .rl-progress-segment {
-        background: #1E2D44;
+        background: #1A1E26;
         border: none;
         padding: 0;
         cursor: pointer;
@@ -1283,16 +1204,16 @@
         background: var(--rl-lime);
     }
 
-    /* Playlist Tabs (Athletic Dashboard Format) */
-    .rl-playlist {
+    /* BOTTOM SLIDER: INDEKS MAJALAH */
+    .rl-magazine-index {
         width: 100%;
         max-width: 100%;
         min-width: 0;
-        overflow: hidden;
+        margin-top: 0.65rem;
         box-sizing: border-box;
     }
 
-    .rl-playlist-inner {
+    .rl-index-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
         gap: 0.4rem;
@@ -1300,67 +1221,77 @@
         box-sizing: border-box;
     }
 
-    .rl-playlist-item {
+    .rl-index-item {
         display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        background: #080E18;
-        border: 1px solid #162337;
-        border-radius: 2px;
-        padding: 0.55rem 0.7rem;
+        align-items: baseline;
+        gap: 0.55rem;
+        background: #090B0E;
+        border: 1px solid #181B22;
+        border-radius: 3px;
+        padding: 0.65rem 0.85rem;
+        position: relative;
         text-align: left;
         cursor: pointer;
-        transition: all 0.12s ease;
+        transition: all 0.15s ease;
         box-sizing: border-box;
+        overflow: hidden;
     }
 
-    .rl-playlist-item:hover {
-        background: #0E1726;
-        border-color: #243652;
+    .rl-index-item:hover {
+        background: #0E1116;
+        border-color: #262B36;
     }
 
-    .rl-playlist-item.is-active {
-        background: #0B1422;
-        border-color: var(--rl-lime);
-        box-shadow: inset 0 -2px 0 var(--rl-lime);
+    .rl-index-item.is-active {
+        background: #11141B;
+        border-color: #2E3544;
     }
 
-    .rl-item-num {
-        color: #475569;
-        font-size: 0.7rem;
+    .rl-index-num {
+        font-family: var(--rl-mono);
+        font-size: 0.72rem;
         font-weight: 800;
+        color: #52524E;
+        letter-spacing: 0.05em;
+        transition: color 0.15s ease;
+        flex-shrink: 0;
     }
 
-    .rl-playlist-item.is-active .rl-item-num {
+    .rl-index-item.is-active .rl-index-num {
         color: var(--rl-lime);
     }
 
-    .rl-item-content {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    }
-
-    .rl-item-tag {
-        color: var(--rl-lime);
-        font-size: 0.55rem;
-        font-weight: 900;
-        letter-spacing: 0.08em;
-        line-height: 1;
-    }
-
-    .rl-item-title {
-        color: #94A3B8;
-        font-size: 0.68rem;
-        font-weight: 700;
+    .rl-index-title {
+        color: #73736C;
+        font-size: 0.74rem;
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: 0.2rem;
+        transition: color 0.15s ease;
     }
 
-    .rl-playlist-item.is-active .rl-item-title {
-        color: #FFFFFF;
+    .rl-index-item:hover .rl-index-title {
+        color: #B5B5AF;
+    }
+
+    .rl-index-item.is-active .rl-index-title {
+        color: #F5F5F0;
+        font-weight: 700;
+    }
+
+    .rl-index-indicator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: transparent;
+        transition: background 0.15s ease;
+    }
+
+    .rl-index-item.is-active .rl-index-indicator {
+        background: var(--rl-lime);
     }
 
     /* ----------------------------------------------------
@@ -2311,58 +2242,45 @@
         .rl-tele-lbl { font-size: 0.58rem; line-height: 1.2; }
         .rl-tele-pipe { height: 1.5rem; }
 
-        /* Floating Badges Collision Safe */
-        .rl-float-badges {
-            top: 0.65rem;
-            left: 0.65rem;
-            right: 0.65rem;
-            gap: 0.35rem;
-        }
-
-        .rl-badge-category,
-        .rl-badge-countdown,
-        .rl-badge-live {
-            font-size: 0.58rem;
-            padding: 0.25rem 0.5rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         .rl-slide-viewport {
-            aspect-ratio: 16 / 9;
-            max-height: 205px;
+            aspect-ratio: 16 / 10;
+            min-height: 210px;
+            max-height: 250px;
         }
 
-        .rl-slide-details {
-            padding: 1rem 1.15rem 1.25rem;
+        .rl-cover-display {
+            font-size: clamp(1.15rem, 5.2vw, 1.45rem);
         }
 
-        .rl-slide-headline {
-            font-size: clamp(1.1rem, 4.8vw, 1.35rem);
-            line-height: 1.22;
+        .rl-cover-headline-wrap {
+            bottom: 0.85rem;
+            right: 0.85rem;
+            left: 0.85rem;
         }
 
-        .rl-slide-cta {
-            margin-top: 1rem;
-            padding-top: 0.85rem;
+        .rl-slide-editorial {
+            padding: 1.15rem 1.15rem 1.25rem;
         }
 
-        /* Playlist swipeable strip on phone */
-        .rl-playlist-inner {
+        .rl-editorial-headline {
+            font-size: clamp(1.15rem, 4.8vw, 1.4rem);
+        }
+
+        /* Index grid swipeable on phone */
+        .rl-index-grid {
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            padding-bottom: 0.35rem;
+            padding-bottom: 0.25rem;
             gap: 0.4rem;
         }
 
-        .rl-playlist-item {
-            flex: 0 0 145px;
-            min-width: 145px;
-            max-width: 145px;
+        .rl-index-item {
+            flex: 0 0 160px;
+            min-width: 160px;
+            max-width: 160px;
             scroll-snap-align: start;
-            padding: 0.45rem 0.6rem;
+            padding: 0.55rem 0.75rem;
         }
 
         /* Common sections mobile */
@@ -2484,7 +2402,7 @@ function initFeaturedSlider() {
     const next = document.getElementById('heroFeaturedNext');
     const currentIndexEl = document.getElementById('heroCurrentIndex');
     const playlist = document.getElementById('heroFeaturedPlaylist');
-    const playlistTabs = playlist ? [...playlist.querySelectorAll('.rl-playlist-item')] : [];
+    const playlistTabs = playlist ? [...playlist.querySelectorAll('.rl-index-item, .rl-playlist-item')] : [];
 
     if (!track) return;
 
