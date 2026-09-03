@@ -953,6 +953,7 @@
 
     /* Slider Track */
     .rl-deck-track {
+        position: relative;
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -2414,16 +2415,8 @@ function initFeaturedSlider() {
 
     let activeIndex = 0;
     let timer = null;
-    let frame = null;
-
-    let isPointerDown = false;
-    let startX = 0;
-    let startY = 0;
-    let initialScrollLeft = 0;
-    let startTime = 0;
-    let isSwiping = false;
-    let movedDistanceX = 0;
-    let preventClick = false;
+    let isProgrammaticScrolling = false;
+    let scrollLockTimeout = null;
 
     function updateNav() {
         if (currentIndexEl) {
@@ -2432,8 +2425,9 @@ function initFeaturedSlider() {
 
         if (dots) {
             [...dots.children].forEach((item, index) => {
-                item.classList.toggle('is-active', index === activeIndex);
-                item.setAttribute('aria-current', index === activeIndex ? 'true' : 'false');
+                const isActive = index === activeIndex;
+                item.classList.toggle('is-active', isActive);
+                item.setAttribute('aria-current', isActive ? 'true' : 'false');
             });
         }
 
@@ -2442,8 +2436,17 @@ function initFeaturedSlider() {
                 tab.classList.toggle('is-active', index === activeIndex);
             });
             const activeTab = playlistTabs[activeIndex];
-            if (activeTab && activeTab.scrollIntoView) {
-                activeTab.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            if (activeTab && playlist) {
+                const grid = playlist.querySelector('.rl-index-grid') || playlist;
+                if (grid && grid.scrollWidth > grid.clientWidth) {
+                    const tabLeft = activeTab.offsetLeft;
+                    const tabWidth = activeTab.offsetWidth;
+                    const gridWidth = grid.clientWidth;
+                    grid.scrollTo({
+                        left: tabLeft - (gridWidth / 2) + (tabWidth / 2),
+                        behavior: 'smooth'
+                    });
+                }
             }
         }
     }
@@ -2451,33 +2454,36 @@ function initFeaturedSlider() {
     function goTo(index, smooth = true) {
         activeIndex = (index + slides.length) % slides.length;
         const targetSlide = slides[activeIndex];
+
+        isProgrammaticScrolling = true;
+        clearTimeout(scrollLockTimeout);
+
         if (targetSlide) {
             track.scrollTo({
                 left: targetSlide.offsetLeft,
                 behavior: (reducedMotion || !smooth) ? 'auto' : 'smooth'
             });
         }
+
         updateNav();
+
+        scrollLockTimeout = setTimeout(() => {
+            isProgrammaticScrolling = false;
+        }, (reducedMotion || !smooth) ? 60 : 500);
     }
 
     function detectActive() {
-        if (isPointerDown) return;
-        const center = track.scrollLeft + track.clientWidth / 2;
-        let closest = 0;
-        let closestDistance = Infinity;
+        if (isProgrammaticScrolling) return;
 
-        slides.forEach((slide, index) => {
-            const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
-            const distance = Math.abs(slideCenter - center);
+        const width = track.clientWidth;
+        if (!width) return;
 
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closest = index;
-            }
-        });
+        const scrollLeft = track.scrollLeft;
+        const rawIndex = Math.round(scrollLeft / width);
+        const newIndex = Math.max(0, Math.min(slides.length - 1, rawIndex));
 
-        if (closest !== activeIndex) {
-            activeIndex = closest;
+        if (newIndex !== activeIndex) {
+            activeIndex = newIndex;
             updateNav();
         }
     }
@@ -2489,7 +2495,7 @@ function initFeaturedSlider() {
     }
 
     function startAuto() {
-        if (reducedMotion || document.hidden || timer || isPointerDown) return;
+        if (reducedMotion || document.hidden || timer) return;
         timer = setInterval(() => goTo(activeIndex + 1), 7000);
     }
 
@@ -2498,6 +2504,7 @@ function initFeaturedSlider() {
         startAuto();
     }
 
+    // Initialize progress dots
     if (dots) {
         dots.innerHTML = '';
         slides.forEach((_, index) => {
@@ -2511,9 +2518,9 @@ function initFeaturedSlider() {
             });
             dots.appendChild(button);
         });
-        updateNav();
     }
 
+    // Initialize playlist tabs
     if (playlistTabs.length) {
         playlistTabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
@@ -2523,119 +2530,30 @@ function initFeaturedSlider() {
         });
     }
 
-    track.addEventListener('click', (e) => {
-        if (preventClick) {
-            e.preventDefault();
-            e.stopPropagation();
-            preventClick = false;
-        }
-    }, true);
-
-    track.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 1) return;
-        stopAuto();
-        const touch = e.touches[0];
-        isPointerDown = true;
-        isSwiping = false;
-        startX = touch.clientX;
-        startY = touch.clientY;
-        initialScrollLeft = track.scrollLeft;
-        startTime = Date.now();
-        movedDistanceX = 0;
-    }, { passive: true });
-
-    track.addEventListener('touchmove', (e) => {
-        if (!isPointerDown) return;
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - startX;
-        const deltaY = touch.clientY - startY;
-
-        if (!isSwiping && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-            isSwiping = true;
-            track.classList.add('is-dragging');
-        }
-
-        if (isSwiping) {
-            movedDistanceX = deltaX;
-            track.scrollLeft = initialScrollLeft - deltaX;
-        }
-    }, { passive: true });
-
-    function handleTouchEnd() {
-        if (!isPointerDown) return;
-        isPointerDown = false;
-        track.classList.remove('is-dragging');
-
-        const elapsed = Date.now() - startTime;
-        const velocityThreshold = Math.abs(movedDistanceX) > 35 && elapsed < 320;
-        const distanceThreshold = Math.abs(movedDistanceX) > track.clientWidth * 0.2;
-
-        if (isSwiping && (velocityThreshold || distanceThreshold)) {
-            preventClick = true;
-            if (movedDistanceX < 0) {
-                goTo(activeIndex + 1);
-            } else {
-                goTo(activeIndex - 1);
-            }
-        } else if (isSwiping) {
-            preventClick = Math.abs(movedDistanceX) > 15;
-            goTo(activeIndex);
-        }
-
-        setTimeout(() => {
-            preventClick = false;
-        }, 120);
-
-        restartAuto();
-    }
-
-    track.addEventListener('touchend', handleTouchEnd, { passive: true });
-    track.addEventListener('touchcancel', handleTouchEnd, { passive: true });
-
-    track.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        stopAuto();
-        isPointerDown = true;
-        isSwiping = false;
-        startX = e.clientX;
-        startY = e.clientY;
-        initialScrollLeft = track.scrollLeft;
-        startTime = Date.now();
-        movedDistanceX = 0;
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isPointerDown) return;
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-
-        if (!isSwiping && Math.abs(deltaX) > 6) {
-            isSwiping = true;
-            track.classList.add('is-dragging');
-        }
-
-        if (isSwiping) {
-            movedDistanceX = deltaX;
-            track.scrollLeft = initialScrollLeft - deltaX;
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (!isPointerDown) return;
-        handleTouchEnd();
-    });
-
+    // Scroll listener for manual swipe / scroll
+    let scrollRaf = null;
     track.addEventListener('scroll', () => {
-        if (frame || isPointerDown) return;
-        frame = requestAnimationFrame(() => {
+        if (isProgrammaticScrolling) return;
+        if (scrollRaf) cancelAnimationFrame(scrollRaf);
+        scrollRaf = requestAnimationFrame(() => {
             detectActive();
-            frame = null;
         });
     }, { passive: true });
 
+    if ('onscrollend' in window) {
+        track.addEventListener('scrollend', () => {
+            isProgrammaticScrolling = false;
+            detectActive();
+        }, { passive: true });
+    }
+
+    // Hover and touch pause
     track.addEventListener('mouseenter', stopAuto, { passive: true });
-    track.addEventListener('mouseleave', () => {
-        if (!isPointerDown) startAuto();
+    track.addEventListener('mouseleave', startAuto, { passive: true });
+
+    track.addEventListener('touchstart', stopAuto, { passive: true });
+    track.addEventListener('touchend', () => {
+        setTimeout(restartAuto, 1000);
     }, { passive: true });
 
     prev?.addEventListener('click', () => {
@@ -2652,6 +2570,7 @@ function initFeaturedSlider() {
         document.hidden ? stopAuto() : startAuto();
     });
 
+    updateNav();
     startAuto();
 }
 

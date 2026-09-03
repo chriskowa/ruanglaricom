@@ -85,7 +85,7 @@
             <div class="p-4 flex flex-col flex-1 min-w-0">
                 
                 <!-- Category / Brand Header -->
-                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1 truncate">
+                <div class="text-[10px] uppercase tracking-wider text-slate-300 font-bold mb-1 truncate">
                     {{ $metaHeader }}
                 </div>
                 
@@ -102,17 +102,17 @@
                 </div>
                 
                 <!-- Seller & Location Meta -->
-                <div class="pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-400">
+                <div class="pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-300">
                     @if($product->seller)
                         <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-white transition truncate font-medium">
                             <span class="truncate">{{ $product->seller->name ?? 'Seller' }}</span>
                         </a>
                     @else
-                        <span class="italic truncate text-slate-500 font-medium">Seller</span>
+                        <span class="italic truncate text-slate-400 font-medium">Seller</span>
                     @endif
 
                     @if($product->seller && $product->seller->city)
-                    <span class="text-slate-500 shrink-0 max-w-[45%] truncate text-right font-medium" title="{{ $product->seller->city->name }}">
+                    <span class="text-slate-400 shrink-0 max-w-[45%] truncate text-right font-medium" title="{{ $product->seller->city->name }}">
                         {{ $product->seller->city->name }}
                     </span>
                     @endif

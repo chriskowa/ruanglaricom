@@ -46,19 +46,19 @@
         
         <!-- Breadcrumb & Top Bar -->
         <nav class="flex flex-wrap items-center justify-between gap-3 mb-8 border-b border-slate-800/80 pb-4 text-xs font-sans">
-            <a href="{{ route('marketplace.index') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition group">
+            <a href="{{ route('marketplace.index') }}" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition group">
                 <i class="fas fa-arrow-left text-[11px] group-hover:-translate-x-0.5 transition-transform"></i>
                 <span class="uppercase tracking-wider font-semibold">Kembali ke Katalog</span>
             </a>
             
-            <div class="flex items-center gap-2 text-slate-500 uppercase tracking-wider text-[11px]">
+            <div class="flex items-center gap-2 text-slate-400 uppercase tracking-wider text-[11px]">
                 <span>Market</span>
                 <span>/</span>
                 <a href="{{ route('marketplace.index', ['category' => optional($product->category)->slug]) }}" class="hover:text-neon transition font-semibold">
                     {{ $product->category ? $product->category->name : 'Gear' }}
                 </a>
                 <span>/</span>
-                <span class="text-slate-300 font-bold truncate max-w-[180px] sm:max-w-[280px]">{{ $product->title }}</span>
+                <span class="text-slate-200 font-bold truncate max-w-[180px] sm:max-w-[280px]">{{ $product->title }}</span>
             </div>
         </nav>
 
@@ -162,13 +162,13 @@
                 <!-- Category, Brand & Views Meta -->
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
                     <div class="flex items-center gap-2">
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-850 px-3 py-1 rounded-md border border-slate-750">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-200 bg-slate-850 px-3 py-1 rounded-md border border-slate-700">
                             {{ $product->brand ? $product->brand->name : 'GENUINE GEAR' }} • {{ $product->category ? $product->category->name : 'RUNNING' }}
                         </span>
                     </div>
 
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-400 text-xs font-semibold">
-                        <i class="fas fa-eye text-slate-500"></i>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 text-xs font-semibold">
+                        <i class="fas fa-eye text-slate-400"></i>
                         <span>{{ number_format($product->views_count ?? 0) }} Dilihat</span>
                     </div>
                 </div>
@@ -179,8 +179,8 @@
                 </h1>
 
                 <!-- Price Box -->
-                <div class="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
-                    <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                <div class="p-6 rounded-lg bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
+                    <div class="text-xs text-slate-300 font-bold uppercase tracking-wider">
                         {{ $product->sale_type === 'auction' ? 'Current Bid (Penawaran Tertinggi)' : 'Harga' }}
                     </div>
                     
@@ -200,7 +200,7 @@
                                 Stok Siap Kirim ({{ $product->stock }} Unit)
                             </span>
                             @if(optional($product->seller)->city)
-                                <span class="text-slate-400">
+                                <span class="text-slate-300 font-semibold">
                                     {{ $product->seller->city->name }}
                                 </span>
                             @endif
@@ -213,10 +213,10 @@
                     <div class="p-5 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-3">
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-amber-400 uppercase font-bold tracking-wider">Status Lelang</span>
-                            <span class="text-slate-300 font-semibold font-mono">Kelipatan Bid: Rp {{ number_format($product->min_increment ?? 50000, 0, ',', '.') }}</span>
+                            <span class="text-slate-200 font-semibold font-mono">Kelipatan Bid: Rp {{ number_format($product->min_increment ?? 50000, 0, ',', '.') }}</span>
                         </div>
                         @if($product->auction_end_at)
-                            <p class="text-xs text-slate-400">
+                            <p class="text-xs text-slate-300">
                                 Berakhir pada: <strong class="text-white">{{ $product->auction_end_at->format('d M Y, H:i') }} WIB</strong>
                             </p>
                         @endif
@@ -225,33 +225,33 @@
 
                 <!-- Key Specifications Metric Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Kondisi</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Kondisi</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->condition === 'new' ? 'Baru' : 'Bekas' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ukuran / Size</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Ukuran / Size</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->size ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Brand</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Brand</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ optional($product->brand)->name ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Kategori</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Kategori</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ optional($product->category)->name ?: '-' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Tipe Gear</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Tipe Gear</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->type ?: 'Running Gear' }}</span>
                     </div>
 
-                    <div class="p-3.5 rounded-md bg-slate-900/60 border border-slate-800">
-                        <span class="block text-[11px] font-bold uppercase text-slate-500 tracking-wider">Lokasi Seller</span>
+                    <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
+                        <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Lokasi Seller</span>
                         <span class="block text-sm font-bold text-white uppercase mt-0.5 truncate">{{ optional(optional($product->seller)->city)->name ?: 'Indonesia' }}</span>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
                                 <p class="text-sm font-bold text-white">{{ optional($product->seller)->name ?? 'Runner' }}</p>
                                 <span class="text-[10px] font-bold text-neon bg-neon/10 px-2 py-0.5 rounded border border-neon/20 uppercase">Verified</span>
                             </div>
-                            <p class="text-xs text-slate-400 font-medium mt-0.5">
+                            <p class="text-xs text-slate-300 font-medium mt-0.5">
                                 {{ optional(optional($product->seller)->city)->name ?: 'Member Komunitas' }}
                             </p>
                         </div>
@@ -301,7 +301,7 @@
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <form method="POST" action="{{ route('marketplace.cart.add-product', $product->id) }}" class="flex-1">
                                         @csrf
-                                        <button type="submit" class="w-full py-4 rounded-xl bg-slate-850 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition flex items-center justify-center gap-2">
+                                        <button type="submit" class="w-full py-3.5 rounded-md bg-slate-850 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition flex items-center justify-center gap-2">
                                             <i class="fas fa-cart-plus text-sm"></i>
                                             <span>+ Keranjang</span>
                                         </button>
@@ -310,15 +310,15 @@
                                     <form method="POST" action="{{ route('marketplace.checkout.init') }}" class="flex-1">
                                         @csrf
                                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                        <button type="submit" class="w-full py-4 rounded-xl bg-white hover:bg-slate-200 text-dark font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg shadow-white/5">
+                                        <button type="submit" class="w-full py-3.5 rounded-md bg-white hover:bg-slate-200 text-dark font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm">
                                             <span>Beli Sekarang</span>
                                             <i class="fas fa-arrow-right text-xs"></i>
                                         </button>
                                     </form>
                                 </div>
                             @else
-                                <div class="p-4 rounded-xl bg-slate-850 border border-slate-750 text-center">
-                                    <span class="text-xs text-slate-400">Ini adalah produk listing milik Anda sendiri.</span>
+                                <div class="p-4 rounded-lg bg-slate-850 border border-slate-750 text-center">
+                                    <span class="text-xs text-slate-200">Ini adalah produk listing milik Anda sendiri.</span>
                                     <div class="mt-2 flex items-center justify-center gap-2">
                                         <a href="{{ route('marketplace.seller.products.edit', $product->id) }}" class="text-xs text-neon hover:underline font-bold">
                                             Edit Produk Ini
@@ -327,7 +327,7 @@
                                 </div>
                             @endif
                         @else
-                            <a href="{{ route('login', ['redirect' => route('marketplace.show', $product->slug)]) }}" class="block w-full py-4 rounded-xl bg-white hover:bg-slate-200 text-dark font-black text-xs uppercase tracking-wider text-center transition shadow-lg">
+                            <a href="{{ route('login', ['redirect' => route('marketplace.show', $product->slug)]) }}" class="block w-full py-3.5 rounded-md bg-white hover:bg-slate-200 text-dark font-black text-xs uppercase tracking-wider text-center transition shadow-sm">
                                 Login untuk Melakukan Pembelian
                             </a>
                         @endauth
@@ -335,20 +335,20 @@
                 @endif
 
                 <!-- Product Description Section -->
-                <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+                <div class="p-6 rounded-lg bg-slate-900/60 border border-slate-800 space-y-4">
                     <h2 class="text-xs font-bold uppercase tracking-wider text-white border-b border-slate-800/80 pb-3">
                         Deskripsi & Detail Produk
                     </h2>
-                    <div class="text-slate-300 text-sm leading-relaxed whitespace-pre-line font-sans">
+                    <div class="text-slate-200 text-sm leading-relaxed whitespace-pre-line font-sans">
                         {{ $product->description }}
                     </div>
                 </div>
 
                 <!-- Guarantee & Shipping Assurance Note -->
-                <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 flex items-start gap-3 text-xs text-slate-400 font-sans leading-relaxed">
+                <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800/80 flex items-start gap-3 text-xs text-slate-300 font-sans leading-relaxed">
                     <i class="fas fa-shield-alt text-neon text-sm mt-0.5 shrink-0"></i>
                     <div>
-                        <strong class="text-slate-200 block font-bold mb-0.5">Keamanan Transaksi RuangLari</strong>
+                        <strong class="text-slate-100 block font-bold mb-0.5">Keamanan Transaksi RuangLari</strong>
                         Semua transaksi dilindungi sistem escrow rekening bersama platform. Dana seller baru diteruskan setelah pembeli menerima gear sesuai deskripsi.
                     </div>
                 </div>
@@ -366,7 +366,7 @@
                             GEAR SERUPA LAINNYA
                         </h2>
                     </div>
-                    <a href="{{ route('marketplace.index', ['category' => optional($product->category)->slug]) }}" class="text-xs font-bold text-slate-400 hover:text-white transition uppercase tracking-wider">
+                    <a href="{{ route('marketplace.index', ['category' => optional($product->category)->slug]) }}" class="text-xs font-bold text-slate-300 hover:text-white transition uppercase tracking-wider">
                         Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
@@ -395,10 +395,10 @@
         <!-- Top Lightbox Header -->
         <div class="flex items-center justify-between z-10">
             <div class="flex items-center gap-3">
-                <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 text-xs font-bold">
+                <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold">
                     <span x-text="lightboxIndex + 1"></span> / <span x-text="imagesList.length || 1"></span>
                 </span>
-                <span class="text-xs font-bold text-slate-400 uppercase truncate max-w-[200px] sm:max-w-md">
+                <span class="text-xs font-bold text-slate-200 uppercase truncate max-w-[200px] sm:max-w-md">
                     {{ $product->title }}
                 </span>
             </div>
