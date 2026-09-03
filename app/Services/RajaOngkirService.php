@@ -23,7 +23,7 @@ class RajaOngkirService
      */
     public function getCities(): array
     {
-        return Cache::remember('rajaongkir_all_cities', 86400 * 7, function () {
+        return Cache::remember('rajaongkir_all_cities_v2', 86400 * 7, function () {
             try {
                 $response = Http::withHeaders([
                     'key' => $this->apiKey,
@@ -96,9 +96,28 @@ class RajaOngkirService
         $allCities = $this->getCities();
         $q = strtolower(trim($cityName));
 
-        // Strip prefix "Kota" / "Kabupaten"
-        $cleanQ = preg_replace('/^(kota|kabupaten|kab\.)\s+/i', '', $q);
+        // 1. Detect preference for Kota vs Kabupaten
+        $wantsKota = (bool) preg_match('/\b(kota|kotamadya)\b/i', $q);
+        $wantsKabupaten = (bool) preg_match('/\b(kabupaten|kab|kab\.)\b/i', $q);
 
+        // Strip prefix and suffix
+        $cleanQ = preg_replace('/^(kota|kabupaten|kab\.)\s+/i', '', $q);
+        $cleanQ = preg_replace('/\s+(kota|kabupaten|kab\.)$/i', '', $cleanQ);
+        $cleanQ = trim($cleanQ);
+
+        // A. Exact match considering type (e.g. "Malang Kota" -> type: "Kota", name: "Malang")
+        if ($wantsKota || $wantsKabupaten) {
+            $targetType = $wantsKota ? 'kota' : 'kabupaten';
+            foreach ($allCities as $city) {
+                $name = strtolower($city['city_name'] ?? '');
+                $type = strtolower($city['type'] ?? '');
+                if ($name === $cleanQ && $type === $targetType) {
+                    return (int) $city['city_id'];
+                }
+            }
+        }
+
+        // B. Exact match on city_name only
         foreach ($allCities as $city) {
             $name = strtolower($city['city_name'] ?? '');
             if ($name === $cleanQ || $name === $q) {
@@ -106,6 +125,19 @@ class RajaOngkirService
             }
         }
 
+        // C. Partial match considering type
+        if ($wantsKota || $wantsKabupaten) {
+            $targetType = $wantsKota ? 'kota' : 'kabupaten';
+            foreach ($allCities as $city) {
+                $name = strtolower($city['city_name'] ?? '');
+                $type = strtolower($city['type'] ?? '');
+                if ($type === $targetType && (str_contains($name, $cleanQ) || str_contains($cleanQ, $name))) {
+                    return (int) $city['city_id'];
+                }
+            }
+        }
+
+        // D. Any partial match
         foreach ($allCities as $city) {
             $name = strtolower($city['city_name'] ?? '');
             if (str_contains($name, $cleanQ) || str_contains($cleanQ, $name)) {
@@ -114,6 +146,46 @@ class RajaOngkirService
         }
 
         return 152; // Default fallback to Jakarta Selatan
+    }
+
+    /**
+     * Check if two city IDs belong to the same local metropolitan / twin-city zone
+     */
+    public function areTwinCities(int $originId, int $destId): bool
+    {
+        if ($originId === $destId) {
+            return true;
+        }
+
+        // Twin city pairs (Kota & Kabupaten in the same delivery area)
+        $twins = [
+            [255, 256], // Malang (Kabupaten & Kota)
+            [22, 23],   // Bandung (Kota & Kabupaten)
+            [78, 79],   // Bogor (Kota & Kabupaten)
+            [54, 55],   // Bekasi (Kota & Kabupaten)
+            [455, 456], // Tangerang (Kabupaten & Kota)
+            [457, 458], // Tangerang Selatan & Tangerang
+            [418, 420], // Semarang (Kabupaten & Kota)
+            [444, 445], // Surakarta / Solo
+            [108, 109], // Cirebon (Kota & Kabupaten)
+            [398, 399], // Probolinggo (Kabupaten & Kota)
+            [342, 343], // Pasuruan (Kabupaten & Kota)
+            [246, 247], // Madiun (Kabupaten & Kota)
+            [177, 178], // Kediri (Kabupaten & Kota)
+            [430, 431], // Sukabumi (Kabupaten & Kota)
+            [468, 469], // Tasikmalaya (Kabupaten & Kota)
+            [427, 428], // Serang (Kabupaten & Kota)
+            [151, 152, 153, 154, 155], // DKI Jakarta zones
+            [501, 419, 39], // Yogyakarta, Sleman, Bantul
+        ];
+
+        foreach ($twins as $group) {
+            if (in_array($originId, $group, true) && in_array($destId, $group, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -131,7 +203,7 @@ class RajaOngkirService
         $results = [];
 
         foreach ($couriers as $courier) {
-            $cacheKey = "ro_cost_{$originCityId}_{$destinationCityId}_{$weightInGrams}_{$courier}";
+            $cacheKey = "ro_cost_v2_{$originCityId}_{$destinationCityId}_{$weightInGrams}_{$courier}";
 
             $courierServices = Cache::remember($cacheKey, 3600, function () use ($originCityId, $destinationCityId, $weightInGrams, $courier) {
                 return $this->fetchCourierCost($originCityId, $destinationCityId, $weightInGrams, $courier);
@@ -214,7 +286,7 @@ class RajaOngkirService
      */
     protected function getFallbackShippingOptions(int $origin, int $destination): array
     {
-        $isSameCity = ($origin === $destination);
+        $isSameCity = ($origin === $destination) || $this->areTwinCities($origin, $destination);
 
         return [
             [
@@ -222,36 +294,36 @@ class RajaOngkirService
                 'courier_name' => 'JNE',
                 'service' => 'REG',
                 'description' => 'Layanan Reguler',
-                'cost' => $isSameCity ? 12000 : 22000,
+                'cost' => $isSameCity ? 10000 : 22000,
                 'etd' => $isSameCity ? '1-2 hari' : '2-3 hari',
-                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 12000 : 22000, 0, ',', '.'),
+                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 10000 : 22000, 0, ',', '.'),
             ],
             [
                 'courier_code' => 'jne',
                 'courier_name' => 'JNE',
                 'service' => 'YES',
                 'description' => 'Yakin Esok Sampai',
-                'cost' => $isSameCity ? 20000 : 38000,
+                'cost' => $isSameCity ? 18000 : 38000,
                 'etd' => '1 hari',
-                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 20000 : 38000, 0, ',', '.'),
+                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 18000 : 38000, 0, ',', '.'),
             ],
             [
                 'courier_code' => 'pos',
                 'courier_name' => 'POS INDONESIA',
                 'service' => 'KILAT',
                 'description' => 'Pos Kilat Khusus',
-                'cost' => $isSameCity ? 11000 : 20000,
-                'etd' => '2-4 hari',
-                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 11000 : 20000, 0, ',', '.'),
+                'cost' => $isSameCity ? 9000 : 20000,
+                'etd' => $isSameCity ? '1-2 hari' : '2-4 hari',
+                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 9000 : 20000, 0, ',', '.'),
             ],
             [
                 'courier_code' => 'tiki',
                 'courier_name' => 'TIKI',
                 'service' => 'REG',
                 'description' => 'Regular Service',
-                'cost' => $isSameCity ? 13000 : 23000,
-                'etd' => '2-3 hari',
-                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 13000 : 23000, 0, ',', '.'),
+                'cost' => $isSameCity ? 11000 : 23000,
+                'etd' => $isSameCity ? '1-2 hari' : '2-3 hari',
+                'formatted_cost' => 'Rp ' . number_format($isSameCity ? 11000 : 23000, 0, ',', '.'),
             ],
         ];
     }
@@ -261,6 +333,15 @@ class RajaOngkirService
      */
     protected function getLocalCitiesFallback(): array
     {
+        $jsonPath = database_path('data/rajaongkir_cities.json');
+        if (file_exists($jsonPath)) {
+            $json = file_get_contents($jsonPath);
+            $cities = json_decode($json, true);
+            if (!empty($cities) && is_array($cities)) {
+                return $cities;
+            }
+        }
+
         try {
             if (class_exists(City::class)) {
                 return City::with('province')

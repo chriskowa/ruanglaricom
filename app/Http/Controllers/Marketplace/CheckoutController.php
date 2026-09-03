@@ -54,14 +54,16 @@ class CheckoutController extends Controller
             'destination_city_id' => 'required|integer',
         ]);
 
-        $order = MarketplaceOrder::with(['seller', 'items.product'])->findOrFail($request->order_id);
+        $order = MarketplaceOrder::with(['seller.city', 'items.product'])->findOrFail($request->order_id);
 
         if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        // Determine origin city: from seller's profile or product or default (152 = Jakarta Selatan)
-        $sellerCity = $order->seller?->city ?: ($order->seller?->city_name ?? 'Jakarta Selatan');
+        // Determine origin city: from seller's city relation, city_name, or default (152 = Jakarta Selatan)
+        $sellerCity = $order->seller?->city?->name
+            ?: ($order->seller?->city_name
+            ?: 'Jakarta Selatan');
         $originCityId = $rajaOngkirService->findCityIdByName($sellerCity);
         $destinationCityId = (int) $request->destination_city_id;
 
@@ -166,7 +168,12 @@ class CheckoutController extends Controller
             return redirect()->route('marketplace.orders.show', $order->id)->with('info', 'Order already processed.');
         }
 
-        $order->load(['items.product', 'seller']);
+        $order->load(['items.product', 'seller.city']);
+
+        $originCity = $order->seller?->city?->name
+            ?: ($order->seller?->city_name
+            ?: 'Jakarta Selatan');
+        $originCityId = $rajaOngkirService->findCityIdByName($originCity);
 
         $user = Auth::user();
         $wallet = $user->wallet instanceof Wallet ? $user->wallet : null;
@@ -175,47 +182,15 @@ class CheckoutController extends Controller
             return (float) $item->price_snapshot * (int) $item->quantity;
         });
 
-        // Default initial fallback shipping options
-        $shippingOptions = [
-            [
-                'courier_code' => 'jne',
-                'courier_name' => 'JNE',
-                'service' => 'REG',
-                'description' => 'Layanan Reguler',
-                'cost' => 20000,
-                'etd' => '2-3 hari',
-                'formatted_cost' => 'Rp 20.000',
-            ],
-            [
-                'courier_code' => 'pos',
-                'courier_name' => 'POS INDONESIA',
-                'service' => 'KILAT',
-                'description' => 'Pos Kilat Khusus',
-                'cost' => 18000,
-                'etd' => '2-4 hari',
-                'formatted_cost' => 'Rp 18.000',
-            ],
-            [
-                'courier_code' => 'tiki',
-                'courier_name' => 'TIKI',
-                'service' => 'REG',
-                'description' => 'Regular Service',
-                'cost' => 21000,
-                'etd' => '2-3 hari',
-                'formatted_cost' => 'Rp 21.000',
-            ],
-            [
-                'courier_code' => 'pickup',
-                'courier_name' => 'Ambil Sendiri / COD',
-                'service' => 'PICKUP',
-                'description' => 'Ambil langsung di lokasi',
-                'cost' => 0,
-                'etd' => 'Langsung',
-                'formatted_cost' => 'Gratis (Rp 0)',
-            ],
-        ];
+        // Calculate package weight (1000g default per item)
+        $itemCount = $order->items->sum('quantity') ?: 1;
+        $weightInGrams = $itemCount * 1000;
 
-        return view('marketplace.checkout.page', compact('order', 'wallet', 'productSubtotal', 'shippingOptions'));
+        // If order already has destination_city_id, calculate for it. Otherwise calculate for origin (intra-city preview)
+        $destCityId = (int) ($order->destination_city_id ?: $originCityId);
+        $shippingOptions = $rajaOngkirService->calculateShippingCost($originCityId, $destCityId, $weightInGrams);
+
+        return view('marketplace.checkout.page', compact('order', 'wallet', 'productSubtotal', 'shippingOptions', 'originCity'));
     }
 
     public function process(Request $request, MarketplaceOrder $order)
