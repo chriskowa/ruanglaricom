@@ -73,7 +73,7 @@
         display:grid;
         grid-template-columns:1.05fr .95fr;
         gap:3rem;
-        align-items:end;
+        align-items:start;
         margin-top:1rem;
     }
 

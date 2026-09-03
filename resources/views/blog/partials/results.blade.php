@@ -38,6 +38,9 @@
         </div>
     @endforelse
 </div>
-<div class="mt-10">
-    {!! $articles->links() !!}
-</div>
+
+@if($articles->hasPages())
+    <div class="mt-12 flex justify-center">
+        {{ $articles->links('partials.pagination-circle') }}
+    </div>
+@endif
