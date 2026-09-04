@@ -3809,7 +3809,7 @@ function initVdotWidget() {
         scoreDisplay.innerText = vdotVal.toFixed(1);
         fitnessLevelDisplay.innerText = level;
         easyPaceDisplay.innerText =
-            `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowLow || eLowSecPerKm)}`;
+            `${formatSecToMinKm(eHighSecPerKm)} - ${formatSecToMinKm(eLowSecPerKm)}`;
 
         if (marathonPaceDisplay) marathonPaceDisplay.innerText = formatSecToMinKm(mSecPerKm);
         tempoPaceDisplay.innerText = formatSecToMinKm(tSecPerKm);
