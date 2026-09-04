@@ -64,8 +64,7 @@
                 {{-- Left Column: Brand Story, Headline, CTA & Trust Metrics --}}
                 <div class="rl-hero-copy">
                     {{-- 1. Small eyebrow label --}}
-                    <div class="rl-kicker">
-                        <span class="rl-kicker-dot"></span>
+                    <div class="rl-kicker">                        
                         <span class="rl-kicker-text">RUANGLARI &bull; EKOSISTEM LARI INDONESIA</span>
                     </div>
 

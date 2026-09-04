@@ -1,108 +1,353 @@
 <?php
-    $siteTitle = \App\Models\AppSettings::get('site_title', 'RuangLari Indonesia');
-    $siteTagline = \App\Models\AppSettings::get('site_tagline', 'RuangLari adalah portal lari & media race event No.1 di Indonesia. Kami menyajikan berita lari terkini, program latihan lari terstruktur (Daniels VDOT), kalender event marathon terlengkap, serta marketplace gear lari.');
+    $siteTitle = \App\Models\AppSettings::get('site_title', 'Ruang Lari Indonesia');
     $socialInsta = \App\Models\AppSettings::get('social_instagram', 'https://www.instagram.com/ruanglaricom/');
     $socialTiktok = \App\Models\AppSettings::get('social_tiktok', 'https://www.tiktok.com/@ruanglaricom');
-    $socialFb = \App\Models\AppSettings::get('social_facebook', 'https://www.facebook.com/ruanglari');
-    $socialYt = \App\Models\AppSettings::get('social_youtube');
+    $socialStrava = \App\Models\AppSettings::get('social_strava', 'https://www.strava.com/clubs/ruanglari');
+    $socialYt = \App\Models\AppSettings::get('social_youtube', 'https://www.youtube.com/@ruanglaricom');
 ?>
 
-<footer class="bg-slate-950 border-t border-slate-900 pt-16 pb-10 text-slate-400 font-sans" aria-label="Footer RuangLari">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-16">
+<footer class="relative bg-[#020617] border-t border-slate-900/90 text-slate-400 font-sans overflow-hidden" aria-label="Footer Ruang Lari">
+    
+    
+    
+    <div class="absolute top-0 left-1/4 w-[600px] h-[300px] bg-[#C7FF00]/[0.02] blur-[140px] rounded-full pointer-events-none select-none" aria-hidden="true"></div>
+    <div class="absolute bottom-0 right-10 w-[500px] h-[260px] bg-[#C7FF00]/[0.015] blur-[130px] rounded-full pointer-events-none select-none" aria-hidden="true"></div>
+
+    
+    <div class="absolute inset-0 pointer-events-none select-none overflow-hidden z-0" aria-hidden="true">
+        <svg class="absolute -right-20 -bottom-20 w-[840px] h-[840px]" viewBox="0 0 840 840" fill="none" style="mask-image: linear-gradient(to top left, black 50%, transparent 95%); -webkit-mask-image: linear-gradient(to top left, black 50%, transparent 95%);">
+            <defs>
+                <linearGradient id="rlWhiteTrackGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28" />
+                    <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.15" />
+                    <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05" />
+                </linearGradient>
+            </defs>
             
-            <!-- Column 1: Brand & Purpose Statement (2 Cols width on desktop) -->
-            <div class="lg:col-span-2 space-y-4">
-                <a href="<?php echo e(url('/')); ?>" class="inline-flex items-center gap-2.5 group">
-                    <img src="<?php echo e(asset('images/logo saja ruang lari.png')); ?>" alt="<?php echo e($siteTitle); ?> Logo" class="h-8 w-auto group-hover:scale-105 transition duration-300">
-                    <span class="text-2xl font-black italic tracking-tighter text-white whitespace-nowrap">RUANG<span class="pl-1 text-neon">LARI</span></span>
-                </a>
+            <circle cx="840" cy="840" r="280" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8" stroke-dasharray="6 6"/>
+            <circle cx="840" cy="840" r="350" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8"/>
+            <circle cx="840" cy="840" r="420" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8" stroke-dasharray="14 8"/>
+            <circle cx="840" cy="840" r="490" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8"/>
+            <circle cx="840" cy="840" r="560" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8" stroke-dasharray="8 6"/>
+            <circle cx="840" cy="840" r="630" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8"/>
+            <circle cx="840" cy="840" r="700" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8"/>
+            <circle cx="840" cy="840" r="770" stroke="url(#rlWhiteTrackGrad)" stroke-width="1.8"/>
+            
+            <line x1="840" y1="560" x2="840" y2="535" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2.5"/>
+            <line x1="840" y1="490" x2="840" y2="465" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2.5"/>
+            <line x1="840" y1="420" x2="840" y2="395" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2.5"/>
+            <line x1="840" y1="350" x2="840" y2="325" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2.5"/>
+            
+            <text x="548" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">1</text>
+            <text x="478" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">2</text>
+            <text x="408" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">3</text>
+            <text x="338" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">4</text>
+            <text x="268" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">5</text>
+            <text x="198" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">6</text>
+            <text x="128" y="832" fill="#FFFFFF" fill-opacity="0.22" font-size="12" font-weight="800" font-family="monospace">7</text>
+        </svg>
+    </div>
+
+    
+    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 xl:gap-14 pb-16">
+            
+            
+            <div class="lg:col-span-5 space-y-6">
                 
-                <p class="text-slate-400 text-sm leading-relaxed max-w-md">
-                    <?php echo e($siteTagline); ?>
+                
+                <a href="<?php echo e(url('/')); ?>" 
+                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center <?php echo e($lightMode ? 'text-slate-900' : 'text-white'); ?>"
+                        title="RuangLari Utama">
+                        <img src="<?php echo e(asset('images/logo saja ruang lari.png')); ?>" alt="<?php echo e($siteTitle); ?>" class="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105">
+                        RUANG<span class="pl-1" style="<?php echo e($lightMode ? 'color: #000000ff;' : 'color: #ccff00;'); ?>">LARI</span>
+                    </a>
 
-                </p>
-
-                <!-- Key SEO Badges -->
-                <div class="flex flex-wrap gap-2 pt-2">
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-bolt text-neon text-[10px]"></i> Daniels VDOT</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-running text-neon text-[10px]"></i> Cari Teman Lari</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="far fa-calendar-alt text-neon text-[10px]"></i> Race Calendar</span>
-                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5"><i class="fas fa-robot text-neon text-[10px]"></i> AI Biomechanics</span>
+                
+                <div class="pt-1">
+                    <h2 class="text-2xl sm:text-3xl lg:text-[2.1rem] font-black uppercase tracking-tight text-white leading-[1.08] font-sans">
+                        Run Together.<br>
+                        Grow Stronger.<br>
+                        <span class="text-[#C7FF00]">Go Further.</span>
+                    </h2>
+                    <p class="mt-3.5 text-sm text-slate-300 leading-relaxed max-w-md">
+                        Ekosistem lari Indonesia untuk berkembang, terhubung, dan mencapai personal best.
+                    </p>
                 </div>
 
-                <!-- Social Media -->
-                <div class="flex gap-3 pt-3">
-                    <?php if($socialInsta): ?>
-                    <a href="<?php echo e($socialInsta); ?>" target="_blank" rel="noopener noreferrer" aria-label="Instagram RuangLari" class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-950 transition"><i class="fab fa-instagram"></i></a>
-                    <?php endif; ?>
-                    <?php if($socialTiktok): ?>
-                    <a href="<?php echo e($socialTiktok); ?>" target="_blank" rel="noopener noreferrer" aria-label="TikTok RuangLari" class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-950 transition"><i class="fab fa-tiktok"></i></a>
-                    <?php endif; ?>
-                    <?php if($socialFb): ?>
-                    <a href="<?php echo e($socialFb); ?>" target="_blank" rel="noopener noreferrer" aria-label="Facebook RuangLari" class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-950 transition"><i class="fab fa-facebook-f"></i></a>
-                    <?php endif; ?>
-                    <?php if($socialYt): ?>
-                    <a href="<?php echo e($socialYt); ?>" target="_blank" rel="noopener noreferrer" aria-label="YouTube RuangLari" class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-950 transition"><i class="fab fa-youtube"></i></a>
-                    <?php endif; ?>
+                
+                <div class="pt-2">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2.5">
+                        Alat &amp; Fitur Interaktif
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-lg">
+                        
+                        
+                        <a href="<?php echo e(url('/#vdot-section')); ?>" class="group relative flex flex-col p-3 rounded-lg bg-[#060D1F] border border-slate-800 hover:border-[#C7FF00]/70 hover:bg-[#0B152B] transition-all duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold tracking-wider text-[#C7FF00] uppercase">TRAINING LAB</span>
+                                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#C7FF00] group-hover:translate-x-0.5 transition-all" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-white group-hover:text-white transition-colors">VDOT Analyzer</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">Kalkulasi pace &amp; kapasitas aerobik</span>
+                        </a>
+
+                        
+                        <a href="<?php echo e(route('run-connect.index')); ?>" class="group relative flex flex-col p-3 rounded-lg bg-[#060D1F] border border-slate-800 hover:border-[#C7FF00]/70 hover:bg-[#0B152B] transition-all duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold tracking-wider text-[#C7FF00] uppercase">RUN CONNECT</span>
+                                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#C7FF00] group-hover:translate-x-0.5 transition-all" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-white group-hover:text-white transition-colors">Find Running Buddy</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">Temukan teman lari &amp; komunitas</span>
+                        </a>
+
+                        
+                        <a href="<?php echo e(route('events.index')); ?>" class="group relative flex flex-col p-3 rounded-lg bg-[#060D1F] border border-slate-800 hover:border-[#C7FF00]/70 hover:bg-[#0B152B] transition-all duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold tracking-wider text-[#C7FF00] uppercase">RACE AGENDA</span>
+                                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#C7FF00] group-hover:translate-x-0.5 transition-all" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-white group-hover:text-white transition-colors">Race Calendar</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">Jadwal event maraton terverifikasi</span>
+                        </a>
+
+                        
+                        <a href="<?php echo e(route('tools.form-analyzer')); ?>" class="group relative flex flex-col p-3 rounded-lg bg-[#060D1F] border border-slate-800 hover:border-[#C7FF00]/70 hover:bg-[#0B152B] transition-all duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold tracking-wider text-[#C7FF00] uppercase">BIOMECHANICS</span>
+                                <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#C7FF00] group-hover:translate-x-0.5 transition-all" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-white group-hover:text-white transition-colors">AI Running Coach</span>
+                            <span class="text-[11px] text-slate-400 mt-0.5">Analisis form lari &amp; rekomendasi</span>
+                        </a>
+
+                    </div>
                 </div>
             </div>
 
-            <!-- Column 2: Program & Fitur Lari (SEO Keyword Rich Links) -->
-            <div>
-                <h3 class="text-white font-bold mb-5 uppercase text-xs tracking-widest text-neon">Program & Fitur Lari</h3>
-                <ul class="space-y-2.5 text-sm font-medium">
-                    <li><a href="<?php echo e(route('programs.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Katalog Program VDOT</a></li>
-                    <li><a href="<?php echo e(route('landing.program-lari-5k-pemula')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Program Lari 5K Pemula</a></li>
-                    <li><a href="<?php echo e(route('landing.program-lari-10k')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Program Lari 10K Speed</a></li>
-                    <li><a href="<?php echo e(route('landing.program-half-marathon')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Program Half Marathon</a></li>
-                    <li><a href="<?php echo e(route('run-connect.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Cari Teman Lari (Connect)</a></li>
-                    <li><a href="<?php echo e(route('coaches.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Pelatih & Coach Lari</a></li>
-                </ul>
+            
+            <div class="lg:col-span-4 grid grid-cols-3 gap-6 sm:gap-8 pt-2">
+                
+                
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold tracking-widest text-[#C7FF00] uppercase">
+                        Training
+                    </h3>
+                    <ul class="space-y-2.5 text-sm">
+                        <li>
+                            <a href="<?php echo e(route('programs.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Training Program
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('landing.program-lari-5k-pemula')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                5K Beginner Plan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('landing.program-lari-10k')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                10K Speed Plan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('landing.program-half-marathon')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Half Marathon
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('coaches.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Running Coach
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold tracking-widest text-[#C7FF00] uppercase">
+                        Community
+                    </h3>
+                    <ul class="space-y-2.5 text-sm">
+                        <li>
+                            <a href="<?php echo e(route('community.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Running Groups
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('events.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Race Calendar
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('events.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Event Directory
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('gpx.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                GPX Database
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('marketplace.index')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Marketplace Gear
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold tracking-widest text-[#C7FF00] uppercase">
+                        Resources
+                    </h3>
+                    <ul class="space-y-2.5 text-sm">
+                        <li>
+                            <a href="<?php echo e(url('/blog')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Running Articles
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('calculator')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Pace Calculator
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(url('/blog')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Training Tips
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(url('/blog')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Shoe Guide
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo e(route('tools.form-analyzer')); ?>" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                AI Coach
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
 
-            <!-- Column 3: Event & Komunitas Lari -->
-            <div>
-                <h3 class="text-white font-bold mb-5 uppercase text-xs tracking-widest text-neon">Event & Komunitas</h3>
-                <ul class="space-y-2.5 text-sm font-medium">
-                    <li><a href="<?php echo e(route('events.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Jadwal Event Lari 2026</a></li>
-                    <li><a href="<?php echo e(route('community.register.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Direktori Komunitas Lari</a></li>
-                    <li><a href="<?php echo e(route('marketplace.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Marketplace Shoes & Gear</a></li>
-                    <li><a href="<?php echo e(route('gpx.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Database GPX</a></li>
-                    <li><a href="<?php echo e(route('register')); ?>?role=eo" class="hover:text-white hover:translate-x-1 inline-block transition">Registrasi Organizer (EO)</a></li>
-                    <li><a href="<?php echo e(route('vcard.index')); ?>" class="hover:text-white hover:translate-x-1 inline-block transition">Contact Us</a></li>
-                </ul>
-            </div>
+            
+            <div class="lg:col-span-3 space-y-4 pt-2">
+                <div>
+                    <h3 class="text-lg font-bold text-white tracking-tight">
+                        Ready to run?
+                    </h3>
+                    <p class="mt-1 text-xs text-slate-400 leading-relaxed">
+                        Event, training plan, dan tips lari langsung ke inbox kamu.
+                    </p>
+                </div>
 
-            <!-- Column 4: Newsletter & Edukasi SEO -->
-            <div>
-                <h3 class="text-white font-bold mb-5 uppercase text-xs tracking-widest text-neon">Tips Lari & Updates</h3>
-                <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                    Dapatkan update event lari terbaru, tips pace VDOT, dan artikel latihan marathon langsung di inbox email Anda.
-                </p>
-                <form id="newsletter-form" class="flex flex-col gap-2.5" onsubmit="event.preventDefault(); subscribeNewsletter();">
-                    <input type="email" id="newsletter-email" name="email" placeholder="Email Anda..." class="bg-slate-900 text-white text-xs px-3.5 py-2.5 rounded-lg border border-slate-800 w-full focus:border-neon focus:ring-1 focus:ring-neon outline-none transition placeholder-slate-600" required>
-                    <button type="submit" id="newsletter-btn" class="bg-neon text-slate-950 font-bold uppercase text-xs tracking-wider px-3.5 py-2.5 rounded-lg hover:bg-white transition">Subscribe Newsletter</button>
-                    <p id="newsletter-message" class="text-xs mt-1 hidden"></p>
+                <form id="newsletter-form" class="space-y-2.5 pt-1" onsubmit="event.preventDefault(); subscribeNewsletter();">
+                    <label for="newsletter-email" class="sr-only">Alamat Email</label>
+                    <input
+                        type="email"
+                        id="newsletter-email"
+                        name="email"
+                        placeholder="Enter your email"
+                        required
+                        class="w-full bg-[#060D1F] text-white text-xs px-3.5 py-3 rounded-md border border-slate-800 placeholder-slate-500 focus:outline-none focus:border-[#C7FF00] focus:ring-1 focus:ring-[#C7FF00] transition duration-150"
+                    >
+                    <button
+                        type="submit"
+                        id="newsletter-btn"
+                        class="w-full bg-[#C7FF00] hover:bg-white text-[#020617] font-black uppercase text-xs tracking-wider py-3 px-4 rounded-md transition duration-150 flex items-center justify-center gap-1 shadow-sm"
+                    >
+                        <span>JOIN RUN COMMUNITY &rarr;</span>
+                    </button>
+                    <p id="newsletter-message" class="text-xs mt-1.5 hidden"></p>
                 </form>
 
-                <div class="pt-4 border-t border-slate-900 mt-4 flex items-center justify-between text-xs text-slate-400">
-                    <a href="<?php echo e(url('/blog')); ?>" class="hover:text-white transition font-medium">Blog & Artikel Lari</a>
-                    <span>•</span>
-                    <a href="<?php echo e(route('about')); ?>" class="hover:text-white transition font-medium">Tentang RuangLari</a>
-                </div>
+                <p class="text-[11px] text-slate-400 pt-1">
+                    Bebas spam. Berhenti berlangganan kapan saja.
+                </p>
             </div>
 
         </div>
 
-        <!-- Footer Bottom Copyright & Policy -->
-        <div class="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
-            <p>&copy; <?php echo e(date('Y')); ?> RuangLari Indonesia. Ekosistem Pelari & Event Lari No.1 Indonesia. Hak cipta dilindungi.</p>
-            <div class="flex items-center gap-6">
-                <a href="<?php echo e(route('legal', ['tab' => 'privacy'])); ?>" class="hover:text-slate-300 transition">Kebijakan Privasi</a>
-                <a href="<?php echo e(route('legal', ['tab' => 'terms'])); ?>" class="hover:text-slate-300 transition">Syarat & Ketentuan</a>
-                <a href="<?php echo e(route('legal', ['tab' => 'faq'])); ?>" class="hover:text-slate-300 transition">FaQ / Bantuan</a>
+        
+        <div class="border-t border-slate-900 pt-8 mt-2 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+            
+            
+            <div class="flex items-center gap-3 order-2 md:order-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    FOLLOW RUANG LARI
+                </span>
+                <div class="flex items-center gap-2">
+                    
+                    <?php if($socialInsta): ?>
+                    <a href="<?php echo e($socialInsta); ?>" target="_blank" rel="noopener noreferrer" aria-label="Instagram Ruang Lari" class="w-8 h-8 rounded-md bg-[#060D1F] border border-slate-800 flex items-center justify-center text-slate-400 hover:border-[#C7FF00] hover:text-[#C7FF00] transition-colors">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+
+                    
+                    <?php if($socialStrava): ?>
+                    <a href="<?php echo e($socialStrava); ?>" target="_blank" rel="noopener noreferrer" aria-label="Strava Club Ruang Lari" class="w-8 h-8 rounded-md bg-[#060D1F] border border-slate-800 flex items-center justify-center text-slate-400 hover:border-[#C7FF00] hover:text-[#C7FF00] transition-colors">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.925 15.586h4.172"/>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+
+                    
+                    <?php if($socialYt): ?>
+                    <a href="<?php echo e($socialYt); ?>" target="_blank" rel="noopener noreferrer" aria-label="YouTube Ruang Lari" class="w-8 h-8 rounded-md bg-[#060D1F] border border-slate-800 flex items-center justify-center text-slate-400 hover:border-[#C7FF00] hover:text-[#C7FF00] transition-colors">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+
+                    
+                    <?php if($socialTiktok): ?>
+                    <a href="<?php echo e($socialTiktok); ?>" target="_blank" rel="noopener noreferrer" aria-label="TikTok Ruang Lari" class="w-8 h-8 rounded-md bg-[#060D1F] border border-slate-800 flex items-center justify-center text-slate-400 hover:border-[#C7FF00] hover:text-[#C7FF00] transition-colors">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.72 1.42-.08 2.65-.97 3.12-2.31.25-.66.31-1.38.31-2.09.01-4.73 0-9.46.01-14.19z"/>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+                </div>
             </div>
+
+            
+            <div class="order-3 md:order-2 text-center">
+                <p>&copy; 2026 RUANG LARI Indonesia. All rights reserved.</p>
+            </div>
+
+            
+            <div class="flex items-center gap-5 order-1 md:order-3">
+                <a href="<?php echo e(route('legal', ['tab' => 'privacy'])); ?>" class="hover:text-white transition-colors">
+                    Privacy Policy
+                </a>
+                <span class="text-slate-700" aria-hidden="true">&bull;</span>
+                <a href="<?php echo e(route('legal', ['tab' => 'terms'])); ?>" class="hover:text-white transition-colors">
+                    Terms
+                </a>
+                <span class="text-slate-700" aria-hidden="true">&bull;</span>
+                <a href="<?php echo e(route('vcard.index')); ?>" class="hover:text-white transition-colors">
+                    Contact
+                </a>
+            </div>
+
         </div>
     </div>
 </footer>
@@ -133,11 +378,11 @@ function subscribeNewsletter() {
         if (msg) {
             msg.classList.remove('hidden');
             if (data.success) {
-                msg.className = 'text-xs mt-1 text-emerald-400';
+                msg.className = 'text-xs mt-2 text-[#C7FF00] font-medium';
                 msg.textContent = data.message;
                 emailInput.value = '';
             } else {
-                msg.className = 'text-xs mt-1 text-red-400';
+                msg.className = 'text-xs mt-2 text-rose-400 font-medium';
                 msg.textContent = data.message;
             }
         }
@@ -146,7 +391,7 @@ function subscribeNewsletter() {
         console.error(error);
         if (msg) {
             msg.classList.remove('hidden');
-            msg.className = 'text-xs mt-1 text-red-400';
+            msg.className = 'text-xs mt-2 text-rose-400 font-medium';
             msg.textContent = 'Terjadi kesalahan. Coba lagi nanti.';
         }
     })
