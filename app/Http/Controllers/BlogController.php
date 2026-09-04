@@ -66,14 +66,9 @@ class BlogController extends Controller
             $articlesQuery->orderByRaw('COALESCE(published_at, created_at) DESC');
         }
 
-        $articles = $articlesQuery->paginate(10)->withQueryString();
+        $articles = $articlesQuery->paginate(12)->withQueryString();
 
         $heroArticle = null;
-        $canShowHero = ! $categorySlug && $search === '' && $sort !== 'popular';
-        if ($canShowHero && (int) $articles->currentPage() === 1 && $articles->count() > 0) {
-            $heroArticle = $articles->first();
-            $articles->setCollection($articles->getCollection()->slice(1)->values());
-        }
 
         $trending = Article::query()
             ->published()

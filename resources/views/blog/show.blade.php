@@ -423,57 +423,57 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-dark pt-6 pb-20">
+<div class="min-h-screen bg-[#020617] pt-6 pb-20 text-slate-200">
     <!-- Reading Progress Bar -->
-    <div class="fixed top-0 left-0 w-full h-1 bg-white/10 z-[100]">
-        <div id="readingProgress" class="h-full bg-brand-400 w-0 transition-all duration-100 shadow-[0_0_10px_#4ade80]"></div>
+    <div class="fixed top-0 left-0 w-full h-1 bg-slate-800 z-[100]">
+        <div id="readingProgress" class="h-full bg-[#C7FF00] w-0 transition-all duration-100"></div>
     </div>
     
-    <div class="container mx-auto px-4 md:px-8 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between md:hidden">
-            <a href="{{ route('home') }}" class="inline-flex items-center text-xs text-slate-400 hover:text-neon transition-colors">
+            <a href="{{ route('home') }}" class="inline-flex items-center text-xs text-slate-400 hover:text-white transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
-                        <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
+                <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
             </a>
-            <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
-                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
-                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+            <div class="inline-flex rounded-md bg-[#080D17] border border-slate-800 p-1">
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">ID</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">EN</a>
             </div>
         </div>
         <div class="hidden md:flex items-center justify-between gap-4">
-            <nav class="text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
+            <nav class="text-xs text-slate-400 font-mono" aria-label="Breadcrumb">
                 <ol class="flex flex-wrap items-center gap-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('home') }}" class="inline-flex items-center hover:text-neon transition-colors">
+                        <a href="{{ route('home') }}" class="inline-flex items-center hover:text-white transition-colors">
                             <i class="fas fa-home mr-2"></i>
                             Home
                         </a>
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                            <span class="text-slate-400">Blog</span>
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-[10px]"></i>
+                            <a href="{{ route('blog.index') }}" class="text-slate-400 hover:text-white transition-colors">Blog</a>
                         </div>
                     </li>
                     @if($article->category)
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                            <span class="text-slate-400">{{ $article->category->name }}</span>
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-[10px]"></i>
+                            <a href="{{ route('blog.category', $article->category->slug) }}" class="text-slate-400 hover:text-white transition-colors">{{ $article->category->name }}</a>
                         </div>
                     </li>
                     @endif
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-[10px]"></i>
                             <span class="text-slate-200 font-bold truncate max-w-[200px] md:max-w-xs">{{ $article->localized_title }}</span>
                         </div>
                     </li>
                 </ol>
             </nav>
-            <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
-                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
-                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+            <div class="inline-flex rounded-md bg-[#080D17] border border-slate-800 p-1">
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3.5 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">ID</a>
+                <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3.5 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">EN</a>
             </div>
         </div>
     </div>
@@ -486,80 +486,80 @@
             $shareUrl = urlencode(url()->current());
             $shareText = urlencode($article->localized_title);
         @endphp
-        <div class="hidden lg:flex flex-col items-center gap-3 fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 bg-slate-900/60 backdrop-blur-lg border border-white/10 p-3 rounded-2xl shadow-2xl">
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest vertical-text mb-2 select-none">BAGIKAN</span>
-            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke Facebook">
-                <i class="fab fa-facebook-f text-sm"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">Facebook</span>
+        <div class="hidden lg:flex flex-col items-center gap-2.5 fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 bg-[#080D17] border border-slate-800 p-2.5 rounded-lg shadow-xl">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest vertical-text mb-2 select-none">BAGIKAN</span>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke Facebook">
+                <i class="fab fa-facebook-f text-xs"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">Facebook</span>
             </a>
-            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke X">
-                <i class="fab fa-x-twitter text-sm"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">X (Twitter)</span>
+            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke X">
+                <i class="fab fa-x-twitter text-xs"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">X (Twitter)</span>
             </a>
-            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke WhatsApp">
-                <i class="fab fa-whatsapp text-sm"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">WhatsApp</span>
+            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke WhatsApp">
+                <i class="fab fa-whatsapp text-xs"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">WhatsApp</span>
             </a>
-            <button onclick="copyArticleLink(this)" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-brand-400/30 hover:bg-brand-400/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Salin Tautan">
-                <i class="fas fa-link text-sm"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">Salin Link</span>
+            <button onclick="copyArticleLink(this)" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Salin Tautan">
+                <i class="fas fa-link text-xs"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">Salin Link</span>
             </button>
         </div>
 
-        <div class="container mx-auto px-4 md:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-8 min-w-0">
                     <!-- Article Header & Title (Editorial Style) -->
                     <div class="mb-8 mt-1">
                         @if($article->category)
-                            <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-block px-3.5 py-1.5 mb-5 rounded-full bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 text-xs font-bold uppercase tracking-wider transition-all">
+                            <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-block px-3 py-1 mb-4 rounded bg-[#111A2C] hover:bg-[#16233B] text-slate-200 border border-slate-800 text-[10px] font-bold uppercase tracking-wider transition-colors">
                                 {{ $article->category->name }}
                             </a>
                         @endif
                         
-                        <h1 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight mb-6">
+                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-5">
                             {{ $article->localized_title }}
                         </h1>
                         
                         <div class="flex items-center flex-wrap gap-3 text-xs text-slate-400 font-mono">
                             <span class="flex items-center gap-1.5 py-1">
-                                <i class="far fa-calendar-alt text-brand-400"></i>
+                                <i class="far fa-calendar-alt text-slate-500"></i>
                                 {{ $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y') }}
                             </span>
                             <span class="text-slate-600 font-sans select-none">•</span>
                             @if($article->user)
                                 <span class="flex items-center gap-1.5 py-1">
-                                    <i class="far fa-user text-brand-400"></i>
+                                    <i class="far fa-user text-slate-500"></i>
                                     {{ $article->user->name }}
                                 </span>
                                 <span class="text-slate-600 font-sans select-none">•</span>
                             @endif
                             <span class="flex items-center gap-1.5 py-1 text-slate-300 font-semibold" title="Jumlah dibaca">
-                                <i class="far fa-eye text-brand-400"></i>
+                                <i class="far fa-eye text-slate-500"></i>
                                 {{ number_format((int) ($article->views_count ?? 0)) }} {{ app()->getLocale() === 'en' ? 'views' : 'dibaca' }}
                             </span>
                         </div>
 
                         <!-- Mobile Share Bar -->
-                        <div class="flex lg:hidden items-center gap-2 mt-4 pt-3 border-t border-white/5">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-2">Bagikan:</span>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-brand-500/20 active:text-brand-400" aria-label="Share ke Facebook">
+                        <div class="flex lg:hidden items-center gap-2 mt-4 pt-3 border-t border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Bagikan:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke Facebook">
                                 <i class="fab fa-facebook-f text-xs"></i>
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-sky-500/20 active:text-sky-400" aria-label="Share ke X">
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke X">
                                 <i class="fab fa-x-twitter text-xs"></i>
                             </a>
-                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-emerald-500/20 active:text-emerald-400" aria-label="Share ke WhatsApp">
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke WhatsApp">
                                 <i class="fab fa-whatsapp text-xs"></i>
                             </a>
-                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-brand-400/20 active:text-brand-400" aria-label="Salin Tautan">
+                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Salin Tautan">
                                 <i class="fas fa-link text-xs"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Feature Image (Separated, rounded, premium aspect-ratio, no overlay) -->
-                    <div class="relative w-full h-[220px] md:h-[450px] overflow-hidden rounded-2xl border border-slate-700/50 shadow-2xl mb-12">
+                    <!-- Feature Image (Clean magazine aspect-ratio, solid border) -->
+                    <div class="relative w-full h-[240px] md:h-[460px] overflow-hidden rounded-lg border border-slate-800 shadow-xl mb-10 bg-[#080D17]">
                         @if($bgImage)
                             <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
                         @else
@@ -568,7 +568,7 @@
                     </div>
 
                     @if($article->localized_excerpt)
-                        <div class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light mb-10 border-l-4 border-neon pl-6 italic">
+                        <div class="text-lg md:text-xl text-slate-300 leading-relaxed font-normal mb-8 border-l-2 border-slate-600 pl-4 italic">
                             {{ $article->localized_excerpt }}
                         </div>
                     @endif
@@ -576,35 +576,35 @@
                     <article class="prose prose-invert prose-lg max-w-none 
                         prose-headings:font-bold prose-headings:text-white prose-headings:tracking-tight
                         prose-p:text-slate-300 prose-p:leading-relaxed
-                        prose-a:text-neon prose-a:no-underline hover:prose-a:underline
+                        prose-a:text-slate-200 prose-a:underline hover:prose-a:text-white
                         prose-strong:text-white
-                        prose-blockquote:border-l-4 prose-blockquote:border-neon prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                        prose-blockquote:border-l-2 prose-blockquote:border-slate-600 prose-blockquote:bg-[#0B1220] prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-md prose-blockquote:not-italic
                         prose-ul:list-disc prose-ul:text-slate-300
                         prose-ol:list-decimal prose-ol:text-slate-300
-                        prose-img:rounded-2xl prose-img:shadow-lg prose-img:border prose-img:border-slate-700/50
-                        prose-hr:border-slate-700">
+                        prose-img:rounded-lg prose-img:shadow-lg prose-img:border prose-img:border-slate-800
+                        prose-hr:border-slate-800">
                         
                         {!! $article->localized_content !!}
                         
                     </article>
 
-                    <div class="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-6 justify-between items-center">
-                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group text-sm font-bold">
+                    <div class="mt-14 pt-6 border-t border-slate-800 flex flex-col sm:flex-row gap-6 justify-between items-center">
+                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group text-xs font-mono">
                             <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                             <span>Kembali ke Beranda</span>
                         </a>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Bagikan artikel:</span>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke Facebook">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Bagikan artikel:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke Facebook">
                                 <i class="fab fa-facebook-f text-xs"></i>
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke X">
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke X">
                                 <i class="fab fa-x-twitter text-xs"></i>
                             </a>
-                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke WhatsApp">
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke WhatsApp">
                                 <i class="fab fa-whatsapp text-xs"></i>
                             </a>
-                            <button onclick="copyArticleLink(this)" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-brand-400/30 hover:bg-brand-400/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Salin Tautan">
+                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Salin Tautan">
                                 <i class="fas fa-link text-xs"></i>
                             </button>
                         </div>
@@ -614,7 +614,7 @@
                 <aside class="lg:col-span-4 mt-12 lg:mt-0">
                     <div class="sticky top-24">
                         <!-- Single Sidebar Card with Tabs -->
-                        <div x-data="{ activeTab: 'trending' }" class="bg-card/40 backdrop-blur-xl border border-slate-700/60 rounded-3xl p-6 shadow-2xl">
+                        <div x-data="{ activeTab: 'trending' }" class="bg-[#080D17] border border-slate-800 rounded-lg p-5">
                             <!-- Tabs Header Navigation -->
                             <div class="flex items-center gap-2 pb-3 border-b border-slate-800">
                                 <button 
@@ -634,7 +634,7 @@
                             <!-- Tab 1: Trending Articles -->
                             <div x-show="activeTab === 'trending'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
                                 @if(isset($trending) && $trending->count() > 0)
-                                    <div class="space-y-4 mt-4">
+                                    <div class="space-y-3.5 mt-4">
                                         @foreach($trending as $t)
                                             @php
                                                 $tImg = null;
@@ -644,15 +644,15 @@
                                                         : asset('storage/' . ltrim($t->featured_image, '/'));
                                                 }
                                             @endphp
-                                            <a href="{{ route('blog.show', $t->slug) }}" class="group flex items-start gap-3.5 pb-3.5 border-b border-slate-800/60 last:border-0 last:pb-0">
-                                                <span class="text-xs font-mono font-bold text-slate-500 group-hover:text-white transition-colors pt-0.5 select-none w-5 text-right flex-none">
-                                                    0{{ $loop->iteration }}
-                                                </span>
+                                            <a href="{{ route('blog.show', $t->slug) }}" class="group flex items-start gap-3 pb-3 border-b border-slate-800/80 last:border-0 last:pb-0">
+                                                <div class="w-6 h-6 rounded bg-[#0B1220] border border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-slate-400 flex-none select-none">
+                                                    {{ $loop->iteration }}
+                                                </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <div class="text-xs font-semibold text-slate-200 group-hover:text-white group-hover:underline leading-snug line-clamp-2 transition-colors">
+                                                    <div class="text-xs font-semibold text-slate-200 group-hover:text-white leading-snug line-clamp-2 transition-colors">
                                                         {{ $t->localized_title }}
                                                     </div>
-                                                    <div class="mt-1.5 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+                                                    <div class="mt-1 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
                                                         @if($t->category)
                                                             <span class="text-slate-400 font-sans font-medium">{{ $t->category->name }}</span>
                                                             <span>•</span>
@@ -661,7 +661,7 @@
                                                     </div>
                                                 </div>
                                                 @if($tImg)
-                                                    <div class="w-12 h-12 rounded-lg bg-slate-800 border border-slate-800 flex-none overflow-hidden shadow-sm">
+                                                    <div class="w-11 h-11 rounded-md bg-slate-900 border border-slate-800 flex-none overflow-hidden">
                                                         <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                                     </div>
                                                 @endif
@@ -669,8 +669,8 @@
                                         @endforeach
                                     </div>
 
-                                    <div class="mt-5 pt-4 border-t border-slate-800 text-center">
-                                        <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                                    <div class="mt-5 pt-3.5 border-t border-slate-800 text-center">
+                                        <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors">
                                             <span>Lihat Semua Artikel</span>
                                             <i class="fas fa-arrow-right text-[10px]"></i>
                                         </a>
@@ -683,16 +683,16 @@
                             <!-- Tab 2: Jadwal Lari Terdekat -->
                             <div x-show="activeTab === 'events'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
                                 @if(isset($upcomingEvents) && $upcomingEvents->count() > 0)
-                                    <div class="space-y-3 mt-4">
+                                    <div class="space-y-2.5 mt-4">
                                         @foreach($upcomingEvents as $ev)
                                             @php
                                                 $evDate = $ev->start_at ? \Carbon\Carbon::parse($ev->start_at) : null;
                                                 $cityName = $ev->city ? $ev->city->name : ($ev->location_name ?: 'Indonesia');
                                             @endphp
-                                            <a href="{{ url('/events/' . $ev->slug) }}" class="group flex items-center gap-3 p-2.5 rounded-2xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-800/80 hover:border-slate-700 transition-all duration-200">
-                                                <div class="flex-none w-11 h-11 rounded-xl bg-slate-800 border border-slate-700/60 flex flex-col items-center justify-center text-center p-1">
+                                            <a href="{{ url('/events/' . $ev->slug) }}" class="group flex items-center gap-3 p-2.5 rounded-md bg-[#0B1220] hover:bg-[#111A2C] border border-slate-800 hover:border-slate-700 transition-colors">
+                                                <div class="flex-none w-10 h-10 rounded bg-[#080D17] border border-slate-800 flex flex-col items-center justify-center text-center p-1">
                                                     <span class="text-[9px] font-bold text-slate-400 uppercase font-mono leading-none">{{ $evDate ? $evDate->translatedFormat('M') : 'EVT' }}</span>
-                                                    <span class="text-xs font-black text-white font-mono leading-tight mt-0.5">{{ $evDate ? $evDate->format('d') : '•' }}</span>
+                                                    <span class="text-xs font-bold text-white font-mono leading-tight mt-0.5">{{ $evDate ? $evDate->format('d') : '•' }}</span>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
                                                     <div class="text-xs font-bold text-slate-200 group-hover:text-white truncate transition-colors">
@@ -711,8 +711,8 @@
                                     <div class="mt-4 text-xs text-slate-500 italic text-center py-3">Belum ada jadwal event mendatang.</div>
                                 @endif
 
-                                <div class="mt-5 pt-4 border-t border-slate-800 text-center">
-                                    <a href="{{ url('/events') }}" class="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                                <div class="mt-5 pt-3.5 border-t border-slate-800 text-center">
+                                    <a href="{{ url('/events') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors">
                                         <span>Jelajahi Kalender Event</span>
                                         <i class="fas fa-arrow-right text-[10px]"></i>
                                     </a>
@@ -726,30 +726,36 @@
     </div>
 
     @if(isset($relatedArticles) && $relatedArticles->count() > 0)
-    <div class="mt-24 py-16 bg-slate-900/50 border-t border-slate-800">
-        <div class="container mx-auto px-4 md:px-8">
-            <div class="flex items-center justify-between mb-10">
-                <h3 class="text-2xl font-bold text-white">More from {{ $article->category->name ?? 'Blog' }}</h3>
-                <a href="{{ $article->category ? route('blog.category', $article->category->slug) : route('blog.index') }}" class="text-sm text-neon hover:underline">View All</a>
+    <div class="mt-20 py-14 bg-[#080D17] border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-bold text-white">Artikel Lainnya dari {{ $article->category->name ?? 'Blog' }}</h3>
+                <a href="{{ $article->category ? route('blog.category', $article->category->slug) : route('blog.index') }}" class="text-xs font-mono text-slate-400 hover:text-white transition-colors">Lihat Semua →</a>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 @foreach($relatedArticles as $related)
-                <a href="{{ route('blog.show', $related->slug) }}" class="group block h-full bg-card rounded-2xl overflow-hidden border border-slate-700 hover:border-neon/50 transition-all hover:shadow-lg hover:shadow-neon/10">
-                    <div class="relative h-48 overflow-hidden">
+                <a href="{{ route('blog.show', $related->slug) }}" class="group flex flex-col bg-[#080D17] rounded-lg overflow-hidden border border-slate-800 hover:border-slate-700 hover:bg-[#0B1220] transition-colors">
+                    <div class="relative h-44 overflow-hidden bg-slate-900">
                         @php
                             $relImage = method_exists($related, 'getFeaturedImageUrl')
                                 ? $related->getFeaturedImageUrl()
                                 : asset('ruanglari.webp');
                         @endphp
                         <img src="{{ $relImage }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
-                        <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-white">
+                        <div class="absolute top-2 right-2 bg-black/70 px-2 py-0.5 rounded text-[10px] font-mono text-slate-300">
                             {{ $related->published_at ? $related->published_at->format('d M') : $related->created_at->format('d M') }}
                         </div>
                     </div>
-                    <div class="p-6">
-                        <h4 class="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-neon transition-colors">{{ $related->title }}</h4>
-                        <p class="text-slate-400 text-sm line-clamp-3">{{ Str::limit(strip_tags($related->excerpt ?? $related->content), 100) }}</p>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-slate-200 transition-colors">{{ $related->title }}</h4>
+                            <p class="text-slate-400 text-xs line-clamp-2 leading-relaxed">{{ Str::limit(strip_tags($related->excerpt ?? $related->content), 90) }}</p>
+                        </div>
+                        <div class="mt-4 text-xs font-semibold text-slate-300 inline-flex items-center gap-1 group-hover:text-white transition-colors">
+                            <span>Baca Selengkapnya</span>
+                            <span class="transition-transform group-hover:translate-x-0.5">→</span>
+                        </div>
                     </div>
                 </a>
                 @endforeach
@@ -758,7 +764,7 @@
     </div>
     @endif
     
-    <div class="pb-20"></div>
+    <div class="pb-16"></div>
 </div>
 @endsection
 

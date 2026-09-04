@@ -350,12 +350,9 @@
                         <div class="rl-strip-track" id="stripTrack">
                             @foreach($combinedHighlights as $idx => $item)
                                 <a href="{{ $item['url'] }}" class="rl-strip-card group" data-slide-index="{{ $idx }}">
-                                    {{-- Left Thumbnail --}}
+                                    {{-- Left Thumbnail (Clean image without overlay badge) --}}
                                     <div class="rl-strip-card-thumb">
                                         <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" loading="lazy">
-                                        <span class="rl-badge-tag {{ $item['is_event'] ? 'rl-badge-event' : '' }}">
-                                            {{ $item['tag'] }}
-                                        </span>
                                     </div>
 
                                     {{-- Right Content Body (Pure Sans, Clean Contrast) --}}
@@ -364,6 +361,11 @@
                                             <span class="rl-meta-location">{{ $item['meta'] }}</span>
                                             <span class="rl-meta-sep">&bull;</span>
                                             <span class="rl-meta-date">{{ $item['date'] }}</span>
+                                        </div>
+                                        <div class="rl-strip-card-tag-wrap">
+                                            <span class="rl-badge-tag {{ $item['is_event'] ? 'rl-badge-event' : '' }}">
+                                                {{ $item['tag'] }}
+                                            </span>
                                         </div>
                                         <h3 class="rl-strip-card-title">{{ $item['title'] }}</h3>
                                         <div class="rl-strip-card-footer">
@@ -1612,26 +1614,32 @@
         transform: scale(1.05);
     }
 
-    /* Category Badge over thumbnail */
-    .rl-strip-card-thumb .rl-badge-tag {
-        position: absolute;
-        top: 0.35rem;
-        left: 0.35rem;
+    /* Category Badge under date */
+    .rl-strip-card-tag-wrap {
+        margin: 0.2rem 0 0.15rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .rl-badge-tag {
+        display: inline-block;
         font-family: var(--rl-font, inherit);
         font-size: 0.58rem;
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        background: rgba(8, 12, 20, 0.9);
-        color: #E2E8F0;
-        padding: 0.15rem 0.38rem;
+        background: #111A2C;
+        color: #CBD5E1;
+        border: 1px solid #1E293B;
+        padding: 0.1rem 0.4rem;
         border-radius: 3px;
-        backdrop-filter: blur(4px);
+        line-height: 1.25;
     }
 
-    .rl-strip-card-thumb .rl-badge-tag.rl-badge-event {
+    .rl-badge-tag.rl-badge-event {
         color: var(--rl-lime);
-        border: 1px solid rgba(184, 255, 0, 0.3);
+        border-color: rgba(184, 255, 0, 0.35);
+        background: rgba(184, 255, 0, 0.06);
     }
 
     /* Card Right Body */

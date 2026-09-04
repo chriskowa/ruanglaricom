@@ -4,6 +4,7 @@
     $socialTiktok = \App\Models\AppSettings::get('social_tiktok', 'https://www.tiktok.com/@ruanglaricom');
     $socialStrava = \App\Models\AppSettings::get('social_strava', 'https://www.strava.com/clubs/ruanglari');
     $socialYt = \App\Models\AppSettings::get('social_youtube', 'https://www.youtube.com/@ruanglaricom');
+    $lightMode = $lightMode ?? false;
 @endphp
 
 <footer class="relative bg-[#020617] border-t border-slate-900/90 text-slate-400 font-sans overflow-hidden" aria-label="Footer Ruang Lari">
