@@ -163,6 +163,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.homepage.content') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.homepage.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-home"></i></span>
+                                    <span>Homepage Hero</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.strava.config') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.strava.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fab fa-strava"></i></span>
                                     <span>Strava Config</span>

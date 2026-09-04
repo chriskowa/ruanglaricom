@@ -11,179 +11,374 @@
     {{-- =========================================================
         HERO / EDITORIAL RUNNING CHASSIS
     ========================================================== --}}
-    <header class="rl-hero">
+    {{-- =========================================================
+        HERO / FLAGSHIP RUNNING ECOSYSTEM (EDITORIAL SPORTS-TECH)
+    ========================================================== --}}
+    @php
+        $heroSlides = (isset($homepageContent) && $homepageContent)
+            ? $homepageContent->hero_slides 
+            : [
+                'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
+                'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
+                'https://ruanglari.com/storage/blog/media/21bb785d-d104-4129-99ce-d84ae98afd3a.webp',
+            ];
+
+        $athleteImages = (isset($homepageContent) && $homepageContent)
+            ? $homepageContent->athlete_images 
+            : [
+                'https://ruanglari.com/storage/blog/media/469168c8-1ae3-4f55-ae3d-f30954235ae9.webp',
+                'https://ruanglari.com/storage/blog/media/d348fe51-96c4-4df4-a4f1-50e76ad33091.webp',
+                'https://ruanglari.com/storage/blog/media/93702c19-25c6-47c6-b165-ce879dc963d6.webp',
+            ];
+
+        $athletePrimaryImg = $athleteImages[0] ?? 'https://ruanglari.com/storage/blog/media/469168c8-1ae3-4f55-ae3d-f30954235ae9.webp';
+    @endphp
+
+    <header class="rl-hero-stage" id="heroStage">
+        {{-- Ambient Parallax Background Slider (Dynamic via Admin Homepage Management) --}}
+        <div class="rl-hero-bg-slider" id="heroBgSlider" aria-hidden="true">
+            @foreach($heroSlides as $sIdx => $slideUrl)
+                <div class="rl-hero-bg-slide {{ $sIdx === 0 ? 'is-active' : '' }}" data-bg-index="{{ $sIdx }}">
+                    <div class="rl-hero-bg-img" style="background-image: url('{{ $slideUrl }}');"></div>
+                </div>
+            @endforeach
+            {{-- Dark cinematic scrims to maintain pristine typography contrast --}}
+            <div class="rl-hero-bg-scrim"></div>
+            <div class="rl-hero-bg-gradient"></div>
+        </div>
+
+        {{-- Minimal Slide Indicators --}}
+        <div class="rl-hero-bg-nav font-mono" id="heroBgNav" aria-label="Background Slider Controls">
+            @foreach($heroSlides as $sIdx => $slideUrl)
+                <button type="button" class="rl-bg-dot {{ $sIdx === 0 ? 'is-active' : '' }}" data-slide-to="{{ $sIdx }}" aria-label="Slide {{ $sIdx + 1 }}"></button>
+            @endforeach
+        </div>
+
+        {{-- Atmospheric Kinetic Canvas & Background Depth --}}
+        <div class="rl-stage-glow" aria-hidden="true"></div>
+        <div class="rl-stage-grid-lines" aria-hidden="true"></div>
+
         <div class="rl-shell">
             <div class="rl-hero-grid">
                 
-                {{-- Hero Copy --}}
+                {{-- Left Column: Brand Story, Headline, CTA & Trust Metrics --}}
                 <div class="rl-hero-copy">
+                    {{-- 1. Small eyebrow label --}}
                     <div class="rl-kicker">
-                        <span class="rl-kicker-mark"></span>
-                        <span class="rl-kicker-text">RUANGLARI &bull; ENGINE &amp; ECOSYSTEM</span>
+                        <span class="rl-kicker-dot"></span>
+                        <span class="rl-kicker-text">RUANGLARI &bull; EKOSISTEM LARI INDONESIA</span>
                     </div>
 
+                    {{-- 2. Main headline (Sora Bold) --}}
                     <h1 class="rl-hero-title">
-                        Platform &amp; Media Lari
-                        <span class="rl-title-accent">Indonesia.</span>
+                        @if(isset($homepageContent) && !empty($homepageContent->headline))
+                            {!! nl2br(e($homepageContent->headline)) !!}
+                        @else
+                            Platform & Media Lari<br>
+                            <span class="rl-title-accent">Indonesia.</span>
+                        @endif
                     </h1>
 
+                    {{-- 3. Subheadline (Inter Regular/Medium) --}}
                     <p class="rl-hero-lead">
-                        Pusat direktori race terverifikasi, kalkulator pace VDOT fisiologis, bank rute GPX, dan ruang kolaborasi pelari dalam satu ekosistem terintegrasi.
+                        {{ (isset($homepageContent) && !empty($homepageContent->subheadline))
+                            ? $homepageContent->subheadline 
+                            : 'Temukan berita lari, event race, komunitas, program latihan, dan insight pelari Indonesia dalam satu platform yang membantu kamu berlari lebih terarah dan lebih terhubung.' }}
                     </p>
 
+                    {{-- 4. CTA Buttons --}}
                     <div class="rl-hero-actions">
-                        <a href="#vdot-section"
-                           onclick="event.preventDefault(); document.getElementById('vdot-section')?.scrollIntoView({behavior:'smooth'});"
-                           class="rl-btn rl-btn-primary">
-                            <span>Hitung Pace &amp; VDOT</span>
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <a href="{{ route('events.index') }}" class="rl-btn rl-btn-primary">
+                            <span>Explore Events</span>
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </a>
 
-                        <a href="{{ route('events.index') }}" class="rl-btn rl-btn-outline">
-                            Jelajahi Race
+                        <a href="{{ route('blog.index') }}" class="rl-btn rl-btn-outline">
+                            <span>Read News</span>
                         </a>
                     </div>
 
-                    <div class="rl-hero-telemetry">
-                        <div class="rl-tele-cell">
-                            <span class="rl-tele-val font-mono">1.000+</span>
-                            <span class="rl-tele-lbl">Pelari Aktif</span>
+                    {{-- 5. Small Trust Metrics below CTA --}}
+                    <div class="rl-hero-trust">
+                        <div class="rl-trust-item">
+                            <span class="rl-trust-val font-mono">1.8K+</span>
+                            <span class="rl-trust-lbl">Event</span>
                         </div>
-                        <div class="rl-tele-pipe"></div>
-                        <div class="rl-tele-cell">
-                            <span class="rl-tele-val font-mono">50+</span>
-                            <span class="rl-tele-lbl">Verified Race</span>
+                        <div class="rl-trust-sep" aria-hidden="true"></div>
+                        <div class="rl-trust-item">
+                            <span class="rl-trust-val font-mono">50+</span>
+                            <span class="rl-trust-lbl">Komunitas</span>
                         </div>
-                        <div class="rl-tele-pipe"></div>
-                        <div class="rl-tele-cell">
-                            <span class="rl-tele-val font-mono">VDOT</span>
-                            <span class="rl-tele-lbl">Training Model</span>
+                        <div class="rl-trust-sep" aria-hidden="true"></div>
+                        <div class="rl-trust-item">
+                            <span class="rl-trust-val font-mono">10K+</span>
+                            <span class="rl-trust-lbl">Pelari</span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Hero Featured Spotlight Deck — Premium Running Media Newsroom --}}
-                <div class="rl-featured">
-                    @php
-                        $articles = ($featuredArticles ?? collect())->filter(fn($a) => !empty($a->slug))->take(5);
-                    @endphp
+                {{-- Right Column: Interactive Story-Driven Athlete Visual --}}
+                <div class="rl-stage-athlete-wrap" id="heroInteractiveStage">
+                    {{-- Dynamic Atmospheric Aura & Velocity Lines --}}
+                    <div class="rl-athlete-stage-aura" id="athleteStageAura" aria-hidden="true"></div>
+                    <div class="rl-velocity-energy-field" id="velocityEnergyField" aria-hidden="true">
+                        <span class="rl-streak rl-streak-1"></span>
+                        <span class="rl-streak rl-streak-2"></span>
+                        <span class="rl-streak rl-streak-3"></span>
+                    </div>
 
-                    @if($articles->isNotEmpty())
-                        {{-- Magazine Newsroom Slider Deck --}}
-                        <div id="heroFeatured" class="rl-deck">
-                            {{-- Top Header Deck: RUNNING NEWS & Counter --}}
-                            <div class="rl-deck-head">
-                                <div class="rl-deck-status">
-                                    <span class="rl-deck-brand font-mono">RUNNING NEWS</span>
-                                </div>
-                                
-                                <div class="rl-deck-pager font-mono">
-                                    <span class="rl-deck-index-wrap">
-                                        <strong id="heroCurrentIndex" class="rl-idx-active">01</strong>
-                                        <span class="rl-divider-slash">/</span>
-                                        <span class="rl-total-slides">{{ str_pad($articles->count(), 2, '0', STR_PAD_LEFT) }}</span>
-                                    </span>
-                                    <div class="rl-deck-buttons">
-                                        <button type="button" id="heroFeaturedPrev" aria-label="Slide sebelumnya" class="rl-btn-icon">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 19l-7-7 7-7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                        </button>
-                                        <button type="button" id="heroFeaturedNext" aria-label="Slide berikutnya" class="rl-btn-icon">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Track Slider --}}
-                            <div id="heroFeaturedTrack" class="rl-deck-track no-scrollbar">
-                                @foreach($articles as $i => $article)
-                                    <article class="rl-deck-slide" data-slide-index="{{ $i }}">
-                                        {{-- Foto Full Width (Elemen Utama) --}}
-                                        <div class="rl-slide-viewport">
-                                            <img
-                                                src="{{ $article->getFeaturedImageUrl() }}"
-                                                alt="{{ $article->title }}"
-                                                draggable="false"
-                                                @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
-                                                onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';"
-                                                class="rl-slide-photo"
-                                            >
-                                            <div class="rl-slide-scrim"></div>
-
-                                            {{-- Magazine Category Overlay --}}
-                                            <div class="rl-cover-headline-wrap">
-                                                <div class="rl-cover-display">
-                                                    {{ $article->category?->name ?: 'RUNNING JOURNAL' }}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Editorial Dispatch Block (Under Photo) --}}
-                                        <div class="rl-slide-editorial">
-                                            <div class="rl-editorial-eyebrow font-mono">
-                                                <span class="rl-eyebrow-accent"></span>
-                                                <span class="rl-eyebrow-text">EDITORIAL DISPATCH</span>
-                                                @if($article->category)
-                                                    <span class="rl-eyebrow-sep">&bull;</span>
-                                                    <span class="rl-eyebrow-cat">{{ $article->category->name }}</span>
-                                                @endif
-                                            </div>
-
-                                            <h2 class="rl-editorial-headline">
-                                                <a href="{{ route('blog.show', $article->slug) }}">
-                                                    {{ $article->title }}
-                                                </a>
-                                            </h2>
-
-                                            <div class="rl-editorial-meta font-mono">
-                                                @if($article->published_at)
-                                                    <span>{{ $article->published_at->translatedFormat('d M Y') }}</span>
-                                                @elseif($article->created_at)
-                                                    <span>{{ $article->created_at->translatedFormat('d M Y') }}</span>
-                                                @endif
-                                                @if($article->category)
-                                                    <span class="rl-meta-sep">&bull;</span>
-                                                    <span>{{ $article->category->name }}</span>
-                                                @endif
-                                            </div>
-
-                                            <div class="rl-editorial-action">
-                                                <a href="{{ route('blog.show', $article->slug) }}" class="rl-editorial-cta font-mono">
-                                                    <span>BACA CERITA</span>
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                        <path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </article>
-                                @endforeach
-                            </div>
-
-                            {{-- Progress Segments --}}
-                            <div id="heroFeaturedDots" class="rl-deck-progress"></div>
-                        </div>
-
-                        {{-- Bottom Slider: Indeks Majalah --}}
-                        @if($articles->count() > 1)
-                            <nav class="rl-magazine-index" id="heroFeaturedPlaylist" aria-label="Indeks Berita Majalah">
-                                <div class="rl-index-grid no-scrollbar">
-                                    @foreach($articles as $i => $article)
-                                        <button type="button"
-                                                class="rl-index-item {{ $i === 0 ? 'is-active' : '' }}"
-                                                data-tab-index="{{ $i }}"
-                                                aria-label="Pilih: {{ $article->title }}">
-                                            <span class="rl-index-num font-mono">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
-                                            <span class="rl-index-title">{{ Str::limit($article->title, 26) }}</span>
-                                            <span class="rl-index-indicator"></span>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </nav>
+                    {{-- Multi-Layer Athlete Kinetic Viewport --}}
+                    <div class="rl-athlete-viewport" id="heroAthletePortal" data-total-poses="{{ count($athleteImages) }}">
+                        @if(count($athleteImages) > 1)
+                            {{-- Multi-Pose Dynamic Athlete Layers --}}
+                            @foreach($athleteImages as $aIdx => $aUrl)
+                                <img
+                                    src="{{ $aUrl }}"
+                                    alt="Pelari RuangLari Indonesia - Pose {{ $aIdx + 1 }}"
+                                    class="rl-athlete-img rl-athlete-layer {{ $aIdx === 0 ? 'is-active rl-athlete-primary' : '' }}"
+                                    data-pose-index="{{ $aIdx }}"
+                                    id="{{ $aIdx === 0 ? 'heroAthleteImg' : 'heroAthleteImg_' . $aIdx }}"
+                                    {!! $aIdx === 0 ? 'fetchpriority="high"' : 'loading="lazy"' !!}
+                                >
+                            @endforeach
+                        @else
+                            {{-- Ghost Momentum Trail 2 (Deep Sprint) --}}
+                            <img
+                                src="https://ruanglari.com/storage/blog/media/93702c19-25c6-47c6-b165-ce879dc963d6.webp"
+                                alt=""
+                                aria-hidden="true"
+                                class="rl-athlete-img rl-runner-trail rl-trail-2"
+                            >
+                            {{-- Ghost Momentum Trail 1 (Ready Stride) --}}
+                            <img
+                                src="https://ruanglari.com/storage/blog/media/d348fe51-96c4-4df4-a4f1-50e76ad33091.webp"
+                                alt=""
+                                aria-hidden="true"
+                                class="rl-athlete-img rl-runner-trail rl-trail-1"
+                            >
+                            {{-- Primary Athlete Asset --}}
+                            <img
+                                src="{{ $athletePrimaryImg }}"
+                                alt="Pelari RuangLari Indonesia"
+                                fetchpriority="high"
+                                class="rl-athlete-img rl-athlete-primary"
+                                id="heroAthleteImg"
+                            >
                         @endif
-                    @endif
+
+                        {{-- Athletic Ground Silhouette Shadow (Mengikuti pijakan kaki pelari) --}}
+                        <div class="rl-athlete-ground-shadow" aria-hidden="true"></div>
+                        <div class="rl-kinetic-flash-layer" aria-hidden="true"></div>
+                    </div>
+                    
+                    {{-- Dynamic Movement State Telemetry Pill --}}
+                    <div class="rl-athlete-accent-pill font-mono" id="athleteStatePill">                        
+                        <span id="pillStateText">FAKTUAL</span>
+                    </div>
                 </div>
 
+            </div>
+        </div>
+
+        {{-- Bottom of Hero: Editorial News & Event Highlight Strip (Max 5 Items) --}}
+        @php
+            $combinedHighlights = collect();
+
+            // 1. Masukkan Event Unggulan (Maksimal 3 event jika tersedia)
+            if (isset($featuredEvents) && $featuredEvents->isNotEmpty()) {
+                foreach ($featuredEvents->take(3) as $ev) {
+                    $evImg = method_exists($ev, 'getHeroImageUrl') ? $ev->getHeroImageUrl() : null;
+                    if (empty($evImg) && !empty($ev->hero_image)) {
+                        $evImg = asset($ev->hero_image);
+                    }
+                    if (empty($evImg)) {
+                        $evImg = 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
+                    }
+
+                    $combinedHighlights->push([
+                        'type'     => 'event',
+                        'tag'      => 'RACE',
+                        'meta'     => $ev->city ?? 'Indonesia',
+                        'title'    => $ev->name ?? $ev->title,
+                        'date'     => optional($ev->start_at)->translatedFormat('d M Y') ?? 'Segera Dibuka',
+                        'url'      => route('events.show', $ev->slug ?? $ev->id),
+                        'cta'      => 'Detail Race',
+                        'image'    => $evImg,
+                        'is_event' => true,
+                    ]);
+                }
+            } elseif (isset($featuredEvent) && $featuredEvent) {
+                $evImg = method_exists($featuredEvent, 'getHeroImageUrl') ? $featuredEvent->getHeroImageUrl() : null;
+                if (empty($evImg) && !empty($featuredEvent->hero_image)) {
+                    $evImg = asset($featuredEvent->hero_image);
+                }
+                if (empty($evImg)) {
+                    $evImg = 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
+                }
+
+                $combinedHighlights->push([
+                    'type'     => 'event',
+                    'tag'      => 'RACE',
+                    'meta'     => $featuredEvent->city ?? 'Indonesia',
+                    'title'    => $featuredEvent->name ?? $featuredEvent->title,
+                    'date'     => optional($featuredEvent->start_at)->translatedFormat('d M Y') ?? 'Segera Dibuka',
+                    'url'      => route('events.show', $featuredEvent->slug ?? $featuredEvent->id),
+                    'cta'      => 'Detail Race',
+                    'image'    => $evImg,
+                    'is_event' => true,
+                ]);
+            }
+
+            // 2. Isi sisa slot dengan Berita / Journal Terkini hingga batas 5 items
+            if (isset($featuredArticles) && $featuredArticles->isNotEmpty()) {
+                $slotsLeft = 5 - $combinedHighlights->count();
+                if ($slotsLeft > 0) {
+                    foreach ($featuredArticles->filter(fn($a) => !empty($a->slug))->take($slotsLeft) as $art) {
+                        $artImg = method_exists($art, 'getFeaturedImageUrl') ? $art->getFeaturedImageUrl() : null;
+                        if (empty($artImg) && !empty($art->featured_image)) {
+                            $artImg = asset($art->featured_image);
+                        }
+                        if (empty($artImg)) {
+                            $artImg = 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp';
+                        }
+
+                        $combinedHighlights->push([
+                            'type'     => 'news',
+                            'tag'      => strtoupper($art->category->name ?? 'WARTA'),
+                            'meta'     => optional($art->published_at ?: $art->created_at)->translatedFormat('d M Y'),
+                            'title'    => $art->title,
+                            'date'     => optional($art->published_at ?: $art->created_at)->translatedFormat('d M Y'),
+                            'url'      => route('blog.show', $art->slug),
+                            'cta'      => 'Baca Ulasan',
+                            'image'    => $artImg,
+                            'is_event' => false,
+                        ]);
+                    }
+                }
+            }
+
+            // 3. Fallback jika total item belum mencapai 5 (menjamin tepat 5 card gabungan event & news untuk auto-sliding)
+            $defaultFallbacks = [
+                [
+                    'type'     => 'event',
+                    'tag'      => 'KALENDER LARI',
+                    'meta'     => 'Nasional',
+                    'title'    => 'Kalender Event & Marathon Indonesia Terverifikasi',
+                    'date'     => 'Jadwal Lengkap',
+                    'url'      => route('events.index'),
+                    'cta'      => 'Lihat Agenda',
+                    'image'    => 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
+                    'is_event' => true,
+                ],
+                [
+                    'type'     => 'news',
+                    'tag'      => 'RISET & TIPS',
+                    'meta'     => 'Panduan Latihan',
+                    'title'    => 'Panduan Periodisasi Latihan & Riset Fisiologi Lari Terkini',
+                    'date'     => 'Riset Terbaru',
+                    'url'      => route('blog.index'),
+                    'cta'      => 'Baca Riset',
+                    'image'    => 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
+                    'is_event' => false,
+                ],
+                [
+                    'type'     => 'event',
+                    'tag'      => 'HALF MARATHON',
+                    'meta'     => 'Jawa & Bali',
+                    'title'    => 'Daftar Race 21K Terpopuler Musim Ini di Indonesia',
+                    'date'     => 'Registrasi Dibuka',
+                    'url'      => route('events.index'),
+                    'cta'      => 'Detail Race',
+                    'image'    => 'https://ruanglari.com/storage/blog/media/21bb785d-d104-4129-99ce-d84ae98afd3a.webp',
+                    'is_event' => true,
+                ],
+                [
+                    'type'     => 'news',
+                    'tag'      => 'GEAR REVIEW',
+                    'meta'     => 'Sepatu & Peralatan',
+                    'title'    => 'Review Super Shoes & Rekomendasi Daily Trainer Terbaik',
+                    'date'     => 'Ulasan Gear',
+                    'url'      => route('blog.index'),
+                    'cta'      => 'Ulasan Lengkap',
+                    'image'    => 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
+                    'is_event' => false,
+                ],
+                [
+                    'type'     => 'event',
+                    'tag'      => 'TRAIL RUN',
+                    'meta'     => 'Nusantara',
+                    'title'    => 'Eksplorasi Kalender Trail Run & Ultra Marathon Indonesia',
+                    'date'     => 'Lihat Agenda',
+                    'url'      => route('events.index'),
+                    'cta'      => 'Ikuti Race',
+                    'image'    => 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
+                    'is_event' => true,
+                ],
+            ];
+            $fbIdx = 0;
+            while ($combinedHighlights->count() < 5 && $fbIdx < count($defaultFallbacks)) {
+                $combinedHighlights->push($defaultFallbacks[$fbIdx]);
+                $fbIdx++;
+            }
+        @endphp
+
+        <div class="rl-hero-strip" id="heroFeaturedStrip">
+            <div class="rl-shell">
+                <div class="rl-strip-container">
+                    {{-- Strip Header: Natural Editorial Title (No AI Buzzwords, Pure Clean Sans) --}}
+                    <div class="rl-strip-header">
+                        <div class="rl-strip-title-wrap">
+                            <span class="rl-strip-pulse-indicator" aria-hidden="true"></span>
+                            <h2 class="rl-strip-heading">Warta &amp; Agenda Pilihan</h2>
+                            <span class="rl-strip-counter" id="stripCounterText">1 dari {{ $combinedHighlights->count() }}</span>
+                        </div>
+
+                        {{-- Navigasi Tombol Sliding --}}
+                        <div class="rl-strip-nav">
+                            <button type="button" id="stripPrevBtn" class="rl-strip-nav-btn" aria-label="Sorotan sebelumnya">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 19l-7-7 7-7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <button type="button" id="stripNextBtn" class="rl-strip-nav-btn" aria-label="Sorotan berikutnya">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5l7 7-7 7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Track Slider Horizontal --}}
+                    <div class="rl-strip-slider-wrapper" id="stripSliderWrapper">
+                        <div class="rl-strip-track" id="stripTrack">
+                            @foreach($combinedHighlights as $idx => $item)
+                                <a href="{{ $item['url'] }}" class="rl-strip-card group" data-slide-index="{{ $idx }}">
+                                    {{-- Left Thumbnail --}}
+                                    <div class="rl-strip-card-thumb">
+                                        <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" loading="lazy">
+                                        <span class="rl-badge-tag {{ $item['is_event'] ? 'rl-badge-event' : '' }}">
+                                            {{ $item['tag'] }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Right Content Body (Pure Sans, Clean Contrast) --}}
+                                    <div class="rl-strip-card-body">
+                                        <div class="rl-strip-card-meta">
+                                            <span class="rl-meta-location">{{ $item['meta'] }}</span>
+                                            <span class="rl-meta-sep">&bull;</span>
+                                            <span class="rl-meta-date">{{ $item['date'] }}</span>
+                                        </div>
+                                        <h3 class="rl-strip-card-title">{{ $item['title'] }}</h3>
+                                        <div class="rl-strip-card-footer">
+                                            <span class="rl-strip-action-text">
+                                                {{ $item['cta'] }}
+                                                <svg viewBox="0 0 20 20" fill="currentColor" class="rl-action-arrow" aria-hidden="true"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -633,6 +828,8 @@
 
 @push('styles')
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
+
     :root {
         --rl-bg: #050505;
         --rl-bg-2: #090B0E;
@@ -644,7 +841,9 @@
         --rl-muted: #9E9E96;
         --rl-lime: #B8FF00;
         --rl-lime-hover: #CBFF4A;
-        --rl-font: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+        --rl-font: 'Inter', system-ui, -apple-system, sans-serif;
+        --rl-font-heading: 'Sora', sans-serif;
+        --rl-font-body: 'Inter', sans-serif;
         --rl-mono: 'Space Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -655,107 +854,268 @@
         color: var(--rl-text);
         overflow-x: hidden;
         width: 100%;
+        font-family: var(--rl-font-body);
     }
 
     .rl-shell {
-        width: min(100% - 2rem, 80rem);
+        width: min(100% - 2.5rem, 80rem);
         margin-inline: auto;
         box-sizing: border-box;
     }
 
     /* ----------------------------------------------------
-       HERO FOUNDATION & GRID
+       HERO / FLAGSHIP RUNNING ECOSYSTEM (EDITORIAL SPORTS-TECH)
     ---------------------------------------------------- */
-    .rl-hero {
+    .rl-hero-stage {
         position: relative;
-        background: radial-gradient(circle at 85% 15%, rgba(184, 255, 0, 0.04) 0%, transparent 40%),
-                    linear-gradient(180deg, #070D18 0%, #050912 100%);
+        background: #05080E;
         border-bottom: 1px solid var(--rl-line);
-        padding: clamp(3.5rem, 6.5vw, 6rem) 0;
+        padding: clamp(3.5rem, 6vw, 5.5rem) 0 0;
         overflow: hidden;
+        min-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Ambient Parallax Background Slider */
+    .rl-hero-bg-slider {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .rl-hero-bg-slide {
+        position: absolute;
+        inset: -8% -8%;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.6s ease;
+        will-change: transform, opacity;
+    }
+
+    .rl-hero-bg-slide.is-active {
+        opacity: 1;
+        visibility: visible;
+        z-index: 1;
+    }
+
+    /* ============================================================
+       PENGATURAN KECERAHAN / OVERLAY BACKGROUND HERO:
+       - .rl-hero-bg-img: filter brightness(0.92) -> Foto cerah & hidup
+       - .rl-hero-bg-scrim: Gradien horizontal (kiri lebih gelap untuk teks, kanan transparan)
+       - .rl-hero-bg-gradient: Gradien vertikal (atas & bawah lembut)
+       ============================================================ */
+    .rl-hero-bg-img {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center 35%;
+        background-repeat: no-repeat;
+        /* Foto jauh lebih terang (0.92) & kontras natural */
+        filter: brightness(0.75) contrast(1.05) saturate(1.05);
+        transform: translate3d(0, 0, 0) scale(1.06);
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+    }
+
+    .rl-hero-bg-slide.is-active .rl-hero-bg-img {
+        animation: rl-bg-drift 14s ease-in-out infinite alternate;
+    }
+
+    @keyframes rl-bg-drift {
+        0% { transform: scale(1.05) translate3d(0, 0, 0); }
+        100% { transform: scale(1.1) translate3d(-15px, -8px, 0); }
+    }
+
+    /* Scrim Horizontal: Gelap pekat di sisi kiri untuk ketajaman teks, transparan & terang di sisi kanan (rl-athlete) */
+    .rl-hero-bg-scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, 
+            rgba(5, 8, 14, 0.94) 0%, 
+            rgba(5, 8, 14, 0.88) 32%, 
+            rgba(5, 8, 14, 0.50) 56%, 
+            rgba(5, 8, 14, 0.10) 78%, 
+            rgba(5, 8, 14, 0.00) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Gradient Vertikal: Halus di atas dan dasar agar menyatu natural dengan section bawah */
+    .rl-hero-bg-gradient {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, 
+            rgba(5, 8, 14, 0.28) 0%, 
+            transparent 30%, 
+            rgba(5, 8, 14, 0.32) 65%, 
+            #05080E 100%
+        );
+        z-index: 3;
+        pointer-events: none;
+    }
+
+    /* Minimal Slide Indicators */
+    .rl-hero-bg-nav {
+        position: absolute;
+        top: 2rem;
+        right: clamp(1.5rem, 5vw, 4.5rem);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 10;
+        pointer-events: auto;
+    }
+
+    .rl-bg-dot {
+        width: 28px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 2px;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .rl-bg-dot:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .rl-bg-dot.is-active {
+        width: 45px;
+        background: var(--rl-lime);
+        box-shadow: 0 0 8px rgba(184, 255, 0, 0.6);
+    }
+
+    /* Subtle Ambient Stage Glow */
+    .rl-stage-glow {
+        position: absolute;
+        top: 10%;
+        right: 18%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(184, 255, 0, 0.07) 0%, rgba(184, 255, 0, 0) 70%);
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: 4;
+    }
+
+    .rl-stage-grid-lines {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: radial-gradient(ellipse at 60% 30%, black 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 60% 30%, black 20%, transparent 75%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .rl-hero-stage > .rl-shell {
+        position: relative;
+        z-index: 5;
     }
 
     .rl-hero-grid {
+        position: relative;
         display: grid;
-        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-        gap: clamp(2.5rem, 4.5vw, 4.5rem);
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: clamp(2.5rem, 5vw, 4.5rem);
         align-items: center;
         width: 100%;
+        z-index: 5;
     }
 
-    /* Kicker & Athletic Headline */
+    /* Kicker / Eyebrow */
     .rl-kicker {
         display: inline-flex;
         align-items: center;
         gap: 0.65rem;
-        background: #0D1626;
-        border: 1px solid rgba(184, 255, 0, 0.3);
-        padding: 0.35rem 0.75rem;
-        border-radius: 2px;
+        background: rgba(13, 22, 38, 0.8);
+        border: 1px solid rgba(184, 255, 0, 0.25);
+        padding: 0.4rem 0.85rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
     }
 
-    .rl-kicker-mark {
+    .rl-kicker-dot {
         width: 6px;
         height: 6px;
         background: var(--rl-lime);
-        border-radius: 1px;
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--rl-lime);
+        animation: rl-dot-pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes rl-dot-pulse {
+        0%, 100% { opacity: 0.7; transform: scale(0.9); }
+        50% { opacity: 1; transform: scale(1.2); }
     }
 
     .rl-kicker-text {
         color: var(--rl-lime);
         font-family: var(--rl-mono);
-        font-size: 0.65rem;
-        font-weight: 800;
+        font-size: 0.68rem;
+        font-weight: 700;
         letter-spacing: 0.14em;
         text-transform: uppercase;
         line-height: 1;
     }
 
+    /* Main Headline with Sora Bold */
     .rl-hero-title {
         margin: 1.25rem 0 0;
         color: #FFFFFF;
-        font-size: clamp(2.4rem, 4.2vw, 3.8rem);
-        font-weight: 950;
-        line-height: 1.05;
-        letter-spacing: -0.035em;
-        text-transform: uppercase;
+        font-family: var(--rl-font-heading);
+        font-size: clamp(2.6rem, 4.8vw, 4.2rem);
+        font-weight: 800;
+        line-height: 1.06;
+        letter-spacing: -0.03em;
     }
 
     .rl-title-accent {
-        display: block;
         color: var(--rl-lime);
     }
 
+    /* Human & Clear Subheadline */
     .rl-hero-lead {
-        margin: 1.5rem 0 0;
+        margin: 1.4rem 0 0;
         color: #94A3B8;
-        font-size: clamp(0.95rem, 1.2vw, 1.05rem);
-        line-height: 1.7;
-        max-width: 32rem;
+        font-family: var(--rl-font-body);
+        font-size: clamp(0.95rem, 1.2vw, 1.08rem);
+        line-height: 1.75;
+        max-width: 34rem;
+        font-weight: 400;
     }
 
-    /* Action Buttons */
+    /* CTA Buttons */
     .rl-hero-actions {
         display: flex;
         align-items: center;
         gap: 1rem;
-        margin-top: 2rem;
+        margin-top: 2.25rem;
         flex-wrap: wrap;
     }
 
     .rl-btn {
-        min-height: 3.1rem;
-        padding: 0 1.5rem;
+        min-height: 3.25rem;
+        padding: 0 1.75rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.6rem;
-        font-size: 0.72rem;
-        font-weight: 900;
-        letter-spacing: 0.08em;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        border-radius: 2px;
-        transition: all 0.15s ease;
+        border-radius: 4px;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
         cursor: pointer;
         box-sizing: border-box;
@@ -765,21 +1125,24 @@
         background: var(--rl-lime);
         color: #05080E;
         border: 1px solid var(--rl-lime);
+        box-shadow: 0 4px 20px rgba(184, 255, 0, 0.2);
     }
     .rl-btn-primary:hover {
         background: var(--rl-lime-hover);
         border-color: var(--rl-lime-hover);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(184, 255, 0, 0.3);
     }
 
     .rl-btn-outline {
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.03);
         color: #FFFFFF;
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.16);
     }
     .rl-btn-outline:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
     }
 
     .rl-btn-dark {
@@ -793,506 +1156,587 @@
 
     .rl-btn-block { width: 100%; }
 
-    /* Telemetry Bar */
-    .rl-hero-telemetry {
+    /* Trust Metrics Strip */
+    .rl-hero-trust {
         margin-top: 2.75rem;
         padding-top: 1.5rem;
-        border-top: 1px solid var(--rl-line);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
-        gap: 1.75rem;
+        gap: 2rem;
     }
 
-    .rl-tele-cell {
+    .rl-trust-item {
         display: flex;
         flex-direction: column;
         gap: 0.2rem;
     }
 
-    .rl-tele-val {
+    .rl-trust-val {
         color: #FFFFFF;
-        font-size: 1.3rem;
-        font-weight: 900;
+        font-size: 1.4rem;
+        font-weight: 800;
         line-height: 1;
         letter-spacing: -0.02em;
     }
 
-    .rl-tele-lbl {
+    .rl-trust-lbl {
         color: #64748B;
-        font-size: 0.65rem;
-        font-weight: 800;
+        font-size: 0.68rem;
+        font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
     }
 
-    .rl-tele-pipe {
+    .rl-trust-sep {
         width: 1px;
-        height: 1.75rem;
-        background: var(--rl-line);
+        height: 1.8rem;
+        background: rgba(255, 255, 255, 0.08);
     }
 
     /* ----------------------------------------------------
-       PREMIUM RUNNING MEDIA NEWSROOM — MAGAZINE COVER SLIDER
+       RIGHT COLUMN: INTERACTIVE STORY-DRIVEN ATHLETE VISUAL
     ---------------------------------------------------- */
-    .rl-featured {
+    .rl-stage-athlete-wrap {
+        position: relative;
         width: 100%;
-        max-width: 100%;
-        min-width: 0;
+        max-width: 480px;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 480px;
+        cursor: pointer;
+    }
+
+    /* Ambient Spotlight & Kinetic Field */
+    .rl-athlete-stage-aura {
+        position: absolute;
+        inset: -18%;
+        background: radial-gradient(circle at 60% 40%, rgba(184, 255, 0, var(--aura-opacity, 0.12)) 0%, rgba(13, 22, 38, 0) 65%);
+        filter: blur(45px);
+        pointer-events: none;
+        z-index: 1;
+        transition: background 0.4s ease, transform 0.4s ease;
+        transform: scale(var(--aura-scale, 1));
+    }
+
+    /* Velocity Energy Lines */
+    .rl-velocity-energy-field {
+        position: absolute;
+        inset: -10% -20%;
+        pointer-events: none;
+        z-index: 2;
+        overflow: hidden;
+        opacity: var(--energy-opacity, 0);
+        transition: opacity 0.4s ease;
+    }
+
+    .rl-streak {
+        position: absolute;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(184, 255, 0, 0.6), transparent);
+        border-radius: 999px;
+        transform: translateX(-100%);
+    }
+
+    .rl-streak-1 { top: 25%; width: 140px; animation: rl-streak-glide 2.4s infinite ease-in; animation-delay: 0.2s; }
+    .rl-streak-2 { top: 55%; width: 220px; animation: rl-streak-glide 1.8s infinite ease-in; animation-delay: 0.8s; }
+    .rl-streak-3 { top: 78%; width: 160px; animation: rl-streak-glide 2.1s infinite ease-in; animation-delay: 0.5s; }
+
+    @keyframes rl-streak-glide {
+        0% { transform: translateX(-120%) scaleX(0.4); opacity: 0; }
+        40% { opacity: 0.8; }
+        100% { transform: translateX(350%) scaleX(1.4); opacity: 0; }
+    }
+
+    /* Athlete Viewport & Physics Container (Transparent PNG Support - No border/shadow/box) */
+    .rl-athlete-viewport {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        overflow: visible;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        z-index: 3;
+        transform-origin: center bottom;
+        transition: transform 0.25s ease-out;
+        will-change: transform;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .rl-athlete-viewport:active,
+    .rl-athlete-viewport.is-being-dragged {
+        cursor: grabbing !important;
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .rl-athlete-viewport.is-being-dragged .rl-athlete-primary,
+    .rl-athlete-viewport.is-being-dragged .rl-athlete-layer.is-active {
+        filter: drop-shadow(0 32px 42px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.3));
+    }
+
+    /* Idle Breathing Physics */
+    .rl-athlete-viewport.is-idle-breathing {
+        animation: rl-runner-breathe 4.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes rl-runner-breathe {
+        0% {
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+            transform: translate3d(0, -5px, 0) scale(1.012);
+        }
+        100% {
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+    }
+
+    /* Layered Runner Visuals (Transparent PNG Asset) */
+    .rl-athlete-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center bottom;
+        filter: contrast(1.05) brightness(1.0);
+        pointer-events: none;
+        transform-origin: center 70%;
+        will-change: transform, opacity;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-user-drag: none;
+    }
+
+    .rl-athlete-primary {
+        z-index: 4;
+        /* Silhouette Contour Shadow: Mengikuti persis lekuk tubuh PNG tanpa bingkai kotak */
+        filter: drop-shadow(0 20px 28px rgba(0, 0, 0, 0.75)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+    }
+
+    /* Multi-Pose Dynamic Layers */
+    .rl-athlete-layer {
+        opacity: 0;
+        z-index: 2;
+        pointer-events: none;
+        transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+        filter: drop-shadow(0 20px 28px rgba(0, 0, 0, 0.75)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+    }
+
+    .rl-athlete-layer.is-active {
+        opacity: 1;
+        z-index: 4;
+        pointer-events: auto;
+    }
+
+    /* Athletic Ground Silhouette Shadow (Pijakan kaki realistis di lantai) */
+    .rl-athlete-ground-shadow {
+        position: absolute;
+        bottom: 3%;
+        left: 18%;
+        width: 64%;
+        height: 18px;
+        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.35) 45%, transparent 75%);
+        border-radius: 50%;
+        filter: blur(6px);
+        pointer-events: none;
+        z-index: 1;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    /* Motion Ghost Trails */
+    .rl-runner-trail {
+        z-index: 3;
+        opacity: 0;
+        mix-blend-mode: screen;
+        pointer-events: none;
+        transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .rl-trail-1 {
+        filter: contrast(1.2) brightness(1.2) hue-rotate(20deg);
+        transform: translate3d(calc(var(--trail-x, 0) * -12px), calc(var(--trail-y, 0) * -6px), 0) scale(0.985);
+    }
+
+    .rl-trail-2 {
+        filter: contrast(1.4) brightness(1.4) hue-rotate(45deg);
+        transform: translate3d(calc(var(--trail-x, 0) * -24px), calc(var(--trail-y, 0) * -12px), 0) scale(0.97);
+    }
+
+    /* Hover Energetic Stride Response - Clean PNG response without any box/frame */
+    .rl-stage-athlete-wrap:hover .rl-athlete-viewport {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-athlete-primary,
+    .rl-stage-athlete-wrap.is-hover-surge .rl-athlete-layer.is-active {
+        transform: scale(1.045) translateY(-6px) skewX(-2.5deg);
+        filter: drop-shadow(0 28px 36px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.28));
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-athlete-ground-shadow {
+        transform: scale(1.12) translateY(2px);
+        opacity: 0.95;
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-trail-1 {
+        opacity: 0.38;
+        transform: translate3d(-18px, -4px, 0) scale(1.02);
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-trail-2 {
+        opacity: 0.2;
+        transform: translate3d(-34px, -8px, 0) scale(0.99);
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-velocity-energy-field {
+        opacity: 1;
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-athlete-stage-aura {
+        --aura-opacity: 0.22;
+        --aura-scale: 1.15;
+    }
+
+    /* Matikan box blend & ground fade agar PNG pelari tidak terpotong garis hitam/kotak */
+    .rl-athlete-edge-blend,
+    .rl-athlete-ground-fade {
+        display: none !important;
+    }
+
+    .rl-kinetic-flash-layer {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 7;
+        transition: opacity 0.2s ease;
+    }
+
+    .rl-stage-athlete-wrap.is-hover-surge .rl-kinetic-flash-layer {
+        opacity: 1;
+    }
+
+    /* Dynamic State Telemetry Badge */
+    .rl-athlete-accent-pill {
+        position: absolute;
+        bottom: -0.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 15, 24, 0.95);
+        border: 1px solid rgba(184, 255, 0, 0.35);
+        padding: 0.45rem 0.95rem;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: #E2E8F0;
+        letter-spacing: 0.1em;
+        white-space: nowrap;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
+        z-index: 10;
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+    }
+
+    .rl-stage-athlete-wrap:hover .rl-athlete-accent-pill {
+        border-color: var(--rl-lime);
+        box-shadow: 0 10px 30px rgba(184, 255, 0, 0.25);
+    }
+
+    .rl-pill-live-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--rl-lime);
+        border-radius: 50%;
+        box-shadow: 0 0 6px var(--rl-lime);
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* ----------------------------------------------------
+       BOTTOM OF HERO: WARTA & AGENDA PILIHAN (EDITORIAL SLIDER)
+    ---------------------------------------------------- */
+    .rl-hero-strip {
+        margin-top: 3.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: #080C14;
+        padding: 1.25rem 0 1.35rem;
+        position: relative;
+        z-index: 5;
+    }
+
+    .rl-strip-container {
         display: flex;
         flex-direction: column;
-        box-sizing: border-box;
+        gap: 0.9rem;
     }
 
-    .rl-deck {
-        background: #0D0F12;
-        border: 1px solid #1F2228;
-        border-radius: 4px;
-        overflow: hidden;
-        box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.9);
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    /* Magazine Top Header Rail */
-    .rl-deck-head {
-        background: #07090C;
-        border-bottom: 1px solid #1A1D23;
-        padding: 0.8rem 1.25rem;
+    .rl-strip-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 1rem;
     }
 
-    .rl-deck-status {
+    .rl-strip-title-wrap {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.65rem;
     }
 
-    .rl-deck-brand {
-        color: #F5F5F0;
-        font-family: var(--rl-mono);
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-    }
-
-    .rl-deck-brand::before {
-        content: '';
+    .rl-strip-pulse-indicator {
+        width: 8px;
+        height: 8px;
+        background-color: var(--rl-lime);
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(184, 255, 0, 0.2);
         display: inline-block;
-        width: 3px;
-        height: 10px;
-        background: var(--rl-lime);
+        flex-shrink: 0;
     }
 
-    .rl-deck-pager {
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
-    }
-
-    .rl-deck-index-wrap {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-family: var(--rl-mono);
-        font-size: 0.75rem;
+    .rl-strip-heading {
+        margin: 0;
+        font-family: var(--rl-font, inherit);
+        font-size: 0.85rem;
         font-weight: 700;
-        letter-spacing: 0.08em;
+        color: #F8FAFC;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }
 
-    .rl-idx-active {
-        color: var(--rl-lime);
-        font-weight: 800;
-        font-size: 0.82rem;
+    .rl-strip-counter {
+        font-family: var(--rl-font, inherit);
+        color: #94A3B8;
+        font-size: 0.72rem;
+        font-weight: 500;
+        margin-left: 0.35rem;
     }
 
-    .rl-divider-slash {
-        color: #3F444E;
-    }
-
-    .rl-total-slides {
-        color: #73736C;
-    }
-
-    .rl-deck-buttons {
+    .rl-strip-nav {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: 0.4rem;
     }
 
-    .rl-btn-icon {
+    .rl-strip-nav-btn {
         width: 1.85rem;
         height: 1.85rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: #101318;
-        border: 1px solid #222731;
-        border-radius: 2px;
-        color: #9E9E96;
+        background: #0F172A;
+        border: 1px solid #1E293B;
+        border-radius: 4px;
+        color: #CBD5E1;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
 
-    .rl-btn-icon svg {
-        width: 0.85rem;
-        height: 0.85rem;
-    }
-
-    .rl-btn-icon:hover {
-        background: #171C23;
-        border-color: #3B4353;
-        color: #F5F5F0;
-    }
-
-    /* Slider Track */
-    .rl-deck-track {
-        position: relative;
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        touch-action: pan-y;
-        user-select: none;
-        -webkit-user-select: none;
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-        cursor: grab;
-    }
-
-    .rl-deck-track.is-dragging {
-        cursor: grabbing;
-        scroll-snap-type: none;
-    }
-
-    .rl-deck-slide {
-        flex: 0 0 100%;
-        width: 100%;
-        min-width: 100%;
-        max-width: 100%;
-        scroll-snap-align: start;
-        display: flex;
-        flex-direction: column;
-        box-sizing: border-box;
-    }
-
-    /* FOTO FULL WIDTH (Elemen Utama) */
-    .rl-slide-viewport {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 16 / 10;
-        min-height: 250px;
-        max-height: 380px;
-        background: #050505;
-        overflow: hidden;
-    }
-
-    .rl-slide-photo {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        pointer-events: none;
-    }
-
-    .rl-deck-slide:hover .rl-slide-photo {
-        transform: scale(1.02);
-    }
-
-    /* Subtle Scrim for Depth */
-    .rl-slide-scrim {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            180deg,
-            rgba(5, 5, 5, 0.08) 0%,
-            rgba(5, 5, 5, 0.15) 35%,
-            rgba(13, 15, 18, 0.6) 75%,
-            #0D0F12 100%
-        );
-        pointer-events: none;
-    }
-
-    /* Magazine Cover Typography Overlay (Inside Photo) */
-    .rl-cover-headline-wrap {
-        position: absolute;
-        bottom: 1.25rem;
-        right: 1.25rem;
-        left: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        text-align: right;
-        pointer-events: none;
-        z-index: 2;
-    }
-
-    .rl-cover-display {
-        font-family: var(--rl-font);
-        font-size: clamp(1.4rem, 2.5vw, 2.15rem);
-        font-weight: 950;
-        line-height: 0.94;
-        letter-spacing: -0.04em;
-        text-transform: uppercase;
-        color: #FFFFFF;
-        text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
-        max-width: 20ch;
-    }
-
-    /* EDITORIAL DISPATCH BLOCK (Under Photo) */
-    .rl-slide-editorial {
-        background: #0D0F12;
-        border-top: 1px solid #1A1D23;
-        padding: 1.35rem 1.45rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        box-sizing: border-box;
-    }
-
-    /* Badge Kategori Kecil (Typographic Eyebrow, Bukan Kotak) */
-    .rl-editorial-eyebrow {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.45rem;
-        font-family: var(--rl-mono);
-        font-size: 0.64rem;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: #9E9E96;
-    }
-
-    .rl-eyebrow-accent {
-        width: 5px;
-        height: 5px;
-        background: var(--rl-lime);
-        border-radius: 1px;
-    }
-
-    .rl-eyebrow-text {
-        color: var(--rl-lime);
-        font-weight: 800;
-    }
-
-    .rl-eyebrow-sep {
-        color: #3F444E;
-    }
-
-    .rl-eyebrow-cat {
-        color: #D4D4CE;
-    }
-
-    .rl-eyebrow-status {
-        color: var(--rl-lime);
-        font-weight: 800;
-    }
-
-    /* Magazine Headline (Sleek, Athletic & Bold) */
-    .rl-editorial-headline {
-        margin: 0.65rem 0 0.75rem;
-        font-family: var(--rl-font);
-        font-size: clamp(1.2rem, 2vw, 1.6rem);
-        font-weight: 900;
-        line-height: 1.2;
-        letter-spacing: -0.03em;
-        text-transform: uppercase;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .rl-editorial-headline a {
-        color: #F5F5F0;
-        text-decoration: none;
-        transition: color 0.15s ease;
-    }
-
-    .rl-editorial-headline a:hover {
-        color: var(--rl-lime);
-    }
-
-    /* Metadata Row (Date & Location) */
-    .rl-editorial-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: var(--rl-mono);
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #73736C;
-        margin-bottom: 1.25rem;
-    }
-
-    .rl-meta-sep {
-        color: #3F444E;
-    }
-
-    /* CTA Button (BACA CERITA) */
-    .rl-editorial-action {
-        margin-top: auto;
-        padding-top: 1rem;
-        border-top: 1px solid #171A20;
-    }
-
-    .rl-editorial-cta {
-        display: inline-flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        background: #11141A;
-        color: #F5F5F0;
-        border: 1px solid #222731;
-        padding: 0.75rem 1.15rem;
-        border-radius: 3px;
-        font-family: var(--rl-mono);
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        text-decoration: none;
-        transition: all 0.15s ease;
-        box-sizing: border-box;
-    }
-
-    .rl-editorial-cta svg {
-        width: 0.85rem;
-        height: 0.85rem;
-        color: var(--rl-lime);
-        transition: transform 0.15s ease;
-    }
-
-    .rl-editorial-cta:hover {
-        background: #171C24;
+    .rl-strip-nav-btn:hover:not(:disabled) {
+        background: #1E293B;
         border-color: var(--rl-lime);
         color: #FFFFFF;
     }
 
-    .rl-editorial-cta:hover svg {
-        transform: translateX(4px);
+    .rl-strip-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
     }
 
-    /* Thin Segment Progress */
-    .rl-deck-progress {
-        height: 2px;
-        background: #0E1015;
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: 1fr;
-        gap: 1px;
+    .rl-strip-nav-btn svg {
+        width: 0.9rem;
+        height: 0.9rem;
     }
 
-    .rl-progress-segment {
-        background: #1A1E26;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        transition: background 0.15s ease;
-    }
-
-    .rl-progress-segment.is-active {
-        background: var(--rl-lime);
-    }
-
-    /* BOTTOM SLIDER: INDEKS MAJALAH */
-    .rl-magazine-index {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        margin-top: 0.65rem;
-        box-sizing: border-box;
-    }
-
-    .rl-index-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-        gap: 0.4rem;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .rl-index-item {
-        display: flex;
-        align-items: baseline;
-        gap: 0.55rem;
-        background: #090B0E;
-        border: 1px solid #181B22;
-        border-radius: 3px;
-        padding: 0.65rem 0.85rem;
+    /* Slider Track Wrapper */
+    .rl-strip-slider-wrapper {
         position: relative;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        box-sizing: border-box;
+        width: 100%;
         overflow: hidden;
     }
 
-    .rl-index-item:hover {
-        background: #0E1116;
-        border-color: #262B36;
+    .rl-strip-track {
+        display: flex;
+        gap: 1rem;
+        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
     }
 
-    .rl-index-item.is-active {
-        background: #11141B;
-        border-color: #2E3544;
+    /* Card styling: Clean horizontal layout with thumbnail on left */
+    .rl-strip-card {
+        flex: 0 0 calc((100% - 2rem) / 3);
+        min-width: calc((100% - 2rem) / 3);
+        box-sizing: border-box;
+        background: #0B111D;
+        border: 1px solid #1A2436;
+        border-radius: 6px;
+        padding: 0.75rem;
+        display: flex;
+        align-items: stretch;
+        gap: 0.85rem;
+        text-decoration: none;
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
 
-    .rl-index-num {
-        font-family: var(--rl-mono);
-        font-size: 0.72rem;
-        font-weight: 800;
-        color: #52524E;
+    .rl-strip-card:hover {
+        background: #111A2C;
+        border-color: rgba(184, 255, 0, 0.45);
+        transform: translateY(-2px);
+    }
+
+    /* Thumbnail box */
+    .rl-strip-card-thumb {
+        position: relative;
+        flex: 0 0 5.25rem;
+        width: 5.25rem;
+        min-height: 5.25rem;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #080D17;
+    }
+
+    .rl-strip-card-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.35s ease;
+    }
+
+    .rl-strip-card:hover .rl-strip-card-thumb img {
+        transform: scale(1.05);
+    }
+
+    /* Category Badge over thumbnail */
+    .rl-strip-card-thumb .rl-badge-tag {
+        position: absolute;
+        top: 0.35rem;
+        left: 0.35rem;
+        font-family: var(--rl-font, inherit);
+        font-size: 0.58rem;
+        font-weight: 700;
         letter-spacing: 0.05em;
-        transition: color 0.15s ease;
-        flex-shrink: 0;
+        text-transform: uppercase;
+        background: rgba(8, 12, 20, 0.9);
+        color: #E2E8F0;
+        padding: 0.15rem 0.38rem;
+        border-radius: 3px;
+        backdrop-filter: blur(4px);
     }
 
-    .rl-index-item.is-active .rl-index-num {
+    .rl-strip-card-thumb .rl-badge-tag.rl-badge-event {
         color: var(--rl-lime);
+        border: 1px solid rgba(184, 255, 0, 0.3);
     }
 
-    .rl-index-title {
-        color: #73736C;
-        font-size: 0.74rem;
-        font-weight: 600;
+    /* Card Right Body */
+    .rl-strip-card-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0.15rem 0;
+    }
+
+    .rl-strip-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-family: var(--rl-font, inherit);
+        font-size: 0.65rem;
+        color: #94A3B8;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .rl-meta-location {
+        font-weight: 600;
+        color: #CBD5E1;
+    }
+
+    .rl-meta-sep {
+        color: #64748B;
+        font-size: 0.6rem;
+    }
+
+    .rl-meta-date {
+        color: #94A3B8;
+    }
+
+    .rl-strip-card-title {
+        margin: 0.25rem 0;
+        font-family: var(--rl-font, inherit);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #F1F5F9;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
         transition: color 0.15s ease;
     }
 
-    .rl-index-item:hover .rl-index-title {
-        color: #B5B5AF;
+    .rl-strip-card:hover .rl-strip-card-title {
+        color: #FFFFFF;
     }
 
-    .rl-index-item.is-active .rl-index-title {
-        color: #F5F5F0;
-        font-weight: 700;
+    .rl-strip-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 0.2rem;
     }
 
-    .rl-index-indicator {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: transparent;
-        transition: background 0.15s ease;
+    .rl-strip-action-text {
+        font-family: var(--rl-font, inherit);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--rl-lime);
+        font-size: 0.68rem;
+        font-weight: 600;
+        transition: gap 0.15s ease;
     }
 
-    .rl-index-item.is-active .rl-index-indicator {
-        background: var(--rl-lime);
+    .rl-strip-card:hover .rl-strip-action-text {
+        gap: 0.45rem;
+    }
+
+    .rl-action-arrow {
+        width: 0.75rem;
+        height: 0.75rem;
+    }
+
+    @media (max-width: 1024px) {
+        .rl-strip-card {
+            flex: 0 0 calc((100% - 1rem) / 2);
+            min-width: calc((100% - 1rem) / 2);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .rl-strip-card {
+            flex: 0 0 calc(100% - 1.5rem);
+            min-width: calc(100% - 1.5rem);
+        }
     }
 
     /* ----------------------------------------------------
@@ -2177,29 +2621,74 @@
             max-width: 100%;
         }
 
-        .rl-hero {
-            padding: 2rem 0 3rem;
+        .rl-hero-stage {
+            padding: 2.5rem 0 0;
             width: 100%;
+        }
+
+        .rl-hero-bg-nav {
+            top: 1.25rem;
+            right: 1.25rem;
+            gap: 0.35rem;
+        }
+
+        .rl-bg-dot {
+            width: 20px;
+            height: 2.5px;
+        }
+
+        .rl-bg-dot.is-active {
+            width: 32px;
         }
 
         /* Prevent Grid blow-out / horizontal page drift */
         .rl-hero-grid,
         .rl-hero-copy,
-        .rl-featured,
-        .rl-deck,
-        .rl-deck-slide {
+        .rl-stage-athlete-wrap {
             min-width: 0 !important;
             width: 100% !important;
             box-sizing: border-box;
         }
 
         .rl-hero-grid {
-            gap: 1.75rem;
+            gap: 2rem;
             grid-template-columns: minmax(0, 1fr) !important;
         }
 
-        .rl-hero-copy { order: 2; }
-        .rl-featured { order: 1; }
+        .rl-hero-copy { order: 1; }
+        .rl-stage-athlete-wrap {
+            order: 2;
+            min-height: 400px;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .rl-athlete-portal {
+            max-width: 320px;
+        }
+
+        .rl-hud-cadence {
+            left: 0;
+            top: 8%;
+        }
+
+        .rl-hud-vdot {
+            right: 0;
+            bottom: 14%;
+        }
+
+        .rl-dock-flex {
+            grid-template-columns: 1fr !important;
+            gap: 1.25rem;
+        }
+
+        .rl-eco-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .rl-eco-grid a:last-child {
+            grid-column: span 2;
+        }
 
         .rl-hero-title {
             font-size: clamp(1.85rem, 7.5vw, 2.4rem);
@@ -2390,102 +2879,611 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    initFeaturedSlider();
+    initHeroBgSlider();
+    initHeroParallax();
+    initFeaturedStripSlider();
+    initEditorialDispatch();
     initVdotWidget();
     loadUpcomingEvents();
     loadLatestBlogs();
 });
 
-function initFeaturedSlider() {
-    const track = document.getElementById('heroFeaturedTrack');
-    const dots = document.getElementById('heroFeaturedDots');
-    const prev = document.getElementById('heroFeaturedPrev');
-    const next = document.getElementById('heroFeaturedNext');
-    const currentIndexEl = document.getElementById('heroCurrentIndex');
-    const playlist = document.getElementById('heroFeaturedPlaylist');
-    const playlistTabs = playlist ? [...playlist.querySelectorAll('.rl-index-item, .rl-playlist-item')] : [];
+function initHeroParallax() {
+    const stage = document.getElementById('heroStage');
+    const athleteWrap = document.getElementById('heroInteractiveStage');
+    const athletePortal = document.getElementById('heroAthletePortal');
+    const athletePrimary = document.getElementById('heroAthleteImg');
+    const trail1 = athletePortal?.querySelector('.rl-trail-1');
+    const trail2 = athletePortal?.querySelector('.rl-trail-2');
+    const stageAura = document.getElementById('athleteStageAura');
+    const energyField = document.getElementById('velocityEnergyField');
+    const pillStateText = document.getElementById('pillStateText');    
 
-    if (!track) return;
-
-    const slides = [...track.children];
-    if (slides.length <= 1) return;
+    if (!stage || !athletePortal) return;
 
     const reducedMotion = window.matchMedia &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
 
-    let activeIndex = 0;
-    let timer = null;
-    let isProgrammaticScrolling = false;
-    let scrollLockTimeout = null;
+    // Physics & state variables
+    let targetMouseX = 0;
+    let targetMouseY = 0;
+    let currentMouseX = 0;
+    let currentMouseY = 0;
+    let isTicking = false;
+    let isHovered = false;
+    let hoverBurstTimeout = null;
+    let currentPhase = 1;
 
-    function updateNav() {
-        if (currentIndexEl) {
-            currentIndexEl.textContent = String(activeIndex + 1).padStart(2, '0');
+    // Initial load: activate breathing state
+    athletePortal.classList.add('is-idle-breathing');
+
+    // Mouse coordinates tracking
+    stage.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        targetMouseX = (x - 0.5) * 2;
+        targetMouseY = (y - 0.5) * 2;
+
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    }, { passive: true });
+
+    stage.addEventListener('mouseleave', () => {
+        targetMouseX = 0;
+        targetMouseY = 0;
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    });
+
+    const athleteLayers = athletePortal?.querySelectorAll('.rl-athlete-layer');
+    function setAthleteActivePose(index) {
+        if (!athleteLayers || !athleteLayers.length) return;
+        const target = Math.min(Math.max(index, 0), athleteLayers.length - 1);
+        athleteLayers.forEach((layer, idx) => {
+            if (idx === target) {
+                layer.classList.add('is-active');
+            } else {
+                layer.classList.remove('is-active');
+            }
+        });
+    }
+
+    // Hover interaction: refined athletic running surge / stride burst
+    athleteWrap?.addEventListener('mouseenter', () => {
+        isHovered = true;
+        athleteWrap.classList.add('is-hover-surge');
+        athletePortal.classList.remove('is-idle-breathing');
+
+        // Multi-pose transition: switch to Pose 2 (Hover/Ready state) if available
+        if (athleteLayers && athleteLayers.length > 1) {
+            setAthleteActivePose(1);
         }
 
-        if (dots) {
-            [...dots.children].forEach((item, index) => {
-                const isActive = index === activeIndex;
-                item.classList.toggle('is-active', isActive);
-                item.setAttribute('aria-current', isActive ? 'true' : 'false');
-            });
+        if (pillStateText) {
+            pillStateText.innerHTML = 'Cepat &';
+        }
+        
+
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    });
+
+    athleteWrap?.addEventListener('mouseleave', () => {
+        isHovered = false;
+        athleteWrap.classList.remove('is-hover-surge');
+        
+        // Restore current scroll phase text & athlete pose
+        updatePhaseIndicator(window.scrollY);
+
+        if (window.scrollY < 30) {
+            athletePortal.classList.add('is-idle-breathing');
         }
 
-        if (playlistTabs.length) {
-            playlistTabs.forEach((tab, index) => {
-                tab.classList.toggle('is-active', index === activeIndex);
-            });
-            const activeTab = playlistTabs[activeIndex];
-            if (activeTab && playlist) {
-                const grid = playlist.querySelector('.rl-index-grid') || playlist;
-                if (grid && grid.scrollWidth > grid.clientWidth) {
-                    const tabLeft = activeTab.offsetLeft;
-                    const tabWidth = activeTab.offsetWidth;
-                    const gridWidth = grid.clientWidth;
-                    grid.scrollTo({
-                        left: tabLeft - (gridWidth / 2) + (tabWidth / 2),
-                        behavior: 'smooth'
-                    });
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    });
+
+    // ==========================================
+    // Interactive Kinetic Drag & Snap-Back Physics
+    // ==========================================
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragTargetX = 0;
+    let dragTargetY = 0;
+    let dragCurrentX = 0;
+    let dragCurrentY = 0;
+    let isSpringing = false;
+    const groundShadow = athletePortal.querySelector('.rl-athlete-ground-shadow');
+
+    // Prevent default browser ghost image dragging
+    athletePortal.addEventListener('dragstart', (e) => e.preventDefault());
+
+    athletePortal.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+
+        isDragging = true;
+        isSpringing = false;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragTargetX = dragCurrentX;
+        dragTargetY = dragCurrentY;
+
+        athletePortal.classList.add('is-being-dragged');
+        athletePortal.classList.remove('is-idle-breathing');
+
+        try {
+            athletePortal.setPointerCapture(e.pointerId);
+        } catch (err) {}
+
+        if (pillStateText) {
+            pillStateText.innerHTML = 'PERGERAKAN CEPAT';
+        }
+        if (pillDot) {
+            pillDot.style.boxShadow = '0 0 14px rgba(255, 255, 255, 0.8)';
+        }
+
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    });
+
+    athletePortal.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+
+        const rawDx = e.clientX - dragStartX;
+        const rawDy = e.clientY - dragStartY;
+
+        // Natural non-linear elastic damping resistance
+        const dist = Math.hypot(rawDx, rawDy);
+        const maxDist = 200;
+        const dampedDist = maxDist * Math.tanh(dist / maxDist);
+        const ratio = dist > 0 ? (dampedDist / dist) : 0;
+
+        dragTargetX = rawDx * ratio;
+        dragTargetY = rawDy * ratio;
+
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    });
+
+    function finishDrag(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        isSpringing = true;
+        dragTargetX = 0;
+        dragTargetY = 0;
+
+        athletePortal.classList.remove('is-being-dragged');
+
+        if (e && e.pointerId) {
+            try {
+                athletePortal.releasePointerCapture(e.pointerId);
+            } catch (err) {}
+        }
+
+        // Restore status text to user's configured text
+        if (pillStateText) {
+            pillStateText.innerHTML = isHovered ? 'CEPAT' : 'FAKTUAL';
+        }
+        if (pillDot && !isHovered) {
+            pillDot.style.boxShadow = '';
+        }
+
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    }
+
+    athletePortal.addEventListener('pointerup', finishDrag);
+    athletePortal.addEventListener('pointercancel', finishDrag);
+
+    // Scroll listener with RAF throttling
+    window.addEventListener('scroll', () => {
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(updateKineticStage);
+        }
+    }, { passive: true });
+
+    function updatePhaseIndicator(scrollY) {
+        let newPhase = 1;
+        let text = 'FAKTUAL';
+
+        if (scrollY >= 300) {
+            newPhase = 3;
+            text = 'TERPERCAYA';
+        } else if (scrollY >= 60) {
+            newPhase = 2;
+            text = 'CEPAT';
+        }
+
+        if (newPhase !== currentPhase || !isHovered) {
+            currentPhase = newPhase;
+            if (!isHovered && !isDragging && pillStateText) {
+                pillStateText.innerHTML = (currentPhase === 1) ? 'FAKTUAL' : text;
+            }
+
+            // Sync athlete active pose with scroll phase if not hovered and not dragging
+            if (!isHovered && !isDragging && athleteLayers && athleteLayers.length > 1) {
+                if (currentPhase === 1) {
+                    setAthleteActivePose(0);
+                } else if (currentPhase === 2) {
+                    setAthleteActivePose(1);
+                } else if (currentPhase === 3) {
+                    setAthleteActivePose(athleteLayers.length > 2 ? 2 : 1);
                 }
             }
         }
     }
 
-    function goTo(index, smooth = true) {
-        activeIndex = (index + slides.length) % slides.length;
-        const targetSlide = slides[activeIndex];
+    function updateKineticStage() {
+        // Smooth mouse damping (lerp)
+        currentMouseX += (targetMouseX - currentMouseX) * 0.08;
+        currentMouseY += (targetMouseY - currentMouseY) * 0.08;
 
-        isProgrammaticScrolling = true;
-        clearTimeout(scrollLockTimeout);
-
-        if (targetSlide) {
-            track.scrollTo({
-                left: targetSlide.offsetLeft,
-                behavior: (reducedMotion || !smooth) ? 'auto' : 'smooth'
-            });
+        // Smooth drag lerp or spring snap-back
+        if (isDragging) {
+            dragCurrentX += (dragTargetX - dragCurrentX) * 0.35;
+            dragCurrentY += (dragTargetY - dragCurrentY) * 0.35;
+        } else if (isSpringing || Math.abs(dragCurrentX) > 0.05 || Math.abs(dragCurrentY) > 0.05) {
+            // Elastic spring return to origin
+            dragCurrentX += (0 - dragCurrentX) * 0.18;
+            dragCurrentY += (0 - dragCurrentY) * 0.18;
+            if (Math.abs(dragCurrentX) < 0.2 && Math.abs(dragCurrentY) < 0.2) {
+                dragCurrentX = 0;
+                dragCurrentY = 0;
+                isSpringing = false;
+                if (window.scrollY < 30 && !isHovered) {
+                    athletePortal.classList.add('is-idle-breathing');
+                }
+            }
         }
 
-        updateNav();
+        const scrollY = window.scrollY;
+        const maxScroll = 650;
+        const scrollNorm = Math.min(Math.max(scrollY / maxScroll, 0), 1);
 
-        scrollLockTimeout = setTimeout(() => {
-            isProgrammaticScrolling = false;
-        }, (reducedMotion || !smooth) ? 60 : 500);
+        // Manage breathing class on scroll
+        if (scrollY > 30 || isDragging || isSpringing) {
+            athletePortal.classList.remove('is-idle-breathing');
+        } else if (!isHovered && !isDragging && !isSpringing) {
+            athletePortal.classList.add('is-idle-breathing');
+        }
+
+        updatePhaseIndicator(scrollY);
+
+        // Story-driven scroll physics calculation
+        // 1. Forward Lean Angle (Pitch): scroll pitch + lateral drag tilt
+        const dragTilt = (dragCurrentX * 0.055);
+        const leanAngle = (scrollNorm * 4.8) + dragTilt;
+        
+        // 2. Combined Horizontal & Vertical Position
+        const propulsionX = scrollNorm * 26 + (currentMouseX * 14) + dragCurrentX;
+        const travelY = (currentMouseY * 12) - (scrollY * 0.12) + dragCurrentY;
+
+        // 3. Dynamic Scale (Depth + subtle lift surge when dragged)
+        const dynamicScale = (1 + (scrollNorm * 0.085)) * (isDragging ? 1.035 : 1);
+
+        // Apply transforms to athlete viewport
+        athletePortal.style.transform = `translate3d(${propulsionX.toFixed(1)}px, ${travelY.toFixed(1)}px, 0) scale(${dynamicScale.toFixed(3)}) rotate(${leanAngle.toFixed(2)}deg)`;
+
+        // Athletic Ground Silhouette Shadow reacts to drag height and offset
+        if (groundShadow) {
+            const liftHeight = Math.max(-dragCurrentY, 0);
+            const shadowScaleX = Math.max(1 - (liftHeight * 0.0025), 0.5);
+            const shadowOpacity = Math.max(0.85 - (liftHeight * 0.0035), 0.15);
+            const shadowFollowX = dragCurrentX * 0.28;
+            groundShadow.style.transform = `scale(${shadowScaleX.toFixed(2)}) translate3d(${shadowFollowX.toFixed(1)}px, 0, 0)`;
+            groundShadow.style.opacity = shadowOpacity.toFixed(2);
+        }
+
+        // Update Ghost Trail offsets and opacities based on velocity/scroll + drag
+        if (trail1) {
+            const trail1Opacity = Math.min(scrollNorm * 0.35 + (isHovered ? 0.35 : 0) + (isDragging ? 0.25 : 0), 0.5);
+            trail1.style.opacity = trail1Opacity.toFixed(2);
+            trail1.style.transform = `translate3d(${(-scrollNorm * 14 - (isHovered ? 8 : 0) - dragCurrentX * 0.2).toFixed(1)}px, ${(-scrollNorm * 4 - dragCurrentY * 0.2).toFixed(1)}px, 0) scale(${1 + scrollNorm * 0.02})`;
+        }
+
+        if (trail2) {
+            const trail2Opacity = Math.min(Math.max((scrollNorm - 0.3) * 0.45, 0) + (isHovered ? 0.2 : 0) + (isDragging ? 0.15 : 0), 0.35);
+            trail2.style.opacity = trail2Opacity.toFixed(2);
+            trail2.style.transform = `translate3d(${(-scrollNorm * 28 - (isHovered ? 14 : 0) - dragCurrentX * 0.35).toFixed(1)}px, ${(-scrollNorm * 8 - dragCurrentY * 0.35).toFixed(1)}px, 0) scale(${1 + scrollNorm * 0.04})`;
+        }
+
+        // Atmosphere and energy lines opacity
+        if (energyField) {
+            const energyOp = Math.min(scrollNorm * 0.9 + (isHovered ? 0.8 : 0) + (isDragging ? 0.5 : 0), 1);
+            energyField.style.opacity = energyOp.toFixed(2);
+        }
+
+        if (stageAura) {
+            const auraScale = 1 + (scrollNorm * 0.2) + (isHovered ? 0.15 : 0) + (isDragging ? 0.18 : 0);
+            const auraOpacity = 0.12 + (scrollNorm * 0.1) + (isHovered ? 0.1 : 0) + (isDragging ? 0.15 : 0);
+            stageAura.style.setProperty('--aura-scale', auraScale.toFixed(2));
+            stageAura.style.setProperty('--aura-opacity', auraOpacity.toFixed(2));
+        }
+
+        // Ambient background image parallax
+        const activeBgImg = document.querySelector('#heroBgSlider .rl-hero-bg-slide.is-active .rl-hero-bg-img');
+        if (activeBgImg) {
+            const bgParallaxX = currentMouseX * -15;
+            const bgParallaxY = (currentMouseY * -10) + (scrollY * 0.08);
+            activeBgImg.style.transform = `translate3d(${bgParallaxX.toFixed(1)}px, ${bgParallaxY.toFixed(1)}px, 0) scale(1.06)`;
+        }
+
+        // Loop continuation criteria
+        const isDragActive = isDragging || isSpringing || Math.abs(dragCurrentX) > 0.1 || Math.abs(dragCurrentY) > 0.1;
+        const mouseDelta = Math.abs(targetMouseX - currentMouseX) + Math.abs(targetMouseY - currentMouseY);
+        if (mouseDelta > 0.001 || isHovered || isDragActive) {
+            requestAnimationFrame(updateKineticStage);
+        } else {
+            isTicking = false;
+        }
+    }
+}
+
+function initHeroBgSlider() {
+    const slider = document.getElementById('heroBgSlider');
+    const nav = document.getElementById('heroBgNav');
+    if (!slider) return;
+
+    const slides = slider.querySelectorAll('.rl-hero-bg-slide');
+    const dots = nav ? nav.querySelectorAll('.rl-bg-dot') : [];
+    if (slides.length <= 1) return;
+
+    let currentIndex = 0;
+    let timer = null;
+    const intervalTime = 6500; // 6.5s per slide
+
+    function goToSlide(index) {
+        currentIndex = (index + slides.length) % slides.length;
+
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('is-active', i === currentIndex);
+        });
+
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('is-active', i === currentIndex);
+        });
     }
 
-    function detectActive() {
-        if (isProgrammaticScrolling) return;
+    function nextSlide() {
+        goToSlide(currentIndex + 1);
+    }
 
-        const width = track.clientWidth;
-        if (!width) return;
+    function startAutoSlide() {
+        if (timer) clearInterval(timer);
+        timer = setInterval(nextSlide, intervalTime);
+    }
 
-        const scrollLeft = track.scrollLeft;
-        const rawIndex = Math.round(scrollLeft / width);
-        const newIndex = Math.max(0, Math.min(slides.length - 1, rawIndex));
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+            goToSlide(i);
+            startAutoSlide();
+        });
+    });
 
-        if (newIndex !== activeIndex) {
-            activeIndex = newIndex;
-            updateNav();
+    startAutoSlide();
+
+    // Pause on tab hidden, resume on tab visible
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (timer) clearInterval(timer);
+        } else {
+            startAutoSlide();
         }
+    });
+}
+
+function initFeaturedStripSlider() {
+    const wrapper = document.getElementById('stripSliderWrapper');
+    const track = document.getElementById('stripTrack');
+    const prevBtn = document.getElementById('stripPrevBtn');
+    const nextBtn = document.getElementById('stripNextBtn');
+    const counterText = document.getElementById('stripCounterText');
+
+    if (!wrapper || !track) return;
+
+    const cards = track.querySelectorAll('.rl-strip-card');
+    const totalCards = cards.length;
+    if (totalCards <= 1) {
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        return;
+    }
+
+    let currentIndex = 0;
+    let autoSlideTimer = null;
+    const slideInterval = 4500; // 4.5 detik per slide
+
+    function getVisibleCount() {
+        const width = window.innerWidth;
+        if (width >= 1024) return 3;
+        if (width >= 640) return 2;
+        return 1;
+    }
+
+    function getMaxIndex() {
+        const visible = getVisibleCount();
+        return Math.max(0, totalCards - visible);
+    }
+
+    function updateSlider() {
+        const maxIndex = getMaxIndex();
+        if (currentIndex > maxIndex) currentIndex = maxIndex;
+        if (currentIndex < 0) currentIndex = 0;
+
+        const firstCard = cards[0];
+        if (!firstCard) return;
+
+        // Card step width + gap (1rem = 16px)
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const gap = 16;
+        const offset = currentIndex * (cardWidth + gap);
+
+        track.style.transform = `translate3d(-${offset}px, 0, 0)`;
+
+        // Clean natural Indonesian counter (misal: 1 dari 5)
+        if (counterText) {
+            counterText.textContent = `${currentIndex + 1} dari ${totalCards}`;
+        }
+
+        // Nav buttons state - responsif dan selalu siap navigasi
+        if (prevBtn) {
+            prevBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+            prevBtn.style.cursor = 'pointer';
+        }
+        if (nextBtn) {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+        }
+    }
+
+    function nextSlide() {
+        const maxIndex = getMaxIndex();
+        if (currentIndex >= maxIndex) {
+            currentIndex = 0; // Loop kembali ke awal
+        } else {
+            currentIndex++;
+        }
+        updateSlider();
+    }
+
+    function prevSlide() {
+        const maxIndex = getMaxIndex();
+        if (currentIndex <= 0) {
+            currentIndex = maxIndex; // Loop ke akhir
+        } else {
+            currentIndex--;
+        }
+        updateSlider();
+    }
+
+    function startAutoSlide() {
+        stopAutoSlide();
+        autoSlideTimer = setInterval(nextSlide, slideInterval);
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideTimer) {
+            clearInterval(autoSlideTimer);
+            autoSlideTimer = null;
+        }
+    }
+
+    prevBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        prevSlide();
+        startAutoSlide(); // Reset jeda auto-slide saat ada interaksi
+    });
+
+    nextBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        nextSlide();
+        startAutoSlide(); // Reset jeda auto-slide saat ada interaksi
+    });
+
+    // Jeda auto-slide saat kursor berada di atas card atau wrapper slider
+    wrapper.addEventListener('mouseenter', stopAutoSlide);
+    wrapper.addEventListener('mouseleave', startAutoSlide);
+
+    // Touch swipe support untuk mobile / tablet
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    wrapper.addEventListener('touchstart', (e) => {
+        stopAutoSlide();
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const diffX = touchStartX - touchEndX;
+        if (Math.abs(diffX) > 35) {
+            if (diffX > 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        }
+        startAutoSlide();
+    }, { passive: true });
+
+    // Hentikan auto-slide jika tab browser di-minimize / pindah tab agar hemat performa
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopAutoSlide();
+        } else {
+            startAutoSlide();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        updateSlider();
+    });
+
+    // Inisialisasi awal
+    updateSlider();
+    startAutoSlide();
+}
+
+function initEditorialDispatch() {
+    const dispatchEl = document.getElementById('heroEditorialDispatch');
+    if (!dispatchEl) return;
+
+    const slides = [...dispatchEl.querySelectorAll('.rl-dispatch-slide')];
+    if (slides.length <= 1) return;
+
+    const prevBtn = document.getElementById('dispatchPrev');
+    const nextBtn = document.getElementById('dispatchNext');
+    const currentIdxEl = document.getElementById('dispatchCurrentIdx');
+
+    let activeIndex = 0;
+    let timer = null;
+    const reducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function showSlide(index) {
+        activeIndex = (index + slides.length) % slides.length;
+
+        slides.forEach((slide, i) => {
+            const isActive = i === activeIndex;
+            slide.classList.toggle('is-active', isActive);
+        });
+
+        if (currentIdxEl) {
+            currentIdxEl.textContent = String(activeIndex + 1).padStart(2, '0');
+        }
+    }
+
+    function nextSlide() {
+        showSlide(activeIndex + 1);
+    }
+
+    function prevSlide() {
+        showSlide(activeIndex - 1);
+    }
+
+    function startAuto() {
+        if (reducedMotion || document.hidden || timer) return;
+        timer = setInterval(nextSlide, 6000);
     }
 
     function stopAuto() {
@@ -2494,83 +3492,27 @@ function initFeaturedSlider() {
         timer = null;
     }
 
-    function startAuto() {
-        if (reducedMotion || document.hidden || timer) return;
-        timer = setInterval(() => goTo(activeIndex + 1), 7000);
-    }
-
-    function restartAuto() {
+    prevBtn?.addEventListener('click', () => {
+        prevSlide();
         stopAuto();
         startAuto();
-    }
-
-    // Initialize progress dots
-    if (dots) {
-        dots.innerHTML = '';
-        slides.forEach((_, index) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'rl-progress-segment';
-            button.setAttribute('aria-label', `Tampilkan slide ${index + 1}`);
-            button.addEventListener('click', () => {
-                goTo(index);
-                restartAuto();
-            });
-            dots.appendChild(button);
-        });
-    }
-
-    // Initialize playlist tabs
-    if (playlistTabs.length) {
-        playlistTabs.forEach((tab, index) => {
-            tab.addEventListener('click', () => {
-                goTo(index);
-                restartAuto();
-            });
-        });
-    }
-
-    // Scroll listener for manual swipe / scroll
-    let scrollRaf = null;
-    track.addEventListener('scroll', () => {
-        if (isProgrammaticScrolling) return;
-        if (scrollRaf) cancelAnimationFrame(scrollRaf);
-        scrollRaf = requestAnimationFrame(() => {
-            detectActive();
-        });
-    }, { passive: true });
-
-    if ('onscrollend' in window) {
-        track.addEventListener('scrollend', () => {
-            isProgrammaticScrolling = false;
-            detectActive();
-        }, { passive: true });
-    }
-
-    // Hover and touch pause
-    track.addEventListener('mouseenter', stopAuto, { passive: true });
-    track.addEventListener('mouseleave', startAuto, { passive: true });
-
-    track.addEventListener('touchstart', stopAuto, { passive: true });
-    track.addEventListener('touchend', () => {
-        setTimeout(restartAuto, 1000);
-    }, { passive: true });
-
-    prev?.addEventListener('click', () => {
-        goTo(activeIndex - 1);
-        restartAuto();
     });
 
-    next?.addEventListener('click', () => {
-        goTo(activeIndex + 1);
-        restartAuto();
+    nextBtn?.addEventListener('click', () => {
+        nextSlide();
+        stopAuto();
+        startAuto();
     });
+
+    dispatchEl.addEventListener('mouseenter', stopAuto, { passive: true });
+    dispatchEl.addEventListener('mouseleave', startAuto, { passive: true });
+    dispatchEl.addEventListener('touchstart', stopAuto, { passive: true });
+    dispatchEl.addEventListener('touchend', () => setTimeout(startAuto, 1000), { passive: true });
 
     document.addEventListener('visibilitychange', () => {
         document.hidden ? stopAuto() : startAuto();
     });
 
-    updateNav();
     startAuto();
 }
 

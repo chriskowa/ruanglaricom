@@ -1,12 +1,17 @@
-@extends('layouts.pacerhub')
-@php($withSidebar = true)
+@extends('layouts.pacerhub', ['withSidebar' => true])
+
 @section('title', 'Manage Pages')
 
 @section('content')
 <div class="p-8 bg-slate-900 rounded-xl overflow-hidden shadow-xl border border-slate-700 pt-20">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold text-white">Pages Management</h2>
-        <a href="{{ route('admin.pages.create') }}" class="bg-neon text-dark font-bold py-2 px-4 rounded hover:bg-neon/90 transition">Add New Page</a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.homepage.content') }}" class="bg-slate-800 border border-slate-700 hover:border-neon text-slate-200 hover:text-white font-semibold py-2 px-4 rounded text-sm transition flex items-center gap-2">
+                <i class="fas fa-sliders-h text-neon"></i> Homepage Hero & Athlete
+            </a>
+            <a href="{{ route('admin.pages.create') }}" class="bg-neon text-dark font-bold py-2 px-4 rounded hover:bg-neon/90 transition text-sm">Add New Page</a>
+        </div>
     </div>
 
     @if(session('success'))

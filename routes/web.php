@@ -55,10 +55,8 @@ Route::get('/challenge/40-days-challenge', function () {
 })->name('challenge.40days');
 
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
-// Community Registration (Must be before /komunitas/{slug})
-
-// Community Registration (Must be before /komunitas/{slug})
-
+// Community
+Route::get('/komunitas', [App\Http\Controllers\CommunityRegistrationController::class, 'index'])->name('community.index');
 Route::get('/komunitas/{slug}', [App\Http\Controllers\CommunityProfileController::class, 'show'])->name('community.profile');
 
 Route::get('/card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
