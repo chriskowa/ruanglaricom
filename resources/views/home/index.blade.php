@@ -1459,15 +1459,6 @@
         box-shadow: 0 10px 30px rgba(184, 255, 0, 0.25);
     }
 
-    .rl-pill-live-dot {
-        width: 6px;
-        height: 6px;
-        background: var(--rl-lime);
-        border-radius: 50%;
-        box-shadow: 0 0 6px var(--rl-lime);
-        transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
     /* ----------------------------------------------------
        BOTTOM OF HERO: WARTA & AGENDA PILIHAN (EDITORIAL SLIDER)
     ---------------------------------------------------- */
@@ -2966,7 +2957,7 @@ function initHeroParallax() {
         }
 
         if (pillStateText) {
-            pillStateText.innerHTML = 'Cepat &';
+            pillStateText.innerHTML = 'CEPAT';
         }
         
 
@@ -3029,9 +3020,6 @@ function initHeroParallax() {
         if (pillStateText) {
             pillStateText.innerHTML = 'PERGERAKAN CEPAT';
         }
-        if (pillDot) {
-            pillDot.style.boxShadow = '0 0 14px rgba(255, 255, 255, 0.8)';
-        }
 
         if (!isTicking) {
             isTicking = true;
@@ -3078,9 +3066,6 @@ function initHeroParallax() {
         // Restore status text to user's configured text
         if (pillStateText) {
             pillStateText.innerHTML = isHovered ? 'CEPAT' : 'FAKTUAL';
-        }
-        if (pillDot && !isHovered) {
-            pillDot.style.boxShadow = '';
         }
 
         if (!isTicking) {
