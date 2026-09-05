@@ -556,19 +556,17 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ route('marketplace.seller.products.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.seller.*') ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-box-open"></i></span>
+                                <span class="text-white">My Products</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ route('marketplace.wishlist.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.wishlist.*') ? $activeClass : $inactiveClass }}">
                                 <span class="w-5 text-center text-xs text-white"><i class="fas fa-heart"></i></span>
                                 <span class="text-white">Wishlist Saya</span>
                             </a>
                         </li>
-                        @if(auth()->user()->is_seller)
-                            <li>
-                                <a href="{{ route('marketplace.seller.products.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('marketplace.seller.*') ? $activeClass : $inactiveClass }}">
-                                    <span class="w-5 text-center text-xs text-white"><i class="fas fa-store-alt"></i></span>
-                                    <span class="text-white">Seller Dashboard</span>
-                                </a>
-                            </li>
-                        @endif
                     </ul>
                 </li>
 

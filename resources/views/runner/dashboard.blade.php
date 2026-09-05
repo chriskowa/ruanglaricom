@@ -32,11 +32,14 @@
         }
 
         .runner-command {
+            display: flex;
+            flex-direction: column;
             border-top: 1px solid var(--rd-line);
             border-bottom: 1px solid var(--rd-line);
         }
 
         .runner-command__top {
+            order: 1;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
@@ -130,6 +133,7 @@
         }
 
         .runner-status-grid {
+            order: 2;
             display: grid;
             grid-template-columns: repeat(5, minmax(0,1fr));
             border-top: 1px solid var(--rd-line);
@@ -235,6 +239,7 @@
         }
 
         .runner-workspace-nav {
+            order: 3;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -243,6 +248,91 @@
             border-top: 1px solid var(--rd-line);
             background: rgba(11, 21, 34, 0.4);
             flex-wrap: wrap;
+        }
+
+        /* Mobile Utility Bar (Run Points & WhatsApp Floating Micro-Chips) */
+        .runner-mobile-utility {
+            display: none;
+        }
+
+        .runner-chip-points,
+        .runner-chip-wa {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .runner-chip-points:hover,
+        .runner-chip-wa:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .runner-chip-points__label,
+        .runner-chip-wa__label {
+            color: #94a3b8;
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .runner-chip-points__val {
+            color: #ffffff;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .runner-chip-points__unit {
+            color: var(--rd-accent);
+            font-size: 8.5px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+        }
+
+        .runner-switch-mini {
+            position: relative;
+            width: 22px;
+            height: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            transition: 0.2s ease;
+        }
+
+        .runner-switch-mini > span {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.45);
+            transition: 0.2s ease;
+        }
+
+        .runner-switch-mini.is-on {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.25);
+        }
+
+        .runner-switch-mini.is-on > span {
+            left: 11px;
+            background: #34d399;
+        }
+
+        .runner-chip-wa__status {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
         }
 
         .runner-tabs {
@@ -375,15 +465,53 @@
         }
 
         #tab-content-marketplace > div {
-            border-radius: 6px !important;
+            border-radius: 8px !important;
             box-shadow: none !important;
+        }
+
+        .btn-marketplace-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #B8FF00 !important;
+            color: #08111f !important;
+            border: 1px solid #B8FF00 !important;
+            font-weight: 800 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: all 0.15s ease;
+        }
+
+        .btn-marketplace-primary:hover {
+            background-color: #ffffff !important;
+            border-color: #ffffff !important;
+            color: #08111f !important;
+        }
+
+        .btn-marketplace-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #111F35 !important;
+            color: #ffffff !important;
+            border: 1px solid #1F2D44 !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: all 0.15s ease;
+        }
+
+        .btn-marketplace-secondary:hover {
+            border-color: #B8FF00 !important;
+            background-color: #16253e !important;
+            color: #ffffff !important;
         }
 
         #calculator-iframe {
             border-top: 1px solid var(--rd-line);
         }
 
-        @media (max-width: 1023px) {
+        @media (min-width: 768px) and (max-width: 1023px) {
             .runner-command__top {
                 align-items: flex-start;
                 flex-direction: column;
@@ -411,47 +539,92 @@
             }
         }
 
-        @media (max-width: 639px) {
+        @media (max-width: 767px) {
+            .runner-command {
+                position: relative;
+                padding-top: 2.75rem;
+            }
+
+            .runner-mobile-utility {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                position: absolute;
+                top: 0.25rem;
+                left: 0;
+                right: 0;
+                z-index: 20;
+                padding: 0.35rem 0.5rem;
+                background: #0B1220;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                order: 1;
+            }
+
             .runner-command__top {
-                padding-top: 1.2rem;
+                order: 2;
+                padding: 0.5rem 0 1rem 0;
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.85rem;
             }
 
             .runner-command__actions {
                 width: 100%;
+                display: flex;
+                gap: 0.35rem;
+                justify-content: flex-start;
             }
 
             .runner-action {
                 flex: 1;
-            }
-
-            .runner-status-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .runner-stat,
-            .runner-stat:nth-child(2n) {
-                border-right: 0;
-                border-bottom: 1px solid var(--rd-line);
-            }
-
-            .runner-stat:last-child {
-                grid-column: auto;
-                border-bottom: 0;
+                min-height: 38px;
+                padding: 0 0.35rem;
+                font-size: 9.5px;
+                white-space: nowrap;
+                justify-content: center;
             }
 
             .runner-workspace-nav {
-                align-items: stretch;
+                order: 3;
+                width: 100%;
+                padding: 0.5rem 0;
+                border-top: 1px solid var(--rd-line);
+                background: transparent;
                 flex-direction: column;
-                padding-top: .15rem;
+                align-items: stretch;
             }
 
             .runner-tabs {
                 width: 100%;
-                gap: 1.15rem;
+                display: flex;
+                gap: 0.35rem;
+                overflow-x: auto;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
             }
 
             .runner-calendar-link {
                 display: none;
+            }
+
+            .runner-status-grid {
+                order: 4;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                border-top: 1px solid var(--rd-line);
+            }
+
+            .runner-stat {
+                min-height: 60px;
+                padding: 0.65rem 0.75rem;
+                border-bottom: 0;
+                border-right: 0;
+            }
+
+            .runner-stat:nth-child(3) {
+                border-right: 1px solid var(--rd-line);
             }
         }
 
@@ -459,10 +632,38 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
+<div class="min-h-screen pt-5 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
     <div id="runner-dashboard-shell" class="max-w-7xl mx-auto" x-data="dashboardComponent()">
         <!-- RUNNER COMMAND HEADER -->
         <section class="runner-command">
+            <!-- MOBILE UTILITY BAR: RUN POINTS & DAILY WA (FLOATING MICRO-CHIPS) -->
+            <div class="runner-mobile-utility md:hidden">
+                <a href="{{ route('gpx.index') }}" class="runner-chip-points">
+                    <i class="fa-solid fa-coins text-amber-400 text-[11px]"></i>
+                    <span class="runner-chip-points__label">Run Points</span>
+                    <span class="runner-chip-points__val">{{ number_format(auth()->user()->run_points ?? 0) }}</span>
+                    <span class="runner-chip-points__unit">PTS</span>
+                </a>
+
+                <button
+                    type="button"
+                    @click="toggleReceiveWa"
+                    class="runner-chip-wa"
+                    title="Toggle Daily WhatsApp Program"
+                >
+                    <i class="fab fa-whatsapp text-emerald-400 text-xs"></i>
+                    <span class="runner-chip-wa__label">Daily WA</span>
+                    <span class="runner-switch-mini" :class="isReceiveWa ? 'is-on' : ''">
+                        <span></span>
+                    </span>
+                    <span
+                        class="runner-chip-wa__status"
+                        :class="isReceiveWa ? 'text-emerald-400' : 'text-slate-400'"
+                        x-text="isReceiveWa ? 'ON' : 'OFF'"
+                    ></span>
+                </button>
+            </div>
+
             <div class="runner-command__top">
                 <div class="min-w-0">
                     <div class="runner-kicker">{{ $greeting }} / Runner workspace</div>
@@ -495,7 +696,7 @@
                         </a>
                     @endif
 
-                    <a href="{{ route('runner.programs') }}" class="runner-action hidden sm:inline-flex">
+                    <a href="{{ route('runner.programs') }}" class="runner-action inline-flex">
                         <span>Programs</span>
                     </a>
                 </div>
@@ -503,7 +704,7 @@
 
             <!-- OPERATING STATUS -->
             <div class="runner-status-grid">
-                <a href="{{ route('gpx.index') }}" class="runner-stat group">
+                <a href="{{ route('gpx.index') }}" class="runner-stat group hidden md:block">
                     <div class="runner-stat__label">
                         <i class="fa-solid fa-coins text-amber-400"></i>
                         Run Points
@@ -514,7 +715,7 @@
                     </div>
                 </a>
 
-                <div class="runner-stat">
+                <div class="runner-stat hidden md:block">
                     <div class="runner-stat__label">Local time</div>
                     <div class="runner-stat__value runner-stat__value--small">
                         <span id="runner-dashboard-date"></span>
@@ -560,7 +761,7 @@
                 <button
                     type="button"
                     @click="toggleReceiveWa"
-                    class="runner-stat group text-left"
+                    class="runner-stat group text-left hidden md:block"
                 >
                     <div class="runner-stat__label">
                         Daily program
@@ -1750,73 +1951,80 @@
         </div>
 
         <!-- Tab Content Marketplace (Purchases History & Wishlist) -->
-        <div id="tab-content-marketplace" class="tab-content mt-6 space-y-8 hidden">
+        <div id="tab-content-marketplace" class="tab-content mt-6 space-y-5 sm:space-y-6 hidden">
             <!-- Marketplace Quick Header -->
-            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl">
-                <div>
-                    <div class="text-xs text-[#B8FF00] font-mono uppercase tracking-widest mb-1">Pusat Belanja Pelari</div>
-                    <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">RuangLari Marketplace</h2>
-                    <p class="text-xs text-slate-400">Temukan perlengkapan lari terbaik, sepatu, jam GPS, dan slot event lari.</p>
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-lg p-3.5 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-sm overflow-hidden">
+                <div class="min-w-0">
+                    <div class="text-[10px] sm:text-xs text-[#B8FF00] font-mono font-bold uppercase tracking-wider mb-1">Katalog & Belanja Pelari</div>
+                    <h2 class="text-base sm:text-lg md:text-xl font-bold text-white uppercase tracking-tight">RuangLari Marketplace</h2>
+                    <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">Perlengkapan lari terkurasi, sepatu, jam GPS, jersey, dan slot race.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                     <a href="{{ route('marketplace.index') }}" class="px-4 py-2 rounded-md bg-neon text-dark font-bold text-xs uppercase hover:bg-white transition">
-                        Buka Shop
+                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                    <a href="{{ route('marketplace.index') }}" class="btn-marketplace-primary col-span-2 sm:col-span-1 px-3 py-2 rounded-md text-xs whitespace-nowrap" style="background-color: #B8FF00 !important; color: #08111f !important;">
+                        Katalog Toko
                     </a>
-                    <a href="{{ route('marketplace.cart.index') }}" class="px-4 py-2 rounded-md bg-[#111F35] border border-[#1F2D44] text-white hover:border-neon font-bold text-xs uppercase transition">
-                        <span>Keranjang</span>
+                    <a href="{{ route('marketplace.seller.products.index') }}" class="btn-marketplace-secondary col-span-1 px-3 py-2 rounded-md text-xs text-center whitespace-nowrap" style="background-color: #111F35 !important; color: #ffffff !important;">
+                        My Products
+                    </a>
+                    <a href="{{ route('marketplace.cart.index') }}" class="btn-marketplace-secondary col-span-1 px-3 py-2 rounded-md text-xs text-center whitespace-nowrap" style="background-color: #111F35 !important; color: #ffffff !important;">
+                        Keranjang
                     </a>
                 </div>
             </div>
 
             <!-- Riwayat Pembelian Marketplace -->
-            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-lg p-3.5 sm:p-5">
+                <div class="flex items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-[#1F2D44]/70">
+                    <h3 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                         Riwayat Pembelian Barang
                     </h3>
-                    <a href="{{ route('marketplace.orders.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Lihat Semua Order &rarr;</a>
+                    <a href="{{ route('marketplace.orders.index') }}" class="text-[11px] sm:text-xs text-[#B8FF00] font-mono hover:underline whitespace-nowrap">
+                        Semua Order &rarr;
+                    </a>
                 </div>
 
                 @if(isset($marketplacePurchases) && $marketplacePurchases->count() > 0)
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         @foreach($marketplacePurchases as $pur)
-                            <div class="bg-[#08111F] border border-[#1F2D44] rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                <div>
-                                    <div class="flex items-center gap-2 mb-1">
+                            <div class="bg-[#08111F] border border-[#1F2D44] rounded-md p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div class="min-w-0 w-full sm:w-auto">
+                                    <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
                                         <span class="text-xs font-mono font-bold text-white">{{ $pur->invoice_number }}</span>
                                         <?php
                                             $st = $pur->status;
                                             $stMap = [
                                                 'paid' => 'bg-slate-800 text-slate-200 border-slate-700',
-                                                'shipped' => 'bg-blue-950/80 text-blue-300 border-blue-600/40',
-                                                'completed' => 'bg-emerald-950/80 text-emerald-300 border-emerald-600/40',
-                                                'cancelled' => 'bg-rose-950/80 text-rose-300 border-rose-600/40',
+                                                'shipped' => 'bg-blue-950 text-blue-300 border-blue-700/50',
+                                                'completed' => 'bg-emerald-950 text-emerald-300 border-emerald-700/50',
+                                                'cancelled' => 'bg-rose-950 text-rose-300 border-rose-700/50',
                                             ];
-                                            $stClass = $stMap[$st] ?? 'bg-amber-950/80 text-amber-300 border-amber-600/40';
+                                            $stClass = $stMap[$st] ?? 'bg-amber-950 text-amber-300 border-amber-700/50';
                                         ?>
-                                        <span class="px-2 py-0.5 border text-xs font-bold rounded uppercase font-mono {{ $stClass }}">
+                                        <span class="px-1.5 py-0.5 border text-[10px] font-bold rounded uppercase font-mono {{ $stClass }}">
                                             {{ strtoupper($st) }}
                                         </span>
                                     </div>
-                                    <div class="text-xs text-slate-400 mb-2">
-                                        Penjual: <strong class="text-white">{{ $pur->seller->name ?? 'Seller' }}</strong> • {{ $pur->created_at->translatedFormat('d M Y, H:i') }}
+                                    <div class="text-[11px] text-slate-400 mb-2">
+                                        Penjual: <strong class="text-white font-medium">{{ $pur->seller->name ?? 'Seller' }}</strong> • {{ $pur->created_at->translatedFormat('d M Y, H:i') }}
                                     </div>
                                     <div class="space-y-1">
                                         @foreach($pur->items as $it)
-                                            <div class="text-xs text-slate-300 flex items-center gap-2">
-                                                <span>• {{ $it->product_title_snapshot }}</span>
-                                                <span class="text-slate-500 font-mono">x{{ $it->quantity }}</span>
+                                            <div class="text-[11px] sm:text-xs text-slate-300 flex items-start justify-between gap-2">
+                                                <span class="truncate flex-1">• {{ $it->product_title_snapshot }}</span>
+                                                <span class="text-slate-400 font-mono text-[11px] shrink-0">x{{ $it->quantity }}</span>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
 
-                                <div class="text-right w-full md:w-auto flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-3 md:pt-0 border-[#1F2D44]">
-                                    <div class="text-xs text-slate-400">Total Belanja</div>
-                                    <div class="text-base font-black text-[#B8FF00] font-mono">
-                                        Rp {{ number_format($pur->total_amount, 0, ',', '.') }}
+                                <div class="w-full sm:w-auto flex flex-row sm:flex-col items-center sm:items-end justify-between gap-2.5 border-t sm:border-t-0 pt-2.5 sm:pt-0 border-[#1F2D44]/70 shrink-0">
+                                    <div class="text-left sm:text-right leading-tight">
+                                        <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Total</span>
+                                        <span class="text-xs sm:text-sm font-bold text-[#B8FF00] font-mono">
+                                            Rp {{ number_format($pur->total_amount, 0, ',', '.') }}
+                                        </span>
                                     </div>
-                                    <a href="{{ route('marketplace.orders.show', $pur->id) }}" class="mt-2 text-xs font-bold text-white bg-[#111F35] border border-[#1F2D44] hover:border-[#B8FF00] px-3 py-1.5 rounded-md transition">
+                                    <a href="{{ route('marketplace.orders.show', $pur->id) }}" class="btn-marketplace-secondary inline-flex items-center justify-center px-3 py-1.5 rounded-md text-[11px] whitespace-nowrap" style="background-color: #111F35 !important; color: #ffffff !important;">
                                         Detail Order
                                     </a>
                                 </div>
@@ -1824,43 +2032,47 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-8 text-slate-500 text-xs font-mono">
+                    <div class="text-center py-6 text-slate-400 text-xs font-mono">
                         Anda belum memiliki riwayat pembelian barang di marketplace.
                     </div>
                 @endif
             </div>
 
             <!-- Wishlist Produk Pelari -->
-            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
+            <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-lg p-3.5 sm:p-5">
+                <div class="flex items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-[#1F2D44]/70">
+                    <h3 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                         Wishlist Produk Saya
                     </h3>
-                    <a href="{{ route('marketplace.index') }}" class="text-xs text-[#B8FF00] hover:underline font-mono">Tambah Wishlist &rarr;</a>
+                    <a href="{{ route('marketplace.index') }}" class="text-[11px] sm:text-xs text-[#B8FF00] font-mono hover:underline whitespace-nowrap">
+                        Tambah Wishlist &rarr;
+                    </a>
                 </div>
 
                 @if(isset($wishlistedProducts) && $wishlistedProducts->count() > 0)
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
                         @foreach($wishlistedProducts as $wl)
                             @if($wl->product)
-                                <div class="bg-[#08111F] border border-[#1F2D44] rounded-xl p-3 flex flex-col justify-between h-full">
+                                <div class="bg-[#08111F] border border-[#1F2D44] rounded-lg p-2.5 sm:p-3 flex flex-col justify-between h-full">
                                     <div>
-                                        <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-[#0E1A2D] rounded-lg overflow-hidden mb-3">
+                                        <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="block aspect-square bg-[#0E1A2D] rounded-md overflow-hidden mb-2">
                                             @if($wl->product->primaryImage)
-                                                <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('storage/' . $wl->product->primaryImage->image_path) }}" alt="{{ $wl->product->title }}" class="w-full h-full object-cover">
                                             @else
-                                                <div class="w-full h-full flex items-center justify-center text-slate-500 text-xs font-medium">No Image</div>
+                                                <div class="w-full h-full flex items-center justify-center text-slate-500 text-[11px]">No Image</div>
                                             @endif
                                         </a>
-                                        <div class="text-[10px] text-[#B8FF00] font-bold uppercase truncate">{{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}</div>
-                                        <h4 class="text-xs font-bold text-white truncate mb-1">
-                                            <a href="{{ route('marketplace.show', $wl->product->slug) }}">{{ $wl->product->title }}</a>
+                                        <div class="text-[9.5px] text-[#B8FF00] font-bold uppercase tracking-wider truncate mb-0.5">
+                                            {{ $wl->product->brand ? $wl->product->brand->name : 'Gear' }}
+                                        </div>
+                                        <h4 class="text-xs font-bold text-white truncate mb-1" title="{{ $wl->product->title }}">
+                                            <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="hover:text-[#B8FF00] transition-colors">{{ $wl->product->title }}</a>
                                         </h4>
-                                        <div class="text-xs font-black text-[#B8FF00] font-mono mb-3">
+                                        <div class="text-xs font-bold text-white font-mono mb-2.5">
                                             Rp {{ number_format($wl->product->price, 0, ',', '.') }}
                                         </div>
                                     </div>
-                                    <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="w-full py-1.5 bg-[#111F35] text-white hover:bg-[#B8FF00] hover:text-[#08111F] text-[11px] font-bold rounded-lg text-center transition">
+                                    <a href="{{ route('marketplace.show', $wl->product->slug) }}" class="btn-marketplace-secondary w-full py-1.5 text-[10px] sm:text-[11px] rounded-md text-center block" style="background-color: #111F35 !important; color: #ffffff !important;">
                                         Lihat Produk
                                     </a>
                                 </div>
@@ -1868,7 +2080,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-8 text-slate-500 text-xs font-mono">
+                    <div class="text-center py-6 text-slate-400 text-xs font-mono">
                         Belum ada barang yang disimpan di wishlist Anda.
                     </div>
                 @endif

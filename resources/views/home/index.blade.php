@@ -58,7 +58,42 @@
         <div class="rl-stage-glow" aria-hidden="true"></div>
         <div class="rl-stage-grid-lines" aria-hidden="true"></div>
 
-        <div class="rl-shell">
+        {{-- Athletic Running Track Lines Silhouette (Stadium Lanes on Mobile) --}}
+        <div class="rl-hero-track-lines" aria-hidden="true">
+            <svg viewBox="0 0 840 840" fill="none">
+                <defs>
+                    <linearGradient id="rlHeroTrackGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.32" />
+                        <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.18" />
+                        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04" />
+                    </linearGradient>
+                </defs>
+                {{-- Olympic Running Track Lanes (White Lines) --}}
+                <circle cx="840" cy="840" r="280" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8" stroke-dasharray="6 6"/>
+                <circle cx="840" cy="840" r="350" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8"/>
+                <circle cx="840" cy="840" r="420" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8" stroke-dasharray="14 8"/>
+                <circle cx="840" cy="840" r="490" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8"/>
+                <circle cx="840" cy="840" r="560" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8" stroke-dasharray="8 6"/>
+                <circle cx="840" cy="840" r="630" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8"/>
+                <circle cx="840" cy="840" r="700" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8"/>
+                <circle cx="840" cy="840" r="770" stroke="url(#rlHeroTrackGrad)" stroke-width="1.8"/>
+                {{-- Lane Stagger Distance Tick Marks --}}
+                <line x1="840" y1="560" x2="840" y2="535" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5"/>
+                <line x1="840" y1="490" x2="840" y2="465" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5"/>
+                <line x1="840" y1="420" x2="840" y2="395" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5"/>
+                <line x1="840" y1="350" x2="840" y2="325" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.5"/>
+                {{-- Lane Numbers Along the Curve --}}
+                <text x="548" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">1</text>
+                <text x="478" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">2</text>
+                <text x="408" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">3</text>
+                <text x="338" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">4</text>
+                <text x="268" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">5</text>
+                <text x="198" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">6</text>
+                <text x="128" y="832" fill="#FFFFFF" fill-opacity="0.25" font-size="12" font-weight="800" font-family="monospace">7</text>
+            </svg>
+        </div>
+
+        <div class="rl-shell pt-10">
             <div class="rl-hero-grid">
                 
                 {{-- Left Column: Brand Story, Headline & Compact CTA --}}
@@ -152,146 +187,9 @@
             </div>
         </div>
 
-        {{-- Bottom of Hero: Editorial News & Event Highlight Strip (Max 5 Items) --}}
+        {{-- Bottom of Hero: Editorial News & Event Highlight Strip (Curated 5 Items) --}}
         @php
-            $combinedHighlights = collect();
-
-            // 1. Masukkan Event Unggulan (Maksimal 3 event jika tersedia)
-            if (isset($featuredEvents) && $featuredEvents->isNotEmpty()) {
-                foreach ($featuredEvents->take(3) as $ev) {
-                    $evImg = method_exists($ev, 'getHeroImageUrl') ? $ev->getHeroImageUrl() : null;
-                    if (empty($evImg) && !empty($ev->hero_image)) {
-                        $evImg = asset($ev->hero_image);
-                    }
-                    if (empty($evImg)) {
-                        $evImg = 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
-                    }
-
-                    $combinedHighlights->push([
-                        'type'     => 'event',
-                        'tag'      => 'RACE',
-                        'meta'     => $ev->city ?? 'Indonesia',
-                        'title'    => $ev->name ?? $ev->title,
-                        'date'     => optional($ev->start_at)->translatedFormat('d M Y') ?? 'Segera Dibuka',
-                        'url'      => route('events.show', $ev->slug ?? $ev->id),
-                        'cta'      => 'Detail Race',
-                        'image'    => $evImg,
-                        'is_event' => true,
-                    ]);
-                }
-            } elseif (isset($featuredEvent) && $featuredEvent) {
-                $evImg = method_exists($featuredEvent, 'getHeroImageUrl') ? $featuredEvent->getHeroImageUrl() : null;
-                if (empty($evImg) && !empty($featuredEvent->hero_image)) {
-                    $evImg = asset($featuredEvent->hero_image);
-                }
-                if (empty($evImg)) {
-                    $evImg = 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
-                }
-
-                $combinedHighlights->push([
-                    'type'     => 'event',
-                    'tag'      => 'RACE',
-                    'meta'     => $featuredEvent->city ?? 'Indonesia',
-                    'title'    => $featuredEvent->name ?? $featuredEvent->title,
-                    'date'     => optional($featuredEvent->start_at)->translatedFormat('d M Y') ?? 'Segera Dibuka',
-                    'url'      => route('events.show', $featuredEvent->slug ?? $featuredEvent->id),
-                    'cta'      => 'Detail Race',
-                    'image'    => $evImg,
-                    'is_event' => true,
-                ]);
-            }
-
-            // 2. Isi sisa slot dengan Berita / Journal Terkini hingga batas 5 items
-            if (isset($featuredArticles) && $featuredArticles->isNotEmpty()) {
-                $slotsLeft = 5 - $combinedHighlights->count();
-                if ($slotsLeft > 0) {
-                    foreach ($featuredArticles->filter(fn($a) => !empty($a->slug))->take($slotsLeft) as $art) {
-                        $artImg = method_exists($art, 'getFeaturedImageUrl') ? $art->getFeaturedImageUrl() : null;
-                        if (empty($artImg) && !empty($art->featured_image)) {
-                            $artImg = asset($art->featured_image);
-                        }
-                        if (empty($artImg)) {
-                            $artImg = 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp';
-                        }
-
-                        $combinedHighlights->push([
-                            'type'     => 'news',
-                            'tag'      => strtoupper($art->category->name ?? 'WARTA'),
-                            'meta'     => optional($art->published_at ?: $art->created_at)->translatedFormat('d M Y'),
-                            'title'    => $art->title,
-                            'date'     => optional($art->published_at ?: $art->created_at)->translatedFormat('d M Y'),
-                            'url'      => route('blog.show', $art->slug),
-                            'cta'      => 'Baca Ulasan',
-                            'image'    => $artImg,
-                            'is_event' => false,
-                        ]);
-                    }
-                }
-            }
-
-            // 3. Fallback jika total item belum mencapai 5 (menjamin tepat 5 card gabungan event & news untuk auto-sliding)
-            $defaultFallbacks = [
-                [
-                    'type'     => 'event',
-                    'tag'      => 'KALENDER LARI',
-                    'meta'     => 'Nasional',
-                    'title'    => 'Kalender Event & Marathon Indonesia Terverifikasi',
-                    'date'     => 'Jadwal Lengkap',
-                    'url'      => route('events.index'),
-                    'cta'      => 'Lihat Agenda',
-                    'image'    => 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
-                    'is_event' => true,
-                ],
-                [
-                    'type'     => 'news',
-                    'tag'      => 'RISET & TIPS',
-                    'meta'     => 'Panduan Latihan',
-                    'title'    => 'Panduan Periodisasi Latihan & Riset Fisiologi Lari Terkini',
-                    'date'     => 'Riset Terbaru',
-                    'url'      => route('blog.index'),
-                    'cta'      => 'Baca Riset',
-                    'image'    => 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
-                    'is_event' => false,
-                ],
-                [
-                    'type'     => 'event',
-                    'tag'      => 'HALF MARATHON',
-                    'meta'     => 'Jawa & Bali',
-                    'title'    => 'Daftar Race 21K Terpopuler Musim Ini di Indonesia',
-                    'date'     => 'Registrasi Dibuka',
-                    'url'      => route('events.index'),
-                    'cta'      => 'Detail Race',
-                    'image'    => 'https://ruanglari.com/storage/blog/media/21bb785d-d104-4129-99ce-d84ae98afd3a.webp',
-                    'is_event' => true,
-                ],
-                [
-                    'type'     => 'news',
-                    'tag'      => 'GEAR REVIEW',
-                    'meta'     => 'Sepatu & Peralatan',
-                    'title'    => 'Review Super Shoes & Rekomendasi Daily Trainer Terbaik',
-                    'date'     => 'Ulasan Gear',
-                    'url'      => route('blog.index'),
-                    'cta'      => 'Ulasan Lengkap',
-                    'image'    => 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
-                    'is_event' => false,
-                ],
-                [
-                    'type'     => 'event',
-                    'tag'      => 'TRAIL RUN',
-                    'meta'     => 'Nusantara',
-                    'title'    => 'Eksplorasi Kalender Trail Run & Ultra Marathon Indonesia',
-                    'date'     => 'Lihat Agenda',
-                    'url'      => route('events.index'),
-                    'cta'      => 'Ikuti Race',
-                    'image'    => 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
-                    'is_event' => true,
-                ],
-            ];
-            $fbIdx = 0;
-            while ($combinedHighlights->count() < 5 && $fbIdx < count($defaultFallbacks)) {
-                $combinedHighlights->push($defaultFallbacks[$fbIdx]);
-                $fbIdx++;
-            }
+            $heroHighlights = $heroHighlights ?? collect();
         @endphp
 
         <div class="rl-hero-strip" id="heroFeaturedStrip">
@@ -299,10 +197,9 @@
                 <div class="rl-strip-container">
                     {{-- Strip Header: Natural Editorial Title (No AI Buzzwords, Pure Clean Sans) --}}
                     <div class="rl-strip-header">
-                        <div class="rl-strip-title-wrap">
-                            <span class="rl-strip-pulse-indicator" aria-hidden="true"></span>
+                        <div class="rl-strip-title-wrap">                            
                             <h2 class="rl-strip-heading">Warta Pilihan</h2>
-                            <span class="rl-strip-counter" id="stripCounterText">1 dari {{ $combinedHighlights->count() }}</span>
+                            <span class="rl-strip-counter" id="stripCounterText">1 dari {{ $heroHighlights->count() }}</span>
                         </div>
 
                         {{-- Navigasi Tombol Sliding --}}
@@ -319,7 +216,7 @@
                     {{-- Track Slider Horizontal --}}
                     <div class="rl-strip-slider-wrapper" id="stripSliderWrapper">
                         <div class="rl-strip-track" id="stripTrack">
-                            @foreach($combinedHighlights as $idx => $item)
+                            @foreach($heroHighlights as $idx => $item)
                                 <a href="{{ $item['url'] }}" class="rl-strip-card group" data-slide-index="{{ $idx }}">
                                     {{-- Left Thumbnail (Clean image without overlay badge) --}}
                                     <div class="rl-strip-card-thumb">
@@ -572,10 +469,47 @@
             </div>
 
             <div id="homeEvents" class="rl-event-feed">
-                <div class="rl-loading">
-                    <span></span>
-                    Memuat race calendar...
-                </div>
+                @forelse($upcomingEvents ?? [] as $event)
+                    <a href="{{ $event['url'] ?? '#' }}" class="rl-event-item">
+                        <div class="rl-event-date">
+                            <strong>{{ $event['day'] ?? '' }}</strong>
+                            <span>{{ $event['month'] ?? '' }}<br>{{ $event['year'] ?? '' }}</span>
+                        </div>
+
+                        <div class="rl-event-main">
+                            <h3>{{ $event['name'] ?? 'Event Lari' }}</h3>
+                            <p>{{ $event['location'] ?? 'Indonesia' }} &middot; {{ $event['time'] ?? 'TBA' }} WIB</p>
+                        </div>
+
+                        <div class="rl-event-meta">
+                            <div class="rl-event-distances">
+                                @if(!empty($event['distances']))
+                                    @foreach($event['distances'] as $distance)
+                                        <span>{{ $distance }}</span>
+                                    @endforeach
+                                @else
+                                    <span>RUN</span>
+                                @endif
+                            </div>
+                            <div style="margin-top:.55rem">
+                                {{ !empty($event['is_eo']) ? 'Managed by EO' : 'RuangLari Listing' }}
+                            </div>
+                        </div>
+
+                        <span class="rl-event-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M5 12h14m-6-6 6 6-6 6"
+                                      stroke-width="1.7"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                @empty
+                    <div class="rl-loading">
+                        Belum ada event mendatang.
+                    </div>
+                @endforelse
             </div>
         </div>
     </section>
@@ -811,10 +745,45 @@
             </div>
 
             <div id="blogCards" class="rl-journal-grid">
-                <div class="rl-loading" style="grid-column: 1 / -1;">
-                    <span></span>
-                    Memuat journal...
-                </div>
+                @forelse($latestArticles ?? [] as $post)
+                    <a href="{{ $post['url'] ?? '#' }}" class="rl-journal-card" @if(($post['url'] ?? '#') !== '#') target="_blank" rel="noopener" @endif>
+                        <div>
+                            <div class="rl-journal-thumb">
+                                <img
+                                    src="{{ $post['image'] ?? asset('ruanglari.webp') }}"
+                                    alt="{{ $post['title'] ?? 'Journal RuangLari' }}"
+                                    loading="lazy"
+                                    onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';"
+                                >
+                            </div>
+
+                            <div class="rl-journal-body">
+                                <div class="rl-journal-meta-top">
+                                    <span class="rl-journal-date">{{ $post['date'] ?? '' }}</span>
+                                    <span class="rl-journal-cat">{{ $post['category'] ?? 'Journal' }}</span>
+                                </div>
+
+                                <h3 class="rl-journal-title">{{ $post['title'] ?? 'Tanpa Judul' }}</h3>
+                            </div>
+                        </div>
+
+                        <div class="rl-journal-footer">
+                            <span>Baca Artikel</span>
+                            <span class="rl-journal-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M5 12h14m-6-6 6 6-6 6"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+                @empty
+                    <div class="rl-loading" style="grid-column: 1 / -1;">
+                        Belum ada artikel yang dipublikasikan.
+                    </div>
+                @endforelse
             </div>
         </div>
     </section>
@@ -824,8 +793,6 @@
 
 @push('styles')
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Sora:wght@700;800&display=swap');
-
     :root {
         --rl-bg: #050A14;
         --rl-bg-2: #0B1628;
@@ -1035,6 +1002,11 @@
         -webkit-mask-image: radial-gradient(ellipse at 60% 30%, black 20%, transparent 75%);
         pointer-events: none;
         z-index: 1;
+    }
+
+    /* Athletic Running Track Lines (Mobile specific, hidden on desktop) */
+    .rl-hero-track-lines {
+        display: none;
     }
 
     .rl-hero-stage > .rl-shell {
@@ -2666,6 +2638,30 @@
             display: none !important;
         }
 
+        /* Athletic Running Track Lines Silhouette on Mobile */
+        .rl-hero-track-lines {
+            display: block !important;
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            user-select: none;
+            z-index: 1;
+        }
+
+        .rl-hero-track-lines svg {
+            position: absolute;
+            right: -22%;
+            bottom: -6%;
+            width: 130%;
+            max-width: 600px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            mask-image: linear-gradient(to top left, black 50%, transparent 95%);
+            -webkit-mask-image: linear-gradient(to top left, black 50%, transparent 95%);
+            pointer-events: none;
+        }
+
         /* Ambient subtle light depth on mobile */
         .rl-stage-glow {
             top: 20%;
@@ -3041,8 +3037,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initFeaturedStripSlider();
     initEditorialDispatch();
     initVdotWidget();
-    loadUpcomingEvents();
-    loadLatestBlogs();
 });
 
 function initHeroParallax() {
@@ -3667,163 +3661,6 @@ function initEditorialDispatch() {
     startAuto();
 }
 
-async function loadUpcomingEvents() {
-    const container = document.getElementById('homeEvents');
-    if (!container) return;
-
-    try {
-        const response = await fetch('{{ route("api.events.upcoming") }}');
-        const events = await response.json();
-
-        if (!events || events.length === 0) {
-            container.innerHTML = `
-                <div class="rl-loading">
-                    Belum ada event mendatang.
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '';
-
-        events.slice(0, 6).forEach((event) => {
-            const date = new Date(event.date + 'T' + (event.time || '00:00'));
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
-            const year = date.getFullYear();
-
-            const distances = (event.distances && event.distances.length)
-                ? event.distances.map(distance => `<span>${escapeHTML(distance)}</span>`).join('')
-                : '<span>RUN</span>';
-
-            const item = document.createElement('a');
-            item.href = event.url || '#';
-            item.className = 'rl-event-item';
-
-            item.innerHTML = `
-                <div class="rl-event-date">
-                    <strong>${day}</strong>
-                    <span>${month}<br>${year}</span>
-                </div>
-
-                <div class="rl-event-main">
-                    <h3>${escapeHTML(event.name || 'Event Lari')}</h3>
-                    <p>${escapeHTML(event.location || 'Lokasi menyusul')} &middot; ${escapeHTML(event.time || 'TBA')} WIB</p>
-                </div>
-
-                <div class="rl-event-meta">
-                    <div class="rl-event-distances">${distances}</div>
-                    <div style="margin-top:.55rem">
-                        ${event.is_eo ? 'Managed by EO' : 'RuangLari Listing'}
-                    </div>
-                </div>
-
-                <span class="rl-event-arrow" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M5 12h14m-6-6 6 6-6 6"
-                              stroke-width="1.7"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                    </svg>
-                </span>
-            `;
-
-            container.appendChild(item);
-        });
-    } catch (error) {
-        container.innerHTML = `
-            <div class="rl-loading">
-                Gagal memuat event. Silakan coba lagi.
-            </div>
-        `;
-    }
-}
-
-async function loadLatestBlogs() {
-    const container = document.getElementById('blogCards');
-    if (!container) return;
-
-    try {
-        const response = await fetch('{{ route("api.blog.latest") }}');
-        const posts = await response.json();
-
-        if (!posts || posts.length === 0) {
-            container.innerHTML = `
-                <div class="rl-loading" style="grid-column: 1 / -1;">
-                    Belum ada artikel yang dipublikasikan.
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = '';
-
-        posts.slice(0, 6).forEach((post) => {
-            const url = post.url || '#';
-            const title = post.title || 'Tanpa judul';
-            const image = post.image || "{{ asset('ruanglari.webp') }}";
-            const date = post.date
-                ? new Date(post.date).toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                })
-                : '';
-
-            const card = document.createElement('a');
-            card.href = url;
-            card.className = 'rl-journal-card';
-
-            if (url !== '#') {
-                card.target = '_blank';
-                card.rel = 'noopener';
-            }
-
-            card.innerHTML = `
-                <div>
-                    <div class="rl-journal-thumb">
-                        <img
-                            src="${escapeAttribute(image)}"
-                            alt="${escapeAttribute(stripHTML(title))}"
-                            loading="lazy"
-                            onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';"
-                        >
-                    </div>
-
-                    <div class="rl-journal-body">
-                        <div class="rl-journal-meta-top">
-                            <span class="rl-journal-date">${escapeHTML(date)}</span>
-                            <span class="rl-journal-cat">Journal</span>
-                        </div>
-
-                        <h3 class="rl-journal-title">${escapeHTML(stripHTML(title))}</h3>
-                    </div>
-                </div>
-
-                <div class="rl-journal-footer">
-                    <span>Baca Artikel</span>
-                    <span class="rl-journal-arrow" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M5 12h14m-6-6 6 6-6 6"
-                                  stroke-width="2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"/>
-                        </svg>
-                    </span>
-                </div>
-            `;
-
-            container.appendChild(card);
-        });
-    } catch (error) {
-        container.innerHTML = `
-            <div class="rl-loading" style="grid-column: 1 / -1;">
-                Gagal memuat journal. Silakan coba lagi.
-            </div>
-        `;
-    }
-}
-
 function initVdotWidget() {
     const distanceEl = document.getElementById('vdot_widget_distance');
     const timeGroup = document.getElementById('vdot_time_input_group');
@@ -4024,22 +3861,6 @@ function initVdotWidget() {
             resultBox.classList.add('opacity-100', 'translate-y-0');
         });
     });
-}
-
-function stripHTML(value) {
-    const div = document.createElement('div');
-    div.innerHTML = value || '';
-    return div.textContent || div.innerText || '';
-}
-
-function escapeHTML(value) {
-    const div = document.createElement('div');
-    div.textContent = String(value ?? '');
-    return div.innerHTML;
-}
-
-function escapeAttribute(value) {
-    return escapeHTML(value).replace(/"/g, '&quot;');
 }
 </script>
 @endpush

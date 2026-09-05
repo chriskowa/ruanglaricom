@@ -2,24 +2,25 @@
 <style>[x-cloak]{display:none !important;}</style>
 <nav id="pacerhub-nav" class="border-b {{ $lightMode ? 'border-slate-200 bg-white/90' : 'border-slate-800 bg-dark/80' }} backdrop-blur-md fixed w-full z-40">
     @php
-        $headerMenu = null;
-        try {
-            $headerMenu = \App\Models\Menu::where('location', 'header')
-                ->where('is_active', true)
-                ->with(['items' => function($q) {
-                    $q->where(function($sub) {
-                        $sub->whereNull('parent_id')->orWhere('parent_id', 0);
-                    })
+        $headerMenu = \Illuminate\Support\Facades\Cache::remember('nav.header_menu_v1', 3600, function () {
+            try {
+                return \App\Models\Menu::where('location', 'header')
                     ->where('is_active', true)
-                    ->with(['children' => function($cq) {
-                        $cq->where('is_active', true)->orderBy('order');
+                    ->with(['items' => function($q) {
+                        $q->where(function($sub) {
+                            $sub->whereNull('parent_id')->orWhere('parent_id', 0);
+                        })
+                        ->where('is_active', true)
+                        ->with(['children' => function($cq) {
+                            $cq->where('is_active', true)->orderBy('order');
+                        }])
+                        ->orderBy('order');
                     }])
-                    ->orderBy('order');
-                }])
-                ->first();
-        } catch (\Throwable $e) {
-            $headerMenu = null;
-        }
+                    ->first();
+            } catch (\Throwable $e) {
+                return null;
+            }
+        });
 
         $hasNavItems = $headerMenu && $headerMenu->items && $headerMenu->items->where('is_active', true)->count() > 0;
     @endphp

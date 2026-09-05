@@ -105,9 +105,13 @@
                     <span class="nav-text">Withdraw</span>
                 </a></li>
                 <li class="menu-title">Commerce</li>
-                <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
+                <li><a class="ai-icon" href="{{ route('marketplace.index') }}" aria-expanded="false">
                     <i class="flaticon-381-notepad"></i>
                     <span class="nav-text">Marketplace</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('marketplace.seller.products.index') }}" aria-expanded="false">
+                    <i class="flaticon-381-box"></i>
+                    <span class="nav-text">My Products</span>
                 </a></li>
                 <li><a class="ai-icon" href="{{ route('marketplace.wishlist.index') }}" aria-expanded="false">
                     <i class="flaticon-381-heart"></i>
