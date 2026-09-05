@@ -34,7 +34,7 @@
         $athletePrimaryImg = $athleteImages[0] ?? 'https://ruanglari.com/storage/blog/media/469168c8-1ae3-4f55-ae3d-f30954235ae9.webp';
     @endphp
 
-    <header class="rl-hero-stage" id="heroStage">
+    <header class="rl-hero-stage pt-10" id="heroStage">
         {{-- Ambient Parallax Background Slider (Dynamic via Admin Homepage Management) --}}
         <div class="rl-hero-bg-slider" id="heroBgSlider" aria-hidden="true">
             @foreach($heroSlides as $sIdx => $slideUrl)
