@@ -61,60 +61,31 @@
         <div class="rl-shell">
             <div class="rl-hero-grid">
                 
-                {{-- Left Column: Brand Story, Headline, CTA & Trust Metrics --}}
+                {{-- Left Column: Brand Story, Headline & Compact CTA --}}
                 <div class="rl-hero-copy">
-                    {{-- 1. Small eyebrow label --}}
-                    <div class="rl-kicker">                        
-                        <span class="rl-kicker-text">RUANGLARI &bull; EKOSISTEM LARI INDONESIA</span>
-                    </div>
+                    
 
-                    {{-- 2. Main headline (Sora Bold) --}}
+                    {{-- 2. Editorial Headline --}}
                     <h1 class="rl-hero-title">
-                        @if(isset($homepageContent) && !empty($homepageContent->headline))
-                            {!! nl2br(e($homepageContent->headline)) !!}
-                        @else
-                            Platform & Media Lari<br>
-                            <span class="rl-title-accent">Indonesia.</span>
-                        @endif
+                        Media & Platform<br>
+                        <span class="rl-title-accent">Lari Indonesia.</span>
                     </h1>
 
-                    {{-- 3. Subheadline (Inter Regular/Medium) --}}
+                    {{-- 3. Comfortable Subheadline --}}
                     <p class="rl-hero-lead">
-                        {{ (isset($homepageContent) && !empty($homepageContent->subheadline))
-                            ? $homepageContent->subheadline 
-                            : 'Temukan berita lari, event race, komunitas, program latihan, dan insight pelari Indonesia dalam satu platform yang membantu kamu berlari lebih terarah dan lebih terhubung.' }}
+                        Berita terbaru, event race, komunitas, program latihan, dan insight pelari Indonesia dalam satu platform.
                     </p>
 
-                    {{-- 4. CTA Buttons --}}
+                    {{-- 4. Compact Premium CTA Buttons --}}
                     <div class="rl-hero-actions">
                         <a href="{{ route('events.index') }}" class="rl-btn rl-btn-primary">
-                            <span>Explore Events</span>
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <span>JELAJAHI LARI</span>
+                            <span class="rl-btn-arr" aria-hidden="true">&rarr;</span>
                         </a>
 
                         <a href="{{ route('blog.index') }}" class="rl-btn rl-btn-outline">
-                            <span>Read News</span>
+                            <span>BACA BERITA</span>
                         </a>
-                    </div>
-
-                    {{-- 5. Small Trust Metrics below CTA --}}
-                    <div class="rl-hero-trust">
-                        <div class="rl-trust-item">
-                            <span class="rl-trust-val font-mono">1.8K+</span>
-                            <span class="rl-trust-lbl">Event</span>
-                        </div>
-                        <div class="rl-trust-sep" aria-hidden="true"></div>
-                        <div class="rl-trust-item">
-                            <span class="rl-trust-val font-mono">50+</span>
-                            <span class="rl-trust-lbl">Komunitas</span>
-                        </div>
-                        <div class="rl-trust-sep" aria-hidden="true"></div>
-                        <div class="rl-trust-item">
-                            <span class="rl-trust-val font-mono">10K+</span>
-                            <span class="rl-trust-lbl">Pelari</span>
-                        </div>
                     </div>
                 </div>
 
@@ -330,7 +301,7 @@
                     <div class="rl-strip-header">
                         <div class="rl-strip-title-wrap">
                             <span class="rl-strip-pulse-indicator" aria-hidden="true"></span>
-                            <h2 class="rl-strip-heading">Warta &amp; Agenda Pilihan</h2>
+                            <h2 class="rl-strip-heading">Warta Pilihan</h2>
                             <span class="rl-strip-counter" id="stripCounterText">1 dari {{ $combinedHighlights->count() }}</span>
                         </div>
 
@@ -383,6 +354,30 @@
             </div>
         </div>
     </header>
+
+    {{-- =========================================================
+        EDITORIAL STATS BAR (SEPARATED FROM HERO)
+    ========================================================== --}}
+    <section class="rl-editorial-stats-bar" aria-label="Statistik Ruang Lari">
+        <div class="rl-shell">
+            <div class="rl-stats-track">
+                <div class="rl-stat-col">
+                    <span class="rl-stat-number font-mono">1.8K+</span>
+                    <span class="rl-stat-desc">Event Lari Terkurasi</span>
+                </div>
+                <div class="rl-stat-divider" aria-hidden="true"></div>
+                <div class="rl-stat-col">
+                    <span class="rl-stat-number font-mono">50+</span>
+                    <span class="rl-stat-desc">Komunitas Terdaftar</span>
+                </div>
+                <div class="rl-stat-divider" aria-hidden="true"></div>
+                <div class="rl-stat-col">
+                    <span class="rl-stat-number font-mono">10K+</span>
+                    <span class="rl-stat-desc">Pelari Aktif Indonesia</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
     {{-- =========================================================
         01 / TRAINING LAB — VDOT
@@ -829,21 +824,21 @@
 
 @push('styles')
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Sora:wght@700;800&display=swap');
 
     :root {
-        --rl-bg: #050505;
-        --rl-bg-2: #090B0E;
-        --rl-panel: #0D0F12;
-        --rl-surface: #0D0F12;
-        --rl-line: #1F2228;
+        --rl-bg: #050A14;
+        --rl-bg-2: #0B1628;
+        --rl-panel: #0D131F;
+        --rl-surface: #0D131F;
+        --rl-line: #1E293B;
         --rl-border-subtle: rgba(255, 255, 255, 0.08);
-        --rl-text: #F5F5F0;
-        --rl-muted: #9E9E96;
-        --rl-lime: #B8FF00;
-        --rl-lime-hover: #CBFF4A;
-        --rl-font: 'Inter', system-ui, -apple-system, sans-serif;
-        --rl-font-heading: 'Sora', sans-serif;
+        --rl-text: #FFFFFF;
+        --rl-muted: #94A3B8;
+        --rl-lime: #C7FF00;
+        --rl-lime-hover: #D4FF33;
+        --rl-font: 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+        --rl-font-heading: 'Inter Tight', 'Sora', sans-serif;
         --rl-font-body: 'Inter', sans-serif;
         --rl-mono: 'Space Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
@@ -856,6 +851,7 @@
         overflow-x: hidden;
         width: 100%;
         font-family: var(--rl-font-body);
+        margin-top: -5rem;
     }
 
     .rl-shell {
@@ -871,7 +867,7 @@
         position: relative;
         background: #05080E;
         border-bottom: 1px solid var(--rl-line);
-        padding: clamp(3.5rem, 6vw, 5.5rem) 0 0;
+        padding: clamp(5.5rem, 8vw, 7.5rem) 0 0;
         overflow: hidden;
         min-height: 88vh;
         display: flex;
@@ -929,6 +925,28 @@
     @keyframes rl-bg-drift {
         0% { transform: scale(1.05) translate3d(0, 0, 0); }
         100% { transform: scale(1.1) translate3d(-15px, -8px, 0); }
+    }
+
+    @keyframes rl-runner-enter {
+        0% {
+            opacity: 0;
+            transform: translate3d(36px, 0, 0);
+        }
+        100% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes rl-hero-fadein {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, 16px, 0);
+        }
+        100% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
     }
 
     /* Scrim Horizontal: Gelap pekat di sisi kiri untuk ketajaman teks, transparan & terang di sisi kanan (rl-athlete) */
@@ -1037,12 +1055,12 @@
     .rl-kicker {
         display: inline-flex;
         align-items: center;
-        gap: 0.65rem;
-        background: rgba(13, 22, 38, 0.8);
-        border: 1px solid rgba(184, 255, 0, 0.25);
-        padding: 0.4rem 0.85rem;
+        gap: 0.55rem;
+        background: rgba(11, 22, 40, 0.65);
+        border: 1px solid rgba(199, 255, 0, 0.2);
+        padding: 0.35rem 0.75rem;
         border-radius: 4px;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
     }
 
     .rl-kicker-dot {
@@ -1051,32 +1069,27 @@
         background: var(--rl-lime);
         border-radius: 50%;
         box-shadow: 0 0 8px var(--rl-lime);
-        animation: rl-dot-pulse 2s infinite ease-in-out;
-    }
-
-    @keyframes rl-dot-pulse {
-        0%, 100% { opacity: 0.7; transform: scale(0.9); }
-        50% { opacity: 1; transform: scale(1.2); }
+        flex-shrink: 0;
     }
 
     .rl-kicker-text {
-        color: var(--rl-lime);
-        font-family: var(--rl-mono);
-        font-size: 0.68rem;
+        color: #FFFFFF;
+        font-family: var(--rl-font-body);
+        font-size: 0.65rem;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         line-height: 1;
     }
 
-    /* Main Headline with Sora Bold */
+    /* Main Headline with Editorial Font */
     .rl-hero-title {
-        margin: 1.25rem 0 0;
+        margin: 0.75rem 0 0;
         color: #FFFFFF;
         font-family: var(--rl-font-heading);
-        font-size: clamp(2.6rem, 4.8vw, 4.2rem);
+        font-size: clamp(2.5rem, 4.8vw, 4.2rem);
         font-weight: 800;
-        line-height: 1.06;
+        line-height: 1.05;
         letter-spacing: -0.03em;
     }
 
@@ -1086,12 +1099,12 @@
 
     /* Human & Clear Subheadline */
     .rl-hero-lead {
-        margin: 1.4rem 0 0;
+        margin: 1.25rem 0 0;
         color: #94A3B8;
         font-family: var(--rl-font-body);
         font-size: clamp(0.95rem, 1.2vw, 1.08rem);
-        line-height: 1.75;
-        max-width: 34rem;
+        line-height: 1.7;
+        max-width: 32rem;
         font-weight: 400;
     }
 
@@ -1099,23 +1112,23 @@
     .rl-hero-actions {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        margin-top: 2.25rem;
+        gap: 0.85rem;
+        margin-top: 2rem;
         flex-wrap: wrap;
     }
 
     .rl-btn {
-        min-height: 3.25rem;
-        padding: 0 1.75rem;
+        min-height: 2.85rem;
+        padding: 0 1.5rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.6rem;
-        font-size: 0.78rem;
+        gap: 0.5rem;
+        font-size: 0.76rem;
         font-weight: 800;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        border-radius: 4px;
+        border-radius: 6px;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
         cursor: pointer;
@@ -1124,25 +1137,25 @@
 
     .rl-btn-primary {
         background: var(--rl-lime);
-        color: #05080E;
+        color: #050A14;
         border: 1px solid var(--rl-lime);
-        box-shadow: 0 4px 20px rgba(184, 255, 0, 0.2);
+        box-shadow: 0 4px 20px rgba(199, 255, 0, 0.22);
     }
     .rl-btn-primary:hover {
         background: var(--rl-lime-hover);
         border-color: var(--rl-lime-hover);
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(184, 255, 0, 0.3);
+        box-shadow: 0 8px 25px rgba(199, 255, 0, 0.32);
     }
 
     .rl-btn-outline {
-        background: rgba(255, 255, 255, 0.03);
+        background: transparent;
         color: #FFFFFF;
-        border: 1px solid rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.25);
     }
     .rl-btn-outline:hover {
         background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.4);
+        border-color: rgba(255, 255, 255, 0.45);
         transform: translateY(-2px);
     }
 
@@ -1157,42 +1170,50 @@
 
     .rl-btn-block { width: 100%; }
 
-    /* Trust Metrics Strip */
-    .rl-hero-trust {
-        margin-top: 2.75rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    /* Editorial Stats Bar (Separated from Hero) */
+    .rl-editorial-stats-bar {
+        background: #0B1628;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 1.5rem 0;
+        position: relative;
+        z-index: 10;
+    }
+
+    .rl-stats-track {
         display: flex;
         align-items: center;
-        gap: 2rem;
+        justify-content: space-around;
+        gap: 1.5rem;
     }
 
-    .rl-trust-item {
+    .rl-stat-col {
         display: flex;
         flex-direction: column;
-        gap: 0.2rem;
+        align-items: center;
+        text-align: center;
+        gap: 0.25rem;
     }
 
-    .rl-trust-val {
+    .rl-stat-number {
         color: #FFFFFF;
-        font-size: 1.4rem;
+        font-size: clamp(1.4rem, 3.5vw, 1.85rem);
         font-weight: 800;
         line-height: 1;
         letter-spacing: -0.02em;
     }
 
-    .rl-trust-lbl {
-        color: #64748B;
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+    .rl-stat-desc {
+        color: #94A3B8;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
     }
 
-    .rl-trust-sep {
+    .rl-stat-divider {
         width: 1px;
-        height: 1.8rem;
-        background: rgba(255, 255, 255, 0.08);
+        height: 2.2rem;
+        background: rgba(255, 255, 255, 0.1);
     }
 
     /* ----------------------------------------------------
@@ -2615,54 +2636,233 @@
 
     @media (max-width: 767px) {
         .rl-shell {
-            width: calc(100% - 1.5rem);
+            width: calc(100% - 2rem);
             max-width: 100%;
         }
 
+        /* ----------------------------------------------------
+           MOBILE HERO: CINEMATIC DARK SPORTS EDITORIAL
+           Layer 1: Dark navy gradient
+           Layer 2: Lower-right dynamic runner visual
+        ---------------------------------------------------- */
         .rl-hero-stage {
-            padding: 2.5rem 0 0;
+            min-height: 86vh;
+            min-height: 86dvh;
+            background: radial-gradient(ellipse 95% 85% at 92% 70%, #0B1628 0%, #050A14 65%), #050A14;
+            padding: 5.5rem 0 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
             width: 100%;
         }
 
-        .rl-hero-bg-nav {
-            top: 1.25rem;
-            right: 1.25rem;
-            gap: 0.35rem;
+        /* Hide full blurry background photo slider and indicators on mobile */
+        .rl-hero-bg-slider,
+        .rl-hero-bg-nav,
+        .rl-stage-grid-lines {
+            display: none !important;
         }
 
-        .rl-bg-dot {
-            width: 20px;
-            height: 2.5px;
+        /* Ambient subtle light depth on mobile */
+        .rl-stage-glow {
+            top: 20%;
+            right: 5%;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(199, 255, 0, 0.08) 0%, rgba(11, 22, 40, 0) 70%);
+            filter: blur(50px);
         }
 
-        .rl-bg-dot.is-active {
-            width: 32px;
-        }
-
-        /* Prevent Grid blow-out / horizontal page drift */
-        .rl-hero-grid,
-        .rl-hero-copy,
-        .rl-stage-athlete-wrap {
-            min-width: 0 !important;
-            width: 100% !important;
-            box-sizing: border-box;
+        .rl-hero-stage > .rl-shell {
+            position: relative;
+            z-index: 5;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .rl-hero-grid {
-            gap: 2rem;
-            grid-template-columns: minmax(0, 1fr) !important;
+            display: block !important;
+            position: relative;
+            width: 100% !important;
+            min-height: 480px;
+            padding-bottom: 1.5rem;
         }
 
-        .rl-hero-copy { order: 1; }
+        /* Text Area: Top-Left / Center-Left with strong hierarchy */
+        .rl-hero-copy {
+            position: relative;
+            z-index: 6;
+            max-width: 84%;
+            animation: rl-hero-fadein 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .rl-kicker {
+            padding: 0.3rem 0.65rem;
+            margin-bottom: 0.65rem;
+            background: rgba(11, 22, 40, 0.75);
+            border: 1px solid rgba(199, 255, 0, 0.25);
+        }
+
+        .rl-kicker-dot {
+            width: 5px;
+            height: 5px;
+        }
+
+        .rl-kicker-text {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+        }
+
+        .rl-hero-title {
+            font-size: clamp(2.1rem, 8.8vw, 2.75rem);
+            line-height: 1.05;
+            letter-spacing: -0.035em;
+            word-break: break-word;
+            margin: 0.5rem 0 0;
+            color: #FFFFFF;
+        }
+
+        .rl-title-accent {
+            color: var(--rl-lime, #C7FF00);
+        }
+
+        .rl-hero-lead {
+            margin-top: 0.95rem;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #94A3B8;
+            max-width: 18rem;
+        }
+
+        /* Compact Horizontal CTA Buttons on Mobile */
+        .rl-hero-actions {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: 0.65rem !important;
+            margin-top: 1.5rem !important;
+            width: auto !important;
+        }
+
+        .rl-hero-actions .rl-btn {
+            width: auto !important;
+            min-height: 2.65rem;
+            padding: 0 1.15rem;
+            font-size: 0.72rem;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .rl-hero-actions .rl-btn-primary {
+            background: var(--rl-lime, #C7FF00);
+            color: #050A14;
+            font-weight: 800;
+            border: 1px solid var(--rl-lime, #C7FF00);
+        }
+
+        .rl-hero-actions .rl-btn-outline {
+            background: transparent;
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-weight: 700;
+        }
+
+        /* Runner Visual: Anchored to lower right */
         .rl-stage-athlete-wrap {
-            order: 2;
-            min-height: 400px;
-            max-width: 360px;
-            margin: 0 auto;
+            position: absolute !important;
+            right: -6% !important;
+            bottom: 0 !important;
+            width: 66% !important;
+            max-width: 320px !important;
+            height: 75% !important;
+            max-height: 520px !important;
+            min-height: auto !important;
+            z-index: 2 !important;
+            margin: 0 !important;
+            pointer-events: none !important;
+            display: flex !important;
+            align-items: flex-end !important;
+            justify-content: flex-end !important;
+            animation: rl-runner-enter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .rl-athlete-portal {
-            max-width: 320px;
+        .rl-athlete-viewport {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .rl-athlete-img {
+            max-height: 100% !important;
+            width: auto !important;
+            object-fit: contain !important;
+            object-position: bottom right !important;
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 25px rgba(199, 255, 0, 0.12));
+        }
+
+        .rl-athlete-stage-aura {
+            right: 0 !important;
+            bottom: 5% !important;
+            width: 260px !important;
+            height: 260px !important;
+            background: radial-gradient(circle, rgba(199, 255, 0, 0.14) 0%, rgba(11, 22, 40, 0) 70%) !important;
+            filter: blur(40px) !important;
+        }
+
+        .rl-athlete-ground-shadow {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 90%;
+            height: 22px;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.85) 0%, transparent 75%);
+            filter: blur(6px);
+        }
+
+        /* Subtle Motion Trail 1 on Mobile */
+        .rl-trail-1 {
+            opacity: 0.22 !important;
+            filter: blur(2px) !important;
+            transform: translate3d(-10px, -4px, 0) scale(0.98) !important;
+        }
+
+        /* Remove cluttering HUD / pill badges on mobile */
+        #athleteStatePill,
+        .rl-velocity-energy-field {
+            display: none !important;
+        }
+
+        /* Editorial Stats Bar on Mobile */
+        .rl-editorial-stats-bar {
+            padding: 1.25rem 0;
+        }
+
+        .rl-stats-track {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rl-stat-number {
+            font-size: 1.25rem;
+        }
+
+        .rl-stat-desc {
+            font-size: 0.62rem;
+            line-height: 1.2;
+        }
+
+        .rl-stat-divider {
+            height: 1.8rem;
         }
 
         .rl-hud-cadence {
@@ -2687,48 +2887,6 @@
         .rl-eco-grid a:last-child {
             grid-column: span 2;
         }
-
-        .rl-hero-title {
-            font-size: clamp(1.85rem, 7.5vw, 2.4rem);
-            line-height: 1.12;
-            letter-spacing: -.03em;
-            word-break: break-word;
-        }
-
-        .rl-hero-lead {
-            margin-top: 1.1rem;
-            font-size: 0.92rem;
-            line-height: 1.65;
-        }
-
-        .rl-hero-actions {
-            flex-direction: column;
-            width: 100%;
-            gap: 0.65rem;
-            margin-top: 1.5rem;
-        }
-
-        .rl-hero-actions .rl-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        /* Mobile Telemetry Grid - Safe & balanced columns */
-        .rl-hero-telemetry {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr auto 1fr;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 2rem;
-            padding-top: 1.25rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .rl-tele-cell { text-align: center; min-width: 0; }
-        .rl-tele-val { font-size: 1.15rem; }
-        .rl-tele-lbl { font-size: 0.58rem; line-height: 1.2; }
-        .rl-tele-pipe { height: 1.5rem; }
 
         .rl-slide-viewport {
             aspect-ratio: 16 / 10;
