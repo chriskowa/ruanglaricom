@@ -8,14 +8,14 @@ use Illuminate\Http\Request;
 
 class BlogController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ?BlogCategory $category = null)
     {
-        $categorySlug = $request->query('category');
+        $categorySlug = $category ? $category->slug : $request->query('category');
         $search = trim((string) $request->query('q', ''));
         $sort = $request->query('sort', 'latest');
 
         $categories = BlogCategory::query()
-            ->select(['id', 'name', 'slug'])
+            ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description'])
             ->whereHas('articles', function ($q) {
                 $q->published();
             })
@@ -32,14 +32,15 @@ class BlogController extends Controller
             ->published()
             ->with(['user:id,name', 'category:id,name,slug']);
 
-        $activeCategory = null;
-        if ($categorySlug) {
+        $activeCategory = $category;
+        if (!$activeCategory && $categorySlug) {
             $activeCategory = $categories->firstWhere('slug', $categorySlug);
-            if ($activeCategory) {
-                $articlesQuery->whereHas('categories', function ($q) use ($activeCategory) {
-                    $q->where('blog_categories.id', $activeCategory->id);
-                });
-            }
+        }
+
+        if ($activeCategory) {
+            $articlesQuery->whereHas('categories', function ($q) use ($activeCategory) {
+                $q->where('blog_categories.id', $activeCategory->id);
+            });
         }
 
         if ($search !== '') {
@@ -68,8 +69,6 @@ class BlogController extends Controller
 
         $articles = $articlesQuery->paginate(12)->withQueryString();
 
-        $heroArticle = null;
-
         $trending = Article::query()
             ->published()
             ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
@@ -83,42 +82,47 @@ class BlogController extends Controller
             return view('blog.partials.results', compact('articles'));
         }
 
+        // Build Clean SEO Metadata & Canonical URL
+        if ($activeCategory) {
+            $canonicalUrl = route('blog.category', $activeCategory->slug);
+            $metaTitle = $activeCategory->meta_title ?: "Artikel & Panduan {$activeCategory->name} | Ruang Lari";
+            $metaDescription = $activeCategory->meta_description ?: ($activeCategory->description ?: "Kumpulan artikel edukasi, berita, dan tips latihan lari seputar {$activeCategory->name} di Ruang Lari.");
+            $metaKeywords = "blog {$activeCategory->name}, artikel {$activeCategory->name}, panduan {$activeCategory->name}, lari indonesia";
+            $pageHeading = "Artikel & Panduan " . $activeCategory->name;
+            $pageSubheading = $activeCategory->description ?: "Kumpulan panduan terstruktur, tips, dan wawasan seputar {$activeCategory->name} untuk pelari Indonesia.";
+        } else {
+            $canonicalUrl = route('blog.index');
+            $metaTitle = "Warta, Panduan & Berita Lari Indonesia | Ruang Lari";
+            $metaDescription = "Portal media lari Indonesia: tips latihan, panduan rute, review sepatu, info event & race, dan wawasan komunitas pelari terpercaya.";
+            $metaKeywords = "blog lari, berita lari, panduan lari pemula, tips marathon, sepatu lari, kalender lari indonesia, ruang lari";
+            $pageHeading = "Warta, Panduan & Berita Lari";
+            $pageSubheading = "Berita teraktual, tips latihan terstruktur, dan wawasan komunitas pelari Indonesia.";
+        }
+
+        $isSearch = !empty($search);
+
         return view('blog.index', compact(
             'categories',
             'activeCategory',
             'categorySlug',
             'search',
             'sort',
-            'heroArticle',
             'articles',
-            'trending'
+            'trending',
+            'canonicalUrl',
+            'metaTitle',
+            'metaDescription',
+            'metaKeywords',
+            'pageHeading',
+            'pageSubheading',
+            'isSearch'
         ));
     }
 
     public function category(Request $request, $slug)
     {
-        // Reuse index logic but force category
-        $request->merge(['category' => $slug]);
-
-        // Validation to ensure category exists, otherwise 404
         $category = BlogCategory::where('slug', $slug)->firstOrFail();
-
-        // SEO Override
-        $seo = [
-            'title' => $category->name.' | Blog Ruang Lari',
-            'meta_title' => 'Arsip Artikel '.$category->name.' - Ruang Lari',
-            'meta_description' => 'Kumpulan artikel, berita, dan tips seputar '.$category->name.' di Ruang Lari. Panduan lengkap untuk pelari Indonesia.',
-            'meta_keywords' => 'blog '.$category->name.', artikel '.$category->name.', info '.$category->name.', ruang lari',
-        ];
-
-        // Call index logic
-        // We can't easily inject SEO into index() response without modifying index().
-        // So let's refactor index() slightly to accept optional SEO data or handle it there.
-
-        // Better: let index() handle the view, but we pass the category object so index() can derive SEO.
-        // index() already fetches $activeCategory.
-
-        return $this->index($request);
+        return $this->index($request, $category);
     }
 
     public function show(Request $request, $slug)

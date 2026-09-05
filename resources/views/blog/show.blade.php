@@ -289,11 +289,11 @@
         border-spacing: 0 !important;
         margin-top: 2rem !important;
         margin-bottom: 2rem !important;
-        border: 1px solid #334155 !important; /* slate-700 */
-        border-radius: 1rem !important;
+        border: 1px solid #1e293b !important; /* slate-800 */
+        border-radius: 0.5rem !important;
         overflow: hidden !important;
-        background-color: rgba(15, 23, 42, 0.7) !important; /* slate-900/70 */
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+        background-color: #080D17 !important;
+        box-shadow: none !important;
     }
     .prose caption {
         caption-side: bottom !important;
@@ -340,12 +340,12 @@
     /* BLOCKQUOTES */
     .prose blockquote {
         border-left: 4px solid #a3e635 !important;
-        background-color: rgba(30, 41, 59, 0.5) !important;
+        background-color: #0B1220 !important;
         padding: 1.25rem 1.5rem !important;
         margin-top: 2rem !important;
         margin-bottom: 2rem !important;
-        border-top-right-radius: 1rem !important;
-        border-bottom-right-radius: 1rem !important;
+        border-top-right-radius: 0.5rem !important;
+        border-bottom-right-radius: 0.5rem !important;
         font-style: italic !important;
         color: #f8fafc !important;
     }
@@ -369,7 +369,7 @@
         background-color: #0f172a !important;
         color: #f1f5f9 !important;
         padding: 1.25rem !important;
-        border-radius: 1rem !important;
+        border-radius: 0.5rem !important;
         overflow-x: auto !important;
         margin-top: 1.75rem !important;
         margin-bottom: 1.75rem !important;
@@ -386,9 +386,9 @@
     .prose img {
         margin-top: 2.25rem !important;
         margin-bottom: 2.25rem !important;
-        border-radius: 1.25rem !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
-        border: 1px solid rgba(51, 65, 85, 0.5) !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid #1e293b !important;
         max-width: 100% !important;
         height: auto !important;
         display: block !important;
@@ -407,11 +407,11 @@
     .prose iframe, .prose video {
         width: 100% !important;
         aspect-ratio: 16 / 9 !important;
-        border-radius: 1.25rem !important;
+        border-radius: 0.5rem !important;
         margin-top: 2rem !important;
         margin-bottom: 2rem !important;
-        border: 1px solid #334155 !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid #1e293b !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
     }
     .prose hr {
         border: none !important;
@@ -423,7 +423,7 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-[#020617] pt-6 pb-20 text-slate-200">
+<div class="min-h-screen bg-[#020617] pt-0 pb-20 text-slate-200">
     <!-- Reading Progress Bar -->
     <div class="fixed top-0 left-0 w-full h-1 bg-slate-800 z-[100]">
         <div id="readingProgress" class="h-full bg-[#C7FF00] w-0 transition-all duration-100"></div>
@@ -511,30 +511,30 @@
                 <div class="lg:col-span-8 min-w-0">
                     <!-- Article Header & Title (Editorial Style) -->
                     <div class="mb-8 mt-1">
-                        @if($article->category)
-                            <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-block px-3 py-1 mb-4 rounded bg-[#111A2C] hover:bg-[#16233B] text-slate-200 border border-slate-800 text-[10px] font-bold uppercase tracking-wider transition-colors">
-                                {{ $article->category->name }}
-                            </a>
-                        @endif
-                        
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-5">
+                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight mb-4">
                             {{ $article->localized_title }}
                         </h1>
                         
-                        <div class="flex items-center flex-wrap gap-3 text-xs text-slate-400 font-mono">
-                            <span class="flex items-center gap-1.5 py-1">
+                        <div class="flex items-center flex-wrap gap-2.5 text-xs text-slate-300">
+                            @if($article->category)
+                                <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-flex items-center px-2.5 py-1 rounded bg-[#0B1220] hover:bg-[#111A2C] text-slate-200 border border-slate-800 text-[11px] font-semibold transition-colors">
+                                    {{ $article->category->name }}
+                                </a>
+                                <span class="text-slate-600 select-none">•</span>
+                            @endif
+                            <span class="flex items-center gap-1.5 py-1 text-slate-400">
                                 <i class="far fa-calendar-alt text-slate-500"></i>
                                 {{ $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y') }}
                             </span>
-                            <span class="text-slate-600 font-sans select-none">•</span>
                             @if($article->user)
-                                <span class="flex items-center gap-1.5 py-1">
+                                <span class="text-slate-600 select-none">•</span>
+                                <span class="flex items-center gap-1.5 py-1 text-slate-300 font-medium">
                                     <i class="far fa-user text-slate-500"></i>
                                     {{ $article->user->name }}
                                 </span>
-                                <span class="text-slate-600 font-sans select-none">•</span>
                             @endif
-                            <span class="flex items-center gap-1.5 py-1 text-slate-300 font-semibold" title="Jumlah dibaca">
+                            <span class="text-slate-600 select-none">•</span>
+                            <span class="flex items-center gap-1.5 py-1 text-slate-400 font-mono" title="Jumlah dibaca">
                                 <i class="far fa-eye text-slate-500"></i>
                                 {{ number_format((int) ($article->views_count ?? 0)) }} {{ app()->getLocale() === 'en' ? 'views' : 'dibaca' }}
                             </span>
@@ -803,7 +803,7 @@
         document.querySelectorAll('.prose table').forEach(function(table) {
             if (!table.parentElement.classList.contains('table-responsive')) {
                 var wrapper = document.createElement('div');
-                wrapper.className = 'table-responsive overflow-x-auto my-6 rounded-2xl border border-slate-700/60 shadow-xl';
+                wrapper.className = 'table-responsive overflow-x-auto my-6 rounded-lg border border-slate-800';
                 table.parentNode.insertBefore(wrapper, table);
                 wrapper.appendChild(table);
             }

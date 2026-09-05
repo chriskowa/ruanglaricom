@@ -23,11 +23,11 @@ return new class extends Migration
         Schema::table('marketplace_products', function (Blueprint $table) {
             if (Schema::hasColumn('marketplace_products', 'reserved_by_user_id')) {
                 $table->dropForeign(['reserved_by_user_id']);
+                $table->dropColumn('reserved_by_user_id');
             }
-            $table->dropColumn([
-                'reserved_by_user_id',
-                'reserved_until',
-            ]);
+            if (Schema::hasColumn('marketplace_products', 'reserved_until')) {
+                $table->dropColumn('reserved_until');
+            }
         });
     }
 };
