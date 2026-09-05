@@ -873,6 +873,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        padding-top:10px;
     }
 
     /* Ambient Parallax Background Slider */
