@@ -92,12 +92,17 @@ class CheckoutController extends Controller
             return back()->with('error', 'Produk lelang tidak bisa dibeli langsung.');
         }
 
-        if ($product->stock < 1) {
-            return back()->with('error', 'Product is out of stock.');
+        if ($product->is_sold || $product->stock < 1) {
+            return back()->with('error', 'Produk ini sudah terjual atau stok habis.');
+        }
+
+        if ($product->isReservedByOther(Auth::id())) {
+            $remaining = $product->getReservationRemainingMinutes();
+            return back()->with('error', "Produk ini sedang dalam proses checkout oleh pembeli lain. Jika pembayaran tidak diselesaikan dalam {$remaining} menit, produk akan tersedia kembali.");
         }
 
         if ($product->user_id == Auth::id()) {
-            return back()->with('error', 'You cannot buy your own product.');
+            return back()->with('error', 'Anda tidak bisa membeli produk Anda sendiri.');
         }
 
         // Check for existing pending order for this product by this user to avoid duplicates
@@ -110,6 +115,14 @@ class CheckoutController extends Controller
             ->first();
 
         if ($existingOrder) {
+            // Refresh reservation TTL for this user's active session
+            if ((int) $product->stock === 1) {
+                $product->update([
+                    'reserved_by_user_id' => Auth::id(),
+                    'reserved_until' => now()->addMinutes(15),
+                ]);
+            }
+
             return redirect()->route('marketplace.checkout.show', $existingOrder->id);
         }
 
@@ -128,6 +141,26 @@ class CheckoutController extends Controller
 
         try {
             DB::beginTransaction();
+
+            $lockedProduct = MarketplaceProduct::where('id', $product->id)->lockForUpdate()->first();
+            if ($lockedProduct->is_sold || $lockedProduct->stock < 1) {
+                DB::rollBack();
+                return back()->with('error', 'Produk ini sudah terjual atau stok habis.');
+            }
+
+            if ($lockedProduct->isReservedByOther(Auth::id())) {
+                DB::rollBack();
+                $remaining = $lockedProduct->getReservationRemainingMinutes();
+                return back()->with('error', "Produk ini sedang dalam proses checkout oleh pembeli lain. Sisa waktu: {$remaining} menit.");
+            }
+
+            // Reserve single-stock item for 15 minutes
+            if ((int) $lockedProduct->stock === 1) {
+                $lockedProduct->update([
+                    'reserved_by_user_id' => Auth::id(),
+                    'reserved_until' => now()->addMinutes(15),
+                ]);
+            }
 
             $order = MarketplaceOrder::create([
                 'invoice_number' => 'INV-RL-' . strtoupper(Str::random(10)),
@@ -278,9 +311,33 @@ class CheckoutController extends Controller
                     'status' => 'completed',
                     'description' => 'Pembayaran pesanan marketplace: ' . $order->invoice_number,
                     'reference_type' => MarketplaceOrder::class,
-                    'reference_id' => $order->id,
                     'processed_at' => now(),
                 ]);
+
+                // Decrement stock, mark sold if stock reaches 0, clear reservation, and cleanup other carts
+                foreach ($order->items as $item) {
+                    $prod = MarketplaceProduct::where('id', $item->product_id)->lockForUpdate()->first();
+                    if ($prod) {
+                        $newStock = max(0, (int) $prod->stock - (int) $item->quantity);
+                        $updateData = [
+                            'stock' => $newStock,
+                            'reserved_by_user_id' => null,
+                            'reserved_until' => null,
+                        ];
+                        if ($newStock <= 0) {
+                            $updateData['is_sold'] = true;
+                            $updateData['sold_at'] = now();
+                            $updateData['sold_to_user_id'] = $order->buyer_id;
+                            $updateData['sold_channel'] = 'ruanglari';
+                        }
+                        $prod->update($updateData);
+
+                        // Auto-remove product from other buyers' shopping carts
+                        \App\Models\Cart::where('product_id', $prod->id)
+                            ->where('user_id', '!=', $order->buyer_id)
+                            ->delete();
+                    }
+                }
             });
 
             // Dispatch Notifications to Seller & Admin

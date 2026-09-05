@@ -40,12 +40,29 @@ class CartController extends Controller
         $user = Auth::user();
         $product = MarketplaceProduct::findOrFail($productId);
 
-        if ($product->stock < 1) {
-            return back()->withErrors(['error' => 'Stok produk ini sedang habis.']);
+        if ($product->is_sold || $product->stock < 1) {
+            $msg = 'Stok produk ini sedang habis atau sudah terjual.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withErrors(['error' => $msg]);
+        }
+
+        if ($product->isReservedByOther($user->id)) {
+            $remaining = $product->getReservationRemainingMinutes();
+            $msg = "Produk ini sedang dalam proses checkout oleh pembeli lain. Tersedia kembali dalam {$remaining} menit jika transaksi tidak diselesaikan.";
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withErrors(['error' => $msg]);
         }
 
         if ((int) $product->user_id === (int) $user->id) {
-            return back()->withErrors(['error' => 'Anda tidak bisa membeli produk Anda sendiri.']);
+            $msg = 'Anda tidak bisa membeli produk Anda sendiri.';
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withErrors(['error' => $msg]);
         }
 
         $cartItem = Cart::where('user_id', $user->id)

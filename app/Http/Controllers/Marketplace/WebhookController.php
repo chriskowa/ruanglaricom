@@ -42,6 +42,30 @@ class WebhookController extends Controller
                 if ($fraudStatus !== 'challenge') {
                     $marketplaceOrder->update(['status' => 'paid']);
 
+                    // Decrement stock, mark sold if stock <= 0, clear reservation, and cleanup carts
+                    foreach ($marketplaceOrder->items as $item) {
+                        $prod = \App\Models\Marketplace\MarketplaceProduct::find($item->product_id);
+                        if ($prod) {
+                            $newStock = max(0, (int) $prod->stock - (int) $item->quantity);
+                            $updateData = [
+                                'stock' => $newStock,
+                                'reserved_by_user_id' => null,
+                                'reserved_until' => null,
+                            ];
+                            if ($newStock <= 0) {
+                                $updateData['is_sold'] = true;
+                                $updateData['sold_at'] = now();
+                                $updateData['sold_to_user_id'] = $marketplaceOrder->buyer_id;
+                                $updateData['sold_channel'] = 'ruanglari';
+                            }
+                            $prod->update($updateData);
+
+                            \App\Models\Cart::where('product_id', $prod->id)
+                                ->where('user_id', '!=', $marketplaceOrder->buyer_id)
+                                ->delete();
+                        }
+                    }
+
                     try {
                         $marketplaceOrder->load(['seller', 'buyer', 'items.product']);
                         if ($marketplaceOrder->seller && $marketplaceOrder->seller->email) {
@@ -92,7 +116,15 @@ class WebhookController extends Controller
             } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
                 $marketplaceOrder->update(['status' => 'cancelled']);
                 foreach ($marketplaceOrder->items as $item) {
-                    $item->product->increment('stock', $item->quantity);
+                    $prod = \App\Models\Marketplace\MarketplaceProduct::find($item->product_id);
+                    if ($prod) {
+                        if ((int) $prod->reserved_by_user_id === (int) $marketplaceOrder->buyer_id) {
+                            $prod->update([
+                                'reserved_by_user_id' => null,
+                                'reserved_until' => null,
+                            ]);
+                        }
+                    }
                 }
             }
 

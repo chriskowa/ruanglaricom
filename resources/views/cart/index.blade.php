@@ -81,6 +81,13 @@
                                             <div class="flex flex-wrap gap-2 mt-1">
                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#111F35] text-slate-300 border border-[#1F2D44]">Size: {{ $item->product->size ?: '-' }}</span>
                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#111F35] text-[#B8FF00] border border-[#1F2D44]">{{ $item->product->condition == 'new' ? 'Baru' : 'Bekas' }}</span>
+                                                @if($item->product->is_sold || $item->product->stock < 1)
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30">Stok Habis / Terjual</span>
+                                                @elseif($item->product->isReservedByOther())
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                                        Sedang Di-checkout Pembeli Lain (Sisa {{ $item->product->getReservationRemainingMinutes() }}m)
+                                                    </span>
+                                                @endif
                                             </div>
                                         @endif
                                     </div>
@@ -143,16 +150,31 @@
                             $firstProduct = $cartItems->first(function($it) {
                                 return !empty($it->product_id);
                             });
+                            $isFirstProductBlocked = $firstProduct && $firstProduct->product && (
+                                $firstProduct->product->is_sold ||
+                                $firstProduct->product->stock < 1 ||
+                                $firstProduct->product->isReservedByOther()
+                            );
                         ?>
                         @if($firstProduct)
-                            <form action="{{ route('marketplace.checkout.init') }}" method="POST" class="mt-6">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $firstProduct->product_id }}">
-                                <button type="submit" class="w-full py-4 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-[#9FE000] transition flex items-center justify-center gap-2 shadow-lg shadow-[#B8FF00]/20">
-                                    <span>Lanjut ke Checkout</span>
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                </button>
-                            </form>
+                            @if($isFirstProductBlocked)
+                                <div class="mt-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center">
+                                    <p class="text-xs text-amber-300 font-bold">Item Terkunci Sementara</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Item dalam keranjang sedang dalam proses checkout pembeli lain. Jika pembayaran pembeli tersebut tidak diselesaikan, item akan otomatis terbuka kembali.</p>
+                                    <button type="button" disabled class="w-full mt-3 py-3 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs uppercase tracking-wider cursor-not-allowed">
+                                        Checkout Terkunci
+                                    </button>
+                                </div>
+                            @else
+                                <form action="{{ route('marketplace.checkout.init') }}" method="POST" class="mt-6">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $firstProduct->product_id }}">
+                                    <button type="submit" class="w-full py-4 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider hover:bg-[#9FE000] transition flex items-center justify-center gap-2 shadow-lg shadow-[#B8FF00]/20">
+                                        <span>Lanjut ke Checkout</span>
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    </button>
+                                </form>
+                            @endif
                         @endif
                     @endif
 

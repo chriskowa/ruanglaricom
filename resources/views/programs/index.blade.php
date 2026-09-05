@@ -28,17 +28,12 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
                 <!-- Left Column: Title, Subtitle, Search, Stats, & Quick Chips -->
-                <div class="lg:col-span-7 space-y-6 text-left">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-neon/30 bg-neon/10 text-neon text-xs font-mono font-bold uppercase tracking-widest">
-                        <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
-                        <span>MARKETPLACE PROGRAM LARI</span>
-                    </div>
-
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase leading-tight">
-                        Temukan Program Latihan Lari <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-lime-400">Sesuai Targetmu</span>
+                <div class="lg:col-span-7 space-y-5 text-left">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight uppercase leading-tight">
+                        Temukan Program Latihan Lari <span class="text-neon">Sesuai Targetmu</span>
                     </h1>
 
-                    <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
                         Pilih program latihan dari pelatih profesional terverifikasi untuk meningkatkan pace, daya tahan aerobik, dan kesiapan race secara terukur.
                     </p>
 

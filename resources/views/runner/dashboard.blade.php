@@ -666,7 +666,7 @@
 
             <div class="runner-command__top">
                 <div class="min-w-0">
-                    <div class="runner-kicker">{{ $greeting }} / Runner workspace</div>
+                    <div class="runner-kicker pt-5">{{ $greeting }} / Runner workspace</div>
                     <h1 class="runner-name">{{ auth()->user()->name }}</h1>
                     <p class="runner-subtitle">
                         Training, recovery, performance, dan race planning dalam satu workspace.
@@ -707,7 +707,7 @@
                 <a href="{{ route('gpx.index') }}" class="runner-stat group hidden md:block">
                     <div class="runner-stat__label">
                         <i class="fa-solid fa-coins text-amber-400"></i>
-                        Run Points
+                        Points
                     </div>
                     <div class="runner-stat__value">
                         {{ number_format(auth()->user()->run_points ?? 0) }}

@@ -63,6 +63,8 @@ Desain dan antarmuka harus terlihat *human-crafted*, fungsional, bersih, berbobo
 28. **Animasi Hover Fungsional & Tenang**: Hindari efek zoom/bounce berlebih pada setiap elemen yang disentuh kursor. Cukup transisi warna halus (`transition duration-150`).
 29. **Tanpa Warna Neon Menyilaukan**: Hindari teks/border neon menyala yang menusuk mata di mode gelap. Gunakan solid high-contrast tones.
 30. **Tanpa Warna Pastel Generik / Pudar**: Hindari warna pastel template yang mencuci kontras teks.
+31. **Tanpa Span Pill di Atas H1**: Dilarang keras memasang span pill / chip badge melayang di atas judul H1 (seperti chip kategori dengan dot berkedip/ping). Judul H1 harus langsung menyapa pengguna secara bersih dan profesional.
+32. **Top Padding Halaman Nol (`pt-0`)**: Hindari memberi `min-h-screen pt-20` atau `pt-24` pada pembungkus halaman utama. Jadikan `pt-0` agar konten halaman langsung terlihat rapi di layar (*above the fold*) tanpa ruang kosong menganga.
 
 ---
 
@@ -113,3 +115,5 @@ Semua komponen UI WAJIB mematuhi skala border-radius berikut:
 - **Ample Container Padding**: Wadah utama kartu/modal menggunakan padding lega (`p-5`, `p-6`), hindari padding sesak (`p-2`, `p-3`).
 - **Separasi Jelas**: Gunakan jarak antar seksi `space-y-4` hingga `space-y-6`, dan jarak grid card `gap-3.5` hingga `gap-6`.
 - **Ruang Bernapas Teks**: Pastikan jarak antara label, input, dan judul memiliki margin teratur (`mb-1.5`, `mt-1`, `leading-relaxed`).
+- **Zero Page Top Padding (`pt-0`)**: Pembungkus halaman utama wajib menggunakan `pt-0` (bukan `pt-20` atau `pt-24`) agar konten langsung tampil tanpa gap kosong atas.
+- **Tanpa Elemen Mengambang di Atas H1**: Jangan letakkan tag span, pill badge, atau kicker di atas H1. Mulai langsung dari H1.

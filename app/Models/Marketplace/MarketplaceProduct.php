@@ -22,6 +22,7 @@ class MarketplaceProduct extends Model
         'boosted_at' => 'datetime',
         'auction_start_at' => 'datetime',
         'auction_end_at' => 'datetime',
+        'reserved_until' => 'datetime',
     ];
 
     public function isFeaturedActive(): bool
@@ -33,6 +34,37 @@ class MarketplaceProduct extends Model
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check if product with stock = 1 is currently reserved by another user in active checkout session
+     */
+    public function isReservedByOther(?int $userId = null): bool
+    {
+        if ((int) ($this->stock ?? 1) > 1) {
+            return false;
+        }
+
+        $reservedUntil = $this->reserved_until;
+        if (!$reservedUntil || now()->gte($reservedUntil)) {
+            return false;
+        }
+
+        $currentUserId = $userId ?? \Illuminate\Support\Facades\Auth::id();
+        return (int) $this->reserved_by_user_id !== (int) $currentUserId;
+    }
+
+    /**
+     * Get remaining reservation lock time in minutes
+     */
+    public function getReservationRemainingMinutes(): int
+    {
+        $reservedUntil = $this->reserved_until;
+        if (!$reservedUntil || now()->gte($reservedUntil)) {
+            return 0;
+        }
+
+        return max(1, now()->diffInMinutes($reservedUntil) + 1);
     }
 
     public function scopePublicListing($query)
@@ -54,6 +86,11 @@ class MarketplaceProduct extends Model
     public function soldToUser()
     {
         return $this->belongsTo(User::class, 'sold_to_user_id');
+    }
+
+    public function reservedByUser()
+    {
+        return $this->belongsTo(User::class, 'reserved_by_user_id');
     }
 
     public function category()

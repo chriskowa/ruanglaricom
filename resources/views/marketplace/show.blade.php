@@ -195,10 +195,17 @@
                         </div>
                     @elseif($product->stock > 0)
                         <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-medium">
-                            <span class="text-slate-200 flex items-center gap-1.5 font-bold">
-                                <span class="w-2 h-2 rounded-full bg-neon"></span>
-                                Stok Siap Kirim ({{ $product->stock }} Unit)
-                            </span>
+                            @if($product->isReservedByOther())
+                                <span class="text-amber-300 flex items-center gap-1.5 font-bold">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    Sedang Diproses Pembeli Lain (Sisa {{ $product->getReservationRemainingMinutes() }} Menit)
+                                </span>
+                            @else
+                                <span class="text-slate-200 flex items-center gap-1.5 font-bold">
+                                    <span class="w-2 h-2 rounded-full bg-neon"></span>
+                                    Stok Siap Kirim ({{ $product->stock }} Unit)
+                                </span>
+                            @endif
                             @if(optional($product->seller)->city)
                                 <span class="text-slate-300 font-semibold">
                                     {{ $product->seller->city->name }}
@@ -298,24 +305,41 @@
                     <div class="space-y-3 pt-2">
                         @auth
                             @if(auth()->id() !== $product->user_id)
-                                <div class="flex flex-col sm:flex-row gap-3">
-                                    <form method="POST" action="{{ route('marketplace.cart.add-product', $product->id) }}" class="flex-1">
-                                        @csrf
-                                        <button type="submit" class="w-full py-3.5 rounded-md bg-slate-850 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition flex items-center justify-center gap-2">
-                                            <i class="fas fa-cart-plus text-sm"></i>
-                                            <span>+ Keranjang</span>
+                                @if($product->isReservedByOther())
+                                    <div class="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1">
+                                        <div class="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                                            Sedang Dalam Proses Transaksi Pembeli Lain
+                                        </div>
+                                        <p class="text-xs text-slate-300 font-medium">
+                                            Barang ini sedang dalam tahap checkout oleh calon pembeli lain. Jika pembayaran tidak diselesaikan dalam <span class="text-white font-bold">{{ $product->getReservationRemainingMinutes() }} menit</span>, barang akan otomatis tersedia kembali.
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <button type="button" disabled class="flex-1 py-3 rounded-md bg-slate-850 text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-800 cursor-not-allowed text-center">
+                                            + Keranjang (Terkunci)
                                         </button>
-                                    </form>
+                                        <button type="button" disabled class="flex-1 py-3 rounded-md bg-slate-850 text-slate-500 font-bold text-xs uppercase tracking-wider border border-slate-800 cursor-not-allowed text-center">
+                                            Beli Sekarang (Terkunci)
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <form method="POST" action="{{ route('marketplace.cart.add-product', $product->id) }}" class="flex-1">
+                                            @csrf
+                                            <button type="submit" class="w-full py-3.5 rounded-md bg-slate-850 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider border border-slate-700 transition flex items-center justify-center gap-2">
+                                                <span>+ Keranjang</span>
+                                            </button>
+                                        </form>
 
-                                    <form method="POST" action="{{ route('marketplace.checkout.init') }}" class="flex-1">
-                                        @csrf
-                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                        <button type="submit" class="w-full py-3.5 rounded-md bg-white hover:bg-slate-200 text-dark font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm">
-                                            <span>Beli Sekarang</span>
-                                            <i class="fas fa-arrow-right text-xs"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                        <form method="POST" action="{{ route('marketplace.checkout.init') }}" class="flex-1">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <button type="submit" class="w-full py-3.5 rounded-md bg-white hover:bg-slate-200 text-dark font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-sm">
+                                                <span>Beli Sekarang</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             @else
                                 <div class="p-4 rounded-lg bg-slate-850 border border-slate-750 text-center">
                                     <span class="text-xs text-slate-200">Ini adalah produk listing milik Anda sendiri.</span>

@@ -47,42 +47,40 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen pt-20 pb-20 font-sans text-slate-200">
+<div class="min-h-screen pt-0 pb-20 font-sans text-slate-200">
     
     <!-- Hero Banner -->
-    <div class="relative h-[50vh] min-h-[400px] w-full overflow-hidden">
+    <div class="relative h-[50vh] min-h-[380px] w-full overflow-hidden bg-slate-950">
         <!-- Background Image -->
         @if($program->banner)
             <img src="{{ $program->banner_url }}" class="absolute inset-0 w-full h-full object-cover" alt="{{ $program->title }}">
         @else
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-purple-900">
-                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
-            </div>
+            <div class="absolute inset-0 bg-slate-900"></div>
         @endif
         
         <!-- Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/70 to-transparent"></div>
 
         <!-- Content -->
-        <div class="absolute bottom-0 left-0 w-full p-6 md:p-12">
+        <div class="absolute bottom-0 left-0 w-full p-6 md:p-10">
             <div class="max-w-7xl mx-auto">
-                <div class="flex flex-wrap gap-3 mb-4" data-aos="fade-up">
-                    <span class="px-3 py-1 rounded-full bg-neon text-dark text-xs font-black uppercase tracking-wider">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mb-3 max-w-4xl leading-tight">
+                    {{ $program->title }}
+                </h1>
+
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <span class="px-2.5 py-0.5 rounded bg-neon text-slate-950 text-xs font-semibold uppercase tracking-wider">
                         {{ $program->distance_target }}
                     </span>
-                    <span class="px-3 py-1 rounded-full bg-white/10 backdrop-blur text-white text-xs font-bold uppercase tracking-wider border border-white/20">
+                    <span class="px-2.5 py-0.5 rounded bg-slate-800 text-slate-200 text-xs font-medium uppercase tracking-wider border border-slate-700">
                         {{ ucfirst($program->difficulty) }}
                     </span>
                 </div>
-                
-                <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4 max-w-4xl leading-tight" data-aos="fade-up" data-aos-delay="100">
-                    {{ strtoupper($program->title) }}
-                </h1>
 
-                <div class="flex items-center gap-6 text-sm md:text-base text-slate-300" data-aos="fade-up" data-aos-delay="200">
+                <div class="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-300">
                     <div class="flex items-center gap-2">
-                        <img src="{{ ($program->coach && $program->coach->avatar) ? asset('storage/' . $program->coach->avatar) : asset('images/profile/17.jpg') }}" class="w-8 h-8 rounded-full border border-slate-500">
-                        <span>Coach <a href="{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}" class="text-white font-bold hover:text-neon transition-colors">{{ $program->coach->name ?? 'Unknown' }}</a></span>
+                        <img src="{{ ($program->coach && $program->coach->avatar) ? asset('storage/' . $program->coach->avatar) : asset('images/profile/17.jpg') }}" class="w-7 h-7 rounded-full border border-slate-700 object-cover">
+                        <span>Coach <a href="{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}" class="text-white font-medium hover:text-neon transition-colors">{{ $program->coach->name ?? 'Unknown' }}</a></span>
                     </div>
                     <div class="w-1 h-1 bg-slate-600 rounded-full"></div>
                     <div class="flex items-center gap-1">
