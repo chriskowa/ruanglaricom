@@ -43,6 +43,16 @@
 .segmented-toggle input[type="radio"]:not(:checked) + div:hover {
     color: #ffffff !important;
 }
+
+/* Solid Opaque Filter Sidebar Drawer (Zero Transparency on Mobile & Desktop) */
+#mobile-sidebar-filter {
+    background-color: #0c121e !important;
+    opacity: 1 !important;
+}
+#mobile-sidebar-filter .sticky {
+    background-color: #0c121e !important;
+    opacity: 1 !important;
+}
 </style>
 @endpush
 
@@ -186,21 +196,24 @@
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start relative w-full">
         
         <!-- Mobile Sidebar Overlay Backdrop -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden" x-transition:opacity></div>
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-40 lg:hidden" style="background-color: rgba(0, 0, 0, 0.8) !important;" x-transition:opacity></div>
 
-        <!-- Sidebar Filter Panel (Clean Nike.com Style) -->
+        <!-- Sidebar Filter Panel (Clean Nike.com Style - 100% Opaque) -->
         <div x-show="sidebarOpen"
+             id="mobile-sidebar-filter"
+             style="background-color: #0c121e !important;"
              x-transition:enter="transition ease-out duration-250"
              x-transition:enter-start="opacity-0 -translate-x-4"
              x-transition:enter-end="opacity-100 translate-x-0"
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-x-0"
              x-transition:leave-end="opacity-0 -translate-x-4"
-             class="fixed inset-y-0 left-0 z-50 w-80 bg-[#0c121e] p-0 overflow-y-auto lg:static lg:w-72 lg:z-20 lg:h-[calc(100vh-8rem)] lg:sticky lg:top-36 lg:overflow-y-auto lg:bg-slate-900/40 lg:backdrop-blur-md lg:border lg:border-slate-800 lg:rounded-lg custom-scrollbar shrink-0 shadow-2xl lg:shadow-none">
+             class="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] p-0 overflow-y-auto lg:static lg:w-72 lg:z-20 lg:h-[calc(100vh-8rem)] lg:sticky lg:top-36 lg:overflow-y-auto border-r border-slate-800 lg:border lg:border-slate-800 lg:rounded-lg custom-scrollbar shrink-0 shadow-2xl lg:shadow-none">
             
             <form id="filter-form" action="{{ route('marketplace.index') }}" method="GET" class="h-full">
                 <!-- Sticky Header inside Sidebar -->
-                <div class="sticky top-0 bg-[#0c121e]/95 lg:bg-slate-900/90 backdrop-blur-md z-10 py-3.5 px-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="sticky top-0 z-10 py-3.5 px-5 border-b border-slate-800 flex items-center justify-between"
+                     style="background-color: #0c121e !important;">
                     <span class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
                         <span>Filter Produk</span>
                     </span>
