@@ -31,16 +31,16 @@ class MarketplaceController extends Controller
                     });
             });
 
-        // Fulfillment Mode Filter (Titip Jual vs Kirim Langsung)
-        if ($request->filled('fulfillment_mode')) {
-            $query->where('fulfillment_mode', $request->fulfillment_mode);
-        } elseif ($request->filled('fulfillment')) {
-            $query->where('fulfillment_mode', $request->fulfillment);
+        // Fulfillment Mode Filter (Titip Jual vs Kirim Langsung) - strictly whitelisted
+        $fulfillmentMode = $request->query('fulfillment_mode', $request->query('fulfillment'));
+        if (is_string($fulfillmentMode) && in_array($fulfillmentMode, ['consignment', 'self_ship'], true)) {
+            $query->where('fulfillment_mode', $fulfillmentMode);
         }
 
-        // Filter by Category (and sub-category if needed)
-        if ($request->filled('category')) {
-            $cat = MarketplaceCategory::where('slug', $request->category)->first();
+        // Filter by Category (and sub-category if needed) - strict slug validation
+        $categorySlug = $request->query('category');
+        if (is_string($categorySlug) && preg_match('/^[a-zA-Z0-9\-_]{1,60}$/', $categorySlug)) {
+            $cat = MarketplaceCategory::where('slug', $categorySlug)->first();
             if ($cat) {
                 if ($cat->parent_id) {
                     // It is a subcategory
@@ -52,66 +52,83 @@ class MarketplaceController extends Controller
             }
         }
 
-        // Search
-        if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('title', 'like', '%'.$request->search.'%')
-                    ->orWhere('description', 'like', '%'.$request->search.'%');
+        // Search - strict string check, length limit, tag strip, escaped LIKE wildcards
+        $rawSearch = $request->query('search');
+        if (is_string($rawSearch) && trim($rawSearch) !== '') {
+            $cleanSearch = mb_substr(trim(strip_tags($rawSearch)), 0, 100);
+            $escapedSearch = addcslashes($cleanSearch, '%_\\');
+            $query->where(function ($q) use ($escapedSearch) {
+                $q->where('title', 'like', '%' . $escapedSearch . '%')
+                    ->orWhere('description', 'like', '%' . $escapedSearch . '%');
             });
         }
 
-        // City Filter (Seller's Location)
+        // City Filter (Seller's Location) - strictly validated as positive integer
         if ($request->filled('city')) {
-            $query->whereHas('seller', function ($q) use ($request) {
-                $q->where('city_id', $request->city);
+            $cityId = filter_var($request->query('city'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($cityId !== false) {
+                $query->whereHas('seller', function ($q) use ($cityId) {
+                    $q->where('city_id', $cityId);
+                });
+            }
+        }
+
+        // Condition Filter - strictly whitelisted
+        $condition = $request->query('condition');
+        if (is_string($condition) && in_array($condition, ['new', 'used'], true)) {
+            $query->where('condition', $condition);
+        }
+
+        // Brand Filter - strictly validated as positive integer
+        if ($request->filled('brand')) {
+            $brandId = filter_var($request->query('brand'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($brandId !== false) {
+                $query->where('brand_id', $brandId);
+            }
+        }
+
+        // Size Filter - strict string check, length limit, escaped LIKE wildcards
+        $rawSize = $request->query('size');
+        if (is_string($rawSize) && trim($rawSize) !== '') {
+            $cleanSize = mb_substr(trim(strip_tags($rawSize)), 0, 30);
+            $escapedSize = addcslashes($cleanSize, '%_\\');
+            $query->where(function ($q) use ($cleanSize, $escapedSize) {
+                $q->where('size', $cleanSize)
+                  ->orWhere('size', 'like', '%' . $escapedSize . '%')
+                  ->orWhere('meta_data->shoe_sizes->us', $cleanSize)
+                  ->orWhere('meta_data->shoe_sizes->uk', $cleanSize)
+                  ->orWhere('meta_data->shoe_sizes->eu', $cleanSize)
+                  ->orWhere('meta_data->shoe_sizes->cm', $cleanSize);
             });
         }
 
-        // Condition Filter
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
-        }
-
-        // Brand Filter
-        if ($request->filled('brand')) {
-            $query->where('brand_id', $request->brand);
-        }
-
-        // Size Filter
-        if ($request->filled('size')) {
-            $query->where('size', $request->size);
-        }
-
-        // Price Range
+        // Price Range - strictly validated as non-negative floats
         if ($request->filled('price_min')) {
-            $query->where('price', '>=', $request->price_min);
+            $priceMin = filter_var($request->query('price_min'), FILTER_VALIDATE_FLOAT);
+            if ($priceMin !== false && $priceMin >= 0) {
+                $query->where('price', '>=', $priceMin);
+            }
         }
         if ($request->filled('price_max')) {
-            $query->where('price', '<=', $request->price_max);
+            $priceMax = filter_var($request->query('price_max'), FILTER_VALIDATE_FLOAT);
+            if ($priceMax !== false && $priceMax >= 0) {
+                $query->where('price', '<=', $priceMax);
+            }
         }
 
-        // Sorting (with Boosted priority)
-        if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                default:
-                    $query->orderByRaw('CASE WHEN boosted_at IS NOT NULL THEN 0 ELSE 1 END')
-                          ->orderBy('boosted_at', 'desc')
-                          ->latest();
-                    break;
-            }
+        // Sorting (with Boosted priority) - strictly whitelisted
+        $sort = is_string($request->query('sort')) ? $request->query('sort') : null;
+        if ($sort === 'price_asc') {
+            $query->orderBy('price', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price', 'desc');
         } else {
             $query->orderByRaw('CASE WHEN boosted_at IS NOT NULL THEN 0 ELSE 1 END')
                   ->orderBy('boosted_at', 'desc')
                   ->latest();
         }
 
-        $products = $query->paginate(12);
+        $products = $query->paginate(12)->withQueryString();
 
         if ($request->ajax()) {
             return view('marketplace.partials.product-grid', compact('products'))->render();
@@ -151,6 +168,10 @@ class MarketplaceController extends Controller
 
     public function show(Request $request, $slug)
     {
+        if (!is_string($slug) || !preg_match('/^[a-zA-Z0-9\-_]{1,120}$/', $slug)) {
+            abort(404);
+        }
+
         $product = MarketplaceProduct::with(['category', 'images', 'seller.city', 'brand'])->where('slug', $slug)->firstOrFail();
 
         // Unique IP View Tracker (increment stats view only if unique IP within 24h)
@@ -205,42 +226,53 @@ class MarketplaceController extends Controller
 
     public function sellerStore(Request $request, $username)
     {
-        $seller = \App\Models\User::where('username', $username)
-            ->orWhere('id', $username)
-            ->with('city')
-            ->firstOrFail();
+        if (!is_string($username) && !is_numeric($username)) {
+            abort(404);
+        }
+        $cleanUsername = trim(strip_tags((string)$username));
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]{1,80}$/', $cleanUsername)) {
+            abort(404);
+        }
+
+        $seller = \App\Models\User::where(function ($q) use ($cleanUsername) {
+            $q->where('username', $cleanUsername);
+            if (is_numeric($cleanUsername)) {
+                $q->orWhere('id', (int)$cleanUsername);
+            }
+        })->with('city')->firstOrFail();
 
         $query = MarketplaceProduct::where('user_id', $seller->id)
             ->where('is_active', true)
             ->with(['category', 'primaryImage', 'brand', 'seller']);
 
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+        // Search - strict string check, length limit, tag strip, escaped LIKE wildcards
+        $rawSearch = $request->query('search');
+        if (is_string($rawSearch) && trim($rawSearch) !== '') {
+            $cleanSearch = mb_substr(trim(strip_tags($rawSearch)), 0, 100);
+            $escapedSearch = addcslashes($cleanSearch, '%_\\');
+            $query->where('title', 'like', '%' . $escapedSearch . '%');
         }
 
-        if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        // Category - strict slug validation
+        $categorySlug = $request->query('category');
+        if (is_string($categorySlug) && preg_match('/^[a-zA-Z0-9\-_]{1,60}$/', $categorySlug)) {
+            $query->whereHas('category', function ($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
             });
         }
 
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
+        // Condition - strictly whitelisted
+        $condition = $request->query('condition');
+        if (is_string($condition) && in_array($condition, ['new', 'used'], true)) {
+            $query->where('condition', $condition);
         }
 
-        if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'latest':
-                default:
-                    $query->latest();
-                    break;
-            }
+        // Sort - strictly whitelisted
+        $sort = is_string($request->query('sort')) ? $request->query('sort') : null;
+        if ($sort === 'price_asc') {
+            $query->orderBy('price', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price', 'desc');
         } else {
             $query->latest();
         }

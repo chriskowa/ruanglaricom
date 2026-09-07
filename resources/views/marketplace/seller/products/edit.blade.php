@@ -56,6 +56,27 @@
                     </div>
                 @endif
 
+                @php
+                    $shoeSizes = $product->meta_data['shoe_sizes'] ?? [];
+                    if (empty($shoeSizes) && !empty($product->size)) {
+                        if (preg_match('/US\s*([\d\.]+)/i', $product->size, $m)) $shoeSizes['us'] = $m[1];
+                        if (preg_match('/UK\s*([\d\.]+)/i', $product->size, $m)) $shoeSizes['uk'] = $m[1];
+                        if (preg_match('/EU\s*([\d\.]+)/i', $product->size, $m)) $shoeSizes['eu'] = $m[1];
+                        if (preg_match('/([\d\.]+)\s*CM/i', $product->size, $m)) $shoeSizes['cm'] = $m[1];
+                    }
+                    $isShoeCategory = false;
+                    if ($product->category) {
+                        $catSlug = strtolower($product->category->slug ?? '');
+                        $catName = strtolower($product->category->name ?? '');
+                        if (str_contains($catSlug, 'sepatu') || str_contains($catSlug, 'shoe') || str_contains($catName, 'sepatu') || str_contains($catName, 'shoe')) {
+                            $isShoeCategory = true;
+                        }
+                    }
+                    if (!empty($shoeSizes)) {
+                        $isShoeCategory = true;
+                    }
+                @endphp
+
                 <form action="{{ route('marketplace.seller.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8" @submit="syncFileInput()">
                     @csrf
                     @method('PUT')
@@ -73,22 +94,22 @@
                                 Judul Produk <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" name="title" value="{{ old('title', $product->title) }}" required
-                                class="w-full bg-[#0a0e17] border @error('title') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                class="w-full bg-[#0a0e17] border @error('title') border-rose-500 @else border-slate-700 @enderror rounded-md px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
                             @error('title') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Category -->
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
                                     Kategori <span class="text-rose-400">*</span>
                                 </label>
                                 <div class="relative">
-                                    <select name="category_id" id="category-select" required 
-                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                    <select name="category_id" id="category-select" @change="updateCategoryText($event)" required 
+                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
                                         <option value="" disabled class="bg-[#0f172a] text-slate-400">Pilih Kategori</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $category->name }}</option>
+                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" data-name="{{ $category->name }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -105,10 +126,10 @@
                                 </label>
                                 <div class="relative">
                                     <select name="brand_id" id="brand-select"
-                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
                                         <option value="" selected class="bg-[#0f172a] text-slate-400">Pilih Brand (Opsional)</option>
                                         @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
+                                            <option value="{{ $brand->id }}" data-name="{{ $brand->name }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -116,16 +137,70 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Size / Ukuran -->
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                    Ukuran / Size
-                                </label>
-                                <input type="text" name="size" value="{{ old('size', $product->size) }}"
-                                    class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                    placeholder="Contoh: US 9 / EU 42.5 / Size M">
+                        <!-- Size / Ukuran Section (Dynamic Shoe vs Standard) -->
+                        <div class="p-4 bg-slate-950/70 border border-slate-800 rounded-lg space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-200">
+                                        Ukuran / Size
+                                    </label>
+                                    <span x-show="isShoeFormat" class="text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700 uppercase font-mono">Format Sepatu</span>
+                                    <span x-show="!isShoeFormat" class="text-[10px] font-bold text-slate-300 bg-slate-850 px-2 py-0.5 rounded border border-slate-750 uppercase font-mono">Format Umum</span>
+                                </div>
+                                <button type="button" @click="toggleShoeFormat()" 
+                                        class="text-[11px] text-slate-400 hover:text-white underline font-semibold transition">
+                                    <span x-text="isShoeFormat ? 'Ubah ke format teks umum' : 'Gunakan format ukuran sepatu (US/UK/EU/CM)'"></span>
+                                </button>
                             </div>
+
+                            <!-- Shoe Multi-system Input Panel -->
+                            <div x-show="isShoeFormat" class="space-y-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">US (Men/Unisex)</label>
+                                        <input type="text" name="shoe_sizes[us]" x-model="shoeSizeUs" @input="updateCombinedSize()" 
+                                               placeholder="9.5"
+                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">UK</label>
+                                        <input type="text" name="shoe_sizes[uk]" x-model="shoeSizeUk" @input="updateCombinedSize()" 
+                                               placeholder="8.5"
+                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">EU</label>
+                                        <input type="text" name="shoe_sizes[eu]" x-model="shoeSizeEu" @input="updateCombinedSize()" 
+                                               placeholder="43"
+                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">CM (Panjang)</label>
+                                        <input type="text" name="shoe_sizes[cm]" x-model="shoeSizeCm" @input="updateCombinedSize()" 
+                                               placeholder="27.5"
+                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                    </div>
+                                </div>
+
+                                <!-- Live preview of combined size string -->
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+                                    <span class="text-[11px] text-slate-400">Ringkasan Ukuran Produk:</span>
+                                    <span class="font-mono font-bold text-white bg-slate-900 px-3 py-1 rounded border border-slate-800 text-xs" 
+                                          x-text="size || 'Isi setidaknya satu ukuran di atas'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Standard Single Size Input for Non-Shoe Products -->
+                            <div x-show="!isShoeFormat">
+                                <input type="text" x-model="size"
+                                    class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                    :placeholder="sizePlaceholder">
+                            </div>
+
+                            <!-- Hidden input that actually carries the combined size to form submission -->
+                            <input type="hidden" name="size" :value="size">
                         </div>
 
                         <!-- Type & Condition Row -->
@@ -136,7 +211,7 @@
                                     Tipe Produk (Terkunci)
                                 </label>
                                 <input type="text" value="{{ $product->type === 'digital_slot' ? 'Slot Race / Tiket Lari' : 'Barang Fisik' }}" disabled 
-                                    class="w-full bg-[#0a0e17]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-400 cursor-not-allowed font-medium">
+                                    class="w-full bg-[#0a0e17]/60 border border-slate-800 rounded-md px-4 py-3 text-xs text-slate-400 cursor-not-allowed font-medium">
                             </div>
 
                             <!-- Condition -->
@@ -145,13 +220,29 @@
                                     Kondisi Barang <span class="text-rose-400">*</span>
                                 </label>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
-                                        <input type="radio" name="condition" value="new" class="sr-only" {{ old('condition', $product->condition) == 'new' ? 'checked' : '' }}>
-                                        <span class="text-xs font-bold text-white uppercase tracking-wider">BARU (BNIB / BNWT)</span>
+                                    <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
+                                           :class="condition === 'new' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
+                                        <input type="radio" name="condition" value="new" x-model="condition" class="sr-only">
+                                        <div class="flex flex-col pr-1 min-w-0">
+                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'new' ? 'text-white' : 'text-slate-300'">BARU (BNIB)</span>
+                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'new' ? 'text-slate-300' : 'text-slate-500'">Brand New In Box/Tag</span>
+                                        </div>
+                                        <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
+                                             :class="condition === 'new' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
+                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'new' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                        </div>
                                     </label>
-                                    <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
-                                        <input type="radio" name="condition" value="used" class="sr-only" {{ old('condition', $product->condition) == 'used' ? 'checked' : '' }}>
-                                        <span class="text-xs font-bold text-white uppercase tracking-wider">BEKAS (PRE-LOVED)</span>
+                                    <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
+                                           :class="condition === 'used' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
+                                        <input type="radio" name="condition" value="used" x-model="condition" class="sr-only">
+                                        <div class="flex flex-col pr-1 min-w-0">
+                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'used' ? 'text-white' : 'text-slate-300'">BEKAS (USED)</span>
+                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'used' ? 'text-slate-300' : 'text-slate-500'">Pernah dipakai, baik</span>
+                                        </div>
+                                        <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
+                                             :class="condition === 'used' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
+                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'used' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                        </div>
                                     </label>
                                 </div>
                             </div>
@@ -419,12 +510,11 @@
 
                     <!-- Submit Button Area -->
                     <div class="flex items-center justify-between pt-6 border-t border-slate-800">
-                        <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-bold transition">
+                        <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-bold transition">
                             Batal
                         </a>
 
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-white/5 cursor-pointer">
-                            <i class="fas fa-check text-xs"></i>
+                        <button type="submit" class="px-6 py-3 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer">
                             <span>Update Product</span>
                         </button>
                     </div>
@@ -437,6 +527,14 @@
 <script>
 function productEditForm() {
     return {
+        condition: '{{ old('condition', $product->condition) }}',
+        size: '{{ old('size', $product->size) }}',
+        isShoeFormat: {{ old('shoe_sizes.us') || old('shoe_sizes.uk') || old('shoe_sizes.eu') || old('shoe_sizes.cm') || $isShoeCategory ? 'true' : 'false' }},
+        shoeSizeUs: '{{ old('shoe_sizes.us', $shoeSizes['us'] ?? '') }}',
+        shoeSizeUk: '{{ old('shoe_sizes.uk', $shoeSizes['uk'] ?? '') }}',
+        shoeSizeEu: '{{ old('shoe_sizes.eu', $shoeSizes['eu'] ?? '') }}',
+        shoeSizeCm: '{{ old('shoe_sizes.cm', $shoeSizes['cm'] ?? '') }}',
+
         existingImages: @json($product->images->map(fn($img) => [
             'id' => $img->id,
             'url' => asset('storage/' . $img->image_path),
@@ -445,6 +543,78 @@ function productEditForm() {
         deletedImageIds: [],
         newFileList: [],
         isDragging: false,
+
+        updateCombinedSize() {
+            if (!this.isShoeFormat) return;
+            const parts = [];
+            if (this.shoeSizeUs && this.shoeSizeUs.trim()) parts.push('US ' + this.shoeSizeUs.trim());
+            if (this.shoeSizeUk && this.shoeSizeUk.trim()) parts.push('UK ' + this.shoeSizeUk.trim());
+            if (this.shoeSizeEu && this.shoeSizeEu.trim()) parts.push('EU ' + this.shoeSizeEu.trim());
+            if (this.shoeSizeCm && this.shoeSizeCm.trim()) parts.push(this.shoeSizeCm.trim() + ' CM');
+            this.size = parts.join(' / ');
+        },
+
+        toggleShoeFormat() {
+            this.isShoeFormat = !this.isShoeFormat;
+            if (this.isShoeFormat) {
+                this.updateCombinedSize();
+            }
+        },
+
+        categoryText: '{{ optional($product->category)->name }}',
+        categorySlug: '{{ optional($product->category)->slug }}',
+
+        get sizePlaceholder() {
+            const text = (this.categoryText || '').toLowerCase();
+            if (text.includes('pakaian') || text.includes('jersey') || text.includes('celana') || text.includes('singlet')) {
+                return 'Contoh: S, M, L, XL, XXL';
+            }
+            if (text.includes('elektronik') || text.includes('jam')) {
+                return 'Contoh: 42mm, 47mm, atau All Size';
+            }
+            return 'Contoh: S, M, L, XL, atau All Size';
+        },
+
+        updateCategoryText(e) {
+            const opt = e.target.options[e.target.selectedIndex];
+            const name = opt ? (opt.dataset.name || opt.text || '') : '';
+            const slug = opt ? (opt.dataset.slug || '') : '';
+            this.categoryText = name;
+            this.categorySlug = slug;
+            const isShoe = slug.includes('sepatu') || slug.includes('shoe') || 
+                           name.toLowerCase().includes('sepatu') || 
+                           name.toLowerCase().includes('shoe');
+            if (isShoe) {
+                this.isShoeFormat = true;
+                this.updateCombinedSize();
+            } else {
+                if (this.isShoeFormat) {
+                    this.isShoeFormat = false;
+                    // Automatically clear shoe size string when switching away to non-shoe category
+                    if (this.size && (this.size.includes('US ') || this.size.includes('EU ') || this.size.includes(' CM') || this.size.includes('UK '))) {
+                        this.size = '';
+                    }
+                }
+            }
+            this.filterBrands();
+        },
+
+        filterBrands() {
+            const categorySelect = document.getElementById('category-select');
+            const brandSelect = document.getElementById('brand-select');
+            if (!categorySelect || !brandSelect) return;
+            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+            const selectedCategorySlug = selectedOption ? selectedOption.dataset.slug : null;
+            const brandOptions = Array.from(brandSelect.querySelectorAll('option'));
+            
+            brandOptions.forEach(option => {
+                if (option.value === "") return;
+                const categories = JSON.parse(option.dataset.categories || '[]');
+                const isMatch = !selectedCategorySlug || categories.includes(selectedCategorySlug);
+                option.hidden = !isMatch;
+                option.disabled = !isMatch;
+            });
+        },
 
         get activeExistingCount() {
             return this.existingImages.length - this.deletedImageIds.length;

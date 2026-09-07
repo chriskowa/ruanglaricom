@@ -558,7 +558,9 @@ Route::post('/api/notifications/{id}/read', [RunConnectController::class, 'readN
 
 // Public Marketplace
 Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
-Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
+Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])
+    ->where('slug', '[a-zA-Z0-9\-_]+')
+    ->name('marketplace.show');
 
 // Newsletter
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');

@@ -127,6 +127,20 @@ class ProductController extends Controller
         $isApproved = ! $requireApproval;
         $approvalStatus = $requireApproval ? 'pending' : 'approved';
 
+        $metaData = $request->meta_data ?? [];
+        if ($request->has('shoe_sizes') && is_array($request->shoe_sizes)) {
+            $shoeSizes = array_filter([
+                'us' => $request->input('shoe_sizes.us'),
+                'uk' => $request->input('shoe_sizes.uk'),
+                'eu' => $request->input('shoe_sizes.eu'),
+                'cm' => $request->input('shoe_sizes.cm'),
+            ], fn($v) => filled($v));
+
+            if (!empty($shoeSizes)) {
+                $metaData['shoe_sizes'] = $shoeSizes;
+            }
+        }
+
         $product = MarketplaceProduct::create([
             'user_id' => Auth::id(),
             'category_id' => $request->category_id,
@@ -153,7 +167,7 @@ class ProductController extends Controller
             'is_active' => $fulfillment !== 'consignment',
             'is_approved' => $fulfillment === 'consignment' ? false : $isApproved,
             'approval_status' => $fulfillment === 'consignment' ? 'pending' : $approvalStatus,
-            'meta_data' => $request->meta_data ?? [],
+            'meta_data' => $metaData,
         ]);
 
         if ($fulfillment === 'consignment') {
@@ -229,6 +243,23 @@ class ProductController extends Controller
         ]);
 
         $data = $request->only(['title', 'category_id', 'brand_id', 'size', 'description', 'condition']);
+
+        $metaData = $product->meta_data ?? [];
+        if ($request->has('shoe_sizes') && is_array($request->shoe_sizes)) {
+            $shoeSizes = array_filter([
+                'us' => $request->input('shoe_sizes.us'),
+                'uk' => $request->input('shoe_sizes.uk'),
+                'eu' => $request->input('shoe_sizes.eu'),
+                'cm' => $request->input('shoe_sizes.cm'),
+            ], fn($v) => filled($v));
+
+            if (!empty($shoeSizes)) {
+                $metaData['shoe_sizes'] = $shoeSizes;
+            } else {
+                unset($metaData['shoe_sizes']);
+            }
+            $data['meta_data'] = $metaData;
+        }
 
         if ($product->sale_type === 'fixed') {
             $data['price'] = (float) $request->price;

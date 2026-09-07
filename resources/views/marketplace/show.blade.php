@@ -239,7 +239,23 @@
 
                     <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">
                         <span class="block text-[11px] font-bold uppercase text-slate-300 tracking-wider">Ukuran / Size</span>
-                        <span class="block text-sm font-bold text-white uppercase mt-0.5">{{ $product->size ?: '-' }}</span>
+                        <span class="block text-sm font-bold text-white uppercase mt-0.5 font-mono">{{ $product->size ?: '-' }}</span>
+                        @if(!empty($product->meta_data['shoe_sizes']))
+                            <div class="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-slate-800">
+                                @if(!empty($product->meta_data['shoe_sizes']['us']))
+                                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">US {{ $product->meta_data['shoe_sizes']['us'] }}</span>
+                                @endif
+                                @if(!empty($product->meta_data['shoe_sizes']['uk']))
+                                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">UK {{ $product->meta_data['shoe_sizes']['uk'] }}</span>
+                                @endif
+                                @if(!empty($product->meta_data['shoe_sizes']['eu']))
+                                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">EU {{ $product->meta_data['shoe_sizes']['eu'] }}</span>
+                                @endif
+                                @if(!empty($product->meta_data['shoe_sizes']['cm']))
+                                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">{{ $product->meta_data['shoe_sizes']['cm'] }} CM</span>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="p-3.5 rounded-md bg-slate-900/80 border border-slate-800">

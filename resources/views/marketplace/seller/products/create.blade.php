@@ -82,7 +82,7 @@
                                     @error('title') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <!-- Category -->
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
@@ -90,7 +90,7 @@
                                         </label>
                                         <div class="relative">
                                             <select name="category_id" id="category-select" x-model="categoryId" @change="updateCategoryText($event)" required 
-                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
                                                 <option value="" disabled selected class="bg-[#0f172a] text-slate-400">Pilih Kategori</option>
                                                 @foreach($categories as $category)
                                                     <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }} data-slug="{{ $category->slug }}" data-name="{{ $category->name }}" class="bg-[#0f172a] text-white">{{ $category->name }}</option>
@@ -109,7 +109,7 @@
                                         </label>
                                         <div class="relative">
                                             <select name="brand_id" id="brand-select" x-model="brandId" @change="updateBrandText($event)"
-                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
                                                 <option value="" selected class="bg-[#0f172a] text-slate-400">Pilih Brand (Opsional)</option>
                                                 @foreach($brands as $brand)
                                                     <option value="{{ $brand->id }}" data-name="{{ $brand->name }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
@@ -120,16 +120,70 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Size / Ukuran -->
-                                    <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
-                                            Ukuran / Size
-                                        </label>
-                                        <input type="text" name="size" x-model="size"
-                                            class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
-                                            placeholder="Contoh: US 9 / EU 42.5 / Size M">
+                                <!-- Size / Ukuran Section (Dynamic Shoe vs Standard) -->
+                                <div class="p-4 bg-slate-950/70 border border-slate-800 rounded-lg space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-xs font-bold uppercase tracking-wider text-slate-200">
+                                                Ukuran / Size
+                                            </label>
+                                            <span x-show="isShoeFormat" class="text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700 uppercase font-mono">Format Sepatu</span>
+                                            <span x-show="!isShoeFormat" class="text-[10px] font-bold text-slate-300 bg-slate-850 px-2 py-0.5 rounded border border-slate-750 uppercase font-mono">Format Umum</span>
+                                        </div>
+                                        <button type="button" @click="toggleShoeFormat()" 
+                                                class="text-[11px] text-slate-400 hover:text-white underline font-semibold transition">
+                                            <span x-text="isShoeFormat ? 'Ubah ke format teks umum' : 'Gunakan format ukuran sepatu (US/UK/EU/CM)'"></span>
+                                        </button>
                                     </div>
+
+                                    <!-- Shoe Multi-system Input Panel -->
+                                    <div x-show="isShoeFormat" class="space-y-3">
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">US (Men/Unisex)</label>
+                                                <input type="text" name="shoe_sizes[us]" x-model="shoeSizeUs" @input="updateCombinedSize()" 
+                                                       placeholder="9.5"
+                                                       class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">UK</label>
+                                                <input type="text" name="shoe_sizes[uk]" x-model="shoeSizeUk" @input="updateCombinedSize()" 
+                                                       placeholder="8.5"
+                                                       class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">EU</label>
+                                                <input type="text" name="shoe_sizes[eu]" x-model="shoeSizeEu" @input="updateCombinedSize()" 
+                                                       placeholder="43"
+                                                       class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">CM (Panjang)</label>
+                                                <input type="text" name="shoe_sizes[cm]" x-model="shoeSizeCm" @input="updateCombinedSize()" 
+                                                       placeholder="27.5"
+                                                       class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                            </div>
+                                        </div>
+
+                                        <!-- Live preview of combined size string -->
+                                        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+                                            <span class="text-[11px] text-slate-400">Ringkasan Ukuran Produk:</span>
+                                            <span class="font-mono font-bold text-white bg-slate-900 px-3 py-1 rounded border border-slate-800 text-xs" 
+                                                  x-text="size || 'Isi setidaknya satu ukuran di atas'"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Standard Single Size Input for Non-Shoe Products -->
+                                    <div x-show="!isShoeFormat">
+                                        <input type="text" x-model="size"
+                                            class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                            :placeholder="sizePlaceholder">
+                                    </div>
+
+                                    <!-- Hidden input that actually carries the combined size to form submission -->
+                                    <input type="hidden" name="size" :value="size">
                                 </div>
 
                                 <!-- Type & Condition Row -->
@@ -141,7 +195,7 @@
                                         </label>
                                         <div class="relative">
                                             <select name="type" id="type-select" x-model="productType" 
-                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
+                                                class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
                                                 <option value="physical" class="bg-[#0f172a] text-white">Barang Fisik (Sepatu / Apparel / Aksesoris)</option>
                                                 <option value="digital_slot" class="bg-[#0f172a] text-white">Slot Race / Tiket Lari</option>
                                             </select>
@@ -157,13 +211,29 @@
                                             Kondisi Barang <span class="text-rose-400">*</span>
                                         </label>
                                         <div class="grid grid-cols-2 gap-3">
-                                            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
+                                            <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
+                                                   :class="condition === 'new' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
                                                 <input type="radio" name="condition" value="new" x-model="condition" class="sr-only">
-                                                <span class="text-xs font-bold text-white uppercase tracking-wider">BARU (BNIB)</span>
+                                                <div class="flex flex-col pr-1 min-w-0">
+                                                    <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'new' ? 'text-white' : 'text-slate-300'">BARU (BNIB)</span>
+                                                    <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'new' ? 'text-slate-300' : 'text-slate-500'">Brand New In Box/Tag</span>
+                                                </div>
+                                                <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
+                                                     :class="condition === 'new' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
+                                                    <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'new' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                                </div>
                                             </label>
-                                            <label class="relative flex items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#0a0e17] cursor-pointer hover:border-slate-500 transition has-[:checked]:border-white has-[:checked]:bg-white/5">
+                                            <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
+                                                   :class="condition === 'used' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
                                                 <input type="radio" name="condition" value="used" x-model="condition" class="sr-only">
-                                                <span class="text-xs font-bold text-white uppercase tracking-wider">BEKAS (USED)</span>
+                                                <div class="flex flex-col pr-1 min-w-0">
+                                                    <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'used' ? 'text-white' : 'text-slate-300'">BEKAS (USED)</span>
+                                                    <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'used' ? 'text-slate-300' : 'text-slate-500'">Pernah dipakai, baik</span>
+                                                </div>
+                                                <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
+                                                     :class="condition === 'used' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
+                                                    <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'used' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                                </div>
                                             </label>
                                         </div>
                                     </div>
@@ -592,9 +662,15 @@ function productCreateForm() {
         title: '{{ old('title', '') }}',
         categoryId: '{{ old('category_id', '') }}',
         categoryText: '',
+        categorySlug: '',
         brandId: '{{ old('brand_id', '') }}',
         brandText: '',
         size: '{{ old('size', '') }}',
+        isShoeFormat: {{ old('shoe_sizes.us') || old('shoe_sizes.uk') || old('shoe_sizes.eu') || old('shoe_sizes.cm') ? 'true' : 'false' }},
+        shoeSizeUs: '{{ old('shoe_sizes.us', '') }}',
+        shoeSizeUk: '{{ old('shoe_sizes.uk', '') }}',
+        shoeSizeEu: '{{ old('shoe_sizes.eu', '') }}',
+        shoeSizeCm: '{{ old('shoe_sizes.cm', '') }}',
         productType: '{{ old('type', 'physical') }}',
         condition: '{{ old('condition', 'new') }}',
         saleType: '{{ old('sale_type', 'fixed') }}',
@@ -607,6 +683,45 @@ function productCreateForm() {
         isDragging: false,
         fileList: [],
         activePreviewIndex: 0,
+
+        init() {
+            const categorySelect = document.getElementById('category-select');
+            if (categorySelect && categorySelect.selectedIndex > 0) {
+                const opt = categorySelect.options[categorySelect.selectedIndex];
+                if (opt && opt.value) {
+                    this.categoryText = opt.dataset.name || opt.text;
+                    this.categorySlug = opt.dataset.slug || '';
+                    const isShoe = this.categorySlug.includes('sepatu') || 
+                                   this.categorySlug.includes('shoe') || 
+                                   this.categoryText.toLowerCase().includes('sepatu') || 
+                                   this.categoryText.toLowerCase().includes('shoe');
+                    if (isShoe) {
+                        this.isShoeFormat = true;
+                    }
+                }
+            }
+            if (this.isShoeFormat && (this.shoeSizeUs || this.shoeSizeUk || this.shoeSizeEu || this.shoeSizeCm)) {
+                this.updateCombinedSize();
+            }
+            this.filterBrands();
+        },
+
+        updateCombinedSize() {
+            if (!this.isShoeFormat) return;
+            const parts = [];
+            if (this.shoeSizeUs && this.shoeSizeUs.trim()) parts.push('US ' + this.shoeSizeUs.trim());
+            if (this.shoeSizeUk && this.shoeSizeUk.trim()) parts.push('UK ' + this.shoeSizeUk.trim());
+            if (this.shoeSizeEu && this.shoeSizeEu.trim()) parts.push('EU ' + this.shoeSizeEu.trim());
+            if (this.shoeSizeCm && this.shoeSizeCm.trim()) parts.push(this.shoeSizeCm.trim() + ' CM');
+            this.size = parts.join(' / ');
+        },
+
+        toggleShoeFormat() {
+            this.isShoeFormat = !this.isShoeFormat;
+            if (this.isShoeFormat) {
+                this.updateCombinedSize();
+            }
+        },
 
         get primaryPreviewImage() {
             if (this.fileList[this.activePreviewIndex]) {
@@ -691,9 +806,37 @@ function productCreateForm() {
             }
         },
 
+        get sizePlaceholder() {
+            const text = (this.categoryText || '').toLowerCase();
+            if (text.includes('pakaian') || text.includes('jersey') || text.includes('celana') || text.includes('singlet')) {
+                return 'Contoh: S, M, L, XL, XXL';
+            }
+            if (text.includes('elektronik') || text.includes('jam')) {
+                return 'Contoh: 42mm, 47mm, atau All Size';
+            }
+            return 'Contoh: S, M, L, XL, atau All Size';
+        },
+
         updateCategoryText(e) {
             const opt = e.target.options[e.target.selectedIndex];
             this.categoryText = opt ? (opt.dataset.name || opt.text) : '';
+            this.categorySlug = opt ? (opt.dataset.slug || '') : '';
+            const isShoe = this.categorySlug.includes('sepatu') || 
+                           this.categorySlug.includes('shoe') || 
+                           this.categoryText.toLowerCase().includes('sepatu') || 
+                           this.categoryText.toLowerCase().includes('shoe');
+            if (isShoe) {
+                this.isShoeFormat = true;
+                this.updateCombinedSize();
+            } else {
+                if (this.isShoeFormat) {
+                    this.isShoeFormat = false;
+                    // Automatically clear shoe size string when switching away to non-shoe category
+                    if (this.size && (this.size.includes('US ') || this.size.includes('EU ') || this.size.includes(' CM') || this.size.includes('UK '))) {
+                        this.size = '';
+                    }
+                }
+            }
             this.filterBrands();
         },
 

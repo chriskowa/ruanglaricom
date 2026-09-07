@@ -26,19 +26,38 @@
   }
 }
 </script>
+@push('styles')
+<style>
+/* Segmented Radio Toggle (Tipe Layanan & Kondisi) - High Contrast Active/Inactive */
+.segmented-toggle input[type="radio"]:checked + div {
+    background-color: #ffffff !important;
+    color: #020617 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25) !important;
+}
+.segmented-toggle input[type="radio"]:not(:checked) + div {
+    background-color: transparent !important;
+    color: #94a3b8 !important;
+    font-weight: 700 !important;
+}
+.segmented-toggle input[type="radio"]:not(:checked) + div:hover {
+    color: #ffffff !important;
+}
+</style>
 @endpush
 
 @section('content')
-<div x-data="{ sidebarOpen: window.innerWidth >= 1024, activeCategory: '{{ request('category') }}' }" class="min-h-screen pt-24 pb-20 px-4 md:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark">
+<div 
+    x-data="{
+        sidebarOpen: window.innerWidth >= 1024
+    }"
+    class="min-h-screen mt-10 pt-2 md:pt-4 pb-20 px-4 md:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-slate-950">
     
     <!-- Hero / Editorial Header (Nike & Adidas Running Style) -->
     <div class="max-w-7xl mx-auto mb-8">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-800/80 pb-6">
             <div>
-                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-850 border border-slate-750 text-[10px] uppercase tracking-wider text-neon mb-3 font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-neon"></span>
-                    Verified Running Gear & Marketplace
-                </div>
+                
                 <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tight font-sans">
                     RUNNING <span class="text-neon">MARKET</span>
                 </h1>
@@ -53,7 +72,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span>Keranjang</span>
-                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-dark text-[10px] font-black rounded flex items-center justify-center hidden font-mono">0</span>
+                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-slate-950 text-[10px] font-black rounded flex items-center justify-center hidden font-mono">0</span>
                 </a>
 
                 <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
@@ -64,18 +83,17 @@
 
         <!-- Horizontal Quick Category Chips (Nike Category Bar) -->
         <div class="flex items-center gap-2 overflow-x-auto pt-4 pb-1 no-scrollbar text-xs font-bold">
-            <button type="button" @click="selectCategoryChip('')" 
-                    :class="!activeCategory ? 'bg-white text-dark shadow-sm' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700'"
-                    class="px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all">
+            @php $currentCat = request('category', ''); @endphp
+            <button type="button" onclick="selectCategoryChip('')" data-category=""
+                    class="cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 {{ empty($currentCat) ? 'bg-white text-slate-950 font-black shadow-sm ring-1 ring-white' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700' }}">
                 Semua Kategori
             </button>
             @foreach($categories as $cat)
-            <button type="button" @click="selectCategoryChip('{{ $cat->slug }}')" 
-                    :class="activeCategory === '{{ $cat->slug }}' ? 'bg-white text-dark shadow-sm' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700'"
-                    class="px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5">
+            <button type="button" onclick="selectCategoryChip('{{ $cat->slug }}')" data-category="{{ $cat->slug }}"
+                    class="cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 {{ $currentCat == $cat->slug ? 'bg-white text-slate-950 font-black shadow-sm ring-1 ring-white' : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700' }}">
                 <span>{{ $cat->name }}</span>
                 @if($cat->products_count > 0)
-                    <span class="text-[9px] opacity-60 font-bold">({{ $cat->products_count }})</span>
+                    <span class="cat-count text-[9px] {{ $currentCat == $cat->slug ? 'text-slate-800 font-black' : 'text-slate-500 font-bold' }}">({{ $cat->products_count }})</span>
                 @endif
             </button>
             @endforeach
@@ -99,7 +117,7 @@
                         <img src="{{ $fProd->primaryImage ? asset('storage/'.$fProd->primaryImage->image_path) : ($fProd->images->first() ? asset('storage/'.$fProd->images->first()->image_path) : '') }}" 
                              alt="{{ $fProd->title }}" 
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase tracking-wider shadow">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-neon text-slate-950 text-[8px] font-black uppercase tracking-wider shadow">
                             FEATURED
                         </span>
                     </div>
@@ -203,18 +221,24 @@
                     <!-- Fulfillment Mode Filter (Titip Jual / Kirim Sendiri) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Tipe Layanan</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800">
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="fulfillment_mode" value="" class="hidden peer" {{ !request('fulfillment_mode') ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800 segmented-toggle">
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="fulfillment_mode" value="" class="sr-only peer" {{ !request('fulfillment_mode') ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Semua
+                                </div>
                             </label>
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="fulfillment_mode" value="consignment" class="hidden peer" {{ request('fulfillment_mode') == 'consignment' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Titip Jual</div>
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="fulfillment_mode" value="consignment" class="sr-only peer" {{ request('fulfillment_mode') == 'consignment' ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Titip Jual
+                                </div>
                             </label>
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="fulfillment_mode" value="self_ship" class="hidden peer" {{ request('fulfillment_mode') == 'self_ship' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[10px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Direct</div>
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="fulfillment_mode" value="self_ship" class="sr-only peer" {{ request('fulfillment_mode') == 'self_ship' ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Direct
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -222,18 +246,24 @@
                     <!-- Condition Filter (Segmented Control) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Kondisi</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800">
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="condition" value="" class="hidden peer" {{ !request('condition') ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Semua</div>
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800 segmented-toggle">
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="condition" value="" class="sr-only peer" {{ !request('condition') ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Semua
+                                </div>
                             </label>
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="condition" value="new" class="hidden peer" {{ request('condition') == 'new' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Baru</div>
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="condition" value="new" class="sr-only peer" {{ request('condition') == 'new' ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Baru
+                                </div>
                             </label>
-                            <label class="text-center cursor-pointer">
-                                <input type="radio" name="condition" value="used" class="hidden peer" {{ request('condition') == 'used' ? 'checked' : '' }}>
-                                <div class="py-1.5 rounded text-[11px] text-slate-400 peer-checked:bg-white peer-checked:text-dark font-bold hover:text-white transition-all">Bekas</div>
+                            <label class="text-center cursor-pointer select-none">
+                                <input type="radio" name="condition" value="used" class="sr-only peer" {{ request('condition') == 'used' ? 'checked' : '' }}>
+                                <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
+                                    Bekas
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -286,18 +316,16 @@
                     <div class="space-y-2.5 pt-2 border-t border-slate-800">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Pilih Kategori</label>
                         <div class="space-y-1">
-                            <button type="button" @click="selectCategoryChip('')" 
-                                    class="w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between"
-                                    :class="!activeCategory ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'">
+                            <button type="button" onclick="selectCategoryChip('')" data-category="" 
+                                    class="cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between {{ empty($currentCat) ? 'bg-white text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-900/50' }}">
                                 <span>Semua Kategori</span>
                             </button>
                             @foreach($categories as $cat)
-                                <button type="button" @click="selectCategoryChip('{{ $cat->slug }}')" 
-                                        class="w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between"
-                                        :class="activeCategory === '{{ $cat->slug }}' ? 'bg-slate-800 text-white font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-900/50'">
+                                <button type="button" onclick="selectCategoryChip('{{ $cat->slug }}')" data-category="{{ $cat->slug }}" 
+                                        class="cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between {{ $currentCat == $cat->slug ? 'bg-white text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-900/50' }}">
                                     <span>{{ $cat->name }}</span>
                                     @if($cat->products_count > 0)
-                                        <span class="text-[10px] font-semibold text-slate-500 font-mono">({{ $cat->products_count }})</span>
+                                        <span class="cat-sidebar-count text-[10px] font-mono {{ $currentCat == $cat->slug ? 'text-slate-800 font-black' : 'text-slate-500 font-semibold' }}">({{ $cat->products_count }})</span>
                                     @endif
                                 </button>
                             @endforeach
@@ -350,16 +378,90 @@ document.addEventListener('DOMContentLoaded', function() {
         clearSearchBtn.classList.remove('hidden');
     }
 
-    // Category Chip Selector (Global function for Alpine)
+    // Direct CSS Active/Inactive UI Switcher (Pure & Instant)
+    function setActiveCategoryUI(slug) {
+        slug = slug || '';
+
+        // 1. Sync Top Category Chips
+        document.querySelectorAll('.cat-chip-btn').forEach(btn => {
+            const isMatch = (btn.dataset.category || '') === slug;
+            if (isMatch) {
+                btn.className = 'cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 bg-white text-slate-950 font-black shadow-sm ring-1 ring-white';
+                const badge = btn.querySelector('.cat-count');
+                if (badge) {
+                    badge.className = 'cat-count text-[9px] text-slate-800 font-black';
+                }
+            } else {
+                btn.className = 'cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700';
+                const badge = btn.querySelector('.cat-count');
+                if (badge) {
+                    badge.className = 'cat-count text-[9px] text-slate-500 font-bold';
+                }
+            }
+        });
+
+        // 2. Sync Sidebar Category List
+        document.querySelectorAll('.cat-sidebar-btn').forEach(btn => {
+            const isMatch = (btn.dataset.category || '') === slug;
+            if (isMatch) {
+                btn.className = 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between bg-white text-slate-950 font-black shadow-sm';
+                const badge = btn.querySelector('.cat-sidebar-count');
+                if (badge) {
+                    badge.className = 'cat-sidebar-count text-[10px] font-mono text-slate-800 font-black';
+                }
+            } else {
+                btn.className = 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between text-slate-400 hover:text-white hover:bg-slate-900/50';
+                const badge = btn.querySelector('.cat-sidebar-count');
+                if (badge) {
+                    badge.className = 'cat-sidebar-count text-[10px] font-mono text-slate-500 font-semibold';
+                }
+            }
+        });
+    }
+
+    // Category Chip Selector (Pure instant CSS toggle on click)
     window.selectCategoryChip = function(slug) {
+        slug = slug || '';
+
+        // Instant CSS swap on the spot (0ms)
+        setActiveCategoryUI(slug);
+
+        // Update hidden form input
         hiddenCategory.value = slug;
-        const alpineEl = document.querySelector('[x-data]');
-        if (alpineEl && alpineEl._x_dataStack) {
-            alpineEl._x_dataStack[0].activeCategory = slug;
-        }
+
+        // Filter brand dropdown based on category
         filterBrands();
-        fetchProducts();
+
+        // Fetch products via AJAX
+        fetchProducts(true);
     };
+
+    // Segmented Toggle Synchronizer (Tipe Layanan & Kondisi)
+    function syncSegmentedToggles() {
+        document.querySelectorAll('.segmented-toggle').forEach(container => {
+            const radios = container.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                const targetDiv = radio.nextElementSibling;
+                if (!targetDiv) return;
+                if (radio.checked) {
+                    targetDiv.style.backgroundColor = '#ffffff';
+                    targetDiv.style.color = '#020617';
+                    targetDiv.style.fontWeight = '900';
+                } else {
+                    targetDiv.style.backgroundColor = 'transparent';
+                    targetDiv.style.color = '#94a3b8';
+                    targetDiv.style.fontWeight = '700';
+                }
+            });
+        });
+    }
+
+    // Ensure category active UI is synced with URL on initial load
+    const initialCategoryFromUrl = new URLSearchParams(window.location.search).get('category') || hiddenCategory.value || '';
+    if (initialCategoryFromUrl) {
+        setActiveCategoryUI(initialCategoryFromUrl);
+    }
+    syncSegmentedToggles();
 
     // Clear Search Input
     if (clearSearchBtn) {
@@ -367,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchTop.value = '';
             hiddenSearch.value = '';
             clearSearchBtn.classList.add('hidden');
-            fetchProducts();
+            fetchProducts(true);
         });
     }
 
@@ -416,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
     filterBrands();
 
     // Function to fetch products via AJAX
-    function fetchProducts() {
+    function fetchProducts(pushHistory = true) {
         hiddenSearch.value = searchTop.value;
         hiddenSort.value = sortSelectTop.value;
 
@@ -427,12 +529,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const formData = new FormData(filterForm);
-        const params = new URLSearchParams(formData);
+        // Build clean query params (skip empty values)
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            if (value !== null && value !== undefined && value.toString().trim() !== '') {
+                params.append(key, value.toString().trim());
+            }
+        }
 
         // Show subtle loading state
         gridContainer.style.opacity = '0.35';
 
-        fetch(`{{ route('marketplace.index') }}?${params.toString()}`, {
+        const queryString = params.toString();
+        const fetchUrl = queryString ? `{{ route('marketplace.index') }}?${queryString}` : `{{ route('marketplace.index') }}`;
+
+        fetch(fetchUrl, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
@@ -442,8 +553,10 @@ document.addEventListener('DOMContentLoaded', function() {
             gridContainer.innerHTML = html;
             gridContainer.style.opacity = '1';
             
-            // Update URL without reloading
-            window.history.pushState({}, '', `?${params.toString()}`);
+            // Update URL without reloading if requested
+            if (pushHistory) {
+                window.history.pushState({}, '', queryString ? `?${queryString}` : window.location.pathname);
+            }
 
             // Update item count from response if available
             const countEl = gridContainer.querySelector('[data-products-total]');
@@ -457,32 +570,87 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Handle Browser Back / Forward Navigation without page reload
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryFromUrl = urlParams.get('category') || '';
+        const searchFromUrl = urlParams.get('search') || '';
+        const sortFromUrl = urlParams.get('sort') || 'latest';
+        const fulfillmentFromUrl = urlParams.get('fulfillment_mode') || urlParams.get('fulfillment') || '';
+        const conditionFromUrl = urlParams.get('condition') || '';
+        const cityFromUrl = urlParams.get('city') || '';
+        const brandFromUrl = urlParams.get('brand') || '';
+        const sizeFromUrl = urlParams.get('size') || '';
+        const priceMinFromUrl = urlParams.get('price_min') || '';
+        const priceMaxFromUrl = urlParams.get('price_max') || '';
+
+        // Sync inputs
+        hiddenCategory.value = categoryFromUrl;
+        hiddenSearch.value = searchFromUrl;
+        hiddenSort.value = sortFromUrl;
+        searchTop.value = searchFromUrl;
+        sortSelectTop.value = sortFromUrl;
+
+        // Sync radio buttons in filterForm
+        const fulfillmentRadio = filterForm.querySelector(`input[name="fulfillment_mode"][value="${fulfillmentFromUrl}"]`);
+        if (fulfillmentRadio) fulfillmentRadio.checked = true;
+
+        const conditionRadio = filterForm.querySelector(`input[name="condition"][value="${conditionFromUrl}"]`);
+        if (conditionRadio) conditionRadio.checked = true;
+
+        const citySelect = filterForm.querySelector('select[name="city"]');
+        if (citySelect) citySelect.value = cityFromUrl;
+
+        const brandSelectEl = filterForm.querySelector('select[name="brand"]');
+        if (brandSelectEl) brandSelectEl.value = brandFromUrl;
+
+        const sizeInput = filterForm.querySelector('input[name="size"]');
+        if (sizeInput) sizeInput.value = sizeFromUrl;
+
+        const priceMinInput = filterForm.querySelector('input[name="price_min"]');
+        if (priceMinInput) priceMinInput.value = priceMinFromUrl;
+
+        const priceMaxInput = filterForm.querySelector('input[name="price_max"]');
+        if (priceMaxInput) priceMaxInput.value = priceMaxFromUrl;
+
+        // Sync Category Active State (Instant CSS)
+        setActiveCategoryUI(categoryFromUrl);
+        syncSegmentedToggles();
+
+        filterBrands();
+        // Fetch products without pushing state again
+        fetchProducts(false);
+    });
+
     // Debounced text input event listeners
     searchTop.addEventListener('input', () => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(fetchProducts, 350);
+        searchTimeout = setTimeout(() => fetchProducts(true), 350);
     });
 
     const textInputs = filterForm.querySelectorAll('input[type="number"], input[name="size"]');
     textInputs.forEach(input => {
         input.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(fetchProducts, 450);
+            searchTimeout = setTimeout(() => fetchProducts(true), 450);
         });
     });
 
     // Changes on Radio, Select elements
     const changeInputs = filterForm.querySelectorAll('input[type="radio"], select');
     changeInputs.forEach(input => {
-        input.addEventListener('change', fetchProducts);
+        input.addEventListener('change', () => {
+            syncSegmentedToggles();
+            fetchProducts(true);
+        });
     });
 
-    sortSelectTop.addEventListener('change', fetchProducts);
+    sortSelectTop.addEventListener('change', () => fetchProducts(true));
 
     // Form submit
     filterForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        fetchProducts();
+        fetchProducts(true);
     });
 
     // Handle Pagination Clicks via AJAX
