@@ -115,7 +115,6 @@
                     <div class="rl-hero-actions">
                         <a href="{{ route('events.index') }}" class="rl-btn rl-btn-primary">
                             <span>JELAJAHI LARI</span>
-                            <span class="rl-btn-arr" aria-hidden="true">&rarr;</span>
                         </a>
 
                         <a href="{{ route('blog.index') }}" class="rl-btn rl-btn-outline">
@@ -126,14 +125,6 @@
 
                 {{-- Right Column: Interactive Story-Driven Athlete Visual --}}
                 <div class="rl-stage-athlete-wrap" id="heroInteractiveStage">
-                    {{-- Dynamic Atmospheric Aura & Velocity Lines --}}
-                    <div class="rl-athlete-stage-aura" id="athleteStageAura" aria-hidden="true"></div>
-                    <div class="rl-velocity-energy-field" id="velocityEnergyField" aria-hidden="true">
-                        <span class="rl-streak rl-streak-1"></span>
-                        <span class="rl-streak rl-streak-2"></span>
-                        <span class="rl-streak rl-streak-3"></span>
-                    </div>
-
                     {{-- Multi-Layer Athlete Kinetic Viewport --}}
                     <div class="rl-athlete-viewport" id="heroAthletePortal" data-total-poses="{{ count($athleteImages) }}">
                         @if(count($athleteImages) > 1)
@@ -176,11 +167,6 @@
                         {{-- Athletic Ground Silhouette Shadow (Mengikuti pijakan kaki pelari) --}}
                         <div class="rl-athlete-ground-shadow" aria-hidden="true"></div>
                         <div class="rl-kinetic-flash-layer" aria-hidden="true"></div>
-                    </div>
-                    
-                    {{-- Dynamic Movement State Telemetry Pill --}}
-                    <div class="rl-athlete-accent-pill font-mono" id="athleteStatePill">                        
-                        <span id="pillStateText">FAKTUAL</span>
                     </div>
                 </div>
 
@@ -239,7 +225,6 @@
                                         <div class="rl-strip-card-footer">
                                             <span class="rl-strip-action-text">
                                                 {{ $item['cta'] }}
-                                                <svg viewBox="0 0 20 20" fill="currentColor" class="rl-action-arrow" aria-hidden="true"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                                             </span>
                                         </div>
                                     </div>
@@ -253,24 +238,24 @@
     </header>
 
     {{-- =========================================================
-        EDITORIAL STATS BAR (SEPARATED FROM HERO)
+        FACTUAL PLATFORM STATS BAR (REAL-TIME DATABASE METRICS)
     ========================================================== --}}
     <section class="rl-editorial-stats-bar" aria-label="Statistik Ruang Lari">
         <div class="rl-shell">
             <div class="rl-stats-track">
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">1.8K+</span>
-                    <span class="rl-stat-desc">Event Lari Terkurasi</span>
+                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['events_count']) ? number_format($factualStats['events_count']) : '1.8K+' }}</span>
+                    <span class="rl-stat-desc">Event Lari Terdaftar</span>
                 </div>
                 <div class="rl-stat-divider" aria-hidden="true"></div>
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">50+</span>
-                    <span class="rl-stat-desc">Komunitas Terdaftar</span>
+                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['communities_count']) ? number_format($factualStats['communities_count']) : '50+' }}</span>
+                    <span class="rl-stat-desc">Komunitas Terhubung</span>
                 </div>
                 <div class="rl-stat-divider" aria-hidden="true"></div>
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">10K+</span>
-                    <span class="rl-stat-desc">Pelari Aktif Indonesia</span>
+                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['runners_count']) ? number_format($factualStats['runners_count']) : '10K+' }}</span>
+                    <span class="rl-stat-desc">Pelari Bergabung</span>
                 </div>
             </div>
         </div>
@@ -336,7 +321,7 @@
                             <span>PERFORMANCE / VDOT</span>
                             <h3>Race input</h3>
                         </div>
-                        <strong>RL—01</strong>
+                        <strong>RL-01</strong>
                     </div>
 
                     <div class="rl-lab-form">

@@ -3,403 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruang Lari - Revolusi Lari Anda</title>
+    <title>Ruang Lari | Media & Platform Lari Indonesia</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',    // Slate 900
-                        card: '#1e293b',    // Slate 800
-                        primary: '#ccff00', // Neon Green (Warna Utama)
-                        secondary: '#3b82f6' // Blue Accent
+                        dark: '#080A0D',
+                        card: '#0F131A',
+                        cardAlt: '#141A24',
+                        line: '#1E2633',
+                        primary: '#C7FF00',
+                        accent: '#E63946'
                     },
                     fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['Space Grotesk', 'monospace'],
-                    },
-                    backgroundImage: {
-                        'hero-glow': 'radial-gradient(circle at center, rgba(204, 255, 0, 0.15) 0%, transparent 70%)', // Glow Neon
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    
-    <style>
-        /* Custom Utilities */
-        .text-stroke { -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2); color: transparent; }
-        .clip-path-slant { clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(204, 255, 0, 0.2); border-color: #ccff00; }
-        
-        /* Loader */
-        .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
-        
-        /* Neon Button Hover Effect */
-        .btn-neon { background-color: #ccff00; color: #0f172a; }
-        .btn-neon:hover { background-color: #b3e600; box-shadow: 0 0 20px rgba(204, 255, 0, 0.5); }
-    </style>
 </head>
-<body class="bg-dark text-white font-sans overflow-x-hidden selection:bg-primary selection:text-dark">
-
-    <div id="loader" class="loader-overlay">
-        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
-            RUANG<span class="text-primary">LARI</span>
-        </div>
-    </div> 
+<body class="bg-dark text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-primary selection:text-dark">
 
     <div id="app">
         
-        <nav class="fixed w-full z-50 transition-all duration-300" :class="scrolled ? 'bg-dark/90 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'">
-            <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-                <a href="#" class="text-2xl font-black italic tracking-tighter flex items-center gap-2">
-                    <div class="w-3 h-8 bg-primary skew-x-[-12deg]"></div>
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 bg-dark/95 border-b border-line py-4 backdrop-blur-none">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
+                <a href="/" class="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                    <span class="w-2.5 h-6 bg-primary inline-block"></span>
                     RUANG<span class="text-primary">LARI</span>
                 </a>
                 
                 <div class="hidden md:flex gap-8 text-sm font-medium text-slate-300">
-                    <a href="#events" class="hover:text-primary transition">Events</a>
-                    <a href="#community" class="hover:text-primary transition">Community</a>
-                    <a href="/pacer" class="hover:text-primary transition">Pacers</a>
-                    <a href="#pricing" class="hover:text-primary transition">Membership</a>
-                    <a href="#blog" class="hover:text-primary transition">Blog</a>
+                    <a href="#events" class="hover:text-white transition duration-150">Kalender Event</a>
+                    <a href="#tools" class="hover:text-white transition duration-150">Training & Tools</a>
+                    <a href="#ekosistem" class="hover:text-white transition duration-150">Ekosistem</a>
+                    <a href="#blog" class="hover:text-white transition duration-150">Warta & Riset</a>
                 </div>
 
-                <div class="flex gap-4">
-                    <a href="/login" class="hidden md:block text-sm font-bold hover:text-white transition">Masuk</a>
-                    <a href="/register" class="bg-white text-dark px-5 py-2 rounded-full text-sm font-bold hover:bg-primary hover:text-dark transition transform hover:scale-105 border border-transparent hover:border-primary">
-                        Daftar Gratis
+                <div class="flex items-center gap-3">
+                    <a href="/login" class="text-sm font-semibold text-slate-300 hover:text-white px-3 py-2 transition duration-150">Masuk</a>
+                    <a href="/register" class="bg-primary text-dark px-4 py-2 rounded-md text-sm font-bold hover:bg-white transition duration-150">
+                        Daftar
                     </a>
                 </div>
             </div>
         </nav>
 
-        <header class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-            <div class="absolute inset-0 bg-hero-glow"></div>
-            <div class="absolute top-1/4 -left-20 w-72 h-72 bg-primary/10 rounded-full blur-[100px]"></div>
-            <div class="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-[100px]"></div>
-
-            <div class="max-w-7xl mx-auto px-4 relative z-10 grid md:grid-cols-2 gap-12 items-center">
-                <div class="hero-text opacity-0 translate-y-10">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold mb-6">
-                        <span class="relative flex h-2 w-2">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                        </span>
-                        Komunitas Lari #1 Indonesia
-                    </div>
-                    <h1 class="text-6xl md:text-8xl font-black leading-tight mb-6">
-                        LARI TANPA <br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">BATAS.</span>
-                    </h1>
-                    <p class="text-slate-400 text-lg mb-8 max-w-md leading-relaxed">
-                        Platform all-in-one untuk pelari, pacer, dan pelatih. Temukan event, pantau progres, dan raih personal best Anda bersama Ruang Lari.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <button class="px-8 py-4 btn-neon rounded-full font-black text-dark transition transform hover:-translate-y-1">
-                            Mulai Sekarang
-                        </button>
-                        <button class="px-8 py-4 border border-slate-700 rounded-full font-bold hover:bg-white/5 hover:border-primary/50 hover:text-primary transition flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Tonton Video
-                        </button>
-                    </div>
+        <!-- Hero Section -->
+        <header class="relative pt-28 md:pt-36 pb-16 md:pb-24 border-b border-line">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="grid md:grid-cols-12 gap-12 items-center">
                     
-                    <div class="mt-12 flex items-center gap-4">
-                        <div class="flex -space-x-3">
-                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=11" alt="">
-                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=12" alt="">
-                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=33" alt="">
-                            <div class="w-10 h-10 rounded-full border-2 border-dark bg-card flex items-center justify-center text-xs font-bold text-primary">+2k</div>
-                        </div>
-                        <p class="text-sm text-slate-500">Pelari telah bergabung</p>
-                    </div>
-                </div>
+                    <div class="md:col-span-7">
+                        <h1 class="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight mb-6">
+                            Media &amp; Platform<br>
+                            <span class="text-primary">Lari Indonesia.</span>
+                        </h1>
+                        
+                        <p class="text-slate-300 text-base md:text-lg mb-8 max-w-xl leading-relaxed">
+                            Kalender event terkurasi, kalkulator performa berbasis VDOT, rute GPX, dan direktori komunitas lari dalam satu ekosistem terpadu.
+                        </p>
 
-                <div class="hero-image relative opacity-0 scale-90">
-                    <div class="relative z-10 rounded-[3rem] overflow-hidden border-8 border-card shadow-2xl rotate-3 hover:rotate-0 transition duration-500 group">
-                        <img src="https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=800" alt="Runner" class="w-full h-auto object-cover group-hover:scale-105 transition duration-700">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="#events" class="px-6 py-3 bg-primary text-dark font-bold text-sm rounded-md hover:bg-white transition duration-150 text-center">
+                                Jelajahi Event
+                            </a>
+                            <a href="/calculator" class="px-6 py-3 border border-line bg-card hover:bg-cardAlt text-white font-semibold text-sm rounded-md transition duration-150 text-center">
+                                Hitung Target Pace
+                            </a>
+                        </div>
+                        
+                        <div class="mt-10 pt-8 border-t border-line grid grid-cols-3 gap-4">
+                            <div>
+                                <span class="text-white font-mono font-bold text-lg block">TERVERIFIKASI</span>
+                                <span class="text-xs text-slate-400">Jadwal Event Resmi</span>
+                            </div>
+                            <div>
+                                <span class="text-white font-mono font-bold text-lg block">JACK DANIELS</span>
+                                <span class="text-xs text-slate-400">Formula Latihan VDOT</span>
+                            </div>
+                            <div>
+                                <span class="text-white font-mono font-bold text-lg block">OPEN GPX</span>
+                                <span class="text-xs text-slate-400">Database Rute Lari</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="absolute -top-10 -right-10 w-28 h-28 bg-primary rounded-full flex items-center justify-center text-dark font-black text-center text-xs p-2 rotate-12 z-20 animate-bounce shadow-[0_0_30px_#ccff00]">
-                        JOIN THE <br>MOVEMENT
+
+                    <div class="md:col-span-5">
+                        <div class="relative bg-card border border-line rounded-lg p-3 shadow-sm">
+                            <img 
+                                src="https://ruanglari.com/storage/blog/media/469168c8-1ae3-4f55-ae3d-f30954235ae9.webp" 
+                                alt="Pelari Ruang Lari Indonesia" 
+                                class="w-full h-auto rounded object-cover aspect-[4/5]"
+                            >
+                            <div class="mt-3 px-2 py-1 flex justify-between items-center text-xs font-mono text-slate-400">
+                                <span>PELARI RUANG LARI</span>
+                                <span class="text-primary">TERKONEKSI</span>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </header>
 
-        <section class="py-10 border-y border-white/5 bg-card/30">
-            <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-center md:justify-between items-center gap-8 opacity-40 grayscale hover:grayscale-0 transition duration-500">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/New_Balance_logo.svg/2560px-New_Balance_logo.svg.png" class="h-6 md:h-8 invert">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-6 md:h-8 invert">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png" class="h-8 md:h-10 invert">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/2560px-Under_armour_logo.svg.png" class="h-6 md:h-8 invert">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Skechers.svg" class="h-6 md:h-8 invert">
-            </div>
-        </section>
-
-        <section id="community" class="py-24 relative">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="text-center mb-16" data-aos="fade-up">
-                    <h2 class="text-primary font-mono font-bold tracking-widest uppercase mb-2">Community Elite</h2>
-                    <h3 class="text-4xl md:text-5xl font-black text-white">HALL OF <span class="text-stroke">FAME</span></h3>
+        <!-- Core Features (Replacing AI 3-Card Hall of Fame) -->
+        <section id="tools" class="py-20 border-b border-line bg-card">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="mb-12">
+                    <span class="text-xs font-mono text-primary uppercase tracking-wider block mb-2">Pilar Platform</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white">Instrumen Latihan &amp; Eksplorasi</h2>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
-                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="100">
-                        <div class="absolute top-0 left-0 bg-primary text-dark text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP RUNNER</div>
-                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
-                            <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
-                            <div class="absolute bottom-4 left-4">
-                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Sarah <br>Jenner</h4>
-                            </div>
+                    <div class="bg-dark border border-line rounded-lg p-6 flex flex-col justify-between">
+                        <div>
+                            <span class="font-mono text-xs text-slate-400 font-bold block mb-3">01 / TRAINING LAB</span>
+                            <h3 class="text-lg font-bold text-white mb-2">Kalkulator Pace &amp; VDOT</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                                Input waktu time trial atau race terakhir untuk menghitung target pace Easy, Tempo, Interval, dan Repetition tanpa tebakan.
+                            </p>
                         </div>
-                        <div class="px-4 pb-4">
-                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
-                                <div>
-                                    <p class="text-slate-400 text-xs uppercase">Total Distance</p>
-                                    <p class="text-xl font-mono font-bold text-white">2,450 KM</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-slate-400 text-xs uppercase">Avg Pace</p>
-                                    <p class="text-xl font-mono font-bold text-primary">4:15</p>
-                                </div>
-                            </div>
-                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Lihat Profil</button>
-                        </div>
+                        <a href="/calculator" class="text-sm font-semibold text-primary hover:text-white transition duration-150">
+                            Buka Kalkulator
+                        </a>
                     </div>
 
-                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="200">
-                        <div class="absolute top-0 left-0 bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP PACER</div>
-                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
-                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
-                            <div class="absolute bottom-4 left-4">
-                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Budi <br>Santoso</h4>
-                            </div>
+                    <div class="bg-dark border border-line rounded-lg p-6 flex flex-col justify-between">
+                        <div>
+                            <span class="font-mono text-xs text-slate-400 font-bold block mb-3">02 / ROUTE LIBRARY</span>
+                            <h3 class="text-lg font-bold text-white mb-2">Database Rute GPX</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                                Eksplorasi rute lari dari berbagai kota lengkap dengan profil elevasi dan file GPX yang dapat diunduh ke jam tangan lari.
+                            </p>
                         </div>
-                        <div class="px-4 pb-4">
-                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
-                                <div>
-                                    <p class="text-slate-400 text-xs uppercase">Events Paced</p>
-                                    <p class="text-xl font-mono font-bold text-white">15 Races</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-slate-400 text-xs uppercase">Precision</p>
-                                    <p class="text-xl font-mono font-bold text-blue-400">99.8%</p>
-                                </div>
-                            </div>
-                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Book Pacer</button>
-                        </div>
+                        <a href="/tools/buat-rute-lari" class="text-sm font-semibold text-primary hover:text-white transition duration-150">
+                            Lihat Direktori Rute
+                        </a>
                     </div>
 
-                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="300">
-                        <div class="absolute top-0 left-0 bg-white text-dark text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP COACH</div>
-                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
-                            <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
-                            <div class="absolute bottom-4 left-4">
-                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Coach <br>Indra</h4>
-                            </div>
+                    <div class="bg-dark border border-line rounded-lg p-6 flex flex-col justify-between">
+                        <div>
+                            <span class="font-mono text-xs text-slate-400 font-bold block mb-3">03 / NETWORK</span>
+                            <h3 class="text-lg font-bold text-white mb-2">Komunitas &amp; Pacer Hub</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                                Temukan klub lari lokal di kotamu, ikuti jadwal lari bersama, dan terhubung dengan pacer terverifikasi.
+                            </p>
                         </div>
-                        <div class="px-4 pb-4">
-                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
-                                <div>
-                                    <p class="text-slate-400 text-xs uppercase">Students</p>
-                                    <p class="text-xl font-mono font-bold text-white">120+</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-slate-400 text-xs uppercase">PB Broken</p>
-                                    <p class="text-xl font-mono font-bold text-white">50+</p>
-                                </div>
-                            </div>
-                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Join Class</button>
-                        </div>
+                        <a href="/pacer" class="text-sm font-semibold text-primary hover:text-white transition duration-150">
+                            Cari Komunitas &amp; Pacer
+                        </a>
                     </div>
 
                 </div>
             </div>
         </section>
 
-        <section id="events" class="py-24 bg-card clip-path-slant pb-40 border-t border-slate-800">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+        <!-- Race Calendar Section -->
+        <section id="events" class="py-20 border-b border-line">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
                     <div>
-                        <h2 class="text-4xl font-black text-white">RACE CALENDAR</h2>
-                        <p class="text-slate-400 mt-2">Jangan lewatkan event lari terbesar tahun ini.</p>
+                        <span class="text-xs font-mono text-primary uppercase tracking-wider block mb-2">Kalender Nasional</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white">Event Lari Mendatang</h2>
                     </div>
-                    <div class="flex gap-2 mt-4 md:mt-0 bg-dark p-1 rounded-lg border border-slate-700">
-                        <button @click="activeTab = 'recent'" :class="activeTab === 'recent' ? 'bg-primary text-dark' : 'text-slate-400 hover:text-white'" class="px-6 py-2 rounded-md text-sm font-bold transition">Recent</button>
-                        <button @click="activeTab = 'top'" :class="activeTab === 'top' ? 'bg-primary text-dark' : 'text-slate-400 hover:text-white'" class="px-6 py-2 rounded-md text-sm font-bold transition">Top Events</button>
-                    </div>
+                    <a href="/events" class="text-sm font-semibold text-primary hover:text-white transition duration-150">
+                        Lihat Semua Agenda
+                    </a>
                 </div>
-                <div id="homeEvents" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
-                
-                <div class="text-center mt-12">
-                    <a href="/events" class="inline-block border-b-2 border-primary text-primary font-bold hover:text-white hover:border-white transition pb-1">Lihat Semua Event →</a>
+
+                <div id="homeEvents" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="col-span-2 text-center py-8 text-slate-500 font-mono text-sm">
+                        Memuat data event terkini...
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="pricing" class="py-24 relative -mt-20">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="bg-gradient-to-br from-primary via-green-500 to-emerald-600 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(204,255,0,0.3)]" data-aos="zoom-in">
-                    
-                    <div class="absolute top-0 left-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-                    <div class="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-                    
-                    <h2 class="text-3xl md:text-5xl font-black text-dark mb-6">UNLOCK PREMIUM FEATURES</h2>
-                    <p class="text-dark/80 text-lg mb-10 max-w-2xl mx-auto font-medium">
-                        Dapatkan akses ke rencana latihan eksklusif, analisis performa mendalam, dan diskon pendaftaran event.
+        <!-- Ecosystem Section (Replacing AI 3-Tier SaaS Pricing) -->
+        <section id="ekosistem" class="py-20 border-b border-line bg-card">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="max-w-2xl mb-12">
+                    <span class="text-xs font-mono text-primary uppercase tracking-wider block mb-2">Ekosistem Terintegrasi</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">Satu Platform untuk Pelari &amp; Penyelenggara</h2>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Ruang Lari menghubungkan kebutuhan pelari individu, klub komunitas, hingga sistem manajemen registrasi bagi Event Organizer.
                     </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     
-                    <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
-                        <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-primary transition group">
-                            <h3 class="text-xl font-bold text-white mb-2">Starter</h3>
-                            <p class="text-3xl font-black text-white mb-6">Rp 0</p>
-                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
-                                <li class="flex gap-2"><span class="text-primary">✓</span> Basic Tracking</li>
-                                <li class="flex gap-2"><span class="text-primary">✓</span> Community Access</li>
-                            </ul>
-                            <button class="w-full py-3 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white">Current Plan</button>
-                        </div>
+                    <div class="bg-dark border border-line rounded-lg p-5">
+                        <span class="font-mono text-xs text-primary font-bold block mb-2">01. PELARI</span>
+                        <h3 class="text-base font-bold text-white mb-2">Program Latihan</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Panduan periodisasi mingguan dari 5K hingga Marathon berdasarkan kemampuan aktual.
+                        </p>
+                        <a href="/programs" class="text-xs font-semibold text-white hover:text-primary transition duration-150">Akses Program</a>
+                    </div>
 
-                        <div class="bg-white text-dark p-8 rounded-3xl transform scale-105 shadow-2xl relative">
-                            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dark text-primary border border-primary text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Most Popular</div>
-                            <h3 class="text-xl font-bold mb-2">Pro Runner</h3>
-                            <p class="text-3xl font-black mb-6">Rp 49k<span class="text-sm font-medium text-slate-500">/bln</span></p>
-                            <ul class="space-y-3 text-sm font-medium mb-8">
-                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Advanced Analytics</li>
-                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Training Plans</li>
-                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Event Discounts</li>
-                            </ul>
-                            <button class="w-full py-3 rounded-xl bg-primary text-dark hover:brightness-90 font-black transition shadow-lg">Upgrade Now</button>
-                        </div>
+                    <div class="bg-dark border border-line rounded-lg p-5">
+                        <span class="font-mono text-xs text-primary font-bold block mb-2">02. KOMUNITAS</span>
+                        <h3 class="text-base font-bold text-white mb-2">Direktori Klub</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Profil komunitas, titik kumpul jadwal lari rutin mingguan, dan jejaring anggota.
+                        </p>
+                        <a href="/komunitas" class="text-xs font-semibold text-white hover:text-primary transition duration-150">Daftarkan Klub</a>
+                    </div>
 
-                        <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-primary transition">
-                            <h3 class="text-xl font-bold text-white mb-2">Elite Coach</h3>
-                            <p class="text-3xl font-black text-white mb-6">Rp 199k<span class="text-sm text-slate-400">/bln</span></p>
-                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
-                                <li class="flex gap-2"><span class="text-primary">✓</span> All Pro Features</li>
-                                <li class="flex gap-2"><span class="text-primary">✓</span> Manage Students</li>
-                                <li class="flex gap-2"><span class="text-primary">✓</span> Verified Badge</li>
-                            </ul>
-                            <button class="w-full py-3 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white">Contact Sales</button>
-                        </div>
+                    <div class="bg-dark border border-line rounded-lg p-5">
+                        <span class="font-mono text-xs text-primary font-bold block mb-2">03. ORGANIZER</span>
+                        <h3 class="text-base font-bold text-white mb-2">Sistem Registrasi EO</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Platform ticketing, pembagian kuota kategori, sistem pembayaran, dan e-ticket otomatis.
+                        </p>
+                        <a href="/eo" class="text-xs font-semibold text-white hover:text-primary transition duration-150">Solusi EO</a>
+                    </div>
+
+                    <div class="bg-dark border border-line rounded-lg p-5">
+                        <span class="font-mono text-xs text-primary font-bold block mb-2">04. PERLENGKAPAN</span>
+                        <h3 class="text-base font-bold text-white mb-2">Marketplace Gear</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Peralatan lari, rekomendasi sepatu, dan marketplace kebutuhan race sesama pelari.
+                        </p>
+                        <a href="/marketplace" class="text-xs font-semibold text-white hover:text-primary transition duration-150">Buka Marketplace</a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Warta & Journal Section -->
+        <section id="blog" class="py-20 border-b border-line">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
+                    <div>
+                        <span class="text-xs font-mono text-primary uppercase tracking-wider block mb-2">Warta &amp; Riset</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white">Artikel &amp; Edukasi Terkini</h2>
+                    </div>
+                    <a href="/blog" class="text-sm font-semibold text-primary hover:text-white transition duration-150">
+                        Baca Semua Warta
+                    </a>
+                </div>
+
+                <div id="blogCards" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="col-span-3 text-center py-8 text-slate-500 font-mono text-sm">
+                        Memuat warta terbaru...
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="blog" class="py-24 bg-dark">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="flex justify-between items-end mb-12">
-                    <h2 class="text-4xl font-black text-white">LATEST <span class="text-stroke">NEWS</span></h2>
-                    <a href="https://ruanglari.com/blog/" target="_blank" rel="noopener" class="text-sm font-bold text-primary hover:text-white transition">Read Blog →</a>
-                </div>
-
-                <div id="blogCards" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-            </div>
-        </section>
-
-        <footer class="border-t border-slate-800 pt-20 pb-10 bg-black">
-            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                <div class="col-span-1 md:col-span-1">
-                    <a href="#" class="text-2xl font-black italic tracking-tighter mb-6 flex items-center gap-2">
-                        <div class="w-3 h-6 bg-primary skew-x-[-12deg]"></div>
+        <!-- Footer -->
+        <footer class="py-14 bg-dark">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
+                <div class="md:col-span-5">
+                    <a href="/" class="text-lg font-bold tracking-tight text-white flex items-center gap-2 mb-4">
+                        <span class="w-2.5 h-5 bg-primary inline-block"></span>
                         RUANG<span class="text-primary">LARI</span>
                     </a>
-                    <p class="text-slate-500 text-sm leading-relaxed">
-                        Kami membangun ekosistem lari terbesar di Indonesia. Bergabunglah dengan revolusi ini.
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+                        Platform dan media independen lari Indonesia. Menyediakan kalender event terverifikasi, kalkulator performa, panduan latihan, dan database rute lari.
                     </p>
                 </div>
-                <div>
-                    <h4 class="font-bold text-white mb-6">Platform</h4>
-                    <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="#" class="hover:text-primary transition">Events</a></li>
-                        <li><a href="#" class="hover:text-primary transition">Membership</a></li>
-                        <li><a href="#" class="hover:text-primary transition">Coaches</a></li>
+                <div class="md:col-span-2 sm:col-span-4">
+                    <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider mb-4">Fitur</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="/events" class="hover:text-white transition duration-150">Kalender Event</a></li>
+                        <li><a href="/calculator" class="hover:text-white transition duration-150">Kalkulator Pace</a></li>
+                        <li><a href="/programs" class="hover:text-white transition duration-150">Program Latihan</a></li>
+                        <li><a href="/pacer" class="hover:text-white transition duration-150">Pacer Hub</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h4 class="font-bold text-white mb-6">Company</h4>
-                    <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="#" class="hover:text-primary transition">About Us</a></li>
-                        <li><a href="#" class="hover:text-primary transition">Careers</a></li>
-                        <li><a href="#" class="hover:text-primary transition">Contact</a></li>
+                <div class="md:col-span-2 sm:col-span-4">
+                    <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider mb-4">Ekosistem</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="/komunitas" class="hover:text-white transition duration-150">Komunitas Lari</a></li>
+                        <li><a href="/eo" class="hover:text-white transition duration-150">Layanan EO</a></li>
+                        <li><a href="/marketplace" class="hover:text-white transition duration-150">Marketplace</a></li>
+                        <li><a href="/blog" class="hover:text-white transition duration-150">Warta Lari</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h4 class="font-bold text-white mb-6">Newsletter</h4>
-                    <form class="flex gap-2">
-                        <input type="email" placeholder="Email Anda" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-primary text-white">
-                        <button class="bg-primary px-4 py-2 rounded-lg text-dark font-bold hover:bg-white transition">Go</button>
-                    </form>
+                <div class="md:col-span-3 sm:col-span-4">
+                    <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider mb-4">Informasi</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="/about" class="hover:text-white transition duration-150">Tentang Kami</a></li>
+                        <li><a href="/privacy-policy" class="hover:text-white transition duration-150">Kebijakan Privasi</a></li>
+                        <li><a href="/terms-and-conditions" class="hover:text-white transition duration-150">Syarat &amp; Ketentuan</a></li>
+                        <li><a href="/faq" class="hover:text-white transition duration-150">Bantuan &amp; FAQ</a></li>
+                    </ul>
                 </div>
             </div>
-            <div class="max-w-7xl mx-auto px-4 border-t border-white/10 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-slate-600">
-                <p>&copy; 2024 Ruang Lari Indonesia. All rights reserved.</p>
-                <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="hover:text-white">Privacy Policy</a>
-                    <a href="#" class="hover:text-white">Terms of Service</a>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-8 border-t border-line flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono text-slate-500">
+                <p>&copy; 2026 Ruang Lari Indonesia. Seluruh hak cipta dilindungi.</p>
+                <div class="flex gap-6">
+                    <a href="/privacy-policy" class="hover:text-slate-300 transition duration-150">Privasi</a>
+                    <a href="/terms-and-conditions" class="hover:text-slate-300 transition duration-150">Ketentuan</a>
+                    <a href="/sitemap.xml" class="hover:text-slate-300 transition duration-150">Sitemap</a>
                 </div>
             </div>
         </footer>
 
     </div>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
+    <!-- Scripts -->
     <script>
-        // Init Vue
-        const { createApp, ref, onMounted } = Vue;
-
-        createApp({
-            setup() {
-                const scrolled = ref(false);
-                const activeTab = ref('recent');
-
-                // Handle Scroll Navbar
-                window.addEventListener('scroll', () => {
-                    scrolled.value = window.scrollY > 50;
-                });
-
-                return { scrolled, activeTab }
-            }
-        }).mount('#app');
-
-        // Init AOS
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
-        });
-
-        // GSAP Hero Animations
-        window.addEventListener('load', () => {
-            // Hide Loader
-            const loader = document.getElementById('loader');
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 500);
-
-            // Animate Elements
-            gsap.to('.hero-text', { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power3.out' });
-            gsap.to('.hero-image', { opacity: 1, scale: 1, duration: 1.2, delay: 0.2, ease: 'back.out(1.7)' });
-        });
-
-        // ====== Blog fetch/render ======
+        // ====== Fetch & Render Latest Blog Articles ======
         async function loadLatestBlogs() {
             const container = document.getElementById('blogCards');
             if (!container) return;
             
-            container.innerHTML = `
-                <div class="col-span-3 text-center text-gray-500">Memuat artikel...</div>
-            `;
             try {
                 const base = (window.location.pathname.indexOf('/ruanglari/public') !== -1) ? '/ruanglari/public' : '';
                 const res = await fetch(base + '/api/blog/latest');
@@ -407,86 +330,84 @@
                 container.innerHTML = '';
 
                 if (!posts || posts.length === 0) {
-                     container.innerHTML = '<div class="col-span-3 text-center text-slate-500">Belum ada artikel.</div>';
+                     container.innerHTML = '<div class="col-span-3 text-center py-6 text-slate-500 font-mono text-xs">Belum ada warta yang dipublikasikan.</div>';
                      return;
                 }
 
-                posts.forEach(post => {
-                    const link = post.url;
-                    const title = post.title || 'Tanpa judul';
-                    const img = post.image || 'ruanglari.png';
+                posts.slice(0, 3).forEach(post => {
+                    const link = post.url || '#';
+                    const title = post.title || 'Warta Ruang Lari';
+                    const img = post.image || 'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp';
                     const card = document.createElement('a');
                     card.href = link;
                     
-                    // Open external links in new tab
                     if (link.startsWith('http') && !link.includes(window.location.hostname)) {
                         card.target = '_blank';
                         card.rel = 'noopener';
                     }
 
-                    card.className = 'group block bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow hover:shadow-lg transition-shadow';
+                    card.className = 'group block bg-card border border-line rounded-lg overflow-hidden hover:border-slate-700 transition duration-150';
                     card.innerHTML = `
-                        <div class="overflow-hidden">
-                            <img src="${img}" alt="${title.replace(/<[^>]*>/g,'')}" class="w-full h-56 object-cover transform transition-transform duration-300 group-hover:scale-105" />
+                        <div class="overflow-hidden aspect-[16/9] bg-dark">
+                            <img src="${img}" alt="${title.replace(/<[^>]*>/g,'')}" class="w-full h-full object-cover transition duration-200 group-hover:scale-102" loading="lazy" />
                         </div>
-                        <div class="p-4">
-                            <div class="font-semibold text-white line-clamp-2 group-hover:text-primary transition">${title}</div>
-                            <div class="text-xs text-slate-400 mt-2 line-clamp-2">${post.excerpt || ''}</div>
+                        <div class="p-5">
+                            <div class="text-xs font-mono text-primary mb-2">${post.category || 'WARTA'}</div>
+                            <h3 class="font-bold text-white text-base leading-snug line-clamp-2 group-hover:text-primary transition duration-150">${title}</h3>
+                            <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">${post.excerpt || ''}</p>
                         </div>
                     `;
                     container.appendChild(card);
                 });
             } catch (e) {
-                container.innerHTML = '<div class="col-span-3 text-center text-red-500">Gagal memuat artikel.</div>';
+                container.innerHTML = '<div class="col-span-3 text-center py-6 text-slate-500 font-mono text-xs">Warta dapat diakses di menu Warta & Riset.</div>';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadLatestBlogs);
-
-        // ====== Upcoming events render ======
+        // ====== Fetch & Render Upcoming Events ======
         async function loadUpcomingEvents() {
             const container = document.getElementById('homeEvents');
             if (!container) return;
-            container.innerHTML = `
-                <div class="col-span-2 text-center text-slate-400">Memuat event...</div>
-            `;
+
             try {
                 const base = (window.location.pathname.indexOf('/ruanglari/public') !== -1) ? '/ruanglari/public' : '';
                 const res = await fetch(base + '/api/events/upcoming');
                 const events = await res.json();
                 container.innerHTML = '';
+
                 if (!events || events.length === 0) {
-                    container.innerHTML = '<div class="col-span-2 text-center text-slate-500">Belum ada event mendatang.</div>';
+                    container.innerHTML = '<div class="col-span-2 text-center py-6 text-slate-500 font-mono text-xs">Belum ada agenda event mendatang terdaftar.</div>';
                     return;
                 }
-                events.forEach(ev => {
+
+                events.slice(0, 6).forEach(ev => {
                     const date = new Date(ev.date + 'T' + (ev.time || '00:00'));
                     const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
                     const day = String(date.getDate()).padStart(2, '0');
                     const card = document.createElement('a');
-                    card.href = '/events/' + ev.slug;
-                    card.className = 'flex bg-dark border border-slate-800 rounded-2xl overflow-hidden hover:border-primary/50 transition group';
+                    card.href = '/events/' + (ev.slug || ev.id);
+                    card.className = 'flex bg-card border border-line rounded-lg overflow-hidden hover:border-slate-700 transition duration-150 group';
                     card.innerHTML = `
-                        <div class="w-32 bg-slate-900 flex flex-col items-center justify-center text-center p-4 border-r border-slate-800">
-                            <span class="text-sm font-bold text-primary uppercase">${month}</span>
-                            <span class="text-3xl font-black text-white">${day}</span>
+                        <div class="w-24 bg-dark flex flex-col items-center justify-center text-center p-4 border-r border-line shrink-0">
+                            <span class="text-xs font-mono font-bold text-primary">${month}</span>
+                            <span class="text-2xl font-mono font-bold text-white">${day}</span>
                         </div>
-                        <div class="p-6 flex-grow flex flex-col justify-center">
-                            <h3 class="text-xl font-bold text-white mb-1 group-hover:text-primary transition">${ev.name}</h3>
-                            <p class="text-sm text-slate-500">${ev.location || ''} • ${ev.time || ''} WIB</p>
-                        </div>
-                        <div class="w-16 flex items-center justify-center border-l border-slate-800 bg-slate-900/50">
-                            <span class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white group-hover:bg-primary group-hover:text-dark transition">→</span>
+                        <div class="p-4 flex-grow flex flex-col justify-center">
+                            <h3 class="text-sm font-bold text-white mb-1 group-hover:text-primary transition duration-150 line-clamp-1">${ev.name}</h3>
+                            <p class="text-xs text-slate-400 font-mono">${ev.location || 'Indonesia'} &bull; ${ev.time || '05:00'} WIB</p>
                         </div>
                     `;
                     container.appendChild(card);
                 });
             } catch (e) {
-                container.innerHTML = '<div class="col-span-2 text-center text-red-500">Gagal memuat event.</div>';
+                container.innerHTML = '<div class="col-span-2 text-center py-6 text-slate-500 font-mono text-xs">Jadwal event dapat diakses di menu Kalender Event.</div>';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadUpcomingEvents);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLatestBlogs();
+            loadUpcomingEvents();
+        });
     </script>
 </body>
 </html>

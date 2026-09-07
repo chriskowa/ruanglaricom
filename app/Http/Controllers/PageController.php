@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Community;
 use App\Models\Event;
 use App\Models\HomepageContent;
 use App\Models\Page;
 use App\Models\PageTemplate;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -268,11 +270,29 @@ class PageController extends Controller
             }
         });
 
+        // 5. Factual Platform Stats (Real database count - zero AI vanity fluff)
+        $factualStats = Cache::remember('home.factual_stats_v1', 1800, function () {
+            try {
+                return [
+                    'events_count'      => Event::published()->count(),
+                    'communities_count' => class_exists(Community::class) ? Community::count() : 0,
+                    'runners_count'     => class_exists(User::class) ? User::count() : 0,
+                ];
+            } catch (\Throwable $e) {
+                return [
+                    'events_count'      => 0,
+                    'communities_count' => 0,
+                    'runners_count'     => 0,
+                ];
+            }
+        });
+
         return view('home.index', [
             'homepageContent' => $homepageContent,
             'heroHighlights'  => $heroHighlights,
             'upcomingEvents'  => $upcomingEvents,
             'latestArticles'  => $latestArticles,
+            'factualStats'    => $factualStats,
             'skipHeavyAssets' => true,
         ]);
     }
