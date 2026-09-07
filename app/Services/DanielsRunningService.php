@@ -165,6 +165,26 @@ class DanielsRunningService
         $paces['E_high'] = round(1000 / ($vVO2max * 0.72), 2);
         $paces['E_low'] = round(1000 / ($vVO2max * 0.66), 2);
 
+        // Biomechanical Guardrail for Novice / Low VDOT runners:
+        // When mathematical E pace exceeds ~8:00/km (or VDOT < 30), continuous running at that
+        // speed produces an unnatural shuffle with excessive ground contact time and zero elastic recoil.
+        // Daniels White Plan & Galloway prescribe the Run-Walk method:
+        // - Natural Jog portion: ~8:00 - 8:30 min/km (biomechanically viable flight phase)
+        // - Active Walk portion: ~10:30 - 11:30 min/km (brisk walking to control heart rate)
+        $isRunWalk = ($vdot < 30.0 || $paces['E'] >= 8.0);
+        $paces['is_run_walk'] = $isRunWalk;
+        $paces['raw_E'] = $paces['E'];
+        $paces['raw_E_high'] = $paces['E_high'];
+        $paces['raw_E_low'] = $paces['E_low'];
+
+        if ($isRunWalk) {
+            $paces['E'] = min($paces['E'], 8.25);
+            $paces['E_high'] = min($paces['E_high'], 8.00);
+            $paces['E_low'] = min($paces['E_low'], 8.50);
+            $paces['jog_pace'] = 8.25;   // ~8:15/km
+            $paces['walk_pace'] = 11.00; // ~11:00/km
+        }
+
         return $paces;
     }
 

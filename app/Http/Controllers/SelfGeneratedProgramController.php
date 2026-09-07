@@ -87,12 +87,12 @@ class SelfGeneratedProgramController extends Controller
             $vdot = $result['vdot'] ?? 30;
 
             // 1. Create Program
-            $title = "AI " . strtoupper($targetDistance) . " Plan (" . $vdot . ")";
+            $title = "Program Latihan " . strtoupper($targetDistance) . " (VDOT " . $vdot . ")";
             $program = Program::create([
                 'coach_id' => $user->id,
                 'title' => $title,
                 'slug' => $this->generateUniqueSlug($title),
-                'description' => "Program latihan lari periodisasi yang di-generate menggunakan algoritma Daniels' VDOT v2.0.",
+                'description' => "Program latihan lari periodisasi ilmiah berbasis Jack Daniels' VDOT Formula.",
                 'distance_target' => $targetDistance,
                 'duration_weeks' => $durationWeeks,
                 'program_json' => [
@@ -241,6 +241,11 @@ class SelfGeneratedProgramController extends Controller
                 $paces['T'] *= 1.04;
                 $paces['I'] *= 1.03;
                 $paces['R'] *= 1.02;
+            }
+            if (!empty($paces['is_run_walk'])) {
+                $paces['E'] = min($paces['E'], 8.50);
+                if (isset($paces['E_high'])) $paces['E_high'] = min($paces['E_high'], 8.25);
+                if (isset($paces['E_low'])) $paces['E_low'] = min($paces['E_low'], 8.50);
             }
 
             // Calculate target Heart Rate zones based on age (Tanaka formula: 208 - 0.7 * age)

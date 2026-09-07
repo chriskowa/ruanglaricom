@@ -137,6 +137,11 @@ class ProgramBuilderService
                 $paces['I'] *= 1.03;
                 $paces['R'] *= 1.02;
             }
+            if (!empty($paces['is_run_walk'])) {
+                $paces['E'] = min($paces['E'], 8.50);
+                if (isset($paces['E_high'])) $paces['E_high'] = min($paces['E_high'], 8.25);
+                if (isset($paces['E_low'])) $paces['E_low'] = min($paces['E_low'], 8.50);
+            }
 
             // Current week's mileage from progressive schedule
             $currentMileage = $mileageSchedule[$w - 1];
@@ -261,6 +266,13 @@ class ProgramBuilderService
                 $easyDistance = 15.0;
             }
 
+            // Determine whether this runner should use Run-Walk protocol (Daniels White Plan / Galloway)
+            $isRunWalk = ($runnerLevel === 'beginner') && (
+                ($paces['is_run_walk'] ?? false) ||
+                $currentVdot < 30.0 ||
+                ($paces['E'] ?? 0) >= 8.0
+            );
+
             // ===== CONSTRUCT SESSIONS =====
             for ($d = 1; $d <= 7; $d++) {
                 $assignment = $dayAssignments[$d];
@@ -278,24 +290,46 @@ class ProgramBuilderService
 
                 if ($assignment['type'] === 'long_run') {
                     $session['type'] = 'long_run';
-                    $session['distance'] = $longRunDistance;
-                    $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['duration'] = $this->calculateDuration($longRunDistance, $paces['E']);
 
-                    $paceFast = max(0, $paces['E'] - (5 / 60));
-                    $paceSlow = $paces['E'] + (10 / 60);
-                    $rangeStr = sprintf(
-                        '%d:%02d - %d:%02d/km',
-                        floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
-                        floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
-                    );
+                    if ($isRunWalk) {
+                        // Cap beginner long run distance to max 4.5 - 5.5 km
+                        $effectiveLongRun = min($longRunDistance, 4.5 + ($w * 0.15));
+                        $effectiveLongRun = min($effectiveLongRun, 5.5);
+                        $session['distance'] = round($effectiveLongRun, 1);
+                        $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                        $session['duration'] = $this->calculateDuration($session['distance'], 9.5); // blended ~9:30 min/km
 
-                    $session['description'] = $isDeload
-                        ? "Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.\nTarget: $rangeStr (RPE 3-4)"
-                        : "Long Easy Run - Fokus pada daya tahan kardio.\nTarget: $rangeStr (RPE 3-4)";
+                        $session['description'] = $isDeload
+                            ? "Long Run-Walk (De-load) — Jarak & beban dikurangi untuk regenerasi jaringan sendi.\n"
+                                . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
+                                . "• Sesi Utama: Rasio santai [2 menit Lari Santai (Pace 8:00-8:30) + 2 menit Jalan Cepat (Pace 10:30-11:30)] berulang hingga jarak tercapai.\n"
+                                . "• Pendinginan: 5 menit Jalan Santai & Peregangan Statis\n"
+                                . "• Target HR: RPE 3 (sangat santai, rileks, obrolan mengalir lancar)."
+                            : "Long Run-Walk (Daya Tahan Kardio & Ketahanan Otot)\n"
+                                . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
+                                . "• Sesi Utama: Rasio teratur [3 menit Lari Santai Form Alami (Pace 8:00-8:30) + 1-2 menit Jalan Cepat Pemulihan (Pace 10:30-11:30)] berulang hingga jarak tercapai.\n"
+                                . "• Pendinginan: 5 menit Jalan Santai & Peregangan Otot\n"
+                                . "TUJUAN: Membangun fondasi kardio jarak jauh tanpa kelelahan otot berlebih. Jeda jalan teratur mencegah lonjakan detak jantung dan melindungi lutut dari stres impak.";
+                    } else {
+                        $session['distance'] = $longRunDistance;
+                        $session['target_pace'] = $this->formatPace($paces['E']);
+                        $session['duration'] = $this->calculateDuration($longRunDistance, $paces['E']);
 
-                    if ($mileageWarning) {
-                        $session['description'] .= "\n\n[WARNING: Weekly mileage Anda terlalu rendah untuk mengadaptasi jarak lari ini dengan optimal. Kami telah memaksakan batas minimal untuk Long Run ini.]";
+                        $paceFast = max(0, $paces['E'] - (5 / 60));
+                        $paceSlow = $paces['E'] + (10 / 60);
+                        $rangeStr = sprintf(
+                            '%d:%02d - %d:%02d/km',
+                            floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
+                            floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
+                        );
+
+                        $session['description'] = $isDeload
+                            ? "Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.\nTarget: $rangeStr (RPE 3-4)"
+                            : "Long Easy Run - Fokus pada daya tahan kardio.\nTarget: $rangeStr (RPE 3-4)";
+
+                        if ($mileageWarning) {
+                            $session['description'] .= "\n\n[WARNING: Weekly mileage Anda terlalu rendah untuk mengadaptasi jarak lari ini dengan optimal. Kami telah memaksakan batas minimal untuk Long Run ini.]";
+                        }
                     }
                 } elseif ($assignment['type'] === 'quality') {
                     $workout = $assignment['workout'];
@@ -332,8 +366,12 @@ class ProgramBuilderService
                         $scaledMainSet
                     );
 
-                    $warmUpText = $library['default_warm_up'] ?? '10 to 15 min easy run + dynamic drills';
-                    $coolDownText = $library['default_cool_down'] ?? '10 min easy jog';
+                    $warmUpText = ($isRunWalk)
+                        ? '5 min jalan cepat + dynamic mobility drills'
+                        : ($library['default_warm_up'] ?? '10 to 15 min easy run + dynamic drills');
+                    $coolDownText = ($isRunWalk)
+                        ? '5 min jalan santai & peregangan statis'
+                        : ($library['default_cool_down'] ?? '10 min easy jog');
 
                     $descriptionLines = [
                         "Warm Up: " . $warmUpText,
@@ -352,41 +390,93 @@ class ProgramBuilderService
                     $session['workout_name'] = $workout['name'];
                 } elseif ($assignment['type'] === 'easy_run' || $assignment['type'] === 'recovery_run') {
                     $session['type'] = $assignment['type'];
-                    $session['distance'] = $easyDistance;
-                    $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['duration'] = $this->calculateDuration($easyDistance, $paces['E']);
 
-                    $paceFast = max(0, $paces['E'] - (5 / 60));
-                    $paceSlow = $paces['E'] + (10 / 60);
-                    $rangeStr = sprintf(
-                        '%d:%02d - %d:%02d/km',
-                        floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
-                        floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
-                    );
+                    if ($isRunWalk) {
+                        if ($assignment['type'] === 'recovery_run') {
+                            $session['distance'] = 2.5;
+                            $session['duration'] = '00:25:00';
+                            $session['target_pace'] = '@ 10:30 - 11:30/km (Jalan Pemulihan)';
+                            $session['description'] = "Recovery Walk & Mobility (Pemulihan Aktif)\n"
+                                . "• Durasi: 25 menit Jalan Cepat Santai (Pace 10:30–11:30/km)\n"
+                                . "• Fokus: Melancarkan sirkulasi darah tanpa impak hentakan keras pada sendi.\n"
+                                . "• Gerakan: Postur tegak, langkah santai, peregangan betis dan paha di akhir sesi.";
+                        } else {
+                            $weekProgress = $w / max(1, $weeks);
 
-                    // Level-aware Zone 2 / HR guidance
-                    $zoneGuidance = $levelRules['zone2_hr_guidance'] ?? '';
-
-                    if ($assignment['type'] === 'recovery_run') {
-                        $session['description'] = $isDeload
-                            ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget pace: $rangeStr (RPE < 3)"
-                            : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget pace: $rangeStr (RPE < 3)";
-                    } elseif ($runnerLevel === 'beginner' && $phase === 'Base') {
-                        $session['description'] = "Zone 2 Aerobic Run — Fondasi Mitokondria\n"
-                            . "Target pace: $rangeStr\n"
-                            . ($zoneGuidance ? "Target HR: $zoneGuidance\n" : '')
-                            . "TUJUAN: Sesi ini melatih mitokondria Anda — 'mesin energi' sel otot yang mengubah oksigen menjadi ATP. "
-                            . "Semakin banyak dan efisien mitokondria, semakin mudah Anda berlari jauh. "
-                            . "Berlari terlalu cepat di sesi ini justru MENGURANGI manfaatnya. "
-                            . "Test: Jika bisa berbicara kalimat penuh tanpa terengah = pace yang tepat (RPE 3-4).";
-                    } elseif ($runnerLevel === 'beginner') {
-                        $session['description'] = "Easy Aerobic Run — Membangun aerobic base.\n"
-                            . "Target pace: $rangeStr\n"
-                            . ($zoneGuidance ? "Target HR: $zoneGuidance (RPE 3-4)" : "RPE 3-4");
-                    } elseif ($runnerLevel === 'intermediate') {
-                        $session['description'] = "Easy Aerobic Run — Aerobic maintenance & recovery.\nTarget pace: $rangeStr (RPE 3-5)";
+                            if ($weekProgress <= 0.35) {
+                                // Fase Awal (Base Awal): 1m Run + 2m Walk
+                                $session['distance'] = 3.2;
+                                $session['duration'] = '00:34:00';
+                                $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                                $session['description'] = "Metode Lari-Jalan (Run-Walk Interval) — Fondasi Aerobik & Proteksi Sendi\n"
+                                    . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
+                                    . "• Sesi Utama: 8 repetisi × [1 menit Lari Santai + 2 menit Jalan Cepat]\n"
+                                    . "  - Pace Lari: 8:00 - 8:30/km (Form lari santai alami, langkah rileks, RPE 3-4)\n"
+                                    . "  - Pace Jalan: 10:30 - 11:30/km (Jalan cepat aktif untuk kontrol detak jantung)\n"
+                                    . "• Pendinginan: 5 menit Jalan Santai & Peregangan Otot\n"
+                                    . "TUJUAN: Melatih sistem kardiovaskular dan mitokondria tanpa membebani sendi/tulang. Jeda jalan menjaga detak jantung tetap stabil di Zona 2.";
+                            } elseif ($weekProgress <= 0.70) {
+                                // Fase Menengah: 2m Run + 1m Walk
+                                $session['distance'] = 3.6;
+                                $session['duration'] = '00:35:00';
+                                $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                                $session['description'] = "Metode Lari-Jalan (Run-Walk Progression) — Peningkatan Kapasitas Aerobik\n"
+                                    . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
+                                    . "• Sesi Utama: 9 repetisi × [2 menit Lari Santai + 1 menit Jalan Cepat]\n"
+                                    . "  - Pace Lari: 8:00 - 8:30/km (Ritme langkah teratur, postur tegak)\n"
+                                    . "  - Pace Jalan: 10:30 - 11:30/km (Jalan aktif pemulihan napas)\n"
+                                    . "• Pendinginan: 5 menit Jalan Santai & Peregangan\n"
+                                    . "TUJUAN: Menaikkan rasio durasi lari 2x lebih lama dari jeda jalan seraya mempertahankan biomekanika lari yang efisien.";
+                            } else {
+                                // Fase Lanjutan: Transisi Kontinu
+                                $session['distance'] = 3.8;
+                                $session['duration'] = '00:30:00';
+                                $session['target_pace'] = '@ 8:00 - 8:30/km (Transisi Kontinu)';
+                                $session['description'] = "Easy Aerobic Run (Transisi Lari Kontinu)\n"
+                                    . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
+                                    . "• Sesi Utama: 20-25 menit Lari Santai Berkelanjutan (Pace 8:00 - 8:30/km, RPE 3-4)\n"
+                                    . "  - Tips: Jika detak jantung melewati batas Zona 2 atau napas mulai terengah, sisipkan 60 detik jalan cepat lalu lanjutkan lari santai.\n"
+                                    . "• Pendinginan: 5 menit Jalan Santai\n"
+                                    . "TUJUAN: Tubuh dan sistem kardio telah beradaptasi, siap berlari terus-menerus secara nyaman dan aman.";
+                            }
+                        }
                     } else {
-                        $session['description'] = "Easy Aerobic Run — Active aerobic stimulus.\nTarget pace: $rangeStr (RPE 3-5)";
+                        $session['distance'] = $easyDistance;
+                        $session['target_pace'] = $this->formatPace($paces['E']);
+                        $session['duration'] = $this->calculateDuration($easyDistance, $paces['E']);
+
+                        $paceFast = max(0, $paces['E'] - (5 / 60));
+                        $paceSlow = $paces['E'] + (10 / 60);
+                        $rangeStr = sprintf(
+                            '%d:%02d - %d:%02d/km',
+                            floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
+                            floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
+                        );
+
+                        // Level-aware Zone 2 / HR guidance
+                        $zoneGuidance = $levelRules['zone2_hr_guidance'] ?? '';
+
+                        if ($assignment['type'] === 'recovery_run') {
+                            $session['description'] = $isDeload
+                                ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget pace: $rangeStr (RPE < 3)"
+                                : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget pace: $rangeStr (RPE < 3)";
+                        } elseif ($runnerLevel === 'beginner' && $phase === 'Base') {
+                            $session['description'] = "Zone 2 Aerobic Run — Fondasi Mitokondria\n"
+                                . "Target pace: $rangeStr\n"
+                                . ($zoneGuidance ? "Target HR: $zoneGuidance\n" : '')
+                                . "TUJUAN: Sesi ini melatih mitokondria Anda — 'mesin energi' sel otot yang mengubah oksigen menjadi ATP. "
+                                . "Semakin banyak dan efisien mitokondria, semakin mudah Anda berlari jauh. "
+                                . "Berlari terlalu cepat di sesi ini justru MENGURANGI manfaatnya. "
+                                . "Test: Jika bisa berbicara kalimat penuh tanpa terengah = pace yang tepat (RPE 3-4).";
+                        } elseif ($runnerLevel === 'beginner') {
+                            $session['description'] = "Easy Aerobic Run — Membangun aerobic base.\n"
+                                . "Target pace: $rangeStr\n"
+                                . ($zoneGuidance ? "Target HR: $zoneGuidance (RPE 3-4)" : "RPE 3-4");
+                        } elseif ($runnerLevel === 'intermediate') {
+                            $session['description'] = "Easy Aerobic Run — Aerobic maintenance & recovery.\nTarget pace: $rangeStr (RPE 3-5)";
+                        } else {
+                            $session['description'] = "Easy Aerobic Run — Active aerobic stimulus.\nTarget pace: $rangeStr (RPE 3-5)";
+                        }
                     }
                 } elseif ($assignment['type'] === 'strength') {
                     $session['type'] = 'strength';

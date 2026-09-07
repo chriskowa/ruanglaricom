@@ -23,802 +23,705 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
-    #events-page{
-        --ep-bg:#07101c;
-        --ep-surface:#0b1522;
-        --ep-soft:#0f1b2a;
-        --ep-line:rgba(255,255,255,.09);
-        --ep-line-strong:rgba(255,255,255,.16);
-        --ep-white:#fff;
-        --ep-secondary:rgba(255,255,255,.74);
-        --ep-support:rgba(255,255,255,.54);
-        --ep-meta:rgba(255,255,255,.36);
-        --ep-accent:#b8ff00;
-        --ep-orange:#fc4c02;
-        min-height:100vh;
-        background:var(--ep-bg);
-        color:var(--ep-white);
-        font-variant-numeric:tabular-nums;
+    #events-page {
+        --ep-bg: #080A0D;
+        --ep-surface: #12161F;
+        --ep-input: #0B0F17;
+        --ep-line: #232B3B;
+        --ep-line-strong: #334155;
+        --ep-accent: #ccff00;
+        --ep-accent-hover: #b8e600;
+        min-height: 100vh;
+        background: var(--ep-bg);
+        color: #f8fafc;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-variant-numeric: tabular-nums;
     }
 
-    #events-page *{box-sizing:border-box}
-
-    #events-page .ep-shell{max-width:1280px;margin:0 auto;padding-left:1rem;padding-right:1rem}
+    #events-page * { box-sizing: border-box; }
+    #events-page .ep-shell { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
 
     /* HERO */
-    #events-page .ep-hero{
-        padding:2rem 0 2.6rem;
-        border-bottom:1px solid var(--ep-line);
+    #events-page .ep-hero {
+        padding: 1.5rem 0 2rem;
+        border-bottom: 1px solid var(--ep-line);
+    }
+    #events-page .ep-hero-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 2.5rem;
+        align-items: start;
+    }
+    #events-page .ep-title {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+    }
+    #events-page .ep-lead {
+        color: #cbd5e1;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 0.75rem;
+    }
+    #events-page .ep-subcopy {
+        color: #94a3b8;
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 0.5rem;
+    }
+    #events-page .ep-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1.25rem;
+    }
+    #events-page .ep-btn {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0 1.15rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        color: #f8fafc;
+        background: #12161F;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    #events-page .ep-btn:hover {
+        background: #1a2333;
+        border-color: var(--ep-line-strong);
+        color: #ffffff;
+    }
+    #events-page .ep-btn--primary {
+        background: var(--ep-accent);
+        border-color: var(--ep-accent);
+        color: #080A0D !important;
+        font-weight: 800 !important;
+    }
+    #events-page .ep-btn--primary:hover {
+        background: var(--ep-accent-hover);
+        border-color: var(--ep-accent-hover);
     }
 
-    #events-page .ep-kicker{
-        display:flex;
-        align-items:center;
-        gap:.7rem;
-        color:var(--ep-accent);
-        font-size:10px;
-        font-weight:900;
-        letter-spacing:.18em;
-        text-transform:uppercase;
+    /* FEATURED SLIDER */
+    #events-page .ep-featured {
+        position: relative;
+        overflow: hidden;
+        min-height: 320px;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
     }
-
-    #events-page .ep-kicker:before{
-        content:"";
-        width:30px;
-        height:2px;
-        background:var(--ep-accent);
+    #events-page .ep-featured-slide {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-height: 320px;
+        flex: 0 0 100%;
+        overflow: hidden;
     }
-
-    #events-page .ep-hero-grid{
-        display:grid;
-        grid-template-columns:1.05fr .95fr;
-        gap:3rem;
-        align-items:start;
-        margin-top:1rem;
+    #events-page .ep-featured-slide img {
+        width: 100%;
+        height: 100%;
+        min-height: 320px;
+        object-fit: cover;
+        transition: transform 0.4s ease;
     }
-
-    #events-page .ep-title{
-        margin:0;
-        color:#fff;
-        font-size:clamp(2.8rem,6vw,5.8rem);
-        line-height:.9;
-        letter-spacing:-.06em;
-        font-weight:900;
-        text-transform:uppercase;
+    #events-page .ep-featured-slide:hover img {
+        transform: scale(1.02);
     }
-
-    #events-page .ep-title em{
-        color:var(--ep-accent);
-        font-style:normal;
+    #events-page .ep-featured-slide:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(8,10,13,0.95) 0%, rgba(8,10,13,0.4) 50%, rgba(8,10,13,0.05) 80%);
     }
-
-    #events-page .ep-lead{
-        max-width:46rem;
-        margin-top:1.2rem;
-        color:var(--ep-secondary);
-        font-size:14px;
-        line-height:1.8;
+    #events-page .ep-featured-copy {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        padding: 1.25rem;
     }
-
-    #events-page .ep-subcopy{
-        max-width:40rem;
-        margin-top:.8rem;
-        color:var(--ep-support);
-        font-size:11px;
-        line-height:1.65;
+    #events-page .ep-featured-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
-
-    #events-page .ep-actions{
-        display:flex;
-        flex-wrap:wrap;
-        gap:.5rem;
-        margin-top:1.4rem;
+    #events-page .ep-featured-name {
+        margin-top: 0.4rem;
+        color: #ffffff;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
     }
-
-    #events-page .ep-btn{
-        min-height:44px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        gap:.55rem;
-        padding:0 1rem;
-        border:1px solid var(--ep-line-strong);
-        border-radius:3px;
-        color:#fff;
-        background:transparent;
-        font-size:10px;
-        font-weight:900;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        transition:.18s ease;
+    #events-page .ep-slider-nav {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 3;
+        display: flex;
+        gap: 0.35rem;
     }
-
-    #events-page .ep-btn:hover{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.025)}
-    #events-page .ep-btn--primary{background:var(--ep-accent);border-color:var(--ep-accent);color:#07101c}
-    #events-page .ep-btn--primary:hover{background:#d2ff65;border-color:#d2ff65}
-
-    /* FEATURED */
-    #events-page .ep-featured{
-        position:relative;
-        overflow:hidden;
-        min-height:390px;
-        border:1px solid var(--ep-line);
-        background:#08111f;
+    #events-page .ep-slider-nav button {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--ep-line-strong);
+        border-radius: 6px;
+        background: rgba(8,10,13,0.85);
+        color: #ffffff;
+        cursor: pointer;
+        transition: background 0.15s ease;
     }
-
-    #events-page .ep-featured-slide{
-        position:relative;
-        display:block;
-        width:100%;
-        min-height:390px;
-        flex:0 0 100%;
-        overflow:hidden;
-    }
-
-    #events-page .ep-featured-slide img{
-        width:100%;height:100%;min-height:390px;object-fit:cover;transition:transform .7s ease;
-    }
-
-    #events-page .ep-featured-slide:hover img{transform:scale(1.025)}
-    #events-page .ep-featured-slide:after{
-        content:"";
-        position:absolute;inset:0;
-        background:linear-gradient(to top,rgba(3,7,14,.96) 0%,rgba(3,7,14,.45) 48%,rgba(3,7,14,.06) 78%);
-    }
-
-    #events-page .ep-featured-copy{
-        position:absolute;
-        left:0;right:0;bottom:0;
-        z-index:2;
-        padding:1.25rem;
-    }
-
-    #events-page .ep-featured-meta{
-        display:flex;
-        flex-wrap:wrap;
-        gap:.7rem;
-        align-items:center;
-        color:rgba(255,255,255,.6);
-        font-size:9px;
-        font-weight:800;
-        text-transform:uppercase;
-        letter-spacing:.08em;
-    }
-
-    #events-page .ep-featured-name{
-        margin-top:.45rem;
-        color:#fff;
-        font-size:clamp(1.2rem,2.4vw,2rem);
-        line-height:1.05;
-        letter-spacing:-.035em;
-        font-weight:900;
-        text-transform:uppercase;
-    }
-
-    #events-page .ep-slider-nav{
-        position:absolute;
-        top:1rem;
-        right:1rem;
-        z-index:3;
-        display:flex;
-        gap:.35rem;
-    }
-
-    #events-page .ep-slider-nav button{
-        width:34px;height:34px;
-        display:flex;align-items:center;justify-content:center;
-        border:1px solid rgba(255,255,255,.18);
-        border-radius:2px;
-        background:rgba(7,16,28,.78);
-        color:#fff;
+    #events-page .ep-slider-nav button:hover {
+        background: #1a2333;
     }
 
     /* OPERATIONS STRIP */
-    #events-page .ep-ops{
-        display:grid;
-        grid-template-columns:1fr auto;
-        gap:2rem;
-        align-items:center;
-        padding:1.2rem 0;
-        border-bottom:1px solid var(--ep-line);
+    #events-page .ep-ops {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
+        margin-top: 1.5rem;
     }
-
-    #events-page .ep-ops-label{
-        color:var(--ep-accent);
-        font-size:9px;
-        font-weight:900;
-        letter-spacing:.15em;
-        text-transform:uppercase;
+    @media (min-width: 640px) {
+        #events-page .ep-ops {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
     }
-
-    #events-page .ep-ops h2{
-        margin:.35rem 0 0;
-        font-size:20px;
-        line-height:1.2;
-        font-weight:900;
-        letter-spacing:-.025em;
-        text-transform:uppercase;
+    #events-page .ep-ops-label {
+        color: var(--ep-accent);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
     }
-
-    #events-page .ep-ops p{
-        margin:.35rem 0 0;
-        max-width:52rem;
-        color:var(--ep-secondary);
-        font-size:11px;
-        line-height:1.6;
+    #events-page .ep-ops h2 {
+        margin: 0.25rem 0 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+    #events-page .ep-ops p {
+        margin: 0.25rem 0 0;
+        color: #cbd5e1;
+        font-size: 12px;
+        line-height: 1.5;
     }
 
     /* MAP */
-    #events-page .ep-section{padding:2rem 0 0}
-    #events-page .ep-section-head{
-        display:flex;
-        align-items:end;
-        justify-content:space-between;
-        gap:1rem;
-        margin-bottom:.8rem;
+    #events-page .ep-section { padding-top: 2rem; }
+    #events-page .ep-section-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.85rem;
     }
-
-    #events-page .ep-eyebrow{
-        color:var(--ep-meta);
-        font-size:9px;
-        font-weight:900;
-        letter-spacing:.15em;
-        text-transform:uppercase;
+    #events-page .ep-heading {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.125rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
     }
-
-    #events-page .ep-heading{
-        margin:.35rem 0 0;
-        color:#fff;
-        font-size:clamp(1.4rem,3vw,2.2rem);
-        line-height:1.05;
-        letter-spacing:-.035em;
-        font-weight:900;
-        text-transform:uppercase;
+    #events-page .ep-section-copy {
+        margin-top: 0.25rem;
+        color: #94a3b8;
+        font-size: 12px;
     }
-
-    #events-page .ep-section-copy{
-        margin-top:.4rem;
-        color:var(--ep-support);
-        font-size:11px;
-        line-height:1.6;
+    #events-page .ep-map-shell {
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
+        overflow: hidden;
     }
-
-    #events-page .ep-map-shell{
-        border:1px solid var(--ep-line);
-        background:#08111f;
+    #events-page .ep-map-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.65rem 0.85rem;
+        border-bottom: 1px solid var(--ep-line);
+        background: #0B0F17;
     }
-
-    #events-page .ep-map-toolbar{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:1rem;
-        padding:.7rem .85rem;
-        border-bottom:1px solid var(--ep-line);
-        background:#08111f;
+    #events-page .ep-map-tools { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+    #events-page .ep-tool-btn {
+        min-height: 32px;
+        padding: 0 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        color: #cbd5e1;
+        background: #12161F;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
-
-    #events-page .ep-map-tools{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
-    #events-page .ep-tool-btn{
-        min-height:34px;
-        padding:0 .7rem;
-        display:inline-flex;align-items:center;gap:.45rem;
-        border:1px solid var(--ep-line);
-        border-radius:2px;
-        color:var(--ep-secondary);
-        background:transparent;
-        font-size:9px;
-        font-weight:800;
+    #events-page .ep-tool-btn:hover { color: #ffffff; background: #1a2333; border-color: var(--ep-line-strong); }
+    #events-page #events-explorer-map { height: 400px; background: #080A0D; }
+    #events-page .ep-map-filter {
+        display: flex;
+        gap: 0.35rem;
+        overflow-x: auto;
+        padding: 0.6rem 0.85rem;
+        border-top: 1px solid var(--ep-line);
+        background: #0B0F17;
+        scrollbar-width: none;
     }
-
-    #events-page .ep-tool-btn:hover{color:#fff;border-color:var(--ep-line-strong)}
-    #events-page #events-explorer-map{height:480px;background:#08111f}
-
-    #events-page .ep-map-filter{
-        display:flex;
-        gap:.35rem;
-        overflow-x:auto;
-        padding:.65rem .75rem;
-        border-top:1px solid var(--ep-line);
-        scrollbar-width:none;
-    }
-    #events-page .ep-map-filter::-webkit-scrollbar{display:none}
+    #events-page .ep-map-filter::-webkit-scrollbar { display: none; }
 
     /* FILTERS */
-    #events-page .ep-filter-shell{
-        margin-top:1rem;
-        border-top:1px solid var(--ep-line);
-        border-bottom:1px solid var(--ep-line);
-        padding:.9rem 0;
+    #events-page .ep-filter-shell {
+        margin-top: 1.5rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        padding: 1.25rem;
+        background: #12161F;
     }
-
-    #events-page #filter-form{
-        display:grid;
-        grid-template-columns:1.25fr repeat(4,1fr);
-        gap:.55rem;
+    #events-page #filter-form {
+        display: grid;
+        grid-template-columns: 1.25fr repeat(4, 1fr);
+        gap: 0.75rem;
     }
-
-    #events-page label{
-        display:block;
-        margin-bottom:.35rem;
-        color:rgba(255,255,255,.52);
-        font-size:9px;
-        font-weight:900;
-        text-transform:uppercase;
-        letter-spacing:.08em;
+    #events-page label {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
-
     #events-page input:not([type=checkbox]):not([type=file]),
     #events-page select,
-    #events-page textarea{
-        width:100%;
-        border:1px solid var(--ep-line);
-        border-radius:2px;
-        background:rgba(2,6,13,.45);
-        color:#fff;
-        outline:none;
-        box-shadow:none;
+    #events-page textarea {
+        width: 100%;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        background: var(--ep-input);
+        color: #f8fafc;
+        outline: none;
+        box-shadow: none;
+        font-family: inherit;
+        transition: border-color 0.15s ease;
     }
-
     #events-page input:not([type=checkbox]):not([type=file]),
-    #events-page select{height:42px;padding:0 .75rem;font-size:11px}
-    #events-page textarea{padding:.7rem .75rem;font-size:11px}
-
-    #events-page input::placeholder{color:rgba(255,255,255,.28)}
-    #events-page input:focus,#events-page select:focus,#events-page textarea:focus{
-        border-color:rgba(184,255,0,.5);
-        box-shadow:0 0 0 3px rgba(184,255,0,.04);
+    #events-page select {
+        height: 38px;
+        padding: 0 0.75rem;
+        font-size: 12px;
     }
-
-    #events-page .ep-quick{
-        display:flex;
-        gap:.35rem;
-        overflow-x:auto;
-        padding:.7rem 0 0;
-        scrollbar-width:none;
+    #events-page textarea { padding: 0.6rem 0.75rem; font-size: 12px; }
+    #events-page input::placeholder { color: #64748b; }
+    #events-page input:focus,
+    #events-page select:focus,
+    #events-page textarea:focus {
+        border-color: var(--ep-accent);
+        box-shadow: 0 0 0 1px var(--ep-accent);
     }
-    #events-page .ep-quick::-webkit-scrollbar{display:none}
+    #events-page .ep-quick {
+        display: flex;
+        gap: 0.4rem;
+        overflow-x: auto;
+        padding-top: 0.85rem;
+        margin-top: 0.85rem;
+        border-top: 1px solid var(--ep-line);
+        scrollbar-width: none;
+    }
+    #events-page .ep-quick::-webkit-scrollbar { display: none; }
     #events-page .quick-filter-btn,
-    #events-page .btn-event-map-pill{
-        flex:0 0 auto;
-        min-height:32px;
-        padding:0 .65rem;
-        border:1px solid var(--ep-line);
-        border-radius:2px;
-        background:transparent;
-        color:var(--ep-support);
-        font-size:9px;
-        font-weight:900;
-        letter-spacing:.06em;
-        text-transform:uppercase;
+    #events-page .btn-event-map-pill {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 0 0.65rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        background: var(--ep-input);
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
     }
-
+    #events-page .quick-filter-btn:hover,
+    #events-page .btn-event-map-pill:hover {
+        border-color: var(--ep-line-strong);
+        color: #ffffff;
+    }
     #events-page .quick-filter-btn.is-active,
-    #events-page .btn-event-map-pill.is-active{
-        background:var(--ep-accent);
-        border-color:var(--ep-accent);
-        color:#07101c;
+    #events-page .btn-event-map-pill.is-active {
+        background: var(--ep-accent);
+        border-color: var(--ep-accent);
+        color: #080A0D;
+        font-weight: 700;
     }
 
     /* EVENT LIST */
-    #events-page .ep-list-head{
-        display:flex;align-items:end;justify-content:space-between;gap:1rem;
-        padding-top:2.2rem;margin-bottom:.9rem;
+    #events-page .ep-list-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    #events-page #events-container {
+        display: flex;
+        flex-direction: column;
     }
 
-    #events-page #events-container{
-        border-top:1px solid var(--ep-line);
+    /* SEO DIRECTORY */
+    #events-page .ep-seo {
+        margin-top: 3.5rem;
+        padding-top: 2.5rem;
+        border-top: 1px solid var(--ep-line);
     }
-
-    /* aggressively normalize event partial cards */
-    #events-page #events-container > *{
-        border-radius:0 !important;
-        box-shadow:none !important;
+    #events-page .ep-directory {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin-top: 0.85rem;
     }
-
-    /* SEO */
-    #events-page .ep-seo{
-        margin-top:4rem;
-        padding-top:2.5rem;
-        border-top:1px solid var(--ep-line);
+    #events-page .ep-directory a {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        background: #12161F;
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.3;
+        text-decoration: none;
+        transition: all 0.15s ease;
     }
-
-    #events-page .ep-directory{
-        display:grid;
-        grid-template-columns:repeat(6,minmax(0,1fr));
-        border-top:1px solid var(--ep-line);
-        border-left:1px solid var(--ep-line);
-        margin-top:.9rem;
+    #events-page .ep-directory a:hover {
+        color: var(--ep-accent);
+        border-color: var(--ep-accent);
+        background: #172030;
     }
-
-    #events-page .ep-directory a{
-        min-height:72px;
-        display:flex;
-        align-items:center;
-        padding:.7rem;
-        border-right:1px solid var(--ep-line);
-        border-bottom:1px solid var(--ep-line);
-        color:var(--ep-secondary);
-        font-size:10px;
-        font-weight:800;
-        line-height:1.4;
-        text-transform:uppercase;
-        transition:.18s ease;
+    #events-page .ep-copy-panel {
+        margin-top: 2rem;
+        padding: 1.25rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
     }
-
-    #events-page .ep-directory a:hover{color:var(--ep-accent);background:rgba(255,255,255,.015)}
-
-    #events-page .ep-copy-panel{
-        margin-top:2.5rem;
-        padding:1.2rem 0;
-        border-top:1px solid var(--ep-line);
-        border-bottom:1px solid var(--ep-line);
+    #events-page .ep-copy-panel p {
+        color: #cbd5e1;
+        font-size: 13px;
+        line-height: 1.7;
     }
-
-    #events-page .ep-copy-panel p{
-        color:var(--ep-secondary);
-        font-size:12px;
-        line-height:1.8;
+    #events-page .ep-faq {
+        margin-top: 2rem;
     }
-
-    #events-page .ep-faq{
-        margin-top:2.5rem;
-        border-top:1px solid var(--ep-line);
+    #events-page .ep-faq-item {
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
     }
-
-    #events-page .ep-faq-item{border-bottom:1px solid var(--ep-line)}
-    #events-page .ep-faq-item button{
-        width:100%;
-        min-height:58px;
-        display:flex;align-items:center;justify-content:space-between;gap:1rem;
-        color:#fff;background:transparent;text-align:left;
-        font-size:12px;font-weight:800;
+    #events-page .ep-faq-item button {
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        color: #ffffff;
+        background: transparent;
+        border: none;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
     }
-
-    #events-page .ep-faq-answer{
-        padding:0 0 1rem;
-        color:var(--ep-secondary);
-        font-size:11px;
-        line-height:1.7;
+    #events-page .ep-faq-answer {
+        padding: 0 1rem 1rem;
+        color: #94a3b8;
+        font-size: 12px;
+        line-height: 1.6;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        padding-top: 0.75rem;
     }
 
     /* MODAL SUBMIT EVENT */
-    #submit-event-modal .ep-modal{
-        width:100%;max-width:1080px;max-height:92vh;
-        display:flex;flex-direction:column;
-        border:1px solid rgba(255,255,255,.18);
-        border-radius:8px;
-        background:#08111f;
-        color:#fff;
-        box-shadow:0 25px 50px -12px rgba(0,0,0,.75);
-        overflow:hidden;
+    #submit-event-modal .ep-modal {
+        width: 100%;
+        max-width: 1040px;
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #080A0D;
+        color: #ffffff;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.85);
+        overflow: hidden;
     }
-    #submit-event-modal .ep-modal-head{
-        flex:0 0 auto;
-        display:flex;align-items:center;justify-content:space-between;gap:1rem;
-        padding:1.1rem 1.5rem;
-        border-bottom:1px solid rgba(255,255,255,.12);
-        background:#060d18;
+    #submit-event-modal .ep-modal-head {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--ep-line);
+        background: #12161F;
     }
-    #submit-event-modal .ep-modal-foot{
-        flex:0 0 auto;
-        display:flex;align-items:center;justify-content:space-between;gap:1rem;
-        padding:1rem 1.5rem;
-        border-top:1px solid rgba(255,255,255,.14);
-        border-bottom:0;
-        background:#060d18;
-        z-index:10;
+    #submit-event-modal .ep-modal-foot {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--ep-line);
+        background: #12161F;
+        z-index: 10;
     }
-    #submit-event-modal .ep-modal-body{
-        flex:1 1 auto;
-        min-height:0;
-        overflow-y:auto;
-        padding:1.25rem 1.5rem;
-        background:#08111f;
+    #submit-event-modal .ep-modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 1.25rem;
+        background: #080A0D;
     }
-
-    #submit-event-modal .ep-btn{
-        min-height:42px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        gap:.55rem;
-        padding:0 1.25rem;
-        border:1px solid rgba(255,255,255,.22);
-        border-radius:6px;
-        color:#F8FAFC;
-        background:#111f32;
-        font-size:11px;
-        font-weight:800;
-        letter-spacing:.08em;
-        text-transform:uppercase;
-        cursor:pointer;
-        transition:all .15s ease;
-        text-decoration:none;
-        box-sizing:border-box;
+    #submit-event-modal .ep-form-section {
+        padding: 1rem;
+        border: 1px solid var(--ep-line);
+        border-radius: 8px;
+        background: #12161F;
     }
-    #submit-event-modal .ep-btn:hover{
-        background:#172a44;
-        border-color:rgba(255,255,255,.4);
-        color:#FFFFFF;
+    #submit-event-modal .ep-form-section-title {
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--ep-line);
+        color: var(--ep-accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
-    #submit-event-modal .ep-btn--primary{
-        background:#B8FF00!important;
-        border-color:#B8FF00!important;
-        color:#05080E!important;
-        font-weight:900!important;
-        box-shadow:0 4px 14px rgba(184,255,0,.25);
-    }
-    #submit-event-modal .ep-btn--primary:hover{
-        background:#CBFF4A!important;
-        border-color:#CBFF4A!important;
-        box-shadow:0 6px 18px rgba(184,255,0,.35);
-    }
-    #submit-event-modal .ep-btn:disabled,
-    #submit-event-modal .ep-btn[disabled]{
-        opacity:0.6;
-        cursor:not-allowed;
-        box-shadow:none;
-    }
-
-    @media (max-width: 640px) {
-        #submit-event-modal .ep-modal {
-            max-height: 96vh;
-            border-radius: 6px;
-        }
-        #submit-event-modal .ep-modal-head,
-        #submit-event-modal .ep-modal-body {
-            padding: 1rem;
-        }
-        #submit-event-modal .ep-modal-foot {
-            flex-direction: column-reverse;
-            align-items: stretch;
-            gap: 0.75rem;
-            padding: 0.85rem 1rem;
-        }
-        #submit-event-modal .ep-modal-foot .flex {
-            width: 100%;
-        }
-        #submit-event-modal .ep-modal-foot button {
-            flex: 1;
-        }
-    }
-    #submit-event-modal .ep-form-section{
-        padding:1.1rem;
-        border:1px solid rgba(255,255,255,.1);
-        border-radius:6px;
-        background:#0c1827;
-    }
-    #submit-event-modal .ep-form-section-title{
-        padding-bottom:.6rem;margin-bottom:.85rem;border-bottom:1px solid rgba(255,255,255,.08);
-        color:#b8ff00;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;
-    }
-    #submit-event-modal label{
-        display:block;
-        font-size:11px;
-        font-weight:700;
-        color:#cbd5e1;
-        margin-bottom:5px;
-        letter-spacing:.02em;
+    #submit-event-modal label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin-bottom: 4px;
     }
     #submit-event-modal input[type="text"],
     #submit-event-modal input[type="date"],
     #submit-event-modal input[type="time"],
     #submit-event-modal input[type="email"],
     #submit-event-modal select,
-    #submit-event-modal textarea{
-        width:100%;
-        height:40px;
-        padding:8px 12px;
-        background:#111f32;
-        border:1px solid rgba(255,255,255,.18);
-        border-radius:6px;
-        color:#ffffff;
-        font-size:13px;
-        font-family:inherit;
-        outline:none;
-        box-sizing:border-box;
-        transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
-        color-scheme:dark;
+    #submit-event-modal textarea {
+        width: 100%;
+        height: 38px;
+        padding: 6px 10px;
+        background: #0B0F17;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        color: #ffffff;
+        font-size: 12px;
+        font-family: inherit;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease;
+        color-scheme: dark;
     }
-    #submit-event-modal textarea{
-        height:auto;
-        min-height:70px;
-        resize:vertical;
+    #submit-event-modal textarea {
+        height: auto;
+        min-height: 60px;
+        resize: vertical;
     }
-    #submit-event-modal input[type="text"]:focus,
-    #submit-event-modal input[type="date"]:focus,
-    #submit-event-modal input[type="time"]:focus,
-    #submit-event-modal input[type="email"]:focus,
+    #submit-event-modal input:focus,
     #submit-event-modal select:focus,
-    #submit-event-modal textarea:focus{
-        border-color:#b8ff00;
-        background:#14253c;
-        box-shadow:0 0 0 1px #b8ff00;
+    #submit-event-modal textarea:focus {
+        border-color: var(--ep-accent);
+        box-shadow: 0 0 0 1px var(--ep-accent);
     }
-    #submit-event-modal input::placeholder,
-    #submit-event-modal textarea::placeholder{
-        color:rgba(255,255,255,.38);
+    #submit-event-modal .race-distance-cb {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--ep-accent);
+        cursor: pointer;
     }
-    #submit-event-modal select option{
-        background:#0f1c2e;
-        color:#ffffff;
+    #submit-event-modal .ep-form-section label.race-distance-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--ep-line);
+        background: #0B0F17;
+        border-radius: 6px;
+        padding: 6px 8px;
+        color: #e2e8f0;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: 0 !important;
+        user-select: none;
     }
-    #submit-event-modal .race-distance-cb{
-        width:16px;
-        height:16px;
-        accent-color:#b8ff00;
-        cursor:pointer;
+    #submit-event-modal .ep-form-section label.race-distance-item:hover {
+        border-color: var(--ep-accent);
     }
-    #submit-event-modal .ep-form-section label.race-distance-item{
-        display:flex;
-        align-items:center;
-        gap:8px;
-        border:1px solid rgba(255,255,255,.14);
-        background:#111f32;
-        border-radius:6px;
-        padding:8px 10px;
-        color:#e2e8f0;
-        font-size:12px;
-        font-weight:600;
-        cursor:pointer;
-        transition:border-color .15s ease, background .15s ease;
-        margin-bottom:0!important;
-        user-select:none;
+    #submit-event-modal #banner-dropzone {
+        border: 1px dashed var(--ep-line-strong);
+        border-radius: 6px;
+        background: #0B0F17;
+        padding: 1.25rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.15s ease;
     }
-    #submit-event-modal .ep-form-section label.race-distance-item:hover{
-        border-color:rgba(184,255,0,.4);
-        background:#14253c;
+    #submit-event-modal #banner-dropzone:hover {
+        border-color: var(--ep-accent);
     }
-    #submit-event-modal #banner-dropzone{
-        border:1px dashed rgba(255,255,255,.22);
-        border-radius:6px;
-        background:#111f32;
-        padding:1.25rem;
-        text-align:center;
-        cursor:pointer;
-        transition:border-color .15s ease, background .15s ease;
+    #submit-event-modal #map-search-results {
+        background: #12161F;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        max-height: 160px;
+        overflow-y: auto;
+        color: #ffffff;
+        font-size: 12px;
+        margin-top: 4px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.7);
     }
-    #submit-event-modal #banner-dropzone:hover{
-        border-color:#b8ff00;
-        background:#14253c;
+    #submit-event-modal #map-search-results div {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--ep-line);
+        cursor: pointer;
     }
-    #submit-event-modal #map-search-results{
-        background:#111f32;
-        border:1px solid rgba(255,255,255,.2);
-        border-radius:6px;
-        max-height:180px;
-        overflow-y:auto;
-        color:#ffffff;
-        font-size:12px;
-        margin-top:4px;
-        box-shadow:0 10px 25px rgba(0,0,0,.5);
+    #submit-event-modal #map-search-results div:hover {
+        background: #1a2333;
+        color: var(--ep-accent);
     }
-    #submit-event-modal #map-search-results div{
-        padding:8px 12px;
-        border-bottom:1px solid rgba(255,255,255,.08);
-        cursor:pointer;
-        transition:background .12s ease;
-    }
-    #submit-event-modal #map-search-results div:hover{
-        background:#192e4a;
-        color:#b8ff00;
-    }
-    #submit-event-modal #event-map{
-        border-radius:6px;
-        border:1px solid rgba(255,255,255,.15);
+    #submit-event-modal #event-map {
+        border-radius: 6px;
+        border: 1px solid var(--ep-line);
     }
 
-    /* MAPBOX GL CUSTOM STYLING */
-    .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
-        display: none !important;
-    }
+    /* MAPBOX CUSTOM STYLES */
+    .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
     .mapboxgl-ctrl-group {
-        background: #07101c !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 4px !important;
+        background: #0B0F17 !important;
+        border: 1px solid var(--ep-line) !important;
+        border-radius: 6px !important;
         overflow: hidden;
     }
-    .mapboxgl-ctrl-group button {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-    .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
-        filter: invert(1) brightness(2);
-    }
-    .mapboxgl-popup {
-        max-width: 290px !important;
-        z-index: 1000 !important;
-    }
+    .mapboxgl-ctrl-group button { border-bottom: 1px solid var(--ep-line) !important; }
+    .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon { filter: invert(1) brightness(2); }
+    .mapboxgl-popup { max-width: 280px !important; z-index: 1000 !important; }
     .mapboxgl-popup-content {
-        background: #07101c !important;
-        color: #fff !important;
-        border-radius: 4px !important;
-        border: 1px solid rgba(255, 255, 255, 0.16) !important;
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7) !important;
+        background: #12161F !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--ep-line) !important;
+        box-shadow: 0 16px 36px rgba(0,0,0,0.8) !important;
         padding: 0 !important;
         overflow: hidden !important;
     }
-    .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #07101c !important; }
-    .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #07101c !important; }
-    .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #07101c !important; }
-    .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #07101c !important; }
+    .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #12161F !important; }
+    .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #12161F !important; }
+    .mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #12161F !important; }
+    .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #12161F !important; }
     .mapboxgl-popup-close-button {
-        color: #fff !important;
+        color: #ffffff !important;
         font-size: 16px !important;
         padding: 4px 8px !important;
         background: rgba(0,0,0,0.6) !important;
-        border-radius: 0 0 0 4px !important;
+        border-radius: 0 0 0 6px !important;
         right: 0 !important;
         top: 0 !important;
         z-index: 10 !important;
     }
-    .mapboxgl-popup-close-button:hover {
-        background: rgba(0,0,0,0.85) !important;
-        color: #b8ff00 !important;
-    }
-    .custom-event-pin {
-        cursor: pointer;
-        transition: transform 0.15s ease;
-    }
-    .custom-event-pin:hover {
-        transform: scale(1.18);
-        z-index: 10;
+    .mapboxgl-popup-close-button:hover { color: var(--ep-accent) !important; }
+    .custom-event-pin { cursor: pointer; transition: transform 0.15s ease; }
+    .custom-event-pin:hover { transform: scale(1.15); z-index: 10; }
+
+    @media(max-width:1023px) {
+        #events-page .ep-hero-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        #events-page .ep-featured, #events-page .ep-featured-slide, #events-page .ep-featured-slide img { min-height: 280px; }
+        #events-page #filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #events-page .ep-directory { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
-    @media(max-width:1023px){
-        #events-page .ep-hero-grid{grid-template-columns:1fr;gap:1.5rem}
-        #events-page .ep-featured,#events-page .ep-featured-slide,#events-page .ep-featured-slide img{min-height:340px}
-        #events-page #filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}
-        #events-page .ep-directory{grid-template-columns:repeat(3,minmax(0,1fr))}
-    }
-
-    @media(max-width:639px){
-        #events-page .ep-hero{padding-top:1.2rem}
-        #events-page .ep-actions{display:grid;grid-template-columns:1fr}
-        #events-page .ep-btn{width:100%}
-        #events-page .ep-ops{grid-template-columns:1fr}
-        #events-page .ep-map-toolbar{align-items:flex-start;flex-direction:column}
-        #events-page #events-explorer-map{height:390px}
-        #events-page #filter-form{grid-template-columns:1fr}
-        #events-page .ep-directory{grid-template-columns:repeat(2,minmax(0,1fr))}
-        #events-page .ep-featured,#events-page .ep-featured-slide,#events-page .ep-featured-slide img{min-height:300px}
+    @media(max-width:639px) {
+        #events-page .ep-actions { display: grid; grid-template-columns: 1fr; }
+        #events-page .ep-btn { width: 100%; }
+        #events-page .ep-ops { flex-direction: column; }
+        #events-page #events-explorer-map { height: 320px; }
+        #events-page #filter-form { grid-template-columns: 1fr; }
+        #events-page .ep-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #events-page .ep-featured, #events-page .ep-featured-slide, #events-page .ep-featured-slide img { min-height: 240px; }
     }
 </style>
 @endpush
 
 @section('content')
-<div id="events-page" class="pt-20 pb-16">
+<div id="events-page" class="pt-0 pb-16">
 
     <section class="ep-hero">
         <div class="ep-shell">
-            <div class="ep-kicker">RuangLari / Indonesia Race Calendar</div>
-
             <div class="ep-hero-grid">
                 <div>
                     <h1 class="ep-title">
-                        Jadwal Lari <em>2026</em> Indonesia
+                        Kalender Event & Jadwal Lari Indonesia 2026
                     </h1>
 
                     <p class="ep-lead">
-                        Temukan jadwal lari 2026 di Indonesia dalam satu kalender lengkap.
-                        Mulai dari fun run, 5K, 10K, half marathon, marathon, trail run,
-                        ultra run, hingga virtual run.
+                        Kalender event lari terlengkap di Indonesia. Mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, hingga ultra run.
                     </p>
 
                     <p class="ep-subcopy">
-                        Cek tanggal, kota, kategori jarak, status pendaftaran, dan tautan resmi setiap event.
-                        Penyelenggara juga dapat mengajukan event gratis atau membuat registration page sendiri.
+                        Pantau tanggal, kota penyelenggaraan, kategori jarak, status, dan tautan resmi pendaftaran lomba. Penyelenggara dapat mengajukan event gratis untuk ditayangkan di kalender.
                     </p>
 
                     <div class="ep-actions">
                         <button type="button" id="btn-open-submit-event" class="ep-btn ep-btn--primary">
-                            <i class="fas fa-plus text-[9px]"></i>
-                            Submit Event Lari Gratis
+                            + Submit Event Gratis
                         </button>
 
                         <a href="{{ route('eo.landing') }}" class="ep-btn">
                             Registration Page EO
-                            <i class="fas fa-arrow-right text-[8px] text-white/40"></i>
                         </a>
                     </div>
                 </div>
@@ -849,7 +752,7 @@
 
                                         <div class="ep-featured-copy">
                                             <div class="ep-featured-meta">
-                                                <span class="text-[#B8FF00]">Featured Race</span>
+                                                <span class="text-[#ccff00]">Featured Race</span>
                                                 @if($event->start_at)
                                                     <span>{{ $event->start_at->translatedFormat('d M Y') }}</span>
                                                 @endif
@@ -859,9 +762,9 @@
                                             <div class="ep-featured-name">{{ $event->name }}</div>
 
                                             @if($event->distances->isNotEmpty())
-                                                <div class="mt-3 flex flex-wrap gap-2 text-[9px] font-mono font-bold text-white/55">
+                                                <div class="mt-3 flex flex-wrap gap-1.5 text-[11px] font-mono font-medium text-slate-300">
                                                     @foreach($event->distances as $distance)
-                                                        <span>{{ $distance->name }}</span>
+                                                        <span class="px-2 py-0.5 bg-[#080A0D]/90 rounded border border-[#232B3B]">{{ $distance->name }}</span>
                                                     @endforeach
                                                 </div>
                                             @endif
@@ -873,10 +776,10 @@
                             @if($featuredEvents->count() > 1)
                                 <div class="ep-slider-nav">
                                     <button type="button" @click="prev()" aria-label="Previous event">
-                                        <i class="fas fa-arrow-left text-[10px]"></i>
+                                        <i class="fas fa-chevron-left text-[10px]"></i>
                                     </button>
                                     <button type="button" @click="next()" aria-label="Next event">
-                                        <i class="fas fa-arrow-right text-[10px]"></i>
+                                        <i class="fas fa-chevron-right text-[10px]"></i>
                                     </button>
                                 </div>
                             @endif
@@ -885,7 +788,7 @@
                         <div class="ep-featured">
                             <img src="{{ asset('images/hero/jadwal-lari.webp') }}"
                                  alt="Jadwal Lari 2026 Indonesia"
-                                 class="w-full h-full object-cover min-h-[390px]">
+                                 class="w-full h-full object-cover min-h-[360px]">
                         </div>
                     @endif
                 </div>
@@ -893,20 +796,19 @@
         </div>
     </section>
 
-    <section class="ep-shell">
+    <section class="ep-shell mt-6">
         <div class="ep-ops">
             <div>
-                <div class="ep-ops-label">For Event Organizers</div>
-                <h2>Publikasikan event dan buka pendaftaran tanpa biaya awal.</h2>
-                <p>
-                    Listing event, registration page, notifikasi WhatsApp, e-ticket QR, dan pembayaran online
-                    dalam satu alur yang lebih sederhana.
+                <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#ccff00] mb-1">Event Organizers</div>
+                <h2 class="text-base font-semibold text-white">Publikasikan event dan buka pendaftaran tanpa biaya awal</h2>
+                <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    Listing event, landing page pendaftaran mandiri, integrasi tiket QR, notifikasi WhatsApp, dan pembayaran online dalam satu alur terpusat.
                 </p>
             </div>
 
-            <div class="ep-actions !mt-0">
+            <div class="ep-actions !mt-0 shrink-0">
                 <a href="{{ route('eo.landing') }}" class="ep-btn ep-btn--primary">Buat Registration Page</a>
-                <button type="button" onclick="document.getElementById('btn-open-submit-event').click()" class="ep-btn">Submit Event</button>
+                <button type="button" onclick="document.getElementById('btn-open-submit-event').click()" class="ep-btn">Submit Event Gratis</button>
             </div>
         </div>
     </section>
@@ -914,11 +816,10 @@
     <section class="ep-section ep-shell">
         <div class="ep-section-head">
             <div>
-                <div class="ep-eyebrow">Race geography</div>
-                <h2 class="ep-heading">Peta Sebaran Event Lari Indonesia</h2>
-                <p class="ep-section-copy">Eksplor event berdasarkan lokasi, race type, dan kota.</p>
+                <h2 class="text-lg font-semibold text-white">Peta Sebaran Event Lari Indonesia</h2>
+                <p class="ep-section-copy">Eksplorasi lokasi event berdasarkan kota dan kategori lomba.</p>
             </div>
-            <div id="events-map-count" class="text-[10px] font-mono font-black text-[#B8FF00]">
+            <div id="events-map-count" class="text-xs font-mono font-semibold text-[#ccff00]">
                 {{ count($mapEvents ?? []) }} EVENT
             </div>
         </div>
@@ -928,12 +829,12 @@
                 <div class="ep-map-tools">
                     <div id="events-map-layer-dropdown-wrap" class="relative inline-block">
                         <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
-                            <i class="fas fa-layer-group text-[#B8FF00]"></i>
+                            <i class="fas fa-layer-group text-[#ccff00]"></i>
                             <span id="label-events-active-layer">Streets</span>
                             <i class="fas fa-chevron-down text-[8px] opacity-60 ml-0.5"></i>
                         </button>
 
-                        <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-white/15 bg-[#0b1522] rounded-md shadow-2xl overflow-hidden divide-y divide-white/5">
+                        <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-[#232B3B] bg-[#12161F] rounded-md shadow-2xl overflow-hidden divide-y divide-[#232B3B]">
                             @foreach([
                                 'streets' => 'Streets (Default)',
                                 'outdoors' => 'Outdoors Terrain',
@@ -942,20 +843,19 @@
                             ] as $layerKey => $layerLabel)
                                 <button type="button"
                                         onclick="setEventsMapLayer('{{ $layerKey }}')"
-                                        class="block w-full px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-200 hover:text-white hover:bg-slate-800/80 transition flex items-center justify-between">
+                                        class="w-full px-3.5 py-2.5 text-left text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-[#1A202C] transition flex items-center justify-between">
                                     <span>{{ $layerLabel }}</span>
-                                    <i class="fas fa-check text-[#B8FF00] text-[10px] layer-check-icon {{ $layerKey === 'streets' ? '' : 'hidden' }}" data-layer="{{ $layerKey }}"></i>
+                                    <i class="fas fa-check text-[#ccff00] text-[10px] layer-check-icon {{ $layerKey === 'streets' ? '' : 'hidden' }}" data-layer="{{ $layerKey }}"></i>
                                 </button>
                             @endforeach
                         </div>
                     </div>
 
                     <button type="button" id="btn-events-map-locate-me" class="ep-tool-btn">
-                        <i class="fas fa-location-crosshairs text-[#B8FF00]"></i>
+                        <i class="fas fa-location-crosshairs text-[#ccff00]"></i>
                         Lokasi Saya
                     </button>
                     <button type="button" id="btn-events-map-recenter" class="ep-tool-btn">
-                        <i class="fas fa-expand"></i>
                         Pusatkan
                     </button>
                 </div>
@@ -1052,7 +952,7 @@
                     <button type="button" class="quick-filter-btn" data-filter-type="distance" data-value="{{ $distance->id }}">{{ $distance->name }}</button>
                 @endforeach
 
-                <span class="w-px h-6 bg-white/10 mx-1 shrink-0"></span>
+                <span class="w-px h-5 bg-white/10 mx-1 shrink-0"></span>
 
                 <button type="button" class="quick-filter-btn" data-filter-type="type" data-value="">Semua Jenis</button>
                 @foreach($raceTypes as $type)
@@ -1063,8 +963,8 @@
 
         <div class="ep-list-head">
             <div>
-                <div class="ep-eyebrow">Race database</div>
-                <h2 class="ep-heading">Kalender Event Lari Terbaru</h2>
+                <h2 class="text-lg font-semibold text-white">Kalender Event Lari Terbaru</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Daftar jadwal perlombaan lari yang telah terverifikasi di Indonesia.</p>
             </div>
         </div>
 
@@ -1077,8 +977,8 @@
         </div>
 
         <div id="loading-indicator" class="hidden py-14 text-center">
-            <div class="inline-block h-7 w-7 border-2 border-white/10 border-t-[#B8FF00] rounded-full animate-spin"></div>
-            <p class="mt-2 text-white/55 text-[10px] font-mono uppercase tracking-wider">Memuat jadwal</p>
+            <div class="inline-block h-7 w-7 border-2 border-white/10 border-t-[#ccff00] rounded-full animate-spin"></div>
+            <p class="mt-2 text-slate-400 text-xs font-mono uppercase tracking-wider">Memuat jadwal...</p>
         </div>
     </section>
 
@@ -1103,8 +1003,7 @@
         @endphp
 
         <div class="mb-10">
-            <div class="ep-eyebrow">Browse by month</div>
-            <h2 class="ep-heading">Jadwal Lari Berdasarkan Bulan</h2>
+            <h2 class="text-base font-semibold text-white mb-3">Jadwal Lari Berdasarkan Bulan</h2>
 
             <div class="ep-directory">
                 @foreach($months as $num => $monthName)
@@ -1116,8 +1015,7 @@
         </div>
 
         <div class="mb-10">
-            <div class="ep-eyebrow">Browse by city</div>
-            <h2 class="ep-heading">Jadwal Lari Berdasarkan Kota</h2>
+            <h2 class="text-base font-semibold text-white mb-3">Jadwal Lari Berdasarkan Kota</h2>
 
             <div class="ep-directory">
                 @foreach($seoCities as $slug => $cityName)
@@ -1127,8 +1025,7 @@
         </div>
 
         <div>
-            <div class="ep-eyebrow">Browse by category</div>
-            <h2 class="ep-heading">Jadwal Lari Berdasarkan Kategori</h2>
+            <h2 class="text-base font-semibold text-white mb-3">Jadwal Lari Berdasarkan Kategori</h2>
 
             <div class="ep-directory">
                 @foreach($seoCategories as $slug => $label)
@@ -1138,43 +1035,41 @@
         </div>
 
         <div class="ep-copy-panel">
-            <div class="ep-eyebrow">Race selection</div>
-            <h2 class="ep-heading mb-4">Cara Memilih Event Lari yang Tepat</h2>
+            <h2 class="text-base font-semibold text-white mb-3">Panduan Memilih Event Lari</h2>
 
-            <div class="max-w-4xl space-y-3">
+            <div class="max-w-4xl space-y-3 text-sm text-slate-300 leading-relaxed">
                 <p>
-                    Sebelum mendaftar event lari, sesuaikan pilihan lomba dengan tingkat kebugaran,
-                    target latihan, jarak tempuh, lokasi, dan waktu persiapan. Pelari pemula dapat
-                    memulai dari fun run atau 5K, sedangkan pelari berpengalaman dapat memilih
-                    10K, half marathon, marathon, atau trail run.
+                    Sebelum mendaftar lomba lari, sesuaikan pilihan rute dengan tingkat kebugaran,
+                    target latihan, jarak tempuh, lokasi, dan kesiapan fisik. Pelari pemula disarankan
+                    memulai dari fun run atau 5K, sedangkan pelari berpengalaman dapat mempersiapkan
+                    10K, half marathon, marathon, maupun trail run.
                 </p>
                 <p>
-                    Perhatikan juga cut-off time, karakter rute, elevasi, race pack, hidrasi,
-                    fasilitas peserta, dan reputasi penyelenggara agar pengalaman race lebih aman
-                    dan sesuai target.
+                    Perhatikan cut-off time (COT), elevasi rute, fasilitas race pack, titik hidrasi (water station),
+                    keamanan medis, serta rekam jejak penyelenggara lomba agar pengalaman race berjalan aman
+                    dan terukur.
                 </p>
             </div>
         </div>
 
         @php
             $faqs = [
-                ['q'=>'Apa itu jadwal lari?','a'=>'Jadwal lari adalah daftar event lari yang disusun berdasarkan tanggal, lokasi, kategori jarak, dan jenis lomba seperti fun run, 5K, 10K, half marathon, marathon, trail run, dan virtual run.'],
-                ['q'=>'Bagaimana cara mencari event lari terdekat?','a'=>'Gunakan filter kota, bulan, kategori jarak, atau peta event di Ruang Lari untuk menemukan event yang sesuai dengan lokasi dan target latihan Anda.'],
-                ['q'=>'Apa saja kategori event lari yang tersedia?','a'=>'Kategori umum meliputi 5K, 10K, half marathon, marathon, ultra marathon, trail run, fun run, charity run, dan virtual run.'],
-                ['q'=>'Apakah jadwal lari di Ruang Lari diperbarui?','a'=>'Ya. Kalender event diperbarui secara berkala berdasarkan informasi penyelenggara dan kanal pendaftaran resmi.'],
-                ['q'=>'Bagaimana cara mendaftarkan event lari ke Ruang Lari?','a'=>'Gunakan tombol Submit Event Lari Gratis untuk mengirim nama event, tanggal, lokasi, kategori jarak, banner, dan tautan pendaftaran resmi.'],
+                ['q'=>'Apa itu jadwal lari?','a'=>'Jadwal lari adalah kalender informasi event lomba lari yang disusun berdasarkan tanggal pelaksanaan, lokasi kota, kategori jarak, dan jenis perlombaan seperti fun run, 5K, 10K, half marathon, marathon, trail run, hingga virtual run.'],
+                ['q'=>'Bagaimana cara mencari event lari terdekat?','a'=>'Gunakan filter kota, bulan pelaksanaan, kategori jarak, atau peta interaktif di Ruang Lari untuk menemukan perlombaan yang sesuai dengan lokasi dan jadwal latihan Anda.'],
+                ['q'=>'Apa saja kategori jarak lomba lari yang tersedia?','a'=>'Kategori umum mencakup 5K, 10K, half marathon (21.1 km), marathon (42.2 km), ultra marathon, trail run, fun run keluarga, hingga virtual run.'],
+                ['q'=>'Apakah data jadwal lari di Ruang Lari selalu diperbarui?','a'=>'Ya. Kalender event diperbarui secara teratur berdasarkan informasi resmi dari penyelenggara lomba, komunitas, dan kanal pendaftaran terverifikasi.'],
+                ['q'=>'Bagaimana cara mengajukan event lari ke Ruang Lari?','a'=>'Gunakan tombol Submit Event Gratis untuk melengkapi nama lomba, tanggal, lokasi, kategori jarak, banner, dan tautan pendaftaran resmi tanpa dipungut biaya.'],
             ];
         @endphp
 
         <div class="ep-faq" x-data="{active:null}">
-            <div class="ep-eyebrow pt-8">FAQ</div>
-            <h2 class="ep-heading mb-2">Pertanyaan Umum tentang Jadwal Lari</h2>
+            <h2 class="text-base font-semibold text-white mb-3 pt-6">Pertanyaan Umum Seputar Jadwal Lari</h2>
 
             @foreach($faqs as $i => $faq)
                 <div class="ep-faq-item">
                     <button type="button" @click="active = active === {{ $i }} ? null : {{ $i }}">
                         <span>{{ $faq['q'] }}</span>
-                        <i class="fas fa-plus text-[9px] text-[#B8FF00]"
+                        <i class="fas fa-plus text-[10px] text-[#ccff00] transition-transform duration-200"
                            :class="active === {{ $i }} ? 'rotate-45' : ''"></i>
                     </button>
                     <div x-show="active === {{ $i }}" x-collapse x-cloak class="ep-faq-answer">
@@ -1188,16 +1083,16 @@
 
 {{-- Submit Event modal: IDs retained for existing JS --}}
 <div id="submit-event-modal" class="fixed inset-0 z-[9999] hidden overflow-y-auto">
-    <div class="fixed inset-0 bg-black/85"></div>
+    <div class="fixed inset-0 bg-black/80"></div>
 
     <div class="relative min-h-screen flex items-center justify-center p-3 sm:p-6">
         <div class="ep-modal">
             <div class="ep-modal-head">
                 <div>
-                    <div class="text-[10px] uppercase tracking-[.16em] font-black text-[#B8FF00]">RuangLari / Event Submission</div>
-                    <h3 class="mt-1 text-lg sm:text-xl font-bold uppercase tracking-tight text-white">Ajukan Event Lari Baru</h3>
+                    <h3 class="text-lg font-bold text-white">Ajukan Event Lari Baru</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Daftarkan event lari Anda untuk ditayangkan gratis di kalender Ruang Lari.</p>
                 </div>
-                <button type="button" id="btn-close-submit-event" class="w-8 h-8 rounded-md border border-white/20 text-slate-300 hover:text-white hover:border-white/40 flex items-center justify-center transition">
+                <button type="button" id="btn-close-submit-event" class="w-8 h-8 rounded-md border border-[#232B3B] text-slate-300 hover:text-white hover:border-slate-500 flex items-center justify-center transition" aria-label="Tutup modal">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
@@ -1250,15 +1145,15 @@
                                 <input type="file" name="banner" id="submit_event_banner" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden">
 
                                 <div id="banner-dropzone-default">
-                                    <i class="fas fa-upload text-xl text-[#B8FF00]"></i>
-                                    <p class="mt-2 text-xs font-bold text-white">Upload Banner Landscape</p>
-                                    <p class="mt-1 text-[10px] text-slate-400">PNG, JPG, WEBP · Maksimum 2MB</p>
+                                    <i class="fas fa-arrow-up-from-bracket text-xl text-[#ccff00]"></i>
+                                    <p class="mt-2 text-xs font-semibold text-white">Upload Banner Landscape</p>
+                                    <p class="mt-1 text-[11px] text-slate-400">PNG, JPG, WEBP · Maksimum 2MB</p>
                                 </div>
 
                                 <div id="banner-dropzone-preview" class="hidden">
-                                    <img id="banner-preview-img" src="" class="max-h-36 mx-auto object-cover rounded">
-                                    <span id="banner-filename" class="block mt-2 text-[11px] text-slate-300 font-mono"></span>
-                                    <button type="button" id="btn-remove-banner" class="mt-2 text-xs font-bold text-red-400 hover:text-red-300 transition">Ganti Banner</button>
+                                    <img id="banner-preview-img" src="" class="max-h-36 mx-auto object-cover rounded-md">
+                                    <span id="banner-filename" class="block mt-2 text-xs text-slate-300 font-mono"></span>
+                                    <button type="button" id="btn-remove-banner" class="mt-2 text-xs font-semibold text-red-400 hover:text-red-300 transition">Ganti Banner</button>
                                 </div>
                             </div>
                         </section>
@@ -1286,8 +1181,8 @@
 
                             <div class="flex gap-2 mb-3">
                                 <input type="text" id="submit_map_search_input" placeholder="Cari venue atau alamat di peta..." autocomplete="off">
-                                <button type="button" id="btn-geolocation" class="ep-btn !min-h-[40px] shrink-0" title="Gunakan Lokasi Saya">
-                                    <i class="fas fa-crosshairs text-[#B8FF00]"></i>
+                                <button type="button" id="btn-geolocation" class="ep-btn !min-h-[38px] shrink-0" title="Gunakan Lokasi Saya">
+                                    <i class="fas fa-crosshairs text-[#ccff00]"></i>
                                 </button>
                             </div>
 
@@ -1296,8 +1191,8 @@
                             <div id="map-search-results" class="hidden"></div>
 
                             <div class="relative mb-3">
-                                <div id="event-map" class="w-full h-44 bg-[#07101c]"></div>
-                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#07101c]/90 text-[#B8FF00]"></div>
+                                <div id="event-map" class="w-full h-44 bg-[#080A0D]"></div>
+                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#080A0D]/90 text-[#ccff00]"></div>
                             </div>
 
                             <div class="space-y-3">
@@ -1322,7 +1217,7 @@
                         </section>
 
                         <section class="ep-form-section">
-                            <div class="ep-form-section-title">05 / Link & Penyelenggara</div>
+                            <div class="ep-form-section-title">05 / Tautan & Penyelenggara</div>
                             <div class="space-y-3">
                                 <div>
                                     <label for="submit_event_registration_link">Link Pendaftaran Resmi</label>
@@ -1346,11 +1241,11 @@
                         </section>
 
                         <section class="ep-form-section">
-                            <div class="ep-form-section-title">06 / Kontributor & OTP</div>
+                            <div class="ep-form-section-title">06 / Verifikasi Kontributor</div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label for="submit_event_contributor_name">Nama Pengirim</label>
-                                    <input type="text" name="contributor_name" id="submit_event_contributor_name" placeholder="Nama kamu">
+                                    <input type="text" name="contributor_name" id="submit_event_contributor_name" placeholder="Nama Anda">
                                 </div>
                                 <div>
                                     <label for="submit_event_contributor_email">Email Verifikasi *</label>
@@ -1360,7 +1255,7 @@
 
                             <div class="mt-3">
                                 <label for="submit_event_notes">Catatan Tambahan</label>
-                                <textarea name="notes" id="submit_event_notes" rows="2" placeholder="Informasi biaya pendaftaran, racepack, atau detail lainnya..."></textarea>
+                                <textarea name="notes" id="submit_event_notes" rows="2" placeholder="Informasi biaya pendaftaran, racepack, atau detail penting lainnya..."></textarea>
                             </div>
 
                             <div class="grid grid-cols-[1fr_auto] gap-2 mt-3 items-end">
@@ -1368,7 +1263,7 @@
                                     <label for="submit_event_otp_code">Kode OTP *</label>
                                     <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" placeholder="6 digit kode OTP">
                                 </div>
-                                <button type="button" id="btn-submit-event-send-otp" class="ep-btn !min-h-[40px] shrink-0">Kirim OTP</button>
+                                <button type="button" id="btn-submit-event-send-otp" class="ep-btn !min-h-[38px] shrink-0">Kirim OTP</button>
                             </div>
                         </section>
                     </div>
@@ -1376,7 +1271,7 @@
             </form>
 
             <div class="ep-modal-foot">
-                <div class="text-[11px] text-slate-400">OTP email wajib diverifikasi sebelum pengajuan event disubmit.</div>
+                <div class="text-xs text-slate-400">Kode OTP dikirim ke email untuk verifikasi keabsahan data.</div>
                 <div class="flex gap-2">
                     <button type="button" id="btn-submit-event-cancel" class="ep-btn">Batal</button>
                     <button type="button" id="btn-submit-event-submit" class="ep-btn ep-btn--primary">Submit Event</button>

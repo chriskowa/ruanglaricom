@@ -265,19 +265,22 @@
             </div>
         </a>
 
-        <!-- 12. Program Lari -->
+        <!-- 12. Program Lari VDOT Generator -->
         <a href="{{ route('programs.realistic') }}" class="group bg-[#0c121e] border border-slate-800 hover:border-slate-600 rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 shadow-xl hover:-translate-y-1">
             <div>
                 <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center mb-5 group-hover:bg-slate-800 transition-colors">
                     <i class="fa-solid fa-clipboard-list text-lg text-white"></i>
                 </div>
-                <h3 class="text-xl font-black text-white uppercase tracking-tight mb-2 group-hover:text-[#B8FF00] transition-colors">PROGRAM LATIHAN</h3>
+                <div class="flex items-center gap-2 mb-2">
+                    <h3 class="text-xl font-black text-white uppercase tracking-tight group-hover:text-[#B8FF00] transition-colors">GENERATOR PROGRAM LARI</h3>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-brand-500 uppercase border border-slate-700">VDOT Ilmiah</span>
+                </div>
                 <p class="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
-                    Program latihan terstruktur yang adaptif dengan target lomba dan kesibukan harian pelari, didesain berdasarkan metodologi VDOT ilmiah.
+                    Generator program latihan lari terstruktur (5K, 10K, Half & Full Marathon) berbasis Jack Daniels' VDOT Formula. Lengkap dengan kalkulasi target pace dan kalender latihan.
                 </p>
             </div>
             <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
-                <span>Pilih Program</span>
+                <span>Buat Program Lari Gratis</span>
                 <i class="fa-solid fa-arrow-right text-xs text-white group-hover:translate-x-1.5 transition-transform"></i>
             </div>
         </a>

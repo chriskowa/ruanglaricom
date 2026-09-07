@@ -9,6 +9,11 @@ class SitemapController extends Controller
         // 1. Static Pages
         $urls = [
             ['loc' => route('home'), 'priority' => '1.0', 'changefreq' => 'daily'],
+            ['loc' => route('programs.realistic'), 'priority' => '0.9', 'changefreq' => 'weekly'],
+            ['loc' => route('landing.program-lari-5k'), 'priority' => '0.8', 'changefreq' => 'weekly'],
+            ['loc' => route('landing.program-lari-5k-pemula'), 'priority' => '0.8', 'changefreq' => 'weekly'],
+            ['loc' => route('landing.program-lari-10k'), 'priority' => '0.8', 'changefreq' => 'weekly'],
+            ['loc' => route('tools.index'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('about'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('events.index'), 'priority' => '0.9', 'changefreq' => 'daily'],
             ['loc' => route('programs.index'), 'priority' => '0.8', 'changefreq' => 'weekly'],
