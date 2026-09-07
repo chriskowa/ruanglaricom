@@ -50,6 +50,40 @@
             }
         }
 
+        /* Fullscreen Map 1 Layar & Clean Screenshot Mode */
+        .rl-map-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            z-index: 99990 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .rl-map-fullscreen #rl-route-map {
+            height: 100vh !important;
+            min-height: 100vh !important;
+            width: 100vw !important;
+        }
+        .rl-clean-mode #rl-marker-palette,
+        .rl-clean-mode #rl-mode-toggle,
+        .rl-clean-mode #rl-undo,
+        .rl-clean-mode #rl-clear,
+        .rl-clean-mode #rl-center,
+        .rl-clean-mode #rl-fit,
+        .rl-clean-mode #rl-fullscreen,
+        .rl-clean-mode #rl-search-q-wrap,
+        .rl-clean-mode .leaflet-control-layers {
+            display: none !important;
+        }
+
 
         /* =========================================================
            RUANGLARI ROUTE LAB — PROFESSIONAL WORKSPACE
@@ -1002,11 +1036,11 @@
                         </div>
                         </div> <!-- End of rl-expanded-content -->
                     </div>
-                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
+                    <div id="rl-map-wrapper" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative transition-all duration-200">
                         <!-- Floating Top Controls Bar (Unified Search + Stats Badge) -->
                         <div class="absolute top-3 left-1/2 -translate-x-1/2 z-[500] flex flex-col sm:flex-row items-center justify-center gap-2 pointer-events-none">
                             <!-- Unified Search Pill -->
-                            <div class="pointer-events-auto relative w-full sm:w-auto sm:flex-1 max-w-xs sm:max-w-sm">
+                            <div id="rl-search-q-wrap" class="pointer-events-auto relative w-full sm:w-auto sm:flex-1 max-w-xs sm:max-w-sm">
                                 <div class="relative group bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl shadow-xl px-2.5 h-10 flex items-center gap-1.5">
                                     <!-- Magnifying Glass Icon -->
                                     <div class="text-slate-400 text-xs shrink-0 pl-0.5">
@@ -1086,7 +1120,24 @@
                             <button id="rl-fit" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Fit Route">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
                             </button>
+                            <button id="rl-fullscreen" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Layar Penuh (Mode Screenshot)">
+                                <i id="rl-fullscreen-icon" class="fa-solid fa-expand text-sm"></i>
+                            </button>
                         </div>
+
+                        <!-- Fullscreen HUD Controls Bar -->
+                        <div id="rl-fullscreen-hud" class="hidden absolute bottom-5 left-1/2 -translate-x-1/2 z-[500] items-center gap-2 bg-slate-900/95 border border-slate-700 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-md text-xs pointer-events-auto">
+                            <button id="rl-fullscreen-clean-btn" type="button" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-camera text-xs text-sky-400"></i>
+                                <span id="rl-clean-mode-label">Mode Bersih (Screenshot)</span>
+                            </button>
+                            <div class="h-4 w-px bg-slate-700"></div>
+                            <button id="rl-fullscreen-exit-btn" type="button" class="px-3 py-1.5 rounded-md bg-red-600/20 hover:bg-red-600/30 text-red-300 font-semibold border border-red-500/40 transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-compress text-xs"></i>
+                                <span>Keluar (ESC)</span>
+                            </button>
+                        </div>
+
                         <div id="rl-route-map"></div>
                     </div>
 
@@ -1314,6 +1365,13 @@
                 aiAvoidMain: document.getElementById('rl-ai-avoid-main'),
                 aiAvoidRail: document.getElementById('rl-ai-avoid-rail'),
                 aiAvoidIntersection: document.getElementById('rl-ai-avoid-intersection'),
+                fullscreen: document.getElementById('rl-fullscreen'),
+                fullscreenIcon: document.getElementById('rl-fullscreen-icon'),
+                fullscreenHud: document.getElementById('rl-fullscreen-hud'),
+                fullscreenCleanBtn: document.getElementById('rl-fullscreen-clean-btn'),
+                fullscreenExitBtn: document.getElementById('rl-fullscreen-exit-btn'),
+                cleanModeLabel: document.getElementById('rl-clean-mode-label'),
+                mapWrapper: document.getElementById('rl-map-wrapper'),
             };
 
             function setStatus(text) {
@@ -2858,19 +2916,68 @@
                                 </div>
 
                                 <!-- Aksi 2: Unduh Poster Gambar -->
-                                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-4">
-                                    <div>
-                                        <div class="flex items-center justify-between mb-1">
-                                            <div class="text-xs font-bold text-white">2. Unduh Gambar Poster</div>
-                                            <span class="text-[10px] text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">PNG HD</span>
+                                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3.5">
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-xs font-bold text-white">2. Unduh Gambar Rute</div>
+                                            <span id="modal-poster-format-badge" class="text-[10px] text-neon bg-neon/10 border border-neon/30 px-2 py-0.5 rounded font-mono font-bold">JPG</span>
                                         </div>
-                                        <p class="text-xs text-slate-400 leading-relaxed mb-3">Infografis rute dengan peta visual, grafik elevasi, dan QR code koordinat siap share ke story/sosmed.</p>
+                                        <p class="text-xs text-slate-400 leading-relaxed">Infografis rute lari siap bagikan ke Instagram Story/feed atau arsip lari pribadi.</p>
+
+                                        <!-- Opsi 1: Latar Belakang Peta (Dengan Maps vs Tanpa Maps) -->
+                                        <div class="space-y-1.5">
+                                            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Latar Belakang Peta</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                                    <input type="radio" name="modal-poster-map-opt" value="with_map" checked class="text-neon focus:ring-0">
+                                                    <div class="text-xs font-semibold text-white">Dengan Peta</div>
+                                                </label>
+                                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                                    <input type="radio" name="modal-poster-map-opt" value="no_map" class="text-neon focus:ring-0">
+                                                    <div class="text-xs font-semibold text-slate-300">Tanpa Peta</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sub-opsi Varian Peta (Hanya jika dengan peta) -->
+                                        <div id="modal-map-style-row" class="space-y-1">
+                                            <label class="text-[11px] font-medium text-slate-400 block">Tampilan Peta:</label>
+                                            <select id="modal-poster-map-style" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-slate-500">
+                                                <option value="satellite-streets-v12" selected>Citra Satelit (Satelit + Jalan)</option>
+                                                <option value="outdoors-v12">Peta Outdoor (Kontur & Medan)</option>
+                                                <option value="navigation-night-v1">Mode Gelap (Dark Map)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Opsi 2: Format File (JPG vs PNG) -->
+                                        <div class="space-y-1.5">
+                                            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Format Gambar</label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                                    <input type="radio" name="modal-poster-format-opt" value="jpg" checked class="text-neon focus:ring-0">
+                                                    <div>
+                                                        <div class="text-xs font-bold text-white">JPG (.jpg)</div>
+                                                        <div class="text-[10px] text-slate-400">Cocok untuk sosmed/feed</div>
+                                                    </div>
+                                                </label>
+                                                <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                                    <input type="radio" name="modal-poster-format-opt" value="png" class="text-neon focus:ring-0">
+                                                    <div>
+                                                        <div class="text-xs font-bold text-white">PNG (.png)</div>
+                                                        <div class="text-[10px] text-slate-400">Kualitas tajam HD</div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
 
                                         <!-- Preview Box Mini -->
-                                        <div id="modal-poster-preview-container" class="w-full bg-slate-950 border border-slate-800 rounded-lg overflow-hidden h-28 flex items-center justify-center relative shadow-inner">
-                                            <div class="text-center p-2 text-slate-400 text-xs">
-                                                <i class="fa-solid fa-spinner animate-spin text-sm mb-1"></i>
-                                                <div>Merender poster...</div>
+                                        <div>
+                                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pratinjau</label>
+                                            <div id="modal-poster-preview-container" class="w-full bg-slate-950 border border-slate-800 rounded-lg overflow-hidden h-32 flex items-center justify-center relative shadow-inner">
+                                                <div class="text-center p-2 text-slate-400 text-xs">
+                                                    <i class="fa-solid fa-spinner animate-spin text-sm mb-1"></i>
+                                                    <div>Merender poster...</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -2878,7 +2985,7 @@
                                     <!-- Tombol Unduh -->
                                     <button type="button" id="modal-download-poster-btn" class="w-full py-2.5 px-3 rounded-lg bg-neon text-dark font-black text-xs hover:bg-white transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
                                         <i class="fa-solid fa-download text-dark"></i>
-                                        <span>Unduh Gambar Rute (PNG)</span>
+                                        <span id="modal-download-btn-text">Unduh Gambar Rute (.JPG)</span>
                                     </button>
                                 </div>
                             </div>
@@ -2917,26 +3024,79 @@
                         });
                     }
 
-                    // Generate Poster Preview & Download
+                    // Generate Poster Preview & Download Logic
                     const previewBox = container.querySelector('#modal-poster-preview-container');
                     const downloadPosterBtn = container.querySelector('#modal-download-poster-btn');
+                    const formatBadge = container.querySelector('#modal-poster-format-badge');
+                    const downloadBtnText = container.querySelector('#modal-download-btn-text');
+                    const styleRow = container.querySelector('#modal-map-style-row');
+                    const styleSelect = container.querySelector('#modal-poster-map-style');
 
-                    if (typeof generateRoutePoster === 'function') {
-                        generateRoutePoster(false, function(canvas) {
-                            if (canvas && previewBox) {
-                                previewBox.innerHTML = '';
-                                const previewImg = document.createElement('img');
-                                previewImg.src = canvas.toDataURL('image/png');
-                                previewImg.className = 'w-full h-full object-cover object-center';
-                                previewBox.appendChild(previewImg);
+                    var posterOpts = {
+                        withMap: true,
+                        mapStyle: styleSelect ? styleSelect.value : 'satellite-streets-v12',
+                        format: 'jpg'
+                    };
+
+                    function renderPosterPreview() {
+                        if (previewBox) {
+                            previewBox.innerHTML = '<div class="text-center p-2 text-slate-400 text-xs"><i class="fa-solid fa-spinner animate-spin text-sm mb-1"></i><div>Merender poster...</div></div>';
+                        }
+                        if (typeof generateRoutePoster === 'function') {
+                            generateRoutePoster(false, function(canvas) {
+                                if (canvas && previewBox) {
+                                    previewBox.innerHTML = '';
+                                    const previewImg = document.createElement('img');
+                                    var mime = posterOpts.format === 'jpg' ? 'image/jpeg' : 'image/png';
+                                    previewImg.src = canvas.toDataURL(mime, 0.9);
+                                    previewImg.className = 'w-full h-full object-cover object-center';
+                                    previewBox.appendChild(previewImg);
+                                }
+                            }, posterOpts);
+                        }
+                    }
+
+                    // Bind Map Option Radios
+                    var mapRadios = container.querySelectorAll('input[name="modal-poster-map-opt"]');
+                    mapRadios.forEach(function(r) {
+                        r.addEventListener('change', function() {
+                            posterOpts.withMap = (r.value === 'with_map');
+                            if (styleRow) {
+                                styleRow.style.display = posterOpts.withMap ? 'block' : 'none';
+                            }
+                            renderPosterPreview();
+                        });
+                    });
+
+                    // Bind Map Style Select
+                    if (styleSelect) {
+                        styleSelect.addEventListener('change', function() {
+                            posterOpts.mapStyle = styleSelect.value;
+                            if (posterOpts.withMap) {
+                                renderPosterPreview();
                             }
                         });
                     }
 
+                    // Bind Format Radios
+                    var formatRadios = container.querySelectorAll('input[name="modal-poster-format-opt"]');
+                    formatRadios.forEach(function(r) {
+                        r.addEventListener('change', function() {
+                            posterOpts.format = r.value;
+                            var extUpper = r.value.toUpperCase();
+                            if (formatBadge) formatBadge.textContent = extUpper;
+                            if (downloadBtnText) downloadBtnText.textContent = 'Unduh Gambar Rute (.' + extUpper + ')';
+                            renderPosterPreview();
+                        });
+                    });
+
+                    // Initial Preview Render
+                    renderPosterPreview();
+
                     if (downloadPosterBtn) {
                         downloadPosterBtn.addEventListener('click', function() {
                             if (typeof generateRoutePoster === 'function') {
-                                generateRoutePoster(true);
+                                generateRoutePoster(true, null, posterOpts);
                             }
                         });
                     }
@@ -3743,6 +3903,88 @@
             els.load.addEventListener('click', showLoadModal);
             els.center.addEventListener('click', centerToUser);
             els.fit.addEventListener('click', fitRoute);
+
+            // Fullscreen Map 1 Layar & Clean Screenshot Mode Logic
+            var isFullscreen = false;
+            var isCleanMode = false;
+
+            function toggleFullscreen(forceState) {
+                var nextState = typeof forceState === 'boolean' ? forceState : !isFullscreen;
+                isFullscreen = nextState;
+
+                if (els.mapWrapper) {
+                    if (isFullscreen) {
+                        els.mapWrapper.classList.add('rl-map-fullscreen');
+                        if (els.fullscreenIcon) {
+                            els.fullscreenIcon.classList.remove('fa-expand');
+                            els.fullscreenIcon.classList.add('fa-compress');
+                        }
+                        if (els.fullscreen) els.fullscreen.title = 'Keluar Layar Penuh (ESC)';
+                        if (els.fullscreenHud) {
+                            els.fullscreenHud.classList.remove('hidden');
+                            els.fullscreenHud.classList.add('flex');
+                        }
+                        setStatus('Mode layar penuh aktif (Tekan ESC untuk keluar)');
+                    } else {
+                        els.mapWrapper.classList.remove('rl-map-fullscreen');
+                        if (isCleanMode) toggleCleanMode(false);
+                        if (els.fullscreenIcon) {
+                            els.fullscreenIcon.classList.remove('fa-compress');
+                            els.fullscreenIcon.classList.add('fa-expand');
+                        }
+                        if (els.fullscreen) els.fullscreen.title = 'Layar Penuh (Mode Screenshot)';
+                        if (els.fullscreenHud) {
+                            els.fullscreenHud.classList.add('hidden');
+                            els.fullscreenHud.classList.remove('flex');
+                        }
+                        setStatus('Keluar dari layar penuh');
+                    }
+                }
+
+                if (map) {
+                    map.invalidateSize();
+                    setTimeout(function() {
+                        map.invalidateSize();
+                    }, 150);
+                }
+            }
+
+            function toggleCleanMode(forceState) {
+                var next = typeof forceState === 'boolean' ? forceState : !isCleanMode;
+                isCleanMode = next;
+                if (els.mapWrapper) {
+                    if (isCleanMode) {
+                        els.mapWrapper.classList.add('rl-clean-mode');
+                        if (els.cleanModeLabel) els.cleanModeLabel.textContent = 'Tampilkan Kontrol';
+                        setStatus('Kontrol disembunyikan untuk screenshot');
+                    } else {
+                        els.mapWrapper.classList.remove('rl-clean-mode');
+                        if (els.cleanModeLabel) els.cleanModeLabel.textContent = 'Mode Bersih (Screenshot)';
+                        setStatus('Kontrol ditampilkan');
+                    }
+                }
+            }
+
+            if (els.fullscreen) {
+                els.fullscreen.addEventListener('click', function() {
+                    toggleFullscreen();
+                });
+            }
+            if (els.fullscreenExitBtn) {
+                els.fullscreenExitBtn.addEventListener('click', function() {
+                    toggleFullscreen(false);
+                });
+            }
+            if (els.fullscreenCleanBtn) {
+                els.fullscreenCleanBtn.addEventListener('click', function() {
+                    toggleCleanMode();
+                });
+            }
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isFullscreen) {
+                    toggleFullscreen(false);
+                }
+            });
             els.exportGpx.addEventListener('click', exportGpx);
             els.share.addEventListener('click', function () {
                 var longUrl = buildShareUrl();
@@ -4625,14 +4867,20 @@
             };
 
             // Native Canvas Route Poster Generator (Zero OKLCH parsing issues, 100% Reliable & Fast)
-            function generateRoutePoster(download, callback) {
+            // Native Canvas Route Poster Generator (Zero OKLCH parsing issues, 100% Reliable & Fast)
+            function generateRoutePoster(download, callback, options) {
                 if (!routePoints || routePoints.length < 2) {
                     setStatus('Minimal 2 titik untuk poster rute');
                     if (callback) callback(null);
                     return;
                 }
 
-                setStatus('Merender poster rute...');
+                options = options || {};
+                var withMap = options.withMap !== undefined ? options.withMap : true;
+                var mapStyle = options.mapStyle || 'satellite-streets-v12';
+                var format = (options.format || 'jpg').toLowerCase();
+
+                setStatus('Merender poster rute (' + (withMap ? 'Dengan Peta' : 'Tanpa Peta') + ')...');
 
                 var canvas = document.createElement('canvas');
                 canvas.width = 1200;
@@ -4648,7 +4896,7 @@
                 var distKm = (els.distanceKm.textContent || '0.00');
                 var estTime = els.estTime.textContent || '00:00:00';
 
-                // 1. Background Gradient
+                // 1. Background Gradient Solid
                 var bgGrad = ctx.createLinearGradient(0, 0, 0, 1500);
                 bgGrad.addColorStop(0, '#0f172a');
                 bgGrad.addColorStop(0.6, '#090d16');
@@ -4663,7 +4911,7 @@
                 ctx.fillStyle = radialGlow;
                 ctx.fillRect(0, 0, 1200, 800);
 
-                // Subtle Grid Background
+                // Subtle Canvas Grid Background
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
                 ctx.lineWidth = 1;
                 for (var gx = 60; gx < 1200; gx += 60) {
@@ -4679,8 +4927,7 @@
                     ctx.stroke();
                 }
 
-                // 2. Header
-                // Brand
+                // 2. Header (Ruang Lari Brand & Distance)
                 ctx.font = '900 italic 42px "Inter", Arial, sans-serif';
                 ctx.fillStyle = '#ffffff';
                 ctx.fillText('RUANG ', 70, 95);
@@ -4703,7 +4950,7 @@
                 ctx.fillText('KILOMETERS', 1130, 122);
                 ctx.textAlign = 'left';
 
-                // 3. Render Route Geometry in Map Area (y: 160 to 1020)
+                // 3. Map Area Bounding Box & Coordinates (y: 160 to 1020)
                 var mapX = 70;
                 var mapY = 160;
                 var mapW = 1060;
@@ -4719,325 +4966,450 @@
 
                 var latSpan = Math.max(0.0001, maxLat - minLat);
                 var lngSpan = Math.max(0.0001, maxLng - minLng);
-                var padLat = latSpan * 0.12;
-                var padLng = lngSpan * 0.12;
-                minLat -= padLat; maxLat += padLat;
-                minLng -= padLng; maxLng += padLng;
-
                 var centerLat = (minLat + maxLat) / 2;
+                var centerLng = (minLng + maxLng) / 2;
+
+                // Equirectangular Projection Fallback (for Tanpa Peta or fallback if offline)
+                var padLatE = latSpan * 0.14;
+                var padLngE = lngSpan * 0.14;
+                var eMinLat = minLat - padLatE, eMaxLat = maxLat + padLatE;
+                var eMinLng = minLng - padLngE, eMaxLng = maxLng + padLngE;
                 var cosLat = Math.cos(centerLat * Math.PI / 180);
-                var degW = (maxLng - minLng) * cosLat;
-                var degH = (maxLat - minLat);
-                var scale = Math.min(mapW / degW, mapH / degH);
-                var drawW = degW * scale;
-                var drawH = degH * scale;
+                var degW = (eMaxLng - eMinLng) * cosLat;
+                var degH = (eMaxLat - eMinLat);
+                var scaleEquirect = Math.min(mapW / degW, mapH / degH);
+                var drawW = degW * scaleEquirect;
+                var drawH = degH * scaleEquirect;
                 var offX = mapX + (mapW - drawW) / 2;
                 var offY = mapY + (mapH - drawH) / 2;
 
-                function getCanvasXY(lat, lng) {
+                function getCanvasXYEquirect(lat, lng) {
                     return {
-                        x: offX + (lng - minLng) * cosLat * scale,
-                        y: offY + (maxLat - lat) * scale
+                        x: offX + (lng - eMinLng) * cosLat * scaleEquirect,
+                        y: offY + (eMaxLat - lat) * scaleEquirect
                     };
                 }
 
-                // A. Glow Stroke
-                ctx.save();
-                ctx.shadowColor = style.route || '#ccff00';
-                ctx.shadowBlur = 24;
-                ctx.strokeStyle = style.route || '#ccff00';
-                ctx.lineWidth = 10;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.beginPath();
-                routePoints.forEach(function(p, i) {
-                    var pos = getCanvasXY(p.lat, p.lng);
-                    if (i === 0) ctx.moveTo(pos.x, pos.y);
-                    else ctx.lineTo(pos.x, pos.y);
-                });
-                ctx.stroke();
-                ctx.restore();
+                // Web Mercator Projection (for Dengan Peta / Mapbox Static Map)
+                var padLatM = latSpan * 0.16;
+                var padLngM = lngSpan * 0.16;
+                var bMinLat = minLat - padLatM, bMaxLat = maxLat + padLatM;
+                var bMinLng = minLng - padLngM, bMaxLng = maxLng + padLngM;
 
-                // B. Core Crisp Stroke
-                ctx.strokeStyle = style.route || '#ccff00';
-                ctx.lineWidth = 6;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.beginPath();
-                routePoints.forEach(function(p, i) {
-                    var pos = getCanvasXY(p.lat, p.lng);
-                    if (i === 0) ctx.moveTo(pos.x, pos.y);
-                    else ctx.lineTo(pos.x, pos.y);
-                });
-                ctx.stroke();
+                function computeFitZoom(s, n, w, e, pxW, pxH) {
+                    var latRad1 = s * Math.PI / 180;
+                    var latRad2 = n * Math.PI / 180;
+                    var y1 = Math.log(Math.tan(Math.PI / 4 + latRad1 / 2));
+                    var y2 = Math.log(Math.tan(Math.PI / 4 + latRad2 / 2));
+                    var yDiff = Math.max(0.0001, Math.abs(y2 - y1));
+                    var lngDiff = Math.max(0.0001, Math.abs(e - w));
 
-                // C. Direction Arrows
-                if (routePoints.length > 5) {
-                    var arrowIndices = [
-                        Math.floor(routePoints.length * 0.2),
-                        Math.floor(routePoints.length * 0.4),
-                        Math.floor(routePoints.length * 0.6),
-                        Math.floor(routePoints.length * 0.8)
-                    ];
-                    arrowIndices.forEach(function(idx) {
-                        if (idx < routePoints.length - 1) {
-                            var p1 = routePoints[idx];
-                            var p2 = routePoints[idx + 1];
-                            var pos1 = getCanvasXY(p1.lat, p1.lng);
-                            var pos2 = getCanvasXY(p2.lat, p2.lng);
-                            var angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
-
-                            ctx.save();
-                            ctx.translate(pos1.x, pos1.y);
-                            ctx.rotate(angle);
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            ctx.moveTo(8, 0);
-                            ctx.lineTo(-6, -6);
-                            ctx.lineTo(-3, 0);
-                            ctx.lineTo(-6, 6);
-                            ctx.closePath();
-                            ctx.fill();
-                            ctx.restore();
-                        }
-                    });
+                    var zoomY = Math.log(pxH * 2 * Math.PI / (256 * yDiff)) / Math.LN2;
+                    var zoomX = Math.log(pxW * 360 / (256 * lngDiff)) / Math.LN2;
+                    var z = Math.min(zoomX, zoomY);
+                    return Math.max(1, Math.min(18, Math.floor(z)));
                 }
 
-                // D. Start Pin (Green circle with S)
-                var startPt = getCanvasXY(routePoints[0].lat, routePoints[0].lng);
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = style.start || '#22c55e';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(startPt.x, startPt.y, 16, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
+                var zoom = computeFitZoom(bMinLat, bMaxLat, bMinLng, bMaxLng, mapW, mapH);
+                var centerPt = (map && typeof map.project === 'function')
+                    ? map.project(L.latLng(centerLat, centerLng), zoom)
+                    : { x: 256 * Math.pow(2, zoom) * (0.5 + centerLng / 360), y: 256 * Math.pow(2, zoom) * (0.5 - Math.log(Math.tan(Math.PI / 4 + centerLat * Math.PI / 360)) / (2 * Math.PI)) };
 
-                ctx.font = '900 15px Arial, sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('S', startPt.x, startPt.y);
-                ctx.restore();
-
-                // E. Finish Pin (Red circle with F)
-                var finishPt = getCanvasXY(routePoints[routePoints.length - 1].lat, routePoints[routePoints.length - 1].lng);
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = style.finish || '#ef4444';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(finishPt.x, finishPt.y, 16, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.font = '900 15px Arial, sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('F', finishPt.x, finishPt.y);
-                ctx.restore();
-
-                // 4. Bottom Info Card Area (y: 1040 to 1440)
-                var cardX = 70;
-                var cardY = 1040;
-                var cardW = 1060;
-                var cardH = 390;
-
-                // Card background with rounded corners
-                ctx.save();
-                ctx.fillStyle = 'rgba(12, 18, 30, 0.95)';
-                ctx.strokeStyle = '#1e293b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                var cr = 24;
-                ctx.moveTo(cardX + cr, cardY);
-                ctx.lineTo(cardX + cardW - cr, cardY);
-                ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + cr);
-                ctx.lineTo(cardX + cardW, cardY + cardH - cr);
-                ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - cr, cardY + cardH);
-                ctx.lineTo(cardX + cr, cardY + cardH);
-                ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - cr);
-                ctx.lineTo(cardX, cardY + cr);
-                ctx.quadraticCurveTo(cardX, cardY, cardX + cr, cardY);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-                ctx.restore();
-
-                // Card Left Column: Elevation Profile
-                ctx.font = '700 13px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillText('ELEVATION PROFILE', cardX + 36, cardY + 44);
-
-                var elevGraphX = cardX + 36;
-                var elevGraphY = cardY + 64;
-                var elevGraphW = 460;
-                var elevGraphH = 130;
-
-                var metaText = els.elevMeta ? els.elevMeta.textContent : '';
-                var minM = metaText.match(/Min\s+(\d+)/);
-                var maxM = metaText.match(/Max\s+(\d+)/);
-                var minElevVal = minM ? parseInt(minM[1]) : 0;
-                var maxElevVal = maxM ? parseInt(maxM[1]) : 50;
-                var gainVal = Math.max(0, maxElevVal - minElevVal);
-
-                // Draw elevation box background
-                ctx.fillStyle = '#080c14';
-                ctx.fillRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
-                ctx.strokeStyle = '#1e293b';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
-
-                // Draw elevation curve
-                ctx.save();
-                var elevGrad = ctx.createLinearGradient(0, elevGraphY, 0, elevGraphY + elevGraphH);
-                elevGrad.addColorStop(0, 'rgba(204, 255, 0, 0.4)');
-                elevGrad.addColorStop(1, 'rgba(204, 255, 0, 0.02)');
-                ctx.fillStyle = elevGrad;
-                ctx.strokeStyle = '#ccff00';
-                ctx.lineWidth = 2.5;
-
-                ctx.beginPath();
-                ctx.moveTo(elevGraphX, elevGraphY + elevGraphH);
-                for (var ep = 0; ep <= 20; ep++) {
-                    var ex = elevGraphX + (ep / 20) * elevGraphW;
-                    var ratio = Math.sin((ep / 20) * Math.PI) * 0.75 + 0.15;
-                    var ey = elevGraphY + elevGraphH - (ratio * (elevGraphH - 20));
-                    ctx.lineTo(ex, ey);
+                function getCanvasXYMercator(lat, lng) {
+                    var pt = (map && typeof map.project === 'function')
+                        ? map.project(L.latLng(lat, lng), zoom)
+                        : { x: 256 * Math.pow(2, zoom) * (0.5 + lng / 360), y: 256 * Math.pow(2, zoom) * (0.5 - Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) / (2 * Math.PI)) };
+                    return {
+                        x: (mapX + mapW / 2) + (pt.x - centerPt.x),
+                        y: (mapY + mapH / 2) + (pt.y - centerPt.y)
+                    };
                 }
-                ctx.lineTo(elevGraphX + elevGraphW, elevGraphY + elevGraphH);
-                ctx.closePath();
-                ctx.fill();
 
-                // Draw top line
-                ctx.beginPath();
-                for (var ep2 = 0; ep2 <= 20; ep2++) {
-                    var ex2 = elevGraphX + (ep2 / 20) * elevGraphW;
-                    var ratio2 = Math.sin((ep2 / 20) * Math.PI) * 0.75 + 0.15;
-                    var ey2 = elevGraphY + elevGraphH - (ratio2 * (elevGraphH - 20));
-                    if (ep2 === 0) ctx.moveTo(ex2, ey2);
-                    else ctx.lineTo(ex2, ey2);
-                }
-                ctx.stroke();
-                ctx.restore();
-
-                // Elevation Min / Max
-                ctx.font = '700 12px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillText(minElevVal + 'm', elevGraphX, elevGraphY + elevGraphH + 24);
-                ctx.textAlign = 'right';
-                ctx.fillText(maxElevVal + 'm', elevGraphX + elevGraphW, elevGraphY + elevGraphH + 24);
-                ctx.textAlign = 'left';
-
-                // QR Code for Start Location
-                var qrBoxX = cardX + 36;
-                var qrBoxY = cardY + 235;
-                
-                // Card Right Column: Route Details
-                var rightX = cardX + 540;
-
-                ctx.font = '700 13px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#64748b';
-                ctx.fillText('NAMA RUTE', rightX, cardY + 44);
-
-                ctx.font = '900 28px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#ffffff';
-                var clippedName = routeName.length > 28 ? routeName.substring(0, 26) + '...' : routeName;
-                ctx.fillText(clippedName, rightX, cardY + 80);
-
-                // 2-Col Stats (Est Time & Elevation Gain)
-                ctx.font = '700 13px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#64748b';
-                ctx.fillText('EST. WAKTU', rightX, cardY + 130);
-                ctx.fillText('ELEV GAIN', rightX + 260, cardY + 130);
-
-                ctx.font = '900 24px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(estTime, rightX, cardY + 165);
-
-                ctx.fillStyle = '#ccff00';
-                ctx.fillText('+' + gainVal + 'm', rightX + 260, cardY + 165);
-
-                // Start / Finish Coordinate Badges
-                var startCoordText = routePoints[0].lat.toFixed(4) + ', ' + routePoints[0].lng.toFixed(4);
-                var finishCoordText = routePoints[routePoints.length - 1].lat.toFixed(4) + ', ' + routePoints[routePoints.length - 1].lng.toFixed(4);
-
-                ctx.font = '600 13px monospace';
-                ctx.fillStyle = '#64748b';
-                ctx.fillText('START : ' + startCoordText, rightX, cardY + 230);
-                ctx.fillText('FINISH: ' + finishCoordText, rightX, cardY + 260);
-
-                // Footer watermark inside card
-                ctx.font = '700 13px "Inter", Arial, sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillText('DIBUAT DENGAN RUANGLARI.COM/TOOLS/BUAT-RUTE-LARI', rightX, cardY + 335);
-
-                // Function to finish and trigger download / callback
-                function completePoster() {
-                    if (download) {
-                        try {
-                            var link = document.createElement('a');
-                            var cleanName = safeFilename(routeName) || 'rute-lari';
-                            link.download = 'ruanglari-' + cleanName + '-' + distKm + 'km.png';
-                            link.href = canvas.toDataURL('image/png');
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            setStatus('Poster rute berhasil diunduh (PNG HD)');
-                        } catch (e) {
-                            console.error('Download error:', e);
-                            setStatus('Gagal mengunduh poster');
-                        }
+                // Helper: Dark Grid Background (for Tanpa Peta mode)
+                function drawDarkGridBackground() {
+                    ctx.save();
+                    ctx.beginPath();
+                    if (ctx.roundRect) {
+                        ctx.roundRect(mapX, mapY, mapW, mapH, 16);
                     } else {
-                        setStatus('Poster rute siap');
+                        ctx.rect(mapX, mapY, mapW, mapH);
+                    }
+                    ctx.clip();
+
+                    ctx.fillStyle = '#0b1522';
+                    ctx.fillRect(mapX, mapY, mapW, mapH);
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                    ctx.lineWidth = 1;
+                    for (var gx = mapX; gx <= mapX + mapW; gx += 40) {
+                        ctx.beginPath(); ctx.moveTo(gx, mapY); ctx.lineTo(gx, mapY + mapH); ctx.stroke();
+                    }
+                    for (var gy = mapY; gy <= mapY + mapH; gy += 40) {
+                        ctx.beginPath(); ctx.moveTo(mapX, gy); ctx.lineTo(mapX + mapW, gy); ctx.stroke();
                     }
 
-                    if (callback) callback(canvas);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.restore();
                 }
 
-                // Generate QR Code into poster
-                try {
-                    var tempQrDiv = document.createElement('div');
-                    tempQrDiv.style.position = 'fixed';
-                    tempQrDiv.style.left = '-9999px';
-                    document.body.appendChild(tempQrDiv);
-
-                    var startMapsUrl = "https://www.google.com/maps/search/?api=1&query=" + routePoints[0].lat + "," + routePoints[0].lng;
-                    new QRCode(tempQrDiv, {
-                        text: startMapsUrl,
-                        width: 100,
-                        height: 100,
-                        colorDark: "#090d16",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
+                // Function to draw all route overlays, cards, stats, and QR code
+                function drawRouteGraphics(getCanvasXY) {
+                    // A. Glow Stroke
+                    ctx.save();
+                    ctx.shadowColor = style.route || '#ccff00';
+                    ctx.shadowBlur = 24;
+                    ctx.strokeStyle = style.route || '#ccff00';
+                    ctx.lineWidth = 10;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    routePoints.forEach(function(p, i) {
+                        var pos = getCanvasXY(p.lat, p.lng);
+                        if (i === 0) ctx.moveTo(pos.x, pos.y);
+                        else ctx.lineTo(pos.x, pos.y);
                     });
+                    ctx.stroke();
+                    ctx.restore();
 
-                    setTimeout(function() {
-                        var qrCanvas = tempQrDiv.querySelector('canvas');
-                        var qrImg = tempQrDiv.querySelector('img');
-                        var qrSource = qrCanvas || qrImg;
+                    // B. Core Crisp Stroke
+                    ctx.strokeStyle = style.route || '#ccff00';
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    routePoints.forEach(function(p, i) {
+                        var pos = getCanvasXY(p.lat, p.lng);
+                        if (i === 0) ctx.moveTo(pos.x, pos.y);
+                        else ctx.lineTo(pos.x, pos.y);
+                    });
+                    ctx.stroke();
 
-                        if (qrSource) {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(qrBoxX, qrBoxY, 110, 110);
-                            ctx.drawImage(qrSource, qrBoxX + 5, qrBoxY + 5, 100, 100);
+                    // C. Direction Arrows
+                    if (routePoints.length > 5) {
+                        var arrowIndices = [
+                            Math.floor(routePoints.length * 0.2),
+                            Math.floor(routePoints.length * 0.4),
+                            Math.floor(routePoints.length * 0.6),
+                            Math.floor(routePoints.length * 0.8)
+                        ];
+                        arrowIndices.forEach(function(idx) {
+                            if (idx < routePoints.length - 1) {
+                                var p1 = routePoints[idx];
+                                var p2 = routePoints[idx + 1];
+                                var pos1 = getCanvasXY(p1.lat, p1.lng);
+                                var pos2 = getCanvasXY(p2.lat, p2.lng);
+                                var angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
 
-                            ctx.font = '700 10px "Inter", Arial, sans-serif';
-                            ctx.fillStyle = '#94a3b8';
-                            ctx.fillText('SCAN START', qrBoxX + 18, qrBoxY + 130);
+                                ctx.save();
+                                ctx.translate(pos1.x, pos1.y);
+                                ctx.rotate(angle);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.beginPath();
+                                ctx.moveTo(8, 0);
+                                ctx.lineTo(-6, -6);
+                                ctx.lineTo(-3, 0);
+                                ctx.lineTo(-6, 6);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        });
+                    }
+
+                    // D. Start Pin (Green circle with S)
+                    var startPt = getCanvasXY(routePoints[0].lat, routePoints[0].lng);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = style.start || '#22c55e';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(startPt.x, startPt.y, 16, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.font = '900 15px Arial, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('S', startPt.x, startPt.y);
+                    ctx.restore();
+
+                    // E. Finish Pin (Red circle with F)
+                    var finishPt = getCanvasXY(routePoints[routePoints.length - 1].lat, routePoints[routePoints.length - 1].lng);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = style.finish || '#ef4444';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(finishPt.x, finishPt.y, 16, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.font = '900 15px Arial, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('F', finishPt.x, finishPt.y);
+                    ctx.restore();
+
+                    // 4. Bottom Info Card Area (y: 1040 to 1440)
+                    var cardX = 70;
+                    var cardY = 1040;
+                    var cardW = 1060;
+                    var cardH = 390;
+
+                    // Card background with rounded corners
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(12, 18, 30, 0.95)';
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    var cr = 24;
+                    ctx.moveTo(cardX + cr, cardY);
+                    ctx.lineTo(cardX + cardW - cr, cardY);
+                    ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + cr);
+                    ctx.lineTo(cardX + cardW, cardY + cardH - cr);
+                    ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - cr, cardY + cardH);
+                    ctx.lineTo(cardX + cr, cardY + cardH);
+                    ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - cr);
+                    ctx.lineTo(cardX, cardY + cr);
+                    ctx.quadraticCurveTo(cardX, cardY, cardX + cr, cardY);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Card Left Column: Elevation Profile
+                    ctx.font = '700 13px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText('ELEVATION PROFILE', cardX + 36, cardY + 44);
+
+                    var elevGraphX = cardX + 36;
+                    var elevGraphY = cardY + 64;
+                    var elevGraphW = 460;
+                    var elevGraphH = 130;
+
+                    var metaText = els.elevMeta ? els.elevMeta.textContent : '';
+                    var minM = metaText.match(/Min\s+(\d+)/);
+                    var maxM = metaText.match(/Max\s+(\d+)/);
+                    var minElevVal = minM ? parseInt(minM[1]) : 0;
+                    var maxElevVal = maxM ? parseInt(maxM[1]) : 50;
+                    var gainVal = Math.max(0, maxElevVal - minElevVal);
+
+                    // Draw elevation box background
+                    ctx.fillStyle = '#080c14';
+                    ctx.fillRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(elevGraphX, elevGraphY, elevGraphW, elevGraphH);
+
+                    // Draw elevation curve
+                    ctx.save();
+                    var elevGrad = ctx.createLinearGradient(0, elevGraphY, 0, elevGraphY + elevGraphH);
+                    elevGrad.addColorStop(0, 'rgba(204, 255, 0, 0.4)');
+                    elevGrad.addColorStop(1, 'rgba(204, 255, 0, 0.02)');
+                    ctx.fillStyle = elevGrad;
+                    ctx.strokeStyle = '#ccff00';
+                    ctx.lineWidth = 2.5;
+
+                    ctx.beginPath();
+                    ctx.moveTo(elevGraphX, elevGraphY + elevGraphH);
+                    for (var ep = 0; ep <= 20; ep++) {
+                        var ex = elevGraphX + (ep / 20) * elevGraphW;
+                        var ratio = Math.sin((ep / 20) * Math.PI) * 0.75 + 0.15;
+                        var ey = elevGraphY + elevGraphH - (ratio * (elevGraphH - 20));
+                        ctx.lineTo(ex, ey);
+                    }
+                    ctx.lineTo(elevGraphX + elevGraphW, elevGraphY + elevGraphH);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Draw top line
+                    ctx.beginPath();
+                    for (var ep2 = 0; ep2 <= 20; ep2++) {
+                        var ex2 = elevGraphX + (ep2 / 20) * elevGraphW;
+                        var ratio2 = Math.sin((ep2 / 20) * Math.PI) * 0.75 + 0.15;
+                        var ey2 = elevGraphY + elevGraphH - (ratio2 * (elevGraphH - 20));
+                        if (ep2 === 0) ctx.moveTo(ex2, ey2);
+                        else ctx.lineTo(ex2, ey2);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Elevation Min / Max
+                    ctx.font = '700 12px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText(minElevVal + 'm', elevGraphX, elevGraphY + elevGraphH + 24);
+                    ctx.textAlign = 'right';
+                    ctx.fillText(maxElevVal + 'm', elevGraphX + elevGraphW, elevGraphY + elevGraphH + 24);
+                    ctx.textAlign = 'left';
+
+                    // QR Code for Start Location
+                    var qrBoxX = cardX + 36;
+                    var qrBoxY = cardY + 235;
+                    
+                    // Card Right Column: Route Details
+                    var rightX = cardX + 540;
+
+                    ctx.font = '700 13px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('NAMA RUTE', rightX, cardY + 44);
+
+                    ctx.font = '900 28px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    var clippedName = routeName.length > 28 ? routeName.substring(0, 26) + '...' : routeName;
+                    ctx.fillText(clippedName, rightX, cardY + 80);
+
+                    // 2-Col Stats (Est Time & Elevation Gain)
+                    ctx.font = '700 13px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('EST. WAKTU', rightX, cardY + 130);
+                    ctx.fillText('ELEV GAIN', rightX + 260, cardY + 130);
+
+                    ctx.font = '900 24px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(estTime, rightX, cardY + 165);
+
+                    ctx.fillStyle = '#ccff00';
+                    ctx.fillText('+' + gainVal + 'm', rightX + 260, cardY + 165);
+
+                    // Start / Finish Coordinate Badges
+                    var startCoordText = routePoints[0].lat.toFixed(4) + ', ' + routePoints[0].lng.toFixed(4);
+                    var finishCoordText = routePoints[routePoints.length - 1].lat.toFixed(4) + ', ' + routePoints[routePoints.length - 1].lng.toFixed(4);
+
+                    ctx.font = '600 13px monospace';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('START : ' + startCoordText, rightX, cardY + 230);
+                    ctx.fillText('FINISH: ' + finishCoordText, rightX, cardY + 260);
+
+                    // Footer watermark inside card
+                    ctx.font = '700 13px "Inter", Arial, sans-serif';
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText('DIBUAT DENGAN RUANGLARI.COM/TOOLS/BUAT-RUTE-LARI', rightX, cardY + 335);
+
+                    // Function to finish and trigger download / callback
+                    function completePoster() {
+                        var isJpg = (format === 'jpg' || format === 'jpeg');
+                        var mime = isJpg ? 'image/jpeg' : 'image/png';
+                        var ext = isJpg ? '.jpg' : '.png';
+                        var quality = isJpg ? 0.92 : undefined;
+
+                        if (download) {
+                            try {
+                                var link = document.createElement('a');
+                                var cleanName = safeFilename(routeName) || 'rute-lari';
+                                link.download = 'ruanglari-' + cleanName + '-' + distKm + 'km' + ext;
+                                link.href = canvas.toDataURL(mime, quality);
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                setStatus('Poster rute berhasil diunduh (' + ext.toUpperCase() + ')');
+                            } catch (e) {
+                                console.error('Download error:', e);
+                                setStatus('Gagal mengunduh poster');
+                            }
+                        } else {
+                            setStatus('Poster rute siap (' + ext.toUpperCase() + ')');
                         }
-                        document.body.removeChild(tempQrDiv);
+
+                        if (callback) callback(canvas);
+                    }
+
+                    // Generate QR Code into poster
+                    try {
+                        var tempQrDiv = document.createElement('div');
+                        tempQrDiv.style.position = 'fixed';
+                        tempQrDiv.style.left = '-9999px';
+                        document.body.appendChild(tempQrDiv);
+
+                        var startMapsUrl = "https://www.google.com/maps/search/?api=1&query=" + routePoints[0].lat + "," + routePoints[0].lng;
+                        new QRCode(tempQrDiv, {
+                            text: startMapsUrl,
+                            width: 100,
+                            height: 100,
+                            colorDark: "#090d16",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+
+                        setTimeout(function() {
+                            var qrCanvas = tempQrDiv.querySelector('canvas');
+                            var qrImg = tempQrDiv.querySelector('img');
+                            var qrSource = qrCanvas || qrImg;
+
+                            if (qrSource) {
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(qrBoxX, qrBoxY, 110, 110);
+                                ctx.drawImage(qrSource, qrBoxX + 5, qrBoxY + 5, 100, 100);
+
+                                ctx.font = '700 10px "Inter", Arial, sans-serif';
+                                ctx.fillStyle = '#94a3b8';
+                                ctx.fillText('SCAN START', qrBoxX + 18, qrBoxY + 130);
+                            }
+                            document.body.removeChild(tempQrDiv);
+                            completePoster();
+                        }, 80);
+                    } catch (qrErr) {
+                        console.warn('Poster QR Code generation skipped:', qrErr);
                         completePoster();
-                    }, 80);
-                } catch (qrErr) {
-                    console.warn('Poster QR Code generation skipped:', qrErr);
-                    completePoster();
+                    }
+                }
+
+                // Render Map Image or Dark Grid based on withMap option
+                var mapboxToken = window.RL_MAPBOX_TOKEN;
+                if (withMap && mapboxToken) {
+                    var mapboxUrl = 'https://api.mapbox.com/styles/v1/mapbox/' + mapStyle + '/static/' + centerLng.toFixed(6) + ',' + centerLat.toFixed(6) + ',' + zoom + ',0/' + mapW + 'x' + mapH + '@2x?access_token=' + mapboxToken;
+                    var mapImg = new Image();
+                    mapImg.crossOrigin = 'anonymous';
+
+                    var loadTimeout = setTimeout(function() {
+                        console.warn('Mapbox static map timed out, falling back to dark grid');
+                        drawDarkGridBackground();
+                        drawRouteGraphics(getCanvasXYEquirect);
+                    }, 5000);
+
+                    mapImg.onload = function() {
+                        clearTimeout(loadTimeout);
+                        ctx.save();
+                        ctx.beginPath();
+                        if (ctx.roundRect) {
+                            ctx.roundRect(mapX, mapY, mapW, mapH, 16);
+                        } else {
+                            ctx.rect(mapX, mapY, mapW, mapH);
+                        }
+                        ctx.clip();
+                        ctx.drawImage(mapImg, mapX, mapY, mapW, mapH);
+
+                        // Subtle dark contrast veil so neon line and text pop
+                        ctx.fillStyle = 'rgba(11, 18, 32, 0.22)';
+                        ctx.fillRect(mapX, mapY, mapW, mapH);
+
+                        // Clean border around map
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                        ctx.restore();
+
+                        drawRouteGraphics(getCanvasXYMercator);
+                    };
+
+                    mapImg.onerror = function() {
+                        clearTimeout(loadTimeout);
+                        console.warn('Mapbox static map failed, falling back to dark grid');
+                        drawDarkGridBackground();
+                        drawRouteGraphics(getCanvasXYEquirect);
+                    };
+
+                    mapImg.src = mapboxUrl;
+                } else {
+                    drawDarkGridBackground();
+                    drawRouteGraphics(getCanvasXYEquirect);
                 }
             }
 
