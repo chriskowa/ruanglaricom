@@ -22,7 +22,7 @@ class OpenAiService
     /**
      * Generic method to get AI response.
      */
-    public function getAiResponse(string $prompt, string $systemMessage = 'You are a helpful assistant.', string $model = 'gpt-4o'): ?string
+    public function getAiResponse(string $prompt, string $systemMessage = 'You are a helpful assistant.', string $model = 'gpt-6-astra'): ?string
     {
         if (empty($this->apiKey)) {
             Log::error('OpenAI API Key is not set.');
@@ -88,7 +88,7 @@ class OpenAiService
 
     public function getAiResponseOrThrow(string $prompt, string $systemMessage = 'You are a helpful assistant.', ?string $model = null): string
     {
-        $model = $model ?: (config('services.openai.model') ?: 'gpt-4o');
+        $model = $model ?: (config('services.openai.blog_model') ?: config('services.openai.model') ?: 'gpt-6-astra');
         $endpoint = config('services.openai.endpoint') ?: 'responses';
 
         if (empty($this->apiKey)) {

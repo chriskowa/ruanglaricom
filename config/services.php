@@ -43,8 +43,8 @@ return [
 
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
-        'model' => env('OPENAI_MODEL', 'gpt-4o'),
-        'blog_model' => env('OPENAI_BLOG_MODEL', env('OPENAI_MODEL', 'gpt-4o')),
+        'model' => env('OPENAI_MODEL', 'gpt-6-astra'),
+        'blog_model' => env('OPENAI_BLOG_MODEL', env('OPENAI_MODEL', 'gpt-6-astra')),
         'endpoint' => env('OPENAI_ENDPOINT', 'responses'),
     ],
 

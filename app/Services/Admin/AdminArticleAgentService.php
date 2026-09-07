@@ -18,43 +18,69 @@ class AdminArticleAgentService
     private ?TavilyClient $tavily;
     private InternalLinkService $internalLinkService;
 
-    private string $modelBrainstorm = 'gpt-5.6';
+    private string $modelBrainstorm = 'gpt-6-astra';
     private string $modelSummary    = 'gpt-4o-mini';
     private string $modelTranslate  = 'gpt-4o-mini';
-    private string $modelWriting    = 'gpt-5.6';
+    private string $modelWriting    = 'gpt-6-astra';
 
     /**
-     * Aturan struktur HTML untuk artikel versi Indonesia.
+     * Aturan struktur HTML untuk artikel versi Indonesia (SEO & Google AI Overview 2026 Ready).
      * Dipisah dari system prompt agar tidak duplikat dengan versi EN
      * dan lebih mudah diaudit/diubah di satu tempat.
      */
     private const HTML_STRUCTURE_RULES_ID = <<<'TEXT'
-INSTRUKSI STRUKTUR HTML (PENTING):
-- Gunakan tag <h2> untuk sub-judul utama. Jangan gunakan <h1>.
-- Gunakan tag <h3> jika butuh sub-sub-judul.
-- Gunakan tag <p> untuk setiap paragraf.
-- Gunakan tag <strong> untuk bold dan <em> untuk miring.
-- Gunakan 1 tag <a> dengan attribute target='_blank' untuk hyperlink eksternal ke salah satu sumber.
-- Jika ada poin-poin, WAJIB gunakan <ul>/<ol> dengan <li>.
-- Jika ada data perbandingan/statistik, buat dalam <table> dengan <thead>/<tbody>.
-- Jika ada kutipan, gunakan <blockquote>.
-- Jangan sertakan markdown code block. Berikan raw string HTML.
+INSTRUKSI STRUKTUR HTML & ARTIKEL JUARA SEO / AI OVERVIEWS 2026:
+- Paragraf Pertama (Lead Hook 3 Detik): 2-3 kalimat tajam memikat (hook emosional/situasional) yang menyisipkan Focus Keyword secara alami di 100 kata pertama. Hindari basa-basi kamus.
+- KOTAK RINGKASAN CEPAT (KEY TAKEAWAYS) WAJIB: Tepat setelah lead paragraf pertama, buatkan callout box ringkasan 3-4 poin kunci yang padat bernas untuk merebut posisi Google AI Overview / Featured Snippets:
+  <div style="background:#12161F; border:1px solid #232B3B; border-radius:8px; padding:16px; margin:20px 0;">
+    <strong style="color:#ccff00; font-size:14px; text-transform:uppercase; letter-spacing:0.05em;">Ringkasan Inti (Key Takeaways):</strong>
+    <ul style="margin-top:8px; padding-left:20px; color:#e2e8f0; font-size:14px;">
+      <li>...fakta kunci 1...</li>
+      <li>...fakta kunci 2...</li>
+      <li>...fakta kunci 3...</li>
+    </ul>
+  </div>
+- Gunakan tag <h2> untuk sub-judul utama yang kaya entitas & menjawab search intent. DILARANG menggunakan tag <h1> di dalam content (judul halaman sudah H1).
+- Gunakan tag <h3> jika butuh rincian langkah atau sub-topik.
+- Gunakan tag <p> untuk setiap paragraf (2-4 kalimat per paragraf, nyaman dibaca di layar mobile).
+- Gunakan tag <strong> untuk penekanan data metrik/fakta krusial dan <em> untuk istilah teknis lari.
+- TABEL KOMPARASI/DATA TERUKUR WAJIB: Minimal sertakan 1 tabel perbandingan atau matriks data terukur menggunakan <table>, <thead>, <tbody>, <tr>, <th>, <td> (misal: perbandingan pace, heart rate zone, panduan hidrasi, rasio carbo loading, atau matriks latihan).
+- PANDUAN AKSI PRAKTIS (ACTIONABLE CHECKLIST): Buat satu subjudul menjelang akhir dengan <ul> atau <ol> berisi checklist langkah konkret yang bisa langsung diterapkan pelari besok pagi (membuat artikel di-bookmark dan dibagikan ke komunitas).
+- SEKSI FAQ (PEOPLE ALSO ASK OPTIMIZATION) WAJIB: Di akhir artikel, buat seksi:
+  <h2>Pertanyaan yang Sering Diajukan (FAQ)</h2>
+  Sertakan 3-4 pertanyaan kueri pencarian Google terpopuler beserta jawaban langsung 2-3 kalimat menggunakan tag <h3> untuk pertanyaan dan <p> untuk jawaban.
+- Gunakan 1 tag <a> dengan attribute target='_blank' untuk hyperlink eksternal ke salah satu sumber terpercaya dari daftar sumber.
+- DILARANG membuat subjudul kaku "Kesimpulan" atau "Penutup".
+- Jangan sertakan markdown code block (```html atau ```). Berikan raw string HTML valid.
 TEXT;
 
     /**
-     * Aturan struktur HTML untuk artikel versi English (terjemahan).
+     * Aturan struktur HTML untuk artikel versi English (SEO & AI Overview 2026 Ready).
      * Struktur harus tetap sinkron dengan HTML_STRUCTURE_RULES_ID di atas.
      */
     private const HTML_STRUCTURE_RULES_EN = <<<'TEXT'
-HTML STRUCTURE INSTRUCTIONS (IMPORTANT):
-- Use <h2> for main sub-headings. Do not use <h1>.
-- Use <h3> for sub-sub-headings if needed.
-- Use <p> for each paragraph.
-- Use <strong> for bold and <em> for italic.
-- Use 1 <a> tag with target='_blank' for an external hyperlink to one of the sources.
-- For bullet points, use <ul>/<ol> with <li>.
-- For comparison/statistics data, use <table> with <thead>/<tbody>.
-- For quotes, use <blockquote>.
+HTML STRUCTURE INSTRUCTIONS (2026 VIRAL SEO & AI OVERVIEW OPTIMIZED):
+- First Paragraph (3-Second Lead Hook): 2-3 captivating sentences hooking reader attention and naturally including the focus keyword in the first 100 words.
+- MANDATORY KEY TAKEAWAYS BOX: Right after the first lead paragraph, include a summary callout box for Google AI Overviews / Featured Snippets:
+  <div style="background:#12161F; border:1px solid #232B3B; border-radius:8px; padding:16px; margin:20px 0;">
+    <strong style="color:#ccff00; font-size:14px; text-transform:uppercase; letter-spacing:0.05em;">Key Takeaways:</strong>
+    <ul style="margin-top:8px; padding-left:20px; color:#e2e8f0; font-size:14px;">
+      <li>...key insight 1...</li>
+      <li>...key insight 2...</li>
+      <li>...key insight 3...</li>
+    </ul>
+  </div>
+- Use <h2> for main sub-headings answering specific search intents. Do not use <h1> in content.
+- Use <h3> for sub-topics or steps.
+- Use <p> for each paragraph (2-4 sentences, mobile-friendly scannability).
+- Use <strong> for important metrics/data and <em> for technical running terminology.
+- MANDATORY COMPARISON/DATA TABLE: Include at least 1 structured comparison or telemetry table using <table>, <thead>, <tbody>, <tr>, <th>, <td>.
+- ACTIONABLE CHECKLIST: Include a concrete checklist (<ul>/<ol>) near the end that runners can apply immediately.
+- MANDATORY FAQ SECTION: At the end, include:
+  <h2>Frequently Asked Questions (FAQ)</h2>
+  With 3-4 People Also Ask questions using <h3> for questions and <p> for direct concise answers.
+- Use 1 <a> tag with target='_blank' for external authority source link.
+- Do NOT add a rigid "Conclusion" or "Summary" heading.
 - Do not wrap output in markdown code blocks. Return raw HTML string.
 TEXT;
 
@@ -70,6 +96,12 @@ TEXT;
         $this->openai = new OpenAiService();
         $this->internalLinkService = $internalLinkService ?? new InternalLinkService();
 
+        $defaultModel = config('services.openai.blog_model') ?: config('services.openai.model') ?: 'gpt-6-astra';
+        $this->modelBrainstorm = $defaultModel;
+        $this->modelSummary    = config('services.openai.blog_summary_model') ?: $defaultModel;
+        $this->modelTranslate  = config('services.openai.blog_translate_model') ?: $defaultModel;
+        $this->modelWriting    = $defaultModel;
+
         // Catatan: env() sengaja TIDAK dipanggil langsung di sini. Setelah
         // `php artisan config:cache` di production, env() di luar file config
         // akan selalu return null meski .env masih ada nilainya — pastikan
@@ -80,7 +112,7 @@ TEXT;
 
     /**
      * Langkah 1: Input Topik (AI Brainstorming)
-     * Menghasilkan 10 ide artikel berdasarkan topik + strategi SEO & Google Discover 2026.
+     * Menghasilkan 10 ide artikel viral berkualitas tinggi + strategi SEO & Google Discover 2026.
      */
     public function step1_inputTopic(array $input): array
     {
@@ -95,7 +127,7 @@ TEXT;
         // Combine inputs for DB saving and AI prompt
         $fullTopicInput = $topic;
         if ($rawNews !== '') {
-            $fullTopicInput .= ($fullTopicInput !== '' ? "\n\n" : "") . "[Cuplikan Berita Realtime / Threads / IG]:\n" . $rawNews;
+            $fullTopicInput .= ($fullTopicInput !== '' ? "\n\n" : "") . "[Cuplikan Berita Realtime / Threads / IG / Strava]:\n" . $rawNews;
         }
 
         //? Get Top Articles as Reference (untuk strategi non-free)
@@ -105,19 +137,24 @@ TEXT;
             $topArticles = $this->getTopArticles($site, 50);
         }
 
-        //* 1. Susun Base Prompt dengan Aturan Mutlak Algoritma Google Discover 2026
-        $prompt = "Kamu adalah seorang Redaktur Utama & Ahli Strategi Konten SEO/Google Discover senior untuk Ruang Lari.\n" .
-                  "Input berikut berasal dari user yang memberikan topik lari atau cuplikan berita realtime / isu viral dari Threads, Instagram, atau media berita terkini:\n" .
+        //* 1. Susun Base Prompt dengan High-CTR Ethical Virality & Algoritma Google Discover 2026
+        $prompt = "Kamu adalah Redaktur Eksekutif & Ahli Strategi Konten Viral/SEO Google Discover Senior untuk Ruang Lari (platform komunitas lari terbesar di Indonesia).\n" .
+                  "Input berikut berasal dari user berupa topik lari atau cuplikan berita realtime / isu viral dari Threads, Instagram, TikTok, Strava, atau media berita terkini:\n" .
                   "=== INPUT BERITA / TOPIK ===\n" .
                   "{$fullTopicInput}\n" .
                   "===========================\n\n" .
-                  "Tugasmu: Analisis topik/berita realtime tersebut dan hasilkan 10 ide artikel berita & panduan SEO yang tajam, faktual (gaya jurnalisme Kompas.com / media olahraga terpercaya), informatif, dan memiliki nilai edukasi tinggi bagi pelari.\n\n" .
-                  "ATURAN MUTLAK PEMBUATAN JUDUL SESUAI ALGORITMA GOOGLE DISCOVER TERBARU:\n" .
-                  "1. LARANGAN CURIOSITY GAP MENIPU: Dilarang keras menahan atau menyembunyikan informasi kunci hanya untuk memancing klik (DILARANG: 'Ternyata Ini...', 'Gak Nyangka...', 'Inilah Alasannya...', 'Jangan Lakukan Ini Sebelum...', 'Ini Rahasianya...'). Tuliskan fakta, solusi, atau subjek intinya secara langsung dan transparan.\n" .
-                  "2. LARANGAN FRASA HIPERBOLA & EMOSIONAL EKSTREM: DILARANG menggunakan kata-kata sensasional, berlebihan, atau bombastis (DILARANG: 'Bikin Gempar', 'Bikin Melongo', 'Bikin Syok', 'Rahasia Terbesar', 'Wajib Tahu!', 'Mengejutkan', 'Heboh', 'Bikin Merinding').\n" .
-                  "3. KESESUAIAN MUTLAK JUDUL DAN ISI (100% CONTENT MATCH): Judul harus secara akurat, jujur, dan spesifik mencerminkan substansi data/fakta yang akan dibahas.\n" .
-                  "4. STANDAR E-E-A-T & OTORITAS TINGGI: Gunakan gaya bahasa jurnalistik berbobot, berbasis sains olahraga, medis lari, atau fakta berita nyata dengan entitas jelas (nama event, jenis cedera, teknik latihan, durasi, dll).\n" .
-                  "5. MENCEGAH PENALTI DOMAIN TINGKAT SISTEM: Hindari manipulasi CTR murahan. Klik tinggi harus diraih lewat 'clear value proposition', aktualitas berita, dan kejelasan manfaat bagi pembaca, bukan jebakan penasaran.\n\n";
+                  "Tugasmu: Analisis topik/isu tersebut dan ciptakan 10 ide artikel dengan DAYA LEDAK VIRAL TINGGI (High-CTR Ethical Virality), bernilai edukasi tinggi, dan siap mendominasi Google Search & Google Discover 2026.\n\n" .
+                  "PANDUAN VIRALITAS & KLIK TINGGI BERMUTU (HIGH-CTR ETHICAL VIRALITY 2026):\n" .
+                  "Banyak artikel lari gagal viral karena judulnya membosankan seperti laporan buku teks sekolah (misal: 'Manfaat Hidrasi Saat Lari'). Pembaca media sosial dan Google Discover TIDAK AKAN mengklik judul yang datar.\n" .
+                  "Sebaliknya, artikel viral berkualitas menggabungkan:\n" .
+                  "1. POLA PIKIR KONTRARIAN / TRUTH BOMB: Menantang mitos populer dengan data sains olahraga nyata (Contoh: 'Bukan Kurang Latihan: Alasan Ilmiah Mengapa Lari Tiap Hari Justru Membuat Pace Melambat').\n" .
+                  "2. PAIN POINT & STRUGGLE NYATA PELARI: Membahas masalah spesifik yang dialami pelari tapi jarang diungkap secara tuntas (Contoh: 'Napas Tersengal di KM 3? 3 Kesalahan Irama Napas yang Sering Dilakukan Pelari Pemula').\n" .
+                  "3. ISU HANGAT & DISKURSUS KOMUNITAS (HIGH SHAREABILITY): Topik yang memicu diskusi sehat, perdebatan seru, dan dorongan untuk membagikan ke grup WhatsApp/Threads (Contoh: 'Tren Sepatu Karbon untuk Pace 7: Dongkrak Performa atau Mempercepat Cedera Betis?' atau 'Fenomena Joki Strava & FOMO Race: Ketika Medali Mengalahkan Nilai Kejujuran').\n" .
+                  "4. ANGKA & METODE TERUKUR (SPECIFICITY): Angka spesifik menaikkan CTR hingga 45% (Contoh: 'Aturan 10 Persen: Panduan Menambah Mileage Mingguan Tanpa Terkena Shin Splints').\n\n" .
+                  "ATURAN MUTLAK GOOGLE DISCOVER & EEAT 2026:\n" .
+                  "- 100% CONTENT MATCH: Judul harus jujur dan selaras dengan isi artikel. Dilarang menipu atau hoax.\n" .
+                  "- DILARANG CLICKBAIT MURAHAN ALAY: Hindari kata alay seperti 'Bikin Melongo', 'Bikin Syok', 'Gak Nyangka', 'Heboh'. Gantilah dengan ketajaman sudut pandang, urgensi intelektual, dan 'Promise of Value' yang nyata bagi pelari.\n" .
+                  "- ENTITAS SPESIFIK: Sebutkan entitas jelas (VO2 max, zone 2, pace, cadence, shin splints, carbo loading, nama race seperti Maybank Marathon / Borobudur Marathon, sepatu karbon, dll).\n\n";
 
         //* 2. Inject Referensi & Strategi
         if ($strategy !== 'free' && !empty($topArticles)) {
@@ -145,14 +182,14 @@ TEXT;
 
         //* 3. Format Output JSON Strict
         $prompt .= "Untuk setiap ide, berikan:\n" .
-                   "1. Judul informatif, bernilai tinggi, dan akurat (patuhi 100% aturan Google Discover di atas)\n" .
+                   "1. Judul viral bermartabat (High-CTR, tajam, mengundang klik alami, patuhi 100% aturan di atas)\n" .
                    "2. Kata kunci utama (Focus Keyword / Target Ranking Utama)\n" .
                    "3. Kata kunci pendukung/turunan (Secondary Keywords / LSI, 3-5 kata kunci relevan, pisahkan koma)\n" .
-                   "4. Ringkasan singkat isi konten (Maksimal 2 kalimat yang faktual dan selaras 100% dengan judul).\n\n" .
+                   "4. Ringkasan singkat isi konten (Maksimal 2 kalimat yang faktual dan menjelaskan angle unik / information gain artikel).\n\n" .
                    "KEMBALIKAN HASILNYA HANYA SEBAGAI ARRAY JSON objek dengan kunci persis seperti ini: 'title', 'keyword', 'secondary_keywords', 'summary'. Jangan sertakan format markdown, backticks (```json), atau teks pengantar apa pun di luar JSON.";
 
         //* 4. Hit LLM
-        $rawResponse = $this->openai->getAiResponseOrThrow($prompt, "Kamu adalah ahli strategi konten SEO.", $this->modelBrainstorm);
+        $rawResponse = $this->openai->getAiResponseOrThrow($prompt, "Kamu adalah ahli strategi konten SEO dan jurnalis olahraga senior.", $this->modelBrainstorm);
 
         //* 5. Bersihkan dan Decode JSON (helper terpusat, konsisten dengan step lain)
         $optionsArray = $this->parseAiJson($rawResponse);
@@ -340,21 +377,19 @@ TEXT;
         $internalLinkInstruction = $this->internalLinkService->formatPromptInstruction($internalLinkTargets);
 
         $systemPrompt = "Aku ingin Kamu menjawab hanya dalam bahasa Indonesia.\n" .
-                        "Aku ingin Kamu bertindak sebagai Jurnalis Utama & Penulis SEO/Google Discover Senior untuk Ruang Lari dengan gaya penulisan berita faktual, lugas, dan mendalam seperti Kompas.com.\n" .
-                        "Tugas Kamu adalah menyusun artikel berita/panduan yang dimulai dengan Judul: {$titleTopic}.\n\n" .
-                        "ATURAN GAYA PENULISAN BERITA & DISCOVER (KOMPAS STYLE & E-E-A-T 2026):\n" .
-                        "- Paragraf pertama (Lead Berita): Mulai langsung dengan fakta utama berprinsip 5W+1H (Apa, Siapa, Kapan, Di mana, Mengapa, Bagaimana) yang jelas, padat, dan transparan.\n" .
-                        "- Nada Jurnalistik & Bersumber: Gunakan kalimat aktif, lugas, obyektif, faktual, dan bersumber (sebutkan rujukan secara eksplisit jika ada rincian kutipan, data, atau cuplikan dari Threads/Instagram/berita terkini, misal: 'Berdasarkan laporan...', 'Sebagaimana diungkapkan dalam...'). JANGAN mengarang data atau hoaks.\n" .
-                        "- Kedalaman & Edukasi: Hubungkan isu/berita realtime tersebut dengan panduan praktis, riset ilmiah, atau dampaknya bagi dunia lari.\n" .
-                        "- Panjang & Struktur: 500 hingga 1300 kata. Setiap subjudul minimal 2 paragraf. 1 paragraf 2-4 kalimat. 1 kalimat maksimal 20-25 kata.\n" .
-                        "- Keterbacaan & Optimasi SEO 2026: Sisipkan Focus Keyword secara alami di judul, paragraf pembuka (lead), dan minimal 1 sub-heading. Distribusikan Secondary Keywords secara alami ke dalam sub-heading (<h2>/<h3>) dan tubuh konten tanpa keyword stuffing.\n" .
-                        "- Jangan menambahkan kata 'Kesimpulan' atau 'Penutup' sebagai subjudul kaku di akhir artikel.\n\n" .
-                        "PEDOMAN JUDUL & META TITLE (GOOGLE DISCOVER ANTI-CLICKBAIT):\n" .
-                        "- 100% Content Match: Judul & Meta Title wajib selaras mutlak dengan substansi artikel.\n" .
-                        "- Dilarang Curiosity Gap yang Menipu & Frasa Hiperbola (DILARANG: 'Ternyata Ini...', 'Gak Nyangka...', 'Bikin Gempar', 'Rahasia Terbesar', dll).\n" .
-                        "- Meta title maksimal 60 karakter (mengandung Focus Keyword, lugas, kredibel).\n" .
-                        "- Meta description maksimal 150 karakter (faktual, merangkum intisari artikel tanpa clickbait).\n" .
-                        "- Excerpt 1-2 kalimat ringkas dan padat.\n\n" .
+                        "Kamu adalah Redaktur Eksekutif & Penulis Investigatif Senior Ruang Lari (platform komunitas dan media lari terdepan di Indonesia). Gaya tulisanmu memadukan kedalaman investigasi Runner's World / Outside Magazine dengan keluwesan jurnalistik Kompas.com yang tajam, berwibawa, dan sarat wawasan praktis.\n" .
+                        "Tugasmu: Susun artikel lari komprehensif, sangat menarik (high-engagement & viral), dan siap merajai Google Search serta Google Discover 2026 dengan Judul: {$titleTopic}.\n\n" .
+                        "ATURAN EMOSIONAL & GAYA PENULISAN (ANTI-AI SLOP & VIRALITY ENGINE 2026):\n" .
+                        "1. HOOK 3 DETIK (FIRST PARAGRAPH): DILARANG membuka artikel dengan kalimat klise AI ('Di era modern ini...', 'Olahraga lari kian digemari...', 'Bukan rahasia lagi bahwa...', 'Tak dapat dimungkiri bahwa...', 'Sebuah perjalanan...'). Buka LANGSUNG dengan narasi situasional yang menyentuh emosi pembaca, paradoks sains yang mengejutkan, atau pertanyaan provokatif yang dialami pelari sehari-hari. Sisipkan Focus Keyword secara alami di 100 kata pertama.\n" .
+                        "2. HIGH INFORMATION GAIN & DATA SPESIFIK (STANDAR EEAT 2026): Sajikan data angka konkret dan metrik fisiologis yang terukur (contoh: persentase detak jantung Zone 2 vs Zone 4, cadence ideal 170-180 spm, VO2 max, asam laktat, durasi carbo-loading 36-48 jam, gram karbohidrat per kg berat badan). Jangan hanya bicara teori umum yang sudah basi di Google.\n" .
+                        "3. PERSPEKTIF NYATA PELARI INDONESIA (LOCAL RELEVANCE): Kaitkan selalu dengan kondisi nyata pelari di tanah air: iklim tropis panas dan lembab (28-32°C, kelembaban >80%), rute aspal perkotaan dan CFD, event maraton nasional (Maybank Marathon Bali, Borobudur Marathon, Pocari Run Bandung, Jakarta Marathon), serta kebiasaan nutrisi lokal (air kelapa murni, pisang, kurma).\n" .
+                        "4. PANJANG & KETERBACAAN: 800 hingga 1500 kata yang padat informasi, tanpa kalimat berputar-putar. 1 paragraf terdiri dari 2-4 kalimat pendek yang enak dipindai di smartphone. Subjudul <h2> dan <h3> harus mencerminkan jawaban search intent pembaca.\n" .
+                        "5. ACTIONABLE TAKEAWAY: Jelang akhir artikel, berikan checklist taktis langkah demi langkah yang bisa langsung dipraktekkan pembaca saat sesi lari esok pagi (memicu pembaca menyimpan artikel dan membagikannya ke grup WhatsApp/Threads komunitas lari).\n\n" .
+                        "PEDOMAN JUDUL, META TITLE, & META DESCRIPTION:\n" .
+                        "- Judul & Meta Title harus berdaya tarik tinggi (high CTR), tajam, tanpa clickbait palsu (100% selaras dengan isi tulisan).\n" .
+                        "- Meta Title maksimal 60 karakter (mengandung Focus Keyword di depan, bernada persuasif).\n" .
+                        "- Meta Description 140-155 karakter (menguraikan manfaat nyata artikel yang memicu klik).\n" .
+                        "- Excerpt 1-2 kalimat ringkas dan menggugah rasa ingin tahu untuk pratinjau media sosial.\n\n" .
                         self::HTML_STRUCTURE_RULES_ID . "\n\n" .
                         ($internalLinkInstruction !== '' ? "{$internalLinkInstruction}\n\n" : '') .
                         "INSTRUKSI PROMPT GAMBAR (WAJIB):\n" .
