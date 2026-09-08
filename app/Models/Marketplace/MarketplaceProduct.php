@@ -110,7 +110,7 @@ class MarketplaceProduct extends Model
 
     public function images()
     {
-        return $this->hasMany(MarketplaceProductImage::class, 'product_id');
+        return $this->hasMany(MarketplaceProductImage::class, 'product_id')->orderByDesc('is_primary')->orderBy('id');
     }
 
     public function primaryImage()

@@ -7,6 +7,15 @@
     if (request()->has('page') && request('page') > 1) {
         $canonicalUrl .= '?page=' . request('page');
     }
+
+    $heroBgPath = public_path('images/hero/marathon-hero-cinematic.jpg');
+    $sourceArtifactImg = 'C:/Users/LENOVO/.gemini/antigravity-ide/brain/ad786e94-2a56-4d78-962d-8aea9a7effaf/marathon_hero_bg_1788863966283.jpg';
+    if (!file_exists($heroBgPath) && file_exists($sourceArtifactImg)) {
+        @copy($sourceArtifactImg, $heroBgPath);
+    }
+    $heroBgUrl = file_exists($heroBgPath) 
+        ? asset('images/hero/marathon-hero-cinematic.jpg') 
+        : asset('images/hero/runner-hero.jpg');
 @endphp
 
 @extends('layouts.pacerhub')
@@ -24,13 +33,13 @@
 
 <style>
     #events-page {
-        --ep-bg: #080A0D;
-        --ep-surface: #12161F;
-        --ep-input: #0B0F17;
-        --ep-line: #232B3B;
+        --ep-bg: #08111F;
+        --ep-surface: #0E1626;
+        --ep-input: #0B111C;
+        --ep-line: #1F293D;
         --ep-line-strong: #334155;
-        --ep-accent: #ccff00;
-        --ep-accent-hover: #b8e600;
+        --ep-accent: #B7FF00;
+        --ep-accent-hover: #a6e600;
         min-height: 100vh;
         background: var(--ep-bg);
         color: #f8fafc;
@@ -41,7 +50,181 @@
     #events-page * { box-sizing: border-box; }
     #events-page .ep-shell { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
 
-    /* HERO */
+    /* HERO V2 HIGH CONTRAST & PEWARNAAN TEGAS */
+    #events-page .hero-v2-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        background-color: #08111F;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        min-height: 640px;
+        display: flex;
+        align-items: center;
+    }
+    @media (min-width: 1024px) {
+        #events-page .hero-v2-container {
+            height: 720px;
+            min-height: 720px;
+        }
+    }
+
+    #events-page .hero-cinematic-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+        background-color: #08111F;
+    }
+    #events-page .hero-cinematic-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 85% center;
+        filter: brightness(0.85) contrast(1.1);
+    }
+    #events-page .hero-cinematic-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, #08111F 0%, #08111F 38%, rgba(8, 17, 31, 0.96) 55%, rgba(8, 17, 31, 0.8) 72%, rgba(8, 17, 31, 0.35) 100%),
+                    linear-gradient(0deg, #08111F 0%, rgba(8, 17, 31, 0.85) 35%, transparent 65%);
+    }
+
+    #events-page .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        background: rgba(183, 255, 0, 0.12) !important;
+        border: 1px solid rgba(183, 255, 0, 0.4) !important;
+        color: #B7FF00 !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    #events-page .hero-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #B7FF00;
+        box-shadow: 0 0 8px #B7FF00;
+    }
+
+    #events-page .hero-headline {
+        color: #ffffff !important;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+        font-size: 2rem;
+    }
+    @media (min-width: 640px) {
+        #events-page .hero-headline { font-size: 3rem; }
+    }
+    @media (min-width: 1024px) {
+        #events-page .hero-headline { font-size: 64px; }
+    }
+
+    #events-page .text-lime-highlight {
+        color: #B7FF00 !important;
+        text-shadow: 0 0 25px rgba(183, 255, 0, 0.35);
+    }
+
+    #events-page .btn-hero-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        padding: 0.85rem 1.65rem;
+        border-radius: 6px;
+        background-color: #B7FF00 !important;
+        color: #08111F !important;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid #B7FF00 !important;
+        box-shadow: 0 4px 20px rgba(183, 255, 0, 0.35);
+        transition: all 0.15s ease;
+    }
+    #events-page .btn-hero-primary:hover {
+        background-color: #c9ff33 !important;
+        border-color: #c9ff33 !important;
+        color: #08111F !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 28px rgba(183, 255, 0, 0.5);
+    }
+
+    #events-page .btn-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        padding: 0.85rem 1.65rem;
+        border-radius: 6px;
+        background-color: #0E1626 !important;
+        color: #ffffff !important;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid #2B384E !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        transition: all 0.15s ease;
+    }
+    #events-page .btn-hero-secondary:hover {
+        background-color: #162238 !important;
+        border-color: #64748B !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+
+    #events-page .floating-race-card {
+        position: relative;
+        background: rgba(13, 21, 39, 0.94);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(71, 85, 105, 0.6);
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.9);
+        overflow: hidden;
+    }
+
+    #events-page .btn-card-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        background-color: #B7FF00 !important;
+        color: #08111F !important;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid #B7FF00 !important;
+        box-shadow: 0 4px 16px rgba(183, 255, 0, 0.25);
+        transition: all 0.15s ease;
+    }
+    #events-page .btn-card-action:hover {
+        background-color: #c9ff33 !important;
+        border-color: #c9ff33 !important;
+        color: #08111F !important;
+    }
+
+    /* OLD HERO FALLBACK */
     #events-page .ep-hero {
         padding: 1.5rem 0 2rem;
         border-bottom: 1px solid var(--ep-line);
@@ -699,99 +882,264 @@
 @section('content')
 <div id="events-page" class="pt-0 pb-16">
 
-    <section class="ep-hero">
-        <div class="ep-shell">
-            <div class="ep-hero-grid">
-                <div>
-                    <h1 class="ep-title">
-                        Kalender Event & Jadwal Lari Indonesia 2026
+    @php
+        $upcomingRaceList = (isset($featuredEvents) && $featuredEvents->isNotEmpty())
+            ? $featuredEvents
+            : ((isset($events) && $events->isNotEmpty()) ? $events->take(3) : collect());
+    @endphp
+
+    <!-- PREMIUM FULL-WIDTH HERO SECTION (720px Desktop) -->
+    <section class="hero-v2-container">
+        <!-- Dark Cinematic Marathon Background with Solid Contrast Overlay -->
+        <div class="hero-cinematic-bg select-none">
+            <img src="{{ $heroBgUrl }}"
+                 alt="Indonesia Running Calendar 2026 - Marathon Race"
+                 loading="eager">
+            <!-- Multi-stop directional gradient overlays ensuring 100% dark solid canvas under left text -->
+            <div class="hero-cinematic-overlay"></div>
+            <!-- Ambient lime subtle accent glow -->
+            <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-3xl pointer-events-none" style="background: rgba(183, 255, 0, 0.08);"></div>
+        </div>
+
+        <!-- Left Aligned Content Container (Max-width: 1280px, Horizontal padding: 64px on desktop) -->
+        <div class="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 py-12 lg:py-0">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                
+                <!-- Left Column: Core Hero Content (Max-width 560px) -->
+                <div class="lg:col-span-7 max-w-[560px]">
+                    
+                    <!-- Badge -->
+                    <div class="mb-5">
+                        <div class="hero-badge">
+                            <span class="hero-badge-dot"></span>
+                            <span>INDONESIA RUNNING CALENDAR 2026</span>
+                        </div>
+                    </div>
+
+                    <!-- Headline (64px, Line-height 1.05) -->
+                    <h1 class="hero-headline">
+                        Temukan Race <span class="text-lime-highlight">Berikutnya</span> di Indonesia
                     </h1>
 
-                    <p class="ep-lead">
-                        Kalender event lari terlengkap di Indonesia. Mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, hingga ultra run.
+                    <!-- Subheadline -->
+                    <p class="text-slate-200 text-sm sm:text-base leading-relaxed mt-5 max-w-[520px]" style="color: #cbd5e1;">
+                        Jelajahi event 5K, 10K, Half Marathon hingga Ultra Marathon dari seluruh Indonesia dalam satu kalender.
                     </p>
 
-                    <p class="ep-subcopy">
-                        Pantau tanggal, kota penyelenggaraan, kategori jarak, status, dan tautan resmi pendaftaran lomba. Penyelenggara dapat mengajukan event gratis untuk ditayangkan di kalender.
-                    </p>
-
-                    <div class="ep-actions">
-                        <button type="button" id="btn-open-submit-event" class="ep-btn ep-btn--primary">
-                            + Submit Event Gratis
-                        </button>
-
-                        <a href="{{ route('eo.landing') }}" class="ep-btn">
-                            Registration Page EO
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-3.5 mt-8">
+                        <a href="#filter-form"
+                           onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
+                           class="btn-hero-primary"
+                           style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
+                            <i class="fas fa-magnifying-glass text-xs" style="color: #08111F !important;"></i>
+                            <span style="color: #08111F !important; font-weight: 900;">Cari Event Lari</span>
                         </a>
+
+                        <button type="button"
+                                id="btn-open-submit-event"
+                                class="btn-hero-secondary"
+                                style="background-color: #0E1626 !important; color: #ffffff !important; border: 1px solid #2B384E !important;">
+                            <i class="fas fa-plus text-xs" style="color: #B7FF00 !important;"></i>
+                            <span style="color: #ffffff !important; font-weight: 700;">Submit Event Gratis</span>
+                        </button>
                     </div>
+
+                    <!-- Trust Statistics (500+ Event, 34 Provinsi, 10K+ Runner) -->
+                    <div class="pt-8 mt-8 border-t border-slate-800/90 grid grid-cols-3 gap-4 max-w-[480px]">
+                        <div>
+                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">500<span style="color: #B7FF00;">+</span></div>
+                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Event</div>
+                        </div>
+                        <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
+                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">34</div>
+                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Provinsi</div>
+                        </div>
+                        <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
+                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">10K<span style="color: #B7FF00;">+</span></div>
+                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Runner</div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div>
-                    @if(isset($featuredEvents) && $featuredEvents->isNotEmpty())
-                        <div
-                            class="ep-featured"
-                            x-data="{
-                                activeIndex: 0,
-                                total: {{ $featuredEvents->count() }},
-                                timer: null,
-                                start(){ this.stop(); this.timer=setInterval(()=>this.next(),5000) },
-                                stop(){ if(this.timer) clearInterval(this.timer) },
-                                next(){ this.activeIndex=(this.activeIndex+1)%this.total },
-                                prev(){ this.activeIndex=(this.activeIndex-1+this.total)%this.total }
-                            }"
-                            x-init="start()"
-                            @mouseenter="stop()"
-                            @mouseleave="start()"
-                        >
-                            <div class="flex transition-transform duration-500 ease-out"
-                                 :style="`transform:translateX(-${activeIndex*100}%)`">
-                                @foreach($featuredEvents as $event)
-                                    <a href="{{ $event->public_url }}" class="ep-featured-slide">
-                                        <img src="{{ $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp') }}"
-                                             alt="{{ $event->name }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}">
+                <!-- Right Column: Floating Upcoming Race Card -->
+                <div class="lg:col-span-5 flex justify-center lg:justify-end">
+                    @if($upcomingRaceList->isNotEmpty())
+                        <div class="w-full max-w-[420px] lg:max-w-[440px]"
+                             x-data="{
+                                 currentIndex: 0,
+                                 total: {{ $upcomingRaceList->count() }},
+                                 next() { this.currentIndex = (this.currentIndex + 1) % this.total; },
+                                 prev() { this.currentIndex = (this.currentIndex - 1 + this.total) % this.total; }
+                             }">
+                            
+                            <!-- Glassmorphism Upcoming Race Card -->
+                            <div class="floating-race-card group">
+                                
+                                <!-- Ambient glow effect -->
+                                <div class="absolute -top-16 -right-16 w-36 h-36 rounded-full blur-2xl pointer-events-none" style="background: rgba(183, 255, 0, 0.12);"></div>
 
-                                        <div class="ep-featured-copy">
-                                            <div class="ep-featured-meta">
-                                                <span class="text-[#ccff00]">Featured Race</span>
-                                                @if($event->start_at)
-                                                    <span>{{ $event->start_at->translatedFormat('d M Y') }}</span>
+                                <!-- Card Header: Badge & Controls -->
+                                <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90 relative z-10">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
+                                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                    </div>
+
+                                    @if($upcomingRaceList->count() > 1)
+                                        <div class="flex items-center gap-1">
+                                            <button type="button" @click="prev()" aria-label="Previous race" 
+                                                    class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <span class="text-[10px] font-mono font-bold text-slate-400 px-1.5" x-text="(currentIndex + 1) + '/' + total"></span>
+                                            <button type="button" @click="next()" aria-label="Next race" 
+                                                    class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Slide Items -->
+                                <div class="relative overflow-hidden mt-3.5">
+                                    @foreach($upcomingRaceList as $idx => $race)
+                                        <div x-show="currentIndex === {{ $idx }}" 
+                                             x-transition:enter="transition ease-out duration-300"
+                                             x-transition:enter-start="opacity-0 translate-x-3"
+                                             x-transition:enter-end="opacity-100 translate-x-0"
+                                             class="space-y-3.5">
+
+                                            <!-- Race Cover Image with Category Chips -->
+                                            <a href="{{ $race->public_url }}" class="block relative aspect-[16/9] w-full rounded-md overflow-hidden bg-slate-950 border border-slate-800 group/img">
+                                                <img src="{{ $race->getHeroImageUrl() ?: $heroBgUrl }}" 
+                                                     alt="{{ $race->name }}" 
+                                                     class="w-full h-full object-cover transition duration-500 group-hover/img:scale-105">
+                                                
+                                                <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/95 via-transparent to-black/30"></div>
+
+                                                @if($race->distances && $race->distances->isNotEmpty())
+                                                    <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
+                                                        @foreach($race->distances->take(4) as $d)
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow"
+                                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">
+                                                                {{ $d->name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
                                                 @endif
-                                                <span>{{ $event->city ? $event->city->name : $event->location_name }}</span>
+
+                                                @if($race->start_at)
+                                                    @php
+                                                        $daysUntil = now()->diffInDays($race->start_at, false);
+                                                    @endphp
+                                                    <div class="absolute top-2.5 right-2.5 z-10">
+                                                        @if($daysUntil > 0)
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow"
+                                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
+                                                                {{ (int)$daysUntil }} HARI LAGI
+                                                            </span>
+                                                        @elseif($daysUntil === 0)
+                                                            <span class="px-2 py-0.5 rounded bg-rose-950/90 border border-rose-700 text-rose-300 text-[10px] font-mono font-bold shadow">
+                                                                HARI INI
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </a>
+
+                                            <!-- Race Title & Meta -->
+                                            <div>
+                                                <a href="{{ $race->public_url }}" class="block text-base font-bold text-white hover:text-[#B7FF00] transition line-clamp-1">
+                                                    {{ $race->name }}
+                                                </a>
+
+                                                <div class="mt-2 space-y-1.5 text-xs text-slate-300">
+                                                    <div class="flex items-center gap-2">
+                                                        <i class="fas fa-calendar-day text-xs w-4" style="color: #B7FF00;"></i>
+                                                        <span>{{ $race->start_at ? $race->start_at->translatedFormat('l, d F Y') : 'Jadwal Segera Diumumkan' }}</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <i class="fas fa-location-dot text-xs w-4" style="color: #B7FF00;"></i>
+                                                        <span class="line-clamp-1">{{ $race->city ? $race->city->name : $race->location_name }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div class="ep-featured-name">{{ $event->name }}</div>
+                                            <!-- Action Button -->
+                                            <div class="pt-1.5">
+                                                <a href="{{ $race->public_url }}" 
+                                                   class="btn-card-action"
+                                                   style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
+                                                    <span style="color: #08111F !important; font-weight: 900;">Lihat Detail Race</span>
+                                                    <i class="fas fa-arrow-right text-[10px]" style="color: #08111F !important;"></i>
+                                                </a>
+                                            </div>
 
-                                            @if($event->distances->isNotEmpty())
-                                                <div class="mt-3 flex flex-wrap gap-1.5 text-[11px] font-mono font-medium text-slate-300">
-                                                    @foreach($event->distances as $distance)
-                                                        <span class="px-2 py-0.5 bg-[#080A0D]/90 rounded border border-[#232B3B]">{{ $distance->name }}</span>
-                                                    @endforeach
-                                                </div>
-                                            @endif
                                         </div>
-                                    </a>
-                                @endforeach
-                            </div>
-
-                            @if($featuredEvents->count() > 1)
-                                <div class="ep-slider-nav">
-                                    <button type="button" @click="prev()" aria-label="Previous event">
-                                        <i class="fas fa-chevron-left text-[10px]"></i>
-                                    </button>
-                                    <button type="button" @click="next()" aria-label="Next event">
-                                        <i class="fas fa-chevron-right text-[10px]"></i>
-                                    </button>
+                                    @endforeach
                                 </div>
-                            @endif
+
+                            </div>
                         </div>
                     @else
-                        <div class="ep-featured">
-                            <img src="{{ asset('images/hero/jadwal-lari.webp') }}"
-                                 alt="Jadwal Lari 2026 Indonesia"
-                                 class="w-full h-full object-cover min-h-[360px]">
+                        <!-- Fallback Flagship Card if no upcoming race in DB -->
+                        <div class="w-full max-w-[420px] lg:max-w-[440px]">
+                            <div class="floating-race-card group">
+                                <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
+                                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                          style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
+                                        OPEN REGISTRATION
+                                    </span>
+                                </div>
+
+                                <div class="mt-3.5 space-y-3.5">
+                                    <div class="block relative aspect-[16/9] w-full rounded-md overflow-hidden bg-slate-950 border border-slate-800">
+                                        <img src="{{ $heroBgUrl }}" alt="Borobudur Marathon 2026" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/95 via-transparent to-black/30"></div>
+                                        <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">42K FM</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">21K HM</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">10K</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-base font-bold text-white">Borobudur Marathon 2026</div>
+                                        <div class="mt-2 space-y-1.5 text-xs text-slate-300">
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-calendar-day text-xs w-4" style="color: #B7FF00;"></i>
+                                                <span>Minggu, 15 November 2026</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fas fa-location-dot text-xs w-4" style="color: #B7FF00;"></i>
+                                                <span>Taman Lumbini, Candi Borobudur, Jawa Tengah</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-1.5">
+                                        <a href="#filter-form" onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
+                                           class="btn-card-action"
+                                           style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
+                                            <span style="color: #08111F !important; font-weight: 900;">Jelajahi Semua Race</span>
+                                            <i class="fas fa-arrow-right text-[10px]" style="color: #08111F !important;"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
+
             </div>
         </div>
     </section>

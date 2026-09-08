@@ -472,7 +472,7 @@ footer[aria-label="Footer Ruang Lari"] {
                     <svg id="theme-icon-moon" class="w-4 h-4 text-slate-700 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
-                    <span id="market-theme-text">Mode Terang</span>
+                    <span id="market-theme-text">Light</span>
                 </button>
 
                 <a href="{{ route('marketplace.cart.index') }}" class="relative px-4 py-2.5 rounded-md bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white border text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isLight) {
             if (sunIcon) sunIcon.classList.add('hidden');
             if (moonIcon) moonIcon.classList.remove('hidden');
-            if (themeText) themeText.innerText = 'Mode Gelap';
+            if (themeText) themeText.innerText = 'Dark';
             if (themeBtn) {
                 themeBtn.className = 'px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-white border-slate-300 hover:border-slate-400 text-slate-800';
             }

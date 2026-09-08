@@ -240,6 +240,8 @@ class ProductController extends Controller
             'fulfillment_mode' => 'nullable|in:self_ship,consignment',
             'dropoff_method' => 'nullable|string|max:255',
             'dropoff_location' => 'nullable|string|max:255',
+            'primary_image_id' => 'nullable|integer',
+            'primary_new_image_index' => 'nullable|integer',
         ]);
 
         $data = $request->only(['title', 'category_id', 'brand_id', 'size', 'description', 'condition']);
@@ -327,20 +329,34 @@ class ProductController extends Controller
             $newFiles = [$request->file('image')];
         }
 
+        $primaryNewIndex = $request->input('primary_new_image_index');
+        $hasNewPrimary = ($primaryNewIndex !== null && $primaryNewIndex !== '');
+
+        if ($hasNewPrimary) {
+            $product->images()->update(['is_primary' => false]);
+        }
+
         if (!empty($newFiles)) {
-            foreach ($newFiles as $file) {
+            foreach ($newFiles as $index => $file) {
                 if ($file && $file->isValid()) {
                     $sizes = $imageService->upload($file, 'marketplace/products', [], 80);
                     $path = $sizes['large'] ?? ($sizes['medium'] ?? reset($sizes));
+                    $isPrimary = ($hasNewPrimary && (int)$primaryNewIndex === $index);
                     $product->images()->create([
                         'image_path' => $path,
-                        'is_primary' => false,
+                        'is_primary' => $isPrimary,
                     ]);
                 }
             }
         }
 
-        // Pastikan selalu ada 1 foto primary
+        // Update primary image jika foto lama dipilih sebagai foto utama
+        if (!$hasNewPrimary && $request->filled('primary_image_id')) {
+            $product->images()->update(['is_primary' => false]);
+            $product->images()->where('id', $request->primary_image_id)->update(['is_primary' => true]);
+        }
+
+        // Pastikan selalu ada 1 foto primary jika produk memiliki foto
         if (!$product->images()->where('is_primary', true)->exists()) {
             $product->images()->first()?->update(['is_primary' => true]);
         }

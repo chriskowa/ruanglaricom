@@ -6,7 +6,7 @@
 @php
     $withSidebar = true;
 @endphp
-<div class="min-h-screen pt-24 pb-12 px-4 md:px-8 font-sans" x-data="{
+<div class="min-h-screen pt-0 pb-12 px-4 md:px-8 font-sans" x-data="{
     activeTab: 'products',
     toast: { show: false, message: '', type: 'success' },
     showSoldModal: false,
@@ -186,10 +186,7 @@
     <div x-show="toast.show" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
          x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 translate-y-0"
-         x-transition:leave-end="opacity-0 translate-y-2"
          class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-md border shadow-xl flex items-center gap-3 text-sm font-semibold max-w-sm"
          :class="toast.type === 'success' ? 'bg-slate-900 border-slate-700 text-white' : 'bg-rose-950 border-rose-800 text-rose-200'"
          style="display: none;">
@@ -212,6 +209,11 @@
     </div>
 
     @if(session('success'))
+        <script>
+            try {
+                localStorage.removeItem('ruanglari_product_create_draft');
+            } catch (e) {}
+        </script>
         <div class="bg-slate-900 border border-slate-700 text-slate-200 p-3 rounded-md mb-5 flex items-center gap-2 text-xs">
             <span class="font-bold text-neon">✓</span>
             {{ session('success') }}

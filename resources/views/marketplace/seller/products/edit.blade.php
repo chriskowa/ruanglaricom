@@ -3,7 +3,7 @@
 @section('title', 'Edit Product - RuangLari Market')
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
+<div class="min-h-screen pt-0 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
      x-data="productEditForm()">
     <div class="max-w-4xl mx-auto">
         
@@ -409,97 +409,167 @@
                                     Galeri Foto Produk (Maksimal 4 Foto)
                                 </label>
                                 <span class="text-xs text-slate-400 uppercase font-semibold">
-                                    <span x-text="totalImagesCount">0</span> / 4 Foto Total
+                                    <span x-text="totalImagesCount">0</span> / 4 Foto Aktif
                                 </span>
                             </div>
 
+                            <p class="text-xs text-slate-300">
+                                Atur galeri foto produk. Tarik &amp; geser (drag and drop) posisi foto untuk menentukan urutan—foto di posisi pertama (paling kiri) otomatis menjadi <strong>Foto Utama (Cover)</strong>.
+                            </p>
+
+                            <!-- Hidden inputs for primary image -->
+                            <input type="hidden" name="primary_image_id" :value="primaryImageId">
+                            <input type="hidden" name="primary_new_image_index" :value="primaryNewImageIndex">
+
                             <!-- Hidden inputs for delete_images -->
-                            <template x-for="id in deletedImageIds" :key="id">
-                                <input type="hidden" name="delete_images[]" :value="id">
+                            <template x-for="item in deletedExistingImages" :key="item.id">
+                                <input type="hidden" name="delete_images[]" :value="item.id">
                             </template>
 
                             <!-- Hidden input for new uploaded files -->
                             <input type="file" id="edit-images-input" name="images[]" multiple accept="image/*" class="hidden" @change="handleFilesFromInput($event)">
 
-                            <!-- Existing Photos Section -->
-                            <template x-if="existingImages.length > 0">
-                                <div class="space-y-2">
-                                    <span class="text-xs text-slate-400 uppercase font-bold">Foto Saat Ini:</span>
-                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                        <template x-for="img in existingImages" :key="img.id">
-                                            <div class="relative aspect-square rounded-xl border transition-all overflow-hidden flex flex-col items-center justify-center text-center group shadow-md"
-                                                 :class="isMarkedDeleted(img.id) ? 'border-rose-700/60 bg-rose-950/40 opacity-50 grayscale' : 'border-slate-700 bg-slate-950'">
-                                                <img :src="img.url" class="w-full h-full object-cover">
-                                                
-                                                <template x-if="img.is_primary && !isMarkedDeleted(img.id)">
-                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-neon text-dark text-[8px] font-black uppercase shadow">
-                                                        UTAMA
-                                                    </span>
-                                                </template>
-
-                                                <template x-if="isMarkedDeleted(img.id)">
-                                                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-rose-600 text-white text-[8px] font-black uppercase shadow">
-                                                        AKAN DIHAPUS
-                                                    </span>
-                                                </template>
-
-                                                <button type="button" @click="toggleDeleteExisting(img.id)"
-                                                        class="absolute top-1.5 right-1.5 px-2 py-1 rounded-md text-[10px] font-bold transition flex items-center gap-1 shadow cursor-pointer"
-                                                        :class="isMarkedDeleted(img.id) ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-rose-600 hover:bg-rose-500 text-white'"
-                                                        :title="isMarkedDeleted(img.id) ? 'Batalkan hapus foto' : 'Hapus foto ini'">
-                                                    <i class="fas" :class="isMarkedDeleted(img.id) ? 'fa-undo text-[9px]' : 'fa-trash-alt text-[9px]'"></i>
-                                                    <span x-text="isMarkedDeleted(img.id) ? 'Batal' : 'Hapus'"></span>
-                                                </button>
-                                            </div>
-                                        </template>
-                                    </div>
+                            <!-- Error Alert Banner for Images (Client-Side Feedback) -->
+                            <div x-show="imageError" x-cloak class="p-3 rounded-md bg-rose-950/80 border border-rose-700 text-rose-200 text-xs flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-exclamation-triangle text-rose-400"></i>
+                                    <span x-text="imageError"></span>
                                 </div>
-                            </template>
-
-                            <!-- Newly Added Photos (Dropzone Preview) -->
-                            <div class="space-y-2" x-show="newFileList.length > 0" x-cloak>
-                                <span class="text-xs text-neon uppercase font-bold">Foto Baru Akan Diunggah:</span>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                                    <template x-for="(item, idx) in newFileList" :key="idx">
-                                        <div class="relative aspect-square rounded-xl border-2 border-neon/60 bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md">
-                                            <img :src="item.previewUrl" class="w-full h-full object-cover">
-                                            
-                                            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/85 backdrop-blur border border-slate-700 text-[8px] font-bold text-white uppercase"
-                                                  x-text="'BARU ' + (idx + 1)"></span>
-                                            
-                                            <button type="button" @click.stop="removeNewFile(idx)" 
-                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer"
-                                                    title="Hapus foto baru ini">
-                                                <i class="fas fa-times text-[10px]"></i>
-                                            </button>
-                                        </div>
-                                    </template>
-                                </div>
+                                <button type="button" @click="imageError = null" class="text-rose-400 hover:text-white text-xs cursor-pointer ml-2">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
 
-                            <!-- Dropzone for Adding More Photos -->
+                            <!-- Unified Active Photos Grid (Draggable) -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5" x-show="activeImages.length > 0" x-cloak>
+                                <template x-for="(item, idx) in activeImages" :key="item.key">
+                                    <div 
+                                        draggable="true"
+                                        @dragstart="onDragStart($event, item.key)"
+                                        @dragover.prevent="onDragOver($event, item.key)"
+                                        @dragenter.prevent="onDragEnter($event, item.key)"
+                                        @dragleave="onDragLeave($event, item.key)"
+                                        @drop.prevent="onDrop($event, item.key)"
+                                        @dragend="onDragEnd($event)"
+                                        class="relative aspect-square rounded-lg border bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md transition-all select-none cursor-grab active:cursor-grabbing"
+                                        :class="{
+                                            'opacity-30 scale-95 border-dashed border-slate-500': draggedKey === item.key,
+                                            'border-neon ring-2 ring-neon/40 scale-[1.02] z-20': dragOverKey === item.key && draggedKey !== item.key,
+                                            'border-neon/80 ring-1 ring-neon/30': idx === 0 && draggedKey !== item.key && dragOverKey !== item.key,
+                                            'border-slate-700 hover:border-slate-500': idx !== 0 && draggedKey !== item.key && dragOverKey !== item.key
+                                        }"
+                                    >
+                                        <img :src="item.url" class="w-full h-full object-cover pointer-events-none">
+                                        
+                                        <!-- Slot Badge -->
+                                        <div class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow"
+                                                  :class="idx === 0 ? 'bg-neon text-dark font-black' : 'bg-slate-900/90 text-slate-300 border border-slate-700 font-bold'"
+                                                  x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
+                                            <template x-if="item.type === 'new'">
+                                                <span class="px-1.5 py-0.5 rounded bg-cyan-950/90 border border-cyan-700 text-cyan-300 text-[8px] font-bold uppercase tracking-wider shadow">
+                                                    BARU
+                                                </span>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Remove Button -->
+                                        <button type="button" @click.stop="removeImage(item.key)" 
+                                                class="absolute top-2 right-2 w-6 h-6 rounded-md bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer z-10"
+                                                :title="item.type === 'existing' ? 'Hapus foto dari produk' : 'Batalkan foto baru ini'">
+                                            <i class="fas fa-times text-[10px]"></i>
+                                        </button>
+
+                                        <!-- Bottom Bar: Drag Handle + Make Primary Button -->
+                                        <div class="absolute bottom-2 inset-x-2 flex items-center justify-between pointer-events-none z-10">
+                                            <span class="px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/80 text-slate-400 group-hover:text-slate-200 text-[10px] flex items-center gap-1 shadow">
+                                                <i class="fas fa-grip-vertical text-[9px]"></i>
+                                                <span class="text-[9px] font-medium hidden sm:inline">Geser</span>
+                                            </span>
+
+                                            <template x-if="idx > 0">
+                                                <button type="button" @click.stop="setAsPrimary(item.key)"
+                                                        class="pointer-events-auto px-2 py-0.5 rounded bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-neon text-slate-300 hover:text-neon text-[9px] font-bold transition shadow cursor-pointer">
+                                                    Jadikan Utama
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Add more slot if less than 4 -->
+                                <template x-if="activeImages.length > 0 && availableSlots > 0">
+                                    <div @click="triggerFileInput()"
+                                         @dragover.prevent="isAddDragging = true"
+                                         @dragleave.prevent="isAddDragging = false"
+                                         @drop.prevent="isAddDragging = false; handleFilesDrop($event)"
+                                         class="relative aspect-square rounded-lg border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900/80 cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none"
+                                         :class="isAddDragging ? 'border-neon bg-neon/10' : ''">
+                                        <div class="w-8 h-8 rounded-md bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
+                                            <i class="fas fa-plus text-xs"></i>
+                                        </div>
+                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
+                                        <span class="text-xs text-slate-500 mt-0.5" x-text="'Tersisa ' + availableSlots + ' slot'"></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Drag Instruction Helper -->
+                            <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-2" x-show="activeImages.length > 0" x-cloak>
+                                <i class="fas fa-arrows-alt text-slate-500 text-[11px]"></i>
+                                <span>Tarik dan geser kartu foto untuk mengatur urutan. Foto di urutan pertama otomatis menjadi <strong>Foto Utama (Cover)</strong>.</span>
+                            </div>
+
+                            <!-- Dropzone for Adding More Photos (shown when 0 active photos) -->
                             <div 
                                 id="product-dropzone"
-                                class="relative border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
+                                class="relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
                                 :class="isDragging ? 'border-neon bg-neon/5 scale-[1.01]' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-900/60'"
                                 @dragover.prevent="isDragging = true"
                                 @dragleave.prevent="isDragging = false"
                                 @drop.prevent="handleFilesDrop($event)"
                                 @click="triggerFileInput()"
-                                x-show="availableSlots > 0"
+                                x-show="activeImages.length === 0"
                             >
                                 <div class="flex flex-col items-center justify-center space-y-2.5 pointer-events-none">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
                                         <i class="fas fa-cloud-arrow-up text-lg text-neon"></i>
                                     </div>
                                     <div>
                                         <p class="text-xs font-bold text-white">
-                                            Tarik &amp; letakkan foto baru di sini, atau <span class="text-neon underline">pilih dari galeri</span>
+                                            Tarik &amp; letakkan foto di sini, atau <span class="text-neon underline">pilih dari galeri</span>
                                         </p>
                                         <p class="text-xs text-slate-400 mt-0.5">
-                                            Tersisa <span x-text="availableSlots" class="text-white font-bold"></span> slot foto tambahan (JPEG, PNG, WEBP hingga 3MB)
+                                            Maksimal 4 foto (JPEG, PNG, WEBP hingga 3MB)
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Deleted Photos Tray -->
+                            <div class="mt-4 p-4 rounded-lg bg-rose-950/20 border border-rose-900/40 space-y-3" x-show="deletedExistingImages.length > 0" x-cloak>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2 text-rose-300">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wider">Foto yang Ditandai untuk Dihapus (<span x-text="deletedExistingImages.length"></span>)</span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-400">Foto akan terhapus permanen saat produk diupdate.</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <template x-for="item in deletedExistingImages" :key="item.key">
+                                        <div class="relative aspect-square rounded-lg border border-rose-800/60 bg-slate-950 overflow-hidden opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition flex flex-col items-center justify-center">
+                                            <img :src="item.url" class="w-full h-full object-cover">
+                                            <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black uppercase shadow">
+                                                AKAN DIHAPUS
+                                            </span>
+                                            <button type="button" @click="restoreDeleted(item.key)"
+                                                    class="absolute bottom-2 inset-x-2 py-1 rounded-md bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center gap-1 shadow cursor-pointer transition">
+                                                <i class="fas fa-undo text-[9px]"></i>
+                                                <span>Batal Hapus</span>
+                                            </button>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
 
@@ -527,22 +597,256 @@
 <script>
 function productEditForm() {
     return {
-        condition: '{{ old('condition', $product->condition) }}',
-        size: '{{ old('size', $product->size) }}',
+        condition: @json(old('condition', $product->condition)),
+        size: @json(old('size', $product->size)),
         isShoeFormat: {{ old('shoe_sizes.us') || old('shoe_sizes.uk') || old('shoe_sizes.eu') || old('shoe_sizes.cm') || $isShoeCategory ? 'true' : 'false' }},
-        shoeSizeUs: '{{ old('shoe_sizes.us', $shoeSizes['us'] ?? '') }}',
-        shoeSizeUk: '{{ old('shoe_sizes.uk', $shoeSizes['uk'] ?? '') }}',
-        shoeSizeEu: '{{ old('shoe_sizes.eu', $shoeSizes['eu'] ?? '') }}',
-        shoeSizeCm: '{{ old('shoe_sizes.cm', $shoeSizes['cm'] ?? '') }}',
+        shoeSizeUs: @json(old('shoe_sizes.us', $shoeSizes['us'] ?? '')),
+        shoeSizeUk: @json(old('shoe_sizes.uk', $shoeSizes['uk'] ?? '')),
+        shoeSizeEu: @json(old('shoe_sizes.eu', $shoeSizes['eu'] ?? '')),
+        shoeSizeCm: @json(old('shoe_sizes.cm', $shoeSizes['cm'] ?? '')),
 
-        existingImages: @json($product->images->map(fn($img) => [
-            'id' => $img->id,
-            'url' => asset('storage/' . $img->image_path),
-            'is_primary' => (bool)$img->is_primary
-        ])),
-        deletedImageIds: [],
-        newFileList: [],
+        imagesList: [
+            @foreach($product->images as $img)
+            {
+                key: 'existing_{{ $img->id }}',
+                type: 'existing',
+                id: {{ $img->id }},
+                url: '{{ asset('storage/' . $img->image_path) }}',
+                is_deleted: false,
+            },
+            @endforeach
+        ],
+        imageError: null,
         isDragging: false,
+        isAddDragging: false,
+        draggedKey: null,
+        dragOverKey: null,
+
+        init() {
+            this.$nextTick(() => {
+                this.filterBrands();
+            });
+        },
+
+        get activeImages() {
+            return this.imagesList.filter(item => !item.is_deleted);
+        },
+
+        get deletedExistingImages() {
+            return this.imagesList.filter(item => item.type === 'existing' && item.is_deleted);
+        },
+
+        get totalImagesCount() {
+            return this.activeImages.length;
+        },
+
+        get availableSlots() {
+            return Math.max(0, 4 - this.totalImagesCount);
+        },
+
+        get primaryItem() {
+            return this.activeImages.length > 0 ? this.activeImages[0] : null;
+        },
+
+        get primaryImageId() {
+            const p = this.primaryItem;
+            return (p && p.type === 'existing') ? p.id : '';
+        },
+
+        get primaryNewImageIndex() {
+            const p = this.primaryItem;
+            if (!p || p.type !== 'new') return '';
+            const newItems = this.imagesList.filter(item => item.type === 'new' && !item.is_deleted);
+            const idx = newItems.indexOf(p);
+            return idx !== -1 ? idx : '';
+        },
+
+        onDragStart(e, key) {
+            this.draggedKey = key;
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', key);
+            }
+        },
+
+        onDragOver(e, key) {
+            e.preventDefault();
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+            if (this.draggedKey !== null && this.draggedKey !== key) {
+                this.dragOverKey = key;
+            }
+        },
+
+        onDragEnter(e, key) {
+            if (this.draggedKey !== null && this.draggedKey !== key) {
+                this.dragOverKey = key;
+            }
+        },
+
+        onDragLeave(e, key) {
+            if (this.dragOverKey === key) {
+                this.dragOverKey = null;
+            }
+        },
+
+        onDrop(e, targetKey) {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0 && this.draggedKey === null) {
+                this.addNewFiles(Array.from(e.dataTransfer.files));
+                this.dragOverKey = null;
+                return;
+            }
+            if (!this.draggedKey || this.draggedKey === targetKey) {
+                this.draggedKey = null;
+                this.dragOverKey = null;
+                return;
+            }
+
+            const fromIdx = this.imagesList.findIndex(i => i.key === this.draggedKey);
+            const toIdx = this.imagesList.findIndex(i => i.key === targetKey);
+
+            if (fromIdx !== -1 && toIdx !== -1) {
+                const item = this.imagesList.splice(fromIdx, 1)[0];
+                this.imagesList.splice(toIdx, 0, item);
+                this.syncFileInput();
+            }
+
+            this.draggedKey = null;
+            this.dragOverKey = null;
+        },
+
+        onDragEnd(e) {
+            this.draggedKey = null;
+            this.dragOverKey = null;
+        },
+
+        setAsPrimary(key) {
+            const fromIdx = this.imagesList.findIndex(i => i.key === key);
+            if (fromIdx === -1) return;
+            const item = this.imagesList.splice(fromIdx, 1)[0];
+            const firstActiveIdx = this.imagesList.findIndex(i => !i.is_deleted);
+            if (firstActiveIdx !== -1) {
+                this.imagesList.splice(firstActiveIdx, 0, item);
+            } else {
+                this.imagesList.unshift(item);
+            }
+            this.syncFileInput();
+        },
+
+        removeImage(key) {
+            const item = this.imagesList.find(i => i.key === key);
+            if (!item) return;
+
+            if (item.type === 'existing') {
+                item.is_deleted = true;
+            } else {
+                if (item.url) {
+                    URL.revokeObjectURL(item.url);
+                }
+                const idx = this.imagesList.indexOf(item);
+                if (idx !== -1) {
+                    this.imagesList.splice(idx, 1);
+                }
+                this.syncFileInput();
+            }
+        },
+
+        restoreDeleted(key) {
+            if (this.totalImagesCount >= 4) {
+                alert('Maksimal 4 foto yang dapat aktif dalam satu listing.');
+                return;
+            }
+            const item = this.imagesList.find(i => i.key === key);
+            if (item && item.type === 'existing') {
+                item.is_deleted = false;
+            }
+        },
+
+        triggerFileInput() {
+            const input = document.getElementById('edit-images-input');
+            if (input) input.click();
+        },
+
+        handleFilesDrop(e) {
+            this.isDragging = false;
+            if (e.dataTransfer && e.dataTransfer.files) {
+                this.addNewFiles(Array.from(e.dataTransfer.files));
+            }
+        },
+
+        handleFilesFromInput(e) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
+                this.addNewFiles(Array.from(e.target.files));
+            }
+        },
+
+        addNewFiles(files) {
+            this.imageError = null;
+            const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+            const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            const maxSizeBytes = 3 * 1024 * 1024; // 3MB
+
+            const validFiles = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const ext = (file.name || '').split('.').pop().toLowerCase();
+                const isFormatValid = allowedExts.includes(ext) || allowedMimes.includes(file.type);
+
+                if (!isFormatValid) {
+                    this.imageError = `Format file "${file.name}" tidak didukung. Harap gunakan format JPG, JPEG, PNG, atau WEBP.`;
+                    continue;
+                }
+
+                if (file.size > maxSizeBytes) {
+                    const mbSize = (file.size / (1024 * 1024)).toFixed(1);
+                    this.imageError = `Ukuran file "${file.name}" (${mbSize}MB) melebihi batas maksimal 3MB.`;
+                    continue;
+                }
+
+                validFiles.push(file);
+            }
+
+            if (validFiles.length === 0) return;
+
+            const slots = this.availableSlots;
+            if (slots <= 0) {
+                this.imageError = 'Maksimal 4 foto per produk tercapai.';
+                return;
+            }
+
+            const toAdd = validFiles.slice(0, slots);
+            toAdd.forEach(file => {
+                const previewUrl = URL.createObjectURL(file);
+                this.imagesList.push({
+                    key: 'new_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+                    type: 'new',
+                    id: null,
+                    file: file,
+                    url: previewUrl,
+                    is_deleted: false
+                });
+            });
+
+            this.syncFileInput();
+        },
+
+        syncFileInput() {
+            const input = document.getElementById('edit-images-input');
+            if (!input) return;
+
+            try {
+                const dt = new DataTransfer();
+                const newItems = this.imagesList.filter(item => item.type === 'new' && !item.is_deleted && item.file);
+                newItems.forEach(item => {
+                    dt.items.add(item.file);
+                });
+                input.files = dt.files;
+            } catch (err) {
+                console.error('DataTransfer sync error in edit:', err);
+            }
+        },
 
         updateCombinedSize() {
             if (!this.isShoeFormat) return;
@@ -561,8 +865,8 @@ function productEditForm() {
             }
         },
 
-        categoryText: '{{ optional($product->category)->name }}',
-        categorySlug: '{{ optional($product->category)->slug }}',
+        categoryText: @json(optional($product->category)->name ?? ''),
+        categorySlug: @json(optional($product->category)->slug ?? ''),
 
         get sizePlaceholder() {
             const text = (this.categoryText || '').toLowerCase();
@@ -614,97 +918,6 @@ function productEditForm() {
                 option.hidden = !isMatch;
                 option.disabled = !isMatch;
             });
-        },
-
-        get activeExistingCount() {
-            return this.existingImages.length - this.deletedImageIds.length;
-        },
-
-        get totalImagesCount() {
-            return this.activeExistingCount + this.newFileList.length;
-        },
-
-        get availableSlots() {
-            return Math.max(0, 4 - this.totalImagesCount);
-        },
-
-        isMarkedDeleted(id) {
-            return this.deletedImageIds.includes(id);
-        },
-
-        toggleDeleteExisting(id) {
-            const idx = this.deletedImageIds.indexOf(id);
-            if (idx === -1) {
-                this.deletedImageIds.push(id);
-            } else {
-                if (this.totalImagesCount < 4) {
-                    this.deletedImageIds.splice(idx, 1);
-                } else {
-                    alert('Maksimal 4 foto yang dapat aktif dalam satu listing.');
-                }
-            }
-        },
-
-        triggerFileInput() {
-            const input = document.getElementById('edit-images-input');
-            if (input) input.click();
-        },
-
-        handleFilesDrop(e) {
-            this.isDragging = false;
-            if (e.dataTransfer && e.dataTransfer.files) {
-                this.addNewFiles(Array.from(e.dataTransfer.files));
-            }
-        },
-
-        handleFilesFromInput(e) {
-            if (e.target && e.target.files && e.target.files.length > 0) {
-                this.addNewFiles(Array.from(e.target.files));
-            }
-        },
-
-        addNewFiles(files) {
-            const valid = files.filter(f => f.type.startsWith('image/'));
-            if (valid.length === 0) return;
-
-            const slots = this.availableSlots;
-            if (slots <= 0) {
-                alert('Maksimal 4 foto per produk tercapai.');
-                return;
-            }
-
-            const toAdd = valid.slice(0, slots);
-            toAdd.forEach(file => {
-                const previewUrl = URL.createObjectURL(file);
-                this.newFileList.push({ file, previewUrl });
-            });
-
-            this.syncFileInput();
-        },
-
-        removeNewFile(index) {
-            if (this.newFileList[index]) {
-                URL.revokeObjectURL(this.newFileList[index].previewUrl);
-            }
-            this.newFileList.splice(index, 1);
-            this.syncFileInput();
-        },
-
-        syncFileInput() {
-            const input = document.getElementById('edit-images-input');
-            if (!input) return;
-
-            try {
-                const dt = new DataTransfer();
-                this.newFileList.forEach(item => {
-                    if (item.file) {
-                        dt.items.add(item.file);
-                    }
-                });
-                input.files = dt.files;
-            } catch (err) {
-                console.error('DataTransfer sync error:', err);
-            }
         }
     }
 }

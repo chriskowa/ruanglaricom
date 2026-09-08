@@ -3,7 +3,7 @@
 @section('title', 'Add Product - RuangLari Market')
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
+<div class="min-h-screen pt-0 pb-20 px-4 sm:px-6 lg:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-dark"
      x-data="productCreateForm()">
     <div class="max-w-7xl mx-auto">
         
@@ -60,6 +60,17 @@
                                 </ul>
                             </div>
                         @endif
+
+                        <!-- Draft Restored Banner -->
+                        <div x-show="draftRestored" x-cloak class="mb-8 p-4 bg-slate-850 border border-slate-700 rounded-lg text-xs flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-2.5 text-slate-200">
+                                <i class="fas fa-history text-neon text-sm"></i>
+                                <span>Draft formulir produk sebelumnya berhasil dipulihkan dari penyimpanan browser.</span>
+                            </div>
+                            <button type="button" @click="resetForm()" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-rose-900/60 hover:text-rose-200 text-slate-300 text-xs font-bold transition cursor-pointer shrink-0">
+                                Bersihkan Draft
+                            </button>
+                        </div>
 
                         <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" id="product-create-form" @submit="syncFileInput()">
                             @csrf
@@ -371,25 +382,25 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Nama Pemilik Asli (Opsional)</label>
-                                            <input type="text" name="owner_name" value="{{ old('owner_name') }}"
+                                            <input type="text" name="owner_name" x-model="ownerName"
                                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
                                                 placeholder="Contoh: Budi (Teman) / FB Seller">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">No. WhatsApp Pemilik (Opsional)</label>
-                                            <input type="text" name="owner_phone" value="{{ old('owner_phone') }}"
+                                            <input type="text" name="owner_phone" x-model="ownerPhone"
                                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
                                                 placeholder="Contoh: 08123456789">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Metode Serah Terima</label>
-                                            <input type="text" name="dropoff_method" value="{{ old('dropoff_method') }}"
+                                            <input type="text" name="dropoff_method" x-model="dropoffMethod"
                                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
                                                 placeholder="Kirim Ekspedisi / Dropoff Langsung">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Lokasi Seller / Kota</label>
-                                            <input type="text" name="dropoff_location" value="{{ old('dropoff_location') }}"
+                                            <input type="text" name="dropoff_location" x-model="dropoffLocation"
                                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
                                                 placeholder="Kota / Daerah Asal Barang">
                                         </div>
@@ -413,19 +424,30 @@
                                     Unggah hingga 4 foto produk (foto pertama menjadi foto utama/sampul). Mendukung format JPG, PNG, WEBP hingga 3MB per file.
                                 </p>
 
+                                <!-- Error Alert Banner for Images (Client-Side Feedback) -->
+                                <div x-show="imageError" x-cloak class="p-3 rounded-md bg-rose-950/80 border border-rose-700 text-rose-200 text-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-exclamation-triangle text-rose-400"></i>
+                                        <span x-text="imageError"></span>
+                                    </div>
+                                    <button type="button" @click="imageError = null" class="text-rose-400 hover:text-white text-xs cursor-pointer ml-2">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
                                 <!-- Hidden File Input that holds the actual DataTransfer files -->
                                 <input type="file" id="product-images-input" name="images[]" multiple accept="image/*" class="hidden" @change="handleFilesFromInput($event)">
 
-                                <!-- Dropzone Drag & Drop Area -->
+                                <!-- Dropzone Drag & Drop Area (Shown when 0 photos selected) -->
                                 <div 
                                     id="product-dropzone"
-                                    class="relative border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
+                                    class="relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
                                     :class="isDragging ? 'border-neon bg-neon/5 scale-[1.01]' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-900/60'"
                                     @dragover.prevent="isDragging = true"
                                     @dragleave.prevent="isDragging = false"
                                     @drop.prevent="handleFilesDrop($event)"
                                     @click="triggerFileInput()"
-                                    x-show="fileList.length < 4"
+                                    x-show="fileList.length === 0"
                                 >
                                     <div class="flex flex-col items-center justify-center space-y-3 pointer-events-none">
                                         <div class="w-12 h-12 rounded-2xl bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
@@ -444,34 +466,75 @@
 
                                 <!-- Photo Thumbnails Grid (when files are selected) -->
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5" x-show="fileList.length > 0" x-cloak>
-                                    <template x-for="(item, idx) in fileList" :key="idx">
-                                        <div class="relative aspect-square rounded-xl border-2 border-neon/60 bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md">
-                                            <img :src="item.previewUrl" class="w-full h-full object-cover">
+                                    <template x-for="(item, idx) in fileList" :key="item.previewUrl">
+                                        <div 
+                                            draggable="true"
+                                            @dragstart="onDragStart($event, idx)"
+                                            @dragover.prevent="onDragOver($event, idx)"
+                                            @dragenter.prevent="onDragEnter($event, idx)"
+                                            @dragleave="onDragLeave($event, idx)"
+                                            @drop.prevent="onDrop($event, idx)"
+                                            @dragend="onDragEnd($event)"
+                                            class="relative aspect-square rounded-lg border bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md transition-all select-none cursor-grab active:cursor-grabbing"
+                                            :class="{
+                                                'opacity-30 scale-95 border-dashed border-slate-500': draggedIndex === idx,
+                                                'border-neon ring-2 ring-neon/40 scale-[1.02] z-20': dragOverIndex === idx && draggedIndex !== idx,
+                                                'border-neon/80 ring-1 ring-neon/30': idx === 0 && draggedIndex !== idx && dragOverIndex !== idx,
+                                                'border-slate-700 hover:border-slate-500': idx !== 0 && draggedIndex !== idx && dragOverIndex !== idx
+                                            }"
+                                        >
+                                            <img :src="item.previewUrl" class="w-full h-full object-cover pointer-events-none">
                                             
                                             <!-- Slot Badge -->
-                                            <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-dark/85 backdrop-blur border border-slate-700 text-[9px] font-bold text-white uppercase"
+                                            <span class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow pointer-events-none"
+                                                  :class="idx === 0 ? 'bg-neon text-dark font-black' : 'bg-slate-900/90 text-slate-300 border border-slate-700 font-bold'"
                                                   x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
                                             
                                             <!-- Remove Button -->
                                             <button type="button" @click.stop="removeImage(idx)" 
-                                                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer"
+                                                    class="absolute top-2 right-2 w-6 h-6 rounded-md bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md transition cursor-pointer z-10"
                                                     title="Hapus foto ini">
                                                 <i class="fas fa-times text-[10px]"></i>
                                             </button>
+
+                                            <!-- Bottom Bar: Drag Handle + Make Primary Button -->
+                                            <div class="absolute bottom-2 inset-x-2 flex items-center justify-between pointer-events-none">
+                                                <span class="px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/80 text-slate-400 group-hover:text-slate-200 text-[10px] flex items-center gap-1 shadow">
+                                                    <i class="fas fa-grip-vertical text-[9px]"></i>
+                                                    <span class="text-[9px] font-medium hidden sm:inline">Geser</span>
+                                                </span>
+
+                                                <template x-if="idx > 0">
+                                                    <button type="button" @click.stop="setAsPrimary(idx)"
+                                                            class="pointer-events-auto px-2 py-0.5 rounded bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-neon text-slate-300 hover:text-neon text-[9px] font-bold transition shadow cursor-pointer">
+                                                        Jadikan Utama
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </template>
 
                                     <!-- Add more slot if less than 4 -->
                                     <template x-if="fileList.length > 0 && fileList.length < 4">
                                         <div @click="triggerFileInput()"
-                                             class="relative aspect-square rounded-xl border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900/80 cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none">
-                                            <div class="w-8 h-8 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
+                                             @dragover.prevent="isAddDragging = true"
+                                             @dragleave.prevent="isAddDragging = false"
+                                             @drop.prevent="isAddDragging = false; handleFilesDrop($event)"
+                                             class="relative aspect-square rounded-lg border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900/80 cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none"
+                                             :class="isAddDragging ? 'border-neon bg-neon/10' : ''">
+                                            <div class="w-8 h-8 rounded-md bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
                                                 <i class="fas fa-plus text-xs"></i>
                                             </div>
                                             <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
                                             <span class="text-xs text-slate-500 mt-0.5" x-text="'Slot ' + (fileList.length + 1) + '/4'"></span>
                                         </div>
                                     </template>
+                                </div>
+
+                                <!-- Drag Instruction Helper -->
+                                <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-2" x-show="fileList.length > 0" x-cloak>
+                                    <i class="fas fa-arrows-alt text-slate-500 text-[11px]"></i>
+                                    <span>Tarik dan geser kartu foto untuk mengatur urutan. Foto di urutan pertama otomatis menjadi <strong>Foto Utama (Cover)</strong>.</span>
                                 </div>
 
                                 @error('images') <p class="text-rose-400 text-xs">{{ $message }}</p> @enderror
@@ -505,18 +568,18 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Nama Race / Event</label>
-                                        <input type="text" name="meta_data[race_name]" placeholder="Contoh: Borobudur Marathon 2024" 
+                                        <input type="text" name="meta_data[race_name]" x-model="raceName" placeholder="Contoh: Borobudur Marathon 2024" 
                                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Tanggal Race</label>
-                                        <input type="date" name="meta_data[race_date]" 
+                                        <input type="date" name="meta_data[race_date]" x-model="raceDate"
                                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-white transition">
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Kebijakan Transfer BIB / Nama</label>
-                                    <input type="text" name="meta_data[transfer_policy]" placeholder="Contoh: Bisa ganti nama resmi sampai H-14 race" 
+                                    <input type="text" name="meta_data[transfer_policy]" x-model="transferPolicy" placeholder="Contoh: Bisa ganti nama resmi sampai H-14 race" 
                                         class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition">
                                 </div>
                             </div>
@@ -659,32 +722,47 @@
 <script>
 function productCreateForm() {
     return {
-        title: '{{ old('title', '') }}',
-        categoryId: '{{ old('category_id', '') }}',
+        title: @json(old('title', '')),
+        categoryId: @json(old('category_id', '')),
         categoryText: '',
         categorySlug: '',
-        brandId: '{{ old('brand_id', '') }}',
+        brandId: @json(old('brand_id', '')),
         brandText: '',
-        size: '{{ old('size', '') }}',
+        size: @json(old('size', '')),
         isShoeFormat: {{ old('shoe_sizes.us') || old('shoe_sizes.uk') || old('shoe_sizes.eu') || old('shoe_sizes.cm') ? 'true' : 'false' }},
-        shoeSizeUs: '{{ old('shoe_sizes.us', '') }}',
-        shoeSizeUk: '{{ old('shoe_sizes.uk', '') }}',
-        shoeSizeEu: '{{ old('shoe_sizes.eu', '') }}',
-        shoeSizeCm: '{{ old('shoe_sizes.cm', '') }}',
-        productType: '{{ old('type', 'physical') }}',
-        condition: '{{ old('condition', 'new') }}',
-        saleType: '{{ old('sale_type', 'fixed') }}',
-        fulfillmentMode: '{{ old('fulfillment_mode', 'self_ship') }}',
-        price: '{{ old('price', '') }}',
-        stock: '{{ old('stock', 1) }}',
-        startingPrice: '{{ old('starting_price', '') }}',
-        description: '{{ old('description', '') }}',
+        shoeSizeUs: @json(old('shoe_sizes.us', '')),
+        shoeSizeUk: @json(old('shoe_sizes.uk', '')),
+        shoeSizeEu: @json(old('shoe_sizes.eu', '')),
+        shoeSizeCm: @json(old('shoe_sizes.cm', '')),
+        productType: @json(old('type', 'physical')),
+        condition: @json(old('condition', 'new')),
+        saleType: @json(old('sale_type', 'fixed')),
+        fulfillmentMode: @json(old('fulfillment_mode', 'self_ship')),
+        price: @json(old('price', '')),
+        stock: @json(old('stock', 1)),
+        startingPrice: @json(old('starting_price', '')),
+        description: @json(old('description', '')),
+        raceName: @json(old('meta_data.race_name', '')),
+        raceDate: @json(old('meta_data.race_date', '')),
+        transferPolicy: @json(old('meta_data.transfer_policy', '')),
+        ownerName: @json(old('owner_name', '')),
+        ownerPhone: @json(old('owner_phone', '')),
+        dropoffMethod: @json(old('dropoff_method', '')),
+        dropoffLocation: @json(old('dropoff_location', '')),
         
         isDragging: false,
+        isAddDragging: false,
+        draggedIndex: null,
+        dragOverIndex: null,
         fileList: [],
         activePreviewIndex: 0,
+        imageError: null,
+        draftRestored: false,
+        draftKey: 'ruanglari_product_create_draft',
 
         init() {
+            this.loadDraft();
+
             const categorySelect = document.getElementById('category-select');
             if (categorySelect && categorySelect.selectedIndex > 0) {
                 const opt = categorySelect.options[categorySelect.selectedIndex];
@@ -704,6 +782,124 @@ function productCreateForm() {
                 this.updateCombinedSize();
             }
             this.filterBrands();
+            this.$nextTick(() => {
+                this.filterBrands();
+            });
+
+            // Auto-save draft on every field change
+            const fieldsToWatch = [
+                'title', 'categoryId', 'brandId', 'price', 'stock', 'startingPrice',
+                'description', 'condition', 'saleType', 'fulfillmentMode', 'size',
+                'shoeSizeUs', 'shoeSizeUk', 'shoeSizeEu', 'shoeSizeCm',
+                'raceName', 'raceDate', 'transferPolicy',
+                'ownerName', 'ownerPhone', 'dropoffMethod', 'dropoffLocation'
+            ];
+            fieldsToWatch.forEach(field => {
+                this.$watch(field, () => this.saveDraft());
+            });
+        },
+
+        saveDraft() {
+            try {
+                const draft = {
+                    title: this.title || '',
+                    categoryId: this.categoryId || '',
+                    categoryText: this.categoryText || '',
+                    categorySlug: this.categorySlug || '',
+                    brandId: this.brandId || '',
+                    brandText: this.brandText || '',
+                    size: this.size || '',
+                    isShoeFormat: this.isShoeFormat,
+                    shoeSizeUs: this.shoeSizeUs || '',
+                    shoeSizeUk: this.shoeSizeUk || '',
+                    shoeSizeEu: this.shoeSizeEu || '',
+                    shoeSizeCm: this.shoeSizeCm || '',
+                    productType: this.productType || 'physical',
+                    condition: this.condition || 'new',
+                    saleType: this.saleType || 'fixed',
+                    fulfillmentMode: this.fulfillmentMode || 'self_ship',
+                    price: this.price || '',
+                    stock: this.stock || 1,
+                    startingPrice: this.startingPrice || '',
+                    description: this.description || '',
+                    raceName: this.raceName || '',
+                    raceDate: this.raceDate || '',
+                    transferPolicy: this.transferPolicy || '',
+                    ownerName: this.ownerName || '',
+                    ownerPhone: this.ownerPhone || '',
+                    dropoffMethod: this.dropoffMethod || '',
+                    dropoffLocation: this.dropoffLocation || '',
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem(this.draftKey, JSON.stringify(draft));
+            } catch (e) {
+                console.warn('Gagal menyimpan draft:', e);
+            }
+        },
+
+        loadDraft() {
+            try {
+                const raw = localStorage.getItem(this.draftKey);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                if (!draft || typeof draft !== 'object') return;
+
+                // Hanya isi dari draft jika tidak ada data dari flash server old()
+                const hasServerOld = Boolean(
+                    @json(old('title')) || 
+                    @json(old('description')) || 
+                    @json(old('price')) || 
+                    @json(old('category_id'))
+                );
+
+                if (!hasServerOld) {
+                    if (draft.title && !this.title) this.title = draft.title;
+                    if (draft.categoryId && !this.categoryId) this.categoryId = draft.categoryId;
+                    if (draft.categoryText) this.categoryText = draft.categoryText;
+                    if (draft.categorySlug) this.categorySlug = draft.categorySlug;
+                    if (draft.brandId && !this.brandId) this.brandId = draft.brandId;
+                    if (draft.brandText) this.brandText = draft.brandText;
+                    if (draft.isShoeFormat !== undefined) this.isShoeFormat = draft.isShoeFormat;
+                    if (draft.shoeSizeUs) this.shoeSizeUs = draft.shoeSizeUs;
+                    if (draft.shoeSizeUk) this.shoeSizeUk = draft.shoeSizeUk;
+                    if (draft.shoeSizeEu) this.shoeSizeEu = draft.shoeSizeEu;
+                    if (draft.shoeSizeCm) this.shoeSizeCm = draft.shoeSizeCm;
+                    if (draft.size && !this.size) this.size = draft.size;
+                    if (draft.productType) this.productType = draft.productType;
+                    if (draft.condition) this.condition = draft.condition;
+                    if (draft.saleType) this.saleType = draft.saleType;
+                    if (draft.fulfillmentMode) this.fulfillmentMode = draft.fulfillmentMode;
+                    if (draft.price && !this.price) this.price = draft.price;
+                    if (draft.stock) this.stock = draft.stock;
+                    if (draft.startingPrice && !this.startingPrice) this.startingPrice = draft.startingPrice;
+                    if (draft.description && !this.description) this.description = draft.description;
+                    if (draft.raceName) this.raceName = draft.raceName;
+                    if (draft.raceDate) this.raceDate = draft.raceDate;
+                    if (draft.transferPolicy) this.transferPolicy = draft.transferPolicy;
+                    if (draft.ownerName) this.ownerName = draft.ownerName;
+                    if (draft.ownerPhone) this.ownerPhone = draft.ownerPhone;
+                    if (draft.dropoffMethod) this.dropoffMethod = draft.dropoffMethod;
+                    if (draft.dropoffLocation) this.dropoffLocation = draft.dropoffLocation;
+
+                    if (draft.title || draft.description || draft.price) {
+                        this.draftRestored = true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Gagal membaca draft:', e);
+            }
+        },
+
+        clearDraft() {
+            try {
+                localStorage.removeItem(this.draftKey);
+                this.draftRestored = false;
+            } catch (e) {}
+        },
+
+        resetForm() {
+            this.clearDraft();
+            window.location.reload();
         },
 
         updateCombinedSize() {
@@ -748,6 +944,69 @@ function productCreateForm() {
             if (input) input.click();
         },
 
+        onDragStart(e, index) {
+            this.draggedIndex = index;
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', index.toString());
+            }
+        },
+
+        onDragOver(e, index) {
+            e.preventDefault();
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+            if (this.draggedIndex !== null && this.draggedIndex !== index) {
+                this.dragOverIndex = index;
+            }
+        },
+
+        onDragEnter(e, index) {
+            if (this.draggedIndex !== null && this.draggedIndex !== index) {
+                this.dragOverIndex = index;
+            }
+        },
+
+        onDragLeave(e, index) {
+            if (this.dragOverIndex === index) {
+                this.dragOverIndex = null;
+            }
+        },
+
+        onDrop(e, targetIndex) {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0 && this.draggedIndex === null) {
+                this.addFiles(Array.from(e.dataTransfer.files));
+                this.dragOverIndex = null;
+                return;
+            }
+            if (this.draggedIndex === null || this.draggedIndex === targetIndex) {
+                this.draggedIndex = null;
+                this.dragOverIndex = null;
+                return;
+            }
+            const item = this.fileList.splice(this.draggedIndex, 1)[0];
+            this.fileList.splice(targetIndex, 0, item);
+            this.draggedIndex = null;
+            this.dragOverIndex = null;
+            this.syncFileInput();
+            this.activePreviewIndex = 0;
+        },
+
+        onDragEnd(e) {
+            this.draggedIndex = null;
+            this.dragOverIndex = null;
+        },
+
+        setAsPrimary(index) {
+            if (index <= 0 || index >= this.fileList.length) return;
+            const item = this.fileList.splice(index, 1)[0];
+            this.fileList.unshift(item);
+            this.syncFileInput();
+            this.activePreviewIndex = 0;
+        },
+
         handleFilesDrop(e) {
             this.isDragging = false;
             if (e.dataTransfer && e.dataTransfer.files) {
@@ -762,13 +1021,40 @@ function productCreateForm() {
         },
 
         addFiles(newFiles) {
-            const validImageFiles = newFiles.filter(f => f.type.startsWith('image/'));
-            if (validImageFiles.length === 0) return;
+            this.imageError = null;
+            const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+            const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            const maxSizeBytes = 3 * 1024 * 1024; // 3MB
+
+            const validFiles = [];
+            for (let i = 0; i < newFiles.length; i++) {
+                const file = newFiles[i];
+                const ext = (file.name || '').split('.').pop().toLowerCase();
+                const isFormatValid = allowedExts.includes(ext) || allowedMimes.includes(file.type);
+
+                if (!isFormatValid) {
+                    this.imageError = `Format file "${file.name}" tidak didukung. Harap gunakan format JPG, JPEG, PNG, atau WEBP.`;
+                    continue;
+                }
+
+                if (file.size > maxSizeBytes) {
+                    const mbSize = (file.size / (1024 * 1024)).toFixed(1);
+                    this.imageError = `Ukuran file "${file.name}" (${mbSize}MB) melebihi batas maksimal 3MB.`;
+                    continue;
+                }
+
+                validFiles.push(file);
+            }
+
+            if (validFiles.length === 0) return;
 
             const availableSlots = 4 - this.fileList.length;
-            if (availableSlots <= 0) return;
+            if (availableSlots <= 0) {
+                this.imageError = 'Maksimal 4 foto per produk tercapai.';
+                return;
+            }
 
-            const toAdd = validImageFiles.slice(0, availableSlots);
+            const toAdd = validFiles.slice(0, availableSlots);
 
             toAdd.forEach(file => {
                 const previewUrl = URL.createObjectURL(file);
@@ -776,6 +1062,7 @@ function productCreateForm() {
             });
 
             this.syncFileInput();
+            this.activePreviewIndex = 0;
         },
 
         removeImage(index) {
