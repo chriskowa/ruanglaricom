@@ -111,6 +111,18 @@
                 </a>
                 <?php endif; ?>
 
+                <!-- Theme Toggle Button (Light / Dark Mode Navigation) -->
+                <?php if(request()->routeIs('marketplace*') || request()->is('marketplace*')): ?>
+                <button type="button" onclick="if(typeof toggleMarketplaceTheme === 'function') { toggleMarketplaceTheme(); } else { var isL = (document.cookie.match(/marketplace_theme=([^;]+)/) || [])[1] === 'light'; var nextTheme = isL ? 'dark' : 'light'; document.cookie = 'marketplace_theme=' + nextTheme + '; path=/; max-age=31536000; SameSite=Lax'; localStorage.setItem('marketplace_theme', nextTheme); window.location.href = '<?php echo e(route('marketplace.index')); ?>?theme=' + nextTheme; }" id="nav-theme-toggle-btn" class="p-1.5 sm:p-2 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-700 hover:text-slate-900' : 'hover:bg-slate-800 text-slate-300 hover:text-white'); ?> transition-colors relative flex items-center justify-center" title="Ubah Tema (Light / Dark Mode)">
+                    <svg id="nav-theme-sun" class="w-5 h-5 text-amber-500 <?php echo e($lightMode ? 'hidden' : ''); ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg id="nav-theme-moon" class="w-5 h-5 text-slate-700 <?php echo e($lightMode ? '' : 'hidden'); ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+                <?php endif; ?>
+
                 <!-- Cart Icon -->
                 <?php if(auth()->guard()->check()): ?>
                 <a href="<?php echo e(route('marketplace.cart.index')); ?>" class="p-1 rounded-lg <?php echo e($lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200'); ?> transition-colors relative" title="Cart">

@@ -177,6 +177,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 });
 
 // Public GPX Database & Submit GPX Modal
+Route::redirect('/gpx', '/database-gpx', 301);
 Route::get('/database-gpx', [App\Http\Controllers\PublicGpxController::class, 'index'])->name('gpx.index');
 Route::get('/api/gpx/published', [App\Http\Controllers\PublicGpxController::class, 'publishedJson'])->name('gpx.published.json');
 Route::get('/api/cities/autocomplete', [App\Http\Controllers\PublicGpxController::class, 'searchCities'])->name('gpx.cities.autocomplete');

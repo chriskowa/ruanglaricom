@@ -4,15 +4,15 @@
 @section('title', 'Blog Articles')
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div class="min-h-screen pt-4 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
-    <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
         <div>
-            <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
+            <h1 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter">
                 BLOG ARTICLES
             </h1>
-            <p class="text-slate-400 mt-1">Manage your blog posts and content.</p>
+            <p class="text-slate-400 text-sm mt-1">Manage your blog posts and content.</p>
         </div>
         
         <div class="flex gap-3">
@@ -30,6 +30,52 @@
                 New Article
             </a>
         </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-4 mb-6 shadow-sm relative z-10">
+        <form method="GET" action="{{ route('admin.blog.articles.index') }}" class="flex flex-col md:flex-row gap-3 items-center justify-between">
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1 items-center">
+                <!-- Search Input -->
+                <div class="relative w-full sm:w-80 md:w-96">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul, cuplikan, atau penulis..." 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-md px-3.5 py-2 pl-9 text-xs text-white placeholder-slate-500 focus:border-white focus:outline-none transition-all font-medium">
+                    <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="w-full sm:w-48">
+                    <select name="category_id" onchange="this.form.submit()" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-200 focus:border-white focus:outline-none transition-colors">
+                        <option value="">Semua Kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="w-full sm:w-40">
+                    <select name="status" onchange="this.form.submit()" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-200 focus:border-white focus:outline-none transition-colors">
+                        <option value="">Semua Status</option>
+                        <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
+                        <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <button type="submit" class="px-4 py-2 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-sm">
+                    Cari
+                </button>
+                @if(request()->hasAny(['search', 'category_id', 'status']))
+                <a href="{{ route('admin.blog.articles.index') }}" class="px-3 py-2 rounded-md border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 text-xs font-bold transition-all">
+                    Reset
+                </a>
+                @endif
+            </div>
+        </form>
     </div>
 
     <!-- Articles Table -->
@@ -52,45 +98,49 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if($article->featured_image)
-                                    <img src="{{ \Illuminate\Support\Str::startsWith($article->featured_image, ['http://', 'https://']) ? $article->featured_image : asset('storage/' . $article->featured_image) }}" class="w-10 h-10 rounded-lg object-cover bg-slate-700">
+                                <img src="{{ asset('storage/' . $article->featured_image) }}" alt="" class="w-12 h-12 object-cover rounded-lg">
                                 @else
-                                    <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center text-slate-500">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                    </div>
+                                <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-slate-600">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                </div>
                                 @endif
                                 <div>
-                                    <div class="font-bold text-white group-hover:text-neon transition-colors">{{ $article->title }}</div>
-                                    <div class="text-xs text-slate-500">By {{ $article->user->name }}</div>
+                                    <a href="{{ route('admin.blog.articles.edit', $article) }}" class="font-bold text-white hover:text-neon transition-colors line-clamp-1">
+                                        {{ $article->title }}
+                                    </a>
+                                    <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                                        <span>/blog/{{ $article->slug }}</span>
+                                        @if($article->user)
+                                        <span>• oleh {{ $article->user->name }}</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-slate-300">
-                            {{ $article->category ? $article->category->name : 'Uncategorized' }}
+                        <td class="px-6 py-4 text-sm text-slate-300">
+                            {{ $article->category->name ?? 'Uncategorized' }}
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                {{ $article->status === 'published' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 
-                                  ($article->status === 'draft' ? 'bg-slate-500/10 text-slate-400 border border-slate-500/20' : 
-                                  'bg-red-500/10 text-red-400 border border-red-500/20') }}">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $article->status === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' }}">
                                 {{ ucfirst($article->status) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <button type="button" onclick="toggleFeatured({{ $article->id }})" class="p-2 rounded-lg hover:bg-slate-700 transition-colors" title="Toggle Featured">
-                                <svg id="icon-featured-{{ $article->id }}" class="w-5 h-5 {{ $article->is_featured ? 'text-yellow-400' : 'text-slate-500' }}" fill="{{ $article->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke="currentColor">
+                            <button type="button" onclick="toggleFeatured({{ $article->id }})" title="Toggle Featured" class="p-1 rounded hover:bg-slate-700/50 transition-colors">
+                                <svg id="icon-featured-{{ $article->id }}" class="w-5 h-5 {{ $article->is_featured ? 'text-yellow-400' : 'text-slate-500' }} transition-colors" fill="{{ $article->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                                 </svg>
                             </button>
                         </td>
-                        <td class="px-6 py-4 text-slate-400 text-sm">
-                            {{ $article->published_at ? $article->published_at->format('M d, Y H:i') : '-' }}
+                        <td class="px-6 py-4 text-sm text-slate-400 font-mono">
+                            {{ $article->published_at ? $article->published_at->format('d M Y') : '-' }}
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="{{ $article->canonical_url ?? url('/blog/' . $article->slug) }}" target="_blank" class="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-green-400 transition-colors" title="View Article">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                <a href="{{ route('blog.show', $article->slug) }}" target="_blank" class="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors" title="View Live">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                 </a>
-                                <a href="{{ route('admin.blog.articles.edit', $article) }}" class="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-blue-400 transition-colors">
+                                <a href="{{ route('admin.blog.articles.edit', $article) }}" class="p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors" title="Edit">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 </a>
                                 <form action="{{ route('admin.blog.articles.destroy', $article) }}" method="POST" onsubmit="return confirm('Are you sure?')">
@@ -108,8 +158,16 @@
                         <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                                <p class="text-lg font-medium">No articles found</p>
-                                <p class="text-sm">Start writing your first blog post!</p>
+                                @if(request()->filled('search') || request()->filled('category_id') || request()->filled('status'))
+                                    <p class="text-base font-bold text-slate-300">Tidak ada artikel yang cocok dengan pencarian atau filter</p>
+                                    <p class="text-xs text-slate-400 mt-1">Coba gunakan kata kunci lain atau bersihkan filter.</p>
+                                    <a href="{{ route('admin.blog.articles.index') }}" class="mt-3 px-3.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all border border-slate-700 inline-block">
+                                        Reset Filter
+                                    </a>
+                                @else
+                                    <p class="text-lg font-medium">No articles found</p>
+                                    <p class="text-sm">Start writing your first blog post!</p>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -120,6 +178,7 @@
         <div class="px-6 py-4 border-t border-slate-700/50">
             {{ $articles->links() }}
         </div>
+    </div>
     <!-- Import WP Modal -->
     <div id="wp-import-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4 transition-all duration-300">
         <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative ring-1 ring-white/10">

@@ -23,11 +23,42 @@ class ArticleController extends Controller
         $this->internalLinkService = $internalLinkService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $articles = Article::with('category', 'user')->latest()->paginate(10);
+        $query = Article::with('category', 'user');
 
-        return view('admin.blog.articles.index', compact('articles'));
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            if (strlen($search) > 100) {
+                $search = substr($search, 0, 100);
+            }
+            $escapedSearch = addcslashes($search, '%_\\');
+
+            $query->where(function ($q) use ($escapedSearch) {
+                $q->where('title', 'like', "%{$escapedSearch}%")
+                  ->orWhere('excerpt', 'like', "%{$escapedSearch}%")
+                  ->orWhere('slug', 'like', "%{$escapedSearch}%")
+                  ->orWhereHas('user', function ($uq) use ($escapedSearch) {
+                      $uq->where('name', 'like', "%{$escapedSearch}%");
+                  });
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if (in_array($status, ['published', 'draft', 'archived'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        $articles = $query->latest()->paginate(15)->withQueryString();
+        $categories = BlogCategory::orderBy('name')->get();
+
+        return view('admin.blog.articles.index', compact('articles', 'categories'));
     }
 
     /**

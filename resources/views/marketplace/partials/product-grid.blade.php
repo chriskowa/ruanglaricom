@@ -17,10 +17,10 @@
             $categoryName = $product->category ? $product->category->name : 'Gear';
             $metaHeader = $brandName ? ($brandName . ' • ' . $categoryName) : $categoryName;
         @endphp
-        <div class="bg-[#0c121e] border border-slate-800/90 rounded-lg overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col h-full relative shadow-md shadow-black/20 font-sans">
+        <div class="product-card-item bg-[#0c121e] border border-slate-800/90 rounded-lg overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col h-full relative shadow-md shadow-black/20 font-sans">
             
             <!-- Image Section (Clean Athletic Framing) -->
-            <a href="{{ route('marketplace.show', $product->slug) }}" class="block relative aspect-square overflow-hidden bg-[#131b2c]">
+            <a href="{{ route('marketplace.show', $product->slug) }}" class="product-card-img block relative aspect-square overflow-hidden bg-[#131b2c]">
                 @if($product->primaryImage)
                     <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" alt="{{ $product->title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                 @else
@@ -85,24 +85,24 @@
             <div class="p-4 flex flex-col flex-1 min-w-0">
                 
                 <!-- Category / Brand Header -->
-                <div class="text-[10px] uppercase tracking-wider text-slate-300 font-bold mb-1 truncate">
+                <div class="product-card-meta text-[10px] uppercase tracking-wider text-slate-300 font-bold mb-1 truncate">
                     {{ $metaHeader }}
                 </div>
                 
                 <!-- Product Title -->
-                <h3 class="font-bold text-white text-xs md:text-sm leading-snug line-clamp-2 group-hover:text-neon transition-colors mb-2.5">
+                <h3 class="product-card-title font-bold text-white text-xs md:text-sm leading-snug line-clamp-2 group-hover:text-neon transition-colors mb-2.5">
                     <a href="{{ route('marketplace.show', $product->slug) }}">{{ $product->title }}</a>
                 </h3>
 
                 <!-- Price Block -->
                 <div class="mt-auto">
-                    <div class="text-sm md:text-base font-black text-white font-mono tracking-tight truncate">
+                    <div class="product-card-price text-sm md:text-base font-black text-white font-mono tracking-tight truncate">
                         Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
                     </div>
                 </div>
                 
                 <!-- Seller & Location Meta -->
-                <div class="pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-300">
+                <div class="product-card-seller pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-300">
                     @if($product->seller)
                         <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-white transition truncate font-medium">
                             <span class="truncate">{{ $product->seller->name ?? 'Seller' }}</span>
