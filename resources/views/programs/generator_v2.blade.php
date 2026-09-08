@@ -1,10 +1,10 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Generator Program Latihan Lari VDOT (5K, 10K, HM, FM) - RuangLari')
+@section('title', 'Buat Program Lari Gratis: Generator VDOT 5K, 10K, HM & Marathon - RuangLari')
 
-@section('meta_title', 'Generator Program Latihan Lari VDOT (5K, 10K, HM, FM) - RuangLari')
-@section('meta_description', 'Buat program latihan lari gratis berbasis Jack Daniels VDOT Formula untuk 5K, 10K, Half Marathon, & Marathon. Lengkap kalkulasi target pace, zona detak jantung, & metode run-walk.')
-@section('meta_keywords', 'buat program lari, generator program lari, kalkulator vdot, program lari 5k, program lari 10k, program latihan half marathon, program marathon, jadwal latihan lari, run walk method, jack daniels running formula, pacerhub, ruang lari')
+@section('meta_title', 'Buat Program Lari Gratis: Generator VDOT 5K, 10K, HM & Marathon - RuangLari')
+@section('meta_description', 'Buat program lari gratis berbasis formula VDOT untuk 5K, 10K, Half Marathon & Marathon. Lengkap dengan target pace, zona detak jantung, dan jadwal latihan.')
+@section('meta_keywords', 'buat program lari, generator program lari, program lari gratis, kalkulator vdot, program lari 5k, program lari 10k, program latihan half marathon, program marathon, jadwal latihan lari, run walk method, jack daniels running formula, pacerhub, ruang lari')
 @section('canonical_url', url('/buat-program-lari'))
 @section('meta_robots', 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1')
 
@@ -20,10 +20,10 @@
     {
       "@type": "WebApplication",
       "@id": "https://ruanglari.com/buat-program-lari#webapp",
-      "name": "Generator Program Latihan Lari VDOT RuangLari",
-      "alternateName": "Kalkulator VDOT & Pembuat Jadwal Latihan Lari",
+      "name": "Buat Program Lari Gratis: Generator VDOT RuangLari",
+      "alternateName": ["Generator Program Lari", "Kalkulator VDOT & Pembuat Jadwal Latihan Lari"],
       "url": "https://ruanglari.com/buat-program-lari",
-      "description": "Platform perancang program latihan lari terstruktur berbasis Jack Daniels Running Formula untuk 5K, 10K, Half Marathon, dan Full Marathon lengkap dengan zona pace dan kalender latihan.",
+      "description": "Aplikasi web gratis untuk buat program lari terstruktur berbasis formula VDOT Jack Daniels untuk 5K, 10K, Half Marathon, dan Full Marathon lengkap dengan zona pace dan kalender latihan.",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
@@ -34,7 +34,7 @@
       },
       "featureList": [
         "Kalkulator VDOT Jack Daniels Formula",
-        "Penyusunan Jadwal Latihan Periodisasi 5K hingga Marathon",
+        "Buat Program Lari 5K, 10K, Half Marathon, dan Full Marathon",
         "Penetapan Target Pace (Easy, Marathon, Threshold, Interval, Repetition)",
         "Metode Run-Walk Khusus Pelari Pemula",
         "Sinkronisasi Kalender Latihan Lari Pribadi",
@@ -60,7 +60,7 @@
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "Generator Program Lari",
+          "name": "Buat Program Lari",
           "item": "https://ruanglari.com/buat-program-lari"
         }
       ]
@@ -107,6 +107,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian—termasuk jarak, target pace, dan jenis sesi—akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Apakah generator program lari ini 100% gratis digunakan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ya, Anda dapat buat program lari secara 100% gratis tanpa biaya langganan. Fitur ini mencakup penentuan target pace VDOT, periodisasi jadwal latihan harian (5K, 10K, Half Marathon, Full Marathon), panduan nutrisi protein, hingga sinkronisasi langsung ke kalender lari pribadi Anda."
           }
         }
       ]
@@ -299,8 +307,8 @@
         
         <!-- Header: Direct athletic title without span pill -->
         <div class="mb-6 pb-4 border-b border-slate-800">
-            <h1 class="text-2xl font-bold text-white tracking-tight">Generator Program Latihan Lari VDOT</h1>
-            <p class="text-sm text-slate-300 mt-1">Rancang program periodisasi terstruktur (5K hingga Marathon) berbasis Jack Daniels' Running Formula.</p>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Buat Program Lari Gratis: Generator VDOT untuk 5K, 10K, Half Marathon & Marathon</h1>
+            <p class="text-sm text-slate-300 mt-1">Ingin <strong>buat program lari</strong> yang terbukti efektif? Susun <strong>program lari</strong> gratis terstruktur untuk 5K, 10K, Half Marathon, hingga Marathon berbasis Jack Daniels VDOT Formula dengan target pace personal yang realistis.</p>
         </div>
 
         <transition name="fade" mode="out-in">
@@ -748,18 +756,18 @@
                     <a href="{{ route('tools.index') }}" class="hover:text-white transition">Running Tools</a>
                 </li>
                 <li class="text-slate-600">/</li>
-                <li class="text-slate-200 font-semibold" aria-current="page">Generator Program Latihan Lari VDOT</li>
+                <li class="text-slate-200 font-semibold" aria-current="page">Buat Program Lari</li>
             </ol>
         </nav>
 
         <!-- Section 1: Scientific Foundation (Jack Daniels' VDOT Formula) -->
         <article class="space-y-4">
-            <h2 class="text-xl font-bold text-white tracking-tight">Dasar Ilmiah: Mengapa Formula VDOT Jack Daniels Menjadi Standar Emas Atletik</h2>
+            <h2 class="text-xl font-bold text-white tracking-tight">Panduan Ilmiah Buat Program Lari Berbasis Formula VDOT Jack Daniels</h2>
             <p class="text-sm text-slate-300 leading-relaxed">
-                Di dunia kepelatihan lari jarak jauh modern, metode empiris karya Dr. Jack Daniels (penulis buku legendaris <em>Daniels' Running Formula</em>) diakui sebagai standar emas penentuan intensitas latihan terstruktur. Konsep <strong>VDOT</strong> mengkorelasikan konsumsi oksigen maksimal (<span class="font-mono text-white">VO2 Max</span>) dengan efisiensi mekanik tubuh (<span class="font-mono text-white">Running Economy</span>).
+                Sebelum Anda <strong>buat program lari</strong> untuk mencapai target perlombaan, penting memastikan bahwa <strong>program lari</strong> yang Anda jalani berlandaskan kapasitas fisiologis riil tubuh saat ini. Di RuangLari, Anda dapat menyusun <strong>program latihan lari</strong> terstruktur menggunakan formula empiris karya Dr. Jack Daniels (penulis buku legendaris <em>Daniels' Running Formula</em>). Konsep <strong>VDOT</strong> menyelaraskan konsumsi oksigen maksimal (<span class="font-mono text-white">VO2 Max</span>) dengan efisiensi mekanik gerak (<span class="font-mono text-white">Running Economy</span>) agar setiap sesi latihan memberikan hasil optimal tanpa risiko cedera.
             </p>
             <p class="text-sm text-slate-300 leading-relaxed">
-                Banyak pelari melakukan kesalahan fatal dengan mematok pace latihan berdasarkan target waktu lomba masa depan yang terlalu ambisius. Formula VDOT membalik pendekatan keliru tersebut: <em>intensitas latihan harus didasarkan pada kapasitas fisiologis riil saat ini</em>. Dengan tolok ukur hasil tes kebugaran atau Personal Best (PB) terkini, sistem RuangLari mengalkulasi 5 zona pace spesifik agar setiap sesi latihan memberikan stimulasi kardiovaskular presisi tanpa memicu cedera atau sindrom overtraining.
+                Banyak pelari pemula hingga maratonis mengalami cedera karena mengikuti <strong>program lari</strong> yang terlalu agresif dan tidak cocok dengan kondisi fisik awal. Melalui alat <strong>buat program lari gratis</strong> ini, Anda hanya perlu memasukkan catatan waktu Personal Best (PB) atau hasil uji lari terbaru. Sistem cerdas kami secara otomatis mengalkulasi 5 zona pace spesifik, jadwal periodisasi mingguan, serta metode run-walk protektif untuk memastikan progres latihan Anda terukur dan konsisten.
             </p>
 
             <!-- Table of 5 Training Paces -->
@@ -959,6 +967,18 @@
                     </summary>
                     <p class="text-xs text-slate-300 leading-relaxed mt-3 pt-3 border-t border-slate-800/80">
                         Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian—termasuk jarak, target pace, dan jenis sesi—akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda.
+                    </p>
+                </details>
+
+                <details class="faq-item card-dark p-4 rounded-lg border border-slate-800 transition">
+                    <summary class="flex justify-between items-center cursor-pointer font-semibold text-sm text-white select-none">
+                        <span>Apakah generator program lari ini 100% gratis digunakan?</span>
+                        <svg class="faq-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </summary>
+                    <p class="text-xs text-slate-300 leading-relaxed mt-3 pt-3 border-t border-slate-800/80">
+                        Ya, Anda dapat buat program lari secara 100% gratis tanpa biaya langganan. Fitur ini mencakup penentuan target pace VDOT, periodisasi jadwal latihan harian (5K, 10K, Half Marathon, Full Marathon), panduan nutrisi protein, hingga sinkronisasi langsung ke kalender lari pribadi Anda.
                     </p>
                 </details>
 

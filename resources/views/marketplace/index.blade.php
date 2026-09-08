@@ -1,12 +1,10 @@
 @php
     $withSidebar = true;
-    $savedTheme = request('theme', request()->cookie('marketplace_theme', session('marketplace_theme', 'dark')));
-    if (request()->has('theme')) {
-        session(['marketplace_theme' => request('theme')]);
+    if (request('theme') === 'dark') {
+        session()->forget('marketplace_theme');
     }
-    $lightMode = ($savedTheme === 'light');
 @endphp
-@extends('layouts.pacerhub', ['lightMode' => (request('theme', request()->cookie('marketplace_theme', session('marketplace_theme', 'dark'))) === 'light')])
+@extends('layouts.pacerhub', ['lightMode' => false])
 
 @section('title', 'Marketplace Perlengkapan Lari & Titip Jual Running Gear | RuangLari')
 @section('meta_title', 'Marketplace Perlengkapan Lari & Titip Jual Running Gear | RuangLari Market')
@@ -51,16 +49,16 @@
 
 /* Solid Opaque Filter Sidebar Drawer (Zero Transparency on Mobile & Desktop) */
 #mobile-sidebar-filter {
-    background-color: #0c121e !important;
+    background-color: #0c121e;
     opacity: 1 !important;
 }
-#mobile-sidebar-filter .sticky {
-    background-color: #0c121e !important;
+#mobile-sidebar-filter .sidebar-sticky-head {
+    background-color: #0c121e;
     opacity: 1 !important;
 }
 
 /* =========================================================
-   LIGHT MODE STYLES FOR /MARKETPLACE
+   LIGHT MODE STYLES FOR /MARKETPLACE (HIGH CONTRAST & ACCESSIBLE)
 ========================================================= */
 html.theme-light,
 body.theme-light,
@@ -69,57 +67,102 @@ body.theme-light,
     color: #0f172a !important;
 }
 
+/* Hero Header */
 .theme-light #marketplace-container h1 {
-    color: #0f172a !important;
+    color: #020617 !important;
 }
 .theme-light #marketplace-container h1 span.text-neon {
-    color: #0284c7 !important;
-}
-.theme-light #marketplace-container h2 {
-    color: #0f172a !important;
+    color: #020617 !important;
 }
 .theme-light #marketplace-container p {
-    color: #475569 !important;
+    color: #334155 !important;
+}
+.theme-light .editorial-header-border {
+    border-color: #cbd5e1 !important;
 }
 
-.theme-light .editorial-header-border {
-    border-color: #e2e8f0 !important;
+.theme-light #market-theme-toggle-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.theme-light #market-theme-toggle-btn:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #020617 !important;
+}
+.theme-light a[href*="marketplace/cart"] {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.theme-light a[href*="marketplace/cart"]:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #020617 !important;
+}
+.theme-light a[href*="marketplace/cart"] svg {
+    color: #475569 !important;
+}
+.theme-light a[href*="seller/products/create"] {
+    background-color: #020617 !important;
+    color: #ffffff !important;
+}
+.theme-light a[href*="seller/products/create"]:hover {
+    background-color: #1e293b !important;
 }
 
 /* Category Chips in Light Mode */
 .theme-light .cat-chip-btn {
     background-color: #ffffff !important;
-    border-color: #e2e8f0 !important;
-    color: #64748b !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
 }
 .theme-light .cat-chip-btn:hover {
-    color: #0f172a !important;
-    border-color: #cbd5e1 !important;
+    color: #020617 !important;
+    border-color: #94a3b8 !important;
+    background-color: #f1f5f9 !important;
+}
+.theme-light .cat-chip-btn .cat-count {
+    color: #64748b !important;
 }
 
-/* Featured Strip */
+/* Featured Strip in Light Mode */
 .theme-light .featured-strip-wrap {
-    border-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+}
+.theme-light .featured-strip-wrap h2 {
+    color: #020617 !important;
+}
+.theme-light .featured-strip-wrap span {
+    color: #475569 !important;
 }
 .theme-light .featured-strip-wrap a {
     background-color: #ffffff !important;
-    border-color: #e2e8f0 !important;
+    border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
 }
 .theme-light .featured-strip-wrap a:hover {
-    border-color: #cbd5e1 !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
 }
 .theme-light .featured-strip-wrap h3 {
     color: #0f172a !important;
 }
-.theme-light .featured-strip-wrap p {
-    color: #0f172a !important;
+.theme-light .featured-strip-wrap p.featured-brand {
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
+.theme-light .featured-strip-wrap p.featured-price {
+    color: #020617 !important;
+    font-family: inherit !important;
 }
 
 /* Sticky Filter Bar */
 .theme-light .sticky-filter-bar {
     background-color: rgba(248, 250, 252, 0.95) !important;
-    border-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
 }
 .theme-light .filter-toggle-btn {
     background-color: #ffffff !important;
@@ -128,6 +171,7 @@ body.theme-light,
 }
 .theme-light .filter-toggle-btn:hover {
     background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
 }
 .theme-light #search-top {
     background-color: #ffffff !important;
@@ -135,7 +179,10 @@ body.theme-light,
     color: #0f172a !important;
 }
 .theme-light #search-top::placeholder {
-    color: #94a3b8 !important;
+    color: #64748b !important;
+}
+.theme-light #search-top:focus {
+    border-color: #0f172a !important;
 }
 .theme-light #sort-select-top {
     background-color: #ffffff !important;
@@ -143,84 +190,230 @@ body.theme-light,
     color: #0f172a !important;
 }
 .theme-light #results-count-label {
-    color: #64748b !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
+}
+.theme-light .sticky-filter-bar span {
+    color: #475569 !important;
 }
 
 /* Sidebar Filter Panel (Mobile & Desktop) */
 .theme-light #mobile-sidebar-filter {
     background-color: #ffffff !important;
-    border-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
     color: #0f172a !important;
 }
-.theme-light #mobile-sidebar-filter .sticky {
+.theme-light #mobile-sidebar-filter .sidebar-sticky-head {
     background-color: #ffffff !important;
     border-color: #e2e8f0 !important;
 }
+.theme-light #mobile-sidebar-filter .sidebar-sticky-head span {
+    color: #020617 !important;
+}
+.theme-light #mobile-sidebar-filter .sidebar-sticky-head a {
+    color: #0284c7 !important;
+}
 .theme-light #mobile-sidebar-filter label {
-    color: #0f172a !important;
+    color: #020617 !important;
+    font-weight: 800 !important;
 }
 .theme-light #mobile-sidebar-filter input[type="text"],
 .theme-light #mobile-sidebar-filter input[type="number"],
 .theme-light #mobile-sidebar-filter select {
-    background-color: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #020617 !important;
+    font-weight: 600 !important;
+}
+.theme-light #mobile-sidebar-filter input[type="text"]::placeholder,
+.theme-light #mobile-sidebar-filter input[type="number"]::placeholder {
+    color: #64748b !important;
 }
 .theme-light #mobile-sidebar-filter input[type="text"]:focus,
 .theme-light #mobile-sidebar-filter input[type="number"]:focus,
 .theme-light #mobile-sidebar-filter select:focus {
-    border-color: #0f172a !important;
-    background-color: #ffffff !important;
+    border-color: #020617 !important;
+    box-shadow: 0 0 0 1px #020617 !important;
 }
+
+/* Segmented Toggle in Light Mode */
 .theme-light .segmented-toggle {
     background-color: #f1f5f9 !important;
-    border-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+}
+.theme-light .segmented-toggle input[type="radio"]:checked + div {
+    background-color: #020617 !important;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+}
+.theme-light .segmented-toggle input[type="radio"]:not(:checked) + div {
+    background-color: transparent !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
+.theme-light .segmented-toggle input[type="radio"]:not(:checked) + div:hover {
+    color: #020617 !important;
+}
+
+/* Sidebar Category List */
+.theme-light .cat-sidebar-btn {
+    color: #334155 !important;
+}
+.theme-light .cat-sidebar-btn:hover {
+    background-color: #f1f5f9 !important;
+    color: #020617 !important;
+}
+.theme-light .cat-sidebar-btn .cat-sidebar-count {
+    color: #64748b !important;
+}
+
+/* Sidebar Action Buttons */
+.theme-light #filter-form button[type="submit"] {
+    background-color: #020617 !important;
+    color: #ffffff !important;
+    border: 1px solid #020617 !important;
+}
+.theme-light #filter-form button[type="submit"]:hover {
+    background-color: #1e293b !important;
+}
+.theme-light #filter-form a[href*="marketplace"] {
+    background-color: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.theme-light #filter-form a[href*="marketplace"]:hover {
+    background-color: #f1f5f9 !important;
+    color: #020617 !important;
 }
 
 /* Product Cards in Light Mode */
 .theme-light .product-card-item {
     background-color: #ffffff !important;
-    border-color: #e2e8f0 !important;
+    border: 1px solid #e2e8f0 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 .theme-light .product-card-item:hover {
-    border-color: #cbd5e1 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 .theme-light .product-card-item .product-card-img {
-    background-color: #f8fafc !important;
+    background-color: #f1f5f9 !important;
 }
 .theme-light .product-card-item .product-card-meta {
-    color: #64748b !important;
+    color: #475569 !important;
+    font-weight: 800 !important;
 }
 .theme-light .product-card-item .product-card-title,
 .theme-light .product-card-item .product-card-title a {
     color: #0f172a !important;
 }
+.theme-light .product-card-item .product-card-title a:hover {
+    color: #0284c7 !important;
+}
 .theme-light .product-card-item .product-card-price {
     color: #020617 !important;
+    font-family: inherit !important;
 }
 .theme-light .product-card-item .product-card-seller {
-    border-color: #f1f5f9 !important;
-    color: #64748b !important;
-}
-.theme-light .product-card-item .product-card-seller a {
+    border-color: #e2e8f0 !important;
     color: #475569 !important;
 }
+.theme-light .product-card-item .product-card-seller a {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+}
 .theme-light .product-card-item .product-card-seller a:hover {
-    color: #0f172a !important;
+    color: #020617 !important;
 }
 .theme-light .product-card-item .product-card-seller span {
-    color: #64748b !important;
+    color: #475569 !important;
 }
-.theme-light .product-card-item button[type="submit"],
-.theme-light .product-card-item a[href*="checkout"] {
-    background-color: #0f172a !important;
+
+/* Buttons in Product Cards */
+.theme-light .btn-buy-direct {
+    background-color: #020617 !important;
+    color: #ffffff !important;
+    border: 1px solid #020617 !important;
+}
+.theme-light .btn-buy-direct:hover {
+    background-color: #1e293b !important;
+}
+.theme-light .btn-add-cart {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+.theme-light .btn-add-cart:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #020617 !important;
+}
+.theme-light .btn-manage-gear {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+.theme-light .btn-manage-gear:hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* Empty State */
+.theme-light .empty-state-box {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+.theme-light .empty-state-box h3 {
+    color: #020617 !important;
+}
+.theme-light .empty-state-box p {
+    color: #475569 !important;
+}
+.theme-light .empty-state-box .btn-empty-sell {
+    background-color: #020617 !important;
     color: #ffffff !important;
 }
-.theme-light .product-card-item button[type="submit"]:hover,
-.theme-light .product-card-item a[href*="checkout"]:hover {
-    background-color: #1e293b !important;
+
+/* Pagination in Light Mode */
+.theme-light .pagination-container a,
+.theme-light .pagination-container span {
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+.theme-light .pagination-container a:hover {
+    background-color: #f1f5f9 !important;
+    color: #020617 !important;
+}
+
+/* CRITICAL: STRICT FOOTER PROTECTION - FOOTER IS ALWAYS DARK ATHLETIC */
+.theme-light footer,
+body.theme-light footer,
+html.theme-light footer,
+footer[aria-label="Footer Ruang Lari"] {
+    background-color: #020617 !important;
+    color: #94a3b8 !important;
+}
+.theme-light footer h2,
+.theme-light footer h3,
+.theme-light footer h4 {
+    color: #ffffff !important;
+}
+.theme-light footer p {
+    color: #cbd5e1 !important;
+}
+.theme-light footer a {
+    color: #cbd5e1 !important;
+}
+.theme-light footer a:hover {
+    color: #ffffff !important;
+}
+.theme-light footer a[title="RuangLari Utama"] {
+    color: #ffffff !important;
+}
+.theme-light footer a[title="RuangLari Utama"] span {
+    color: #ccff00 !important;
 }
 </style>
 @endpush
@@ -228,11 +421,22 @@ body.theme-light,
 @section('content')
 <script>
     (function() {
-        var savedTheme = localStorage.getItem('marketplace_theme') || (document.cookie.match(/marketplace_theme=([^;]+)/) || [])[1];
-        if (savedTheme === 'light' || window.location.search.indexOf('theme=light') !== -1) {
+        var urlTheme = new URLSearchParams(window.location.search).get('theme');
+        var savedTheme = urlTheme || localStorage.getItem('marketplace_theme') || (document.cookie.match(/marketplace_theme=([^;]+)/) || [])[1];
+        if (urlTheme === 'dark') {
+            savedTheme = 'dark';
+            localStorage.setItem('marketplace_theme', 'dark');
+            document.cookie = "marketplace_theme=dark; path=/; max-age=31536000; SameSite=Lax";
+        } else if (urlTheme === 'light') {
+            savedTheme = 'light';
+            localStorage.setItem('marketplace_theme', 'light');
+            document.cookie = "marketplace_theme=light; path=/; max-age=31536000; SameSite=Lax";
+        }
+
+        if (savedTheme === 'light') {
             document.documentElement.classList.add('theme-light');
             if (document.body) document.body.classList.add('theme-light');
-        } else if (savedTheme === 'dark' || window.location.search.indexOf('theme=dark') !== -1) {
+        } else {
             document.documentElement.classList.remove('theme-light');
             if (document.body) document.body.classList.remove('theme-light');
         }
@@ -243,17 +447,16 @@ body.theme-light,
     x-data="{
         sidebarOpen: window.innerWidth >= 1024
     }"
-    class="min-h-screen mt-10 pt-2 md:pt-4 pb-20 px-4 md:px-8 {{ $lightMode ? 'bg-[#f8fafc] text-slate-900' : 'bg-[#090D16] text-slate-200' }} font-sans selection:bg-neon selection:text-slate-950 transition-colors duration-200">
+    class="min-h-screen mt-10 pt-2 md:pt-4 pb-20 px-4 md:px-8 bg-[#090D16] text-slate-200 font-sans selection:bg-neon selection:text-slate-950 transition-colors duration-200">
     
     <!-- Hero / Editorial Header (Nike & Adidas Running Style) -->
     <div class="max-w-7xl mx-auto mb-8">
         <div class="editorial-header-border flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-800/80 pb-6">
             <div>
-                
-                <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight font-sans {{ $lightMode ? 'text-slate-950' : 'text-white' }}">
-                    RUNNING <span class="{{ $lightMode ? 'text-sky-600' : 'text-neon' }}">MARKET</span>
+                <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight font-sans text-white">
+                    RUNNING <span class="text-neon">MARKET</span>
                 </h1>
-                <p class="{{ $lightMode ? 'text-slate-600' : 'text-slate-400' }} text-xs md:text-sm mt-1.5 max-w-2xl leading-relaxed">
+                <p class="text-slate-400 text-xs md:text-sm mt-1.5 max-w-2xl leading-relaxed">
                     Beli dan jual sepatu lari original, jam GPS, apparel, slot race, dan titip jual running gear terpercaya dari komunitas pelari.
                 </p>
             </div>
@@ -261,26 +464,26 @@ body.theme-light,
             <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto">
                 <!-- Theme Toggle Navigation Button -->
                 <button type="button" onclick="toggleMarketplaceTheme()" id="market-theme-toggle-btn" 
-                        class="px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm {{ $lightMode ? 'bg-white border-slate-300 hover:border-slate-400 text-slate-800' : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white' }}"
+                        class="px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white"
                         title="Ubah Tema (Light / Dark Mode)">
-                    <svg id="theme-icon-sun" class="w-4 h-4 text-amber-500 {{ $lightMode ? 'hidden' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg id="theme-icon-sun" class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <svg id="theme-icon-moon" class="w-4 h-4 text-slate-700 {{ $lightMode ? '' : 'hidden' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg id="theme-icon-moon" class="w-4 h-4 text-slate-700 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
-                    <span id="market-theme-text">{{ $lightMode ? 'Mode Gelap' : 'Mode Terang' }}</span>
+                    <span id="market-theme-text">Mode Terang</span>
                 </button>
 
-                <a href="{{ route('marketplace.cart.index') }}" class="relative px-4 py-2.5 rounded-md {{ $lightMode ? 'bg-white border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900' : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white' }} border text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
-                    <svg class="w-4 h-4 {{ $lightMode ? 'text-slate-600' : 'text-slate-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <a href="{{ route('marketplace.cart.index') }}" class="relative px-4 py-2.5 rounded-md bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white border text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span>Keranjang</span>
-                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-slate-950 text-[10px] font-black rounded flex items-center justify-center hidden font-mono">0</span>
+                    <span id="market-cart-badge" class="min-w-[18px] h-[18px] px-1 bg-neon text-slate-950 text-[10px] font-black rounded flex items-center justify-center hidden font-sans">0</span>
                 </a>
 
-                <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-md {{ $lightMode ? 'bg-slate-950 hover:bg-slate-800 text-white' : 'bg-white hover:bg-slate-200 text-slate-950' }} font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 md:flex-initial px-5 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
                     <span>+ Jual Gear</span>
                 </a>
             </div>
@@ -317,7 +520,7 @@ body.theme-light,
             
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                 @foreach($featuredProducts as $fProd)
-                <a href="{{ route('marketplace.show', $fProd->slug) }}" class="group block p-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition shadow-sm">
+                <a href="{{ route('marketplace.show', $fProd->slug) }}" class="group block p-2.5 rounded-lg bg-slate-900/60 border-slate-800/80 hover:border-slate-600 border transition shadow-sm">
                     <div class="aspect-square rounded-md overflow-hidden bg-[#131b2c] mb-2.5 relative">
                         <img src="{{ $fProd->primaryImage ? asset('storage/'.$fProd->primaryImage->image_path) : ($fProd->images->first() ? asset('storage/'.$fProd->images->first()->image_path) : '') }}" 
                              alt="{{ $fProd->title }}" 
@@ -327,9 +530,9 @@ body.theme-light,
                         </span>
                     </div>
                     <div class="space-y-0.5">
-                        <p class="text-[9px] text-slate-500 uppercase truncate font-semibold">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
-                        <h3 class="text-xs font-bold text-white truncate group-hover:text-neon transition">{{ $fProd->title }}</h3>
-                        <p class="text-xs font-black text-white font-mono">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
+                        <p class="featured-brand text-[9px] text-slate-500 uppercase truncate font-semibold">{{ optional($fProd->brand)->name ?? 'GEAR' }}</p>
+                        <h3 class="text-xs font-bold text-white group-hover:text-neon truncate transition">{{ $fProd->title }}</h3>
+                        <p class="featured-price text-xs font-black text-white font-sans">Rp {{ number_format($fProd->price, 0, ',', '.') }}</p>
                     </div>
                 </a>
                 @endforeach
@@ -339,14 +542,14 @@ body.theme-light,
     </div>
 
     <!-- Minimalist Sticky Filter Bar -->
-    <div class="sticky-filter-bar max-w-7xl mx-auto sticky top-20 z-30 bg-[#090D16]/90 backdrop-blur-xl border-y border-slate-800/80 py-3 mb-8">
+    <div class="sticky-filter-bar max-w-7xl mx-auto sticky top-20 z-30 bg-[#090D16]/90 border-slate-800/80 backdrop-blur-xl border-y py-3 mb-8">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
             
             <!-- Left: Filter Toggle & Live Search -->
             <div class="flex items-center gap-2.5 w-full sm:w-auto flex-grow max-w-xl">
                 <!-- Filter Toggle Button -->
                 <button @click="sidebarOpen = !sidebarOpen" 
-                        class="filter-toggle-btn flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-md transition-all shrink-0 text-xs font-bold"
+                        class="filter-toggle-btn flex items-center gap-2 px-4 py-2 bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200 border rounded-md transition-all shrink-0 text-xs font-bold"
                         :class="sidebarOpen ? 'border-neon/40 text-neon' : ''">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -362,7 +565,7 @@ body.theme-light,
                         </svg>
                     </span>
                     <input type="text" id="search-top" placeholder="Cari Vaporfly, Adizero, Garmin, Jersey..." 
-                           class="w-full bg-slate-900/90 border border-slate-800 text-white rounded-md pl-10 pr-8 py-2 text-xs focus:border-white focus:outline-none transition-all placeholder-slate-500">
+                           class="w-full bg-slate-900/90 border-slate-800 text-white placeholder-slate-500 focus:border-white border rounded-md pl-10 pr-8 py-2 text-xs focus:outline-none transition-all">
                     <button type="button" id="clear-search-btn" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-white hidden">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -377,7 +580,7 @@ body.theme-light,
                 
                 <div class="flex items-center gap-1.5">
                     <span class="text-xs text-slate-500 uppercase tracking-wider hidden sm:inline font-semibold">Urutkan:</span>
-                    <select id="sort-select-top" class="bg-slate-900 border border-slate-800 text-slate-200 rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none transition-all font-medium">
+                    <select id="sort-select-top" class="bg-slate-900 border-slate-800 text-slate-200 focus:border-white border rounded-md px-3 py-2 text-xs focus:outline-none transition-all font-medium">
                         <option value="latest">Terbaru</option>
                         <option value="price_asc">Harga: Terendah</option>
                         <option value="price_desc">Harga: Tertinggi</option>
@@ -396,7 +599,6 @@ body.theme-light,
         <!-- Sidebar Filter Panel (Clean Nike.com Style - 100% Opaque) -->
         <div x-show="sidebarOpen"
              id="mobile-sidebar-filter"
-             style="background-color: #0c121e !important;"
              x-transition:enter="transition ease-out duration-250"
              x-transition:enter-start="opacity-0 -translate-x-4"
              x-transition:enter-end="opacity-100 translate-x-0"
@@ -407,13 +609,12 @@ body.theme-light,
             
             <form id="filter-form" action="{{ route('marketplace.index') }}" method="GET" class="h-full">
                 <!-- Sticky Header inside Sidebar -->
-                <div class="sticky top-0 z-10 py-3.5 px-5 border-b border-slate-800 flex items-center justify-between"
-                     style="background-color: #0c121e !important;">
-                    <span class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <div class="sidebar-sticky-head sticky top-0 z-10 py-3.5 px-5 border-b border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider flex items-center gap-2 text-white">
                         <span>Filter Produk</span>
                     </span>
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('marketplace.index') }}" class="text-[11px] text-neon hover:underline font-bold transition-all">Reset All</a>
+                        <a href="{{ route('marketplace.index') }}" class="text-[11px] font-bold transition-all text-neon hover:underline">Reset All</a>
                         <button type="button" @click="sidebarOpen = false" class="lg:hidden p-1 text-slate-400 hover:text-white transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
@@ -429,7 +630,7 @@ body.theme-light,
                     <!-- Fulfillment Mode Filter (Titip Jual / Kirim Sendiri) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Tipe Layanan</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800 segmented-toggle">
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 border-slate-800 rounded-md border segmented-toggle">
                             <label class="text-center cursor-pointer select-none">
                                 <input type="radio" name="fulfillment_mode" value="" class="sr-only peer" {{ !request('fulfillment_mode') ? 'checked' : '' }}>
                                 <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
@@ -454,7 +655,7 @@ body.theme-light,
                     <!-- Condition Filter (Segmented Control) -->
                     <div class="space-y-2.5">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Kondisi</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-md border border-slate-800 segmented-toggle">
+                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 border-slate-800 rounded-md border segmented-toggle">
                             <label class="text-center cursor-pointer select-none">
                                 <input type="radio" name="condition" value="" class="sr-only peer" {{ !request('condition') ? 'checked' : '' }}>
                                 <div class="py-2 px-1 rounded-md text-xs font-bold text-slate-400 transition-all peer-checked:bg-white peer-checked:text-slate-950 peer-checked:font-black peer-checked:shadow-sm hover:text-white flex items-center justify-center">
@@ -482,11 +683,11 @@ body.theme-light,
                         <div class="grid grid-cols-2 gap-2">
                             <div class="relative">
                                 <input type="number" name="price_min" placeholder="Min" value="{{ request('price_min') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold font-mono">
+                                       class="w-full bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-white border rounded-md px-3 py-2 text-xs focus:outline-none transition-all font-semibold font-sans">
                             </div>
                             <div class="relative">
                                 <input type="number" name="price_max" placeholder="Max" value="{{ request('price_max') }}" 
-                                       class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all font-semibold font-mono">
+                                       class="w-full bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-white border rounded-md px-3 py-2 text-xs focus:outline-none transition-all font-semibold font-sans">
                             </div>
                         </div>
                     </div>
@@ -494,7 +695,7 @@ body.theme-light,
                     <!-- Brand Filter (Dropdown / Select) -->
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Brand</label>
-                        <select name="brand" id="brand-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
+                        <select name="brand" id="brand-select" class="w-full bg-slate-950 border-slate-800 text-slate-200 focus:border-white border rounded-md px-3 py-2.5 text-xs focus:outline-none transition-colors">
                             <option value="">Semua Brand</option>
                             @foreach($brands as $brand)
                                 <option value="{{ $brand->id }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ request('brand') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
@@ -506,13 +707,13 @@ body.theme-light,
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Ukuran / Size</label>
                         <input type="text" name="size" value="{{ request('size') }}" placeholder="Contoh: 42, 43, M, L..." 
-                               class="w-full bg-slate-950 border border-slate-800 text-white rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none placeholder-slate-600 transition-all">
+                               class="w-full bg-slate-950 border-slate-800 text-white placeholder-slate-600 focus:border-white border rounded-md px-3 py-2.5 text-xs focus:outline-none transition-all">
                     </div>
 
                     <!-- Location / City -->
                     <div class="space-y-2">
                         <label class="text-[11px] text-white font-bold uppercase tracking-wider block">Lokasi Seller</label>
-                        <select name="city" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-md px-3 py-2.5 text-xs focus:border-white focus:outline-none transition-colors">
+                        <select name="city" class="w-full bg-slate-950 border-slate-800 text-slate-200 focus:border-white border rounded-md px-3 py-2.5 text-xs focus:outline-none transition-colors">
                             <option value="">Semua Kota</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city->id }}" {{ request('city') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
@@ -533,7 +734,7 @@ body.theme-light,
                                         class="cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between {{ $currentCat == $cat->slug ? 'bg-white text-slate-950 font-black shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-900/50' }}">
                                     <span>{{ $cat->name }}</span>
                                     @if($cat->products_count > 0)
-                                        <span class="cat-sidebar-count text-[10px] font-mono {{ $currentCat == $cat->slug ? 'text-slate-800 font-black' : 'text-slate-500 font-semibold' }}">({{ $cat->products_count }})</span>
+                                        <span class="cat-sidebar-count text-[10px] font-sans {{ $currentCat == $cat->slug ? 'text-slate-800 font-black' : 'text-slate-500 font-semibold' }}">({{ $cat->products_count }})</span>
                                     @endif
                                 </button>
                             @endforeach
@@ -543,7 +744,7 @@ body.theme-light,
                     <!-- Filter Actions -->
                     <div class="pt-3 pb-6 flex gap-2">
                         <button type="submit" class="flex-1 bg-white hover:bg-slate-200 text-slate-950 font-black py-2.5 rounded-md transition-colors text-xs uppercase tracking-wider">Terapkan</button>
-                        <a href="{{ route('marketplace.index') }}" class="px-4 py-2.5 bg-slate-900 text-slate-400 hover:text-white font-bold rounded-md border border-slate-800 hover:border-slate-700 transition-colors text-xs flex items-center justify-center">Reset</a>
+                        <a href="{{ route('marketplace.index') }}" class="px-4 py-2.5 bg-slate-900 text-slate-400 hover:text-white border-slate-800 hover:border-slate-700 font-bold rounded-md border transition-colors text-xs flex items-center justify-center">Reset</a>
                     </div>
                 </div>
             </form>
@@ -604,11 +805,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 btn.className = isLight
-                    ? 'cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 bg-white text-slate-600 border border-slate-300 hover:text-slate-950 hover:border-slate-400'
+                    ? 'cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 bg-white text-slate-700 border border-slate-300 hover:text-slate-950 hover:border-slate-400 font-bold'
                     : 'cat-chip-btn px-4 py-2 rounded-md whitespace-nowrap uppercase tracking-wider text-[11px] transition-all flex items-center gap-1.5 bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700';
                 const badge = btn.querySelector('.cat-count');
                 if (badge) {
-                    badge.className = isLight ? 'cat-count text-[9px] text-slate-400 font-semibold' : 'cat-count text-[9px] text-slate-500 font-bold';
+                    badge.className = isLight ? 'cat-count text-[9px] text-slate-500 font-bold' : 'cat-count text-[9px] text-slate-500 font-bold';
                 }
             }
         });
@@ -618,19 +819,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const isMatch = (btn.dataset.category || '') === slug;
             if (isMatch) {
                 btn.className = isLight
-                    ? 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between bg-slate-950 text-white font-black shadow-sm'
+                    ? 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-semibold transition-colors flex items-center justify-between bg-slate-950 text-white font-black shadow-sm'
                     : 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between bg-white text-slate-950 font-black shadow-sm';
                 const badge = btn.querySelector('.cat-sidebar-count');
                 if (badge) {
-                    badge.className = isLight ? 'cat-sidebar-count text-[10px] font-mono text-slate-300 font-semibold' : 'cat-sidebar-count text-[10px] font-mono text-slate-800 font-black';
+                    badge.className = isLight ? 'cat-sidebar-count text-[10px] font-sans text-slate-300 font-semibold' : 'cat-sidebar-count text-[10px] font-sans text-slate-800 font-black';
                 }
             } else {
                 btn.className = isLight
-                    ? 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+                    ? 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-semibold transition-colors flex items-center justify-between text-slate-700 hover:text-slate-950 hover:bg-slate-100'
                     : 'cat-sidebar-btn w-full text-left px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-between text-slate-400 hover:text-white hover:bg-slate-900/50';
                 const badge = btn.querySelector('.cat-sidebar-count');
                 if (badge) {
-                    badge.className = isLight ? 'cat-sidebar-count text-[10px] font-mono text-slate-400 font-semibold' : 'cat-sidebar-count text-[10px] font-mono text-slate-500 font-semibold';
+                    badge.className = isLight ? 'cat-sidebar-count text-[10px] font-sans text-slate-500 font-semibold' : 'cat-sidebar-count text-[10px] font-sans text-slate-500 font-semibold';
                 }
             }
         });
@@ -662,13 +863,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const targetDiv = radio.nextElementSibling;
                 if (!targetDiv) return;
                 if (radio.checked) {
-                    targetDiv.style.backgroundColor = '#ffffff';
-                    targetDiv.style.color = '#020617';
+                    targetDiv.style.backgroundColor = isLight ? '#020617' : '#ffffff';
+                    targetDiv.style.color = isLight ? '#ffffff' : '#020617';
                     targetDiv.style.fontWeight = '900';
-                    targetDiv.style.boxShadow = isLight ? '0 1px 3px rgba(0,0,0,0.1)' : '0 1px 3px rgba(0,0,0,0.25)';
+                    targetDiv.style.boxShadow = isLight ? '0 1px 3px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.25)';
                 } else {
                     targetDiv.style.backgroundColor = 'transparent';
-                    targetDiv.style.color = isLight ? '#64748b' : '#94a3b8';
+                    targetDiv.style.color = isLight ? '#334155' : '#94a3b8';
                     targetDiv.style.fontWeight = '700';
                     targetDiv.style.boxShadow = 'none';
                 }
@@ -704,32 +905,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 3. Update Toggle Buttons & Icons
-        const sunIcons = document.querySelectorAll('#theme-icon-sun, #nav-theme-sun');
-        const moonIcons = document.querySelectorAll('#theme-icon-moon, #nav-theme-moon');
-        const themeText = document.getElementById('market-theme-text');
-        const themeBtn = document.getElementById('market-theme-toggle-btn');
-
-        if (nextTheme === 'light') {
-            sunIcons.forEach(el => el.classList.add('hidden'));
-            moonIcons.forEach(el => el.classList.remove('hidden'));
-            if (themeText) themeText.innerText = 'Mode Gelap';
-            if (themeBtn) {
-                themeBtn.className = 'px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-white border-slate-300 hover:border-slate-400 text-slate-800';
-            }
-        } else {
-            sunIcons.forEach(el => el.classList.remove('hidden'));
-            moonIcons.forEach(el => el.classList.add('hidden'));
-            if (themeText) themeText.innerText = 'Mode Terang';
-            if (themeBtn) {
-                themeBtn.className = 'px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white';
-            }
-        }
+        syncThemeButtonUI();
 
         // 4. Re-sync controls
         const currentCategory = hiddenCategory ? hiddenCategory.value : '';
         setActiveCategoryUI(currentCategory);
         syncSegmentedToggles();
     };
+
+    function syncThemeButtonUI() {
+        const isLight = document.documentElement.classList.contains('theme-light');
+        const sunIcon = document.getElementById('theme-icon-sun');
+        const moonIcon = document.getElementById('theme-icon-moon');
+        const themeText = document.getElementById('market-theme-text');
+        const themeBtn = document.getElementById('market-theme-toggle-btn');
+
+        if (isLight) {
+            if (sunIcon) sunIcon.classList.add('hidden');
+            if (moonIcon) moonIcon.classList.remove('hidden');
+            if (themeText) themeText.innerText = 'Mode Gelap';
+            if (themeBtn) {
+                themeBtn.className = 'px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-white border-slate-300 hover:border-slate-400 text-slate-800';
+            }
+        } else {
+            if (sunIcon) sunIcon.classList.remove('hidden');
+            if (moonIcon) moonIcon.classList.add('hidden');
+            if (themeText) themeText.innerText = 'Mode Terang';
+            if (themeBtn) {
+                themeBtn.className = 'px-3.5 py-2.5 rounded-md border text-xs font-bold transition-all flex items-center gap-2 shadow-sm bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white';
+            }
+        }
+    }
+    syncThemeButtonUI();
 
     // Ensure category active UI is synced with URL on initial load
     const initialCategoryFromUrl = new URLSearchParams(window.location.search).get('category') || hiddenCategory.value || '';

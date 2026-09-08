@@ -96,7 +96,7 @@
 
                 <!-- Price Block -->
                 <div class="mt-auto">
-                    <div class="product-card-price text-sm md:text-base font-black text-white font-mono tracking-tight truncate">
+                    <div class="product-card-price text-sm md:text-base font-black text-white font-sans tracking-tight truncate">
                         Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                         </a>
                     @else
                         @if(Auth::check() && (int) $product->user_id === (int) Auth::id())
-                            <a href="{{ route('marketplace.show', $product->slug) }}" class="w-full py-2 bg-slate-900 hover:bg-slate-850 text-slate-300 text-center text-xs font-bold rounded-md transition-all border border-slate-800 flex items-center justify-center">
+                            <a href="{{ route('marketplace.show', $product->slug) }}" class="btn-manage-gear w-full py-2 bg-slate-900 hover:bg-slate-850 text-slate-300 text-center text-xs font-bold rounded-md transition-all border border-slate-800 flex items-center justify-center">
                                 Kelola Produk Saya
                             </a>
                         @else
@@ -139,12 +139,12 @@
                                 @auth
                                     <form action="{{ route('marketplace.cart.add-product', $product->id) }}" method="POST" onsubmit="quickAddToCart(event, this)">
                                         @csrf
-                                        <button type="submit" class="w-full py-2 bg-slate-900 border border-slate-750 hover:border-white text-slate-200 hover:text-white font-bold rounded-md text-center text-xs transition-all flex items-center justify-center" title="Tambah ke Keranjang">
+                                        <button type="submit" class="btn-add-cart w-full py-2 bg-slate-900 border border-slate-750 hover:border-white text-slate-200 hover:text-white font-bold rounded-md text-center text-xs transition-all flex items-center justify-center" title="Tambah ke Keranjang">
                                             <span>+ Cart</span>
                                         </button>
                                     </form>
                                 @else
-                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="w-full py-2 bg-slate-900 border border-slate-750 text-slate-300 font-bold rounded-md text-center text-xs">
+                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="btn-add-cart w-full py-2 bg-slate-900 border border-slate-750 text-slate-300 font-bold rounded-md text-center text-xs">
                                         + Cart
                                     </button>
                                 @endauth
@@ -154,12 +154,12 @@
                                     <form action="{{ route('marketplace.checkout.init') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                        <button type="submit" class="w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs transition-all flex items-center justify-center shadow-sm">
+                                        <button type="submit" class="btn-buy-direct w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs transition-all flex items-center justify-center shadow-sm">
                                             <span>Beli</span>
                                         </button>
                                     </form>
                                 @else
-                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs">
+                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="btn-buy-direct w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs">
                                         Beli
                                     </button>
                                 @endauth
@@ -180,10 +180,10 @@
         </div>
     @endif
 @else
-    <div class="border border-slate-800 bg-[#0c121e] rounded-lg p-12 text-center max-w-md mx-auto my-8 font-sans">
+    <div class="empty-state-box border border-slate-800 bg-[#0c121e] rounded-lg p-12 text-center max-w-md mx-auto my-8 font-sans">
         <h3 class="text-base font-bold text-white uppercase tracking-wider mb-1.5">Belum Ada Produk</h3>
         <p class="text-slate-400 text-xs mb-6 leading-relaxed">Produk dengan filter yang Anda pilih belum tersedia. Coba ubah pencarian atau pasang iklan gear Anda sekarang.</p>
-        <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="inline-flex items-center px-6 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-sm">
+        <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="btn-empty-sell inline-flex items-center px-6 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-sm">
             <span>+ Jual Gear Anda</span>
         </a>
     </div>

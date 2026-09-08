@@ -326,7 +326,7 @@
 
         <div id="main-content-wrapper" class="flex flex-col min-h-screen flex-grow">
             @if(!isset($hideNav) || !$hideNav)
-                @include('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false, 'isDashboard' => $isDashboard])
+                @include('layouts.components.pacerhub-nav', ['lightMode' => false, 'isDashboard' => $isDashboard])
             @endif
 
             <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : '' }}">
@@ -334,7 +334,7 @@
             </main>
 
             @if(!isset($hideFooter) || !$hideFooter)
-                @include('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false])
+                @include('layouts.components.pacerhub-footer', ['lightMode' => false])
             @endif
         </div>
 

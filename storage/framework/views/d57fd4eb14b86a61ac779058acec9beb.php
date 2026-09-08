@@ -326,7 +326,7 @@
 
         <div id="main-content-wrapper" class="flex flex-col min-h-screen flex-grow">
             <?php if(!isset($hideNav) || !$hideNav): ?>
-                <?php echo $__env->make('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false, 'isDashboard' => $isDashboard], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                <?php echo $__env->make('layouts.components.pacerhub-nav', ['lightMode' => false, 'isDashboard' => $isDashboard], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
 
             <main class="flex-grow w-full <?php echo e((!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : ''); ?>">
@@ -334,7 +334,7 @@
             </main>
 
             <?php if(!isset($hideFooter) || !$hideFooter): ?>
-                <?php echo $__env->make('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                <?php echo $__env->make('layouts.components.pacerhub-footer', ['lightMode' => false], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <?php endif; ?>
         </div>
 
