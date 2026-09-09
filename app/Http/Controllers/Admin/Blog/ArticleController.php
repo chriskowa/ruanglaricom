@@ -25,6 +25,19 @@ class ArticleController extends Controller
 
     public function index(Request $request)
     {
+        // Self-healing normalization for legacy malformed featured_image entries in DB
+        try {
+            Article::where('featured_image', 'like', '%storage/http%')
+                ->orWhere('featured_image', 'like', '%https://ruanglari.com/storage/%')
+                ->orWhere('featured_image', 'like', '%http://localhost%/storage/%')
+                ->orWhere('featured_image', 'like', '%http://127.0.0.1%/storage/%')
+                ->get()
+                ->each(function ($art) {
+                    $art->featured_image = $art->featured_image;
+                    $art->saveQuietly();
+                });
+        } catch (\Throwable $e) {}
+
         $query = Article::with('category', 'user');
 
         if ($request->filled('search')) {

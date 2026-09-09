@@ -209,7 +209,40 @@ class Article extends Model
     }
 
     /**
-     * Get featured image URL with fallback to default image if file is missing
+     * Mutator to normalize featured_image before saving to database.
+     * Prevents nested/double URLs and strips local domain/storage prefixes to store clean relative paths.
+     */
+    public function setFeaturedImageAttribute($value): void
+    {
+        if (empty($value)) {
+            $this->attributes['featured_image'] = null;
+            return;
+        }
+
+        $val = trim((string) $value);
+
+        // Unpack nested or repeated URLs e.g.
+        // "https://ruanglari.com/storage/https://ruanglari.com/storage/..." or "storage/https://..."
+        while (preg_match('#(?:https?://[^/\s]+(?:/storage)?/|storage/)+(https?://.+)#i', $val, $m)) {
+            $val = $m[1];
+        }
+
+        // If it belongs to local storage (domain with /storage/ or relative /storage/), convert to relative path:
+        // e.g. "https://ruanglari.com/storage/blog/media/abc.webp" -> "blog/media/abc.webp"
+        if (preg_match('#^https?://[^/\s]+/storage/(.+)$#i', $val, $matches)) {
+            $val = $matches[1];
+        } elseif (Str::startsWith($val, '/storage/')) {
+            $val = substr($val, 9);
+        } elseif (Str::startsWith($val, 'storage/')) {
+            $val = substr($val, 8);
+        }
+
+        $this->attributes['featured_image'] = $val;
+    }
+
+    /**
+     * Get featured image URL with fallback to default image if file is missing.
+     * Normalizes nested URLs, strips redundant storage prefixes, and supports external URLs.
      */
     public function getFeaturedImageUrl(): string
     {
@@ -219,23 +252,32 @@ class Article extends Model
             return asset('ruanglari.webp');
         }
 
-        if (Str::startsWith($image, ['http://', 'https://'])) {
-            return $image;
+        // 1. Unpack nested or double-prefixed URLs e.g.
+        // "https://ruanglari.com/storage/https://ruanglari.com/storage/..." or "storage/https://..."
+        while (preg_match('#(?:https?://[^/\s]+(?:/storage)?/|storage/)+(https?://.+)#i', $image, $m)) {
+            $image = $m[1];
         }
 
-        $cleanPath = ltrim($image, '/');
-        if (Str::startsWith($cleanPath, 'storage/')) {
+        // 2. If it is a local storage URL from any domain (production, localhost, staging)
+        if (preg_match('#^https?://[^/\s]+/storage/(.+)$#i', $image, $matches)) {
+            $cleanPath = $matches[1];
+        } elseif (Str::startsWith($image, ['http://', 'https://'])) {
+            // External authority or CDN URL (e.g. Unsplash, external media)
+            return $image;
+        } else {
+            $cleanPath = $image;
+        }
+
+        $cleanPath = ltrim($cleanPath, '/');
+        while (Str::startsWith($cleanPath, 'storage/')) {
             $cleanPath = substr($cleanPath, 8);
         }
 
-        $publicDiskPath = storage_path('app/public/' . $cleanPath);
-        $publicDirFile = public_path('storage/' . $cleanPath);
-
-        if (file_exists($publicDiskPath) || file_exists($publicDirFile)) {
-            return asset('storage/' . $cleanPath);
+        if (empty($cleanPath)) {
+            return asset('ruanglari.webp');
         }
 
-        return asset('ruanglari.webp');
+        return asset('storage/' . $cleanPath);
     }
 
     public function getFeaturedImageUrlAttribute(): string
