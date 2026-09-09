@@ -174,6 +174,28 @@
         }
 
         /* Hero Background Slider & Ken Burns Zoom Out */
+        .hero-title,
+        .hero-body,
+        .hero-label,
+        .hero-card {
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hero-label {
+            letter-spacing: 0.12em;
+        }
+
+        .vdot-card {
+            background: #131B2D;
+            border: 1px solid #334155;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+        }
+
+        .vdot-card-header {
+            background: #172235;
+            border-bottom: 1px solid #334155;
+        }
+
         .hero-slider-wrapper {
             position: absolute;
             inset: 0;
@@ -210,7 +232,7 @@
             position: absolute;
             inset: 0;
             z-index: 2;
-            background: rgba(9, 13, 21, 0.75) !important; /* 50% overlay transparan */
+            background: rgba(9, 13, 21, 0.78) !important; /* 50% overlay transparan */
         }
         
         .generator-v2-wrapper .card-dark {
@@ -329,7 +351,7 @@
                 <div class="p-3 rounded-md bg-slate-900 border border-slate-800 space-y-1">
                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Program Aktif Saat Ini:</div>
                     <div class="text-sm font-semibold text-white">@{{ conflictModal.activeTitle }}</div>
-                    <div v-if="conflictModal.activeStartDate" class="text-xs text-slate-400 font-mono">
+                    <div v-if="conflictModal.activeStartDate" class="text-xs text-slate-400">
                         Periode: @{{ conflictModal.activeStartDate }} - @{{ conflictModal.activeEndDate }}
                     </div>
                 </div>
@@ -375,17 +397,17 @@
         <div class="lg:col-span-7 space-y-5">
 
             <!-- Category Kicker -->
-            <div class="text-xs font-mono uppercase tracking-widest text-brand-500 font-bold">
+            <div class="hero-label text-xs uppercase tracking-widest text-brand-500 font-bold">
                 Kalkulator VDOT Jack Daniels • Program Latihan Lari Berbasis Pace
             </div>
 
             <!-- SEO H1 -->
-            <h1 class="text-3xl sm:text-4xl lg:text-4xl font-bold text-white tracking-tight leading-tight drop-shadow-md">
+            <h1 class="hero-title text-3xl sm:text-4xl lg:text-[44px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-md">
                 Buat Program Latihan Lari Gratis untuk 5K, 10K, Half Marathon & Marathon dengan Kalkulator VDOT
             </h1>
 
             <!-- Value Proposition -->
-            <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl drop-shadow-sm">
+            <p class="hero-body text-sm sm:text-base text-slate-200 leading-8 max-w-2xl drop-shadow-sm">
                 Hitung pace latihan berdasarkan performa terbaikmu menggunakan metode VDOT Jack Daniels.
                 Dapatkan program latihan yang mencakup Easy Run, Threshold, Interval hingga Repetition
                 dengan intensitas yang sesuai untuk mencapai target lomba.
@@ -395,22 +417,22 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
 
                 <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 font-mono uppercase">Metode</div>
+                    <div class="text-[10px] text-slate-400 uppercase">Metode</div>
                     <div class="text-xs font-bold text-white mt-0.5">Jack Daniels VDOT</div>
                 </div>
 
                 <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 font-mono uppercase">Perhitungan</div>
+                    <div class="text-[10px] text-slate-400 uppercase">Perhitungan</div>
                     <div class="text-xs font-bold text-brand-500 mt-0.5">5 Zona Pace</div>
                 </div>
 
                 <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 font-mono uppercase">Program</div>
+                    <div class="text-[10px] text-slate-400 uppercase">Program</div>
                     <div class="text-xs font-bold text-emerald-400 mt-0.5">Sesuai Target</div>
                 </div>
 
                 <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 font-mono uppercase">Akses</div>
+                    <div class="text-[10px] text-slate-400 uppercase">Akses</div>
                     <div class="text-xs font-bold text-white mt-0.5">Gratis Selamanya</div>
                 </div>
 
@@ -463,12 +485,12 @@
         <!-- Right Column -->
         <div class="lg:col-span-5">
 
-            <div class="p-5 rounded-lg bg-[#131B2D]/95 border border-[#283750] shadow-2xl backdrop-blur-sm space-y-4">
+            <div class="vdot-card hero-card p-5 rounded-xl space-y-4">
 
-                <div class="flex items-center justify-between pb-3 border-b border-slate-700/80">
+                <div class="vdot-card-header -mx-5 -mt-5 mb-4 px-5 py-4 rounded-t-xl flex items-center justify-between">
 
                     <div>
-                        <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">
                             Sistem Latihan
                         </span>
 
@@ -478,7 +500,7 @@
                     </div>
 
 
-                    <span class="text-[10px] font-mono font-bold text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2 py-0.5 rounded">
+                    <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2 py-0.5 rounded">
                         v2.0
                     </span>
 
@@ -493,7 +515,7 @@
                             Target Lomba
                         </span>
 
-                        <span class="font-mono font-bold text-white">
+                        <span class="font-bold text-white">
                             5K • 10K • 21K • Marathon
                         </span>
                     </div>
@@ -504,7 +526,7 @@
                             Data Awal
                         </span>
 
-                        <span class="font-mono font-bold text-slate-200">
+                        <span class="font-bold text-slate-200">
                             Personal Best / Tes Cooper
                         </span>
                     </div>
@@ -515,7 +537,7 @@
                             Zona Pace
                         </span>
 
-                        <span class="font-mono font-bold text-brand-500">
+                        <span class="font-bold text-brand-500">
                             Easy • Tempo • Interval
                         </span>
                     </div>
@@ -526,7 +548,7 @@
                             Pendukung
                         </span>
 
-                        <span class="font-mono font-bold text-emerald-400">
+                        <span class="font-bold text-emerald-400">
                             Strength • Recovery
                         </span>
                     </div>
@@ -559,7 +581,7 @@
                 <h2 class="text-xl font-bold text-white tracking-tight">Formulir Parameter Program Latihan</h2>
                 <p class="text-xs text-slate-300 mt-1">Lengkapi data tolok ukur awal dan target lomba untuk menghasilkan periodisasi yang realistis.</p>
             </div>
-            <div class="text-xs font-mono text-slate-300 bg-[#131B2D] px-3 py-1.5 rounded-md border border-[#283750] self-start sm:self-auto">
+            <div class="text-xs font-medium text-slate-300 bg-[#131B2D] px-3 py-1.5 rounded-md border border-[#283750] self-start sm:self-auto">
                 Langkah 1 dari 2
             </div>
         </div>
@@ -582,7 +604,7 @@
                                 </div>
                                 <div v-if="current_vdot && current_vdot > 0" class="text-right">
                                     <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Estimasi VDOT</span>
-                                    <span class="text-sm font-mono font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
+                                    <span class="text-sm font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
                                         @{{ current_vdot.toFixed(1) }}
                                     </span>
                                 </div>
@@ -606,15 +628,15 @@
                                     <label class="label-text">Waktu Tempuh Parameter Test (Jam : Menit : Detik)</label>
                                     <div class="grid grid-cols-3 gap-2.5">
                                         <div>
-                                            <input v-model.number="pb_hours" type="number" min="0" max="99" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="pb_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
                                         </div>
                                         <div>
-                                            <input v-model.number="pb_minutes" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="pb_minutes" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
                                         </div>
                                         <div>
-                                            <input v-model.number="pb_seconds" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="pb_seconds" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
                                         </div>
                                     </div>
@@ -624,8 +646,8 @@
                                 <div v-else>
                                     <label class="label-text">Jarak Tempuh Hasil Tes (Meter)</label>
                                     <div class="relative">
-                                        <input v-model.number="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-mono font-bold" placeholder="Contoh: 2400">
-                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-300 font-mono">meter</span>
+                                        <input v-model.number="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-bold" placeholder="Contoh: 2400">
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-300">meter</span>
                                     </div>
                                     <p class="text-[11px] text-slate-300 mt-1.5 leading-normal">Standar tes 12 menit: 2.000m - 2.800m untuk rekreasional, >3.000m untuk terlatih.</p>
                                 </div>
@@ -659,7 +681,7 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label class="label-text">Tanggal Mulai Latihan</label>
-                                        <input v-model="form.start_date" type="date" class="input-field font-mono">
+                                        <input v-model="form.start_date" type="date" class="input-field">
                                     </div>
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
@@ -671,7 +693,7 @@
                                                 Set @{{ recommendedWeeks }} Mgg
                                             </button>
                                         </div>
-                                        <input v-model="form.target_date" type="date" class="input-field font-mono">
+                                        <input v-model="form.target_date" type="date" class="input-field">
                                     </div>
                                 </div>
 
@@ -679,15 +701,15 @@
                                     <label class="label-text">Target Waktu Finish (Jam : Menit : Detik)</label>
                                     <div class="grid grid-cols-3 gap-2.5">
                                         <div>
-                                            <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
                                         </div>
                                         <div>
-                                            <input v-model.number="goal_minutes" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="goal_minutes" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
                                         </div>
                                         <div>
-                                            <input v-model.number="goal_seconds" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
+                                            <input v-model.number="goal_seconds" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
                                             <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
                                         </div>
                                     </div>
@@ -713,10 +735,10 @@
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
                                         <label class="label-text !mb-0">Mileage Mingguan Puncak (Km)</label>
-                                        <span class="text-[10px] font-mono text-brand-500">Saran: @{{ idealMileage }} km</span>
+                                        <span class="text-[10px] text-brand-500">Saran: @{{ idealMileage }} km</span>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <input v-model.number="form.weekly_mileage" type="number" min="15" max="150" step="1" class="input-field font-mono font-bold">
+                                        <input v-model.number="form.weekly_mileage" type="number" min="15" max="150" step="1" class="input-field font-bold">
                                         <button type="button" @click="recommendMileage" class="px-2.5 py-2 bg-[#1C273B] hover:bg-[#283750] text-slate-200 text-xs rounded-md border border-[#3A4C6D] whitespace-nowrap transition cursor-pointer">
                                             Reset Saran
                                         </button>
@@ -759,7 +781,7 @@
                                             <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-brand-500 rounded border-slate-600 bg-[#1C273B]">
                                             <span class="text-xs font-semibold text-slate-200">Sertakan Strength Training</span>
                                         </label>
-                                        <span v-if="form.include_strength" class="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-1.5 py-0.5 rounded">2x/Mgg</span>
+                                        <span v-if="form.include_strength" class="text-[9px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-1.5 py-0.5 rounded">2x/Mgg</span>
                                     </div>
                                     <div v-if="form.include_strength">
                                         <select v-model="form.strength_type" class="input-field text-xs cursor-pointer">
@@ -802,18 +824,18 @@
                                     </div>
                                     <div>
                                         <label class="label-text">Usia (Tahun)</label>
-                                        <input v-model.number="form.age" type="number" min="12" max="99" class="input-field font-mono font-bold">
+                                        <input v-model.number="form.age" type="number" min="12" max="99" class="input-field font-bold">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="label-text">Tinggi Badan (cm)</label>
-                                        <input v-model.number="form.height_cm" type="number" min="100" max="230" class="input-field font-mono" placeholder="170">
+                                        <input v-model.number="form.height_cm" type="number" min="100" max="230" class="input-field" placeholder="170">
                                     </div>
                                     <div>
                                         <label class="label-text">Berat Badan (kg)</label>
-                                        <input v-model.number="form.weight_kg" type="number" min="30" max="200" class="input-field font-mono" placeholder="65">
+                                        <input v-model.number="form.weight_kg" type="number" min="30" max="200" class="input-field" placeholder="65">
                                     </div>
                                 </div>
 
@@ -868,7 +890,7 @@
                         <div class="card-dark p-5 rounded-lg border border-slate-800">
                             <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-800">
                                 <span class="text-xs text-slate-400">Skor Kebugaran VDOT</span>
-                                <span class="text-2xl font-mono font-bold text-white">@{{ result?.vdot }}</span>
+                                <span class="text-2xl font-bold text-white">@{{ result?.vdot }}</span>
                             </div>
                             <div class="space-y-2 text-xs mb-4">
                                 <div class="flex justify-between">
@@ -903,7 +925,7 @@
                                 <div class="font-bold text-teal-300 mb-1">
                                     Metode Lari-Jalan (Run-Walk) Aktif
                                 </div>
-                                Berdasarkan tingkat kebugaran awal, sesi lari santai Anda dikalibrasi ke ritme lari alami (<span class="text-white font-mono font-bold">Pace 8:00 - 8:30</span>) diselingi jalan cepat aktif (<span class="text-white font-mono font-bold">Pace 10:30 - 11:30</span>) untuk melindungi sendi dan menjaga detak jantung aerobik Zona 2.
+                                Berdasarkan tingkat kebugaran awal, sesi lari santai Anda dikalibrasi ke ritme lari alami (<span class="text-white font-bold">Pace 8:00 - 8:30</span>) diselingi jalan cepat aktif (<span class="text-white font-bold">Pace 10:30 - 11:30</span>) untuk melindungi sendi dan menjaga detak jantung aerobik Zona 2.
                             </div>
 
                             <div class="space-y-2">
@@ -912,9 +934,9 @@
                                         <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">
                                             @{{ getPaceLabel(type) }}
                                         </span>
-                                        <span class="font-mono font-bold text-xs text-white">@{{ formatPace(pace, type) }}</span>
+                                        <span class="font-bold text-xs text-white">@{{ formatPace(pace, type) }}</span>
                                     </div>
-                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800/50 font-mono">
+                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800/50">
                                         <span>Target HR</span>
                                         <span class="text-slate-300">@{{ result.hr_zones[type].min }}–@{{ result.hr_zones[type].max }} BPM</span>
                                     </div>
@@ -929,7 +951,7 @@
                             <div v-if="result?.bmi || bmi" class="p-2.5 rounded-md bg-slate-900 border border-slate-800 flex justify-between items-center">
                                 <div>
                                     <div class="text-[10px] text-slate-400 uppercase tracking-wider">Indeks Massa Tubuh (BMI)</div>
-                                    <div class="text-base font-bold text-white font-mono">@{{ result?.bmi || bmi }} <span class="text-xs text-slate-400 font-normal">kg/m²</span></div>
+                                    <div class="text-base font-bold text-white">@{{ result?.bmi || bmi }} <span class="text-xs text-slate-400 font-normal">kg/m²</span></div>
                                 </div>
                                 <div v-if="bmiCategory" :class="bmiCategory.badgeClass + ' ' + bmiCategory.color" class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider">
                                     @{{ bmiCategory.label }}
@@ -939,7 +961,7 @@
                             <div v-if="result?.protein_recommendation || proteinRecommendation" class="p-2.5 rounded-md bg-slate-900 border border-slate-800 space-y-1">
                                 <div class="flex justify-between items-center text-xs">
                                     <span class="text-slate-400">Target Protein Harian</span>
-                                    <span class="font-bold text-indigo-400 font-mono">
+                                    <span class="font-bold text-indigo-400">
                                         @{{ (result?.protein_recommendation || proteinRecommendation)?.min }}–@{{ (result?.protein_recommendation || proteinRecommendation)?.max }} g/hari
                                     </span>
                                 </div>
@@ -967,7 +989,7 @@
                                         De-load / Pemulihan
                                     </span>
                                 </div>
-                                <span class="text-[11px] text-slate-400 font-mono">@{{ weekSessions.length }} Sesi</span>
+                                <span class="text-[11px] text-slate-400">@{{ weekSessions.length }} Sesi</span>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
@@ -979,8 +1001,8 @@
                                     </div>
                                     <div>
                                         <h4 class="text-[10px] font-bold text-white leading-tight mb-1 uppercase tracking-tight">@{{ day.type.replace('_', ' ') }}</h4>
-                                        <p class="text-xs font-bold text-white font-mono">@{{ day.distance }} <span class="text-[9px] font-normal text-slate-400">KM</span></p>
-                                        <p v-if="day.target_pace" class="text-[9px] font-mono text-brand-500 mt-0.5">@{{ day.target_pace }}</p>
+                                        <p class="text-xs font-bold text-white">@{{ day.distance }} <span class="text-[9px] font-normal text-slate-400">KM</span></p>
+                                        <p v-if="day.target_pace" class="text-[9px] text-brand-500 mt-0.5">@{{ day.target_pace }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1017,7 +1039,7 @@
         <article class="space-y-4">
             <h2 class="text-xl font-bold text-white tracking-tight">Panduan Ilmiah Buat Program Lari Berbasis Formula VDOT Jack Daniels</h2>
             <p class="text-sm text-slate-300 leading-relaxed">
-                Sebelum Anda <strong>buat program lari</strong> untuk mencapai target perlombaan, penting memastikan bahwa <strong>program lari</strong> yang Anda jalani berlandaskan kapasitas fisiologis riil tubuh saat ini. Di RuangLari, Anda dapat menyusun <strong>program latihan lari</strong> terstruktur menggunakan formula empiris karya Dr. Jack Daniels (penulis buku legendaris <em>Daniels' Running Formula</em>). Konsep <strong>VDOT</strong> menyelaraskan konsumsi oksigen maksimal (<span class="font-mono text-white">VO2 Max</span>) dengan efisiensi mekanik gerak (<span class="font-mono text-white">Running Economy</span>) agar setiap sesi latihan memberikan hasil optimal tanpa risiko cedera.
+                Sebelum Anda <strong>buat program lari</strong> untuk mencapai target perlombaan, penting memastikan bahwa <strong>program lari</strong> yang Anda jalani berlandaskan kapasitas fisiologis riil tubuh saat ini. Di RuangLari, Anda dapat menyusun <strong>program latihan lari</strong> terstruktur menggunakan formula empiris karya Dr. Jack Daniels (penulis buku legendaris <em>Daniels' Running Formula</em>). Konsep <strong>VDOT</strong> menyelaraskan konsumsi oksigen maksimal (<span class="font-semibold text-white">VO2 Max</span>) dengan efisiensi mekanik gerak (<span class="font-semibold text-white">Running Economy</span>) agar setiap sesi latihan memberikan hasil optimal tanpa risiko cedera.
             </p>
             <p class="text-sm text-slate-300 leading-relaxed">
                 Banyak pelari pemula hingga maratonis mengalami cedera karena mengikuti <strong>program lari</strong> yang terlalu agresif dan tidak cocok dengan kondisi fisik awal. Melalui alat <strong>buat program lari gratis</strong> ini, Anda hanya perlu memasukkan catatan waktu Personal Best (PB) atau hasil uji lari terbaru. Sistem cerdas kami secara otomatis mengalkulasi 5 zona pace spesifik, jadwal periodisasi mingguan, serta metode run-walk protektif untuk memastikan progres latihan Anda terukur dan konsisten.
@@ -1029,8 +1051,8 @@
                     <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                         <tr>
                             <th class="py-3 px-4">Zona Pace</th>
-                            <th class="py-3 px-4 font-mono">% VO2 Max</th>
-                            <th class="py-3 px-4 font-mono">% HR Max</th>
+                            <th class="py-3 px-4">% VO2 Max</th>
+                            <th class="py-3 px-4">% HR Max</th>
                             <th class="py-3 px-4">Tujuan & Stimulus Fisiologis</th>
                             <th class="py-3 px-4">Contoh Penggunaan</th>
                         </tr>
@@ -1038,38 +1060,38 @@
                     <tbody class="divide-y divide-slate-800/60 text-slate-300">
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-bold text-emerald-400">Easy (E)</td>
-                            <td class="py-3 px-4 font-mono">59% - 74%</td>
-                            <td class="py-3 px-4 font-mono">65% - 78%</td>
+                            <td class="py-3 px-4">59% - 74%</td>
+                            <td class="py-3 px-4">65% - 78%</td>
                             <td class="py-3 px-4 leading-normal">Membangun kapilarisasi otot, memperbanyak mitokondria, memperkuat ligamen, dan pemulihan aktif.</td>
-                            <td class="py-3 px-4 font-mono text-slate-400">Easy Run, Long Run Dasar</td>
+                            <td class="py-3 px-4 text-slate-400">Easy Run, Long Run Dasar</td>
                         </tr>
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-bold text-blue-400">Marathon (M)</td>
-                            <td class="py-3 px-4 font-mono">75% - 84%</td>
-                            <td class="py-3 px-4 font-mono">79% - 88%</td>
+                            <td class="py-3 px-4">75% - 84%</td>
+                            <td class="py-3 px-4">79% - 88%</td>
                             <td class="py-3 px-4 leading-normal">Melatih efisiensi penggunaan glikogen dan pembakaran asam lemak pada kecepatan target lomba.</td>
-                            <td class="py-3 px-4 font-mono text-slate-400">Long Run Spesifik Marathon</td>
+                            <td class="py-3 px-4 text-slate-400">Long Run Spesifik Marathon</td>
                         </tr>
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-bold text-amber-400">Threshold (T)</td>
-                            <td class="py-3 px-4 font-mono">83% - 88%</td>
-                            <td class="py-3 px-4 font-mono">88% - 92%</td>
+                            <td class="py-3 px-4">83% - 88%</td>
+                            <td class="py-3 px-4">88% - 92%</td>
                             <td class="py-3 px-4 leading-normal">Meningkatkan kapasitas tubuh membersihkan laktat darah (Lactate Clearance) dan daya tahan ambang batas.</td>
-                            <td class="py-3 px-4 font-mono text-slate-400">Tempo Run 20 Menit, Cruise Intervals</td>
+                            <td class="py-3 px-4 text-slate-400">Tempo Run 20 Menit, Cruise Intervals</td>
                         </tr>
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-bold text-rose-400">Interval (I)</td>
-                            <td class="py-3 px-4 font-mono">95% - 100%</td>
-                            <td class="py-3 px-4 font-mono">95% - 100%</td>
+                            <td class="py-3 px-4">95% - 100%</td>
+                            <td class="py-3 px-4">95% - 100%</td>
                             <td class="py-3 px-4 leading-normal">Mengembangkan kapasitas VO2 Max puncak dan kekuatan pompa stroke volume jantung.</td>
-                            <td class="py-3 px-4 font-mono text-slate-400">Repeats 800m - 1200m (3-5 Menit)</td>
+                            <td class="py-3 px-4 text-slate-400">Repeats 800m - 1200m (3-5 Menit)</td>
                         </tr>
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-bold text-[#FC4C02]">Repetition (R)</td>
-                            <td class="py-3 px-4 font-mono">> 105%</td>
-                            <td class="py-3 px-4 font-mono">Anaerobik</td>
+                            <td class="py-3 px-4">> 105%</td>
+                            <td class="py-3 px-4">Anaerobik</td>
                             <td class="py-3 px-4 leading-normal">Mengoptimalkan efisiensi langkah (running economy), kecepatan neuromuskular, dan irama cadence tinggi.</td>
-                            <td class="py-3 px-4 font-mono text-slate-400">Repeats 200m - 400m dengan istirahat penuh</td>
+                            <td class="py-3 px-4 text-slate-400">Repeats 200m - 400m dengan istirahat penuh</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1089,7 +1111,7 @@
                 <div class="card-dark p-5 rounded-lg border border-slate-800 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-semibold text-white">Program Latihan 5K (Speed & Aerobic Power)</h3>
-                        <span class="text-[10px] font-mono text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">8 - 10 Pekan</span>
+                        <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">8 - 10 Pekan</span>
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
                         Lomba 5 Kilometer membutuhkan kapasitas VO2 Max tinggi dan toleransi laktat yang kuat. Program memadukan interval 400m–800m dengan lari santai untuk menjaga kaki tetap bertenaga tanpa mengorbankan stamina akhir.
@@ -1103,7 +1125,7 @@
                 <div class="card-dark p-5 rounded-lg border border-slate-800 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-semibold text-white">Program Latihan 10K (Threshold & Stamina)</h3>
-                        <span class="text-[10px] font-mono text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">10 - 12 Pekan</span>
+                        <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">10 - 12 Pekan</span>
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
                         Jarak 10K merupakan jembatan antara kecepatan murni dan ketahanan aerobik. Sesi tempo run pada zona Threshold (T) menjadi pilar utama untuk memperpanjang daya tahan laktat di paruh kedua lomba.
@@ -1117,7 +1139,7 @@
                 <div class="card-dark p-5 rounded-lg border border-slate-800 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-semibold text-white">Program Latihan Half Marathon (21.1K)</h3>
-                        <span class="text-[10px] font-mono text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">12 - 14 Pekan</span>
+                        <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">12 - 14 Pekan</span>
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
                         Half Marathon menguji efisiensi metabolisme lemak dan ketahanan muskuloskeletal. Program menekankan progresivitas long run hingga 16–19 km dengan sisipan segmen Marathon Pace (M) untuk membiasakan ritme perlombaan.
@@ -1131,7 +1153,7 @@
                 <div class="card-dark p-5 rounded-lg border border-slate-800 space-y-2">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-semibold text-white">Program Latihan Full Marathon (42.2K)</h3>
-                        <span class="text-[10px] font-mono text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">16 - 20 Pekan</span>
+                        <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">16 - 20 Pekan</span>
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
                         Persiapan marathon berfokus pada adaptasi simpanan glikogen, simulasi hidrasi/nutrisi gel, serta manajemen kelelahan. Dilengkapi minggu pemulihan berkala (de-load week) dan masa tapering 3 pekan sebelum hari perlombaan.
@@ -1151,7 +1173,7 @@
                 Salah satu kendala terbesar pelari pemula adalah memaksakan lari non-stop dengan kecepatan sangat lambat (pace 11:00 hingga 13:00 /km). Secara biomekanik, berlari pada kecepatan tersebut menyebabkan kontak kaki dengan tanah terlalu lama (ground contact time tinggi), memicu goncangan vertikal berlebih pada persendian patela (runner's knee), serta peradangan periosteum tulang kering (shin splints).
             </p>
             <p class="text-sm text-slate-300 leading-relaxed">
-                Platform RuangLari mengadopsi <strong>Metode Run-Walk (Lari-Jalan Berirama)</strong> terstruktur untuk skor VDOT pemula. Pelari diarahkan berlari santai dengan mekanika alami pada <span class="font-mono text-white font-bold">Pace 08:00 - 08:30 /km</span>, kemudian diselingi interval jalan cepat aktif pada <span class="font-mono text-white font-bold">Pace 10:30 - 11:30 /km</span>. Pendekatan ini menjaga detak jantung stabil di Zona 2 aerobik murni, memulihkan otot secara mikro, dan meningkatkan konsistensi jarak tempuh mingguan secara aman.
+                Platform RuangLari mengadopsi <strong>Metode Run-Walk (Lari-Jalan Berirama)</strong> terstruktur untuk skor VDOT pemula. Pelari diarahkan berlari santai dengan mekanika alami pada <span class="text-white font-bold">Pace 08:00 - 08:30 /km</span>, kemudian diselingi interval jalan cepat aktif pada <span class="text-white font-bold">Pace 10:30 - 11:30 /km</span>. Pendekatan ini menjaga detak jantung stabil di Zona 2 aerobik murni, memulihkan otot secara mikro, dan meningkatkan konsistensi jarak tempuh mingguan secara aman.
             </p>
             <div class="pt-1 text-xs">
                 <a href="{{ route('landing.program-lari-5k-pemula') }}" class="text-brand-500 hover:underline font-semibold">Panduan Lengkap Program Lari 5K Pemula Tanpa Cedera →</a>
