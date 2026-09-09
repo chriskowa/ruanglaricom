@@ -172,7 +172,23 @@ class MarketplaceProductManagementController extends Controller
      */
     public function destroy(MarketplaceProduct $product)
     {
+        if ($product->orderItems()->exists()) {
+            $product->update([
+                'is_archived' => true,
+                'archived_at' => now(),
+                'is_active' => false,
+            ]);
+
+            $msg = 'Produk memiliki riwayat transaksi/pesanan sehingga tidak dapat dihapus permanen. Produk telah dialihkan ke Arsip (Non-aktif).';
+            return request()->ajax()
+                ? response()->json(['status' => 'info', 'message' => $msg])
+                : back()->with('info', $msg);
+        }
+
         $product->images()->delete();
+        $product->consignmentIntake()?->delete();
+        $product->bids()?->delete();
+        \App\Models\Marketplace\MarketplaceWishlist::where('product_id', $product->id)->delete();
         $product->delete();
 
         return request()->ajax()

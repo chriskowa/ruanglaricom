@@ -220,6 +220,20 @@
         </div>
     @endif
 
+    @if(session('info'))
+        <div class="bg-slate-900 border border-amber-500/40 text-amber-200 p-3 rounded-md mb-5 flex items-center gap-2 text-xs">
+            <span class="font-bold text-amber-400">ℹ</span>
+            {{ session('info') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="bg-slate-900 border border-rose-500/40 text-rose-200 p-3 rounded-md mb-5 flex items-center gap-2 text-xs">
+            <span class="font-bold text-rose-400">✕</span>
+            {{ session('error') }}
+        </div>
+    @endif
+
     <!-- Summary Stats Banner -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
         <div class="bg-slate-900 border border-slate-800 p-3 sm:p-4 rounded-lg">
@@ -421,10 +435,10 @@
                                             Edit
                                         </a>
 
-                                        <form action="{{ route('marketplace.seller.products.destroy', $product->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
+                                        <form action="{{ route('marketplace.seller.products.destroy', $product->id) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ ($product->order_items_count ?? 0) > 0 ? 'Produk ini sudah memiliki riwayat pesanan/transaksi. Menghapus akan otomatis memindahkannya ke Arsip (Non-aktif). Lanjutkan?' : 'Apakah Anda yakin ingin menghapus produk ini secara permanen?' }}')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-rose-400 hover:bg-rose-500/20 transition-colors font-semibold">
+                                            <button type="submit" class="px-2.5 py-1 rounded-md bg-slate-950 border border-slate-800 text-rose-400 hover:bg-rose-500/20 transition-colors font-semibold" title="{{ ($product->order_items_count ?? 0) > 0 ? 'Pindahkan ke Arsip (ada riwayat transaksi)' : 'Hapus Permanen' }}">
                                                 Hapus
                                             </button>
                                         </form>
@@ -531,6 +545,13 @@
                                     {{ $product->isFeaturedActive() ? 'Featured' : '+Featured' }}
                                 </button>
                             @endif
+                            <form action="{{ route('marketplace.seller.products.destroy', $product->id) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ ($product->order_items_count ?? 0) > 0 ? 'Produk ini sudah memiliki riwayat pesanan/transaksi. Menghapus akan otomatis memindahkannya ke Arsip (Non-aktif). Lanjutkan?' : 'Apakah Anda yakin ingin menghapus produk ini secara permanen?' }}')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-full py-1.5 px-2 text-center text-[11px] font-semibold rounded-md border text-rose-400 bg-slate-950 border-slate-800 hover:bg-rose-500/20">
+                                    Hapus
+                                </button>
+                            </form>
                         </div>
                     </div>
                     @empty

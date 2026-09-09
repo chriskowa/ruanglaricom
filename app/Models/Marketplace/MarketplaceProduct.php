@@ -132,4 +132,9 @@ class MarketplaceProduct extends Model
     {
         return $this->hasOne(MarketplaceConsignmentIntake::class, 'product_id');
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(MarketplaceOrderItem::class, 'product_id');
+    }
 }

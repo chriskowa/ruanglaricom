@@ -30,7 +30,10 @@ class ProductController extends Controller
         $archivedProductsCount = MarketplaceProduct::where('user_id', $userId)->where('is_archived', true)->count();
         $totalViewsCount = MarketplaceProduct::where('user_id', $userId)->sum('views_count');
 
-        $query = MarketplaceProduct::where('user_id', $userId)->with(['primaryImage', 'soldToUser'])->latest();
+        $query = MarketplaceProduct::where('user_id', $userId)
+            ->with(['primaryImage', 'soldToUser'])
+            ->withCount('orderItems')
+            ->latest();
 
         $productFilter = $request->get('product_filter', 'all');
         if ($productFilter === 'active') {
@@ -369,9 +372,35 @@ class ProductController extends Controller
         if ($product->user_id !== Auth::id()) {
             abort(403);
         }
+
+        // Jika produk sudah memiliki riwayat transaksi/pesanan, jangan hard-delete agar integritas data keuangan tetap terjaga
+        if ($product->orderItems()->exists()) {
+            $product->update([
+                'is_archived' => true,
+                'archived_at' => now(),
+                'is_active' => false,
+            ]);
+
+            return back()->with('info', 'Produk tidak dapat dihapus permanen karena sudah memiliki riwayat transaksi/pesanan. Produk telah otomatis dinonaktifkan dan dipindahkan ke Arsip.');
+        }
+
+        // Jika belum pernah ada transaksi, bersihkan foto fisik dan data terkait
+        /** @var ImageUploadService $imageService */
+        $imageService = app(ImageUploadService::class);
+        foreach ($product->images as $img) {
+            if ($img->image_path) {
+                $imageService->delete($img->image_path);
+            }
+            $img->delete();
+        }
+
+        $product->consignmentIntake()?->delete();
+        $product->bids()?->delete();
+        \App\Models\Marketplace\MarketplaceWishlist::where('product_id', $product->id)->delete();
+
         $product->delete();
 
-        return back()->with('success', 'Product deleted.');
+        return back()->with('success', 'Produk berhasil dihapus.');
     }
 
     public function processOrder(Request $request, MarketplaceOrder $order)
