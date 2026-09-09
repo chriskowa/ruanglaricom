@@ -1061,6 +1061,7 @@ Route::middleware('auth')->group(function () {
 
         // Blog Management
         Route::post('blog/articles/generate', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'generate'])->name('blog.articles.generate');
+        Route::post('blog/articles/refine', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'refine'])->name('blog.articles.refine');
         Route::post('blog/articles/agent/brainstorm', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'brainstorm'])->name('blog.articles.agent.brainstorm');
         Route::post('blog/articles/agent/research', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'research'])->name('blog.articles.agent.research');
         Route::post('blog/articles/agent/write', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'write'])->name('blog.articles.agent.write');

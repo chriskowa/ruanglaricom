@@ -162,9 +162,13 @@
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Publish</h3>
                     <div class="space-y-4">
-                        <button type="button" onclick="openArticleAgent()" class="w-full py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-semibold hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
+                        <button type="button" onclick="openArticleAgent()" class="w-full py-2.5 rounded-md bg-slate-800 border border-slate-700 text-white font-semibold hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
                             <i class="fas fa-brain text-neon text-xs"></i>
                             Article Agent
+                        </button>
+                        <button type="button" onclick="refineArticle()" id="btn-refine-article" class="w-full py-2.5 rounded-md bg-slate-800 border border-slate-700 text-neon font-semibold hover:bg-slate-700 hover:border-neon transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
+                            <i class="fas fa-magic text-xs"></i>
+                            Sempurnakan Artikel Ini
                         </button>
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Status</label>
@@ -327,6 +331,13 @@
             </div>
         </div>
     </form>
+</div>
+
+{{-- Refine Article Loading Overlay --}}
+<div id="refine-loading" class="hidden fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
+    <div class="w-10 h-10 border-3 border-neon border-t-transparent rounded-full animate-spin mb-3"></div>
+    <h4 class="text-white font-bold mb-1 text-sm">Menyempurnakan Artikel...</h4>
+    <p class="text-slate-300 text-xs max-w-sm leading-relaxed">AI sedang menganalisis draf/artikel, mengoptimasi struktur konten, judul, excerpt, dan metadata SEO. Proses memakan waktu sekitar 30-60 detik.</p>
 </div>
 
 {{-- Article Agent Modal --}}
@@ -1351,6 +1362,140 @@
         if (!res.success) { alert('Gagal: ' + (res.message || 'Unknown')); return; }
         aaClearPersist();
         window.location.href = res.redirect;
+    }
+
+    /* ===================== REFINE ARTICLE ===================== */
+    async function refineArticle() {
+        const title = (document.querySelector('input[name="title"]')?.value || '').trim();
+        let content = '';
+        if (typeof tinymce !== 'undefined' && tinymce.get('editor_id')) {
+            content = tinymce.get('editor_id').getContent();
+        } else {
+            content = (document.getElementById('editor_id')?.value || '').trim();
+        }
+        const excerpt = (document.querySelector('textarea[name="excerpt"]')?.value || '').trim();
+        const focusKeyword = (document.querySelector('input[name="focus_keyword"]')?.value || '').trim();
+        const secondaryKeywords = (document.querySelector('input[name="secondary_keywords"]')?.value || '').trim();
+
+        // Cek jika seluruh field kosong
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        const cleanContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+
+        if (!title && !cleanContent && !excerpt && !focusKeyword) {
+            alert('Harap isi minimal salah satu bidang (judul, konten, excerpt, atau focus keyword) untuk disempurnakan.');
+            return;
+        }
+
+        if (!confirm('AI akan menyempurnakan judul, excerpt, isi konten, dan metadata SEO berdasarkan data artikel saat ini. Lanjutkan?')) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-refine-article');
+        const loading = document.getElementById('refine-loading');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Menyempurnakan...';
+        }
+        if (loading) loading.classList.remove('hidden');
+
+        try {
+            const response = await fetch('{{ route("admin.blog.articles.refine") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    excerpt: excerpt,
+                    focus_keyword: focusKeyword,
+                    secondary_keywords: secondaryKeywords
+                })
+            });
+
+            const contentType = response.headers.get('content-type') || '';
+            let result;
+
+            if (contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const rawText = await response.text();
+                console.error('Non-JSON response:', rawText);
+                throw new Error(`Respon server tidak valid (${response.status}). Silakan coba lagi.`);
+            }
+
+            if (result.success) {
+                const data = result.data;
+
+                if (data.seo_title) {
+                    const titleInput = document.querySelector('input[name="title"]');
+                    if (titleInput) titleInput.value = data.seo_title;
+                    const metaTitleInput = document.querySelector('input[name="meta_title"]');
+                    if (metaTitleInput) metaTitleInput.value = data.seo_title;
+                }
+
+                if (data.slug) {
+                    const slugInput = document.querySelector('input[name="slug"]');
+                    if (slugInput) slugInput.value = data.slug;
+                }
+
+                if (data.meta_description) {
+                    const metaDesc = document.querySelector('textarea[name="meta_description"]');
+                    if (metaDesc) metaDesc.value = data.meta_description;
+                }
+
+                if (data.focus_keyword) {
+                    const fkInput = document.querySelector('input[name="focus_keyword"]');
+                    if (fkInput) fkInput.value = data.focus_keyword;
+                }
+
+                if (data.secondary_keywords) {
+                    const skInput = document.querySelector('input[name="secondary_keywords"]');
+                    if (skInput) skInput.value = data.secondary_keywords;
+                }
+
+                const metaKeywords = data.keywords || [data.focus_keyword, data.secondary_keywords].filter(Boolean).join(', ');
+                if (metaKeywords) {
+                    const mkInput = document.querySelector('input[name="meta_keywords"]');
+                    if (mkInput) mkInput.value = metaKeywords;
+                }
+
+                if (data.excerpt || data.meta_description) {
+                    const excerptArea = document.querySelector('textarea[name="excerpt"]');
+                    if (excerptArea) excerptArea.value = data.excerpt || data.meta_description;
+                }
+
+                if (data.content) {
+                    if (typeof tinymce !== 'undefined' && tinymce.get('editor_id')) {
+                        tinymce.get('editor_id').setContent(data.content);
+                    } else {
+                        const editorEl = document.getElementById('editor_id');
+                        if (editorEl) editorEl.value = data.content;
+                    }
+                }
+
+                if (typeof runLiveSeoAudit === 'function') {
+                    runLiveSeoAudit();
+                }
+
+                alert('Artikel berhasil disempurnakan! Silakan periksa perubahan judul, konten, dan SEO.');
+            } else {
+                alert('Gagal menyempurnakan artikel: ' + (result.message || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Gagal: ' + (error.message || 'Terjadi kesalahan sistem.'));
+            console.error(error);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic text-xs"></i> Sempurnakan Artikel Ini';
+            }
+            if (loading) loading.classList.add('hidden');
+        }
     }
 </script>
 @endpush
