@@ -6,22 +6,24 @@ body {
     background: #080d1a !important;
 }
 .glass-panel {
-    background: #0d1527 !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.25) !important;
+    background: #121c2e !important;
+    border: 1.5px solid #23354d !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.28) !important;
     transition: border-color 0.3s ease;
 }
 .glass-panel:hover {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: #3b5278 !important;
 }
 .glass-panel-orange {
-    background: #0d1527 !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.25) !important;
+    background: #121c2e !important;
+    border: 1.5px solid #23354d !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.28) !important;
     transition: border-color 0.3s ease;
 }
 .glass-panel-orange:hover {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: #3b5278 !important;
 }
 .fc .fc-toolbar-title{font-size: 0.95rem;font-weight:700;color:#f8fafc}
 #loader[data-hidden="1"] { pointer-events: none !important; }

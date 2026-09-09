@@ -21,12 +21,13 @@
            --------------------------------------------------------- */
         #runner-dashboard-shell {
             --rd-bg: #060a17;
-            --rd-panel: #0b1220;
-            --rd-panel-soft: #0e1726;
-            --rd-line: rgba(255,255,255,.09);
-            --rd-line-strong: rgba(255,255,255,.15);
+            --rd-panel: #121c2e;
+            --rd-panel-soft: #17243b;
+            --rd-panel-border: #23354d;
+            --rd-line: rgba(255, 255, 255, 0.12);
+            --rd-line-strong: rgba(255, 255, 255, 0.22);
             --rd-text: #f7f9fb;
-            --rd-muted: #8592a5;
+            --rd-muted: #94a3b8;
             --rd-accent: #B8FF00;
             font-variant-numeric: tabular-nums;
         }
@@ -34,8 +35,12 @@
         .runner-command {
             display: flex;
             flex-direction: column;
-            border-top: 1px solid var(--rd-line);
-            border-bottom: 1px solid var(--rd-line);
+            border: 1.5px solid var(--rd-panel-border);
+            background: #0e1728;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
 
         .runner-command__top {
@@ -44,7 +49,8 @@
             align-items: flex-end;
             justify-content: space-between;
             gap: 2rem;
-            padding: 1.75rem 0;
+            padding: 1.5rem 1.75rem;
+            background: #101a2d;
         }
 
         .runner-kicker {
@@ -136,14 +142,15 @@
             order: 2;
             display: grid;
             grid-template-columns: repeat(5, minmax(0,1fr));
-            border-top: 1px solid var(--rd-line);
+            border-top: 1px solid var(--rd-panel-border);
+            background: #0e1728;
         }
 
         .runner-stat {
             min-height: 76px;
             padding: .85rem 1rem;
-            border-right: 1px solid var(--rd-line);
-            background: rgba(255,255,255,.012);
+            border-right: 1px solid var(--rd-panel-border);
+            background: #121c2e;
             transition: background .18s ease;
         }
 
@@ -153,7 +160,7 @@
 
         a.runner-stat:hover,
         button.runner-stat:hover {
-            background: rgba(255,255,255,.025);
+            background: #17243b;
         }
 
         .runner-stat__label {
@@ -244,9 +251,9 @@
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding: 0.75rem 0.85rem;
-            border-top: 1px solid var(--rd-line);
-            background: rgba(11, 21, 34, 0.4);
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--rd-panel-border);
+            background: #101a2d;
             flex-wrap: wrap;
         }
 
@@ -340,8 +347,8 @@
             align-items: center;
             gap: 0.35rem;
             padding: 0.25rem;
-            background: rgba(7, 16, 28, 0.85);
-            border: 1px solid var(--rd-line);
+            background: #09101d;
+            border: 1px solid var(--rd-panel-border);
             border-radius: 6px;
             max-width: 100%;
             overflow-x: auto;
@@ -405,8 +412,8 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.45rem 0.85rem;
-            background: rgba(7, 16, 28, 0.85);
-            border: 1px solid var(--rd-line);
+            background: #09101d;
+            border: 1px solid var(--rd-panel-border);
             border-radius: 6px;
             color: var(--rd-accent);
             font-size: 11px;
@@ -419,28 +426,64 @@
         }
 
         .runner-calendar-link:hover {
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.28);
         }
 
-        /* Make the overview feel like one professional workspace,
-           rather than many unrelated generated cards. */
+        /* Make each section clearly defined with solid, elevated dark surface
+           so content and text do not look like floating text on a void */
         #tab-content-overview .bg-card\/50 {
-            background: rgba(11,18,32,.74) !important;
+            background: #121c2e !important;
             backdrop-filter: none !important;
-            border-color: var(--rd-line) !important;
-            border-radius: 5px !important;
-            box-shadow: none !important;
+            border: 1.5px solid #23354d !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
         }
 
         #tab-content-overview .rounded-3xl,
         #tab-content-overview .rounded-2xl {
-            border-radius: 6px !important;
+            border-radius: 8px !important;
         }
 
         #tab-content-overview .rounded-xl {
-            border-radius: 4px !important;
+            border-radius: 6px !important;
+        }
+
+        /* Solid, elevated sub-cards and nested containers */
+        #tab-content-overview .bg-slate-900\/40,
+        #tab-content-overview .bg-slate-900\/50,
+        #tab-content-overview .bg-slate-900\/60,
+        #tab-content-overview .bg-slate-950\/40,
+        #tab-content-overview .bg-slate-900,
+        #tab-content-overview .bg-slate-950,
+        #tab-content-overview .bg-slate-800\/80 {
+            background: #17243b !important;
+            border-color: #283d5d !important;
+        }
+
+        #tab-content-overview .border-slate-700\/50,
+        #tab-content-overview .border-slate-700\/60,
+        #tab-content-overview .border-slate-800\/80,
+        #tab-content-overview .border-slate-800 {
+            border-color: #23354d !important;
+        }
+
+        /* Strava connect banner solid elevation */
+        #tab-content-overview .from-\[\#FC4C02\]\/20 {
+            background: linear-gradient(90deg, rgba(252, 76, 2, 0.2) 0%, #121c2e 45%, #152238 100%) !important;
+            border-color: rgba(252, 76, 2, 0.5) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+        }
+
+        /* High contrast text and labels */
+        #tab-content-overview .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        #tab-content-overview .text-slate-400 {
+            color: #cbd5e1 !important;
         }
 
         #tab-content-overview [class*="shadow-neon"],
@@ -464,9 +507,36 @@
             box-shadow: none !important;
         }
 
-        #tab-content-marketplace > div {
+        /* Solid surfaces for Marketplace tab */
+        #tab-content-marketplace > div,
+        #tab-content-marketplace .bg-\[\#0E1A2D\] {
+            background: #121c2e !important;
+            border: 1.5px solid #23354d !important;
             border-radius: 8px !important;
-            box-shadow: none !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+        }
+
+        #tab-content-marketplace .bg-\[\#08111F\] {
+            background: #17243b !important;
+            border: 1px solid #283d5d !important;
+            border-radius: 6px !important;
+        }
+
+        #tab-content-marketplace .border-\[\#1F2D44\],
+        #tab-content-marketplace .border-\[\#1F2D44\]\/70 {
+            border-color: #23354d !important;
+        }
+
+        /* Solid surfaces for Modals */
+        .fixed .bg-slate-900.border-slate-800 {
+            background: #121c2e !important;
+            border: 1.5px solid #23354d !important;
+            border-radius: 8px !important;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5) !important;
+        }
+        .fixed .bg-slate-950 {
+            background: #17243b !important;
+            border-color: #283d5d !important;
         }
 
         .btn-marketplace-primary {
@@ -492,9 +562,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background-color: #111F35 !important;
+            background-color: #17243b !important;
             color: #ffffff !important;
-            border: 1px solid #1F2D44 !important;
+            border: 1px solid #283d5d !important;
             font-weight: 700 !important;
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -503,7 +573,7 @@
 
         .btn-marketplace-secondary:hover {
             border-color: #B8FF00 !important;
-            background-color: #16253e !important;
+            background-color: #1f304e !important;
             color: #ffffff !important;
         }
 
