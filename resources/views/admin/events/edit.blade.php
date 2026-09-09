@@ -4,7 +4,8 @@
 @section('title', 'Edit Event')
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<div class="min-h-screen pt-4 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
     <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
@@ -48,17 +49,68 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-bold text-slate-300 mb-2">Kota / Lokasi Race</label>
-                                <select name="city_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
-                                    <option value="">Pilih Kota (Optional)</option>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Kota / Wilayah Race</label>
+                                <select name="city_id" id="city_id" class="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-[#CCFF00] transition-colors">
+                                    <option value="" data-lat="" data-lng="">Pilih Kota (Optional)</option>
                                     @foreach($cities as $city)
-                                        <option value="{{ $city->id }}" {{ old('city_id', $event->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                        <option value="{{ $city->id }}" 
+                                            data-lat="{{ $city->latitude }}" 
+                                            data-lng="{{ $city->longitude }}"
+                                            {{ old('city_id', $event->city_id) == $city->id ? 'selected' : '' }}>
+                                            {{ $city->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-300 mb-2">Lokasi Spesifik (Optional)</label>
-                                <input type="text" name="location_name" value="{{ old('location_name', $event->location_name) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Nama Lokasi / Venue</label>
+                                <input type="text" name="location_name" id="location_name" value="{{ old('location_name', $event->location_name) }}" placeholder="Contoh: Gedung Sate / GBK Senayan" required class="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-[#CCFF00] transition-colors">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Alamat Lengkap Venue (Optional)</label>
+                            <input type="text" name="location_address" id="location_address" value="{{ old('location_address', $event->location_address) }}" placeholder="Alamat jalan, nomor, kecamatan, kelurahan tempat race" class="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-[#CCFF00] transition-colors">
+                        </div>
+
+                        <!-- Map Selector Card -->
+                        <div class="p-4 bg-slate-950/80 border border-slate-700 rounded-lg space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <span class="text-xs font-mono uppercase text-[#CCFF00] font-semibold tracking-wider">PETA KOORDINAT RACE (MAP SELECT)</span>
+                                    <p class="text-xs text-slate-400 mt-0.5">Klik di peta atau geser pin penanda untuk menentukan titik koordinat lat & long secara presisi.</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="btn-center-city" class="px-3 py-1.5 text-xs font-medium rounded-md bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border border-slate-700 transition-colors">
+                                        Pusatkan ke Kota
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Search Address Bar -->
+                            <div class="flex items-center gap-2">
+                                <div class="relative flex-1">
+                                    <input type="text" id="map_search_input" placeholder="Cari nama lokasi atau jalan di peta..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#CCFF00] placeholder:text-slate-500">
+                                </div>
+                                <button type="button" id="btn-search-location" class="px-4 py-2 text-xs font-semibold rounded-md bg-slate-800 text-white hover:bg-slate-700 border border-slate-600 transition-colors">
+                                    Cari
+                                </button>
+                            </div>
+                            <div id="search-results-box" class="hidden max-h-44 overflow-y-auto bg-slate-900 border border-slate-700 rounded-md p-1 space-y-1 text-xs"></div>
+
+                            <!-- Interactive Leaflet Map -->
+                            <div id="admin_event_map" class="w-full rounded-lg border border-slate-700 bg-slate-900 overflow-hidden relative" style="height: 320px; z-index: 1;"></div>
+
+                            <!-- Coordinates Inputs -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1">Latitude</label>
+                                    <input type="number" step="any" name="location_lat" id="location_lat" value="{{ old('location_lat', $event->location_lat) }}" placeholder="-6.2088" class="w-full font-mono text-sm bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#CCFF00]">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1">Longitude</label>
+                                    <input type="number" step="any" name="location_lng" id="location_lng" value="{{ old('location_lng', $event->location_lng) }}" placeholder="106.8456" class="w-full font-mono text-sm bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-white focus:outline-none focus:border-[#CCFF00]">
+                                </div>
                             </div>
                         </div>
 
@@ -484,6 +536,204 @@
                 xhr.send(formData);
             })
         });
+    });
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const latInput = document.getElementById('location_lat');
+        const lngInput = document.getElementById('location_lng');
+        const addrInput = document.getElementById('location_address');
+        const locNameInput = document.getElementById('location_name');
+        const citySelect = document.getElementById('city_id');
+        const mapSearchInput = document.getElementById('map_search_input');
+        const btnSearch = document.getElementById('btn-search-location');
+        const searchResultsBox = document.getElementById('search-results-box');
+        const btnCenterCity = document.getElementById('btn-center-city');
+
+        const existingLat = parseFloat(latInput.value);
+        const existingLng = parseFloat(lngInput.value);
+
+        let initialLat = !isNaN(existingLat) ? existingLat : null;
+        let initialLng = !isNaN(existingLng) ? existingLng : null;
+
+        if (initialLat === null || initialLng === null) {
+            const selectedOpt = citySelect ? citySelect.options[citySelect.selectedIndex] : null;
+            if (selectedOpt && selectedOpt.dataset.lat && selectedOpt.dataset.lng) {
+                initialLat = parseFloat(selectedOpt.dataset.lat);
+                initialLng = parseFloat(selectedOpt.dataset.lng);
+            }
+        }
+
+        // Fallback to center of Indonesia / Jakarta
+        const startLat = (initialLat !== null && !isNaN(initialLat)) ? initialLat : -6.2088;
+        const startLng = (initialLng !== null && !isNaN(initialLng)) ? initialLng : 106.8456;
+        const startZoom = (!isNaN(existingLat) && latInput.value) ? 15 : (initialLat !== null ? 12 : 5);
+
+        const map = L.map('admin_event_map').setView([startLat, startLng], startZoom);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        let marker = null;
+
+        function updateMarker(lat, lng, pan = false) {
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                marker.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    setCoordinateInputs(pos.lat, pos.lng, true);
+                });
+            }
+            if (pan) {
+                map.setView([lat, lng], Math.max(map.getZoom(), 14));
+            }
+        }
+
+        function setCoordinateInputs(lat, lng, doReverseGeocode = false) {
+            latInput.value = Number(lat).toFixed(6);
+            lngInput.value = Number(lng).toFixed(6);
+
+            if (doReverseGeocode) {
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            if (!addrInput.value.trim()) {
+                                addrInput.value = data.display_name;
+                            }
+                            if (!locNameInput.value.trim()) {
+                                locNameInput.value = data.name || (data.address ? (data.address.road || data.address.suburb || data.address.city) : '');
+                            }
+                        }
+                    })
+                    .catch(() => {});
+            }
+        }
+
+        if (!isNaN(existingLat) && latInput.value && !isNaN(existingLng) && lngInput.value) {
+            updateMarker(existingLat, existingLng, false);
+        }
+
+        map.on('click', function(e) {
+            updateMarker(e.latlng.lat, e.latlng.lng, false);
+            setCoordinateInputs(e.latlng.lat, e.latlng.lng, true);
+        });
+
+        function onManualCoordInput() {
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                updateMarker(lat, lng, true);
+            }
+        }
+        latInput.addEventListener('input', onManualCoordInput);
+        lngInput.addEventListener('input', onManualCoordInput);
+
+        if (citySelect) {
+            citySelect.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                if (opt && opt.dataset.lat && opt.dataset.lng) {
+                    const cLat = parseFloat(opt.dataset.lat);
+                    const cLng = parseFloat(opt.dataset.lng);
+                    if (!isNaN(cLat) && !isNaN(cLng)) {
+                        if (!latInput.value || !lngInput.value) {
+                            map.setView([cLat, cLng], 12);
+                            updateMarker(cLat, cLng, false);
+                            setCoordinateInputs(cLat, cLng, false);
+                        }
+                    }
+                }
+            });
+        }
+
+        if (btnCenterCity && citySelect) {
+            btnCenterCity.addEventListener('click', function() {
+                const opt = citySelect.options[citySelect.selectedIndex];
+                if (opt && opt.dataset.lat && opt.dataset.lng) {
+                    const cLat = parseFloat(opt.dataset.lat);
+                    const cLng = parseFloat(opt.dataset.lng);
+                    if (!isNaN(cLat) && !isNaN(cLng)) {
+                        map.setView([cLat, cLng], 13);
+                        updateMarker(cLat, cLng, false);
+                        setCoordinateInputs(cLat, cLng, false);
+                    }
+                } else {
+                    alert('Silakan pilih kota terlebih dahulu.');
+                }
+            });
+        }
+
+        function executeSearch() {
+            const q = mapSearchInput.value.trim();
+            if (!q) return;
+
+            btnSearch.disabled = true;
+            const originalText = btnSearch.innerText;
+            btnSearch.innerText = '...';
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=id`)
+                .then(res => res.json())
+                .then(data => {
+                    btnSearch.disabled = false;
+                    btnSearch.innerText = originalText;
+                    searchResultsBox.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        searchResultsBox.innerHTML = '<div class="p-2 text-slate-400">Lokasi tidak ditemukan di peta. Coba nama kota atau tempat lain.</div>';
+                        searchResultsBox.classList.remove('hidden');
+                        return;
+                    }
+
+                    searchResultsBox.classList.remove('hidden');
+                    data.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = 'p-2 hover:bg-slate-800 cursor-pointer rounded text-slate-200 border-b border-slate-800 last:border-0 transition-colors';
+                        row.textContent = item.display_name;
+                        row.addEventListener('click', function() {
+                            const lat = parseFloat(item.lat);
+                            const lng = parseFloat(item.lon);
+                            map.setView([lat, lng], 15);
+                            updateMarker(lat, lng, true);
+                            setCoordinateInputs(lat, lng, false);
+                            if (!addrInput.value.trim()) {
+                                addrInput.value = item.display_name;
+                            }
+                            if (!locNameInput.value.trim()) {
+                                locNameInput.value = item.name || '';
+                            }
+                            searchResultsBox.classList.add('hidden');
+                        });
+                        searchResultsBox.appendChild(row);
+                    });
+                })
+                .catch(err => {
+                    btnSearch.disabled = false;
+                    btnSearch.innerText = originalText;
+                    console.error('Nominatim error:', err);
+                });
+        }
+
+        if (btnSearch) {
+            btnSearch.addEventListener('click', executeSearch);
+        }
+        if (mapSearchInput) {
+            mapSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    executeSearch();
+                }
+            });
+        }
+
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 400);
     });
 </script>
 @endpush

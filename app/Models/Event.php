@@ -199,7 +199,7 @@ class Event extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('start_at', '>=', now())->orderBy('start_at', 'asc');
+        return $query->where('start_at', '>=', now()->startOfDay())->orderBy('start_at', 'asc');
     }
 
     public function scopeDirectory($query)
@@ -399,7 +399,7 @@ class Event extends Model
 
     public function getSanitizedDescriptionHtmlAttribute()
     {
-        $html = $this->full_description;
+        $html = $this->full_description ?: $this->short_description;
         if (empty($html)) {
             return '';
         }
@@ -412,7 +412,13 @@ class Event extends Model
         $dom->loadHTML('<?xml encoding="utf-8" ?><div>' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
 
-        $allowedTags = ['p', 'a', 'b', 'i', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
+        $allowedTags = [
+            'p', 'a', 'b', 'i', 'strong', 'em', 'u', 's', 'strike', 'del', 'sub', 'sup',
+            'ul', 'ol', 'li', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'span', 'div', 'img', 'figure', 'figcaption',
+            'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+            'blockquote', 'pre', 'code', 'mark', 'small', 'input', 'iframe'
+        ];
 
         // Recursively clean DOM elements
         $cleanNode = function(\DOMNode $node) use (&$cleanNode, $allowedTags) {
@@ -422,16 +428,28 @@ class Event extends Model
                 // Allow our container div wrapper
                 if ($tagName !== 'div' || $node->parentNode->nodeName !== '#document') {
                     if (!in_array($tagName, $allowedTags)) {
-                        // Dangerous/unwanted tags are removed entirely or replaced by their text content
-                        if (in_array($tagName, ['script', 'iframe', 'style', 'object', 'embed', 'applet', 'meta', 'link'])) {
+                        // Dangerous/unwanted tags are removed entirely
+                        if (in_array($tagName, ['script', 'style', 'object', 'embed', 'applet', 'meta', 'link'])) {
                             $node->parentNode->removeChild($node);
                             return;
                         } else {
-                            // Replace node with text content
-                            $textNode = $node->ownerDocument->createTextNode($node->nodeValue);
-                            $node->parentNode->replaceChild($textNode, $node);
+                            // Safely unwrap unknown non-harmful containers so children/tables/text aren't wiped out
+                            while ($node->firstChild) {
+                                $node->parentNode->insertBefore($node->firstChild, $node);
+                            }
+                            $node->parentNode->removeChild($node);
                             return;
                         }
+                    }
+                }
+
+                // If iframe, only allow safe trusted video embeds (youtube, vimeo, spotify)
+                if ($tagName === 'iframe') {
+                    $src = strtolower(trim($node->getAttribute('src')));
+                    $isTrustedSrc = str_contains($src, 'youtube.com') || str_contains($src, 'youtu.be') || str_contains($src, 'vimeo.com') || str_contains($src, 'spotify.com');
+                    if (!$isTrustedSrc) {
+                        $node->parentNode->removeChild($node);
+                        return;
                     }
                 }
 
@@ -444,7 +462,7 @@ class Event extends Model
                 foreach ($attributes as $attrName) {
                     $attrNameLower = strtolower($attrName);
                     
-                    // Strip on* events (onclick, onload, etc.)
+                    // Strip on* events (onclick, onload, onerror, etc.)
                     if (str_starts_with($attrNameLower, 'on')) {
                         $node->removeAttribute($attrName);
                         continue;

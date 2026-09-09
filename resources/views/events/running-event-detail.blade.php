@@ -7,26 +7,224 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <style>
     .detail-map-pin-glow {
-        box-shadow: 0 0 25px rgba(249, 115, 22, 0.7), 0 4px 12px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 16px rgba(204, 255, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.8);
     }
     .detail-custom-leaflet-popup .leaflet-popup-content-wrapper {
-        background: #0c121e !important;
-        color: #f1f5f9 !important;
-        border-radius: 1rem !important;
-        border: 1px solid #334155 !important;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
-        padding: 12px 16px !important;
+        background: #12161F !important;
+        color: #F1F5F9 !important;
+        border-radius: 6px !important;
+        border: 1px solid #28364F !important;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8) !important;
+        padding: 10px 14px !important;
     }
     .detail-custom-leaflet-popup .leaflet-popup-content {
         margin: 0 !important;
         line-height: 1.4 !important;
     }
     .detail-custom-leaflet-popup .leaflet-popup-tip {
-        background: #0c121e !important;
-        border: 1px solid #334155 !important;
+        background: #12161F !important;
+        border: 1px solid #28364F !important;
     }
     .leaflet-control-attribution {
         display: none !important;
+    }
+
+    /* CKEditor Content Rendering (Detail Event Lari) */
+    .ck-content {
+        color: #CBD5E1;
+        font-size: 0.9375rem;
+        line-height: 1.75;
+        word-break: break-word;
+    }
+    .ck-content > :first-child { margin-top: 0 !important; }
+    .ck-content > :last-child { margin-bottom: 0 !important; }
+
+    /* Paragraphs & Spacing */
+    .ck-content p {
+        margin-top: 0;
+        margin-bottom: 1.1rem;
+        line-height: 1.75;
+        color: #CBD5E1;
+    }
+
+    /* Headings */
+    .ck-content h1,
+    .ck-content h2,
+    .ck-content h3,
+    .ck-content h4,
+    .ck-content h5,
+    .ck-content h6 {
+        color: #FFFFFF;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        line-height: 1.3;
+    }
+    .ck-content h1 { font-size: 1.75rem; margin-top: 2rem; margin-bottom: 0.85rem; }
+    .ck-content h2 { font-size: 1.375rem; margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid #28364F; padding-bottom: 0.5rem; }
+    .ck-content h3 { font-size: 1.15rem; margin-top: 1.6rem; margin-bottom: 0.6rem; }
+    .ck-content h4 { font-size: 1rem; margin-top: 1.35rem; margin-bottom: 0.5rem; }
+    .ck-content h5, .ck-content h6 { font-size: 0.875rem; margin-top: 1.1rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Inline Text Styles */
+    .ck-content strong, .ck-content b { font-weight: 700; color: #FFFFFF; }
+    .ck-content em, .ck-content i { font-style: italic; }
+    .ck-content u { text-decoration: underline; text-underline-offset: 3px; }
+    .ck-content s, .ck-content strike, .ck-content del { text-decoration: line-through; opacity: 0.75; }
+    .ck-content sub { font-size: 0.75em; vertical-align: sub; line-height: 0; }
+    .ck-content sup { font-size: 0.75em; vertical-align: super; line-height: 0; }
+    .ck-content mark { background-color: #EAB308; color: #080A0D; padding: 0.1em 0.35em; border-radius: 3px; font-weight: 600; }
+
+    /* Lists */
+    .ck-content ul {
+        list-style-type: disc !important;
+        padding-left: 1.5rem !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 1.1rem !important;
+    }
+    .ck-content ol {
+        list-style-type: decimal !important;
+        padding-left: 1.5rem !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 1.1rem !important;
+    }
+    .ck-content li {
+        margin-bottom: 0.4rem;
+        line-height: 1.65;
+        color: #CBD5E1;
+    }
+    .ck-content li::marker {
+        color: #CCFF00;
+        font-weight: 700;
+    }
+    .ck-content ul ul { list-style-type: circle !important; margin: 0.35rem 0 !important; }
+    .ck-content ul ul ul { list-style-type: square !important; }
+    .ck-content ol ol { list-style-type: lower-latin !important; margin: 0.35rem 0 !important; }
+    .ck-content .todo-list { list-style: none !important; padding-left: 0 !important; }
+    .ck-content .todo-list li { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.4rem; }
+    .ck-content .todo-list li input[type="checkbox"] { width: 16px; height: 16px; margin-top: 0.2rem; accent-color: #CCFF00; cursor: pointer; }
+
+    /* Tables (CKEditor Figure Tables) */
+    .ck-content figure.table {
+        margin: 1.5rem 0;
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+        border-radius: 6px;
+        border: 1px solid #28364F;
+        background: #0E1624;
+    }
+    .ck-content table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        min-width: 480px;
+        font-size: 0.875rem;
+    }
+    .ck-content th {
+        background: #182234;
+        color: #FFFFFF;
+        font-weight: 700;
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border: 1px solid #28364F;
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .ck-content td {
+        padding: 0.75rem 1rem;
+        border: 1px solid #233148;
+        color: #E2E8F0;
+        vertical-align: top;
+        line-height: 1.5;
+    }
+    .ck-content tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    .ck-content tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+    .ck-content figcaption {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        color: #94A3B8;
+        text-align: center;
+        background: #121A27;
+        border-top: 1px solid #28364F;
+    }
+
+    /* Blockquotes */
+    .ck-content blockquote {
+        margin: 1.5rem 0;
+        padding: 1rem 1.25rem;
+        border-left: 4px solid #CCFF00;
+        background: #182234;
+        border-radius: 0 6px 6px 0;
+        color: #E2E8F0;
+        font-style: italic;
+    }
+    .ck-content blockquote p { margin: 0; color: #E2E8F0; }
+
+    /* Code & Pre */
+    .ck-content code {
+        background: #182234;
+        color: #CCFF00;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85em;
+        border: 1px solid #28364F;
+    }
+    .ck-content pre {
+        background: #0E1624;
+        border: 1px solid #28364F;
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8125rem;
+        color: #E2E8F0;
+        margin: 1.5rem 0;
+        line-height: 1.5;
+    }
+    .ck-content pre code { background: transparent; padding: 0; border: none; color: inherit; }
+
+    /* Horizontal Line */
+    .ck-content hr {
+        border: none;
+        border-top: 1px solid #28364F;
+        margin: 2rem 0;
+    }
+
+    /* Links */
+    .ck-content a {
+        color: #CCFF00;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-weight: 600;
+        transition: color 0.15s ease;
+    }
+    .ck-content a:hover {
+        color: #DCFF33;
+    }
+
+    /* Images & Media */
+    .ck-content figure.image { margin: 1.5rem 0; text-align: center; clear: both; }
+    .ck-content figure.image img { border-radius: 6px; max-width: 100%; height: auto; display: inline-block; border: 1px solid #28364F; }
+    .ck-content figure.image.image-style-side { float: right; margin-left: 1.5rem; max-width: 50%; }
+    .ck-content figure.image.image-style-align-left { float: left; margin-right: 1.5rem; max-width: 50%; }
+    .ck-content figure.image.image-style-align-right { float: right; margin-left: 1.5rem; max-width: 50%; }
+    .ck-content figure.image.image-style-align-center { margin-left: auto; margin-right: auto; display: table; }
+    .ck-content figure.media { margin: 1.5rem 0; position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 6px; border: 1px solid #28364F; }
+    .ck-content figure.media iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Alignment Classes */
+    .ck-content .text-left, .ck-content [style*="text-align: left"], .ck-content [style*="text-align:left"] { text-align: left !important; }
+    .ck-content .text-center, .ck-content [style*="text-align: center"], .ck-content [style*="text-align:center"] { text-align: center !important; }
+    .ck-content .text-right, .ck-content [style*="text-align: right"], .ck-content [style*="text-align:right"] { text-align: right !important; }
+    .ck-content .text-justify, .ck-content [style*="text-align: justify"], .ck-content [style*="text-align:justify"] { text-align: justify !important; }
+
+    /* Horizontal Rules */
+    .ck-content hr {
+        border: 0;
+        border-top: 1px solid #28364F;
+        margin: 2rem 0;
     }
 </style>
 @endpush
@@ -71,43 +269,115 @@
             </ol>
         </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        @php
+            $cityCoordinatesFallback = [
+                'jakarta' => [-6.2088, 106.8456],
+                'dki jakarta' => [-6.2088, 106.8456],
+                'bandung' => [-6.9175, 107.6191],
+                'surabaya' => [-7.2575, 112.7521],
+                'yogyakarta' => [-7.7956, 110.3695],
+                'jogja' => [-7.7956, 110.3695],
+                'sleman' => [-7.7167, 110.3556],
+                'bantul' => [-7.8933, 110.3347],
+                'semarang' => [-6.9667, 110.4167],
+                'bogor' => [-6.5971, 106.8060],
+                'tangerang' => [-6.1783, 106.6319],
+                'tangerang selatan' => [-6.2888, 106.7179],
+                'bekasi' => [-6.2383, 106.9756],
+                'depok' => [-6.4025, 106.7942],
+                'malang' => [-7.9666, 112.6326],
+                'bali' => [-8.6705, 115.2126],
+                'denpasar' => [-8.6705, 115.2126],
+                'badung' => [-8.5819, 115.1771],
+                'solo' => [-7.5755, 110.8243],
+                'surakarta' => [-7.5755, 110.8243],
+                'medan' => [3.5952, 98.6722],
+                'makassar' => [-5.1477, 119.4327],
+                'balikpapan' => [-1.2379, 116.8529],
+                'samarinda' => [-0.5022, 117.1536],
+                'batam' => [1.1301, 104.0529],
+                'palembang' => [-2.9761, 104.7754],
+                'pekanbaru' => [0.5071, 101.4478],
+                'lampung' => [-5.4500, 105.2667],
+                'bandar lampung' => [-5.4500, 105.2667],
+                'padang' => [-0.9471, 100.4172],
+                'pontianak' => [-0.0263, 109.3425],
+                'banjarmasin' => [-3.3194, 114.5908],
+                'manado' => [1.4748, 124.8421],
+                'mataram' => [-8.5833, 116.1167],
+                'lombok' => [-8.5833, 116.1167],
+                'kupang' => [-10.1772, 123.6070],
+                'cirebon' => [-6.7320, 108.5523],
+                'tasikmalaya' => [-7.3274, 108.2207],
+                'sukabumi' => [-6.9277, 106.9300],
+                'magelang' => [-7.4706, 110.2178],
+            ];
+
+            $hasExactCoordinates = !empty($event->location_lat) && !empty($event->location_lng);
+            $detailMapLat = $event->location_lat ?: ($event->rpc_latitude ?: ($event->city?->latitude ?? null));
+            $detailMapLng = $event->location_lng ?: ($event->rpc_longitude ?: ($event->city?->longitude ?? null));
+
+            if (!$detailMapLat || !$detailMapLng) {
+                $cityNameLower = strtolower(trim($event->city?->name ?? ''));
+                if (!$cityNameLower && $event->location_name) {
+                    $cityNameLower = strtolower(trim($event->location_name));
+                }
+                foreach ($cityCoordinatesFallback as $k => $coords) {
+                    if (str_contains($cityNameLower, $k)) {
+                        $detailMapLat = $coords[0];
+                        $detailMapLng = $coords[1];
+                        break;
+                    }
+                }
+            }
+
+            if (!$detailMapLat || !$detailMapLng) {
+                $detailMapLat = -6.2088;
+                $detailMapLng = 106.8456;
+            }
+
+            $detailZoom = $hasExactCoordinates ? 16 : 13;
+            $venueTitle = $event->location_name ?: ($event->city?->name ?: 'Lokasi Start Event');
+            $venueAddr = $event->location_address ?: ($event->city?->name ?? 'Indonesia');
+        @endphp
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
             <!-- Main Article Column -->
-            <div class="lg:col-span-8 space-y-10">
+            <div class="lg:col-span-8 space-y-8">
                 
                 <!-- Title Section -->
-                <header class="space-y-6">
-                    <div class="flex flex-wrap items-center gap-3 animate-fade-in-up">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-neon/10 text-neon border border-neon/20 uppercase tracking-wide">
+                <header class="space-y-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-sm text-xs font-bold bg-neon/10 text-neon border border-neon/30 uppercase tracking-wide">
                             {{ $event->raceType->name ?? 'Running Event' }}
                         </span>
                         @if($event->is_featured)
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase tracking-wide">Featured</span>
+                            <span class="px-2.5 py-1 rounded-sm text-xs font-bold bg-amber-500 text-dark uppercase tracking-wide">Featured</span>
                         @endif
                     </div>
                     
-                    <h1 class="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-lg">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
                         {{ $event->name }}
                     </h1>
 
-                    <div class="flex flex-wrap items-center gap-6 text-slate-400 border-l-4 border-neon pl-6 py-1">
-                        <div class="flex items-center gap-3 group">
-                            <div class="p-2 rounded-lg bg-slate-800/50 group-hover:bg-neon/10 transition-colors">
-                                <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-slate-300 border-l-2 border-neon pl-4 sm:pl-5 py-1">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 rounded-md bg-slate-800/80 text-neon">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
                             <div>
-                                <span class="block text-xs uppercase font-bold text-slate-500">Tanggal</span>
-                                <span class="font-medium text-slate-200 text-lg">{{ $event->event_date->format('d F Y') }}</span>
+                                <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tanggal Event</span>
+                                <span class="font-bold text-white text-sm sm:text-base">{{ $event->event_date->translatedFormat('d F Y') }}</span>
                             </div>
                         </div>
-                        <div class="hidden sm:block w-px h-10 bg-slate-700"></div>
-                        <div class="flex items-center gap-3 group">
-                            <div class="p-2 rounded-lg bg-slate-800/50 group-hover:bg-neon/10 transition-colors">
-                                <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <div class="hidden sm:block w-px h-8 bg-slate-800"></div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 rounded-md bg-slate-800/80 text-neon">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </div>
                             <div>
-                                <span class="block text-xs uppercase font-bold text-slate-500">Lokasi</span>
-                                <span class="font-medium text-slate-200 text-lg">{{ $event->city ? $event->city->name : $event->location_name }}</span>
+                                <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Lokasi / Kota</span>
+                                <span class="font-bold text-white text-sm sm:text-base">{{ $event->city ? $event->city->name : $event->location_name }}</span>
                             </div>
                         </div>
                     </div>
@@ -115,172 +385,41 @@
 
                 <!-- Featured Image (Article Style) -->
                 @if($event->hero_image_url)
-                    <figure class="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
-                        <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out">
-                        <div class="absolute inset-0 bg-gradient-to-t from-dark/50 to-transparent opacity-60"></div>
+                    <figure class="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-900 group shadow-lg">
+                        <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-auto object-cover max-h-[480px]">
                     </figure>
                 @endif
 
-                <!-- Article Content -->
-                <div class="bg-card/30 backdrop-blur-sm border border-white/5 rounded-3xl p-6 md:p-10">
-                    <article class="prose prose-lg prose-invert max-w-none 
-                        prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-white
-                        prose-p:text-slate-300 prose-p:leading-relaxed 
-                        prose-a:text-neon prose-a:no-underline hover:prose-a:underline 
-                        prose-strong:text-white prose-strong:font-black
-                        prose-ul:list-disc prose-ul:pl-6 prose-li:text-slate-300
-                        prose-img:rounded-2xl prose-img:shadow-xl">
-                        {!! $event->sanitized_description_html !!}
-                    </article>
-                </div>
-
-                <!-- Location Map Section (Peta Lokasi) -->
+                <!-- Article Content (CKEditor Output) -->
                 @php
-                    $cityCoordinatesFallback = [
-                        'jakarta' => [-6.2088, 106.8456],
-                        'dki jakarta' => [-6.2088, 106.8456],
-                        'bandung' => [-6.9175, 107.6191],
-                        'surabaya' => [-7.2575, 112.7521],
-                        'yogyakarta' => [-7.7956, 110.3695],
-                        'jogja' => [-7.7956, 110.3695],
-                        'sleman' => [-7.7167, 110.3556],
-                        'bantul' => [-7.8933, 110.3347],
-                        'semarang' => [-6.9667, 110.4167],
-                        'bogor' => [-6.5971, 106.8060],
-                        'tangerang' => [-6.1783, 106.6319],
-                        'tangerang selatan' => [-6.2888, 106.7179],
-                        'bekasi' => [-6.2383, 106.9756],
-                        'depok' => [-6.4025, 106.7942],
-                        'malang' => [-7.9666, 112.6326],
-                        'bali' => [-8.6705, 115.2126],
-                        'denpasar' => [-8.6705, 115.2126],
-                        'badung' => [-8.5819, 115.1771],
-                        'solo' => [-7.5755, 110.8243],
-                        'surakarta' => [-7.5755, 110.8243],
-                        'medan' => [3.5952, 98.6722],
-                        'makassar' => [-5.1477, 119.4327],
-                        'balikpapan' => [-1.2379, 116.8529],
-                        'samarinda' => [-0.5022, 117.1536],
-                        'batam' => [1.1301, 104.0529],
-                        'palembang' => [-2.9761, 104.7754],
-                        'pekanbaru' => [0.5071, 101.4478],
-                        'lampung' => [-5.4500, 105.2667],
-                        'bandar lampung' => [-5.4500, 105.2667],
-                        'padang' => [-0.9471, 100.4172],
-                        'pontianak' => [-0.0263, 109.3425],
-                        'banjarmasin' => [-3.3194, 114.5908],
-                        'manado' => [1.4748, 124.8421],
-                        'mataram' => [-8.5833, 116.1167],
-                        'lombok' => [-8.5833, 116.1167],
-                        'kupang' => [-10.1772, 123.6070],
-                        'cirebon' => [-6.7320, 108.5523],
-                        'tasikmalaya' => [-7.3274, 108.2207],
-                        'sukabumi' => [-6.9277, 106.9300],
-                        'magelang' => [-7.4706, 110.2178],
-                    ];
-
-                    $hasExactCoordinates = !empty($event->location_lat) && !empty($event->location_lng);
-                    $detailMapLat = $event->location_lat ?: ($event->rpc_latitude ?: ($event->city?->latitude ?? null));
-                    $detailMapLng = $event->location_lng ?: ($event->rpc_longitude ?: ($event->city?->longitude ?? null));
-
-                    if (!$detailMapLat || !$detailMapLng) {
-                        $cityNameLower = strtolower(trim($event->city?->name ?? ''));
-                        if (!$cityNameLower && $event->location_name) {
-                            $cityNameLower = strtolower(trim($event->location_name));
-                        }
-                        foreach ($cityCoordinatesFallback as $k => $coords) {
-                            if (str_contains($cityNameLower, $k)) {
-                                $detailMapLat = $coords[0];
-                                $detailMapLng = $coords[1];
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!$detailMapLat || !$detailMapLng) {
-                        $detailMapLat = -6.2088;
-                        $detailMapLng = 106.8456;
-                    }
-
-                    $detailZoom = $hasExactCoordinates ? 16 : 13;
-                    $venueTitle = $event->location_name ?: ($event->city?->name ?: 'Lokasi Start Event');
-                    $venueAddr = $event->location_address ?: ($event->city?->name ?? 'Indonesia');
+                    $descriptionContent = $event->sanitized_description_html ?: ($event->full_description ?: $event->short_description);
                 @endphp
-
-                <div class="pt-8 space-y-4">
-                    <div class="flex items-center gap-4">
-                        <h3 class="text-2xl font-black text-white uppercase tracking-tight">Peta Lokasi</h3>
-                        <div class="h-px flex-1 bg-slate-800"></div>
+                @if(!empty(trim(strip_tags((string)$descriptionContent, '<img><iframe><svg><figure><oembed>'))))
+                <section class="bg-[#12161F] border border-slate-800 rounded-lg p-6 sm:p-8 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3.5 mb-6">
+                        <h2 class="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
+                            <span>Informasi & Deskripsi Event</span>
+                        </h2>
                     </div>
-
-                    <div class="relative bg-[#0c121e] border border-slate-800 rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden">
-                        <div class="relative rounded-2xl overflow-hidden border border-slate-800/90">
-                            <!-- Floating Map Layer Switcher (Top Right, Solid Opaque Container) -->
-                            <div id="detail-map-layer-toolbar" class="absolute top-3 right-3 z-[500] bg-[#0c121e] border border-slate-700 rounded-2xl p-1 shadow-2xl flex items-center gap-1" style="background-color: #0c121e !important;">
-                                <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 bg-neon text-dark shadow-sm" title="Sederhana (Voyager)">
-                                    <i class="fa-solid fa-map-pin text-[11px]"></i>
-                                    <span class="hidden sm:inline">Sederhana</span>
-                                </button>
-                                <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Open Street Map">
-                                    <i class="fa-solid fa-map text-[11px]"></i>
-                                    <span class="hidden sm:inline">Open Street</span>
-                                </button>
-                                <button type="button" onclick="setDetailEventMapLayer('satellite')" id="btn-detail-layer-satellite" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Satelit Esri">
-                                    <i class="fa-solid fa-globe text-[11px]"></i>
-                                    <span class="hidden sm:inline">Satelit</span>
-                                </button>
-                                <button type="button" onclick="setDetailEventMapLayer('dark')" id="btn-detail-layer-dark" class="btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Gelap Tactical">
-                                    <i class="fa-solid fa-moon text-[11px]"></i>
-                                    <span class="hidden sm:inline">Gelap</span>
-                                </button>
-                            </div>
-
-                            <!-- Map Canvas -->
-                            <div id="event-detail-location-map" class="w-full h-[360px] sm:h-[420px] md:h-[460px] z-0 bg-[#090D16]"></div>
-                        </div>
-
-                        <!-- Bottom Coordinate & Direction Bar -->
-                        <div class="mt-3.5 pt-3 border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
-                            <div class="flex items-center gap-2 text-slate-300">
-                                <div class="w-6 h-6 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center font-bold text-xs">
-                                    <i class="fa-solid fa-location-crosshairs text-[11px]"></i>
-                                </div>
-                                <span>Koordinat: <strong class="font-mono text-white">{{ number_format($detailMapLat, 6) }}, {{ number_format($detailMapLng, 6) }}</strong></span>
-                                @if(!empty($event->location_name))
-                                    <span class="text-slate-500 hidden sm:inline">&bull;</span>
-                                    <span class="text-slate-400 hidden sm:inline truncate max-w-xs">{{ $event->location_name }}</span>
-                                @endif
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <a href="https://www.google.com/maps/search/?api=1&query={{ $detailMapLat }},{{ $detailMapLng }}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-700 inline-flex items-center gap-1.5 shadow-sm">
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-neon"></i>
-                                    <span>Buka di Google Maps</span>
-                                </a>
-                                <button type="button" onclick="recenterEventDetailLocationMap()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition border border-slate-700 inline-flex items-center gap-1 shadow-sm" title="Pusatkan Peta">
-                                    <i class="fa-solid fa-expand text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <article class="ck-content event-article-body">
+                        {!! $descriptionContent !!}
+                    </article>
+                </section>
+                @endif
 
                 <!-- Race Categories Grid -->
                 @if($event->raceDistances->count() > 0)
-                    <div class="pt-8">
-                        <div class="flex items-center gap-4 mb-8">
-                            <h3 class="text-2xl font-black text-white">KATEGORI JARAK</h3>
-                            <div class="h-px flex-1 bg-slate-800"></div>
+                    <div class="bg-[#12161F] border border-slate-800 rounded-lg p-6 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3.5 mb-5">
+                            <h3 class="text-base font-bold text-white uppercase tracking-tight">Kategori Jarak</h3>
+                            <span class="text-xs font-mono text-neon">{{ $event->raceDistances->count() }} Kategori</span>
                         </div>
                         
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             @foreach($event->raceDistances as $distance)
-                                <div class="relative overflow-hidden bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-neon/50 rounded-2xl p-6 text-center transition-all group cursor-default">
-                                    <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                        <svg class="w-12 h-12 text-neon" fill="currentColor" viewBox="0 0 24 24"><path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10h-3.025l5 6.625 5-6.625h-2.975c.257-3.351 3.06-6 6.475-6 3.584 0 6.5 2.916 6.5 6.5s-2.916 6.5-6.5 6.5c-1.863 0-3.542-.793-4.728-2.053l-2.427 3.216c1.877 1.754 4.389 2.837 7.155 2.837 5.79 0 10.5-4.71 10.5-10.5s-4.71-10.5-10.5-10.5z"/></svg>
-                                    </div>
-                                    <span class="relative z-10 block text-2xl font-black text-white group-hover:text-neon mb-1 transition-colors">{{ $distance->name }}</span>
-                                    <span class="relative z-10 text-xs text-slate-500 uppercase tracking-wider font-bold">Distance</span>
+                                <div class="bg-[#0E1624] border border-slate-800 hover:border-slate-700 rounded-md p-4 text-center transition-all">
+                                    <span class="block text-xl font-black text-white mb-0.5">{{ $distance->name }}</span>
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Kategori Lomba</span>
                                 </div>
                             @endforeach
                         </div>
@@ -288,33 +427,31 @@
                 @endif
 
                 <!-- Related Events & Same Date Events -->
-                <div class="pt-12 space-y-12">
+                <div class="space-y-8 pt-4">
                     @if(isset($relatedEvents) && $relatedEvents->count() > 0)
                         <div>
-                            <div class="flex items-center gap-4 mb-6">
-                                <h3 class="text-2xl font-black text-white uppercase">Event Serupa</h3>
-                                <div class="h-px flex-1 bg-slate-800"></div>
+                            <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
+                                <h3 class="text-base font-bold text-white uppercase">Event Serupa</h3>
                                 <a href="{{ route('events.index') }}" class="text-xs font-bold text-neon hover:underline">LIHAT SEMUA</a>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 @foreach($relatedEvents as $related)
-                                    <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-neon/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
-                                        <div class="aspect-video relative overflow-hidden">
+                                    <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
+                                        <div class="aspect-video relative overflow-hidden bg-slate-950">
                                             @if($related->hero_image_url)
-                                                <img src="{{ $related->hero_image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                                <img src="{{ $related->hero_image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                             @else
-                                                <div class="w-full h-full bg-slate-800 flex items-center justify-center">
-                                                    <svg class="w-10 h-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                    <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                 </div>
                                             @endif
-                                            <div class="absolute top-2 right-2 bg-dark/80 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-white border border-white/10">
-                                                {{ $related->event_date->format('d M') }}
+                                            <div class="absolute top-2 right-2 bg-slate-950/90 px-2 py-0.5 rounded text-[10px] font-bold text-white border border-slate-800">
+                                                {{ $related->event_date->format('d M Y') }}
                                             </div>
                                         </div>
-                                        <div class="p-4">
-                                            <h4 class="font-bold text-white group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $related->name }}</h4>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        <div class="p-3.5">
+                                            <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $related->name }}</h4>
+                                            <p class="text-xs text-slate-400 truncate">
                                                 {{ $related->city ? $related->city->name : $related->location_name }}
                                             </p>
                                         </div>
@@ -326,29 +463,27 @@
 
                     @if(isset($sameDateEvents) && $sameDateEvents->count() > 0)
                         <div>
-                            <div class="flex items-center gap-4 mb-6">
-                                <h3 class="text-2xl font-black text-white uppercase">Event di Tanggal Sama</h3>
-                                <div class="h-px flex-1 bg-slate-800"></div>
+                            <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
+                                <h3 class="text-base font-bold text-white uppercase">Event di Tanggal Sama</h3>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 @foreach($sameDateEvents as $sameDate)
-                                    <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
-                                        <div class="aspect-video relative overflow-hidden">
+                                    <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
+                                        <div class="aspect-video relative overflow-hidden bg-slate-950">
                                             @if($sameDate->hero_image_url)
-                                                <img src="{{ $sameDate->hero_image_url }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                                <img src="{{ $sameDate->hero_image_url }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                             @else
-                                                <div class="w-full h-full bg-slate-800 flex items-center justify-center">
-                                                    <svg class="w-10 h-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                    <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                 </div>
                                             @endif
-                                            <div class="absolute top-2 right-2 bg-amber-500 text-dark px-2 py-1 rounded-lg text-xs font-bold border border-amber-400 shadow-lg shadow-amber-500/20">
-                                                {{ $sameDate->event_date->format('d M') }}
+                                            <div class="absolute top-2 right-2 bg-neon text-dark px-2 py-0.5 rounded text-[10px] font-extrabold">
+                                                {{ $sameDate->event_date->format('d M Y') }}
                                             </div>
                                         </div>
-                                        <div class="p-4">
-                                            <h4 class="font-bold text-white group-hover:text-amber-500 transition-colors line-clamp-1 mb-1">{{ $sameDate->name }}</h4>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        <div class="p-3.5">
+                                            <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $sameDate->name }}</h4>
+                                            <p class="text-xs text-slate-400 truncate">
                                                 {{ $sameDate->city ? $sameDate->city->name : $sameDate->location_name }}
                                             </p>
                                         </div>
@@ -361,134 +496,184 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="lg:col-span-4 space-y-8">
+            <div class="lg:col-span-4 space-y-6">
                 <!-- Registration Widget -->
-                <div class="sticky top-24 space-y-6">
-                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
-                        <!-- Decorative background -->
-                        <div class="absolute -top-10 -right-10 w-40 h-40 bg-neon/5 rounded-full blur-3xl"></div>
-                        
-                        <h3 class="text-xl font-black text-white mb-6 relative z-10 flex items-center gap-2">
-                            <span class="w-1 h-6 bg-neon rounded-full"></span>
-                            STATUS PENDAFTARAN
-                        </h3>
-                        
-                        @if($event->external_registration_link)
-                            <a href="{{ $event->external_registration_link }}" target="_blank" class="relative z-10 flex items-center justify-center w-full py-4 rounded-xl bg-neon text-dark font-black text-lg hover:bg-neonHover hover:scale-[1.02] transition-all shadow-lg shadow-neon/25 group">
-                                DAFTAR SEKARANG
-                                <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </a>
-                            <p class="text-center text-xs text-slate-500 mt-3 relative z-10">
-                                Anda akan diarahkan ke halaman pendaftaran resmi
-                            </p>
-                        @else
-                            <div class="relative z-10 w-full py-4 rounded-xl bg-slate-800 text-slate-500 font-bold text-lg text-center border border-slate-700 cursor-not-allowed">
-                                Pendaftaran Belum Dibuka
-                            </div>
-                        @endif
+                <div class="bg-[#12161F] border border-slate-800 rounded-lg p-6 shadow-xl relative">
+                    <h3 class="text-base font-bold text-white mb-5 flex items-center gap-2">
+                        <span class="w-1 h-5 bg-neon rounded-sm"></span>
+                        <span>STATUS PENDAFTARAN</span>
+                    </h3>
+                    
+                    @if($event->external_registration_link)
+                        <a href="{{ $event->external_registration_link }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full py-3.5 px-4 rounded-md bg-neon text-dark font-black text-sm uppercase tracking-wider hover:bg-lime-300 transition-all shadow-md">
+                            <span>Daftar Sekarang</span>
+                            <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                        </a>
+                        <p class="text-center text-[11px] text-slate-400 mt-2.5">
+                            Membuka halaman registrasi resmi event
+                        </p>
+                    @else
+                        <div class="w-full py-3 px-4 rounded-md bg-slate-800/80 text-slate-400 font-bold text-sm text-center border border-slate-700">
+                            Pendaftaran Belum Dibuka
+                        </div>
+                    @endif
 
-                        <div class="mt-8 pt-8 border-t border-slate-800 relative z-10 space-y-5">
-                            <div class="flex items-start gap-4 group">
-                                <div class="p-3 rounded-xl bg-slate-800 text-slate-400 group-hover:text-neon transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                <div>
-                                    <span class="block text-xs text-slate-500 uppercase font-bold tracking-wider">Waktu Start</span>
-                                    <span class="text-slate-200 font-bold text-lg">{{ $event->start_time ? $event->start_time->format('H:i') . ' WIB' : 'TBA' }}</span>
-                                </div>
+                    <div class="mt-6 pt-5 border-t border-slate-800 space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-                            
-                            <div class="flex items-start gap-4 group">
-                                <div class="p-3 rounded-xl bg-slate-800 text-slate-400 group-hover:text-neon transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                </div>
-                                <div>
-                                    <span class="block text-xs text-slate-500 uppercase font-bold tracking-wider">Lokasi Lengkap</span>
-                                    <span class="text-slate-200 font-bold leading-snug">{{ $event->location_name ?? 'To be announced' }}</span>
-                                </div>
+                            <div>
+                                <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">Waktu Mulai</span>
+                                <span class="text-slate-200 font-semibold text-sm">{{ $event->start_time ? $event->start_time->format('H:i') . ' WIB' : '05:00 WIB' }}</span>
                             </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">Venue / Lokasi</span>
+                                <span class="text-slate-200 font-semibold text-sm leading-snug">{{ $event->location_name ?: ($event->city ? $event->city->name : 'TBA') }}</span>
+                            </div>
+                        </div>
 
-                            <div class="flex items-start gap-4 group">
-                                <div class="p-3 rounded-xl bg-slate-800 text-slate-400 group-hover:text-neon transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                </div>
-                                <div>
-                                    <span class="block text-xs text-slate-500 uppercase font-bold tracking-wider">Penyelenggara</span>
-                                    <span class="text-slate-200 font-bold">{{ $event->organizer_name ?? '-' }}</span>
-                                </div>
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">Penyelenggara</span>
+                                <span class="text-slate-200 font-semibold text-sm">{{ $event->organizer_name ?? 'Komunitas / EO' }}</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Google Calendar Widget -->
-                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
-                        <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl"></div>
-                        
-                        <h3 class="text-xl font-black text-white mb-4 relative z-10 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            SIMPAN TANGGAL
+                <!-- Location Map Widget (Pindah ke Sidebar Kanan) -->
+                <div class="bg-[#12161F] border border-slate-800 rounded-lg p-5 shadow-xl">
+                    <div class="flex items-center justify-between gap-2 mb-3.5 pb-3 border-b border-slate-800">
+                        <h3 class="text-base font-bold text-white uppercase tracking-tight flex items-center gap-2">
+                            <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Peta Lokasi</span>
                         </h3>
-                        <p class="text-slate-400 text-sm mb-6 relative z-10">
-                            Jangan sampai terlewat! Tambahkan event ini ke Google Calendar Anda.
-                        </p>
-                        
-                        @php
-                            $startDate = $event->event_date->format('Ymd');
-                            $startTime = $event->start_time ? $event->start_time->format('His') : '050000';
-                            $startDateTime = $startDate . 'T' . $startTime;
-                            $endDateTime = \Carbon\Carbon::parse($startDate . ' ' . ($event->start_time ? $event->start_time->format('H:i:s') : '05:00:00'))->addHours(5)->format('Ymd\THis');
-                            
-                            $gCalUrl = "https://www.google.com/calendar/render?action=TEMPLATE";
-                            $gCalUrl .= "&text=" . urlencode($event->name);
-                            $gCalUrl .= "&dates=" . $startDateTime . "/" . $endDateTime;
-                            $gCalUrl .= "&details=" . urlencode("Event Lari: " . $event->name . "\nLokasi: " . ($event->location_name ?? 'TBA') . "\n\nInfo selengkapnya: " . $event->public_url);
-                            $gCalUrl .= "&location=" . urlencode($event->location_name ?? ($event->city ? $event->city->name : ''));
-                            $gCalUrl .= "&sf=true&output=xml";
-                        @endphp
-
-                        <a href="{{ $gCalUrl }}" target="_blank" class="relative z-10 flex items-center justify-center w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-bold hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all group">
-                            Add to Google Calendar
-                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ $detailMapLat }},{{ $detailMapLng }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-neon hover:underline inline-flex items-center gap-1.5" title="Buka di Google Maps">
+                            <span>Google Maps</span>
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
                     </div>
 
-                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
-                        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl"></div>
-
-                        <h3 class="text-xl font-black text-white mb-2 relative z-10 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.921-.755 1.688-1.538 1.118l-3.976-2.89a1 1 0 00-1.176 0l-3.976 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.976-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                            RATING EVENT
-                        </h3>
-                        <p class="text-slate-400 text-sm mb-4 relative z-10">
-                            Rata-rata <span id="ph-event-rating-avg" class="text-slate-200 font-bold">{{ number_format($ratingAverage, 2) }}</span>/5 •
-                            <span id="ph-event-rating-count" class="text-slate-200 font-bold">{{ $ratingCount }}</span> rating
-                        </p>
-
-                        <div class="relative z-10">
-                            <div class="flex items-center gap-1" role="radiogroup" aria-label="Beri rating untuk event ini">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <button type="button" class="ph-rating-star p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-600 hover:text-amber-400 hover:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all" data-rating="{{ $i }}" aria-label="Beri {{ $i }} bintang">
-                                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.787 1.402 8.168L12 18.897l-7.336 3.869 1.402-8.168L.132 9.211l8.2-1.193z"/></svg>
-                                    </button>
-                                @endfor
-                            </div>
-                            <div id="ph-event-rating-msg" class="mt-3 text-sm hidden"></div>
+                    <div class="relative rounded-md overflow-hidden border border-slate-800 bg-[#090D16]">
+                        <!-- Floating Map Layer Switcher -->
+                        <div id="detail-map-layer-toolbar" class="absolute top-2.5 right-2.5 z-[500] bg-[#0c121e]/95 border border-slate-700 rounded-md p-1 shadow-lg flex items-center gap-1">
+                            <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-black transition flex items-center gap-1 bg-neon text-dark" title="Sederhana (Voyager)">
+                                <i class="fa-solid fa-map-pin text-[10px]"></i>
+                                <span class="hidden sm:inline">Peta</span>
+                            </button>
+                            <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Open Street Map">
+                                <i class="fa-solid fa-map text-[10px]"></i>
+                                <span class="hidden sm:inline">OSM</span>
+                            </button>
+                            <button type="button" onclick="setDetailEventMapLayer('satellite')" id="btn-detail-layer-satellite" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Satelit Esri">
+                                <i class="fa-solid fa-globe text-[10px]"></i>
+                                <span class="hidden sm:inline">Satelit</span>
+                            </button>
+                            <button type="button" onclick="setDetailEventMapLayer('dark')" id="btn-detail-layer-dark" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Gelap Tactical">
+                                <i class="fa-solid fa-moon text-[10px]"></i>
+                                <span class="hidden sm:inline">Dark</span>
+                            </button>
                         </div>
+
+                        <!-- Map Canvas -->
+                        <div id="event-detail-location-map" class="w-full h-[240px] z-0 bg-[#090D16]"></div>
                     </div>
 
-                    <!-- Share / Socials -->
-                    <div class="flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
-                        <span class="text-sm font-bold text-slate-400">Bagikan Event</span>
-                        <div class="flex gap-3">
-                            <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link disalin!')" class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all" title="Copy Link">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <!-- Venue Info & Recenter -->
+                    <div class="mt-3.5 space-y-2 text-xs">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="font-bold text-white leading-snug truncate">{{ $venueTitle }}</div>
+                                <div class="text-slate-400 text-[11px] mt-0.5 line-clamp-2 leading-relaxed">{{ $venueAddr }}</div>
+                            </div>
+                            <button type="button" onclick="recenterEventDetailLocationMap()" class="shrink-0 p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700" title="Pusatkan Peta">
+                                <i class="fa-solid fa-crosshairs text-xs text-neon"></i>
                             </button>
-                            @if($event->social_media_link)
-                                <a href="{{ $event->social_media_link }}" target="_blank" class="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-pink-500 hover:bg-slate-700 transition-all">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                                </a>
-                            @endif
                         </div>
+                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                            <span>{{ number_format($detailMapLat, 4) }}, {{ number_format($detailMapLng, 4) }}</span>
+                            <span class="text-slate-500">{{ $hasExactCoordinates ? 'Presisi GPS' : 'Estimasi Kota' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Calendar Widget -->
+                <div class="bg-[#12161F] border border-slate-800 rounded-lg p-5 shadow-xl">
+                    <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span>SIMPAN TANGGAL</span>
+                    </h3>
+                    <p class="text-slate-400 text-xs mb-4">
+                        Tambahkan jadwal perlombaan ini ke Google Calendar agar Anda tidak terlewat.
+                    </p>
+                    
+                    @php
+                        $startDate = $event->event_date->format('Ymd');
+                        $startTime = $event->start_time ? $event->start_time->format('His') : '050000';
+                        $startDateTime = $startDate . 'T' . $startTime;
+                        $endDateTime = \Carbon\Carbon::parse($startDate . ' ' . ($event->start_time ? $event->start_time->format('H:i:s') : '05:00:00'))->addHours(5)->format('Ymd\THis');
+                        
+                        $gCalUrl = "https://www.google.com/calendar/render?action=TEMPLATE";
+                        $gCalUrl .= "&text=" . urlencode($event->name);
+                        $gCalUrl .= "&dates=" . $startDateTime . "/" . $endDateTime;
+                        $gCalUrl .= "&details=" . urlencode("Event Lari: " . $event->name . "\nLokasi: " . ($event->location_name ?? 'TBA') . "\n\nInfo: " . $event->public_url);
+                        $gCalUrl .= "&location=" . urlencode($event->location_name ?? ($event->city ? $event->city->name : ''));
+                        $gCalUrl .= "&sf=true&output=xml";
+                    @endphp
+
+                    <a href="{{ $gCalUrl }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition-all gap-2">
+                        <span>Add to Google Calendar</span>
+                        <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </a>
+                </div>
+
+                <!-- Rating Widget -->
+                <div class="bg-[#12161F] border border-slate-800 rounded-lg p-5 shadow-xl">
+                    <h3 class="text-base font-bold text-white mb-1.5 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <span>RATING EVENT</span>
+                    </h3>
+                    <p class="text-slate-400 text-xs mb-3.5">
+                        Rata-rata <strong id="ph-event-rating-avg" class="text-white font-mono">{{ number_format($ratingAverage, 2) }}</strong> / 5 &bull; <span id="ph-event-rating-count">{{ $ratingCount }}</span> ulasan
+                    </p>
+
+                    <div>
+                        <div class="flex items-center gap-1.5" role="radiogroup" aria-label="Beri rating untuk event ini">
+                            @for($i = 1; $i <= 5; $i++)
+                                <button type="button" class="ph-rating-star p-2 rounded-md bg-slate-800 border border-slate-700 text-slate-600 hover:text-amber-400 hover:border-amber-500/40 focus:outline-none transition-all" data-rating="{{ $i }}" aria-label="Beri {{ $i }} bintang">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                </button>
+                            @endfor
+                        </div>
+                        <div id="ph-event-rating-msg" class="hidden text-xs mt-2.5 font-medium"></div>
+                    </div>
+                </div>
+
+                <!-- Share / Socials -->
+                <div class="flex items-center justify-between p-4 rounded-lg bg-[#12161F] border border-slate-800">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bagikan Event</span>
+                    <div class="flex gap-2">
+                        <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link disalin!')" class="p-2 rounded-md bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all border border-slate-700" title="Salin Tautan">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        </button>
+                        @if($event->social_media_link)
+                            <a href="{{ $event->social_media_link }}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-md bg-slate-800 text-slate-300 hover:text-neon hover:bg-slate-700 transition-all border border-slate-700" title="Media Sosial">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -697,12 +882,12 @@
         detailEventActiveLayer.addTo(detailEventMap);
 
         document.querySelectorAll('.btn-detail-map-layer').forEach(btn => {
-            btn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800';
+            btn.className = 'btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800';
         });
 
         const activeBtn = document.getElementById('btn-detail-layer-' + type);
         if (activeBtn) {
-            activeBtn.className = 'btn-detail-map-layer px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
+            activeBtn.className = 'btn-detail-map-layer px-2 py-1 rounded text-[11px] font-black transition flex items-center gap-1 bg-neon text-dark';
         }
     }
 
@@ -713,6 +898,13 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         initEventDetailLocationMap();
+        setTimeout(() => {
+            if (detailEventMap) detailEventMap.invalidateSize();
+        }, 300);
+    });
+
+    window.addEventListener('resize', function() {
+        if (detailEventMap) detailEventMap.invalidateSize();
     });
 </script>
 @endpush

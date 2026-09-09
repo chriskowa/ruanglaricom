@@ -211,23 +211,42 @@ class PageController extends Controller
         });
 
         // 3. Upcoming Events for Race Calendar section (SSR - Zero CLS, Instant FCP)
-        $upcomingEvents = Cache::remember('home.upcoming_events_ssr_v1', 600, function () {
+        $upcomingEvents = Cache::remember('home.upcoming_events_ssr_v10', 300, function () {
             try {
-                $events = Event::with('categories')
-                    ->select('id', 'name', 'slug', 'start_at', 'location_name', 'created_at', 'is_eo')
+                $events = Event::with(['categories', 'raceDistances'])
+                    ->select('id', 'user_id', 'name', 'slug', 'start_at', 'location_name', 'created_at', 'event_kind', 'external_registration_link')
                     ->published()
                     ->upcoming()
                     ->limit(6)
                     ->get();
 
+                // If upcoming events are empty, fallback to recent published events so the section is never blank
+                if ($events->isEmpty()) {
+                    $events = Event::with(['categories', 'raceDistances'])
+                        ->select('id', 'user_id', 'name', 'slug', 'start_at', 'location_name', 'created_at', 'event_kind', 'external_registration_link')
+                        ->published()
+                        ->orderBy('start_at', 'desc')
+                        ->limit(6)
+                        ->get();
+                }
+
                 return $events->map(function ($e) {
                     $dt = $e->start_at ?: $e->created_at;
                     $date = $dt ? Carbon::parse($dt) : now();
 
+                    $distances = collect();
+                    if ($e->relationLoaded('raceDistances') && $e->raceDistances) {
+                        $distances = $distances->merge($e->raceDistances->pluck('name'));
+                    }
+                    if ($e->relationLoaded('categories') && $e->categories) {
+                        $distances = $distances->merge($e->categories->pluck('name'));
+                    }
+                    $distanceList = $distances->filter()->unique()->values()->toArray();
+
                     return [
                         'name'      => $e->name,
                         'slug'      => $e->slug ?: \Illuminate\Support\Str::slug($e->name),
-                        'is_eo'     => (bool) $e->is_eo,
+                        'is_eo'     => (bool) ($e->event_kind === 'managed' || ($e->user_id && $e->user_id !== 1)),
                         'day'       => $date->format('d'),
                         'month'     => strtoupper($date->translatedFormat('M')),
                         'year'      => $date->format('Y'),
@@ -236,11 +255,12 @@ class PageController extends Controller
                             return ($t === '00:00' || ! $t) ? '05:00' : $t;
                         })(),
                         'location'  => $e->location_name ?: 'Indonesia',
-                        'url'       => route('events.show', $e->slug ?: $e->id),
-                        'distances' => $e->categories->pluck('name')->filter()->values()->toArray(),
+                        'url'       => $e->public_url ?: route('running-event.detail', $e->slug ?: $e->id),
+                        'distances' => $distanceList,
                     ];
                 })->toArray();
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Error loading home upcoming events: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
                 return [];
             }
         });
