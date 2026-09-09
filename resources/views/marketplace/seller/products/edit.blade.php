@@ -23,10 +23,10 @@
         </nav>
 
         <!-- Main Form Card -->
-        <div class="rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-2xl overflow-hidden">
+        <div class="rounded-lg bg-[#0e1726] border border-[#1e2d42] shadow-2xl overflow-hidden">
             
             <!-- Card Header -->
-            <div class="p-6 md:p-8 border-b border-slate-800 bg-[#0c121e]">
+            <div class="p-6 md:p-8 border-b border-[#1e2d42] bg-[#121d30]">
                 <div class="flex items-center gap-2 mb-2">
                     <span class="w-2 h-2 rounded-full bg-neon"></span>
                     <span class="text-xs font-bold uppercase tracking-wider text-neon">EDIT GEAR</span>
@@ -39,11 +39,11 @@
                 </p>
             </div>
 
-            <div class="p-6 md:p-8">
+            <div class="p-6 md:p-8 space-y-6">
                 
                 <!-- Error Validation Box -->
                 @if ($errors->any())
-                    <div class="mb-8 p-4 bg-rose-950/60 border border-rose-700/80 rounded-xl text-rose-200 text-xs">
+                    <div class="p-4 bg-rose-950/80 border border-rose-700 rounded-md text-rose-200 text-xs">
                         <div class="flex items-center gap-2 font-bold mb-2 text-rose-300">
                             <i class="fas fa-exclamation-circle text-sm"></i>
                             <span>Mohon periksa kembali form berikut:</span>
@@ -77,39 +77,39 @@
                     }
                 @endphp
 
-                <form action="{{ route('marketplace.seller.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8" @submit="syncFileInput()">
+                <form action="{{ route('marketplace.seller.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6" @submit="syncFileInput()">
                     @csrf
                     @method('PUT')
 
                     <!-- 1. Informasi Dasar Produk -->
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-black text-neon uppercase tracking-wider">01.</span>
+                    <div class="p-5 md:p-6 rounded-lg bg-[#152238] border border-[#253752] shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-3 border-b border-[#253752]">
+                            <span class="px-2 py-0.5 rounded bg-neon/15 text-neon font-black text-xs font-mono">01</span>
                             <h2 class="text-xs font-bold uppercase tracking-wider text-white">Informasi Dasar Gear</h2>
                         </div>
 
                         <!-- Product Title -->
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                 Judul Produk <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" name="title" value="{{ old('title', $product->title) }}" required
-                                class="w-full bg-[#0a0e17] border @error('title') border-rose-500 @else border-slate-700 @enderror rounded-md px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                class="w-full bg-[#0d1624] border @error('title') border-rose-500 @else border-[#2e4263] @enderror rounded-md px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                             @error('title') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Category -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                     Kategori <span class="text-rose-400">*</span>
                                 </label>
                                 <div class="relative">
                                     <select name="category_id" id="category-select" @change="updateCategoryText($event)" required 
-                                        class="w-full bg-[#0a0e17] border @error('category_id') border-rose-500 @else border-slate-700 @enderror rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
-                                        <option value="" disabled class="bg-[#0f172a] text-slate-400">Pilih Kategori</option>
+                                        class="w-full bg-[#0d1624] border @error('category_id') border-rose-500 @else border-[#2e4263] @enderror rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition cursor-pointer [&>option]:bg-[#111927] [&>option]:text-white">
+                                        <option value="" disabled class="bg-[#111927] text-slate-400">Pilih Kategori</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" data-name="{{ $category->name }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $category->name }}</option>
+                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}" data-name="{{ $category->name }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }} class="bg-[#111927] text-white">{{ $category->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -121,15 +121,15 @@
 
                             <!-- Brand -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                     Brand / Merek
                                 </label>
                                 <div class="relative">
                                     <select name="brand_id" id="brand-select"
-                                        class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition cursor-pointer [&>option]:bg-[#0f172a] [&>option]:text-white">
-                                        <option value="" selected class="bg-[#0f172a] text-slate-400">Pilih Brand (Opsional)</option>
+                                        class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-white appearance-none focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition cursor-pointer [&>option]:bg-[#111927] [&>option]:text-white">
+                                        <option value="" selected class="bg-[#111927] text-slate-400">Pilih Brand (Opsional)</option>
                                         @foreach($brands as $brand)
-                                            <option value="{{ $brand->id }}" data-name="{{ $brand->name }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }} class="bg-[#0f172a] text-white">{{ $brand->name }}</option>
+                                            <option value="{{ $brand->id }}" data-name="{{ $brand->name }}" data-categories="{{ json_encode($brand->categories->pluck('slug')->toArray()) }}" {{ old('brand_id', $product->brand_id) == $brand->id ? 'selected' : '' }} class="bg-[#111927] text-white">{{ $brand->name }}</option>
                                         @endforeach
                                     </select>
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
@@ -140,17 +140,17 @@
                         </div>
 
                         <!-- Size / Ukuran Section (Dynamic Shoe vs Standard) -->
-                        <div class="p-4 bg-slate-950/70 border border-slate-800 rounded-lg space-y-3">
+                        <div class="p-4 bg-[#1c2c46] border border-[#2e4263] rounded-md space-y-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-200">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-slate-100">
                                         Ukuran / Size
                                     </label>
-                                    <span x-show="isShoeFormat" class="text-[10px] font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700 uppercase font-mono">Format Sepatu</span>
-                                    <span x-show="!isShoeFormat" class="text-[10px] font-bold text-slate-300 bg-slate-850 px-2 py-0.5 rounded border border-slate-750 uppercase font-mono">Format Umum</span>
+                                    <span x-show="isShoeFormat" class="text-[10px] font-bold text-neon bg-neon/10 px-2 py-0.5 rounded border border-neon/30 uppercase font-mono">Format Sepatu</span>
+                                    <span x-show="!isShoeFormat" class="text-[10px] font-bold text-slate-300 bg-[#0d1624] px-2 py-0.5 rounded border border-[#2e4263] uppercase font-mono">Format Umum</span>
                                 </div>
                                 <button type="button" @click="toggleShoeFormat()" 
-                                        class="text-[11px] text-slate-400 hover:text-white underline font-semibold transition">
+                                        class="text-[11px] text-slate-300 hover:text-neon underline font-semibold transition">
                                     <span x-text="isShoeFormat ? 'Ubah ke format teks umum' : 'Gunakan format ukuran sepatu (US/UK/EU/CM)'"></span>
                                 </button>
                             </div>
@@ -159,35 +159,35 @@
                             <div x-show="isShoeFormat" class="space-y-3">
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">US (Men/Unisex)</label>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">US (Men/Unisex)</label>
                                         <input type="text" name="shoe_sizes[us]" x-model="shoeSizeUs" @input="updateCombinedSize()" 
                                                placeholder="9.5"
-                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                               class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">UK</label>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">UK</label>
                                         <input type="text" name="shoe_sizes[uk]" x-model="shoeSizeUk" @input="updateCombinedSize()" 
                                                placeholder="8.5"
-                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                               class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">EU</label>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">EU</label>
                                         <input type="text" name="shoe_sizes[eu]" x-model="shoeSizeEu" @input="updateCombinedSize()" 
                                                placeholder="43"
-                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                               class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">CM (Panjang)</label>
+                                        <label class="block text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">CM (Panjang)</label>
                                         <input type="text" name="shoe_sizes[cm]" x-model="shoeSizeCm" @input="updateCombinedSize()" 
                                                placeholder="27.5"
-                                               class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                               class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-3 py-2 text-xs font-mono font-bold text-white text-center focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     </div>
                                 </div>
 
                                 <!-- Live preview of combined size string -->
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
-                                    <span class="text-[11px] text-slate-400">Ringkasan Ukuran Produk:</span>
-                                    <span class="font-mono font-bold text-white bg-slate-900 px-3 py-1 rounded border border-slate-800 text-xs" 
+                                <div class="flex items-center justify-between pt-2 border-t border-[#253752] text-xs">
+                                    <span class="text-[11px] text-slate-300">Ringkasan Ukuran Produk:</span>
+                                    <span class="font-mono font-bold text-white bg-[#0d1624] px-3 py-1 rounded border border-[#2e4263] text-xs" 
                                           x-text="size || 'Isi setidaknya satu ukuran di atas'"></span>
                                 </div>
                             </div>
@@ -195,7 +195,7 @@
                             <!-- Standard Single Size Input for Non-Shoe Products -->
                             <div x-show="!isShoeFormat">
                                 <input type="text" x-model="size"
-                                    class="w-full bg-[#0a0e17] border border-slate-700 rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition"
+                                    class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition"
                                     :placeholder="sizePlaceholder">
                             </div>
 
@@ -211,37 +211,37 @@
                                     Tipe Produk (Terkunci)
                                 </label>
                                 <input type="text" value="{{ $product->type === 'digital_slot' ? 'Slot Race / Tiket Lari' : 'Barang Fisik' }}" disabled 
-                                    class="w-full bg-[#0a0e17]/60 border border-slate-800 rounded-md px-4 py-3 text-xs text-slate-400 cursor-not-allowed font-medium">
+                                    class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-slate-400 cursor-not-allowed font-medium">
                             </div>
 
                             <!-- Condition -->
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                     Kondisi Barang <span class="text-rose-400">*</span>
                                 </label>
                                 <div class="grid grid-cols-2 gap-3">
                                     <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
-                                           :class="condition === 'new' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
+                                           :class="condition === 'new' ? 'bg-[#223656] border-neon ring-1 ring-neon/40 text-white' : 'bg-[#1c2c46] border-[#2e4263] text-slate-300 hover:border-slate-400 hover:text-white'">
                                         <input type="radio" name="condition" value="new" x-model="condition" class="sr-only">
                                         <div class="flex flex-col pr-1 min-w-0">
-                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'new' ? 'text-white' : 'text-slate-300'">BARU (BNIB)</span>
-                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'new' ? 'text-slate-300' : 'text-slate-500'">Brand New In Box/Tag</span>
+                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'new' ? 'text-white' : 'text-slate-200'">BARU (BNIB)</span>
+                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'new' ? 'text-slate-200' : 'text-slate-400'">Brand New In Box/Tag</span>
                                         </div>
                                         <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
-                                             :class="condition === 'new' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
-                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'new' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                             :class="condition === 'new' ? 'border-neon bg-neon' : 'border-slate-500 bg-transparent'">
+                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'new' ? 'bg-[#0e1726]' : 'bg-transparent'"></div>
                                         </div>
                                     </label>
                                     <label class="relative flex items-center justify-between p-3 rounded-md border cursor-pointer transition select-none"
-                                           :class="condition === 'used' ? 'bg-slate-800 border-white ring-1 ring-white text-white' : 'bg-[#0a0e17] border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'">
+                                           :class="condition === 'used' ? 'bg-[#223656] border-neon ring-1 ring-neon/40 text-white' : 'bg-[#1c2c46] border-[#2e4263] text-slate-300 hover:border-slate-400 hover:text-white'">
                                         <input type="radio" name="condition" value="used" x-model="condition" class="sr-only">
                                         <div class="flex flex-col pr-1 min-w-0">
-                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'used' ? 'text-white' : 'text-slate-300'">BEKAS (USED)</span>
-                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'used' ? 'text-slate-300' : 'text-slate-500'">Pernah dipakai, baik</span>
+                                            <span class="text-xs font-black uppercase tracking-wider" :class="condition === 'used' ? 'text-white' : 'text-slate-200'">BEKAS (USED)</span>
+                                            <span class="text-[10px] mt-0.5 leading-tight truncate" :class="condition === 'used' ? 'text-slate-200' : 'text-slate-400'">Pernah dipakai, baik</span>
                                         </div>
                                         <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition"
-                                             :class="condition === 'used' ? 'border-white bg-white' : 'border-slate-600 bg-transparent'">
-                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'used' ? 'bg-slate-950' : 'bg-transparent'"></div>
+                                             :class="condition === 'used' ? 'border-neon bg-neon' : 'border-slate-500 bg-transparent'">
+                                            <div class="w-1.5 h-1.5 rounded-full" :class="condition === 'used' ? 'bg-[#0e1726]' : 'bg-transparent'"></div>
                                         </div>
                                     </label>
                                 </div>
@@ -255,34 +255,37 @@
                         $canSwitchFromConsignment = in_array($product->consignment_status, ['none', 'requested'], true);
                     @endphp
 
-                    <div class="space-y-4 pt-4 border-t border-slate-800">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-black text-neon uppercase tracking-wider">02.</span>
+                    <div class="p-5 md:p-6 rounded-lg bg-[#152238] border border-[#253752] shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-3 border-b border-[#253752]">
+                            <span class="px-2 py-0.5 rounded bg-neon/15 text-neon font-black text-xs font-mono">02</span>
                             <h2 class="text-xs font-bold uppercase tracking-wider text-white">Skema Jual & Harga</h2>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Sale Mode Display -->
-                            <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-1">
-                                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Mode Penjualan</span>
+                            <div class="p-4 bg-[#1c2c46] rounded-md border border-[#2e4263] space-y-1">
+                                <span class="text-[10px] uppercase tracking-wider text-slate-300 font-semibold">Mode Penjualan</span>
                                 <p class="text-sm font-bold text-white">
                                     {{ $product->sale_type === 'auction' ? 'LELANG (BIDDING)' : 'JUAL LANGSUNG' }}
                                 </p>
                             </div>
 
                             <!-- Fulfillment Mode Card -->
-                            <div class="p-4 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-2.5">
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                                    Metode Pengiriman (Fulfillment)
-                                </label>
+                            <div class="p-4 bg-[#1c2c46] rounded-md border border-[#2e4263] space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100">
+                                        Metode Pengiriman (Fulfillment)
+                                    </label>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-neon/20 text-neon border border-neon/30 uppercase font-mono">Verified & IG Promo</span>
+                                </div>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                    <label class="flex items-center justify-center p-2.5 rounded-md border border-[#2e4263] bg-[#0d1624] cursor-pointer hover:border-slate-400 transition has-[:checked]:border-neon has-[:checked]:bg-neon/15">
                                         <input type="radio" name="fulfillment_mode" value="self_ship" class="sr-only"
                                             {{ old('fulfillment_mode', $product->fulfillment_mode) === 'self_ship' ? 'checked' : '' }}
                                             {{ ($product->fulfillment_mode === 'consignment' && ! $canSwitchFromConsignment) ? 'disabled' : '' }}>
                                         <span class="text-xs font-bold text-white">Kirim Sendiri</span>
                                     </label>
-                                    <label class="flex items-center justify-center p-2.5 rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-500 transition has-[:checked]:border-neon has-[:checked]:bg-neon/10">
+                                    <label class="flex items-center justify-center p-2.5 rounded-md border border-[#2e4263] bg-[#0d1624] cursor-pointer hover:border-slate-400 transition has-[:checked]:border-neon has-[:checked]:bg-neon/15">
                                         <input type="radio" name="fulfillment_mode" value="consignment" class="sr-only"
                                             {{ old('fulfillment_mode', $product->fulfillment_mode) === 'consignment' ? 'checked' : '' }}>
                                         <span class="text-xs font-bold text-white">Titip Jual</span>
@@ -291,39 +294,76 @@
                             </div>
                         </div>
 
+                        <!-- Kelebihan Titip Jual di RuangLari Callout Card -->
+                        <div class="p-4 rounded-md bg-[#132238] border border-neon/30 space-y-3">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon text-slate-950 font-mono">
+                                        KELEBIHAN TITIP JUAL
+                                    </span>
+                                    <span class="text-xs font-bold text-white">Kenapa titip jual di RuangLari?</span>
+                                </div>
+                                <span class="text-[11px] text-slate-300 font-medium hidden sm:inline">Layanan resmi komunitas lari</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                <div class="flex items-start gap-2.5 p-3 rounded-md bg-[#0d1624] border border-[#23344d]">
+                                    <div class="w-6 h-6 rounded bg-neon/15 text-neon flex items-center justify-center shrink-0 mt-0.5">
+                                        <i class="fab fa-instagram text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-white text-xs">Dibantu Promosi di IG @ruanglari</p>
+                                        <p class="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+                                            Produk Anda dibantu promosikan di feeds dan story Instagram resmi <strong>@ruanglari</strong> agar cepat terjual ke ribuan pelari aktif.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2.5 p-3 rounded-md bg-[#0d1624] border border-[#23344d]">
+                                    <div class="w-6 h-6 rounded bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <i class="fas fa-shield-alt text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-white text-xs">Seller & Barang Pasti Terverifikasi</p>
+                                        <p class="text-slate-300 text-[11px] leading-relaxed mt-0.5">
+                                            Seller dan kondisi fisik barang diverifikasi langsung oleh admin sehingga meminimalisir penipuan dan membuat pembeli jauh lebih percaya.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         @if($product->sale_type === 'fixed')
                             <!-- Fixed Price Fields -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                         Harga (Rp) <span class="text-rose-400">*</span>
                                     </label>
                                     <div class="relative">
                                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-xs font-bold text-slate-400">Rp</span>
                                         <input type="number" name="price" value="{{ old('price', $product->price) }}" min="0" 
-                                            class="w-full bg-[#0a0e17] border @error('price') border-rose-500 @else border-slate-700 @enderror rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                            class="w-full bg-[#0d1624] border @error('price') border-rose-500 @else border-[#2e4263] @enderror rounded-md pl-11 pr-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     </div>
                                     @error('price') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                         Jumlah Stok <span class="text-rose-400">*</span>
                                     </label>
                                     <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" min="0" 
-                                        class="w-full bg-[#0a0e17] border @error('stock') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                                        class="w-full bg-[#0d1624] border @error('stock') border-rose-500 @else border-[#2e4263] @enderror rounded-md px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">
                                     @error('stock') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                         @else
                             <!-- Auction Settings for Edit -->
-                            <div class="p-5 bg-[#0a0e17] rounded-xl border border-slate-700 space-y-4">
+                            <div class="p-5 bg-[#1c2c46] rounded-md border border-[#2e4263] space-y-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+                                    <div class="p-3 bg-[#0d1624] rounded-md border border-[#2e4263]">
                                         <span class="text-[10px] text-slate-400 uppercase font-semibold">Starting Price</span>
                                         <p class="text-sm font-bold text-white">Rp {{ number_format($product->starting_price ?? $product->price, 0, ',', '.') }}</p>
                                     </div>
-                                    <div class="p-3 bg-slate-900 rounded-lg border border-slate-800">
+                                    <div class="p-3 bg-[#0d1624] rounded-md border border-[#2e4263]">
                                         <span class="text-[10px] text-slate-400 uppercase font-semibold">Current Bid</span>
                                         <p class="text-sm font-bold text-neon">Rp {{ number_format($product->current_price ?? $product->starting_price ?? $product->price, 0, ',', '.') }}</p>
                                     </div>
@@ -331,17 +371,17 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Lelang Berakhir Pada</label>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">Lelang Berakhir Pada</label>
                                         <input type="datetime-local" name="auction_end_at"
                                             value="{{ old('auction_end_at', optional($product->auction_end_at)->format('Y-m-d\\TH:i')) }}"
                                             {{ $hasBids ? 'disabled' : '' }}
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs text-white focus:outline-none focus:border-white transition {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
+                                            class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-3.5 py-3 text-xs text-white focus:outline-none focus:border-neon transition {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Buy Now Price</label>
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">Buy Now Price</label>
                                         <input type="number" name="buy_now_price" min="0" value="{{ old('buy_now_price', $product->buy_now_price) }}"
                                             {{ $hasBids ? 'disabled' : '' }}
-                                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white transition {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
+                                            class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-sm text-white focus:outline-none focus:border-neon transition {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
                                     </div>
                                 </div>
                                 @if($hasBids)
@@ -351,34 +391,34 @@
                         @endif
 
                         <!-- Titip Jual Dropoff & Owner Contact Fields -->
-                        <div id="consignment-fields" class="p-5 bg-[#0a0e17] rounded-xl border border-slate-700 {{ old('fulfillment_mode', $product->fulfillment_mode) === 'consignment' ? '' : 'hidden' }} space-y-4">
-                            <div class="border-b border-slate-800 pb-2">
+                        <div id="consignment-fields" class="p-5 bg-[#1c2c46] rounded-md border border-[#2e4263] {{ old('fulfillment_mode', $product->fulfillment_mode) === 'consignment' ? '' : 'hidden' }} space-y-4">
+                            <div class="border-b border-[#253752] pb-2">
                                 <p class="text-xs font-bold text-white uppercase tracking-wider">Informasi Pemilik & Penyerahan Barang</p>
-                                <p class="text-xs text-slate-400">Kontak pemilik asli (teman / penjual sumber) jika Anda menjualkan barang orang lain.</p>
+                                <p class="text-xs text-slate-300">Kontak pemilik asli (teman / penjual sumber) jika Anda menjualkan barang orang lain. Admin akan memverifikasi sebelum status aktif.</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Nama Pemilik Asli (Opsional)</label>
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">Nama Pemilik Asli (Opsional)</label>
                                     <input type="text" name="owner_name" value="{{ old('owner_name', optional($product->consignmentIntake)->owner_name) }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                        class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-neon transition"
                                         placeholder="Contoh: Budi (Teman) / FB Seller">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">No. WhatsApp Pemilik (Opsional)</label>
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">No. WhatsApp Pemilik (Opsional)</label>
                                     <input type="text" name="owner_phone" value="{{ old('owner_phone', optional($product->consignmentIntake)->owner_phone) }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                        class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-neon transition"
                                         placeholder="Contoh: 08123456789">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Metode Serah Terima</label>
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">Metode Serah Terima</label>
                                     <input type="text" name="dropoff_method" value="{{ old('dropoff_method', optional($product->consignmentIntake)->dropoff_method) }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                        class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-neon transition"
                                         placeholder="Kirim Ekspedisi / Dropoff Langsung">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Lokasi Pengirim / Kota</label>
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">Lokasi Pengirim / Kota</label>
                                     <input type="text" name="dropoff_location" value="{{ old('dropoff_location', optional($product->consignmentIntake)->dropoff_location) }}"
-                                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white transition"
+                                        class="w-full bg-[#0d1624] border border-[#2e4263] rounded-md px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-neon transition"
                                         placeholder="Kota / Daerah Asal Barang">
                                 </div>
                             </div>
@@ -386,30 +426,30 @@
                     </div>
 
                     <!-- 3. Deskripsi & Foto Produk -->
-                    <div class="space-y-4 pt-4 border-t border-slate-800">
-                        <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
-                            <span class="text-xs font-black text-neon uppercase tracking-wider">03.</span>
+                    <div class="p-5 md:p-6 rounded-lg bg-[#152238] border border-[#253752] shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-3 border-b border-[#253752]">
+                            <span class="px-2 py-0.5 rounded bg-neon/15 text-neon font-black text-xs font-mono">03</span>
                             <h2 class="text-xs font-bold uppercase tracking-wider text-white">Deskripsi & Foto Gear</h2>
                         </div>
 
                         <!-- Description -->
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-100 mb-2">
                                 Deskripsi Lengkap Produk <span class="text-rose-400">*</span>
                             </label>
                             <textarea name="description" rows="5" required 
-                                class="w-full bg-[#0a0e17] border @error('description') border-rose-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">{{ old('description', $product->description) }}</textarea>
+                                class="w-full bg-[#0d1624] border @error('description') border-rose-500 @else border-[#2e4263] @enderror rounded-md px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition">{{ old('description', $product->description) }}</textarea>
                             @error('description') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <!-- Multi-Image Management (Dropzone Max 4 Photos) -->
-                        <div class="space-y-4 pt-2 border-t border-slate-800">
-                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-200">
+                        <div class="space-y-4 pt-2 border-t border-[#253752]">
+                            <div class="flex items-center justify-between pb-2 border-b border-[#253752]">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-100">
                                     Galeri Foto Produk (Maksimal 4 Foto)
                                 </label>
-                                <span class="text-xs text-slate-400 uppercase font-semibold">
-                                    <span x-text="totalImagesCount">0</span> / 4 Foto Aktif
+                                <span class="text-xs text-slate-300 uppercase font-semibold">
+                                    <span x-text="totalImagesCount" class="text-neon font-mono font-bold">0</span> / 4 Foto Aktif
                                 </span>
                             </div>
 
@@ -451,12 +491,12 @@
                                         @dragleave="onDragLeave($event, item.key)"
                                         @drop.prevent="onDrop($event, item.key)"
                                         @dragend="onDragEnd($event)"
-                                        class="relative aspect-square rounded-lg border bg-slate-950 overflow-hidden flex flex-col items-center justify-center text-center group shadow-md transition-all select-none cursor-grab active:cursor-grabbing"
+                                        class="relative aspect-square rounded-md border bg-[#0d1624] overflow-hidden flex flex-col items-center justify-center text-center group shadow-md transition-all select-none cursor-grab active:cursor-grabbing"
                                         :class="{
                                             'opacity-30 scale-95 border-dashed border-slate-500': draggedKey === item.key,
                                             'border-neon ring-2 ring-neon/40 scale-[1.02] z-20': dragOverKey === item.key && draggedKey !== item.key,
                                             'border-neon/80 ring-1 ring-neon/30': idx === 0 && draggedKey !== item.key && dragOverKey !== item.key,
-                                            'border-slate-700 hover:border-slate-500': idx !== 0 && draggedKey !== item.key && dragOverKey !== item.key
+                                            'border-[#2e4263] hover:border-slate-400': idx !== 0 && draggedKey !== item.key && dragOverKey !== item.key
                                         }"
                                     >
                                         <img :src="item.url" class="w-full h-full object-cover pointer-events-none">
@@ -464,7 +504,7 @@
                                         <!-- Slot Badge -->
                                         <div class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
                                             <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow"
-                                                  :class="idx === 0 ? 'bg-neon text-dark font-black' : 'bg-slate-900/90 text-slate-300 border border-slate-700 font-bold'"
+                                                  :class="idx === 0 ? 'bg-neon text-dark font-black' : 'bg-[#152238] text-slate-200 border border-[#2e4263] font-bold'"
                                                   x-text="idx === 0 ? 'UTAMA' : 'FOTO ' + (idx + 1)"></span>
                                             <template x-if="item.type === 'new'">
                                                 <span class="px-1.5 py-0.5 rounded bg-cyan-950/90 border border-cyan-700 text-cyan-300 text-[8px] font-bold uppercase tracking-wider shadow">
@@ -482,14 +522,14 @@
 
                                         <!-- Bottom Bar: Drag Handle + Make Primary Button -->
                                         <div class="absolute bottom-2 inset-x-2 flex items-center justify-between pointer-events-none z-10">
-                                            <span class="px-1.5 py-0.5 rounded bg-slate-900/90 border border-slate-700/80 text-slate-400 group-hover:text-slate-200 text-[10px] flex items-center gap-1 shadow">
+                                            <span class="px-1.5 py-0.5 rounded bg-[#152238]/90 border border-[#2e4263] text-slate-300 group-hover:text-white text-[10px] flex items-center gap-1 shadow">
                                                 <i class="fas fa-grip-vertical text-[9px]"></i>
                                                 <span class="text-[9px] font-medium hidden sm:inline">Geser</span>
                                             </span>
 
                                             <template x-if="idx > 0">
                                                 <button type="button" @click.stop="setAsPrimary(item.key)"
-                                                        class="pointer-events-auto px-2 py-0.5 rounded bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-neon text-slate-300 hover:text-neon text-[9px] font-bold transition shadow cursor-pointer">
+                                                        class="pointer-events-auto px-2 py-0.5 rounded bg-[#152238]/90 hover:bg-slate-800 border border-[#2e4263] hover:border-neon text-slate-200 hover:text-neon text-[9px] font-bold transition shadow cursor-pointer">
                                                     Jadikan Utama
                                                 </button>
                                             </template>
@@ -503,28 +543,28 @@
                                          @dragover.prevent="isAddDragging = true"
                                          @dragleave.prevent="isAddDragging = false"
                                          @drop.prevent="isAddDragging = false; handleFilesDrop($event)"
-                                         class="relative aspect-square rounded-lg border-2 border-dashed border-slate-700 bg-[#0a0e17] hover:border-slate-500 hover:bg-slate-900/80 cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none"
+                                         class="relative aspect-square rounded-md border-2 border-dashed border-[#2e4263] bg-[#1c2c46] hover:border-slate-400 hover:bg-[#20324e] cursor-pointer transition flex flex-col items-center justify-center text-center p-3 group select-none"
                                          :class="isAddDragging ? 'border-neon bg-neon/10' : ''">
-                                        <div class="w-8 h-8 rounded-md bg-slate-800/80 flex items-center justify-center text-slate-400 group-hover:text-white mb-1.5 transition">
+                                        <div class="w-8 h-8 rounded-md bg-[#0d1624] border border-[#2e4263] flex items-center justify-center text-slate-300 group-hover:text-white mb-1.5 transition">
                                             <i class="fas fa-plus text-xs"></i>
                                         </div>
-                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Tambah Foto</span>
-                                        <span class="text-xs text-slate-500 mt-0.5" x-text="'Tersisa ' + availableSlots + ' slot'"></span>
+                                        <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Tambah Foto</span>
+                                        <span class="text-xs text-slate-400 mt-0.5" x-text="'Tersisa ' + availableSlots + ' slot'"></span>
                                     </div>
                                 </template>
                             </div>
 
                             <!-- Drag Instruction Helper -->
-                            <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-2" x-show="activeImages.length > 0" x-cloak>
-                                <i class="fas fa-arrows-alt text-slate-500 text-[11px]"></i>
+                            <div class="flex items-center gap-1.5 text-xs text-slate-300 mt-2" x-show="activeImages.length > 0" x-cloak>
+                                <i class="fas fa-arrows-alt text-slate-400 text-[11px]"></i>
                                 <span>Tarik dan geser kartu foto untuk mengatur urutan. Foto di urutan pertama otomatis menjadi <strong>Foto Utama (Cover)</strong>.</span>
                             </div>
 
                             <!-- Dropzone for Adding More Photos (shown when 0 active photos) -->
                             <div 
                                 id="product-dropzone"
-                                class="relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#0a0e17] group select-none"
-                                :class="isDragging ? 'border-neon bg-neon/5 scale-[1.01]' : 'border-slate-700 hover:border-slate-500 hover:bg-slate-900/60'"
+                                class="relative border-2 border-dashed rounded-md p-6 sm:p-8 text-center transition-all cursor-pointer bg-[#1c2c46] group select-none"
+                                :class="isDragging ? 'border-neon bg-neon/10 scale-[1.01]' : 'border-[#2e4263] hover:border-slate-400 hover:bg-[#20324e]'"
                                 @dragover.prevent="isDragging = true"
                                 @dragleave.prevent="isDragging = false"
                                 @drop.prevent="handleFilesDrop($event)"
@@ -532,14 +572,14 @@
                                 x-show="activeImages.length === 0"
                             >
                                 <div class="flex flex-col items-center justify-center space-y-2.5 pointer-events-none">
-                                    <div class="w-10 h-10 rounded-lg bg-slate-800/90 border border-slate-700 flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
+                                    <div class="w-10 h-10 rounded-md bg-[#0d1624] border border-[#2e4263] flex items-center justify-center text-slate-300 group-hover:text-neon group-hover:border-neon/50 transition shadow-inner">
                                         <i class="fas fa-cloud-arrow-up text-lg text-neon"></i>
                                     </div>
                                     <div>
                                         <p class="text-xs font-bold text-white">
                                             Tarik &amp; letakkan foto di sini, atau <span class="text-neon underline">pilih dari galeri</span>
                                         </p>
-                                        <p class="text-xs text-slate-400 mt-0.5">
+                                        <p class="text-xs text-slate-300 mt-0.5">
                                             Maksimal 4 foto (JPEG, PNG, WEBP hingga 3MB)
                                         </p>
                                     </div>
@@ -547,24 +587,24 @@
                             </div>
 
                             <!-- Deleted Photos Tray -->
-                            <div class="mt-4 p-4 rounded-lg bg-rose-950/20 border border-rose-900/40 space-y-3" x-show="deletedExistingImages.length > 0" x-cloak>
+                            <div class="mt-4 p-4 rounded-md bg-rose-950/30 border border-rose-800/60 space-y-3" x-show="deletedExistingImages.length > 0" x-cloak>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2 text-rose-300">
                                         <i class="fas fa-trash-alt text-xs"></i>
                                         <span class="text-xs font-bold uppercase tracking-wider">Foto yang Ditandai untuk Dihapus (<span x-text="deletedExistingImages.length"></span>)</span>
                                     </div>
-                                    <span class="text-[11px] text-slate-400">Foto akan terhapus permanen saat produk diupdate.</span>
+                                    <span class="text-[11px] text-slate-300">Foto akan terhapus permanen saat produk diupdate.</span>
                                 </div>
 
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     <template x-for="item in deletedExistingImages" :key="item.key">
-                                        <div class="relative aspect-square rounded-lg border border-rose-800/60 bg-slate-950 overflow-hidden opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition flex flex-col items-center justify-center">
+                                        <div class="relative aspect-square rounded-md border border-rose-800/60 bg-[#0d1624] overflow-hidden opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition flex flex-col items-center justify-center">
                                             <img :src="item.url" class="w-full h-full object-cover">
                                             <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black uppercase shadow">
                                                 AKAN DIHAPUS
                                             </span>
                                             <button type="button" @click="restoreDeleted(item.key)"
-                                                    class="absolute bottom-2 inset-x-2 py-1 rounded-md bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center gap-1 shadow cursor-pointer transition">
+                                                    class="absolute bottom-2 inset-x-2 py-1 rounded-md bg-[#152238]/90 hover:bg-slate-800 border border-[#2e4263] text-slate-200 text-[10px] font-bold flex items-center justify-center gap-1 shadow cursor-pointer transition">
                                                 <i class="fas fa-undo text-[9px]"></i>
                                                 <span>Batal Hapus</span>
                                             </button>
@@ -579,12 +619,12 @@
                     </div>
 
                     <!-- Submit Button Area -->
-                    <div class="flex items-center justify-between pt-6 border-t border-slate-800">
-                        <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-md border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-bold transition">
+                    <div class="p-4 md:p-5 rounded-lg bg-[#152238] border border-[#253752] shadow-sm flex items-center justify-between">
+                        <a href="{{ route('marketplace.seller.products.index') }}" class="px-5 py-2.5 rounded-md border border-[#2e4263] bg-[#0d1624] text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-bold transition">
                             Batal
                         </a>
 
-                        <button type="submit" class="px-6 py-3 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+                        <button type="submit" class="px-6 py-3 rounded-md bg-neon hover:bg-white hover:text-dark text-dark font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer">
                             <span>Update Product</span>
                         </button>
                     </div>

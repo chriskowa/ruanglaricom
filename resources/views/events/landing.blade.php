@@ -1062,8 +1062,7 @@
                     
                     <!-- Badge -->
                     <div class="mb-5">
-                        <div class="hero-badge">
-                            <span class="hero-badge-dot"></span>
+                        <div class="hero-badge">                            
                             <span>INDONESIA RUNNING CALENDAR 2026</span>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Community;
 use App\Models\Event;
 use App\Models\HomepageContent;
+use App\Models\Marketplace\MarketplaceProduct;
 use App\Models\Page;
 use App\Models\PageTemplate;
 use App\Models\User;
@@ -307,13 +308,52 @@ class PageController extends Controller
             }
         });
 
+        // 6. Latest Marketplace / Titip Jual Products (SSR - Instant FCP)
+        $latestMarketplaceProducts = Cache::remember('home.latest_marketplace_products_v2', 300, function () {
+            try {
+                if (!class_exists(MarketplaceProduct::class)) {
+                    return collect();
+                }
+
+                $requireApproval = class_exists(\App\Models\AppSettings::class)
+                    ? \App\Models\AppSettings::get('marketplace_require_approval', false)
+                    : false;
+
+                return MarketplaceProduct::with(['category', 'primaryImage', 'images', 'seller.city', 'brand'])
+                    ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('is_archived')->orWhere('is_archived', false);
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('is_sold')->orWhere('is_sold', false);
+                    })
+                    ->when($requireApproval, function ($q) {
+                        $q->where('is_approved', true);
+                    })
+                    ->where(function ($q) {
+                        $q->where('sale_type', 'fixed')
+                            ->orWhere(function ($q2) {
+                                $q2->where('sale_type', 'auction')
+                                    ->where('auction_status', 'running');
+                            });
+                    })
+                    ->orderByRaw("CASE WHEN fulfillment_mode = 'consignment' THEN 0 ELSE 1 END, id DESC")
+                    ->limit(4)
+                    ->get();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Error loading home marketplace products: ' . $e->getMessage());
+                return collect();
+            }
+        });
+
         return view('home.index', [
-            'homepageContent' => $homepageContent,
-            'heroHighlights'  => $heroHighlights,
-            'upcomingEvents'  => $upcomingEvents,
-            'latestArticles'  => $latestArticles,
-            'factualStats'    => $factualStats,
-            'skipHeavyAssets' => true,
+            'homepageContent'           => $homepageContent,
+            'heroHighlights'            => $heroHighlights,
+            'upcomingEvents'            => $upcomingEvents,
+            'latestArticles'            => $latestArticles,
+            'factualStats'              => $factualStats,
+            'latestMarketplaceProducts' => $latestMarketplaceProducts,
+            'skipHeavyAssets'           => true,
         ]);
     }
 }

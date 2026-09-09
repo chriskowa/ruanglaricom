@@ -568,26 +568,6 @@
                     </div>
 
                     <div class="relative rounded-md overflow-hidden border border-slate-800 bg-[#090D16]">
-                        <!-- Floating Map Layer Switcher -->
-                        <div id="detail-map-layer-toolbar" class="absolute top-2.5 right-2.5 z-[500] bg-[#0c121e]/95 border border-slate-700 rounded-md p-1 shadow-lg flex items-center gap-1">
-                            <button type="button" onclick="setDetailEventMapLayer('voyager')" id="btn-detail-layer-voyager" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-black transition flex items-center gap-1 bg-neon text-dark" title="Sederhana (Voyager)">
-                                <i class="fa-solid fa-map-pin text-[10px]"></i>
-                                <span class="hidden sm:inline">Peta</span>
-                            </button>
-                            <button type="button" onclick="setDetailEventMapLayer('osm')" id="btn-detail-layer-osm" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Open Street Map">
-                                <i class="fa-solid fa-map text-[10px]"></i>
-                                <span class="hidden sm:inline">OSM</span>
-                            </button>
-                            <button type="button" onclick="setDetailEventMapLayer('satellite')" id="btn-detail-layer-satellite" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Satelit Esri">
-                                <i class="fa-solid fa-globe text-[10px]"></i>
-                                <span class="hidden sm:inline">Satelit</span>
-                            </button>
-                            <button type="button" onclick="setDetailEventMapLayer('dark')" id="btn-detail-layer-dark" class="btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Gelap Tactical">
-                                <i class="fa-solid fa-moon text-[10px]"></i>
-                                <span class="hidden sm:inline">Dark</span>
-                            </button>
-                        </div>
-
                         <!-- Map Canvas -->
                         <div id="event-detail-location-map" class="w-full h-[240px] z-0 bg-[#090D16]"></div>
                     </div>
@@ -803,8 +783,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     let detailEventMap = null;
-    let detailEventTileLayers = {};
-    let detailEventActiveLayer = null;
     const detailEventLat = {{ $detailMapLat }};
     const detailEventLng = {{ $detailMapLng }};
     const detailEventZoom = {{ $detailZoom }};
@@ -815,28 +793,16 @@
         const mapEl = document.getElementById('event-detail-location-map');
         if (!mapEl || detailEventMap) return;
 
-        const mapboxToken = "{{ config('services.mapbox.token') }}";
-        detailEventTileLayers = {
-            outdoors: mapboxToken
-                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' })
-                : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }),
-            satellite: mapboxToken
-                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
-                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' }),
-            dark: mapboxToken
-                ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
-                : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' })
-        };
-
         detailEventMap = L.map('event-detail-location-map', {
             zoomControl: true,
             scrollWheelZoom: false,
             dragging: true,
         }).setView([detailEventLat, detailEventLng], detailEventZoom);
 
-        // Default active layer: Outdoors
-        detailEventActiveLayer = detailEventTileLayers.outdoors;
-        detailEventActiveLayer.addTo(detailEventMap);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
+        }).addTo(detailEventMap);
 
         // Custom Marker Pin (Neon Green Pin matching Landing Jadwal Lari)
         const locationPin = L.divIcon({
@@ -864,7 +830,7 @@
                     <span>${detailEventLocation}</span>
                 </div>
                 <div class="pt-1.5">
-                    <a href="https://www.google.com/maps/search/?api=1&query=${detailEventLat},${detailEventLng}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-neon hover:bg-lime-300 text-dark font-black text-[11px] inline-flex items-center gap-1 transition shadow-sm">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${detailEventLat},${detailEventLng}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-md bg-neon hover:bg-lime-300 text-dark font-black text-[11px] inline-flex items-center gap-1 transition shadow-sm">
                         <i class="fa-solid fa-diamond-turn-right text-[10px]"></i>
                         <span>Petunjuk Arah</span>
                     </a>
@@ -873,22 +839,6 @@
         `;
 
         marker.bindPopup(popupContent, { maxWidth: 280, className: 'detail-custom-leaflet-popup' });
-    }
-
-    function setDetailEventMapLayer(type) {
-        if (!detailEventMap || !detailEventTileLayers[type]) return;
-        if (detailEventActiveLayer) detailEventMap.removeLayer(detailEventActiveLayer);
-        detailEventActiveLayer = detailEventTileLayers[type];
-        detailEventActiveLayer.addTo(detailEventMap);
-
-        document.querySelectorAll('.btn-detail-map-layer').forEach(btn => {
-            btn.className = 'btn-detail-map-layer px-2 py-1 rounded text-[11px] font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800';
-        });
-
-        const activeBtn = document.getElementById('btn-detail-layer-' + type);
-        if (activeBtn) {
-            activeBtn.className = 'btn-detail-map-layer px-2 py-1 rounded text-[11px] font-black transition flex items-center gap-1 bg-neon text-dark';
-        }
     }
 
     function recenterEventDetailLocationMap() {

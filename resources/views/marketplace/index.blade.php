@@ -459,6 +459,16 @@ footer[aria-label="Footer Ruang Lari"] {
                 <p class="text-slate-400 text-xs md:text-sm mt-1.5 max-w-2xl leading-relaxed">
                     Beli dan jual sepatu lari original, jam GPS, apparel, slot race, dan titip jual running gear terpercaya dari komunitas pelari.
                 </p>
+                <div class="flex flex-wrap items-center gap-2 mt-3 text-xs">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#152238] border border-[#253752] text-slate-200 shadow-sm">
+                        <i class="fab fa-instagram text-neon text-xs"></i>
+                        <span class="font-bold text-white text-[11px]">Promosi di IG @ruanglari</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#152238] border border-[#253752] text-slate-200 shadow-sm">
+                        <i class="fas fa-shield-alt text-emerald-400 text-xs"></i>
+                        <span class="font-bold text-white text-[11px]">Seller &amp; Barang Terverifikasi Admin</span>
+                    </span>
+                </div>
             </div>
             
             <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto">

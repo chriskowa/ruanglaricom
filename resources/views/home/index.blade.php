@@ -624,12 +624,132 @@
     </section>
 
     {{-- =========================================================
-        05 / RUN CONNECT
+        05 / TITIP JUAL & GEAR MARKETPLACE
+    ========================================================== --}}
+    @if(!empty($latestMarketplaceProducts) && count($latestMarketplaceProducts) > 0)
+    <section id="titip-jual" class="rl-section rl-section-alt">
+        <div class="rl-shell">
+            <div class="rl-section-rail">
+                <span>05</span>
+                <p>Titip Jual</p>
+            </div>
+
+            <div class="rl-section-head">
+                <div>
+                    <span class="rl-overline">Curated running gear / pre-loved</span>
+                    <h2>Titip jual terbaru.</h2>
+                    <p>Sepatu lari, smartwatch, dan apparel pilihan terverifikasi dari sesama pelari di Indonesia.</p>
+                </div>
+
+                <div class="rl-head-actions">
+                    <a href="{{ route('marketplace.seller.products.create') }}" class="rl-btn rl-btn-primary">
+                        + Titip jual gear
+                    </a>
+                    <a href="{{ route('marketplace.index') }}" class="rl-text-link rl-text-link-light">
+                        Semua gear <span></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Kelebihan Titip Jual RuangLari Trust Strip -->
+            <div class="rl-market-trust-strip">
+                <div class="rl-market-trust-item">
+                    <span class="rl-market-trust-icon">
+                        <i class="fab fa-instagram"></i>
+                    </span>
+                    <div class="rl-market-trust-text">
+                        <strong>Dibantu Promosi di IG @ruanglari</strong>
+                        <span>Eksposur ke ribuan pelari aktif lewat feeds & story akun resmi RuangLari</span>
+                    </div>
+                </div>
+                <div class="rl-market-trust-item">
+                    <span class="rl-market-trust-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </span>
+                    <div class="rl-market-trust-text">
+                        <strong>Seller & Barang Terverifikasi Admin</strong>
+                        <span>Verifikasi ketat kondisi fisik & identitas untuk meminimalisir risiko penipuan</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rl-market-feed">
+                @foreach($latestMarketplaceProducts as $product)
+                    @php
+                        $brandName = $product->brand ? $product->brand->name : '';
+                        $catName = $product->category ? $product->category->name : 'Gear';
+                        $imgUrl = $product->primaryImage 
+                            ? asset('storage/' . $product->primaryImage->image_path)
+                            : ($product->images->first() ? asset('storage/' . $product->images->first()->image_path) : null);
+                        $isConsignment = ($product->fulfillment_mode === 'consignment');
+                        $priceDisplay = $product->sale_type === 'auction' 
+                            ? ($product->current_price ?? $product->starting_price ?? $product->price) 
+                            : $product->price;
+                    @endphp
+                    <a href="{{ route('marketplace.show', $product->slug) }}" class="rl-market-item group">
+                        <div class="rl-market-img-wrap">
+                            @if($imgUrl)
+                                <img src="{{ $imgUrl }}" alt="{{ $product->title }}" loading="lazy" class="rl-market-img" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'rl-market-no-img\'><span>RUNNING GEAR</span></div>';">
+                            @else
+                                <div class="rl-market-no-img">
+                                    <span>RUNNING GEAR</span>
+                                </div>
+                            @endif
+
+                            {{-- Micro Badges --}}
+                            <div class="rl-market-badges">
+                                @if($isConsignment)
+                                    <span class="rl-badge-consignment">TITIP JUAL</span>
+                                @elseif($product->condition === 'new')
+                                    <span class="rl-badge-new">BARU</span>
+                                @else
+                                    <span class="rl-badge-used">BEKAS</span>
+                                @endif
+
+                                @if($product->sale_type === 'auction')
+                                    <span class="rl-badge-auction">LELANG</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="rl-market-info">
+                            <div class="rl-market-cat">
+                                {{ $brandName ? ($brandName . ' • ' . $catName) : $catName }}
+                            </div>
+                            <h3 class="rl-market-title">{{ $product->title }}</h3>
+
+                            <div class="rl-market-price-row">
+                                <span class="rl-market-price font-mono">
+                                    Rp {{ number_format($priceDisplay, 0, ',', '.') }}
+                                </span>
+                                @if(!empty($product->seller?->city?->name))
+                                    <span class="rl-market-city" title="{{ $product->seller->city->name }}">{{ $product->seller->city->name }}</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="rl-market-footer">
+                            <span>Detail Gear</span>
+                            <span class="rl-market-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M5 12h14m-6-6 6 6-6 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
+    {{-- =========================================================
+        06 / RUN CONNECT
     ========================================================== --}}
     <section class="rl-section rl-connect">
         <div class="rl-shell">
             <div class="rl-section-rail">
-                <span>05</span>
+                <span>06</span>
                 <p>Run Connect</p>
             </div>
 
@@ -674,12 +794,12 @@
     </section>
 
     {{-- =========================================================
-        06 / FOR EVENT ORGANIZER
+        07 / FOR EVENT ORGANIZER
     ========================================================== --}}
     <section class="rl-section rl-eo">
         <div class="rl-shell">
             <div class="rl-section-rail">
-                <span>06</span>
+                <span>07</span>
                 <p>For Organizers</p>
             </div>
 
@@ -708,12 +828,12 @@
     </section>
 
     {{-- =========================================================
-        07 / JOURNAL
+        08 / JOURNAL
     ========================================================== --}}
     <section id="blog" class="rl-section">
         <div class="rl-shell">
             <div class="rl-section-rail">
-                <span>07</span>
+                <span>08</span>
                 <p>Journal</p>
             </div>
 
@@ -2535,6 +2655,295 @@
         border-color: var(--rl-lime);
         color: var(--rl-bg);
         transform: translateX(3px);
+    }
+
+    /* ----------------------------------------------------
+       MARKETPLACE / TITIP JUAL TRUST STRIP & FEED
+    ---------------------------------------------------- */
+    .rl-market-trust-strip {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 640px) {
+        .rl-market-trust-strip {
+            grid-template-columns: 1fr;
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    .rl-market-trust-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 0.9rem 1.15rem;
+        background: var(--rl-panel);
+        border: 1px solid var(--rl-line);
+        border-radius: 8px;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .rl-market-trust-item:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        background: #141d2c;
+    }
+
+    .rl-market-trust-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 6px;
+        background: rgba(204, 255, 0, 0.12);
+        color: var(--rl-lime);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+
+    .rl-market-trust-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .rl-market-trust-text strong {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #FFFFFF;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .rl-market-trust-text span {
+        font-size: 0.74rem;
+        color: var(--rl-muted);
+        line-height: 1.4;
+    }
+
+    .rl-market-feed {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+    }
+
+    @media (max-width: 1024px) {
+        .rl-market-feed {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .rl-market-feed {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .rl-market-item {
+        background: var(--rl-panel);
+        border: 1px solid var(--rl-line);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rl-market-item:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .rl-market-img-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: #080D17;
+        overflow: hidden;
+    }
+
+    .rl-market-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+
+    .rl-market-item:hover .rl-market-img {
+        transform: scale(1.04);
+    }
+
+    .rl-market-no-img {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #475569;
+        font-family: var(--rl-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        background: #0B1220;
+    }
+
+    .rl-market-badges {
+        position: absolute;
+        top: 0.65rem;
+        left: 0.65rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        z-index: 2;
+    }
+
+    .rl-badge-consignment {
+        background: #FFFFFF;
+        color: #020617;
+        font-size: 0.62rem;
+        font-weight: 900;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .rl-badge-new {
+        background: var(--rl-lime);
+        color: #020617;
+        font-size: 0.62rem;
+        font-weight: 900;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .rl-badge-used {
+        background: rgba(15, 23, 42, 0.85);
+        color: #CBD5E1;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .rl-badge-auction {
+        background: #FBBF24;
+        color: #020617;
+        font-size: 0.62rem;
+        font-weight: 900;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .rl-market-info {
+        padding: 1rem 1.15rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .rl-market-cat {
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94A3B8;
+        margin-bottom: 0.35rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .rl-market-title {
+        margin: 0 0 0.75rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color 0.15s ease;
+    }
+
+    .rl-market-item:hover .rl-market-title {
+        color: var(--rl-lime);
+    }
+
+    .rl-market-price-row {
+        margin-top: auto;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-top: 0.4rem;
+    }
+
+    .rl-market-price {
+        font-size: 0.95rem;
+        font-weight: 900;
+        color: #FFFFFF;
+        letter-spacing: -0.01em;
+    }
+
+    .rl-market-city {
+        font-size: 0.68rem;
+        color: #94A3B8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 45%;
+    }
+
+    .rl-market-footer {
+        padding: 0.7rem 1.15rem;
+        border-top: 1px solid var(--rl-line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--rl-muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        transition: color 0.15s ease;
+    }
+
+    .rl-market-item:hover .rl-market-footer {
+        color: #FFFFFF;
+    }
+
+    .rl-market-arrow {
+        width: 1.25rem;
+        height: 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .rl-market-arrow svg {
+        width: 0.85rem;
+        height: 0.85rem;
+    }
+
+    .rl-market-item:hover .rl-market-arrow {
+        transform: translateX(3px);
+        color: var(--rl-lime);
     }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }

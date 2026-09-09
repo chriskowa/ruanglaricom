@@ -1855,137 +1855,140 @@
     <!-- Required Phone Number Update Modal -->
     <div x-show="showPhoneModal" 
          x-cloak
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/95 backdrop-blur-md">
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80">
         
-        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
-             x-transition:enter="transition ease-out duration-300"
+        <div class="relative w-full max-w-md bg-[#121c2e] border border-[#23354d] rounded-lg shadow-2xl overflow-hidden p-6"
+             x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
             
-            <!-- Glow Accent -->
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/15 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div class="p-6 md:p-8 relative z-10">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-3 bg-neon/10 border border-neon/20 rounded-xl text-neon">
-                        <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
+            <div class="flex items-start gap-3.5 mb-4">
+                <div class="w-10 h-10 rounded-md bg-[#17243b] border border-[#23354d] text-neon flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-neon">Verifikasi Kontak</span>
+                    <h3 class="text-base font-bold text-white uppercase tracking-wide mt-0.5">Nomor Handphone Wajib Diisi</h3>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed mb-5">
+                Demi keamanan akun dan kelancaran proses pendaftaran event maupun sinkronisasi coaching di RuangLari, silakan masukkan nomor handphone aktif Anda.
+            </p>
+
+            <form @submit.prevent="submitPhoneNumber()">
+                <div class="mb-5">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nomor Handphone (WhatsApp)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <i class="fas fa-phone text-xs"></i>
+                        </span>
+                        <input type="tel" 
+                               x-model="inputPhone" 
+                               required
+                               placeholder="081234567890" 
+                               class="w-full pl-9 pr-3.5 py-2.5 bg-[#0e1728] border border-[#23354d] rounded-md text-white font-medium text-sm focus:outline-none focus:border-neon transition"
+                               pattern="[0-9+ ]{8,20}">
                     </div>
-                    <div>
-                        <h3 class="text-lg font-black text-white uppercase italic tracking-tight">Verifikasi Kontak</h3>
-                        <p class="text-[10px] font-mono text-neon uppercase tracking-wider">Nomor Handphone Wajib Diisi</p>
-                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">Gunakan angka saja, minimal 8 digit.</p>
                 </div>
 
-                <p class="text-xs text-slate-400 leading-relaxed mb-6">
-                    Demi keamanan akun dan kelancaran proses pendaftaran event/coaching di RuangLari, silakan masukkan nomor handphone Anda yang aktif terlebih dahulu.
-                </p>
-
-                <form @submit.prevent="submitPhoneNumber()">
-                    <div class="space-y-4 mb-6">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Nomor Handphone</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 text-sm">📞</span>
-                                <input type="tel" 
-                                       x-model="inputPhone" 
-                                       required
-                                       placeholder="Contoh: 081234567890" 
-                                       class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-neon transition-colors"
-                                       pattern="[0-9+ ]{8,20}">
-                            </div>
-                            <p class="text-[10px] text-slate-500 mt-1.5">Gunakan angka saja, minimal 8 digit.</p>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex flex-col gap-2">
-                        <button type="submit" 
-                                :disabled="submittingPhone"
-                                class="w-full py-3 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-655 text-dark font-black text-xs rounded-xl transition-all text-center tracking-wider uppercase shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
-                            <span x-show="!submittingPhone">Simpan & Lanjutkan</span>
-                            <span x-show="submittingPhone" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Menyimpan...
-                            </span>
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <!-- Actions -->
+                <div class="flex flex-col gap-2">
+                    <button type="submit" 
+                            :disabled="submittingPhone"
+                            class="w-full py-2.5 bg-neon hover:bg-white disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-xs rounded-md transition text-center tracking-wide uppercase flex items-center justify-center gap-2">
+                        <span x-show="!submittingPhone">Simpan & Lanjutkan</span>
+                        <span x-show="submittingPhone" class="flex items-center gap-2">
+                            <svg class="animate-spin h-3.5 w-3.5 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Menyimpan...
+                        </span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Complete Profile Suggestion Modal -->
     <div x-show="showProfileCompletionModal" 
          x-cloak
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/90 backdrop-blur-md"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80"
          @keydown.escape.window="showProfileCompletionModal = false">
         
-        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+        <div class="relative w-full max-w-md bg-[#121c2e] border border-[#23354d] rounded-lg shadow-2xl overflow-hidden p-6"
              @click.outside="showProfileCompletionModal = false"
-             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
             
-            <!-- Glow Accent -->
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/15 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div class="p-6 md:p-8 relative z-10">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-3 bg-neon/10 border border-neon/20 rounded-xl text-neon">
-                        <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="flex items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-md bg-[#17243b] border border-[#23354d] text-neon flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-black text-white uppercase italic tracking-tight">Lengkapi Profil Anda</h3>
-                        <p class="text-[10px] font-mono text-neon uppercase tracking-wider">Step to peak performance</p>
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-neon">Profil Atlet</span>
+                        <h3 class="text-base font-bold text-white uppercase tracking-wide mt-0.5">Lengkapi Data Akun Pelari</h3>
                     </div>
                 </div>
+                <button type="button" 
+                        @click="showProfileCompletionModal = false; sessionStorage.setItem('dismiss_profile_modal', 'true')"
+                        class="text-slate-400 hover:text-white p-1 rounded transition"
+                        aria-label="Tutup modal">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
 
-                <p class="text-xs text-slate-400 leading-relaxed mb-6">
-                    Agar dapat menikmati seluruh fitur RuangLari dengan maksimal (coaching, pendaftaran event, dan sinkronisasi), silakan lengkapi informasi profil Anda:
-                </p>
+            <p class="text-xs text-slate-300 leading-relaxed mb-5">
+                Lengkapi profil Anda untuk mengaktifkan sinkronisasi kalender latihan, verifikasi slot event, dan personalisasi rekomendasi pace AI Coach secara optimal.
+            </p>
 
-                <!-- Status List -->
-                <div class="space-y-3 mb-8">
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg">📸</span>
-                            <span class="text-xs font-bold text-slate-300">Foto Profil (Avatar)</span>
+            <!-- Status List -->
+            <div class="space-y-2.5 mb-6">
+                <div class="flex items-center justify-between p-3 rounded-md bg-[#0e1728] border border-[#23354d]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded bg-[#17243b] border border-[#23354d] text-slate-300 flex items-center justify-center text-xs">
+                            <i class="fas fa-camera"></i>
                         </div>
-                        @if(auth()->user()->avatar)
-                            <span class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-bold">Lengkap</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold">Belum Ada</span>
-                        @endif
+                        <span class="text-xs font-semibold text-slate-200">Foto Profil (Avatar)</span>
                     </div>
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg">📞</span>
-                            <span class="text-xs font-bold text-slate-300">Nomor Handphone</span>
+                    @if(auth()->user()->avatar)
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 uppercase">Lengkap</span>
+                    @else
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase">Belum Ada</span>
+                    @endif
+                </div>
+                
+                <div class="flex items-center justify-between p-3 rounded-md bg-[#0e1728] border border-[#23354d]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded bg-[#17243b] border border-[#23354d] text-slate-300 flex items-center justify-center text-xs">
+                            <i class="fas fa-phone-alt"></i>
                         </div>
-                        @if(auth()->user()->phone)
-                            <span class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-bold">Lengkap</span>
-                        @else
-                            <span class="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold">Belum Ada</span>
-                        @endif
+                        <span class="text-xs font-semibold text-slate-200">Nomor Handphone</span>
                     </div>
+                    @if(auth()->user()->phone)
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 uppercase">Lengkap</span>
+                    @else
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 border border-rose-500/30 text-rose-400 uppercase">Belum Ada</span>
+                    @endif
                 </div>
+            </div>
 
-                <!-- Actions -->
-                <div class="flex flex-col gap-2">
-                    <a href="{{ route('profile.show') }}" class="w-full py-3 bg-neon hover:bg-neon/90 text-dark font-black text-xs rounded-xl transition-all text-center tracking-wider uppercase shadow-lg shadow-neon/20">
-                        Lengkapi Profil Sekarang
-                    </a>
-                    <button type="button" @click="showProfileCompletionModal = false; sessionStorage.setItem('dismiss_profile_modal', 'true')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-all text-center">
-                        Nanti Saja
-                    </button>
-                </div>
+            <!-- Actions -->
+            <div class="flex flex-col gap-2">
+                <a href="{{ route('profile.show') }}" class="w-full py-2.5 bg-neon hover:bg-white text-slate-950 font-bold text-xs rounded-md transition text-center tracking-wide uppercase">
+                    Lengkapi Profil Sekarang
+                </a>
+                <button type="button" @click="showProfileCompletionModal = false; sessionStorage.setItem('dismiss_profile_modal', 'true')" class="w-full py-2.5 bg-[#17243b] hover:bg-[#1e2f4c] border border-[#23354d] text-slate-300 hover:text-white font-semibold text-xs rounded-md transition text-center">
+                    Nanti Saja
+                </button>
             </div>
         </div>
     </div>
