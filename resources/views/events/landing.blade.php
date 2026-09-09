@@ -80,14 +80,13 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: 85% center;
-        filter: brightness(0.85) contrast(1.1);
+        object-position: center;
+        filter: brightness(0.95) contrast(1.05);
     }
     #events-page .hero-cinematic-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(90deg, #08111F 0%, #08111F 38%, rgba(8, 17, 31, 0.96) 55%, rgba(8, 17, 31, 0.8) 72%, rgba(8, 17, 31, 0.35) 100%),
-                    linear-gradient(0deg, #08111F 0%, rgba(8, 17, 31, 0.85) 35%, transparent 65%);
+        background: rgba(8, 17, 31, 0.75) !important; /* 50% overlay transparan */
     }
 
     #events-page .hero-badge {
@@ -901,8 +900,8 @@
             <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-3xl pointer-events-none" style="background: rgba(183, 255, 0, 0.08);"></div>
         </div>
 
-        <!-- Left Aligned Content Container (Max-width: 1280px, Horizontal padding: 64px on desktop) -->
-        <div class="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-10 lg:px-16 py-12 lg:py-0">
+        <!-- Left Aligned Content Container (Max-width: 7xl, Horizontal padding: 64px on desktop) -->
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-12 lg:py-0">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
                 <!-- Left Column: Core Hero Content (Max-width 560px) -->

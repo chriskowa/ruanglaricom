@@ -1,3 +1,10 @@
+@php
+    $destImg = public_path('images/hero/vdot-runner-training.jpg');
+    $srcImg = 'C:/Users/LENOVO/.gemini/antigravity-ide/brain/ad786e94-2a56-4d78-962d-8aea9a7effaf/vdot_runner_training_1788923975440.jpg';
+    if (!file_exists($destImg) && file_exists($srcImg)) {
+        @copy($srcImg, $destImg);
+    }
+@endphp
 @extends('layouts.pacerhub')
 
 @section('title', 'Buat Program Lari Gratis: Generator VDOT 5K, 10K, HM & Marathon - RuangLari')
@@ -160,17 +167,57 @@
 
         .generator-v2-wrapper { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: #080A0D;
+            background-color: #090D15;
             color: #f1f5f9;
             min-height: 100vh;
             position: relative;
         }
+
+        /* Hero Background Slider & Ken Burns Zoom Out */
+        .hero-slider-wrapper {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+            background-color: #090D15;
+            background-size: cover;
+            background-position: center center;
+        }
+
+        .hero-slide-item {
+            position: absolute;
+            inset: -4%;
+            width: 108%;
+            height: 108%;
+            background-size: cover;
+            background-position: center center;
+            opacity: 0;
+            transform: scale(1.15);
+            transition: opacity 1.5s ease-in-out, transform 0.1s ease;
+            will-change: transform, opacity;
+        }
+
+        .hero-slide-item.active-slide {
+            opacity: 1 !important;
+            transform: scale(1.0);
+            transition: opacity 1.5s ease-in-out, transform 8.5s cubic-bezier(0.2, 1, 0.3, 1);
+            z-index: 1;
+        }
+
+        .hero-slider-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: rgba(9, 13, 21, 0.75) !important; /* 50% overlay transparan */
+        }
         
         .generator-v2-wrapper .card-dark {
-            background: #12161F;
-            border: 1px solid #232B3B;
+            background: #131B2D;
+            border: 1.5px solid #283750;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
         }
 
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -178,23 +225,28 @@
 
         .input-field {
             width: 100%;
-            padding: 0.55rem 0.75rem;
-            font-size: 0.8125rem;
+            padding: 0.6rem 0.85rem;
+            font-size: 0.875rem;
             border-radius: 0.375rem;
-            border: 1px solid #232B3B;
-            background-color: #0B0F17 !important;
-            color: #f8fafc !important;
+            border: 1.5px solid #3A4C6D !important;
+            background-color: #1C273B !important;
+            color: #ffffff !important;
             font-weight: 500;
             outline: none;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
         }
 
+        .input-field::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+
         /* Select styling with custom arrow */
         select.input-field {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
             background-position: right 0.75rem center !important;
             background-repeat: no-repeat !important;
             background-size: 1.25em 1.25em !important;
@@ -204,7 +256,7 @@
         /* Date input styling */
         input[type="date"].input-field {
             position: relative;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
             background-position: right 0.75rem center !important;
             background-repeat: no-repeat !important;
             background-size: 1.2em 1.2em !important;
@@ -225,15 +277,16 @@
         }
 
         .input-field:focus {
-            border-color: #ccff00;
-            box-shadow: 0 0 0 1px #ccff00;
+            border-color: #ccff00 !important;
+            background-color: #223048 !important;
+            box-shadow: 0 0 0 2px rgba(204, 255, 0, 0.25) !important;
         }
 
         .label-text {
             display: block;
             font-size: 11px;
-            font-weight: 600;
-            color: #cbd5e1;
+            font-weight: 700;
+            color: #e2e8f0;
             margin-bottom: 0.35rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -251,7 +304,7 @@
 @endpush
 
 @section('content')
-<div id="generator-v2-app" class="generator-v2-wrapper relative w-full px-4 pb-16 pt-0">
+<div id="generator-v2-app" class="generator-v2-wrapper relative w-full pb-16 pt-0">
     
     <!-- Notification Toast -->
     <transition name="fade">
@@ -303,12 +356,212 @@
         </div>
     </transition>
 
-    <main class="relative z-10 max-w-5xl mx-auto pt-6">
+    <!-- Hero Section: Scientific VDOT Running Program Generator with Background Zoom-Out Slider -->
+<header v-show="step === 1" class="relative w-full overflow-hidden border-b border-slate-800/80 bg-[#090D15] text-white py-14 md:py-20 px-4 sm:px-6 lg:px-8 min-h-[580px] flex items-center">
+
+    <!-- Background Slider with Cinematic Ken Burns Zoom Out -->
+    <div class="hero-slider-wrapper" style="background-image: url('{{ asset('images/hero/vdot-runner-training.jpg') }}');">
+        <div v-for="(slide, idx) in heroSlides" :key="'hero-slide-' + idx"
+             class="hero-slide-item"
+             :class="{ 'active-slide': activeHeroSlide === idx }"
+             :style="{ backgroundImage: 'url(' + slide + ')' }">
+        </div>
+        <div class="hero-slider-overlay"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+        <!-- Left Column -->
+        <div class="lg:col-span-7 space-y-5">
+
+            <!-- Category Kicker -->
+            <div class="text-xs font-mono uppercase tracking-widest text-brand-500 font-bold">
+                Kalkulator VDOT Jack Daniels • Program Latihan Lari Berbasis Pace
+            </div>
+
+            <!-- SEO H1 -->
+            <h1 class="text-3xl sm:text-4xl lg:text-4xl font-bold text-white tracking-tight leading-tight drop-shadow-md">
+                Buat Program Latihan Lari Gratis untuk 5K, 10K, Half Marathon & Marathon dengan Kalkulator VDOT
+            </h1>
+
+            <!-- Value Proposition -->
+            <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl drop-shadow-sm">
+                Hitung pace latihan berdasarkan performa terbaikmu menggunakan metode VDOT Jack Daniels.
+                Dapatkan program latihan yang mencakup Easy Run, Threshold, Interval hingga Repetition
+                dengan intensitas yang sesuai untuk mencapai target lomba.
+            </p>
+
+            <!-- Feature Highlights -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+
+                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Metode</div>
+                    <div class="text-xs font-bold text-white mt-0.5">Jack Daniels VDOT</div>
+                </div>
+
+                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Perhitungan</div>
+                    <div class="text-xs font-bold text-brand-500 mt-0.5">5 Zona Pace</div>
+                </div>
+
+                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Program</div>
+                    <div class="text-xs font-bold text-emerald-400 mt-0.5">Sesuai Target</div>
+                </div>
+
+                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
+                    <div class="text-[10px] text-slate-400 font-mono uppercase">Akses</div>
+                    <div class="text-xs font-bold text-white mt-0.5">Gratis Selamanya</div>
+                </div>
+
+            </div>
+
+
+            <!-- CTA -->
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+
+                <div class="flex flex-wrap items-center gap-3">
+
+                    <a href="#generator-form"
+                       class="px-5 py-3 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-md transition shadow-md cursor-pointer inline-flex items-center gap-2">
+
+                        <span>Buat Program Lari Saya</span>
+                        <span class="text-base leading-none">&darr;</span>
+
+                    </a>
+
+
+                    <a href="#panduan-vdot"
+                       class="px-4 py-3 bg-[#1C273B]/90 hover:bg-[#283750] text-slate-200 hover:text-white font-semibold text-xs uppercase tracking-wider rounded-md border border-[#3A4C6D] transition cursor-pointer">
+
+                        Pelajari Cara Kerja VDOT
+
+                    </a>
+
+                </div>
+
+
+                <!-- Slider Indicator -->
+                <div class="flex items-center gap-2">
+
+                    <button v-for="(slide, idx) in heroSlides"
+                            :key="'slide-dot-' + idx"
+                            @click="setHeroSlide(idx)"
+                            type="button"
+                            :class="activeHeroSlide === idx ? 'w-6 bg-brand-500' : 'w-2 bg-slate-500/60 hover:bg-slate-300'"
+                            class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+                            :title="'Slide ' + (idx + 1)">
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Right Column -->
+        <div class="lg:col-span-5">
+
+            <div class="p-5 rounded-lg bg-[#131B2D]/95 border border-[#283750] shadow-2xl backdrop-blur-sm space-y-4">
+
+                <div class="flex items-center justify-between pb-3 border-b border-slate-700/80">
+
+                    <div>
+                        <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+                            Sistem Latihan
+                        </span>
+
+                        <h2 class="text-sm font-bold text-white">
+                            Generator Program Lari VDOT
+                        </h2>
+                    </div>
+
+
+                    <span class="text-[10px] font-mono font-bold text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2 py-0.5 rounded">
+                        v2.0
+                    </span>
+
+                </div>
+
+
+                <div class="space-y-2.5 text-xs">
+
+
+                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
+                        <span class="text-slate-300">
+                            Target Lomba
+                        </span>
+
+                        <span class="font-mono font-bold text-white">
+                            5K • 10K • 21K • Marathon
+                        </span>
+                    </div>
+
+
+                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
+                        <span class="text-slate-300">
+                            Data Awal
+                        </span>
+
+                        <span class="font-mono font-bold text-slate-200">
+                            Personal Best / Tes Cooper
+                        </span>
+                    </div>
+
+
+                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
+                        <span class="text-slate-300">
+                            Zona Pace
+                        </span>
+
+                        <span class="font-mono font-bold text-brand-500">
+                            Easy • Tempo • Interval
+                        </span>
+                    </div>
+
+
+                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
+                        <span class="text-slate-300">
+                            Pendukung
+                        </span>
+
+                        <span class="font-mono font-bold text-emerald-400">
+                            Strength • Recovery
+                        </span>
+                    </div>
+
+
+                </div>
+
+
+                <div class="p-3 rounded bg-[#0E1523] border border-[#23324A] text-[11px] text-slate-300 leading-relaxed">
+
+                    Program latihan dibuat berdasarkan data performa untuk membantu mengatur pace,
+                    intensitas, dan progres latihan menuju target lomba.
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+    <main id="generator-form" class="relative z-10 max-w-5xl mx-auto px-4 pt-10 pb-8">
         
-        <!-- Header: Direct athletic title without span pill -->
-        <div class="mb-6 pb-4 border-b border-slate-800">
-            <h1 class="text-2xl font-bold text-white tracking-tight">Buat Program Lari Gratis: Generator VDOT untuk 5K, 10K, Half Marathon & Marathon</h1>
-            <p class="text-sm text-slate-300 mt-1">Ingin <strong>buat program lari</strong> yang terbukti efektif? Susun <strong>program lari</strong> gratis terstruktur untuk 5K, 10K, Half Marathon, hingga Marathon berbasis Jack Daniels VDOT Formula dengan target pace personal yang realistis.</p>
+        <!-- Form Section Header in Step 1 -->
+        <div v-if="step === 1" class="mb-6 pb-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">Formulir Parameter Program Latihan</h2>
+                <p class="text-xs text-slate-300 mt-1">Lengkapi data tolok ukur awal dan target lomba untuk menghasilkan periodisasi yang realistis.</p>
+            </div>
+            <div class="text-xs font-mono text-slate-300 bg-[#131B2D] px-3 py-1.5 rounded-md border border-[#283750] self-start sm:self-auto">
+                Langkah 1 dari 2
+            </div>
         </div>
 
         <transition name="fade" mode="out-in">
@@ -321,11 +574,11 @@
                     <div class="lg:col-span-7 space-y-6">
                         
                         <!-- Card 1: Benchmark & Parameter Test / PB -->
-                        <div class="card-dark p-5 rounded-lg border border-slate-800">
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
+                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/80">
                                 <div>
-                                    <h2 class="text-base font-semibold text-white">1. Tolok Ukur Kebugaran Awal</h2>
-                                    <p class="text-xs text-slate-400 mt-0.5">Hasil tes kebugaran atau PB terkini untuk kalkulasi VDOT</p>
+                                    <h3 class="text-base font-semibold text-white">1. Tolok Ukur Kebugaran Awal</h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Hasil tes kebugaran atau PB terkini untuk kalkulasi VDOT</p>
                                 </div>
                                 <div v-if="current_vdot && current_vdot > 0" class="text-right">
                                     <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Estimasi VDOT</span>
@@ -354,15 +607,15 @@
                                     <div class="grid grid-cols-3 gap-2.5">
                                         <div>
                                             <input v-model.number="pb_hours" type="number" min="0" max="99" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Jam</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
                                         </div>
                                         <div>
                                             <input v-model.number="pb_minutes" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Menit</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
                                         </div>
                                         <div>
                                             <input v-model.number="pb_seconds" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Detik</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
                                         </div>
                                     </div>
                                 </div>
@@ -372,19 +625,19 @@
                                     <label class="label-text">Jarak Tempuh Hasil Tes (Meter)</label>
                                     <div class="relative">
                                         <input v-model.number="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-mono font-bold" placeholder="Contoh: 2400">
-                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-mono">meter</span>
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-300 font-mono">meter</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-400 mt-1.5 leading-normal">Standar tes 12 menit: 2.000m - 2.800m untuk rekreasional, >3.000m untuk terlatih.</p>
+                                    <p class="text-[11px] text-slate-300 mt-1.5 leading-normal">Standar tes 12 menit: 2.000m - 2.800m untuk rekreasional, >3.000m untuk terlatih.</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card 2: Target Lomba & Kalender -->
-                        <div class="card-dark p-5 rounded-lg border border-slate-800">
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
+                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/80">
                                 <div>
-                                    <h2 class="text-base font-semibold text-white">2. Target Lomba & Kalender</h2>
-                                    <p class="text-xs text-slate-400 mt-0.5">Jarak sasaran, waktu race, dan batas durasi persiapan</p>
+                                    <h3 class="text-base font-semibold text-white">2. Target Lomba & Kalender</h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Jarak sasaran, waktu race, dan batas durasi persiapan</p>
                                 </div>
                                 <span v-if="realism" :class="realism.color" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border">
                                     @{{ realism.label }}
@@ -427,18 +680,18 @@
                                     <div class="grid grid-cols-3 gap-2.5">
                                         <div>
                                             <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Jam</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
                                         </div>
                                         <div>
                                             <input v-model.number="goal_minutes" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Menit</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
                                         </div>
                                         <div>
                                             <input v-model.number="goal_seconds" type="number" min="0" max="59" class="input-field text-center font-mono font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-400 text-center block mt-1">Detik</span>
+                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
                                         </div>
                                     </div>
-                                    <p v-if="realism" class="text-xs text-slate-300 mt-2.5 bg-slate-900 p-2.5 rounded border border-slate-800 leading-relaxed">
+                                    <p v-if="realism" class="text-xs text-slate-200 mt-2.5 bg-[#0E1523] p-3 rounded-md border border-[#23324A] leading-relaxed">
                                         @{{ realism.description }}
                                     </p>
                                 </div>
@@ -450,10 +703,10 @@
                     <div class="lg:col-span-5 space-y-6">
 
                         <!-- Card 3: Beban & Jadwal Latihan -->
-                        <div class="card-dark p-5 rounded-lg border border-slate-800">
-                            <div class="mb-4 pb-3 border-b border-slate-800">
-                                <h2 class="text-base font-semibold text-white">3. Beban & Jadwal Latihan</h2>
-                                <p class="text-xs text-slate-400 mt-0.5">Alokasi volume mingguan dan preferensi sesi</p>
+                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
+                            <div class="mb-4 pb-3 border-b border-slate-700/80">
+                                <h3 class="text-base font-semibold text-white">3. Beban & Jadwal Latihan</h3>
+                                <p class="text-xs text-slate-300 mt-0.5">Alokasi volume mingguan dan preferensi sesi</p>
                             </div>
 
                             <div class="space-y-4">
@@ -464,7 +717,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <input v-model.number="form.weekly_mileage" type="number" min="15" max="150" step="1" class="input-field font-mono font-bold">
-                                        <button type="button" @click="recommendMileage" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-md border border-slate-700 whitespace-nowrap transition cursor-pointer">
+                                        <button type="button" @click="recommendMileage" class="px-2.5 py-2 bg-[#1C273B] hover:bg-[#283750] text-slate-200 text-xs rounded-md border border-[#3A4C6D] whitespace-nowrap transition cursor-pointer">
                                             Reset Saran
                                         </button>
                                     </div>
@@ -474,7 +727,7 @@
                                     <label class="label-text">Frekuensi Latihan Mingguan</label>
                                     <div class="grid grid-cols-5 gap-1.5">
                                         <button v-for="f in [3,4,5,6,7]" :key="f" type="button" @click="form.frequency = f" 
-                                                :class="form.frequency === f ? 'bg-brand-500 text-slate-950 font-bold border-brand-500' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-600'"
+                                                :class="form.frequency === f ? 'bg-brand-500 text-slate-950 font-bold border-brand-500' : 'bg-[#1C273B] text-slate-200 border-[#3A4C6D] hover:border-slate-400'"
                                                 class="py-2 rounded-md text-xs transition border text-center cursor-pointer">
                                             @{{ f }} Hari
                                         </button>
@@ -500,10 +753,10 @@
                                 </div>
 
                                 <!-- Strength Training -->
-                                <div class="p-3 bg-slate-900 rounded-md border border-slate-800 space-y-2">
+                                <div class="p-3.5 bg-[#0E1523] rounded-md border border-[#23324A] space-y-2">
                                     <div class="flex items-center justify-between">
                                         <label class="flex items-center gap-2 cursor-pointer select-none">
-                                            <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-brand-500 rounded border-slate-700 bg-slate-800">
+                                            <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-brand-500 rounded border-slate-600 bg-[#1C273B]">
                                             <span class="text-xs font-semibold text-slate-200">Sertakan Strength Training</span>
                                         </label>
                                         <span v-if="form.include_strength" class="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-1.5 py-0.5 rounded">2x/Mgg</span>
@@ -517,12 +770,12 @@
                                 </div>
 
                                 <!-- Tropical Adjustment -->
-                                <div class="p-3 bg-slate-900 rounded-md border border-slate-800">
+                                <div class="p-3.5 bg-[#0E1523] rounded-md border border-[#23324A]">
                                     <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                        <input type="checkbox" v-model="form.is_tropical" class="w-4 h-4 mt-0.5 accent-brand-500 rounded border-slate-700 bg-slate-800">
+                                        <input type="checkbox" v-model="form.is_tropical" class="w-4 h-4 mt-0.5 accent-brand-500 rounded border-slate-600 bg-[#1C273B]">
                                         <div>
                                             <span class="text-xs font-semibold text-slate-200 block">Adaptasi Iklim Tropis</span>
-                                            <span class="text-[11px] text-slate-400 block mt-0.5 leading-normal">
+                                            <span class="text-[11px] text-slate-300 block mt-0.5 leading-normal">
                                                 Menyesuaikan pace +10–15s/km untuk menjaga kestabilan beban kardiovaskular di suhu dan kelembapan Indonesia.
                                             </span>
                                         </div>
@@ -532,19 +785,19 @@
                         </div>
 
                         <!-- Card 4: Profil Fisik & Riwayat Cedera -->
-                        <div class="card-dark p-5 rounded-lg border border-slate-800">
-                            <div class="mb-4 pb-3 border-b border-slate-800">
-                                <h2 class="text-base font-semibold text-white">4. Profil Fisik & Riwayat Cedera</h2>
-                                <p class="text-xs text-slate-400 mt-0.5">Parameter nutrisi dan rekomendasi protektif</p>
+                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
+                            <div class="mb-4 pb-3 border-b border-slate-700/80">
+                                <h3 class="text-base font-semibold text-white">4. Profil Fisik & Riwayat Cedera</h3>
+                                <p class="text-xs text-slate-300 mt-0.5">Parameter nutrisi dan rekomendasi protektif</p>
                             </div>
 
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="label-text">Jenis Kelamin</label>
-                                        <div class="grid grid-cols-2 gap-1 p-0.5 bg-slate-900 rounded-md border border-slate-700">
-                                            <button type="button" @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400'" class="py-1.5 rounded text-xs transition cursor-pointer">Laki-laki</button>
-                                            <button type="button" @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400'" class="py-1.5 rounded text-xs transition cursor-pointer">Perempuan</button>
+                                        <div class="grid grid-cols-2 gap-1 p-1 bg-[#0E1523] rounded-md border border-[#23324A]">
+                                            <button type="button" @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-[#283750] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Laki-laki</button>
+                                            <button type="button" @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-[#283750] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Perempuan</button>
                                         </div>
                                     </div>
                                     <div>
@@ -580,7 +833,7 @@
 
                         <!-- Submit CTA -->
                         <button @click="generateProgram" :disabled="loading" 
-                                class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-sm rounded-md transition uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                                class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-sm rounded-md transition uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md">
                             <span v-if="!loading">Buat Program Latihan</span>
                             <span v-else class="flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -742,7 +995,7 @@
 </div>
 
 <!-- Rich Crawlable SEO Knowledge & Guide Section (Server-Rendered Semantic Content) -->
-<section class="bg-[#080A0D] border-t border-slate-800 text-slate-300 py-16 px-4">
+<section id="panduan-vdot" class="bg-[#080A0D] border-t border-slate-800 text-slate-300 py-16 px-4">
     <div class="max-w-5xl mx-auto space-y-12">
         
         <!-- Breadcrumb Navigation -->
@@ -1020,6 +1273,27 @@
 
     createApp({
         setup() {
+            // Hero Background Slider (Ken Burns Zoom-Out effect)
+            const heroSlides = [
+                '{{ file_exists(public_path("images/hero/vdot-runner-training.jpg")) ? asset("images/hero/vdot-runner-training.jpg") : asset("images/hero/marathon-hero-cinematic.jpg") }}',
+                '{{ asset("images/hero/marathon-hero-cinematic.jpg") }}',
+                '{{ asset("images/hero/runner-hero.jpg") }}'
+            ];
+            const activeHeroSlide = ref(0);
+            let heroSlideTimer = null;
+
+            const startHeroSlideTimer = () => {
+                if (heroSlideTimer) clearInterval(heroSlideTimer);
+                heroSlideTimer = setInterval(() => {
+                    activeHeroSlide.value = (activeHeroSlide.value + 1) % heroSlides.length;
+                }, 8000);
+            };
+
+            const setHeroSlide = (idx) => {
+                activeHeroSlide.value = idx;
+                startHeroSlideTimer();
+            };
+
             const step = ref(1);
             const loading = ref(false);
             const saving = ref(false);
@@ -1307,6 +1581,8 @@
             });
 
             onMounted(() => {
+                startHeroSlideTimer();
+
                 const params = new URLSearchParams(window.location.search);
                 let dist = params.get('distance');
                 const time = params.get('time');
@@ -1315,6 +1591,12 @@
                 if (dist || time || meters) {
                     isInitializingFromParams = true;
                     step.value = 1; // Automatically open form step when params are provided
+                    setTimeout(() => {
+                        const el = document.getElementById('generator-form');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 300);
                 }
 
                 if (dist) {
@@ -1689,6 +1971,7 @@
 
 
             return {
+                heroSlides, activeHeroSlide, setHeroSlide,
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
                 conflictModal, confirmConflictAction,
                 generateProgram, saveAndOpenCalendar,
