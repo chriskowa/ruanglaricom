@@ -18,9 +18,9 @@
     }
 @endphp
 <article class="bg-slate-900 border border-slate-800 rounded-md p-4 sm:p-5 hover:border-slate-700 transition-all group event-card">
-    <div class="flex flex-col md:flex-row gap-5 md:items-center">
+    <div class="event-card-inner flex flex-col md:flex-row gap-5 md:items-center">
         <!-- Event Thumbnail with Date Badge Overlay -->
-        <div class="relative flex-shrink-0 w-full md:w-48 h-48 md:h-32 rounded overflow-hidden border border-slate-800 bg-slate-950">
+        <div class="event-card-thumb relative flex-shrink-0 w-full md:w-48 h-48 md:h-32 rounded overflow-hidden border border-slate-800 bg-slate-950">
             <img src="{{ $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp') }}" 
                  alt="{{ $event->name }}" 
                  class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -35,7 +35,7 @@
         </div>
 
         <!-- Info -->
-        <div class="flex-grow space-y-2.5 min-w-0">
+        <div class="event-card-body flex-grow space-y-2.5 min-w-0">
             <!-- Badges -->
             <div class="flex flex-wrap gap-1.5 items-center">
                 @if($event->is_featured)
@@ -101,7 +101,7 @@
         </div>
 
         <!-- Action -->
-        <div class="flex flex-row md:flex-col gap-2 w-full md:w-auto md:self-center md:items-end mt-2 md:mt-0 shrink-0">
+        <div class="event-card-actions flex flex-row md:flex-col gap-2 w-full md:w-auto md:self-center md:items-end mt-2 md:mt-0 shrink-0">
             <a href="{{ $event->public_url }}" class="flex-1 md:flex-none inline-flex items-center justify-center px-5 py-2.5 rounded bg-neon text-dark font-extrabold text-xs uppercase tracking-wider hover:bg-lime-300 transition-all">
                 Detail Event
                 <svg class="w-3.5 h-3.5 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

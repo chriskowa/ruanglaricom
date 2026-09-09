@@ -569,7 +569,7 @@
         font-weight: 700;
     }
 
-    /* EVENT LIST */
+    /* EVENT LIST & VIEW SWITCHER */
     #events-page .ep-list-head {
         display: flex;
         align-items: flex-end;
@@ -578,9 +578,109 @@
         padding-top: 2rem;
         margin-bottom: 1rem;
     }
+    .ep-view-switcher {
+        display: inline-flex;
+        align-items: center;
+        background: #0B0F17;
+        border: 1px solid var(--ep-line);
+        border-radius: 6px;
+        padding: 2px;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+    .ep-view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #94A3B8;
+        background: transparent;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+    .ep-view-btn:hover {
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .ep-view-btn.is-active {
+        background: var(--ep-accent);
+        color: #080A0D;
+        border-color: var(--ep-accent);
+        font-weight: 800;
+    }
+    .ep-view-btn svg {
+        flex-shrink: 0;
+    }
+
+    /* DEFAULT LIST VIEW */
     #events-page #events-container {
         display: flex;
         flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* CARD VIEW (GRID) */
+    #events-page #events-container.view-card {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+    @media (min-width: 640px) {
+        #events-page #events-container.view-card {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @media (min-width: 1024px) {
+        #events-page #events-container.view-card {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+    #events-page #events-container.view-card .event-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    #events-page #events-container.view-card .event-card-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        height: 100%;
+        gap: 1rem !important;
+    }
+    #events-page #events-container.view-card .event-card-thumb {
+        width: 100% !important;
+        height: 190px !important;
+    }
+    #events-page #events-container.view-card .event-card-body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    #events-page #events-container.view-card .event-card-body h3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.8rem;
+    }
+    #events-page #events-container.view-card .event-card-actions {
+        width: 100% !important;
+        margin-top: auto !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+    #events-page #events-container.view-card .event-card-actions a {
+        flex: 1 1 0%;
+        text-align: center;
+    }
+    #events-page #events-container.view-card > div:only-child {
+        grid-column: 1 / -1;
     }
 
     /* SEO DIRECTORY */
@@ -685,8 +785,8 @@
         justify-content: space-between;
         gap: 1rem;
         padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--ep-line);
-        background: #12161F;
+        border-bottom: 1px solid #28364F;
+        background: #121A27;
     }
     #submit-event-modal .ep-modal-foot {
         flex: 0 0 auto;
@@ -695,8 +795,8 @@
         justify-content: space-between;
         gap: 1rem;
         padding: 1rem 1.25rem;
-        border-top: 1px solid var(--ep-line);
-        background: #12161F;
+        border-top: 1px solid #28364F;
+        background: #121A27;
         z-index: 10;
     }
     #submit-event-modal .ep-modal-body {
@@ -707,16 +807,17 @@
         background: #080A0D;
     }
     #submit-event-modal .ep-form-section {
-        padding: 1rem;
-        border: 1px solid var(--ep-line);
-        border-radius: 8px;
-        background: #12161F;
+        padding: 1.25rem;
+        border: 1px solid #28364F;
+        border-radius: 6px;
+        background: #182234;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     }
     #submit-event-modal .ep-form-section-title {
         padding-bottom: 0.5rem;
-        margin-bottom: 0.75rem;
-        border-bottom: 1px solid var(--ep-line);
-        color: var(--ep-accent);
+        margin-bottom: 0.85rem;
+        border-bottom: 1px solid #28364F;
+        color: #CCFF00;
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 0.08em;
@@ -725,9 +826,9 @@
     #submit-event-modal label {
         display: block;
         font-size: 11px;
-        font-weight: 600;
-        color: #cbd5e1;
-        margin-bottom: 4px;
+        font-weight: 700;
+        color: #F1F5F9;
+        margin-bottom: 5px;
     }
     #submit-event-modal input[type="text"],
     #submit-event-modal input[type="date"],
@@ -738,15 +839,15 @@
         width: 100%;
         height: 38px;
         padding: 6px 10px;
-        background: #0B0F17;
-        border: 1px solid var(--ep-line);
+        background: #0E1624;
+        border: 1px solid #334460;
         border-radius: 6px;
-        color: #ffffff;
+        color: #FFFFFF;
         font-size: 12px;
         font-family: inherit;
         outline: none;
         box-sizing: border-box;
-        transition: border-color 0.15s ease;
+        transition: border-color 0.15s ease, background 0.15s ease;
         color-scheme: dark;
     }
     #submit-event-modal textarea {
@@ -757,68 +858,120 @@
     #submit-event-modal input:focus,
     #submit-event-modal select:focus,
     #submit-event-modal textarea:focus {
-        border-color: var(--ep-accent);
-        box-shadow: 0 0 0 1px var(--ep-accent);
+        background: #0A101A;
+        border-color: #CCFF00;
+        box-shadow: 0 0 0 1px #CCFF00;
     }
     #submit-event-modal .race-distance-cb {
         width: 15px;
         height: 15px;
-        accent-color: var(--ep-accent);
+        accent-color: #CCFF00;
         cursor: pointer;
     }
     #submit-event-modal .ep-form-section label.race-distance-item {
         display: flex;
         align-items: center;
         gap: 8px;
-        border: 1px solid var(--ep-line);
-        background: #0B0F17;
+        border: 1px solid #334460;
+        background: #0E1624;
         border-radius: 6px;
-        padding: 6px 8px;
-        color: #e2e8f0;
+        padding: 7px 10px;
+        color: #F1F5F9;
         font-size: 11px;
         font-weight: 600;
         cursor: pointer;
         margin-bottom: 0 !important;
         user-select: none;
+        transition: all 0.15s ease;
     }
     #submit-event-modal .ep-form-section label.race-distance-item:hover {
-        border-color: var(--ep-accent);
+        border-color: #CCFF00;
+        background: #141F32;
     }
     #submit-event-modal #banner-dropzone {
-        border: 1px dashed var(--ep-line-strong);
+        border: 1.5px dashed #3A4D6E;
         border-radius: 6px;
-        background: #0B0F17;
+        background: #0E1624;
         padding: 1.25rem;
         text-align: center;
         cursor: pointer;
-        transition: border-color 0.15s ease;
+        transition: all 0.15s ease;
     }
     #submit-event-modal #banner-dropzone:hover {
-        border-color: var(--ep-accent);
+        border-color: #CCFF00;
+        background: #141F32;
     }
     #submit-event-modal #map-search-results {
-        background: #12161F;
-        border: 1px solid var(--ep-line);
+        background: #182234;
+        border: 1px solid #28364F;
         border-radius: 6px;
         max-height: 160px;
         overflow-y: auto;
-        color: #ffffff;
+        color: #FFFFFF;
         font-size: 12px;
         margin-top: 4px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.7);
     }
     #submit-event-modal #map-search-results div {
         padding: 8px 12px;
-        border-bottom: 1px solid var(--ep-line);
+        border-bottom: 1px solid #28364F;
         cursor: pointer;
     }
     #submit-event-modal #map-search-results div:hover {
-        background: #1a2333;
-        color: var(--ep-accent);
+        background: #233148;
+        color: #CCFF00;
     }
     #submit-event-modal #event-map {
         border-radius: 6px;
-        border: 1px solid var(--ep-line);
+        border: 1px solid #28364F;
+    }
+
+    /* SUBMIT EVENT MODAL BUTTONS (LIGHT BACKGROUND WITH DARK TEXT & INTUITIVE HIERARCHY) */
+    #submit-event-modal #btn-submit-event-cancel {
+        background: #E2E8F0 !important;
+        color: #0F172A !important;
+        border: 1px solid #CBD5E1 !important;
+        font-weight: 700 !important;
+        padding: 8px 18px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+    }
+    #submit-event-modal #btn-submit-event-cancel:hover {
+        background: #FFFFFF !important;
+        color: #020617 !important;
+        border-color: #94A3B8 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    }
+    #submit-event-modal #btn-submit-event-submit {
+        background: #CCFF00 !important;
+        color: #080A0D !important;
+        border: 1px solid #CCFF00 !important;
+        font-weight: 800 !important;
+        padding: 8px 22px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        box-shadow: 0 2px 10px rgba(204, 255, 0, 0.2) !important;
+    }
+    #submit-event-modal #btn-submit-event-submit:hover {
+        background: #D8FF33 !important;
+        border-color: #D8FF33 !important;
+        box-shadow: 0 4px 16px rgba(204, 255, 0, 0.35) !important;
+    }
+    #submit-event-modal #btn-submit-event-send-otp {
+        background: #E2E8F0 !important;
+        color: #0F172A !important;
+        border: 1px solid #CBD5E1 !important;
+        font-weight: 700 !important;
+        padding: 8px 14px !important;
+        border-radius: 6px !important;
+        transition: all 0.15s ease !important;
+    }
+    #submit-event-modal #btn-submit-event-send-otp:hover {
+        background: #FFFFFF !important;
+        color: #020617 !important;
+        border-color: #94A3B8 !important;
     }
 
     /* MAPBOX CUSTOM STYLES */
@@ -1308,10 +1461,24 @@
             </div>
         </div>
 
-        <div class="ep-list-head">
+        <div class="ep-list-head flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
                 <h2 class="text-lg font-semibold text-white">Kalender Event Lari Terbaru</h2>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar jadwal perlombaan lari yang telah terverifikasi di Indonesia.</p>
+            </div>
+            <div class="ep-view-switcher self-start sm:self-auto" role="group" aria-label="Pilihan tampilan jadwal">
+                <button type="button" id="btn-view-list" class="ep-view-btn is-active" onclick="setEventsView('list')" title="Tampilan List" aria-pressed="true">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <span>List</span>
+                </button>
+                <button type="button" id="btn-view-card" class="ep-view-btn" onclick="setEventsView('card')" title="Tampilan Card" aria-pressed="false">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span>Card</span>
+                </button>
             </div>
         </div>
 
@@ -2048,6 +2215,49 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // ----------------------------------------------------
+    // VIEW SWITCHER (LIST vs CARD)
+    // ----------------------------------------------------
+    window.setEventsView = function (mode) {
+        const eventsContainer = document.getElementById('events-container');
+        const btnList = document.getElementById('btn-view-list');
+        const btnCard = document.getElementById('btn-view-card');
+
+        if (mode === 'card') {
+            if (eventsContainer) eventsContainer.classList.add('view-card');
+            if (btnCard) {
+                btnCard.classList.add('is-active');
+                btnCard.setAttribute('aria-pressed', 'true');
+            }
+            if (btnList) {
+                btnList.classList.remove('is-active');
+                btnList.setAttribute('aria-pressed', 'false');
+            }
+            try {
+                localStorage.setItem('ruanglari_events_view', 'card');
+            } catch (e) {}
+        } else {
+            if (eventsContainer) eventsContainer.classList.remove('view-card');
+            if (btnList) {
+                btnList.classList.add('is-active');
+                btnList.setAttribute('aria-pressed', 'true');
+            }
+            if (btnCard) {
+                btnCard.classList.remove('is-active');
+                btnCard.setAttribute('aria-pressed', 'false');
+            }
+            try {
+                localStorage.setItem('ruanglari_events_view', 'list');
+            } catch (e) {}
+        }
+    };
+
+    // Load saved view preference
+    try {
+        const savedEventsView = localStorage.getItem('ruanglari_events_view') || 'list';
+        setEventsView(savedEventsView);
+    } catch (e) {}
 
     // ----------------------------------------------------
     // 3. SUBMIT EVENT MODAL & MINI MAP (MAPBOX GL)
