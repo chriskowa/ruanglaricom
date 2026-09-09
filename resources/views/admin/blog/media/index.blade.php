@@ -38,7 +38,7 @@
 
     <!-- Upload Area (Only for Local) -->
     <div id="dropzone" class="mb-8 border-2 border-dashed border-slate-700 rounded-2xl p-8 text-center bg-slate-800/30 hover:bg-slate-800/50 hover:border-neon transition-all cursor-pointer relative z-10 group {{ request('source') === 'cloudinary' ? 'hidden' : '' }}">
-        <input type="file" id="file-upload" class="hidden" multiple accept="image/*">
+        <input type="file" id="file-upload" class="hidden" multiple accept="image/*,.svg">
         <div class="pointer-events-none">
             <div class="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-neon/10 group-hover:text-neon transition-colors">
                 <svg class="w-8 h-8 text-slate-400 group-hover:text-neon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>

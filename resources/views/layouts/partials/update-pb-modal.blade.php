@@ -672,6 +672,186 @@
                 </div>
             </footer>
         </form>
+
+        <!-- STEP 04: PROGRAM ADAPTATION ADVISORY -->
+        <div id="global-pb-adaptation-container" class="hidden flex-1 flex flex-col min-h-0 overflow-hidden bg-[#0c1424]">
+            <div class="performance-scroll flex-1 overflow-y-auto px-5 py-6 md:px-7 md:py-7 space-y-6">
+
+                <div id="adaptation-alert" class="hidden"></div>
+
+                <!-- ADAPTATION HEADER BANNER -->
+                <div class="border border-[#23354d] bg-[#121c2e] p-5 rounded-lg shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-[#10b981]/20 text-[#34d399] border border-[#10b981]/30 rounded">
+                                Evaluasi Performa Terdeteksi
+                            </span>
+                            <span id="adapt-program-badge" class="px-2 py-0.5 text-[9px] font-mono text-slate-300 bg-[#17243b] border border-[#283d5d] rounded">
+                                Program Aktif: -
+                            </span>
+                        </div>
+                        <div class="text-[10px] font-mono text-slate-400">
+                            Sisa <strong id="adapt-remaining-count" class="text-white">0</strong> sesi latihan masa depan
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <h3 id="adapt-header-title" class="text-base md:text-lg font-bold text-white tracking-tight">
+                                Kapasitas Atlet Meningkat
+                            </h3>
+                            <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+                                Hasil check-in terbaru menunjukkan perubahan kapasitas performa. Apakah Anda ingin memperbarui target volume, variasi interval, long run, dan penguatan pada sisa program aktif Anda?
+                            </p>
+                        </div>
+
+                        <!-- BEFORE vs AFTER VDOT & TIMES -->
+                        <div class="grid grid-cols-2 gap-2 p-3 bg-[#17243b] border border-[#283d5d] rounded-md font-mono text-xs">
+                            <div>
+                                <div class="text-[10px] text-slate-400 uppercase">VDOT Lama</div>
+                                <div id="adapt-vdot-old" class="text-sm font-bold text-slate-300 mt-0.5">-</div>
+                                <div id="adapt-5k-old" class="text-[11px] text-slate-400 mt-1">5K: -</div>
+                            </div>
+                            <div class="border-l border-[#283d5d] pl-3">
+                                <div class="text-[10px] text-[#B8FF00] uppercase font-bold">VDOT Baru</div>
+                                <div id="adapt-vdot-new" class="text-sm font-bold text-[#B8FF00] mt-0.5">-</div>
+                                <div id="adapt-5k-new" class="text-[11px] text-slate-200 mt-1">5K: -</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 PILLARS OF ADAPTATION GRID -->
+                <div>
+                    <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <span>Rekomendasi Penyesuaian 4 Pilar Program Latihan</span>
+                        <span class="h-px flex-1 bg-[#23354d]"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <!-- PILAR 1: VOLUME LATIHAN -->
+                        <div class="bg-[#121c2e] border border-[#23354d] p-4 rounded-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-400">Pilar 01 / Volume</span>
+                                    <span class="text-[9.5px] font-mono text-slate-400">10% Safe Overload</span>
+                                </div>
+                                <h4 class="text-xs font-bold text-white mt-1.5">Volume Latihan Mingguan (Mileage)</h4>
+                                <div class="mt-2.5 flex items-baseline gap-2 font-mono">
+                                    <span id="adapt-volume-old" class="text-sm text-slate-400">- km</span>
+                                    <span class="text-slate-500">→</span>
+                                    <span id="adapt-volume-new" class="text-base font-bold text-[#B8FF00]">- km/mgg</span>
+                                </div>
+                                <p id="adapt-volume-summary" class="mt-2 text-[11px] leading-relaxed text-slate-300">
+                                    Volume disesuaikan secara bertahap (maksimal kenaikan 7–10% per minggu) pada sisa minggu latihan agar tendon dan sendi tidak mengalami beban kejut.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- PILAR 2: VARIASI SPEED & INTERVAL -->
+                        <div class="bg-[#121c2e] border border-[#23354d] p-4 rounded-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-rose-400">Pilar 02 / Speed</span>
+                                    <span id="adapt-speed-type" class="text-[9.5px] text-slate-400 truncate max-w-[140px]">VO2Max & Tempo</span>
+                                </div>
+                                <h4 class="text-xs font-bold text-white mt-1.5">Variasi Speed & Sesi Kualitas</h4>
+                                <div class="mt-2.5 flex flex-wrap gap-2 text-[11px] font-mono">
+                                    <span class="px-2 py-0.5 bg-[#17243b] border border-[#283d5d] rounded text-slate-200">
+                                        I-Pace: <strong id="adapt-pace-interval" class="text-white">-</strong>
+                                    </span>
+                                    <span class="px-2 py-0.5 bg-[#17243b] border border-[#283d5d] rounded text-slate-200">
+                                        T-Pace: <strong id="adapt-pace-threshold" class="text-white">-</strong>
+                                    </span>
+                                </div>
+                                <p id="adapt-speed-benefit" class="mt-2 text-[11px] leading-relaxed text-slate-300">
+                                    Beban interval dan ambang laktat diperbarui untuk memicu adaptasi kapasitas aerobik maksimal dan efisiensi kecepatan race-pace.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- PILAR 3: LONG RUN -->
+                        <div class="bg-[#121c2e] border border-[#23354d] p-4 rounded-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400">Pilar 03 / Endurance</span>
+                                    <span class="text-[9.5px] font-mono text-slate-400">Max 25–30% Volume</span>
+                                </div>
+                                <h4 class="text-xs font-bold text-white mt-1.5">Jarak & Pacing Long Run</h4>
+                                <div class="mt-2.5 flex items-baseline gap-2 font-mono">
+                                    <span class="text-xs text-slate-400">Target Jarak:</span>
+                                    <span id="adapt-longrun-km" class="text-base font-bold text-[#B8FF00]">- km</span>
+                                    <span class="text-slate-500">@</span>
+                                    <span id="adapt-longrun-pace" class="text-xs text-slate-200">-</span>
+                                </div>
+                                <p id="adapt-longrun-summary" class="mt-2 text-[11px] leading-relaxed text-slate-300">
+                                    Jarak lari panjang akhir pekan diproyeksikan dengan batas rasio aman dan target pace aerobik santai yang terkalibrasi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- PILAR 4: STRENGTH & CONDITIONING -->
+                        <div class="bg-[#121c2e] border border-[#23354d] p-4 rounded-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-blue-400">Pilar 04 / Strength</span>
+                                    <span class="text-[9.5px] text-slate-400">Injury Prevention</span>
+                                </div>
+                                <h4 id="adapt-strength-focus" class="text-xs font-bold text-white mt-1.5">Penguatan Otot & Stabilitas Sendi</h4>
+                                <p id="adapt-strength-summary" class="mt-2 text-[11px] leading-relaxed text-slate-300">
+                                    Peningkatan kecepatan menambah beban impak sendi. Diperlukan penguatan tendon dan stabilitas panggul.
+                                </p>
+                                <div id="adapt-strength-exercises" class="mt-2.5 text-[10.5px] text-slate-300 space-y-1">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- READINESS ADVISORY -->
+                <div id="adapt-readiness-banner" class="p-3.5 border border-[#23354d] bg-[#17243b] rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-shield-halved text-amber-400 text-sm mt-0.5"></i>
+                        <div>
+                            <div class="text-[10.5px] font-bold text-white uppercase tracking-wider" id="adapt-readiness-title">
+                                Kesiapan Atlet & Catatan Fisiologis
+                            </div>
+                            <p class="mt-1 text-[11px] leading-relaxed text-slate-300" id="adapt-readiness-message">
+                                Kondisi tubuh Anda siap menerima adaptasi program secara teratur.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADAPTATION FOOTER -->
+            <footer class="shrink-0 border-t border-white/10 bg-[#0b1522]/96 backdrop-blur-md px-5 py-4 md:px-7 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="text-[9.5px] text-slate-400">
+                    Sesi latihan yang sudah selesai tetap aman dan tidak akan diubah.
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                    <button
+                        type="button"
+                        onclick="skipProgramAdaptationAction()"
+                        class="performance-btn-secondary"
+                    >
+                        Simpan Pace Saja (Jadwal Tetap)
+                    </button>
+
+                    <button
+                        type="button"
+                        id="adapt-apply-btn"
+                        onclick="applyProgramAdaptationAction(true)"
+                        class="performance-btn-primary inline-flex items-center justify-center gap-2"
+                    >
+                        <span>Terapkan ke Program Aktif</span>
+                        <i class="fas fa-check text-[10px]"></i>
+                    </button>
+                </div>
+            </footer>
+        </div>
     </div>
 </div>
 
@@ -693,6 +873,16 @@
         if (modal) {
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+
+            // Reset back to input form if Step 04 was previously active
+            const form = document.getElementById('global-pb-form');
+            const adaptContainer = document.getElementById('global-pb-adaptation-container');
+            if (form) form.classList.remove('hidden');
+            if (adaptContainer) adaptContainer.classList.add('hidden');
+            const alertBox = document.getElementById('global-pb-alert');
+            if (alertBox) alertBox.className = 'hidden';
+            const adaptAlert = document.getElementById('adaptation-alert');
+            if (adaptAlert) adaptAlert.className = 'hidden';
         }
     }
 
@@ -877,6 +1067,12 @@
                 // Clear dismissal cooldown since user successfully updated
                 localStorage.removeItem('global_pb_modal_dismissed_time');
 
+                // If adaptation recommendation is available and applicable, switch to Step 04
+                if (res.adaptation_recommendation && res.adaptation_recommendation.can_adapt_program) {
+                    renderAdaptationReview(res.adaptation_recommendation, res.vdot, payload.feeling);
+                    return;
+                }
+
                 alertBox.className = 'performance-alert performance-alert--success block';
                 alertBox.textContent = 'Laporan kondisi & Personal Best berhasil diperbarui! Target pace latihan telah disesuaikan.';
 
@@ -897,6 +1093,157 @@
             btn.disabled = false;
             btn.innerHTML = '<span>Simpan Check-in</span><i class="fas fa-arrow-right text-[10px]"></i>';
         }
+    }
+
+    let currentAdaptationData = null;
+
+    function renderAdaptationReview(data, newVdot, feeling) {
+        currentAdaptationData = { ...data, new_vdot: newVdot, feeling: feeling };
+
+        const form = document.getElementById('global-pb-form');
+        const container = document.getElementById('global-pb-adaptation-container');
+        if (form) form.classList.add('hidden');
+        if (container) container.classList.remove('hidden');
+
+        // Scroll to top
+        const scrollEl = container.querySelector('.performance-scroll');
+        if (scrollEl) scrollEl.scrollTop = 0;
+
+        // Header & Badges
+        const progBadge = document.getElementById('adapt-program-badge');
+        if (progBadge) progBadge.textContent = `Program: ${data.program_title} (${data.distance_target})`;
+
+        const remEl = document.getElementById('adapt-remaining-count');
+        if (remEl) remEl.textContent = data.remaining_sessions_count;
+
+        const titleEl = document.getElementById('adapt-header-title');
+        if (titleEl) {
+            const dir = data.vdot_diff > 0 ? 'Meningkat' : (data.vdot_diff < 0 ? 'Menurun' : 'Stabil');
+            const sign = data.vdot_diff > 0 ? '+' : '';
+            titleEl.textContent = `Kapasitas Atlet ${dir} (VDOT ${data.current_vdot} → ${data.new_vdot} / ${sign}${data.vdot_diff})`;
+        }
+
+        // Before vs After
+        const vdotOld = document.getElementById('adapt-vdot-old');
+        const vdotNew = document.getElementById('adapt-vdot-new');
+        if (vdotOld) vdotOld.textContent = `${data.current_vdot} (${data.old_level?.name || 'Standard'})`;
+        if (vdotNew) vdotNew.textContent = `${data.new_vdot} (${data.new_level?.name || 'Standard'})`;
+
+        const time5kOld = document.getElementById('adapt-5k-old');
+        const time5kNew = document.getElementById('adapt-5k-new');
+        if (time5kOld) time5kOld.textContent = `5K: ${data.equivalent_race_times?.['5k']?.old || '-'}`;
+        if (time5kNew) time5kNew.textContent = `5K: ${data.equivalent_race_times?.['5k']?.new || '-'}`;
+
+        // Pilar 1: Volume
+        const vol = data.pillars?.volume;
+        if (vol) {
+            const volOld = document.getElementById('adapt-volume-old');
+            const volNew = document.getElementById('adapt-volume-new');
+            const volSum = document.getElementById('adapt-volume-summary');
+            if (volOld) volOld.textContent = `${vol.current_km} km`;
+            if (volNew) volNew.textContent = `${vol.recommended_km} km/mgg`;
+            if (volSum) volSum.textContent = vol.summary;
+        }
+
+        // Pilar 2: Speed
+        const spd = data.pillars?.quality_speed;
+        if (spd) {
+            const spdType = document.getElementById('adapt-speed-type');
+            const paceI = document.getElementById('adapt-pace-interval');
+            const paceT = document.getElementById('adapt-pace-threshold');
+            const spdBen = document.getElementById('adapt-speed-benefit');
+            if (spdType) spdType.textContent = spd.workout_type;
+            if (paceI) paceI.textContent = spd.interval_pace;
+            if (paceT) paceT.textContent = spd.threshold_pace;
+            if (spdBen) spdBen.textContent = spd.benefit;
+        }
+
+        // Pilar 3: Long Run
+        const lr = data.pillars?.long_run;
+        if (lr) {
+            const lrKm = document.getElementById('adapt-longrun-km');
+            const lrPace = document.getElementById('adapt-longrun-pace');
+            const lrSum = document.getElementById('adapt-longrun-summary');
+            if (lrKm) lrKm.textContent = `${lr.recommended_distance_km} km`;
+            if (lrPace) lrPace.textContent = lr.target_pace;
+            if (lrSum) lrSum.textContent = lr.summary;
+        }
+
+        // Pilar 4: Strength
+        const st = data.pillars?.strength;
+        if (st) {
+            const stFocus = document.getElementById('adapt-strength-focus');
+            const stSum = document.getElementById('adapt-strength-summary');
+            const stEx = document.getElementById('adapt-strength-exercises');
+            if (stFocus) stFocus.textContent = st.focus_area;
+            if (stSum) stSum.textContent = st.summary;
+            if (stEx && Array.isArray(st.exercises)) {
+                stEx.innerHTML = st.exercises.slice(0, 3).map(e => `<div>• ${e}</div>`).join('');
+            }
+        }
+
+        // Readiness advisory
+        const rdn = data.readiness;
+        if (rdn) {
+            const rdnTitle = document.getElementById('adapt-readiness-title');
+            const rdnMsg = document.getElementById('adapt-readiness-message');
+            if (rdnTitle) rdnTitle.textContent = `${rdn.title} · Mode: ${rdn.badge}`;
+            if (rdnMsg) rdnMsg.textContent = rdn.message;
+        }
+    }
+
+    async function applyProgramAdaptationAction(adaptVolume = true) {
+        if (!currentAdaptationData) return;
+
+        const btn = document.getElementById('adapt-apply-btn');
+        const alertBox = document.getElementById('adaptation-alert');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Menerapkan...</span>';
+
+        try {
+            const resp = await fetch('{{ route("runner.calendar.apply-program-adaptation") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    enrollment_id: currentAdaptationData.enrollment_id,
+                    new_vdot: currentAdaptationData.new_vdot,
+                    adapt_volume: adaptVolume,
+                    feeling: currentAdaptationData.feeling || 'good'
+                })
+            });
+
+            const res = await resp.json();
+
+            if (res.success || resp.ok) {
+                alertBox.className = 'p-3.5 bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs font-semibold rounded-md block';
+                alertBox.textContent = res.message || 'Program aktif berhasil disesuaikan!';
+
+                setTimeout(() => {
+                    closeGlobalPbModal();
+                    window.location.reload();
+                }, 1400);
+            } else {
+                alertBox.className = 'p-3.5 bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs font-semibold rounded-md block';
+                alertBox.textContent = res.message || 'Gagal menerapkan adaptasi program.';
+                btn.disabled = false;
+                btn.innerHTML = '<span>Terapkan ke Program Aktif</span><i class="fas fa-check text-[10px]"></i>';
+            }
+        } catch (err) {
+            alertBox.className = 'p-3.5 bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs font-semibold rounded-md block';
+            alertBox.textContent = 'Terjadi kesalahan sistem saat memperbarui program.';
+            btn.disabled = false;
+            btn.innerHTML = '<span>Terapkan ke Program Aktif</span><i class="fas fa-check text-[10px]"></i>';
+        }
+    }
+
+    function skipProgramAdaptationAction() {
+        closeGlobalPbModal();
+        window.location.reload();
     }
 
     // Auto-prompt every 1 week (7 days) based on DB updated_at / created_at date

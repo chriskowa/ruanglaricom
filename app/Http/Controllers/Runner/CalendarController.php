@@ -9,6 +9,7 @@ use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
 use App\Services\AdaptiveRescheduleService;
+use App\Services\ProgramAdaptationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Notification;
@@ -1333,7 +1334,7 @@ class CalendarController extends Controller
     /**
      * Update Runner PB
      */
-    public function updatePb(Request $request)
+    public function updatePb(Request $request, ProgramAdaptationService $adaptationService)
     {
         $validated = $request->validate([
             'pb_5k' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
@@ -1463,6 +1464,20 @@ class CalendarController extends Controller
             ];
         }
 
+        // Generate intelligent program adaptation recommendations
+        $adaptationRecommendation = null;
+        try {
+            $adaptationRecommendation = $adaptationService->generateFeedback(
+                $user,
+                $newVdot,
+                $oldVdot,
+                $feeling,
+                $notes
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Failed generating program adaptation recommendation: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Personal Best & Progress berhasil diperbarui.',
@@ -1470,7 +1485,51 @@ class CalendarController extends Controller
             'paces' => $user->training_paces,
             'equivalent_race_times' => $user->equivalent_race_times,
             'improvement_analysis' => $improvementAnalysis,
+            'adaptation_recommendation' => $adaptationRecommendation,
         ]);
+    }
+
+    /**
+     * Apply performance adaptation to active training program
+     */
+    public function applyProgramAdaptation(Request $request, ProgramAdaptationService $adaptationService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|integer|exists:program_enrollments,id',
+            'new_vdot' => 'required|numeric|min:10|max:85',
+            'adapt_volume' => 'nullable',
+            'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        try {
+            $adaptVolume = filter_var($validated['adapt_volume'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $result = $adaptationService->applyAdaptation(
+                $enrollment,
+                (float) $validated['new_vdot'],
+                [
+                    'adapt_volume' => $adaptVolume,
+                    'feeling' => $validated['feeling'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ]
+            );
+
+            return response()->json($result);
+        } catch (\Throwable $e) {
+            \Log::error('Error applying program adaptation: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menerapkan adaptasi program: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

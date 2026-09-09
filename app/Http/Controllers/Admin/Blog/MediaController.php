@@ -128,12 +128,20 @@ class MediaController extends Controller
 
         $file = $request->file('file');
         $originalName = $file->getClientOriginalName();
-        $isImage = str_starts_with($file->getMimeType() ?? '', 'image/');
+        $ext = strtolower($file->getClientOriginalExtension());
+        $mime = strtolower((string) ($file->getMimeType() ?? ''));
+        $isSvg = $ext === 'svg' || str_contains($mime, 'svg');
+        $isImage = str_starts_with($mime, 'image/');
 
-        if ($isImage) {
+        if ($isSvg) {
+            // SVG vector graphic - store directly to preserve vector markup without GD decoding
+            $path = $file->store('blog/media', 'public');
+            $mimeType = 'image/svg+xml';
+            $size = Storage::disk('public')->size($path);
+        } elseif ($isImage) {
             $path = $imageService->uploadSingle($file, 'blog/media', 1200, 80);
             $mimeType = 'image/webp';
-            $size = \Illuminate\Support\Facades\Storage::disk('public')->size($path);
+            $size = Storage::disk('public')->size($path);
         } else {
             $path = $file->store('blog/media', 'public');
             $mimeType = $file->getMimeType();
