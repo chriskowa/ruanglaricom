@@ -984,7 +984,7 @@
     }
     .mapboxgl-ctrl-group button { border-bottom: 1px solid var(--ep-line) !important; }
     .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon { filter: invert(1) brightness(2); }
-    .mapboxgl-popup { max-width: min(300px, 88vw) !important; z-index: 1000 !important; }
+    .mapboxgl-popup { max-width: min(270px, 86vw) !important; z-index: 1000 !important; }
     .mapboxgl-popup-content {
         background: #12161F !important;
         color: #ffffff !important;
@@ -1001,13 +1001,14 @@
     .mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #12161F !important; }
     .mapboxgl-popup-close-button {
         color: #ffffff !important;
-        font-size: 16px !important;
-        padding: 4px 8px !important;
+        font-size: 13px !important;
+        padding: 3px 6px !important;
         background: rgba(0,0,0,0.6) !important;
         border-radius: 0 0 0 6px !important;
         right: 0 !important;
         top: 0 !important;
         z-index: 10 !important;
+        line-height: 1 !important;
     }
     .mapboxgl-popup-close-button:hover { color: var(--ep-accent) !important; }
     .custom-event-pin { cursor: pointer; transition: transform 0.15s ease; }
@@ -1906,31 +1907,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const dateStr = event.start_at || '';
         const locStr = event.location_name || event.city || 'Indonesia';
         const raceType = event.race_type || 'Road Run';
-        const distancesHtml = Array.isArray(event.distances) && event.distances.length
-            ? event.distances.map(d => `<span style="padding:2px 6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:2px;font-size:8px;font-weight:700;color:#e2e8f0;font-family:monospace;">${d}</span>`).join('')
-            : '';
 
         return `
-            <div style="background:#12161F; color:#fff; overflow:hidden; font-family:inherit;">
-                <div style="position:relative; aspect-ratio:16/9; width:100%; overflow:hidden; background:#080A0D;">
-                    <img src="${heroImg}" style="width:100%; height:100%; object-fit:cover;" alt="${event.name || 'Event'}">
-                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(18,22,31,0.95), transparent 60%);"></div>
-                    <div style="position:absolute; bottom:8px; left:10px; right:10px;">
-                        <span style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.08em;">${raceType}</span>
-                        <div style="font-size:12px; font-weight:800; color:#fff; line-height:1.2; margin-top:2px;">${event.name}</div>
+            <div style="background:#12161F; color:#fff; padding:10px 12px; font-family:inherit; width:260px; max-width:calc(100vw - 64px); box-sizing:border-box;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <img src="${heroImg}" 
+                         style="width:50px; height:50px; border-radius:6px; object-fit:cover; flex-shrink:0; background:#080A0D; border:1px solid rgba(255,255,255,0.12);" 
+                         alt="${event.name || 'Event'}">
+                    <div style="flex:1; min-width:0;">
+                        <span style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.06em; display:block; line-height:1; margin-bottom:3px;">
+                            ${raceType}
+                        </span>
+                        <div style="font-size:11px; font-weight:800; color:#ffffff; line-height:1.25; max-height:2.5em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;" title="${event.name}">
+                            ${event.name}
+                        </div>
+                        <div style="font-size:9.5px; color:#94a3b8; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${dateStr} &bull; ${locStr}
+                        </div>
                     </div>
                 </div>
-                <div style="padding:10px 12px; font-size:11px; color:#cbd5e1;">
-                    <div style="margin-bottom:4px; font-weight:600; color:#f1f5f9;">
-                        ${dateStr}
-                    </div>
-                    <div style="margin-bottom:8px; color:#94a3b8; font-size:10px;">
-                        ${locStr}
-                    </div>
-                    ${distancesHtml ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px;">${distancesHtml}</div>` : ''}
+                <div style="margin-top:8px;">
                     <a href="${event.url || event.public_url || '#'}"
-                       style="display:block; text-align:center; padding:7px 10px; background:#ccff00; color:#080A0D; font-weight:800; font-size:10px; border-radius:4px; text-decoration:none; letter-spacing:0.04em;">
-                        Lihat Detail Event
+                       style="display:block; text-align:center; padding:5px 8px; background:#ccff00; color:#080A0D; font-weight:800; font-size:10px; border-radius:4px; text-decoration:none; text-transform:uppercase; letter-spacing:0.04em;">
+                        Detail Event &rarr;
                     </a>
                 </div>
             </div>
@@ -1940,27 +1939,26 @@ document.addEventListener('DOMContentLoaded', function () {
     function showClusterLeavesPopup(coordinates, leaves) {
         if (activePopup) activePopup.remove();
 
-        const isMobile = window.innerWidth < 768;
         eventsExplorerMap.flyTo({
             center: coordinates,
-            offset: [0, isMobile ? 90 : 50],
             zoom: Math.min(eventsExplorerMap.getZoom() + 1, 15),
-            speed: 1.2
+            speed: 1.2,
+            essential: true
         });
 
-        let itemsHtml = leaves.map(leaf => {
+        let itemsHtml = leaves.slice(0, 8).map(leaf => {
             const p = leaf.properties;
             const heroImg = p.hero_image || '{{ asset("images/hero/jadwal-lari.webp") }}';
             const url = p.url || p.public_url || '#';
             return `
-                <div style="display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
-                    <img src="${heroImg}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; flex-shrink:0; background:#080a0d;" alt="">
+                <div style="display:flex; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <img src="${heroImg}" style="width:34px; height:34px; border-radius:4px; object-fit:cover; flex-shrink:0; background:#080a0d;" alt="">
                     <div style="flex:1; min-width:0;">
-                        <div style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase;">${p.race_type || 'Road Run'}</div>
-                        <div style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${p.name}">${p.name}</div>
+                        <div style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase; line-height:1;">${p.race_type || 'Road Run'}</div>
+                        <div style="font-size:10.5px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${p.name}">${p.name}</div>
                         <div style="font-size:9px; color:#94a3b8;">${p.start_at || ''}</div>
                     </div>
-                    <a href="${url}" style="padding:4px 8px; background:#ccff00; color:#080a0d; font-size:9px; font-weight:800; border-radius:4px; text-decoration:none; flex-shrink:0;">
+                    <a href="${url}" style="padding:3px 7px; background:#ccff00; color:#080a0d; font-size:9px; font-weight:800; border-radius:3px; text-decoration:none; flex-shrink:0;">
                         Detail
                     </a>
                 </div>
@@ -1968,15 +1966,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
 
         const popupHtml = `
-            <div style="background:#12161F; color:#fff; padding:12px; max-height:260px; overflow-y:auto; font-family:inherit;">
-                <div style="font-size:10px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
+            <div style="background:#12161F; color:#fff; padding:10px 12px; max-height:200px; overflow-y:auto; font-family:inherit; width:270px; max-width:calc(100vw - 64px); box-sizing:border-box;">
+                <div style="font-size:9.5px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
                     ${leaves.length} Event di Lokasi Ini
                 </div>
                 ${itemsHtml}
             </div>
         `;
 
-        activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '310px' })
+        activePopup = new mapboxgl.Popup({ offset: 12, closeButton: true, maxWidth: '280px' })
             .setLngLat(coordinates)
             .setHTML(popupHtml)
             .addTo(eventsExplorerMap);
@@ -2146,20 +2144,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 is_featured: props.is_featured
             };
 
-            // ZOOM MAP CENTER TO DETAIL EVENT WITH CAMERA OFFSET
-            const isMobile = window.innerWidth < 768;
+            // ZOOM MAP CENTER TO DETAIL EVENT
             eventsExplorerMap.flyTo({
                 center: coordinates,
-                offset: [0, isMobile ? 95 : 55],
                 zoom: 14,
-                speed: 1.3,
-                curve: 1.4,
+                speed: 1.2,
+                curve: 1.2,
                 essential: true
             });
 
             if (activePopup) activePopup.remove();
 
-            activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '290px' })
+            activePopup = new mapboxgl.Popup({ offset: 12, closeButton: true, maxWidth: '270px' })
                 .setLngLat(coordinates)
                 .setHTML(buildEventPopupHtml(eventData))
                 .addTo(eventsExplorerMap);
@@ -2213,11 +2209,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Auto-focus & scroll browser viewport to .mapboxgl-popup-content on mobile
     function focusPopupElement() {
         setTimeout(() => {
-            const popupContent = document.querySelector('.mapboxgl-popup-content') || document.querySelector('.mapboxgl-popup');
+            const popupContent = document.querySelector('.mapboxgl-popup-content');
             if (popupContent) {
-                popupContent.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                const rect = popupContent.getBoundingClientRect();
+                const isInViewport = (
+                    rect.top >= 70 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) - 20
+                );
+                if (!isInViewport) {
+                    popupContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
-        }, 320);
+        }, 260);
     }
 
     // Global: Focus event on map from list card
@@ -2242,22 +2245,19 @@ document.addEventListener('DOMContentLoaded', function () {
             mapSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        const isMobile = window.innerWidth < 768;
-
         if (eventsExplorerMap) {
-            // ZOOM MAP CENTER TO DETAIL EVENT WITH CAMERA OFFSET
+            // ZOOM MAP CENTER TO DETAIL EVENT
             eventsExplorerMap.flyTo({
                 center: [lng, lat],
-                offset: [0, isMobile ? 95 : 55],
                 zoom: 14,
-                speed: 1.3,
-                curve: 1.4,
+                speed: 1.2,
+                curve: 1.2,
                 essential: true
             });
 
             if (activePopup) activePopup.remove();
 
-            activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '290px' })
+            activePopup = new mapboxgl.Popup({ offset: 12, closeButton: true, maxWidth: '270px' })
                 .setLngLat([lng, lat])
                 .setHTML(buildEventPopupHtml(event))
                 .addTo(eventsExplorerMap);
