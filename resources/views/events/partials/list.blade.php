@@ -74,7 +74,9 @@
             <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs sm:text-sm text-slate-300">
                 <span class="text-slate-200">{{ $event->event_date->translatedFormat('d M Y') }}</span>
                 <span class="text-slate-600">•</span>
-                <span class="text-slate-300">{{ $locationDisplay }}</span>
+                <button type="button" onclick="if(window.focusEventOnMap) window.focusEventOnMap({{ $event->id }})" class="text-slate-300 hover:text-neon transition-colors text-left inline-flex items-center gap-1 group/loc cursor-pointer" title="Lihat di Peta">
+                    <span>{{ $locationDisplay }}</span>
+                </button>
                 @if($event->start_time)
                     <span class="text-slate-600">•</span>
                     <span class="font-mono text-slate-400">{{ $event->start_time->format('H:i') === '00:00' ? '05:00' : $event->start_time->format('H:i') }} WIB</span>

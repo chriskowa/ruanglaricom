@@ -1807,13 +1807,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // ----------------------------------------------------
     // 1. EXPLORER MAP ENGINE (MAPBOX GL)
     // ----------------------------------------------------
+    // ----------------------------------------------------
+    // 1. EXPLORER MAP ENGINE (MAPBOX GL WITH CLUSTERING)
+    // ----------------------------------------------------
     let initialEvents = @json($mapEvents ?? []);
     let currentMapEvents = Array.isArray(initialEvents) ? initialEvents : [];
     let eventsExplorerMap = null;
-    let explorerMarkers = [];
     let userLocationMarker = null;
+    let activePopup = null;
     let activeLayerKey = 'streets';
     let activeTypeFilter = '';
+
+    const CLUSTER_SOURCE_ID = 'events-cluster-source';
+    const LAYER_CLUSTERS = 'events-layer-clusters';
+    const LAYER_CLUSTER_COUNT = 'events-layer-cluster-count';
+    const LAYER_UNCLUSTERED = 'events-layer-unclustered';
+    const LAYER_UNCLUSTERED_INNER = 'events-layer-unclustered-inner';
 
     const mapStyles = {
         streets: 'mapbox://styles/mapbox/streets-v12',
@@ -1839,8 +1848,50 @@ document.addEventListener('DOMContentLoaded', function () {
         eventsExplorerMap.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
 
         eventsExplorerMap.on('load', function () {
-            renderMapMarkers(currentMapEvents, true);
+            setupMapClusterLayers();
+            fitMapToBounds();
         });
+    }
+
+    function buildEventsGeoJson(events) {
+        let filtered = events;
+        if (activeTypeFilter) {
+            filtered = events.filter(e => String(e.race_type_id) === String(activeTypeFilter));
+        }
+
+        const features = [];
+        filtered.forEach(event => {
+            const lat = parseFloat(event.lat);
+            const lng = parseFloat(event.lng);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                },
+                properties: {
+                    id: event.id,
+                    name: event.name || 'Event Lari',
+                    url: event.url || event.public_url || '#',
+                    hero_image: event.hero_image || '',
+                    start_at: event.start_at || '',
+                    city: event.city || '',
+                    location_name: event.location_name || '',
+                    race_type: event.race_type || 'Road Run',
+                    distances: Array.isArray(event.distances) ? JSON.stringify(event.distances) : '[]',
+                    is_featured: !!event.is_featured,
+                    lat: lat,
+                    lng: lng
+                }
+            });
+        });
+
+        return {
+            type: 'FeatureCollection',
+            features: features
+        };
     }
 
     function buildEventPopupHtml(event) {
@@ -1849,96 +1900,335 @@ document.addEventListener('DOMContentLoaded', function () {
         const locStr = event.location_name || event.city || 'Indonesia';
         const raceType = event.race_type || 'Road Run';
         const distancesHtml = Array.isArray(event.distances) && event.distances.length
-            ? event.distances.map(d => `<span style="padding:2px 5px;background:rgba(255,255,255,0.08);border-radius:2px;font-size:8px;font-weight:900;color:#fff;font-family:monospace;">${d}</span>`).join('')
+            ? event.distances.map(d => `<span style="padding:2px 6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:2px;font-size:8px;font-weight:700;color:#e2e8f0;font-family:monospace;">${d}</span>`).join('')
             : '';
 
         return `
-            <div style="background:#07101c; color:#fff; overflow:hidden; font-family:inherit;">
-                <div style="position:relative; aspect-ratio:16/9; width:100%; overflow:hidden; background:#0b1522;">
+            <div style="background:#12161F; color:#fff; overflow:hidden; font-family:inherit;">
+                <div style="position:relative; aspect-ratio:16/9; width:100%; overflow:hidden; background:#080A0D;">
                     <img src="${heroImg}" style="width:100%; height:100%; object-fit:cover;" alt="${event.name || 'Event'}">
-                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(7,16,28,0.95), transparent 60%);"></div>
+                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(18,22,31,0.95), transparent 60%);"></div>
                     <div style="position:absolute; bottom:8px; left:10px; right:10px;">
-                        <span style="font-size:8px; font-weight:900; color:#b8ff00; text-transform:uppercase; letter-spacing:0.1em;">${raceType}</span>
-                        <div style="font-size:12px; font-weight:900; color:#fff; text-transform:uppercase; line-height:1.1; margin-top:2px;">${event.name}</div>
+                        <span style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.08em;">${raceType}</span>
+                        <div style="font-size:12px; font-weight:800; color:#fff; line-height:1.2; margin-top:2px;">${event.name}</div>
                     </div>
                 </div>
-                <div style="padding:10px 12px; font-size:10px; color:rgba(255,255,255,0.75);">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <i class="fa-solid fa-calendar text-[#b8ff00] text-[9px]"></i>
-                        <span>${dateStr}</span>
+                <div style="padding:10px 12px; font-size:11px; color:#cbd5e1;">
+                    <div style="margin-bottom:4px; font-weight:600; color:#f1f5f9;">
+                        ${dateStr}
                     </div>
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                        <i class="fa-solid fa-location-dot text-[#b8ff00] text-[9px]"></i>
-                        <span>${locStr}</span>
+                    <div style="margin-bottom:8px; color:#94a3b8; font-size:10px;">
+                        ${locStr}
                     </div>
                     ${distancesHtml ? `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px;">${distancesHtml}</div>` : ''}
-                    <a href="${event.public_url || '#'}"
-                       style="display:block; text-align:center; padding:7px; background:#b8ff00; color:#07101c; font-weight:900; text-transform:uppercase; font-size:9px; border-radius:2px; text-decoration:none; letter-spacing:0.05em;">
-                        Lihat Detail Event &rarr;
+                    <a href="${event.url || event.public_url || '#'}"
+                       style="display:block; text-align:center; padding:7px 10px; background:#ccff00; color:#080A0D; font-weight:800; font-size:10px; border-radius:4px; text-decoration:none; letter-spacing:0.04em;">
+                        Lihat Detail Event
                     </a>
                 </div>
             </div>
         `;
     }
 
-    function renderMapMarkers(events, shouldFitBounds = false) {
-        if (!eventsExplorerMap) return;
+    function showClusterLeavesPopup(coordinates, leaves) {
+        if (activePopup) activePopup.remove();
 
-        // Clear existing markers
-        explorerMarkers.forEach(m => m.remove());
-        explorerMarkers = [];
-
-        let filtered = events;
-        if (activeTypeFilter) {
-            filtered = events.filter(e => String(e.race_type_id) === String(activeTypeFilter));
-        }
-
-        const bounds = new mapboxgl.LngLatBounds();
-        let validCount = 0;
-
-        filtered.forEach(event => {
-            const lat = parseFloat(event.lat);
-            const lng = parseFloat(event.lng);
-            if (isNaN(lat) || isNaN(lng)) return;
-
-            const isFeatured = !!event.is_featured;
-            const el = document.createElement('div');
-            el.className = 'custom-event-pin';
-            el.innerHTML = `
-                <div style="
-                    width: 28px; height: 28px;
-                    border-radius: 9999px;
-                    background: ${isFeatured ? '#b8ff00' : '#0b1522'};
-                    border: 2px solid ${isFeatured ? '#07101c' : '#b8ff00'};
-                    color: ${isFeatured ? '#07101c' : '#b8ff00'};
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 11px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-                    cursor: pointer;
-                ">
-                    <i class="fa-solid fa-person-running"></i>
+        let itemsHtml = leaves.map(leaf => {
+            const p = leaf.properties;
+            const heroImg = p.hero_image || '{{ asset("images/hero/jadwal-lari.webp") }}';
+            const url = p.url || p.public_url || '#';
+            return `
+                <div style="display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <img src="${heroImg}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; flex-shrink:0; background:#080a0d;" alt="">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:8px; font-weight:800; color:#ccff00; text-transform:uppercase;">${p.race_type || 'Road Run'}</div>
+                        <div style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${p.name}">${p.name}</div>
+                        <div style="font-size:9px; color:#94a3b8;">${p.start_at || ''}</div>
+                    </div>
+                    <a href="${url}" style="padding:4px 8px; background:#ccff00; color:#080a0d; font-size:9px; font-weight:800; border-radius:4px; text-decoration:none; flex-shrink:0;">
+                        Detail
+                    </a>
                 </div>
             `;
+        }).join('');
 
-            const popup = new mapboxgl.Popup({ offset: 18, closeButton: true })
-                .setHTML(buildEventPopupHtml(event));
+        const popupHtml = `
+            <div style="background:#12161F; color:#fff; padding:12px; max-height:260px; overflow-y:auto; font-family:inherit;">
+                <div style="font-size:10px; font-weight:800; color:#ccff00; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
+                    ${leaves.length} Event di Lokasi Ini
+                </div>
+                ${itemsHtml}
+            </div>
+        `;
 
-            const marker = new mapboxgl.Marker({ element: el })
-                .setLngLat([lng, lat])
-                .setPopup(popup)
-                .addTo(eventsExplorerMap);
+        activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '310px' })
+            .setLngLat(coordinates)
+            .setHTML(popupHtml)
+            .addTo(eventsExplorerMap);
+    }
 
-            explorerMarkers.push(marker);
-            bounds.extend([lng, lat]);
-            validCount++;
+    function setupMapClusterLayers() {
+        if (!eventsExplorerMap) return;
+
+        const geojsonData = buildEventsGeoJson(currentMapEvents);
+
+        if (eventsExplorerMap.getSource(CLUSTER_SOURCE_ID)) {
+            eventsExplorerMap.getSource(CLUSTER_SOURCE_ID).setData(geojsonData);
+            return;
+        }
+
+        eventsExplorerMap.addSource(CLUSTER_SOURCE_ID, {
+            type: 'geojson',
+            data: geojsonData,
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50
         });
 
-        if (shouldFitBounds && validCount > 0 && eventsExplorerMap) {
+        // Layer 1: Cluster Bubbles
+        eventsExplorerMap.addLayer({
+            id: LAYER_CLUSTERS,
+            type: 'circle',
+            source: CLUSTER_SOURCE_ID,
+            filter: ['has', 'point_count'],
+            paint: {
+                'circle-color': [
+                    'step',
+                    ['get', 'point_count'],
+                    '#0b1522', // < 10
+                    10,
+                    '#121e2e', // 10 - 25
+                    25,
+                    '#1a2a3d'  // 25+
+                ],
+                'circle-radius': [
+                    'step',
+                    ['get', 'point_count'],
+                    16, // < 10
+                    10,
+                    20, // 10 - 25
+                    25,
+                    25  // 25+
+                ],
+                'circle-stroke-width': 2.5,
+                'circle-stroke-color': '#ccff00'
+            }
+        });
+
+        // Layer 2: Cluster Count Text
+        eventsExplorerMap.addLayer({
+            id: LAYER_CLUSTER_COUNT,
+            type: 'symbol',
+            source: CLUSTER_SOURCE_ID,
+            filter: ['has', 'point_count'],
+            layout: {
+                'text-field': '{point_count_abbreviated}',
+                'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
+                'text-size': 11
+            },
+            paint: {
+                'text-color': '#ccff00'
+            }
+        });
+
+        // Layer 3: Unclustered Individual Event Pin (Outer Ring)
+        eventsExplorerMap.addLayer({
+            id: LAYER_UNCLUSTERED,
+            type: 'circle',
+            source: CLUSTER_SOURCE_ID,
+            filter: ['!', ['has', 'point_count']],
+            paint: {
+                'circle-color': [
+                    'case',
+                    ['boolean', ['get', 'is_featured'], false],
+                    '#ccff00',
+                    '#0b1522'
+                ],
+                'circle-radius': 8,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': [
+                    'case',
+                    ['boolean', ['get', 'is_featured'], false],
+                    '#07101c',
+                    '#ccff00'
+                ]
+            }
+        });
+
+        // Layer 4: Unclustered Inner Dot
+        eventsExplorerMap.addLayer({
+            id: LAYER_UNCLUSTERED_INNER,
+            type: 'circle',
+            source: CLUSTER_SOURCE_ID,
+            filter: ['!', ['has', 'point_count']],
+            paint: {
+                'circle-color': [
+                    'case',
+                    ['boolean', ['get', 'is_featured'], false],
+                    '#07101c',
+                    '#ccff00'
+                ],
+                'circle-radius': 3
+            }
+        });
+
+        // Click on Cluster -> Zoom to expand or show multi-events popup
+        eventsExplorerMap.on('click', LAYER_CLUSTERS, function (e) {
+            const features = eventsExplorerMap.queryRenderedFeatures(e.point, { layers: [LAYER_CLUSTERS] });
+            if (!features.length) return;
+            const clusterId = features[0].properties.cluster_id;
+            const coords = features[0].geometry.coordinates.slice();
+
+            eventsExplorerMap.getSource(CLUSTER_SOURCE_ID).getClusterExpansionZoom(clusterId, function (err, zoom) {
+                if (err) return;
+                const curZoom = eventsExplorerMap.getZoom();
+                if (zoom <= curZoom || curZoom >= 14) {
+                    eventsExplorerMap.getSource(CLUSTER_SOURCE_ID).getClusterLeaves(clusterId, 30, 0, function (err, leaves) {
+                        if (err || !leaves.length) return;
+                        eventsExplorerMap.flyTo({
+                            center: coords,
+                            zoom: Math.min(curZoom + 1, 15),
+                            speed: 1.2
+                        });
+                        showClusterLeavesPopup(coords, leaves);
+                    });
+                } else {
+                    eventsExplorerMap.easeTo({
+                        center: coords,
+                        zoom: zoom + 0.5,
+                        duration: 500
+                    });
+                }
+            });
+        });
+
+        // Click on Unclustered Event -> ZOOM MAP CENTER TO DETAIL EVENT + OPEN POPUP
+        eventsExplorerMap.on('click', LAYER_UNCLUSTERED, function (e) {
+            if (!e.features.length) return;
+            const feature = e.features[0];
+            const coordinates = feature.geometry.coordinates.slice();
+            const props = feature.properties;
+
+            let distances = [];
             try {
-                eventsExplorerMap.fitBounds(bounds, { padding: 50, maxZoom: 12 });
-            } catch (e) {}
+                distances = typeof props.distances === 'string' ? JSON.parse(props.distances) : (props.distances || []);
+            } catch (err) {
+                distances = [];
+            }
+
+            const eventData = {
+                id: props.id,
+                name: props.name,
+                url: props.url,
+                hero_image: props.hero_image,
+                start_at: props.start_at,
+                city: props.city,
+                location_name: props.location_name,
+                race_type: props.race_type,
+                distances: distances,
+                is_featured: props.is_featured
+            };
+
+            // ZOOM MAP CENTER TO DETAIL EVENT
+            eventsExplorerMap.flyTo({
+                center: coordinates,
+                zoom: 14,
+                speed: 1.3,
+                curve: 1.4,
+                essential: true
+            });
+
+            if (activePopup) activePopup.remove();
+
+            activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '290px' })
+                .setLngLat(coordinates)
+                .setHTML(buildEventPopupHtml(eventData))
+                .addTo(eventsExplorerMap);
+        });
+
+        // Hover pointer cursor
+        eventsExplorerMap.on('mouseenter', LAYER_CLUSTERS, () => { eventsExplorerMap.getCanvas().style.cursor = 'pointer'; });
+        eventsExplorerMap.on('mouseleave', LAYER_CLUSTERS, () => { eventsExplorerMap.getCanvas().style.cursor = ''; });
+        eventsExplorerMap.on('mouseenter', LAYER_UNCLUSTERED, () => { eventsExplorerMap.getCanvas().style.cursor = 'pointer'; });
+        eventsExplorerMap.on('mouseleave', LAYER_UNCLUSTERED, () => { eventsExplorerMap.getCanvas().style.cursor = ''; });
+    }
+
+    function fitMapToBounds() {
+        if (!eventsExplorerMap) return;
+        const geojson = buildEventsGeoJson(currentMapEvents);
+        if (!geojson.features.length) return;
+
+        try {
+            const bounds = new mapboxgl.LngLatBounds();
+            geojson.features.forEach(f => bounds.extend(f.geometry.coordinates));
+            eventsExplorerMap.fitBounds(bounds, { padding: 50, maxZoom: 12 });
+        } catch (err) {}
+    }
+
+    function updateMapData(shouldFitBounds = false) {
+        if (!eventsExplorerMap) return;
+
+        const geojsonData = buildEventsGeoJson(currentMapEvents);
+        const source = eventsExplorerMap.getSource(CLUSTER_SOURCE_ID);
+
+        if (source) {
+            source.setData(geojsonData);
+        } else if (eventsExplorerMap.isStyleLoaded()) {
+            setupMapClusterLayers();
+        }
+
+        if (shouldFitBounds && geojsonData.features.length > 0) {
+            fitMapToBounds();
         }
     }
+
+    function renderMapMarkers(events, shouldFitBounds = false) {
+        if (Array.isArray(events)) {
+            currentMapEvents = events;
+        }
+        updateMapData(shouldFitBounds);
+    }
+
+    // Global: Focus event on map from list card
+    window.focusEventOnMap = function (eventId) {
+        const event = currentMapEvents.find(e => String(e.id) === String(eventId));
+        if (!event) return;
+
+        const lat = parseFloat(event.lat);
+        const lng = parseFloat(event.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        // Expand map if collapsed
+        const mapCollapseWrap = document.getElementById('events-map-collapse-wrap');
+        if (mapCollapseWrap && mapCollapseWrap.classList.contains('hidden')) {
+            const btnMinimize = document.getElementById('btn-events-map-minimize-toggle');
+            if (btnMinimize) btnMinimize.click();
+        }
+
+        // Scroll to map section smoothly
+        const mapSection = document.getElementById('events-explorer-map-section');
+        if (mapSection) {
+            mapSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (eventsExplorerMap) {
+            // ZOOM MAP CENTER TO DETAIL EVENT
+            eventsExplorerMap.flyTo({
+                center: [lng, lat],
+                zoom: 14,
+                speed: 1.3,
+                curve: 1.4,
+                essential: true
+            });
+
+            if (activePopup) activePopup.remove();
+
+            activePopup = new mapboxgl.Popup({ offset: 16, closeButton: true, maxWidth: '290px' })
+                .setLngLat([lng, lat])
+                .setHTML(buildEventPopupHtml(event))
+                .addTo(eventsExplorerMap);
+        }
+    };
 
     // Map Layer Switcher
     window.toggleEventsMapLayerMenu = function () {
@@ -1952,7 +2242,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         eventsExplorerMap.setStyle(mapStyles[layerKey]);
         eventsExplorerMap.once('style.load', function () {
-            renderMapMarkers(currentMapEvents, false);
+            setupMapClusterLayers();
         });
 
         const label = document.getElementById('label-events-active-layer');
@@ -1997,7 +2287,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 btn.classList.remove('is-active');
             }
         });
-        renderMapMarkers(currentMapEvents, true);
+        updateMapData(true);
     };
 
     // Recenter
@@ -2005,13 +2295,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnRecenter) {
         btnRecenter.addEventListener('click', function (e) {
             e.stopPropagation();
-            if (eventsExplorerMap && explorerMarkers.length > 0) {
-                try {
-                    const bounds = new mapboxgl.LngLatBounds();
-                    explorerMarkers.forEach(m => bounds.extend(m.getLngLat()));
-                    eventsExplorerMap.fitBounds(bounds, { padding: 50, maxZoom: 12 });
-                } catch (err) {}
-            }
+            fitMapToBounds();
         });
     }
 
