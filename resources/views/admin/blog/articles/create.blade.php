@@ -472,15 +472,38 @@
                 <div id="aa-write-status" class="text-slate-300 text-sm">Menulis artikel...</div>
                 <div id="aa-result-preview" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 max-h-72 overflow-y-auto"></div>
 
-                {{-- Panel upload gambar per [Gambar: ...] --}}
-                <div id="aa-image-panel" class="hidden border-t border-slate-800 pt-4">
-                    <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                        <h4 class="text-xs font-bold text-white uppercase tracking-wider">Gambar Artikel (Prompt AI)</h4>
-                        <button type="button" onclick="aaCopyPrompts()" id="aa-btn-copy-prompts" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 transition-colors flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            Copy Prompt
+                {{-- Panel upload & auto-fetch gambar per [Gambar: ...] --}}
+                <div id="aa-image-panel" class="hidden border-t border-slate-800 pt-4 space-y-3">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Gambar Artikel &amp; Media WebP</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Otomatis download ke server, konversi ke WebP, daftarkan ke Media Library, &amp; beri nama SEO sesuai Keyword.</p>
+                        </div>
+                        <button type="button" onclick="aaCopyPrompts()" id="aa-btn-copy-prompts" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition-colors flex items-center gap-1.5" title="Salin semua prompt teks">
+                            <i class="far fa-copy text-[11px]"></i>
+                            <span>Salin Prompt</span>
                         </button>
                     </div>
+
+                    <!-- Quick Auto-Fetch Bar -->
+                    <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-slate-300">Sumber:</span>
+                            <select id="aa-image-provider-select" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-neon cursor-pointer">
+                                <option value="auto">Otomatis (Tavily + Unsplash + Google)</option>
+                                <option value="tavily">Tavily Web Images (Aktif)</option>
+                                <option value="unsplash">Unsplash (Free Royalty)</option>
+                                <option value="google">Google Images</option>
+                                <option value="dalle">OpenAI DALL-E 3 (AI Generation)</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="aaAutoFetchAllImages()" id="aa-btn-autofetch-all" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-xs hover:bg-neon/90 transition shadow flex items-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-bolt text-xs"></i>
+                            <span>Auto-Download Semua Gambar (WebP)</span>
+                        </button>
+                    </div>
+
+                    <!-- Image Slots List -->
                     <div id="aa-image-list" class="space-y-3"></div>
                 </div>
 
@@ -1510,27 +1533,271 @@ function openMediaModal(onSelectCallback) {
         const backWrite = document.getElementById('aa-btn-back-write');
         if (backWrite) backWrite.classList.remove('hidden');
 
-        // Render upload field per [Gambar: ...]
+        // Render upload & auto-fetch field per [Gambar: ...]
         const prompts = res.image_prompts || {};
         const markers = Object.keys(prompts);
         if (markers.length > 0) {
             imgPanel.classList.remove('hidden');
             imgList.innerHTML = '';
+
+            const focusKw = result.focus_keyword || result.keyword || result.title || '';
+            const rawSec = result.secondary_keywords || '';
+            let secList = [];
+            if (Array.isArray(rawSec)) {
+                secList = rawSec;
+            } else if (typeof rawSec === 'string' && rawSec.trim() !== '') {
+                secList = rawSec.split(',').map(s => s.trim()).filter(Boolean);
+            }
+
             markers.forEach((marker, i) => {
+                let slotKw = '';
+                if (i === 0) {
+                    slotKw = focusKw || 'cover-artikel';
+                } else if (secList[i - 1]) {
+                    slotKw = secList[i - 1];
+                } else {
+                    slotKw = (focusKw || 'artikel') + '-' + (i + 1);
+                }
+                const cleanSlug = slotKw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
                 const wrap = document.createElement('div');
-                wrap.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3.5';
-                wrap.innerHTML =
-                    '<div class="text-xs text-neon font-bold mb-1">Gambar ' + (i + 1) + '</div>' +
-                    '<div class="text-xs text-slate-300 mb-2">Prompt: <span class="aa-img-prompt font-mono text-[11px] text-slate-400">' + prompts[marker].replace(/</g, '&lt;') + '</span></div>' +
-                    '<div class="flex items-center gap-3">' +
-                        '<input type="file" accept="image/*" data-marker="' + marker.replace(/"/g, '&quot;') + '" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-700 transition-colors">' +
-                        '<span class="aa-img-status text-xs text-slate-400"></span>' +
-                    '</div>';
+                wrap.className = 'aa-img-item bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3';
+                wrap.dataset.marker = marker;
+                wrap.dataset.keyword = slotKw;
+                wrap.innerHTML = `
+                    <div class="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs text-neon font-bold">Gambar ${i + 1}${i === 0 ? ' (Cover Utama)' : ''}</span>
+                                <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[11px] font-mono text-slate-300">
+                                    SEO File: <strong class="text-white">${cleanSlug}.webp</strong>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Prompt: <span class="aa-img-prompt font-mono text-slate-300">${prompts[marker].replace(/</g, '&lt;')}</span></p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" class="aa-btn-search-slot px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-white transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fas fa-search text-[10px]"></i>
+                                <span>Cari Kandidat</span>
+                            </button>
+                            <button type="button" class="aa-btn-dalle-slot px-2.5 py-1.5 rounded bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-xs text-indigo-200 transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fas fa-robot text-[10px]"></i>
+                                <span>DALL-E 3</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Candidate Preview / Search Box -->
+                    <div class="aa-candidate-box hidden p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2"></div>
+
+                    <!-- Final Result Thumbnail Container -->
+                    <div class="aa-result-box hidden p-3 rounded-lg bg-slate-900/60 border border-emerald-500/40 flex items-center gap-3"></div>
+
+                    <!-- Manual File Upload Fallback -->
+                    <div class="flex items-center gap-3 pt-1 border-t border-slate-900">
+                        <label class="text-[11px] text-slate-400">Atau upload manual:</label>
+                        <input type="file" accept="image/*" data-marker="${marker.replace(/"/g, '&quot;')}" class="aa-img-input text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:text-xs file:font-semibold hover:file:bg-slate-700 transition-colors">
+                        <span class="aa-img-status text-xs text-slate-400"></span>
+                    </div>
+                `;
+
+                // Search Candidate Click Handler
+                wrap.querySelector('.aa-btn-search-slot').addEventListener('click', () => {
+                    aaSearchSlot(marker, prompts[marker], slotKw, wrap);
+                });
+
+                // DALL-E Click Handler
+                wrap.querySelector('.aa-btn-dalle-slot').addEventListener('click', () => {
+                    aaDalleSlot(marker, prompts[marker], slotKw, wrap);
+                });
+
                 imgList.appendChild(wrap);
             });
+
             imgList.querySelectorAll('.aa-img-input').forEach(input => {
                 input.addEventListener('change', aaUploadImage);
             });
+        }
+    }
+
+    // Auto-fetch all images across all markers at once
+    async function aaAutoFetchAllImages() {
+        if (!aaUuid) { alert('Sesi artikel tidak ditemukan.'); return; }
+        const btn = document.getElementById('aa-btn-autofetch-all');
+        const providerSelect = document.getElementById('aa-image-provider-select');
+        const provider = providerSelect ? providerSelect.value : 'auto';
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Mendownload &amp; Convert WebP...';
+
+        try {
+            const res = await aaPost('{{ route("admin.blog.articles.agent.auto-fetch-images") }}', {
+                uuid: aaUuid,
+                provider: provider
+            });
+
+            if (!res.success) {
+                alert('Gagal auto-fetch: ' + (res.message || 'Unknown'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-bolt text-xs"></i> Auto-Download Semua Gambar (WebP)';
+                return;
+            }
+
+            if (res.content) {
+                aaContent = res.content;
+                aaPersist();
+                const preview = document.getElementById('aa-result-preview');
+                const previewText = aaContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500);
+                preview.innerHTML = '<div class="font-bold text-white text-sm mb-1">' + (res.title || '') + '</div>' +
+                    '<div class="text-slate-300 text-xs leading-relaxed">' + previewText + '...</div>';
+            }
+
+            // Update slot cards with downloaded WebP image previews
+            (res.images || []).forEach(img => {
+                document.querySelectorAll('.aa-img-item').forEach(wrap => {
+                    if (wrap.dataset.marker === img.marker) {
+                        const resBox = wrap.querySelector('.aa-result-box');
+                        const candBox = wrap.querySelector('.aa-candidate-box');
+                        if (candBox) candBox.classList.add('hidden');
+                        if (resBox) {
+                            resBox.classList.remove('hidden');
+                            resBox.innerHTML = `
+                                <img src="${img.url}" alt="${img.alt}" class="w-20 h-14 object-cover rounded-md border border-slate-700 shrink-0">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Tersimpan di Media Library</span>
+                                    </p>
+                                    <p class="text-[11px] font-mono text-white truncate mt-0.5">${img.filename}</p>
+                                    <p class="text-[10px] text-slate-400">Alt/Title: "${img.alt}" • Sumber: ${img.source || 'Web'}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle text-emerald-300 text-xs"></i> Selesai! (' + (res.updated_count || 0) + ' Gambar WebP)';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-bolt text-xs"></i> Auto-Download Semua Gambar (WebP)';
+            }, 4000);
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-bolt text-xs"></i> Auto-Download Semua Gambar (WebP)';
+            alert('Kesalahan koneksi saat download gambar: ' + err.message);
+        }
+    }
+
+    // Search 3-4 candidate thumbnails for a single slot
+    async function aaSearchSlot(marker, prompt, keyword, wrapEl) {
+        const candBox = wrapEl.querySelector('.aa-candidate-box');
+        candBox.classList.remove('hidden');
+        candBox.innerHTML = '<div class="text-xs text-slate-400 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Mencari gambar relevan...</div>';
+
+        const providerSelect = document.getElementById('aa-image-provider-select');
+        const provider = providerSelect ? providerSelect.value : 'auto';
+
+        try {
+            const res = await aaPost('{{ route("admin.blog.articles.agent.search-images") }}', {
+                query: prompt || keyword,
+                provider: provider,
+                limit: 4
+            });
+
+            if (!res.success || !res.candidates || res.candidates.length === 0) {
+                candBox.innerHTML = '<div class="text-xs text-rose-400">Tidak menemukan kandidat gambar. Coba pilih provider lain atau upload manual.</div>';
+                return;
+            }
+
+            candBox.innerHTML = '<p class="text-xs font-semibold text-slate-300 mb-1.5">Pilih salah satu gambar (otomatis convert ke WebP &amp; masuk Media):</p><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>';
+            const grid = candBox.querySelector('.grid');
+
+            res.candidates.forEach(cand => {
+                const item = document.createElement('div');
+                item.className = 'group relative aspect-[3/2] rounded-md overflow-hidden border border-slate-700 bg-slate-950 cursor-pointer hover:border-neon transition';
+                item.innerHTML = `
+                    <img src="${cand.thumb || cand.url}" alt="${cand.title || ''}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-1 text-center">
+                        <span class="px-2 py-1 rounded bg-neon text-dark font-bold text-[10px]">Pilih &amp; Download</span>
+                    </div>
+                `;
+                item.addEventListener('click', () => {
+                    aaAttachSelectedImage(marker, cand.url, keyword, wrapEl);
+                });
+                grid.appendChild(item);
+            });
+        } catch (err) {
+            candBox.innerHTML = '<div class="text-xs text-rose-400">Gagal mencari gambar: ' + err.message + '</div>';
+        }
+    }
+
+    // Generate DALL-E image for a single slot
+    async function aaDalleSlot(marker, prompt, keyword, wrapEl) {
+        const candBox = wrapEl.querySelector('.aa-candidate-box');
+        candBox.classList.remove('hidden');
+        candBox.innerHTML = '<div class="text-xs text-indigo-300 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Meminta OpenAI DALL-E 3 me-render gambar... (15-30 detik)</div>';
+
+        try {
+            const res = await aaPost('{{ route("admin.blog.articles.agent.search-images") }}', {
+                query: prompt,
+                provider: 'dalle',
+                limit: 1
+            });
+
+            if (!res.success || !res.candidates || res.candidates.length === 0) {
+                candBox.innerHTML = '<div class="text-xs text-rose-400">Gagal generate DALL-E: ' + (res.message || 'Unknown') + '</div>';
+                return;
+            }
+
+            // Immediately attach and convert to WebP
+            aaAttachSelectedImage(marker, res.candidates[0].url, keyword, wrapEl);
+        } catch (err) {
+            candBox.innerHTML = '<div class="text-xs text-rose-400">Gagal request DALL-E: ' + err.message + '</div>';
+        }
+    }
+
+    // Attach selected candidate, convert to WebP and save to BlogMedia
+    async function aaAttachSelectedImage(marker, imageUrl, keyword, wrapEl) {
+        const candBox = wrapEl.querySelector('.aa-candidate-box');
+        const resBox = wrapEl.querySelector('.aa-result-box');
+        candBox.innerHTML = '<div class="text-xs text-slate-300 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Mengunduh, convert ke WebP &amp; simpan ke Media...</div>';
+
+        try {
+            const res = await aaPost('{{ route("admin.blog.articles.agent.attach-image") }}', {
+                uuid: aaUuid,
+                marker: marker,
+                image_url: imageUrl,
+                keyword: keyword
+            });
+
+            if (!res.success) {
+                candBox.innerHTML = '<div class="text-xs text-rose-400">Gagal: ' + (res.message || 'Unknown') + '</div>';
+                return;
+            }
+
+            candBox.classList.add('hidden');
+            if (res.updated_content) {
+                aaContent = res.updated_content;
+                aaPersist();
+            }
+
+            if (resBox && res.image) {
+                resBox.classList.remove('hidden');
+                resBox.innerHTML = `
+                    <img src="${res.image.url}" alt="${res.image.alt}" class="w-20 h-14 object-cover rounded-md border border-slate-700 shrink-0">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Tersimpan di Media Library</span>
+                        </p>
+                        <p class="text-[11px] font-mono text-white truncate mt-0.5">${res.image.filename}</p>
+                        <p class="text-[10px] text-slate-400">Alt/Title: "${res.image.alt}"</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            candBox.innerHTML = '<div class="text-xs text-rose-400">Gagal memproses gambar: ' + err.message + '</div>';
         }
     }
 
@@ -1554,7 +1821,7 @@ function openMediaModal(onSelectCallback) {
             const data = await res.json();
             if (!data.location) throw new Error(data.message || 'Upload gagal');
             const alt = (marker.match(/\[Gambar:\s*(.*?)\s*\]/) || ['', ''])[1].substring(0, 120);
-            const imgTag = '<img src="' + data.location + '" alt="' + alt.replace(/"/g, '') + '" style="max-width:100%;border-radius:12px;margin:16px 0;">';
+            const imgTag = '<figure class="my-6"><img src="' + data.location + '" alt="' + alt.replace(/"/g, '') + '" title="' + alt.replace(/"/g, '') + '" loading="lazy" class="w-full rounded-xl shadow-md"></figure>';
             aaContent = aaContent.split(marker).join(imgTag);
             status.textContent = '✓ Terpasang';
             status.className = 'aa-img-status text-xs text-green-400';
@@ -1580,7 +1847,6 @@ function openMediaModal(onSelectCallback) {
             btn.innerHTML = '✓ Tersalin';
             setTimeout(() => { btn.innerHTML = old; }, 1500);
         }).catch(() => {
-            // Fallback untuk browser tanpa clipboard API
             const ta = document.createElement('textarea');
             ta.value = text; document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); document.body.removeChild(ta);

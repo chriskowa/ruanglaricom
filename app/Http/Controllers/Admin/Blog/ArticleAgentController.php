@@ -150,4 +150,99 @@ class ArticleAgentController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Cari kandidat gambar dari berbagai provider (Tavily, Google, Unsplash, DALL-E).
+     */
+    public function searchImages(Request $request, \App\Services\Blog\ArticleImageFetcherService $fetcher)
+    {
+        $request->validate([
+            'query'    => 'required|string|max:255',
+            'provider' => 'nullable|string|in:auto,tavily,unsplash,google,dalle',
+            'limit'    => 'nullable|integer|min:1|max:10',
+        ]);
+
+        try {
+            $candidates = $fetcher->search($request->input('query'), $request->input('provider', 'auto'), (int) $request->input('limit', 5));
+            return response()->json([
+                'success'    => true,
+                'candidates' => $candidates,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Download gambar kandidat pilihan, konversi WebP, masukkan ke Media Library, dan pasang ke artikel.
+     */
+    public function attachImage(Request $request, \App\Services\Blog\ArticleImageFetcherService $fetcher)
+    {
+        $request->validate([
+            'uuid'      => 'required|string',
+            'marker'    => 'required|string',
+            'image_url' => 'required|url',
+            'keyword'   => 'required|string|max:255',
+        ]);
+
+        try {
+            $session = \App\Models\ArticleAgent::findOrFail($request->uuid);
+            $generated = $session->generated_article_content;
+            if (!is_array($generated)) {
+                $generated = json_decode((string) $generated, true) ?? [];
+            }
+
+            $content = $generated['content'] ?? '';
+            if (empty($content)) {
+                return response()->json(['success' => false, 'message' => 'Konten artikel belum digenerate.'], 422);
+            }
+
+            $downloadResult = $fetcher->downloadAndProcess($request->image_url, $request->keyword, auth()->id());
+
+            $imgHtml = '<figure class="my-6">' .
+                '<img src="' . htmlspecialchars($downloadResult['url']) . '" ' .
+                'alt="' . htmlspecialchars($downloadResult['alt']) . '" ' .
+                'title="' . htmlspecialchars($downloadResult['title']) . '" ' .
+                'loading="lazy" class="w-full rounded-xl shadow-md">' .
+                '</figure>';
+
+            $updatedContent = str_replace($request->marker, $imgHtml, $content);
+            $generated['content'] = $updatedContent;
+
+            // Jika cover belum ada, set ini sebagai featured_image
+            if (empty($generated['featured_image'])) {
+                $generated['featured_image'] = $downloadResult['relative_path'];
+            }
+
+            $session->update(['generated_article_content' => json_encode($generated)]);
+
+            return response()->json([
+                'success'         => true,
+                'image'           => $downloadResult,
+                'img_html'        => $imgHtml,
+                'updated_content' => $updatedContent,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Ambil otomatis semua gambar per marker, konversi ke WebP, daftarkan ke Media Library, dan ganti di artikel.
+     */
+    public function autoFetchAllImages(Request $request, \App\Services\Blog\ArticleImageFetcherService $fetcher)
+    {
+        $request->validate([
+            'uuid'     => 'required|string',
+            'provider' => 'nullable|string|in:auto,tavily,unsplash,google,dalle',
+        ]);
+
+        try {
+            $result = $fetcher->autoFetchAllForSession($request->uuid, $request->input('provider', 'auto'));
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }
+

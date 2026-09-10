@@ -70,4 +70,13 @@ return [
         'base_url' => env('RAJAONGKIR_BASE_URL', 'https://api.rajaongkir.com/starter/'),
     ],
 
+    'unsplash' => [
+        'access_key' => env('UNSPLASH_ACCESS_KEY'),
+    ],
+
+    'google_cse' => [
+        'api_key' => env('GOOGLE_CSE_KEY', 'AIzaSyBCZLpRENKu3YohN1HaTQNHN01xBKiyDTo'),
+        'cx' => env('GOOGLE_CSE_CX', '86d9c75217d214ff0'),
+    ],
+
 ];

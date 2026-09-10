@@ -609,6 +609,16 @@ TEXT;
             'user_id'            => auth()->id(),
         ];
 
+        // Auto-assign featured_image from auto-fetched images if available
+        if (!empty($generated['featured_image'])) {
+            $data['featured_image'] = $generated['featured_image'];
+        } elseif (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $content, $imgMatch)) {
+            $cleanPath = preg_replace('/^.*\/storage\//i', '', $imgMatch[1]);
+            if (!empty($cleanPath) && Storage::disk('public')->exists($cleanPath)) {
+                $data['featured_image'] = $cleanPath;
+            }
+        }
+
         // Isi versi EN jika sudah digenerate.
         if (!empty($generatedEn['content'])) {
             $focusKeywordEn      = $this->normalizeToString($selected['keyword'] ?? $generatedEn['focus_keyword'] ?? null);

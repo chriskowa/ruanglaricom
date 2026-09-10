@@ -1076,6 +1076,9 @@ Route::middleware('auth')->group(function () {
         Route::post('blog/articles/agent/write-en', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'writeEn'])->name('blog.articles.agent.write-en');
         Route::post('blog/articles/agent/translate', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'translate'])->name('blog.articles.agent.translate');
         Route::post('blog/articles/agent/apply', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'apply'])->name('blog.articles.agent.apply');
+        Route::post('blog/articles/agent/search-images', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'searchImages'])->name('blog.articles.agent.search-images');
+        Route::post('blog/articles/agent/attach-image', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'attachImage'])->name('blog.articles.agent.attach-image');
+        Route::post('blog/articles/agent/auto-fetch-images', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'autoFetchAllImages'])->name('blog.articles.agent.auto-fetch-images');
         Route::post('blog/articles/{article}/toggle-featured', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'toggleFeatured'])->name('blog.articles.toggle-featured');
         Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');
         Route::resource('blog/categories', App\Http\Controllers\Admin\Blog\CategoryController::class)->names('blog.categories');
