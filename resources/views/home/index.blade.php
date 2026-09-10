@@ -113,12 +113,12 @@
 
                     {{-- 4. Compact Premium CTA Buttons --}}
                     <div class="rl-hero-actions">
-                        <a href="{{ route('events.index') }}" class="rl-btn rl-btn-primary">
-                            <span>JELAJAHI LARI</span>
+                        <a href="#vdot-section" class="rl-btn rl-btn-primary">
+                            <span>BUAT PROGRAM LARI</span>
                         </a>
 
-                        <a href="{{ route('blog.index') }}" class="rl-btn rl-btn-outline">
-                            <span>BACA BERITA</span>
+                        <a href="#events" class="rl-btn rl-btn-outline">
+                            <span>JADWAL LARI</span>
                         </a>
                     </div>
                 </div>
@@ -1178,7 +1178,7 @@
     /* Human & Clear Subheadline */
     .rl-hero-lead {
         margin: 1.25rem 0 0;
-        color: #94A3B8;
+        color: #ffffffff;
         font-family: var(--rl-font-body);
         font-size: clamp(0.95rem, 1.2vw, 1.08rem);
         line-height: 1.7;
@@ -1855,6 +1855,7 @@
         padding: clamp(4.5rem, 7vw, 7.5rem) 0;
         border-top: 1px solid var(--rl-line);
         background: var(--rl-bg);
+        scroll-margin-top: 4.5rem;
     }
 
     .rl-section-alt { background: var(--rl-bg-2); }
@@ -3134,7 +3135,7 @@
             display: flex !important;
             flex-direction: row !important;
             align-items: center !important;
-            flex-wrap: nowrap !important;
+            flex-wrap: wrap !important;
             gap: 0.65rem !important;
             margin-top: 1.5rem !important;
             width: auto !important;
