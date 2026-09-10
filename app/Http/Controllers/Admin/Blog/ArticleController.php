@@ -79,8 +79,8 @@ class ArticleController extends Controller
      */
     public function generate(Request $request)
     {
-        set_time_limit(180);
-        ini_set('max_execution_time', 180);
+        set_time_limit(240);
+        ini_set('max_execution_time', 240);
 
         try {
             $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
@@ -188,12 +188,78 @@ class ArticleController extends Controller
     }
 
     /**
+     * Rekomendasi topik lari berpotensi pembaca tinggi & SEO 2026.
+     */
+    public function suggestTopics(Request $request)
+    {
+        set_time_limit(90);
+
+        try {
+            $niche = trim((string) $request->input('niche', ''));
+
+            $systemPrompt = "Kamu adalah Redaktur Eksekutif & Pakar Analisis Tren SEO Google Discover 2026 untuk Ruang Lari (platform media & komunitas lari Indonesia).\n"
+                . "Tugasmu: Berikan 6 sampai 8 rekomendasi ide topik & judul artikel lari yang memiliki potensi traffic tertinggi (banyak pembaca, viralitas etis di media sosial / grup WhatsApp lari, dan ranking tinggi di Google Search / Google Discover 2026).\n\n"
+                . "KRITERIA TOPIK BERPOTENSI PEMBACA TINGGI:\n"
+                . "1. HIGH INFORMATION GAIN: Mengatasi masalah atau keresahan nyata pelari (pain point pelari tropis Indonesia, napas tersengal, salah pilih sepatu lari, cara menaikkan pace tanpa cedera, recovery pasca-long run).\n"
+                . "2. POLA PIKIR KONTRARIAN / TRUTH BOMB: Menantang mitos populer dengan sains fisiologi lari nyata (misal: mengapa lari tiap hari justru bikin lambat, kesalahan napas di KM 3, mitos carbo-loading).\n"
+                . "3. TREN EVENT & DISKUSI KOMUNITAS: Relevan dengan musim lomba maraton nasional (Maybank Marathon Bali, Borobudur Marathon, Pocari Sweat Run, teknik Sub 4 / Sub 2, perdebatan sepatu karbon untuk pemula).\n"
+                . "4. HIGH-CTR & ANTI-CLICKBAIT ALAY: Judul tajam, berwibawa, memikat rasa penasaran intelektual pelari, 100% selaras dengan isi, tanpa kata alay ('bikin melongo', 'heboh').\n\n"
+                . "Output HARUS murni JSON array objek TANPA markdown code block (```json). Format tiap objek:\n"
+                . "{\n"
+                . "  \"title\": \"Judul tajam high-CTR & viral bermartabat\",\n"
+                . "  \"focus_keyword\": \"1 kata kunci target ranking Google\",\n"
+                . "  \"secondary_keywords\": \"3 kata kunci turunan relevan\",\n"
+                . "  \"potential_type\": \"Google Discover\" | \"Evergreen SEO\" | \"Tren Komunitas\",\n"
+                . "  \"potential_score\": \"96/100\",\n"
+                . "  \"angle_summary\": \"Ringkasan 1-2 kalimat mengapa topik ini akan banyak dibaca dan bernilai tinggi bagi pelari.\"\n"
+                . "}";
+
+            $userPrompt = "Berikan 6-8 rekomendasi topik lari dengan potensi pembaca & SEO tertinggi.";
+            if ($niche !== '' && $niche !== 'all') {
+                $userPrompt .= " Fokuskan pada tema / kategori: {$niche}.";
+            }
+
+            $model = config('services.openai.blog_model') ?: config('services.openai.model') ?: 'gpt-6-astra';
+            $response = $this->aiService->getAiResponseOrThrow($userPrompt, $systemPrompt, $model);
+
+            $jsonStr = trim($response);
+            $jsonStr = str_replace(["```json", "```"], '', $jsonStr);
+            $jsonStr = trim($jsonStr);
+
+            if (preg_match('/\[[\s\S]*\]/', $jsonStr, $matches)) {
+                $jsonStr = $matches[0];
+            }
+
+            $data = json_decode($jsonStr, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format rekomendasi topik AI tidak valid.',
+                    'raw' => $response
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'topics' => $data,
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendapatkan ide topik: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Refine and perfect an existing article (title, excerpt, content, SEO) using AI.
      */
     public function refine(Request $request)
     {
-        set_time_limit(180);
-        ini_set('max_execution_time', 180);
+        set_time_limit(240);
+        ini_set('max_execution_time', 240);
 
         try {
             $title = trim((string) $request->input('title', ''));

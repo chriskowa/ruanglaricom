@@ -39,7 +39,13 @@
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topic or Keyword</label>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-semibold text-slate-300">Topic or Keyword</label>
+                                    <button type="button" onclick="openTopicSuggestionsModal()" class="text-[11px] text-neon hover:text-white flex items-center gap-1 font-medium transition-colors">
+                                        <i class="fas fa-lightbulb text-[10px]"></i>
+                                        <span>Cari Topik Potensial (SEO)</span>
+                                    </button>
+                                </div>
                                 <input type="text" id="ai-topic" onkeyup="syncPrompt()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Tips Lari Marathon Pemula">
                             </div>
                             <div>
@@ -54,6 +60,10 @@
                         </div>
 
                         <div class="flex flex-wrap justify-end gap-3 pt-1">
+                            <button type="button" onclick="openTopicSuggestionsModal()" class="px-4 py-2.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 font-semibold hover:bg-slate-700 hover:text-white transition-all text-sm flex items-center gap-2">
+                                <i class="fas fa-chart-line text-neon text-xs"></i>
+                                Cari Topik Potensial
+                            </button>
                             <button type="button" onclick="openArticleAgent()" class="px-5 py-2.5 rounded-md bg-slate-800 border border-slate-700 text-white font-semibold hover:bg-slate-700 transition-all text-sm flex items-center gap-2">
                                 <i class="fas fa-brain text-neon text-xs"></i>
                                 Article Agent
@@ -363,28 +373,137 @@
                 </div>
 
                 <!-- Featured Image -->
-                <div class="bg-slate-900/70 backdrop-blur-md border border-slate-800 rounded-2xl p-6">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Featured Image</h3>
-                    <div class="space-y-4">
-                        <div class="relative w-full aspect-video bg-slate-950 border-2 border-dashed border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group hover:border-neon transition-colors">
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Featured Image</h3>
+                        <span id="featured_saved_badge" class="hidden text-[11px] font-medium text-emerald-400">Tersimpan</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="relative w-full aspect-video bg-slate-950 border border-dashed border-slate-700 rounded-lg overflow-hidden flex items-center justify-center group hover:border-slate-500 transition-colors">
                             <input type="file" id="featured_image_file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
                             <input type="hidden" name="featured_image_url" id="featured_image_url">
                             <img id="img-preview" class="absolute inset-0 w-full h-full object-cover hidden">
                             <div class="text-center p-4 pointer-events-none" id="img-placeholder">
-                                <svg class="w-8 h-8 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <span class="text-xs text-slate-400">Click to upload image</span>
+                                <svg class="w-7 h-7 text-slate-500 mx-auto mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span class="text-xs text-slate-400 block">Klik untuk upload manual</span>
                             </div>
                         </div>
-                        <div class="flex justify-center">
-                            <button type="button" onclick="openMediaForFeatured()" class="px-4 py-2 bg-slate-800 text-white text-xs rounded-xl hover:bg-slate-700 border border-slate-700 transition-colors font-semibold">
-                                Select from Media Library
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="toggleFeaturedSearchPanel()" class="w-full py-2 px-2 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-md border border-slate-700 transition flex items-center justify-center gap-1.5 font-medium">
+                                <i class="fas fa-search text-[10px] text-slate-300"></i>
+                                <span>Cari via Keyword</span>
                             </button>
+                            <button type="button" onclick="openMediaForFeatured()" class="w-full py-2 px-2 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-md border border-slate-700 transition flex items-center justify-center gap-1.5 font-medium">
+                                <i class="fas fa-images text-[10px] text-slate-300"></i>
+                                <span>Media Library</span>
+                            </button>
+                        </div>
+
+                        {{-- Keyword Search Drawer --}}
+                        <div id="featured-search-drawer" class="hidden border border-slate-800 bg-slate-950 rounded-lg p-3 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-white">Cari Gambar Online</span>
+                                <button type="button" onclick="toggleFeaturedSearchPanel(false)" class="text-slate-400 hover:text-white text-xs">
+                                    Tutup
+                                </button>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="text-[11px] text-slate-400">Kata Kunci</label>
+                                    <button type="button" onclick="fillFeaturedKeywordFromFocus()" class="text-[10px] text-slate-300 hover:text-white underline">
+                                        Pakai Focus Keyword
+                                    </button>
+                                </div>
+                                <input type="text" id="featured_search_keyword" class="w-full bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500" placeholder="Ketik kata kunci...">
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <select id="featured_search_provider" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-md px-2 py-1.5 flex-1 focus:outline-none focus:border-slate-500">
+                                    <option value="google" selected>Google Images</option>
+                                    <option value="tavily">Tavily Web</option>
+                                    <option value="unsplash">Unsplash HQ</option>
+                                    <option value="dalle">OpenAI DALL-E 3</option>
+                                    <option value="auto">Auto (Semua)</option>
+                                </select>
+                                <button type="button" id="featured_btn_search" onclick="searchFeaturedImageCandidates()" class="px-3 py-1.5 bg-slate-200 hover:bg-white text-slate-950 font-semibold text-xs rounded-md transition shrink-0">
+                                    Cari
+                                </button>
+                            </div>
+
+                            <div id="featured_candidates_container" class="hidden pt-2 border-t border-slate-800">
+                                <div id="featured_candidates_status" class="text-xs text-slate-400 mb-2"></div>
+                                <div id="featured_candidates_grid" class="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </form>
+</div>
+
+{{-- High Potential Topic Suggestions Modal --}}
+<div id="topic-suggestions-modal" class="fixed inset-0 z-[9998] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 w-11/12 max-w-4xl max-h-[90vh] rounded-lg border border-slate-700/80 shadow-2xl flex flex-col overflow-hidden">
+        {{-- Header --}}
+        <div class="flex justify-between items-center px-6 py-4 border-b border-slate-800 bg-slate-800/60">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-md bg-neon/10 border border-neon/20 flex items-center justify-center text-neon">
+                    <i class="fas fa-chart-line text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-base">Rekomendasi Topik Potensi Pembaca Tinggi &amp; SEO</h3>
+                    <p class="text-slate-400 text-xs">Dianalisis berdasarkan tren pelari Indonesia, algoritma Google Discover 2026, dan volume organik.</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeTopicSuggestionsModal()" class="text-slate-400 hover:text-white transition-colors" aria-label="Tutup">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+            {{-- Category Filter Tags & Input --}}
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <div class="flex flex-wrap items-center gap-1.5" id="topic-niche-tags">
+                    <button type="button" onclick="filterTopicsByNiche('all', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-neon text-dark transition">Semua Tren</button>
+                    <button type="button" onclick="filterTopicsByNiche('marathon dan race lari indonesia', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300 hover:text-white transition">Marathon &amp; Race</button>
+                    <button type="button" onclick="filterTopicsByNiche('tips latihan fisiologi pace dan pernapasan', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300 hover:text-white transition">Latihan &amp; Pace</button>
+                    <button type="button" onclick="filterTopicsByNiche('rekomendasi dan review sepatu lari running gear', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300 hover:text-white transition">Sepatu &amp; Gear</button>
+                    <button type="button" onclick="filterTopicsByNiche('nutrisi hidrasi carbo loading dan recovery pelari', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300 hover:text-white transition">Nutrisi &amp; Recovery</button>
+                    <button type="button" onclick="filterTopicsByNiche('panduan pelari pemula cara mulai lari', this)" class="topic-niche-btn px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-300 hover:text-white transition">Pelari Pemula</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="topic-custom-niche" placeholder="Topik khusus..." class="bg-slate-900 border border-slate-700 text-white text-xs rounded-md px-2.5 py-1.5 focus:outline-none focus:border-slate-500 w-full sm:w-44">
+                    <button type="button" onclick="fetchTopicSuggestions(document.getElementById('topic-custom-niche').value)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-md border border-slate-700 font-semibold transition shrink-0">
+                        Cari
+                    </button>
+                </div>
+            </div>
+
+            {{-- Loading State --}}
+            <div id="topic-suggestions-loading" class="py-12 text-center hidden">
+                <div class="w-8 h-8 border-2 border-neon border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p class="text-sm font-semibold text-white">Menganalisis Tren Lari &amp; Potensi SEO...</p>
+                <p class="text-xs text-slate-400 mt-1">Mengukur daya ledak viralitas etis, keyword Google Discover, dan search intent pelari Indonesia.</p>
+            </div>
+
+            {{-- Topic Cards Grid --}}
+            <div id="topic-suggestions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {{-- Injected dynamically --}}
+            </div>
+        </div>
+
+        {{-- Footer --}}
+        <div class="px-6 py-3 border-t border-slate-800 bg-slate-950 flex items-center justify-between text-xs text-slate-400">
+            <span>Klik <strong>"Gunakan Topik Ini"</strong> untuk langsung mengisi judul &amp; metadata SEO artikel.</span>
+            <button type="button" onclick="closeTopicSuggestionsModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md font-medium transition">
+                Tutup
+            </button>
+        </div>
+    </div>
 </div>
 
 {{-- Article Agent Modal --}}
@@ -1130,6 +1249,317 @@ function openMediaModal(onSelectCallback) {
             
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    // Featured Image Keyword Search Drawer
+    function toggleFeaturedSearchPanel(show = null) {
+        const drawer = document.getElementById('featured-search-drawer');
+        if (!drawer) return;
+        const willShow = show === null ? drawer.classList.contains('hidden') : show;
+        if (willShow) {
+            drawer.classList.remove('hidden');
+            const kwInput = document.getElementById('featured_search_keyword');
+            if (kwInput && !kwInput.value) {
+                fillFeaturedKeywordFromFocus();
+            }
+            if (kwInput) kwInput.focus();
+        } else {
+            drawer.classList.add('hidden');
+        }
+    }
+
+    function fillFeaturedKeywordFromFocus() {
+        const focusInput = document.getElementById('focus_keyword') || document.querySelector('input[name="focus_keyword"]');
+        const titleInput = document.querySelector('input[name="title"]');
+        const kwInput = document.getElementById('featured_search_keyword');
+        if (!kwInput) return;
+        const val = (focusInput ? focusInput.value.trim() : '') || (titleInput ? titleInput.value.trim() : '');
+        if (val) {
+            kwInput.value = val;
+        }
+    }
+
+    async function searchFeaturedImageCandidates() {
+        const kwInput = document.getElementById('featured_search_keyword');
+        const providerSelect = document.getElementById('featured_search_provider');
+        const btnSearch = document.getElementById('featured_btn_search');
+        const container = document.getElementById('featured_candidates_container');
+        const statusEl = document.getElementById('featured_candidates_status');
+        const gridEl = document.getElementById('featured_candidates_grid');
+
+        let query = kwInput ? kwInput.value.trim() : '';
+        if (!query) {
+            fillFeaturedKeywordFromFocus();
+            query = kwInput ? kwInput.value.trim() : '';
+        }
+
+        if (!query) {
+            alert('Silakan masukkan kata kunci pencarian terlebih dahulu.');
+            kwInput?.focus();
+            return;
+        }
+
+        const provider = providerSelect ? providerSelect.value : 'google';
+
+        container.classList.remove('hidden');
+        statusEl.innerHTML = '<span class="flex items-center gap-1.5"><i class="fas fa-spinner fa-spin"></i> Mencari gambar di ' + (provider === 'google' ? 'Google Images' : provider) + '...</span>';
+        gridEl.innerHTML = '';
+        btnSearch.disabled = true;
+
+        try {
+            const resp = await fetch('{{ route("admin.blog.articles.agent.search-images") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ query: query, provider: provider, limit: 6 })
+            });
+
+            const data = await resp.json().catch(() => null);
+            btnSearch.disabled = false;
+
+            if (!data || !data.success || !data.candidates || data.candidates.length === 0) {
+                statusEl.innerHTML = '<span class="text-rose-400">Tidak ada gambar ditemukan. Coba ganti kata kunci atau provider lain.</span>';
+                return;
+            }
+
+            statusEl.innerHTML = '<span class="text-slate-300">Pilih salah satu gambar (auto convert WebP):</span>';
+
+            data.candidates.forEach(cand => {
+                const card = document.createElement('div');
+                card.className = 'group relative aspect-[3/2] bg-slate-900 border border-slate-700 hover:border-slate-400 rounded-md overflow-hidden cursor-pointer transition';
+                card.innerHTML = `
+                    <img src="${cand.thumb || cand.url}" alt="${cand.title || ''}" class="w-full h-full object-cover">
+                    <div class="absolute top-1 left-1 bg-black/70 px-1 py-0.5 rounded text-[9px] text-slate-300 font-medium">
+                        ${cand.source || 'Web'}
+                    </div>
+                    <div class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-1 text-center">
+                        <span class="px-2 py-1 bg-white text-slate-950 rounded text-[10px] font-bold">Pilih Cover</span>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    attachFeaturedImageCandidate(cand.url, query, card);
+                });
+
+                gridEl.appendChild(card);
+            });
+        } catch (err) {
+            btnSearch.disabled = false;
+            statusEl.innerHTML = '<span class="text-rose-400">Gagal mencari gambar: ' + err.message + '</span>';
+        }
+    }
+
+    async function attachFeaturedImageCandidate(imageUrl, query, cardEl) {
+        const statusEl = document.getElementById('featured_candidates_status');
+        const drawer = document.getElementById('featured-search-drawer');
+        const badge = document.getElementById('featured_saved_badge');
+
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-slate-300 flex items-center gap-1.5"><i class="fas fa-spinner fa-spin"></i> Mengunduh, convert ke WebP &amp; simpan ke Media...</span>';
+        }
+
+        try {
+            const resp = await fetch('{{ route("admin.blog.articles.agent.fetch-featured-image") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ image_url: imageUrl, keyword: query })
+            });
+
+            const data = await resp.json().catch(() => null);
+
+            if (!data || !data.success || !data.image) {
+                if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">Gagal mengunduh: ' + (data?.message || 'Error') + '</span>';
+                return;
+            }
+
+            // Set to form inputs
+            document.getElementById('featured_image_url').value = data.image.url;
+            const fileInput = document.getElementById('featured_image_file');
+            if (fileInput) fileInput.value = '';
+
+            const imgPreview = document.getElementById('img-preview');
+            const imgPlaceholder = document.getElementById('img-placeholder');
+
+            imgPreview.src = data.image.url;
+            imgPreview.classList.remove('hidden');
+            imgPlaceholder.classList.add('hidden');
+
+            if (badge) {
+                badge.textContent = 'WebP Tersimpan';
+                badge.classList.remove('hidden');
+            }
+
+            // Close search drawer
+            if (drawer) drawer.classList.add('hidden');
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">Gagal: ' + err.message + '</span>';
+        }
+    }
+
+    /* ===================== TOPIC SUGGESTIONS MODAL ===================== */
+    let currentTopicNiche = 'all';
+
+    function openTopicSuggestionsModal() {
+        const modal = document.getElementById('topic-suggestions-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        const grid = document.getElementById('topic-suggestions-grid');
+        if (grid && grid.children.length === 0) {
+            fetchTopicSuggestions('all');
+        }
+    }
+
+    function closeTopicSuggestionsModal() {
+        const modal = document.getElementById('topic-suggestions-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function filterTopicsByNiche(niche, btnEl) {
+        currentTopicNiche = niche;
+        const buttons = document.querySelectorAll('.topic-niche-btn');
+        buttons.forEach(b => {
+            b.classList.remove('bg-neon', 'text-dark');
+            b.classList.add('bg-slate-800', 'text-slate-300');
+        });
+
+        if (btnEl) {
+            btnEl.classList.remove('bg-slate-800', 'text-slate-300');
+            btnEl.classList.add('bg-neon', 'text-dark');
+        }
+
+        const customInput = document.getElementById('topic-custom-niche');
+        if (customInput) customInput.value = '';
+
+        fetchTopicSuggestions(niche);
+    }
+
+    async function fetchTopicSuggestions(niche = '') {
+        const loading = document.getElementById('topic-suggestions-loading');
+        const grid = document.getElementById('topic-suggestions-grid');
+        if (!grid) return;
+
+        if (loading) loading.classList.remove('hidden');
+        grid.innerHTML = '';
+
+        try {
+            const resp = await fetch('{{ route("admin.blog.articles.suggest-topics") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ niche: niche || 'all' })
+            });
+
+            const data = await resp.json().catch(() => null);
+            if (loading) loading.classList.add('hidden');
+
+            if (!data || !data.success || !data.topics || data.topics.length === 0) {
+                grid.innerHTML = '<div class="col-span-2 text-center py-8 text-rose-400 text-xs">Gagal memuat rekomendasi topik: ' + (data?.message || 'Tidak ada topik ditemukan.') + '</div>';
+                return;
+            }
+
+            data.topics.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-950 border border-slate-800 hover:border-slate-600 rounded-lg p-4 flex flex-col justify-between transition-colors shadow-sm';
+                
+                const badgeColor = (t.potential_type || '').includes('Discover') 
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${badgeColor}">
+                                ${t.potential_type || 'SEO Potensial'} &bull; ${t.potential_score || '95/100'}
+                            </span>
+                            <span class="text-[11px] font-mono text-neon font-medium truncate max-w-[180px]">
+                                ${t.focus_keyword || ''}
+                            </span>
+                        </div>
+                        <h4 class="text-sm font-semibold text-white leading-snug hover:text-neon transition-colors cursor-pointer">
+                            ${t.title || ''}
+                        </h4>
+                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                            ${t.angle_summary || ''}
+                        </p>
+                        ${t.secondary_keywords ? `<p class="text-[10px] text-slate-500 font-mono truncate">LSI: ${t.secondary_keywords}</p>` : ''}
+                    </div>
+                    <div class="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                        <span class="text-[11px] text-slate-500">Klik untuk pasang ke form</span>
+                        <button type="button" class="btn-use-topic px-3 py-1.5 bg-neon hover:bg-neon/90 text-dark font-bold text-xs rounded-md transition shadow-sm">
+                            Gunakan Topik Ini
+                        </button>
+                    </div>
+                `;
+
+                // Bind click events
+                const btnUse = card.querySelector('.btn-use-topic');
+                const titleHeading = card.querySelector('h4');
+                const applyAction = () => applySuggestedTopic(t);
+
+                btnUse.addEventListener('click', applyAction);
+                titleHeading.addEventListener('click', applyAction);
+
+                grid.appendChild(card);
+            });
+        } catch (err) {
+            if (loading) loading.classList.add('hidden');
+            grid.innerHTML = '<div class="col-span-2 text-center py-8 text-rose-400 text-xs">Terjadi kesalahan: ' + err.message + '</div>';
+        }
+    }
+
+    function applySuggestedTopic(t) {
+        if (!t) return;
+
+        // Set AI Topic input
+        const aiTopic = document.getElementById('ai-topic');
+        if (aiTopic) {
+            aiTopic.value = t.title;
+        }
+
+        // Set Form Title input
+        const titleInput = document.querySelector('input[name="title"]');
+        if (titleInput) {
+            titleInput.value = t.title;
+        }
+
+        // Set Focus Keyword
+        const seoFocusKw = document.getElementById('seo_focus_keyword');
+        if (seoFocusKw) seoFocusKw.value = t.focus_keyword || '';
+        const focusKw = document.querySelector('input[name="focus_keyword"]');
+        if (focusKw) focusKw.value = t.focus_keyword || '';
+
+        // Set Secondary Keywords
+        const secKw = document.querySelector('input[name="secondary_keywords"]');
+        if (secKw && t.secondary_keywords) {
+            secKw.value = t.secondary_keywords;
+        }
+
+        // Trigger prompt preview sync
+        if (typeof syncPrompt === 'function') {
+            syncPrompt();
+        }
+
+        closeTopicSuggestionsModal();
+
+        // Smooth scroll to top of generator
+        const generatorCard = document.getElementById('ai-topic')?.closest('.group');
+        if (generatorCard) {
+            generatorCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Quick feedback banner / alert
+        alert('Topik terpilih: "' + t.title + '"\n\nFocus Keyword dan judul sudah terisi otomatis. Klik tombol "Generate Article" atau "Article Agent" untuk menyusun artikel lengkap!');
     }
 
     const catList = document.getElementById('category-list');

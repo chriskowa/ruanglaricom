@@ -17,8 +17,8 @@ class ArticleAgentController extends Controller
 
         // Langkah agent memanggil LLM (brainstorm/research/write) butuh waktu > 30s.
         // Naikkan batas eksekusi agar request web tidak timeout.
-        set_time_limit(180);
-        ini_set('max_execution_time', 180);
+        set_time_limit(240);
+        ini_set('max_execution_time', 240);
     }
 
     /**
@@ -240,6 +240,29 @@ class ArticleAgentController extends Controller
         try {
             $result = $fetcher->autoFetchAllForSession($request->uuid, $request->input('provider', 'auto'));
             return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Download an online image, convert to WebP, register to Media Library, and return for Featured Image.
+     */
+    public function fetchFeaturedImage(Request $request, \App\Services\Blog\ArticleImageFetcherService $fetcher)
+    {
+        $request->validate([
+            'image_url' => 'required|url',
+            'keyword'   => 'nullable|string',
+        ]);
+
+        try {
+            $keyword = $request->input('keyword') ?: 'featured-image';
+            $downloadResult = $fetcher->downloadAndProcess($request->image_url, $keyword, auth()->id());
+
+            return response()->json([
+                'success' => true,
+                'image'   => $downloadResult,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }

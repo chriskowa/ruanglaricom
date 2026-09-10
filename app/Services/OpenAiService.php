@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Log;
 class OpenAiService
 {
     protected $apiKey;
+    protected int $timeout;
     protected $chatCompletionsUrl = 'https://api.openai.com/v1/chat/completions';
     protected $responsesUrl = 'https://api.openai.com/v1/responses';
 
     public function __construct()
     {
         $this->apiKey = config('services.openai.api_key') ?: env('OPENAI_API_KEY');
+        $this->timeout = (int) (config('services.openai.timeout') ?: env('OPENAI_TIMEOUT', 180));
+        if ($this->timeout < 60) {
+            $this->timeout = 180;
+        }
     }
 
     /**
@@ -33,7 +38,7 @@ class OpenAiService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout(90)->post($this->chatCompletionsUrl, [
+            ])->timeout($this->timeout)->post($this->chatCompletionsUrl, [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemMessage],
@@ -67,7 +72,7 @@ class OpenAiService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout(90)->post($this->chatCompletionsUrl, [
+            ])->timeout($this->timeout)->post($this->chatCompletionsUrl, [
                 'model' => $model,
                 'messages' => $messages,
                 'temperature' => 0.7,
@@ -105,19 +110,29 @@ class OpenAiService
                 'temperature' => 0.7,
             ];
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])->timeout(90)->post($this->chatCompletionsUrl, $payload);
-
-            if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
-                unset($payload['temperature']);
+            try {
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $this->apiKey,
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                ])->timeout(90)->post($this->chatCompletionsUrl, $payload);
+                ])->timeout($this->timeout)->post($this->chatCompletionsUrl, $payload);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error("OpenAI timeout ({$this->timeout}s) on chat_completions: " . $e->getMessage());
+                throw new \RuntimeException("Koneksi ke OpenAI timed out setelah {$this->timeout} detik. Server OpenAI sedang memproses artikel panjang. Silakan coba kembali.", 0, $e);
+            }
+
+            if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+                unset($payload['temperature']);
+                try {
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $this->apiKey,
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ])->timeout($this->timeout)->post($this->chatCompletionsUrl, $payload);
+                } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                    Log::error("OpenAI timeout ({$this->timeout}s) on retry chat_completions: " . $e->getMessage());
+                    throw new \RuntimeException("Koneksi ke OpenAI timed out setelah {$this->timeout} detik. Silakan coba kembali.", 0, $e);
+                }
             }
 
             if (! $response->successful()) {
@@ -147,19 +162,29 @@ class OpenAiService
             'temperature' => 0.7,
         ];
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->apiKey,
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])->timeout(90)->post($this->responsesUrl, $payload);
-
-        if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
-            unset($payload['temperature']);
+        try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-            ])->timeout(90)->post($this->responsesUrl, $payload);
+            ])->timeout($this->timeout)->post($this->responsesUrl, $payload);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error("OpenAI timeout ({$this->timeout}s) on responses: " . $e->getMessage());
+            throw new \RuntimeException("Koneksi ke OpenAI timed out setelah {$this->timeout} detik. Server OpenAI sedang memproses artikel panjang. Silakan coba kembali.", 0, $e);
+        }
+
+        if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+            unset($payload['temperature']);
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])->timeout($this->timeout)->post($this->responsesUrl, $payload);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error("OpenAI timeout ({$this->timeout}s) on retry responses: " . $e->getMessage());
+                throw new \RuntimeException("Koneksi ke OpenAI timed out setelah {$this->timeout} detik. Silakan coba kembali.", 0, $e);
+            }
         }
 
         if (! $response->successful()) {

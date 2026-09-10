@@ -309,22 +309,69 @@
                 </div>
 
                 <!-- Featured Image -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Featured Image</h3>
-                    <div class="space-y-4">
-                        <div class="relative w-full aspect-video bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl overflow-hidden flex items-center justify-center group hover:border-neon transition-colors">
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Featured Image</h3>
+                        <span id="featured_saved_badge" class="hidden text-[11px] font-medium text-emerald-400">Tersimpan</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="relative w-full aspect-video bg-slate-950 border border-dashed border-slate-700 rounded-lg overflow-hidden flex items-center justify-center group hover:border-slate-500 transition-colors">
                             <input type="file" id="featured_image_file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
                             <input type="hidden" name="featured_image_url" id="featured_image_url" value="{{ old('featured_image_url', $article->featured_image) }}">
                             <img id="img-preview" src="{{ $article->featured_image ? $article->featured_image_url : '' }}" class="absolute inset-0 w-full h-full object-cover {{ $article->featured_image ? '' : 'hidden' }}">
                             <div class="text-center p-4 pointer-events-none {{ $article->featured_image ? 'hidden' : '' }}" id="img-placeholder">
-                                <svg class="w-8 h-8 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <span class="text-xs text-slate-400">Click to upload</span>
+                                <svg class="w-7 h-7 text-slate-500 mx-auto mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span class="text-xs text-slate-400 block">Klik untuk upload manual</span>
                             </div>
                         </div>
-                        <div class="flex justify-center">
-                            <button type="button" onclick="openMediaForFeatured()" class="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-700 border border-slate-700 transition-colors">
-                                Select from Media Library
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="toggleFeaturedSearchPanel()" class="w-full py-2 px-2 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-md border border-slate-700 transition flex items-center justify-center gap-1.5 font-medium">
+                                <i class="fas fa-search text-[10px] text-slate-300"></i>
+                                <span>Cari via Keyword</span>
                             </button>
+                            <button type="button" onclick="openMediaForFeatured()" class="w-full py-2 px-2 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-md border border-slate-700 transition flex items-center justify-center gap-1.5 font-medium">
+                                <i class="fas fa-images text-[10px] text-slate-300"></i>
+                                <span>Media Library</span>
+                            </button>
+                        </div>
+
+                        {{-- Keyword Search Drawer --}}
+                        <div id="featured-search-drawer" class="hidden border border-slate-800 bg-slate-950 rounded-lg p-3 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-white">Cari Gambar Online</span>
+                                <button type="button" onclick="toggleFeaturedSearchPanel(false)" class="text-slate-400 hover:text-white text-xs">
+                                    Tutup
+                                </button>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="text-[11px] text-slate-400">Kata Kunci</label>
+                                    <button type="button" onclick="fillFeaturedKeywordFromFocus()" class="text-[10px] text-slate-300 hover:text-white underline">
+                                        Pakai Focus Keyword
+                                    </button>
+                                </div>
+                                <input type="text" id="featured_search_keyword" class="w-full bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500" placeholder="Ketik kata kunci...">
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <select id="featured_search_provider" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-md px-2 py-1.5 flex-1 focus:outline-none focus:border-slate-500">
+                                    <option value="google" selected>Google Images</option>
+                                    <option value="tavily">Tavily Web</option>
+                                    <option value="unsplash">Unsplash HQ</option>
+                                    <option value="dalle">OpenAI DALL-E 3</option>
+                                    <option value="auto">Auto (Semua)</option>
+                                </select>
+                                <button type="button" id="featured_btn_search" onclick="searchFeaturedImageCandidates()" class="px-3 py-1.5 bg-slate-200 hover:bg-white text-slate-950 font-semibold text-xs rounded-md transition shrink-0">
+                                    Cari
+                                </button>
+                            </div>
+
+                            <div id="featured_candidates_container" class="hidden pt-2 border-t border-slate-800">
+                                <div id="featured_candidates_status" class="text-xs text-slate-400 mb-2"></div>
+                                <div id="featured_candidates_grid" class="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -872,6 +919,158 @@
             }
             
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Featured Image Keyword Search Drawer
+    function toggleFeaturedSearchPanel(show = null) {
+        const drawer = document.getElementById('featured-search-drawer');
+        if (!drawer) return;
+        const willShow = show === null ? drawer.classList.contains('hidden') : show;
+        if (willShow) {
+            drawer.classList.remove('hidden');
+            const kwInput = document.getElementById('featured_search_keyword');
+            if (kwInput && !kwInput.value) {
+                fillFeaturedKeywordFromFocus();
+            }
+            if (kwInput) kwInput.focus();
+        } else {
+            drawer.classList.add('hidden');
+        }
+    }
+
+    function fillFeaturedKeywordFromFocus() {
+        const focusInput = document.getElementById('focus_keyword') || document.querySelector('input[name="focus_keyword"]');
+        const titleInput = document.querySelector('input[name="title"]');
+        const kwInput = document.getElementById('featured_search_keyword');
+        if (!kwInput) return;
+        const val = (focusInput ? focusInput.value.trim() : '') || (titleInput ? titleInput.value.trim() : '');
+        if (val) {
+            kwInput.value = val;
+        }
+    }
+
+    async function searchFeaturedImageCandidates() {
+        const kwInput = document.getElementById('featured_search_keyword');
+        const providerSelect = document.getElementById('featured_search_provider');
+        const btnSearch = document.getElementById('featured_btn_search');
+        const container = document.getElementById('featured_candidates_container');
+        const statusEl = document.getElementById('featured_candidates_status');
+        const gridEl = document.getElementById('featured_candidates_grid');
+
+        let query = kwInput ? kwInput.value.trim() : '';
+        if (!query) {
+            fillFeaturedKeywordFromFocus();
+            query = kwInput ? kwInput.value.trim() : '';
+        }
+
+        if (!query) {
+            alert('Silakan masukkan kata kunci pencarian terlebih dahulu.');
+            kwInput?.focus();
+            return;
+        }
+
+        const provider = providerSelect ? providerSelect.value : 'google';
+
+        container.classList.remove('hidden');
+        statusEl.innerHTML = '<span class="flex items-center gap-1.5"><i class="fas fa-spinner fa-spin"></i> Mencari gambar di ' + (provider === 'google' ? 'Google Images' : provider) + '...</span>';
+        gridEl.innerHTML = '';
+        btnSearch.disabled = true;
+
+        try {
+            const resp = await fetch('{{ route("admin.blog.articles.agent.search-images") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ query: query, provider: provider, limit: 6 })
+            });
+
+            const data = await resp.json().catch(() => null);
+            btnSearch.disabled = false;
+
+            if (!data || !data.success || !data.candidates || data.candidates.length === 0) {
+                statusEl.innerHTML = '<span class="text-rose-400">Tidak ada gambar ditemukan. Coba ganti kata kunci atau provider lain.</span>';
+                return;
+            }
+
+            statusEl.innerHTML = '<span class="text-slate-300">Pilih salah satu gambar (auto convert WebP):</span>';
+
+            data.candidates.forEach(cand => {
+                const card = document.createElement('div');
+                card.className = 'group relative aspect-[3/2] bg-slate-900 border border-slate-700 hover:border-slate-400 rounded-md overflow-hidden cursor-pointer transition';
+                card.innerHTML = `
+                    <img src="${cand.thumb || cand.url}" alt="${cand.title || ''}" class="w-full h-full object-cover">
+                    <div class="absolute top-1 left-1 bg-black/70 px-1 py-0.5 rounded text-[9px] text-slate-300 font-medium">
+                        ${cand.source || 'Web'}
+                    </div>
+                    <div class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-1 text-center">
+                        <span class="px-2 py-1 bg-white text-slate-950 rounded text-[10px] font-bold">Pilih Cover</span>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    attachFeaturedImageCandidate(cand.url, query, card);
+                });
+
+                gridEl.appendChild(card);
+            });
+        } catch (err) {
+            btnSearch.disabled = false;
+            statusEl.innerHTML = '<span class="text-rose-400">Gagal mencari gambar: ' + err.message + '</span>';
+        }
+    }
+
+    async function attachFeaturedImageCandidate(imageUrl, query, cardEl) {
+        const statusEl = document.getElementById('featured_candidates_status');
+        const drawer = document.getElementById('featured-search-drawer');
+        const badge = document.getElementById('featured_saved_badge');
+
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-slate-300 flex items-center gap-1.5"><i class="fas fa-spinner fa-spin"></i> Mengunduh, convert ke WebP &amp; simpan ke Media...</span>';
+        }
+
+        try {
+            const resp = await fetch('{{ route("admin.blog.articles.agent.fetch-featured-image") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ image_url: imageUrl, keyword: query })
+            });
+
+            const data = await resp.json().catch(() => null);
+
+            if (!data || !data.success || !data.image) {
+                if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">Gagal mengunduh: ' + (data?.message || 'Error') + '</span>';
+                return;
+            }
+
+            // Set to form inputs
+            document.getElementById('featured_image_url').value = data.image.url;
+            const fileInput = document.getElementById('featured_image_file');
+            if (fileInput) fileInput.value = '';
+
+            const imgPreview = document.getElementById('img-preview');
+            const imgPlaceholder = document.getElementById('img-placeholder');
+
+            imgPreview.src = data.image.url;
+            imgPreview.classList.remove('hidden');
+            if (imgPlaceholder) imgPlaceholder.classList.add('hidden');
+
+            if (badge) {
+                badge.textContent = 'WebP Tersimpan';
+                badge.classList.remove('hidden');
+            }
+
+            // Close search drawer
+            if (drawer) drawer.classList.add('hidden');
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = '<span class="text-rose-400">Gagal: ' + err.message + '</span>';
         }
     }
 
