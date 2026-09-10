@@ -471,7 +471,7 @@
         transition: all 0.15s ease;
     }
     #events-page .ep-tool-btn:hover { color: #ffffff; background: #1a2333; border-color: var(--ep-line-strong); }
-    #events-page #events-explorer-map { height: 400px; background: #080A0D; }
+    #events-page #events-explorer-map { height: clamp(400px, 50vh, 480px); background: #080A0D; }
     #events-page .ep-map-filter {
         display: flex;
         gap: 0.35rem;
@@ -984,15 +984,16 @@
     }
     .mapboxgl-ctrl-group button { border-bottom: 1px solid var(--ep-line) !important; }
     .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon { filter: invert(1) brightness(2); }
-    .mapboxgl-popup { max-width: 280px !important; z-index: 1000 !important; }
+    .mapboxgl-popup { max-width: min(300px, 88vw) !important; z-index: 1000 !important; }
     .mapboxgl-popup-content {
         background: #12161F !important;
         color: #ffffff !important;
         border-radius: 8px !important;
         border: 1px solid var(--ep-line) !important;
-        box-shadow: 0 16px 36px rgba(0,0,0,0.8) !important;
+        box-shadow: 0 16px 36px rgba(0,0,0,0.85), 0 0 0 1px rgba(204,255,0,0.25) !important;
         padding: 0 !important;
         overflow: hidden !important;
+        scroll-margin: 5rem;
     }
     .mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #12161F !important; }
     .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #12161F !important; }
@@ -1017,6 +1018,12 @@
         #events-page .ep-featured, #events-page .ep-featured-slide, #events-page .ep-featured-slide img { min-height: 280px; }
         #events-page #filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         #events-page .ep-directory { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media(max-width:767px) {
+        #events-page #events-explorer-map { height: clamp(390px, 60vh, 480px); }
+        .mapboxgl-popup-content {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.95), 0 0 0 1.5px var(--ep-accent, #ccff00) !important;
+        }
     }
 
     @media(max-width:639px) {
@@ -1933,6 +1940,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function showClusterLeavesPopup(coordinates, leaves) {
         if (activePopup) activePopup.remove();
 
+        const isMobile = window.innerWidth < 768;
+        eventsExplorerMap.flyTo({
+            center: coordinates,
+            offset: [0, isMobile ? 90 : 50],
+            zoom: Math.min(eventsExplorerMap.getZoom() + 1, 15),
+            speed: 1.2
+        });
+
         let itemsHtml = leaves.map(leaf => {
             const p = leaf.properties;
             const heroImg = p.hero_image || '{{ asset("images/hero/jadwal-lari.webp") }}';
@@ -1965,6 +1980,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .setLngLat(coordinates)
             .setHTML(popupHtml)
             .addTo(eventsExplorerMap);
+
+        focusPopupElement();
     }
 
     function setupMapClusterLayers() {
@@ -2129,9 +2146,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 is_featured: props.is_featured
             };
 
-            // ZOOM MAP CENTER TO DETAIL EVENT
+            // ZOOM MAP CENTER TO DETAIL EVENT WITH CAMERA OFFSET
+            const isMobile = window.innerWidth < 768;
             eventsExplorerMap.flyTo({
                 center: coordinates,
+                offset: [0, isMobile ? 95 : 55],
                 zoom: 14,
                 speed: 1.3,
                 curve: 1.4,
@@ -2144,6 +2163,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .setLngLat(coordinates)
                 .setHTML(buildEventPopupHtml(eventData))
                 .addTo(eventsExplorerMap);
+
+            focusPopupElement();
         });
 
         // Hover pointer cursor
@@ -2189,6 +2210,16 @@ document.addEventListener('DOMContentLoaded', function () {
         updateMapData(shouldFitBounds);
     }
 
+    // Auto-focus & scroll browser viewport to .mapboxgl-popup-content on mobile
+    function focusPopupElement() {
+        setTimeout(() => {
+            const popupContent = document.querySelector('.mapboxgl-popup-content') || document.querySelector('.mapboxgl-popup');
+            if (popupContent) {
+                popupContent.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+            }
+        }, 320);
+    }
+
     // Global: Focus event on map from list card
     window.focusEventOnMap = function (eventId) {
         const event = currentMapEvents.find(e => String(e.id) === String(eventId));
@@ -2211,10 +2242,13 @@ document.addEventListener('DOMContentLoaded', function () {
             mapSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        const isMobile = window.innerWidth < 768;
+
         if (eventsExplorerMap) {
-            // ZOOM MAP CENTER TO DETAIL EVENT
+            // ZOOM MAP CENTER TO DETAIL EVENT WITH CAMERA OFFSET
             eventsExplorerMap.flyTo({
                 center: [lng, lat],
+                offset: [0, isMobile ? 95 : 55],
                 zoom: 14,
                 speed: 1.3,
                 curve: 1.4,
@@ -2227,6 +2261,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .setLngLat([lng, lat])
                 .setHTML(buildEventPopupHtml(event))
                 .addTo(eventsExplorerMap);
+
+            focusPopupElement();
         }
     };
 
