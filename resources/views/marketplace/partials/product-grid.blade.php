@@ -3,8 +3,8 @@
          @if(isset($gridClass))
             class="{{ $gridClass }}"
          @else
-            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-            :class="typeof sidebarOpen !== 'undefined' && sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'"
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
+            :class="typeof sidebarOpen !== 'undefined' && sidebarOpen ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5'"
          @endif
     >
         @foreach($products as $product)
@@ -17,173 +17,93 @@
             $categoryName = $product->category ? $product->category->name : 'Gear';
             $metaHeader = $brandName ? ($brandName . ' • ' . $categoryName) : $categoryName;
         @endphp
-        <div class="product-card-item bg-[#0c121e] border border-slate-800/90 rounded-lg overflow-hidden group hover:border-slate-600 transition-all duration-300 flex flex-col h-full relative shadow-md shadow-black/20 font-sans">
+        <div class="product-card-item bg-[#0c121e] border border-slate-800 rounded-lg overflow-hidden group hover:border-slate-700 transition-all duration-200 flex flex-col h-full relative font-sans">
             
-            <!-- Image Section (Clean Athletic Framing) -->
-            <a href="{{ route('marketplace.show', $product->slug) }}" class="product-card-img block relative aspect-square overflow-hidden bg-[#131b2c]">
+            <!-- Image Section -->
+            <a href="{{ route('marketplace.show', $product->slug) }}" class="product-card-img block relative aspect-square overflow-hidden bg-slate-900">
                 @if($product->primaryImage)
-                    <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" alt="{{ $product->title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
+                    <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" alt="{{ $product->title }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out">
                 @else
-                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-900/40">
-                        <span class="text-[9px] tracking-wider uppercase font-mono text-slate-500 font-semibold">No Image</span>
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-900">
+                        <span class="text-xs font-semibold text-slate-400">No Image</span>
                     </div>
                 @endif
                 
-                <!-- Floating Micro Badges (Top Left) -->
-                <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
-                    @if($product->condition == 'new')
-                        <span class="bg-white text-slate-950 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-sm">
-                            BARU
-                        </span>
-                    @else
-                        <span class="bg-black/70 backdrop-blur-md border border-white/10 text-slate-300 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                            BEKAS
-                        </span>
-                    @endif
-
-                    @if($product->sale_type === 'auction')
-                    <span class="bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-sm">
-                        LELANG
+                <!-- Single Status Tag (Only when needed) -->
+                @if($product->condition == 'used')
+                    <span class="absolute top-2.5 left-2.5 z-10 bg-slate-950/80 border border-slate-700 text-slate-200 text-[10px] font-semibold px-2 py-0.5 rounded">
+                        Bekas
                     </span>
-                    @endif
-
-                    @if($product->fulfillment_mode === 'consignment')
-                    <span class="bg-white text-slate-950 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-sm">
-                        TITIP JUAL
+                @elseif($product->sale_type === 'auction')
+                    <span class="absolute top-2.5 left-2.5 z-10 bg-amber-400 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded">
+                        Lelang
                     </span>
-                    @endif
-                </div>
+                @endif
 
-                <!-- Floating Wishlist & Share Action (Top Right) -->
-                <div class="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5">
-                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openShareModal('{{ e($product->title) }}', '{{ route('marketplace.show', $product->slug) }}')" 
-                            class="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95" title="Bagikan Produk">
-                        <i class="fa-solid fa-share-nodes text-[11px]"></i>
-                    </button>
-                    <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" 
-                            class="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-400 hover:text-white' }}" title="Wishlist">
-                        <svg class="w-3.5 h-3.5 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    </button>
-                </div>
+                <!-- Wishlist Action (Clean top-right) -->
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); quickToggleWishlist({{ $product->id }}, this)" 
+                        class="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-md bg-slate-950/70 hover:bg-slate-950 border border-slate-700/70 flex items-center justify-center transition active:scale-95 {{ $isWishlisted ? 'text-rose-500 border-rose-500/50' : 'text-slate-300 hover:text-white' }}" title="Simpan ke Wishlist">
+                    <svg class="w-3.5 h-3.5 {{ $isWishlisted ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                </button>
                 
                 <!-- Sold Out Overlay -->
                 @if($product->is_sold || $product->stock < 1)
-                <div class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
-                    <span class="text-white font-black text-xs md:text-sm tracking-wider border border-white/40 bg-white/10 px-3 py-1 rounded uppercase">
-                        {{ $product->is_sold ? 'TERJUAL' : 'HABIS' }}
+                <div class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
+                    <span class="text-white font-bold text-xs tracking-wider border border-white/40 bg-white/10 px-3 py-1 rounded uppercase">
+                        {{ $product->is_sold ? 'Terjual' : 'Habis' }}
                     </span>
-                    @if($product->is_sold && $product->sold_channel)
-                        <span class="text-[9px] text-slate-400 mt-1.5 uppercase font-semibold">
-                            via {{ strtoupper($product->sold_channel) }}
-                        </span>
-                    @endif
                 </div>
                 @endif
             </a>
             
-            <!-- Card Details (Nike Editorial Layout) -->
-            <div class="p-4 flex flex-col flex-1 min-w-0">
-                
+            <!-- Card Details -->
+            <div class="p-3.5 flex flex-col flex-1 min-w-0">
                 <!-- Category / Brand Header -->
-                <div class="product-card-meta text-[10px] uppercase tracking-wider text-slate-300 font-bold mb-1 truncate">
+                <div class="product-card-meta text-[11px] uppercase tracking-wider text-slate-300 font-semibold mb-1 truncate">
                     {{ $metaHeader }}
                 </div>
                 
                 <!-- Product Title -->
-                <h3 class="product-card-title font-bold text-white text-xs md:text-sm leading-snug line-clamp-2 group-hover:text-neon transition-colors mb-2.5">
+                <h3 class="product-card-title font-bold text-white text-sm leading-snug line-clamp-2 group-hover:text-slate-200 transition-colors mb-2">
                     <a href="{{ route('marketplace.show', $product->slug) }}">{{ $product->title }}</a>
                 </h3>
 
-                <!-- Price Block -->
-                <div class="mt-auto">
-                    <div class="product-card-price text-sm md:text-base font-black text-white font-sans tracking-tight truncate">
+                <!-- Price & Location Meta -->
+                <div class="mt-auto pt-2.5 border-t border-slate-800 flex items-baseline justify-between gap-2 min-w-0">
+                    <div class="product-card-price text-sm md:text-base font-bold text-white font-sans tracking-tight truncate">
                         Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
                     </div>
-                </div>
-                
-                <!-- Seller & Location Meta -->
-                <div class="product-card-seller pt-2.5 mt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 min-w-0 text-[10px] text-slate-300">
-                    @if($product->seller)
-                        <a href="{{ route('marketplace.seller.store', $product->seller->username ?: $product->seller->id) }}" class="flex items-center gap-1.5 min-w-0 hover:text-white transition truncate font-medium">
-                            <span class="truncate">{{ $product->seller->name ?? 'Seller' }}</span>
-                        </a>
-                    @else
-                        <span class="italic truncate text-slate-400 font-medium">Seller</span>
-                    @endif
 
                     @if($product->seller && $product->seller->city)
-                    <span class="text-slate-400 shrink-0 max-w-[45%] truncate text-right font-medium" title="{{ $product->seller->city->name }}">
+                    <span class="text-xs text-slate-300 shrink-0 max-w-[50%] truncate text-right font-medium" title="{{ $product->seller->city->name }}">
                         {{ $product->seller->city->name }}
                     </span>
                     @endif
                 </div>
 
-                <!-- CTA Action Buttons -->
-                <div class="mt-3 pt-1">
-                    @if($product->stock < 1)
-                        <button disabled class="w-full py-2 bg-slate-900 text-slate-600 font-bold rounded-md text-xs cursor-not-allowed border border-slate-800">
-                            Stok Habis
-                        </button>
-                    @elseif($product->sale_type === 'auction')
-                        <a href="{{ route('marketplace.show', $product->slug) }}" class="w-full py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-md text-center text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                            <span>Ikut Lelang</span>
+                @if(Auth::check() && (int) $product->user_id === (int) Auth::id())
+                    <div class="mt-2.5 pt-1">
+                        <a href="{{ route('marketplace.show', $product->slug) }}" class="btn-manage-gear block w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 text-center text-xs font-semibold rounded-md transition-colors border border-slate-700">
+                            Kelola Produk
                         </a>
-                    @else
-                        @if(Auth::check() && (int) $product->user_id === (int) Auth::id())
-                            <a href="{{ route('marketplace.show', $product->slug) }}" class="btn-manage-gear w-full py-2 bg-slate-900 hover:bg-slate-850 text-slate-300 text-center text-xs font-bold rounded-md transition-all border border-slate-800 flex items-center justify-center">
-                                Kelola Produk Saya
-                            </a>
-                        @else
-                            <div class="grid grid-cols-2 gap-2">
-                                <!-- Add to Cart Button -->
-                                @auth
-                                    <form action="{{ route('marketplace.cart.add-product', $product->id) }}" method="POST" onsubmit="quickAddToCart(event, this)">
-                                        @csrf
-                                        <button type="submit" class="btn-add-cart w-full py-2 bg-slate-900 border border-slate-750 hover:border-white text-slate-200 hover:text-white font-bold rounded-md text-center text-xs transition-all flex items-center justify-center" title="Tambah ke Keranjang">
-                                            <span>+ Cart</span>
-                                        </button>
-                                    </form>
-                                @else
-                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="btn-add-cart w-full py-2 bg-slate-900 border border-slate-750 text-slate-300 font-bold rounded-md text-center text-xs">
-                                        + Cart
-                                    </button>
-                                @endauth
-
-                                <!-- Direct Buy Button -->
-                                @auth
-                                    <form action="{{ route('marketplace.checkout.init') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                        <button type="submit" class="btn-buy-direct w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs transition-all flex items-center justify-center shadow-sm">
-                                            <span>Beli</span>
-                                        </button>
-                                    </form>
-                                @else
-                                    <button type="button" onclick="if (window.openLoginModal) window.openLoginModal(); else window.location='{{ route('login') }}';" class="btn-buy-direct w-full py-2 bg-white hover:bg-slate-200 text-slate-950 font-black rounded-md text-center text-xs">
-                                        Beli
-                                    </button>
-                                @endauth
-                            </div>
-                        @endif
-                    @endif
-                </div>
-
+                    </div>
+                @endif
             </div>
         </div>
         @endforeach
     </div>
     
-    <!-- Pagination (Minimalist Athletic Styling) -->
+    <!-- Pagination -->
     @if(method_exists($products, 'hasPages') && $products->hasPages())
-        <div class="mt-12 pagination-container flex justify-center">
+        <div class="mt-10 pagination-container flex justify-center">
             {{ $products->appends(request()->query())->links() }}
         </div>
     @endif
 @else
     <div class="empty-state-box border border-slate-800 bg-[#0c121e] rounded-lg p-12 text-center max-w-md mx-auto my-8 font-sans">
         <h3 class="text-base font-bold text-white uppercase tracking-wider mb-1.5">Belum Ada Produk</h3>
-        <p class="text-slate-400 text-xs mb-6 leading-relaxed">Produk dengan filter yang Anda pilih belum tersedia. Coba ubah pencarian atau pasang iklan gear Anda sekarang.</p>
-        <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="btn-empty-sell inline-flex items-center px-6 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-sm">
+        <p class="text-slate-300 text-xs mb-6 leading-relaxed">Produk dengan filter yang Anda pilih belum tersedia. Coba ubah pencarian atau pasang iklan gear Anda sekarang.</p>
+        <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="btn-empty-sell inline-flex items-center px-6 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-sm">
             <span>+ Jual Gear Anda</span>
         </a>
     </div>

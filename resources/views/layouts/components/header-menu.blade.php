@@ -68,7 +68,7 @@
             </div>
         </a>
         <div class="dropdown-menu dropdown-menu-end">
-            <a href="{{ route('profile.show') }}" class="dropdown-item ai-icon">
+            <a href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-user')
                 <span class="ms-2">Profile</span>
             </a>

@@ -651,13 +651,13 @@
     @auth
         <div class="p-4 border-t {{ $lightMode ? 'border-slate-100 bg-slate-50/80' : 'border-slate-900 bg-slate-900/50' }} shrink-0">
             <div class="flex items-center gap-3">
-                <a href="{{ route('profile.show') }}" class="shrink-0">
+                <a href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" class="shrink-0">
                     <img class="w-9 h-9 rounded-full object-cover border {{ $lightMode ? 'border-slate-200' : 'border-slate-800' }} hover:opacity-80 transition" 
                         src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" 
                         alt="{{ auth()->user()->name }}">
                 </a>
                 <div class="min-w-0 flex-1">
-                    <a href="{{ route('profile.show') }}" class="block text-xs font-bold truncate {{ $lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-white hover:text-primary' }} transition">
+                    <a href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" class="block text-xs font-bold truncate {{ $lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-white hover:text-primary' }} transition">
                         {{ auth()->user()->name }}
                     </a>
                     <div class="text-[9px] text-slate-500 uppercase font-semibold tracking-wider truncate">

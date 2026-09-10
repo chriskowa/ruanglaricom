@@ -175,7 +175,15 @@ class ProfileController extends Controller
             $pacer->save();
         }
 
-        return redirect()->route('profile.show')->with('success', 'Profile berhasil diperbarui!');
+        $role = $user->role ?? 'runner';
+        $redirectRoute = match ($role) {
+            'admin' => 'admin.profile',
+            'eo' => 'eo.profile',
+            'coach' => 'coach.profile',
+            default => 'runner.profile',
+        };
+
+        return redirect()->route($redirectRoute)->with('success', 'Profile berhasil diperbarui!');
     }
 
     public function updatePhone(Request $request)

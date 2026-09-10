@@ -51,7 +51,7 @@
                 <span class="uppercase tracking-wider font-semibold">Kembali ke Katalog</span>
             </a>
             
-            <div class="flex items-center gap-2 text-slate-400 uppercase tracking-wider text-[11px]">
+            <div class="flex items-center gap-2 text-slate-300 uppercase tracking-wider text-[11px]">
                 <span>Market</span>
                 <span>/</span>
                 <a href="{{ route('marketplace.index', ['category' => optional($product->category)->slug]) }}" class="hover:text-neon transition font-semibold">

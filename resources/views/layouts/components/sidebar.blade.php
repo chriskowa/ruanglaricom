@@ -137,7 +137,7 @@
                     <span class="nav-text">Notifications</span>
                 </a></li>
                 <li class="menu-title">Account</li>
-                <li><a class="ai-icon" href="{{ route('profile.show') }}" aria-expanded="false">
+                <li><a class="ai-icon" href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" aria-expanded="false">
                     <i class="flaticon-381-user"></i>
                     <span class="nav-text">Profile</span>
                 </a></li>

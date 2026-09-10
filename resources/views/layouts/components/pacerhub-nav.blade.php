@@ -174,7 +174,7 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                                 Dashboard
                             </a>
-                            <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
+                            <a href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" class="flex items-center gap-3 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Profile
                             </a>
@@ -263,7 +263,7 @@
             <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="block py-2 {{ $lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white' }} pl-4 border-l {{ $lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon' }} transition-colors">
                 Dashboard
             </a>
-            <a href="{{ route('profile.show') }}" class="block py-2 {{ $lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white' }} pl-4 border-l {{ $lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon' }} transition-colors">
+            <a href="{{ Route::has(auth()->user()->role . '.profile') ? route(auth()->user()->role . '.profile') : route('profile.show') }}" class="block py-2 {{ $lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white' }} pl-4 border-l {{ $lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon' }} transition-colors">
                 Profile
             </a>
             <a href="{{ route('marketplace.cart.index') }}" class="block py-2 {{ $lightMode ? 'text-slate-600 hover:text-primary' : 'text-slate-200 hover:text-white' }} pl-4 border-l {{ $lightMode ? 'border-slate-100 hover:border-primary' : 'border-slate-700 hover:border-neon' }} transition-colors">

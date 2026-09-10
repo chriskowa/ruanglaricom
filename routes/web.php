@@ -879,7 +879,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
 
     // Profile routes (accessible by all authenticated users)
-    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile', function () {
+        $role = auth()->user()->role ?? 'runner';
+        return match ($role) {
+            'admin' => redirect()->route('admin.profile'),
+            'eo' => redirect()->route('eo.profile'),
+            'coach' => redirect()->route('coach.profile'),
+            default => redirect()->route('runner.profile'),
+        };
+    })->name('profile.show');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/upload-avatar', [App\Http\Controllers\ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
     Route::post('/profile/upload-banner', [App\Http\Controllers\ProfileController::class, 'uploadBanner'])->name('profile.upload-banner');
@@ -934,6 +942,7 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
 
         // Running Analysis (Admin)
         Route::prefix('running-analysis')->name('running-analysis.')->group(function () {
@@ -1128,6 +1137,7 @@ Route::middleware('auth')->group(function () {
     // Runner routes
     Route::middleware('role:runner|user|admin|coach|eo')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
         
         // Running Analysis Requests (Runner-initiated)
         Route::prefix('analysis-requests')->name('analysis-requests.')->group(function () {
@@ -1279,6 +1289,7 @@ Route::middleware('auth')->group(function () {
     // Coach routes
     Route::middleware('role:coach')->prefix('coach')->name('coach.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Coach\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
 
         // Master Workouts
         Route::resource('master-workouts', App\Http\Controllers\Coach\MasterWorkoutController::class);
@@ -1347,6 +1358,7 @@ Route::middleware('auth')->group(function () {
     // EO routes
     Route::middleware('role:eo')->prefix('eo')->name('eo.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EO\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
 
         // Membership routes
         Route::get('/membership/packages', [App\Http\Controllers\EO\MembershipController::class, 'index'])->name('packages.index');
