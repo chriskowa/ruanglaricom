@@ -6,9 +6,10 @@
 @php
     $withSidebar = true;
 @endphp
-<div class="min-h-screen pt-0 pb-12 px-4 md:px-8 font-sans" x-data="{
-    activeTab: 'products',
-    toast: { show: false, message: '', type: 'success' },
+<div class="min-h-screen pt-6 sm:pt-8 md:pt-10 pb-16 px-4 md:px-8 font-sans">
+    <div class="max-w-7xl 2xl:max-w-8xl mx-auto w-full" x-data="{
+        activeTab: 'products',
+        toast: { show: false, message: '', type: 'success' },
     showSoldModal: false,
     selectedProduct: null,
     soldForm: {
@@ -708,6 +709,6 @@
             </form>
         </div>
     </div>
-
+    </div>
 </div>
 @endsection

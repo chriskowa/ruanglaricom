@@ -719,7 +719,7 @@
                             <h3 class="rl-market-title">{{ $product->title }}</h3>
 
                             <div class="rl-market-price-row">
-                                <span class="rl-market-price font-mono">
+                                <span class="rl-market-price font-sans tracking-tight">
                                     Rp {{ number_format($priceDisplay, 0, ',', '.') }}
                                 </span>
                                 @if(!empty($product->seller?->city?->name))
