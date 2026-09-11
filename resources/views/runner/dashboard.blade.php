@@ -735,7 +735,7 @@
             </div>
 
             <div class="runner-command__top">
-                <div class="min-w-0">
+                <div class="min-w-0 pr-3 pl-3">
                     <div class="runner-kicker pt-5">{{ $greeting }} / Runner workspace</div>
                     <h1 class="runner-name">{{ auth()->user()->name }}</h1>
                     <p class="runner-subtitle">

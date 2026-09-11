@@ -101,12 +101,22 @@
         }
 
         .gpx-svg-grid {
-            background-color: #020617;
+            position: relative;
+            background-color: #070d18;
             background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-            background-size: 20px 20px, 20px 20px;
+                radial-gradient(ellipse at 50% 50%, rgba(20, 36, 62, 0.75) 0%, #060b14 100%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M 28 0 L 0 0 0 28' fill='none' stroke='rgba(255, 255, 255, 0.07)' stroke-width='1'/%3E%3Cpath d='M 14 12 L 14 16 M 12 14 L 16 14' stroke='rgba(184, 255, 0, 0.25)' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-size: 100% 100%, 28px 28px;
+            background-position: center center, center center;
+            border-color: #23354d !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+
+        .group:hover .gpx-svg-grid {
+            border-color: rgba(184, 255, 0, 0.45) !important;
+            box-shadow: inset 0 0 30px rgba(184, 255, 0, 0.04);
+        }
+
 
         /* Hide floating chat on GPX database page */
         #chatbox-toggle, #ph-chatbox {
@@ -1135,7 +1145,14 @@
 
                     if (validCoords.length < 2) {
                         svg.innerHTML = `
-                            <text x="160" y="95" fill="#64748b" font-family="system-ui" font-size="11" text-anchor="middle">Rute terverifikasi</text>
+                            <!-- Tactical Radar Scope for Empty/Unplotted Route -->
+                            <circle cx="160" cy="90" r="50" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-dasharray="4 4" />
+                            <circle cx="160" cy="90" r="25" fill="none" stroke="rgba(255, 255, 255, 0.05)" />
+                            <line x1="160" y1="30" x2="160" y2="150" stroke="rgba(255, 255, 255, 0.04)" stroke-dasharray="2 2" />
+                            <line x1="100" y1="90" x2="220" y2="90" stroke="rgba(255, 255, 255, 0.04)" stroke-dasharray="2 2" />
+                            <path d="M 152 74 C 152 67 168 67 168 74 C 168 82 160 91 160 91 C 160 91 152 82 152 74 Z" fill="none" stroke="#B8FF00" stroke-width="1.8" />
+                            <circle cx="160" cy="73" r="2.5" fill="#B8FF00" />
+                            <text x="160" y="112" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10" font-weight="700" letter-spacing="0.08em" text-anchor="middle">RUTE TERVERIFIKASI</text>
                         `;
                         return;
                     }
@@ -1179,9 +1196,17 @@
                     const endY = (height - (offsetY + ((endPt[0] - minLat) * scale))).toFixed(1);
 
                     svg.innerHTML = `
-                        <polyline points="${pointsStr}" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <circle cx="${startX}" cy="${startY}" r="3.5" fill="#10b981" stroke="#000" stroke-width="1.5" />
-                        <circle cx="${endX}" cy="${endY}" r="3.5" fill="#f43f5e" stroke="#000" stroke-width="1.5" />
+                        <!-- Tactical Scope Rings -->
+                        <circle cx="160" cy="90" r="64" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-dasharray="3 3" />
+                        <circle cx="160" cy="90" r="32" fill="none" stroke="rgba(255, 255, 255, 0.03)" />
+                        <line x1="160" y1="16" x2="160" y2="164" stroke="rgba(255, 255, 255, 0.03)" stroke-dasharray="2 3" />
+                        <line x1="60" y1="90" x2="260" y2="90" stroke="rgba(255, 255, 255, 0.03)" stroke-dasharray="2 3" />
+                        <!-- Route Polyline Glow & Main Line -->
+                        <polyline points="${pointsStr}" fill="none" stroke="rgba(184, 255, 0, 0.22)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="${pointsStr}" fill="none" stroke="#B8FF00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Start (Green) & Finish (Red) Indicators -->
+                        <circle cx="${startX}" cy="${startY}" r="4" fill="#10b981" stroke="#070d18" stroke-width="1.5" />
+                        <circle cx="${endX}" cy="${endY}" r="4" fill="#f43f5e" stroke="#070d18" stroke-width="1.5" />
                     `;
                 });
             }
