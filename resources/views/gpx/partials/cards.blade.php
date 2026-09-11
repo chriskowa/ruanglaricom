@@ -2,19 +2,13 @@
 @if($items->count() > 0)
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach($items as $item)
-            <article class="group bg-[#121c2e] border border-[#23354d] hover:border-[#385175] rounded-lg p-4 transition duration-200 flex flex-col justify-between shadow-sm hover:shadow-md">
+            <article class="group bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg p-4 transition duration-200 flex flex-col justify-between shadow-sm">
                 
                 <div>
-                    <!-- SVG Route Thumbnail with Kotak-Kotak Grid Background -->
-                    <div class="relative mb-3 rounded-md overflow-hidden border border-[#23354d] aspect-[16/9] gpx-svg-grid flex items-center justify-center">
-                        <!-- Tactical Corner Reticles -->
-                        <span class="pointer-events-none absolute top-1.5 left-1.5 w-2 h-2 border-t border-l border-white/20 z-10"></span>
-                        <span class="pointer-events-none absolute top-1.5 right-1.5 w-2 h-2 border-t border-r border-white/20 z-10"></span>
-                        <span class="pointer-events-none absolute bottom-1.5 left-1.5 w-2 h-2 border-b border-l border-white/20 z-10"></span>
-                        <span class="pointer-events-none absolute bottom-1.5 right-1.5 w-2 h-2 border-b border-r border-white/20 z-10"></span>
-
+                    <!-- SVG Route Thumbnail with Subtle Grid Background -->
+                    <div class="relative mb-3 rounded-md overflow-hidden border border-slate-800/80 aspect-[16/9] gpx-svg-grid flex items-center justify-center">
                         <!-- GPX SCOPE Telemetry Watermark -->
-                        <div class="pointer-events-none absolute bottom-2 left-2 z-10 px-1.5 py-0.5 rounded bg-[#09101d]/85 border border-[#23354d] text-[9px] font-mono text-slate-300 flex items-center gap-1 shadow-sm">
+                        <div class="pointer-events-none absolute bottom-2 left-2 z-10 px-1.5 py-0.5 rounded bg-slate-950/80 border border-slate-800/60 text-[9px] font-mono text-slate-400 flex items-center gap-1 shadow-sm">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                             <span>GPX SCOPE</span>
                         </div>
@@ -23,26 +17,24 @@
                              class="gpx-route-svg w-full h-full p-3 transition-transform duration-300 group-hover:scale-[1.02]" 
                              viewBox="0 0 320 180" 
                              data-coords="{{ json_encode($item->coordinates_json ?? []) }}">
-                            <circle cx="160" cy="90" r="60" fill="none" stroke="rgba(255,255,255,0.05)" stroke-dasharray="3 3"/>
-                            <circle cx="160" cy="90" r="30" fill="none" stroke="rgba(255,255,255,0.035)"/>
-                            <line x1="160" y1="20" x2="160" y2="160" stroke="rgba(255,255,255,0.03)" stroke-dasharray="2 3"/>
-                            <line x1="60" y1="90" x2="260" y2="90" stroke="rgba(255,255,255,0.03)" stroke-dasharray="2 3"/>
+                            <circle cx="160" cy="90" r="60" fill="none" stroke="rgba(255,255,255,0.02)" stroke-dasharray="3 3"/>
+                            <circle cx="160" cy="90" r="30" fill="none" stroke="rgba(255,255,255,0.015)"/>
                         </svg>
                         
                         @if($item->city)
-                            <div class="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded bg-[#0e1728]/90 border border-[#23354d] text-xs text-white font-medium flex items-center gap-1 shadow-sm">
+                            <div class="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded bg-slate-950/85 border border-slate-800/80 text-xs text-white font-medium flex items-center gap-1 shadow-sm">
                                 <span>{{ $item->city }}</span>
                             </div>
                         @endif
 
                         @if(isset($item->user_distance_km))
-                            <div class="absolute top-2.5 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded bg-[#0e1728]/90 border border-[#23354d] text-xs font-medium text-white font-mono flex items-center gap-1.5 whitespace-nowrap shadow-sm">
+                            <div class="absolute top-2.5 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded bg-slate-950/85 border border-slate-800/80 text-xs font-medium text-white font-mono flex items-center gap-1.5 whitespace-nowrap shadow-sm">
                                 <span>{{ number_format($item->user_distance_km, 1) }} km dari Anda</span>
                             </div>
                         @endif
 
                         <div class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
-                            <span class="px-2 py-0.5 rounded bg-[#0e1728]/90 border border-[#23354d] text-xs font-semibold text-slate-200 uppercase font-mono shadow-sm">
+                            <span class="px-2 py-0.5 rounded bg-slate-950/85 border border-slate-800/80 text-xs font-semibold text-slate-300 uppercase font-mono shadow-sm">
                                 {{ $item->route_type_label }}
                             </span>
                         </div>
@@ -56,20 +48,20 @@
 
                     <!-- Metric Stats -->
                     <div class="grid grid-cols-3 gap-2 text-center mb-3">
-                        <div class="bg-[#0e1728] p-2 rounded-md border border-[#23354d]">
-                            <div class="text-[11px] text-slate-300">Jarak</div>
+                        <div class="bg-slate-950/60 p-2 rounded-md border border-slate-800/50">
+                            <div class="text-[11px] text-slate-400 font-medium">Jarak</div>
                             <div class="text-xs font-semibold text-white mt-0.5 font-mono">
                                 {{ $item->distance_km ? number_format($item->distance_km, 2) . ' km' : '-' }}
                             </div>
                         </div>
-                        <div class="bg-[#0e1728] p-2 rounded-md border border-[#23354d]">
-                            <div class="text-[11px] text-slate-300">Elev Gain</div>
+                        <div class="bg-slate-950/60 p-2 rounded-md border border-slate-800/50">
+                            <div class="text-[11px] text-slate-400 font-medium">Elev Gain</div>
                             <div class="text-xs font-semibold text-white mt-0.5 font-mono">
                                 +{{ round($item->elevation_gain_m ?? 0) }} m
                             </div>
                         </div>
-                        <div class="bg-[#0e1728] p-2 rounded-md border border-[#23354d]">
-                            <div class="text-[11px] text-slate-300">Elev Loss</div>
+                        <div class="bg-slate-950/60 p-2 rounded-md border border-slate-800/50">
+                            <div class="text-[11px] text-slate-400 font-medium">Elev Loss</div>
                             <div class="text-xs font-semibold text-white mt-0.5 font-mono">
                                 -{{ round($item->elevation_loss_m ?? 0) }} m
                             </div>
@@ -77,16 +69,16 @@
                     </div>
 
                     @if($item->notes)
-                        <p class="text-xs text-slate-200 line-clamp-2 mb-3 bg-[#0e1728] p-2.5 rounded-md border border-[#23354d] leading-relaxed">
+                        <p class="text-xs text-slate-300 line-clamp-2 mb-3 bg-slate-950/60 p-2.5 rounded-md border border-slate-800/50 leading-relaxed">
                             "{{ $item->notes }}"
                         </p>
                     @endif
                 </div>
 
                 <!-- Footer Card Actions -->
-                <div class="pt-3 border-t border-[#23354d] flex items-center justify-between gap-2">
+                <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
-                        <div class="w-6 h-6 rounded-full bg-[#17243b] border border-[#283d5d] flex items-center justify-center text-xs font-bold text-slate-200 shrink-0">
+                        <div class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700/60 flex items-center justify-center text-xs font-bold text-slate-200 shrink-0">
                             {{ strtoupper(substr($item->user?->name ?? 'R', 0, 1)) }}
                         </div>
                         <div class="text-xs text-slate-300 truncate">
@@ -97,11 +89,11 @@
                     <div class="flex items-center gap-1.5 shrink-0">
                         <button type="button" 
                                 onclick="openSuggestTitleModal({{ $item->id }}, '{{ addslashes($item->title) }}', '{{ addslashes($item->city ?? 'Indonesia') }}')"
-                                class="px-2 py-1 rounded-md bg-[#17243b] hover:bg-[#1f304e] border border-[#283d5d] text-slate-200 hover:text-white text-xs font-medium transition" 
+                                class="px-2 py-1 rounded-md bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-200 hover:text-white text-xs font-medium transition" 
                                 title="Sarankan Nama Rute">
                             Saran Nama
                         </button>
-                        <a href="{{ route('gpx.show', $item->slug ?: $item->id) }}" class="px-2.5 py-1 rounded-md bg-[#17243b] hover:bg-[#1f304e] border border-[#283d5d] text-slate-200 hover:text-white text-xs font-medium transition">
+                        <a href="{{ route('gpx.show', $item->slug ?: $item->id) }}" class="px-2.5 py-1 rounded-md bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-200 hover:text-white text-xs font-medium transition">
                             Detail
                         </a>
                         <a href="{{ route('gpx.download', $item) }}" class="px-2.5 py-1 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition">

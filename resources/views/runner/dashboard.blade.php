@@ -23,9 +23,9 @@
             --rd-bg: #060a17;
             --rd-panel: #121c2e;
             --rd-panel-soft: #17243b;
-            --rd-panel-border: #23354d;
-            --rd-line: rgba(255, 255, 255, 0.12);
-            --rd-line-strong: rgba(255, 255, 255, 0.22);
+            --rd-panel-border: #1e293b;
+            --rd-line: rgba(255, 255, 255, 0.06);
+            --rd-line-strong: rgba(255, 255, 255, 0.10);
             --rd-text: #f7f9fb;
             --rd-muted: #94a3b8;
             --rd-accent: #B8FF00;
@@ -35,7 +35,7 @@
         .runner-command {
             display: flex;
             flex-direction: column;
-            border: 1.5px solid var(--rd-panel-border);
+            border: 1px solid var(--rd-panel-border);
             background: #0e1728;
             border-radius: 8px;
             overflow: hidden;
@@ -105,8 +105,8 @@
             gap: .55rem;
             padding: 0 .95rem;
             border: 1px solid var(--rd-line-strong);
-            border-radius: 3px;
-            color: rgba(255, 255, 255, 1);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.92);
             background: transparent;
             font-size: 10px;
             font-weight: 900;
@@ -117,8 +117,8 @@
 
         .runner-action:hover {
             color: #fff;
-            border-color: rgba(255,255,255,.28);
-            background: rgba(255,255,255,.025);
+            border-color: rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .runner-action--run {
