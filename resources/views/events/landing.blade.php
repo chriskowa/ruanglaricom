@@ -1069,11 +1069,7 @@
                 <div class="lg:col-span-7 max-w-[560px]">
                     
                     <!-- Badge -->
-                    <div class="mb-5">
-                        <div class="hero-badge">                            
-                            <span>INDONESIA RUNNING CALENDAR 2026</span>
-                        </div>
-                    </div>
+                    
 
                     <!-- Headline (64px, Line-height 1.05) -->
                     <h1 class="hero-headline">
