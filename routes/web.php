@@ -11,6 +11,11 @@ Route::post('/upload-image', [App\Http\Controllers\ImageUploadController::class,
 
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
+
+
+
+
+
 Route::get('/about', function () {
     return view('pages.about');
 })->name('about');

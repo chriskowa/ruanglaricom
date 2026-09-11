@@ -1,0 +1,1687 @@
+<?php
+
+namespace App\Http\Controllers\Runner;
+
+use App\Http\Controllers\Controller;
+use App\Models\CustomWorkout;
+use App\Models\ProgramEnrollment;
+use App\Models\ProgramSessionTracking;
+use App\Models\StravaActivity;
+use App\Services\DanielsRunningService;
+use App\Services\AdaptiveRescheduleService;
+use App\Services\ProgramAdaptationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Models\Notification;
+use App\Helpers\WhatsApp;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+
+class CalendarController extends Controller
+{
+    public function index()
+    {
+        return redirect()->route('runner.dashboard', ['tab' => 'calendar']);
+    }
+
+    /**
+     * Get calendar events (programs + custom workouts) for the authenticated runner
+     * Returns JSON format for FullCalendar
+     */
+    public function events(Request $request)
+    {
+        $user = auth()->user();
+        $start = $request->get('start');
+        $end = $request->get('end');
+        $paces = $user->training_paces;
+
+        $startCarbon = null;
+        $endCarbon = null;
+        if ($start && $end) {
+            try {
+                $startCarbon = Carbon::parse($start);
+                $endCarbon = Carbon::parse($end);
+            } catch (\Exception $e) {
+                // Ignore parsing errors
+            }
+        }
+
+        $enrollments = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->whereHas('program', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with('program')
+            ->get();
+
+        $enrollmentIds = $enrollments->pluck('id')->toArray();
+        $trackings = ProgramSessionTracking::whereIn('enrollment_id', $enrollmentIds)
+            ->get()
+            ->groupBy('enrollment_id');
+
+        $events = [];
+
+        foreach ($enrollments as $enrollment) {
+            $program = $enrollment->program;
+            $programJson = $program->program_json ?? [];
+            $sessions = $programJson['sessions'] ?? [];
+
+            if (! is_array($sessions) || empty($sessions)) {
+                continue;
+            }
+
+            try {
+                $startDate = Carbon::parse($enrollment->start_date);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $totalWeeks = $program->duration_weeks ?? 12;
+            $difficulty = $program->difficulty ?? 'beginner';
+            $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
+
+            $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+            $runnerResHistory = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+            $runnerDeletedDays = $runnerResHistory['deleted_session_days'] ?? [];
+
+            foreach ($sessions as $index => $session) {
+                if (! isset($session['day']) || ! is_numeric($session['day'])) {
+                    continue;
+                }
+
+                $day = (int) $session['day'];
+                if (in_array($day, $runnerDeletedDays, true)) {
+                    continue;
+                }
+
+                try {
+                    $sessionDate = $startDate->copy()->addDays($day - 1);
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                // Check for rescheduled date
+                $tracking = $enrollmentTrackings->firstWhere('session_day', $day);
+
+                if ($tracking && $tracking->rescheduled_date) {
+                    $sessionDate = Carbon::parse($tracking->rescheduled_date);
+                }
+
+                // Only include sessions within the requested date range
+                if ($startCarbon && $endCarbon) {
+                    if ($sessionDate->lt($startCarbon) || $sessionDate->gt($endCarbon)) {
+                        continue;
+                    }
+                }
+
+                $phase = $this->getTrainingPhase((int) $session['day'], $totalWeeks);
+                $colors = $this->getEventColors($difficulty, $phase);
+
+                $sessionType = $session['type'] ?? 'Run';
+                $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
+                $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
+
+                $freeWeeks = max(1, floor($totalWeeks / 2));
+                $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
+                $isLocked = $isUnpaidGenerator && ($currentWeek > $freeWeeks);
+
+                // If it's a self-generated program and it's locked, don't show it in the calendar grid
+                // This keeps the grid clean. Users can still see and unlock from the Plan List sidebar or top banner.
+                if ($isLocked) {
+                    continue;
+                }
+
+                $title = $sessionType.($paceInfo ? " ({$paceInfo})" : '');
+
+                $events[] = [
+                    'id' => "program_{$enrollment->id}_session_{$index}",
+                    'title' => $title,
+                    'start' => $sessionDate->format('Y-m-d'),
+                    'allDay' => true,
+                    'backgroundColor' => $isLocked ? '#334155' : $colors['background'],
+                    'borderColor' => $isLocked ? '#475569' : $colors['border'],
+                    'textColor' => $isLocked ? '#FFFFFF' : $colors['text'],
+                    'classNames' => $isLocked ? ['locked-session'] : ['workout-'.strtolower(str_replace(' ', '_', $sessionType))],
+                    'extendedProps' => [
+                        'type' => 'program_session',
+                        'program_id' => $program->id,
+                        'program_title' => $program->title,
+                        'enrollment_id' => $enrollment->id,
+                        'session' => $isLocked ? [
+                            'type' => 'locked',
+                            'description' => 'Dukung pengembangan RuangLari dengan donasi untuk membuka seluruh jadwal program lari Anda.',
+                            'is_locked' => true,
+                            'enrollment_id' => $enrollment->id,
+                        ] : $session,
+                        'difficulty' => $difficulty,
+                        'phase' => $phase,
+                        'target_pace' => $paceInfo,
+                    ],
+                ];
+            }
+        }
+
+        // Add custom workouts
+        $customWorkouts = CustomWorkout::where('runner_id', $user->id)
+            ->when($start, function ($query) use ($start, $end) {
+                try {
+                    $startCarbon = Carbon::parse($start);
+                    $endCarbon = Carbon::parse($end);
+                    $query->whereBetween('workout_date', [$startCarbon, $endCarbon]);
+                } catch (\Exception $e) {
+                    // Ignore date filter if parsing fails
+                }
+            })
+            ->get();
+
+        foreach ($customWorkouts as $workout) {
+            $colors = $this->getEventColors($workout->difficulty ?? 'moderate', null);
+
+            if ($workout->type === 'race') {
+                $colors['background'] = '#FFD700'; // Gold
+                $colors['border'] = '#DAA520';
+                $colors['text'] = '#000000';
+            }
+
+            $events[] = [
+                'id' => "custom_workout_{$workout->id}",
+                'title' => ($workout->type === 'race' ? '🏆 ' : '').($workout->workout_structure['race_name'] ?? $workout->type ?? 'Run'),
+                'start' => $workout->workout_date->format('Y-m-d'),
+                'allDay' => true,
+                'backgroundColor' => $colors['background'],
+                'borderColor' => $colors['border'],
+                'textColor' => $colors['text'],
+                'classNames' => ['workout-'.strtolower(str_replace(' ', '_', $workout->type ?? 'run'))],
+                'extendedProps' => [
+                    'type' => 'custom_workout',
+                    'workout_id' => $workout->id,
+                    'workout' => [
+                        'type' => $workout->type,
+                        'distance' => $workout->distance,
+                        'duration' => $workout->duration,
+                        'description' => $workout->description,
+                        'difficulty' => $workout->difficulty,
+                        'status' => $workout->status,
+                        'workout_structure' => $workout->workout_structure,
+                    ],
+                ],
+            ];
+        }
+
+        // Dedup: jika ada custom pada tanggal tertentu, sembunyikan program_session tanggal itu
+        $customDates = collect($customWorkouts)->map(fn ($w) => $w->workout_date->format('Y-m-d'))->unique()->toArray();
+        $events = array_values(array_filter($events, function ($ev) use ($customDates) {
+            $isProgram = isset($ev['extendedProps']['type']) && $ev['extendedProps']['type'] === 'program_session';
+            if (! $isProgram) {
+                return true;
+            }
+
+            return ! in_array($ev['start'], $customDates);
+        }));
+
+        $stravaActivities = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->when($start && $end, function ($query) use ($start, $end) {
+                try {
+                    $startCarbon = Carbon::parse($start)->startOfDay();
+                    $endCarbon = Carbon::parse($end)->endOfDay();
+                    $query->whereBetween('start_date', [$startCarbon, $endCarbon]);
+                } catch (\Exception $e) {
+                }
+            })
+            ->orderBy('start_date')
+            ->get();
+
+        foreach ($stravaActivities as $act) {
+            if (! $act->local_start_date) {
+                continue;
+            }
+
+            $t = strtolower((string) $act->type);
+
+            $events[] = [
+                'id' => 'strava_'.$act->strava_activity_id,
+                'title' => 'Strava Activity',
+                'start' => $act->local_start_date->format('Y-m-d\TH:i:s'),
+                'end' => $act->local_start_date->copy()->addSeconds((int) ($act->elapsed_time_s ?: $act->moving_time_s ?: 3600))->format('Y-m-d\TH:i:s'),
+                'allDay' => false,
+                'editable' => false,
+                'backgroundColor' => '#1F2937',
+                'borderColor' => '#F97316',
+                'textColor' => '#FFFFFF',
+                'extendedProps' => [
+                    'type' => 'strava_activity',
+                    'activity_id' => $act->id,
+                    'strava_activity_id' => $act->strava_activity_id,
+                    'activity_type' => $t,
+                    'name' => $act->name,
+                    'distance_km' => $act->distance_m ? round(((float) $act->distance_m) / 1000, 2) : null,
+                    'moving_time_s' => $act->moving_time_s,
+                    'elevation_gain' => $act->total_elevation_gain,
+                    'strava_url' => $act->strava_url,
+                ],
+            ];
+        }
+
+        $userActivities = \App\Models\UserActivity::where('user_id', $user->id)
+            ->when($startCarbon && $endCarbon, function ($q) use ($startCarbon, $endCarbon) {
+                $q->where(function ($sq) use ($startCarbon, $endCarbon) {
+                    $sq->whereBetween('start_time', [$startCarbon, $endCarbon])
+                      ->orWhere(function ($sq2) use ($startCarbon, $endCarbon) {
+                          $sq2->whereNull('start_time')->whereBetween('created_at', [$startCarbon, $endCarbon]);
+                      });
+                });
+            })
+            ->get();
+
+        foreach ($userActivities as $act) {
+            $actDate = $act->start_time ?: $act->created_at;
+            $distFormatted = number_format((float) $act->distance_km, 2);
+            $events[] = [
+                'id' => 'user_act_' . $act->id,
+                'title' => '🏃 ' . $act->title . ' (' . $distFormatted . ' km)',
+                'start' => $actDate->format('Y-m-d\TH:i:s'),
+                'end' => $actDate->copy()->addSeconds((int) ($act->elapsed_time_s ?: $act->moving_time_s ?: 3600))->format('Y-m-d\TH:i:s'),
+                'allDay' => false,
+                'editable' => false,
+                'backgroundColor' => '#111724',
+                'borderColor' => '#FC4C02',
+                'textColor' => '#FFFFFF',
+                'extendedProps' => [
+                    'type' => 'user_activity',
+                    'activity_id' => $act->id,
+                    'title' => $act->title,
+                    'distance_km' => (float) $act->distance_km,
+                    'moving_time_s' => $act->moving_time_s,
+                    'formatted_moving_time' => $act->formatted_moving_time,
+                    'avg_pace' => $act->formatted_avg_pace,
+                    'elevation_gain' => $act->elevation_gain_m,
+                    'calories' => $act->calories,
+                    'splits' => $act->splits_json,
+                    'notes' => $act->notes,
+                    'url' => route('activities.show', $act->id),
+                ],
+            ];
+        }
+
+        return response()->json($events);
+    }
+
+    /**
+     * Helper to get pace string based on session type
+     */
+    private function getPaceForSessionType($type, $paces, $title = '', $description = '', $distance = null)
+    {
+        if (! $paces) {
+            return null;
+        }
+
+        $typeLower = strtolower(str_replace([' ', '-'], '_', $type));
+        if (in_array($typeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($typeLower, 'rest')) {
+            return null;
+        }
+
+        $key = null;
+
+        if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
+            $key = 'E';
+        } elseif (str_contains($typeLower, 'long')) {
+            $key = 'M';
+        } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold')) {
+            $key = 'T';
+        } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
+            $key = 'I';
+        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed')) {
+            $key = 'R';
+        } elseif (str_contains($typeLower, 'marathon')) {
+            $key = 'M';
+        } else {
+            $key = 'E';
+        }
+
+        // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m)
+        if ($key === 'I') {
+            $combined = strtolower($title . ' ' . $description);
+            // Replace common separators/slashes with spaces to ease regex matching
+            $combined = str_replace(['/', ',', ';', '-'], ' ', $combined);
+            
+            // Remove rest/recovery patterns so recovery jog distances are not misidentified as work distances
+            $cleanText = preg_replace('/\b\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\s*(?:jog|rec|walk|rest|easy|active|recovery)\b/i', '', $combined);
+            $cleanText = preg_replace('/\b(?:jog|rec|walk|rest|easy|active|recovery)\s*\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\b/i', '', $cleanText);
+
+            $isShort = false;
+            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.605) {
+                $isShort = true;
+            } elseif (preg_match('/\b(100|200|300|400|500|600)\s*m\b/i', $cleanText)) {
+                $isShort = true;
+            } elseif (preg_match('/\b0\.[1-6]\s*km\b/i', $cleanText)) {
+                $isShort = true;
+            }
+
+            if ($isShort) {
+                $key = 'R';
+            }
+        }
+
+        $pace = $paces[$key] ?? null;
+        if (! $pace && $key === 'M') {
+            $pace = $paces['E'] ?? null;
+        }
+
+        if ($pace) {
+            // Format pace min/km
+            $m = floor($pace);
+            $s = round(($pace - $m) * 60);
+
+            return sprintf('@ %d:%02d/km', $m, $s);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get event colors based on difficulty and phase
+     */
+    private function getEventColors(string $difficulty, ?string $phase = null): array
+    {
+        // Phase colors (background)
+        $phaseColors = [
+            'foundation' => '#E3F2FD',      // Light blue
+            'early_quality' => '#F3E5F5',   // Light purple
+            'quality' => '#FFF3E0',         // Light orange
+            'final_prep' => '#E8F5E9',      // Light green
+        ];
+
+        // Difficulty colors (border)
+        $difficultyColors = [
+            'beginner' => '#4CAF50',        // Green
+            'easy' => '#4CAF50',            // Green
+            'intermediate' => '#FF9800',    // Orange
+            'moderate' => '#FF9800',        // Orange
+            'advanced' => '#F44336',        // Red
+            'hard' => '#F44336',            // Red
+        ];
+
+        $background = $phase ? ($phaseColors[$phase] ?? '#F5F5F5') : '#F5F5F5';
+        $border = $difficultyColors[$difficulty] ?? '#9E9E9E';
+        $text = '#212529';
+
+        return [
+            'background' => $background,
+            'border' => $border,
+            'text' => $text,
+        ];
+    }
+
+    /**
+     * Get workout plans list with filter
+     */
+    public function workoutPlans(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $filter = $request->get('filter', 'all'); // all, unfinished, finished
+
+            // Get user training paces
+            $paces = $user->training_paces;
+
+            $enrollments = ProgramEnrollment::where('runner_id', $user->id)
+                ->where('status', 'active')
+                ->whereHas('program', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->with('program')
+                ->get();
+
+            $enrollmentIds = $enrollments->pluck('id')->toArray();
+            $trackings = ProgramSessionTracking::whereIn('enrollment_id', $enrollmentIds)
+                ->get()
+                ->groupBy('enrollment_id');
+
+            $workoutPlans = [];
+            $plansByDate = [];
+
+            foreach ($enrollments as $enrollment) {
+                $program = $enrollment->program;
+
+                if (! $program) {
+                    continue;
+                }
+
+                $programJson = $program->program_json ?? [];
+                $sessions = $programJson['sessions'] ?? [];
+
+                if (empty($sessions) || ! is_array($sessions)) {
+                    continue;
+                }
+
+                try {
+                    $startDate = Carbon::parse($enrollment->start_date);
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+
+                foreach ($sessions as $index => $session) {
+                    // Skip if session doesn't have 'day' field
+                    if (! isset($session['day']) || ! is_numeric($session['day'])) {
+                        continue;
+                    }
+
+                    $day = (int) $session['day'];
+
+                    try {
+                        $sessionDate = $startDate->copy()->addDays($day - 1);
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+
+                    // Get tracking status and rescheduled date
+                    $tracking = $enrollmentTrackings->firstWhere('session_day', $day);
+
+                    if ($tracking && $tracking->rescheduled_date) {
+                        $sessionDate = Carbon::parse($tracking->rescheduled_date);
+                    }
+
+                    // Check if session is in the future
+                    // Removed to show all upcoming plans as per user request
+                    // if ($sessionDate->isFuture()) {
+                    //    continue;
+                    // }
+
+                    $status = 'pending';
+                    if ($tracking) {
+                        $status = $tracking->status ?? 'pending';
+                    }
+
+                    // Apply filter
+                    if ($filter === 'unfinished' && $status === 'completed') {
+                        continue;
+                    }
+                    if ($filter === 'finished' && $status !== 'completed') {
+                        continue;
+                    }
+                    if ($filter === 'in_progress' && $status !== 'started') {
+                        continue;
+                    }
+
+                    $sessionType = $session['type'] ?? 'run';
+                    $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                    $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
+                    $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
+                    $description = $session['description'] ?? null;
+                    if ($paceInfo) {
+                        $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;
+                    }
+
+                    $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
+                    
+                    // Logic: 1/2 duration is free
+                    $totalWeeks = $program->duration_weeks ?? 12;
+                    $freeWeeks = max(1, floor($totalWeeks / 2));
+                    $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
+                    $isLocked = $isUnpaidGenerator && ($currentWeek > $freeWeeks);
+
+                    $plan = [
+                        'id' => $tracking ? $tracking->id : null,
+                        'tracking_id' => $tracking ? $tracking->id : null,
+                        'enrollment_id' => $enrollment->id,
+                        'program_id' => $program->id,
+                        'program_title' => $program->title,
+                        'program_difficulty' => $program->difficulty ?? 'beginner',
+                        'session_day' => (int) $session['day'],
+                        'date' => $sessionDate->format('Y-m-d'),
+                        'date_formatted' => $sessionDate->format('d M Y'),
+                        'day_name' => $sessionDate->format('D'),
+                        'day_number' => $sessionDate->format('d'),
+                        'type' => $sessionType,
+                        'distance' => $session['distance'] ?? null,
+                        'duration' => $session['duration'] ?? null,
+                        'description' => $description,
+                        'status' => $status,
+                        'completed_at' => $tracking && $tracking->completed_at ? $tracking->completed_at->format('Y-m-d H:i:s') : null,
+                        'strava_link' => $tracking ? $tracking->strava_link : null,
+                        'notes' => $tracking ? $tracking->notes : null,
+                        'rpe' => $tracking ? $tracking->rpe : null,
+                        'feeling' => $tracking ? $tracking->feeling : null,
+                        'coach_feedback' => $tracking ? $tracking->coach_feedback : null,
+                        'coach_rating' => $tracking ? $tracking->coach_rating : null,
+                        'phase' => $this->getTrainingPhase($session['day'], $program->duration_weeks ?? 12),
+                        'target_pace' => $paceInfo,
+                        'is_locked' => $isLocked,
+                        'session' => $session,
+                    ];
+                    $plansByDate[$plan['date']] = $plan;
+                }
+            }
+
+            // Seed from program plans map
+            $workoutPlans = array_values($plansByDate);
+
+            // Get custom workouts
+            $customWorkouts = CustomWorkout::where('runner_id', $user->id)
+                ->get();
+
+            foreach ($customWorkouts as $workout) {
+                $status = $workout->status ?? 'pending';
+
+                // Apply filter
+                if ($filter === 'unfinished' && $status === 'completed') {
+                    continue;
+                }
+                if ($filter === 'finished' && $status !== 'completed') {
+                    continue;
+                }
+                if ($filter === 'in_progress' && $status !== 'started') {
+                    continue;
+                }
+
+                $customPlan = [
+                    'id' => 'custom_'.$workout->id,
+                    'type' => 'custom_workout',
+                    'activity_type' => $workout->type ?? 'run',
+                    'workout_id' => $workout->id,
+                    'date' => $workout->workout_date->format('Y-m-d'),
+                    'date_formatted' => $workout->workout_date->format('d M Y'),
+                    'day_name' => $workout->workout_date->format('D'),
+                    'day_number' => $workout->workout_date->format('d'),
+                    'description' => $workout->description ?? $workout->type,
+                    'distance' => $workout->distance,
+                    'duration' => $workout->duration,
+                    'difficulty' => $workout->difficulty,
+                    'status' => $status,
+                    'completed_at' => $workout->completed_at ? $workout->completed_at->format('Y-m-d H:i:s') : null,
+                    'workout_structure' => $workout->workout_structure,
+                    'program_title' => 'Custom Workout',
+                    'notes' => $workout->notes,
+                    'source' => 'custom',
+                ];
+                // Override program plan if same date
+                $plansByDate[$customPlan['date']] = $customPlan;
+                $workoutPlans = array_values($plansByDate);
+            }
+
+            // Re-sort with custom workouts included
+            usort($workoutPlans, function ($a, $b) {
+                return strtotime($a['date']) - strtotime($b['date']);
+            });
+
+            return response()->json($workoutPlans);
+        } catch (\Exception $e) {
+            \Log::error('Error in workoutPlans: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Gagal memuat workout plans: '.$e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get training phase based on day number
+     */
+    private function getTrainingPhase(int $day, int $totalWeeks): string
+    {
+        $totalDays = $totalWeeks * 7;
+        $percentage = ($day / $totalDays) * 100;
+
+        if ($percentage <= 25) {
+            return 'foundation'; // Foundation phase
+        } elseif ($percentage <= 50) {
+            return 'early_quality'; // Early Quality phase
+        } elseif ($percentage <= 75) {
+            return 'quality'; // Quality phase
+        } else {
+            return 'final_prep'; // Final Preparation phase
+        }
+    }
+
+    /**
+     * Update session status (start or complete)
+     */
+    public function updateSessionStatus(Request $request)
+    {
+        \Log::info('updateSessionStatus payload:', $request->all());
+
+        $validator = \Validator::make($request->all(), [
+            'status' => 'required|in:pending,started,completed',
+            'strava_link' => 'nullable|url|max:255',
+            'notes' => 'nullable|string|max:1000',
+            'rpe' => 'nullable|integer|min:1|max:10',
+            'feeling' => 'nullable|string|in:strong,good,average,weak,terrible',
+            'enrollment_id' => 'nullable|exists:program_enrollments,id',
+            'workout_id' => 'nullable|exists:custom_workouts,id',
+            'session_day' => 'nullable|integer',
+        ]);
+
+        if ($validator->fails()) {
+            \Log::warning('updateSessionStatus validation failed:', $validator->errors()->toArray());
+
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        $user = auth()->user();
+
+        // 1. Check if Custom Workout
+        if (! empty($validated['workout_id'])) {
+            $workout = CustomWorkout::where('id', $validated['workout_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            $updateData = [
+                'status' => $validated['status'],
+                'completed_at' => $validated['status'] === 'completed' ? now() : null,
+            ];
+
+            if ($request->has('strava_link')) {
+                $updateData['strava_link'] = $validated['strava_link'];
+            }
+            if ($request->has('notes')) {
+                $updateData['notes'] = $validated['notes'];
+            }
+            if ($request->has('rpe')) {
+                $updateData['rpe'] = $validated['rpe'];
+            }
+            if ($request->has('feeling')) {
+                $updateData['feeling'] = $validated['feeling'];
+            }
+
+            $workout->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'tracking' => $workout,
+            ]);
+        }
+
+        // 2. Check if Program Session
+        if (! empty($validated['enrollment_id']) && isset($validated['session_day'])) {
+            // Verify enrollment belongs to user
+            $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            // Create or update tracking
+            $tracking = ProgramSessionTracking::updateOrCreate(
+                [
+                    'enrollment_id' => $validated['enrollment_id'],
+                    'session_day' => $validated['session_day'],
+                ],
+                [
+                    'status' => $validated['status'],
+                    'strava_link' => $validated['strava_link'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'rpe' => $validated['rpe'] ?? null,
+                    'feeling' => $validated['feeling'] ?? null,
+                    'completed_at' => $validated['status'] === 'completed' ? now() : null,
+                ]
+            );
+
+            // Update program progress
+            // $this->updateProgramProgress($enrollment);
+
+            return response()->json([
+                'success' => true,
+                'tracking' => $tracking,
+            ]);
+        }
+
+        return response()->json(['message' => 'Missing workout identification (enrollment_id+session_day OR workout_id)'], 422);
+    }
+
+    /**
+     * Store or update custom workout
+     */
+    public function storeCustomWorkout(Request $request)
+    {
+        $validated = $request->validate([
+            'workout_id' => 'nullable|exists:custom_workouts,id',
+            'workout_date' => 'required|date',
+            'type' => 'required|in:run,interval,tempo,easy_run,yoga,cycling,rest,race',
+            'distance' => 'nullable|numeric|min:0',
+            'duration' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
+            'difficulty' => 'required|in:easy,moderate,hard',
+            'workout_structure' => 'nullable|array',
+        ]);
+
+        $user = auth()->user();
+
+        if ($validated['type'] === 'rest') {
+            $validated['distance'] = null;
+            $validated['duration'] = null;
+            $validated['workout_structure'] = null;
+        }
+
+        // If workout_id exists, update; otherwise upsert by date
+        if (isset($validated['workout_id'])) {
+            $workout = CustomWorkout::where('id', $validated['workout_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            $workout->update([
+                'workout_date' => $validated['workout_date'],
+                'type' => $validated['type'],
+                'distance' => $validated['distance'] ?? null,
+                'duration' => $validated['duration'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'difficulty' => $validated['difficulty'],
+                'workout_structure' => $validated['workout_structure'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Workout berhasil diupdate',
+                'workout' => $workout,
+            ]);
+        } else {
+            $existing = CustomWorkout::where('runner_id', $user->id)
+                ->whereDate('workout_date', $validated['workout_date'])
+                ->first();
+
+            if ($existing) {
+                $existing->update([
+                    'type' => $validated['type'],
+                    'distance' => $validated['distance'] ?? null,
+                    'duration' => $validated['duration'] ?? null,
+                    'description' => $validated['description'] ?? null,
+                    'difficulty' => $validated['difficulty'],
+                    'workout_structure' => $validated['workout_structure'] ?? null,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Workout berhasil diupdate',
+                    'workout' => $existing,
+                ]);
+            } else {
+                $workout = CustomWorkout::create([
+                    'runner_id' => $user->id,
+                    'workout_date' => $validated['workout_date'],
+                    'type' => $validated['type'],
+                    'distance' => $validated['distance'] ?? null,
+                    'duration' => $validated['duration'] ?? null,
+                    'description' => $validated['description'] ?? null,
+                    'difficulty' => $validated['difficulty'],
+                    'workout_structure' => $validated['workout_structure'] ?? null,
+                    'status' => 'pending',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Workout berhasil ditambahkan',
+                    'workout' => $workout,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Delete custom workout
+     */
+    public function deleteCustomWorkout(CustomWorkout $customWorkout)
+    {
+        $user = auth()->user();
+
+        if ((int) $customWorkout->runner_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        $customWorkout->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Workout berhasil dihapus',
+        ]);
+    }
+
+    /**
+     * Delete enrollment (cancel program)
+     */
+    public function deleteEnrollment(ProgramEnrollment $enrollment)
+    {
+        $user = auth()->user();
+
+        if ((int) $enrollment->runner_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete all tracking records
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
+
+            // If already cancelled or requested as permanent, delete permanently
+            if ($enrollment->status === 'cancelled' || request()->get('permanent') || request()->get('delete_mode') === 'permanent') {
+                $enrollment->delete();
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Program berhasil dihapus secara permanen',
+                ]);
+            }
+
+            // Update enrollment status to cancelled
+            $enrollment->update(['status' => 'cancelled']);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Program berhasil dihapus',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus program: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset active plan to program bag
+     */
+    public function resetPlan(Request $request)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+        ]);
+
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', auth()->id())
+            ->firstOrFail();
+
+        DB::transaction(function () use ($enrollment) {
+            // Delete tracking data
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
+
+            // Reset enrollment
+            $enrollment->update([
+                'status' => 'purchased',
+                'start_date' => null,
+                'end_date' => null,
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Plan has been reset and moved to Program Bag.']);
+    }
+
+    /**
+     * Apply a program from the bag
+     */
+    public function applyProgram(Request $request)
+    {
+        if ($request->has('action') && !in_array($request->input('action'), ['replace', 'add'], true)) {
+            $request->merge(['action' => null]);
+        }
+
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'start_date' => 'required|date',
+            'action' => 'nullable|in:replace,add',
+        ]);
+
+        $user = auth()->user();
+        $action = $validated['action'] ?? null;
+
+        // Check if user already has an active program
+        $activeEnrollment = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->with('program')
+            ->first();
+
+        if ($activeEnrollment && !$action) {
+            return response()->json([
+                'success' => false,
+                'has_active_program' => true,
+                'active_program_title' => $activeEnrollment->program?->title ?? 'Program Aktif',
+                'active_start_date' => $activeEnrollment->start_date ? Carbon::parse($activeEnrollment->start_date)->format('d M Y') : '',
+                'active_end_date' => $activeEnrollment->end_date ? Carbon::parse($activeEnrollment->end_date)->format('d M Y') : '',
+                'message' => 'Anda sedang menjalankan program aktif.',
+            ], 200);
+        }
+
+        if ($activeEnrollment && $action === 'replace') {
+            ProgramEnrollment::where('runner_id', $user->id)
+                ->where('status', 'active')
+                ->update(['status' => 'cancelled']);
+        }
+
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->where('status', 'purchased')
+            ->firstOrFail();
+
+        $program = $enrollment->program;
+        $startDate = Carbon::parse($validated['start_date']);
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+        $enrollment->update([
+            'status' => 'active',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]);
+
+        // Notify Coach (program applied)
+        try {
+            $coach = $program->coach;
+            if ($coach) {
+                Notification::create([
+                    'user_id' => $coach->id,
+                    'type' => 'program_applied',
+                    'title' => 'Runner Mengaktifkan Program',
+                    'message' => 'Runner '.$user->name.' mengaktifkan program: '.$program->title.' mulai '.$startDate->format('d M Y'),
+                    'reference_type' => ProgramEnrollment::class,
+                    'reference_id' => $enrollment->id,
+                    'is_read' => false,
+                ]);
+                if ($coach->email) {
+                    Mail::raw('Runner '.$user->name.' mengaktifkan program "'.$program->title.'" mulai '.$startDate->format('d M Y').'.', function ($m) use ($coach, $program) {
+                        $m->to($coach->email)->subject('Program Diaktifkan: '.$program->title);
+                    });
+                }
+                $phone = $coach->phone ?? null;
+                if ($phone) {
+                    $normalized = preg_replace('/\D+/', '', $phone);
+                    if (str_starts_with($normalized, '0')) {
+                        $normalized = '62'.substr($normalized, 1);
+                    } elseif (! str_starts_with($normalized, '62')) {
+                        $normalized = '62'.$normalized;
+                    }
+                    $runnerPhone = $user->phone ?? '-';
+                    WhatsApp::send($normalized, "*Program Diaktifkan*\nRunner: ".$user->name."\nNo. HP: ".$runnerPhone."\nProgram: ".$program->title."\nMulai: ".$startDate->format('d M Y'));
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return response()->json(['success' => true, 'message' => 'Program applied successfully!']);
+    }
+
+    /**
+     * Restore cancelled program to bag
+     */
+    public function restoreProgram(Request $request)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+        ]);
+
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', auth()->id())
+            ->where('status', 'cancelled')
+            ->firstOrFail();
+
+        $enrollment->update([
+            'status' => 'purchased',
+            'start_date' => null,
+            'end_date' => null,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Program dikembalikan ke Program Bag.']);
+    }
+
+    /**
+     * Reset all active plans to program bag
+     */
+    public function resetPlanList(Request $request)
+    {
+        $user = auth()->user();
+
+        DB::transaction(function () use ($user) {
+            // Get all active enrollments
+            $enrollments = ProgramEnrollment::where('runner_id', $user->id)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($enrollments as $enrollment) {
+                // Delete tracking data
+                ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
+
+                // Reset enrollment
+                $enrollment->update([
+                    'status' => 'purchased',
+                    'start_date' => null,
+                    'end_date' => null,
+                ]);
+            }
+
+            // Also delete all custom workouts
+            CustomWorkout::where('runner_id', $user->id)->delete();
+        });
+
+        return response()->json(['success' => true, 'message' => 'All active plans and custom workouts have been reset.']);
+    }
+
+    /**
+     * Get weekly volume data for chart
+     */
+    public function weeklyVolume(Request $request)
+    {
+        $user = auth()->user();
+
+        // Range: 12 weeks back, 4 weeks forward
+        $start = now()->startOfWeek()->subWeeks(12);
+        $end = now()->endOfWeek()->addWeeks(4);
+
+        $weeks = [];
+        $current = $start->copy();
+        while ($current <= $end) {
+            // Use o-W for ISO Year-Week to handle year boundaries correctly
+            $key = $current->format('o-W');
+            $weeks[$key] = [
+                'week_label' => $current->format('d M'),
+                'full_date' => $current->format('Y-m-d'),
+                'planned' => 0,
+                'actual' => 0,
+                'actual_plan' => 0,
+                'actual_strava_unplanned' => 0,
+                'actual_total' => 0,
+            ];
+            $current->addWeek();
+        }
+
+        // 1. Process Program Enrollments
+        $enrollments = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->with('program')
+            ->get();
+
+        foreach ($enrollments as $enrollment) {
+            $program = $enrollment->program;
+            if (! $program) {
+                continue;
+            }
+
+            $sessions = $program->program_json['sessions'] ?? [];
+            $startDate = $enrollment->start_date;
+            if (! $startDate) {
+                continue;
+            }
+
+            // Get trackings for this enrollment
+            $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+
+            foreach ($sessions as $session) {
+                if (! isset($session['day'])) {
+                    continue;
+                }
+
+                $day = (int) $session['day'];
+                try {
+                    $sessionDate = $startDate->copy()->addDays($day - 1);
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                // Check override
+                if (isset($trackings[$day]) && $trackings[$day]->rescheduled_date) {
+                    $sessionDate = $trackings[$day]->rescheduled_date;
+                }
+
+                if ($sessionDate->lt($start) || $sessionDate->gt($end)) {
+                    continue;
+                }
+
+                $weekKey = $sessionDate->format('o-W');
+                $dist = (float) ($session['distance'] ?? 0);
+
+                if (isset($weeks[$weekKey])) {
+                    $weeks[$weekKey]['planned'] += $dist;
+
+                    // Add to actual if completed
+                    if (isset($trackings[$day]) && $trackings[$day]->status === 'completed') {
+                        $weeks[$weekKey]['actual_plan'] += $dist;
+                    }
+                }
+            }
+        }
+
+        // 2. Custom Workouts
+        $customWorkouts = CustomWorkout::where('runner_id', $user->id)
+            ->whereBetween('workout_date', [$start, $end])
+            ->get();
+
+        foreach ($customWorkouts as $cw) {
+            $weekKey = $cw->workout_date->format('o-W');
+            if (isset($weeks[$weekKey])) {
+                $weeks[$weekKey]['planned'] += $cw->distance;
+                if ($cw->status === 'completed') {
+                    $weeks[$weekKey]['actual_plan'] += $cw->distance;
+                }
+            }
+        }
+
+        $enrollmentIds = $enrollments->pluck('id')->values()->all();
+        $linkedStravaActivityIds = [];
+        if (! empty($enrollmentIds)) {
+            $links = ProgramSessionTracking::query()
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->whereNotNull('strava_link')
+                ->pluck('strava_link');
+
+            foreach ($links as $link) {
+                if (! is_string($link) || $link === '') {
+                    continue;
+                }
+                if (preg_match('~strava\.com/activities/(\d+)~i', $link, $m)) {
+                    $linkedStravaActivityIds[(int) $m[1]] = true;
+                }
+            }
+        }
+
+        $stravaActivities = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('start_date', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->whereIn('type', ['Run', 'VirtualRun', 'TrailRun', 'Treadmill', 'run', 'virtualrun', 'trailrun', 'treadmill'])
+            ->orderBy('start_date')
+            ->get(['strava_activity_id', 'start_date', 'distance_m', 'type', 'raw']);
+
+        foreach ($stravaActivities as $act) {
+            if (! $act->local_start_date) {
+                continue;
+            }
+
+            $stravaId = (int) $act->strava_activity_id;
+            if ($stravaId && isset($linkedStravaActivityIds[$stravaId])) {
+                continue;
+            }
+
+            $weekKey = $act->local_start_date->format('o-W');
+            if (! isset($weeks[$weekKey])) {
+                continue;
+            }
+
+            $weeks[$weekKey]['actual_strava_unplanned'] += ((float) ($act->distance_m ?? 0)) / 1000;
+        }
+
+        foreach ($weeks as $key => $w) {
+            $weeks[$key]['actual_total'] = (float) $w['actual_plan'] + (float) $w['actual_strava_unplanned'];
+            $weeks[$key]['actual'] = (float) $weeks[$key]['actual_total'];
+        }
+
+        return response()->json(array_values($weeks));
+    }
+
+    /**
+     * Reschedule a workout (Drag & Drop)
+     */
+    public function reschedule(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:program_session,custom_workout',
+            'new_date' => 'required|date',
+            // For custom workout
+            'workout_id' => 'nullable|required_if:type,custom_workout|exists:custom_workouts,id',
+            // For program session
+            'enrollment_id' => 'nullable|required_if:type,program_session|exists:program_enrollments,id',
+            'session_day' => 'nullable|required_if:type,program_session|integer',
+        ]);
+
+        $user = auth()->user();
+        $newDate = Carbon::parse($validated['new_date']);
+
+        if ($validated['type'] === 'custom_workout') {
+            $workout = CustomWorkout::where('id', $validated['workout_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            try {
+                $workout->update(['workout_date' => $newDate]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Handle Duplicate Entry (1062) by Swapping
+                if ($e->errorInfo[1] == 1062) {
+                    $existingWorkout = CustomWorkout::where('runner_id', $user->id)
+                        ->where('workout_date', $newDate->format('Y-m-d'))
+                        ->first();
+
+                    if ($existingWorkout) {
+                        DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
+                            $originalDate = $workout->workout_date;
+
+                            // 3-step swap to avoid unique constraint violation
+                            // 1. Move existing to a temporary safe date (far past)
+                            $tempDate = Carbon::parse('1970-01-01');
+                            // Ensure temp date is not taken (edge case)
+                            while (CustomWorkout::where('runner_id', $workout->runner_id)->where('workout_date', $tempDate->format('Y-m-d'))->exists()) {
+                                $tempDate->subDay();
+                            }
+
+                            $existingWorkout->update(['workout_date' => $tempDate]);
+                            $workout->update(['workout_date' => $newDate]);
+                            $existingWorkout->update(['workout_date' => $originalDate]);
+                        });
+
+                        return response()->json(['success' => true, 'message' => 'Jadwal latihan ditukar karena tanggal tujuan sudah terisi.']);
+                    }
+                }
+                throw $e;
+            }
+
+            return response()->json(['success' => true, 'message' => 'Custom workout rescheduled']);
+        } else {
+            $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            ProgramSessionTracking::updateOrCreate(
+                [
+                    'enrollment_id' => $enrollment->id,
+                    'session_day' => $validated['session_day'],
+                ],
+                [
+                    'rescheduled_date' => $newDate,
+                ]
+            );
+
+            return response()->json(['success' => true, 'message' => 'Program session rescheduled']);
+        }
+    }
+
+    /**
+     * Reschedule entire program (change start date)
+     */
+    public function rescheduleProgram(Request $request)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'new_start_date' => 'required|date',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        $startDate = Carbon::parse($validated['new_start_date']);
+        $program = $enrollment->program;
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+        DB::transaction(function () use ($enrollment, $startDate, $endDate) {
+            // Update enrollment dates
+            $enrollment->update([
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]);
+
+            // Clear any individual session reschedules so they align with new start date
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+                ->update(['rescheduled_date' => null]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program rescheduled successfully',
+        ]);
+    }
+
+    /**
+     * Update Runner PB
+     */
+    public function updatePb(Request $request, ProgramAdaptationService $adaptationService)
+    {
+        $validated = $request->validate([
+            'pb_5k' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_10k' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_hm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_fm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_cooper' => 'nullable|integer|min:0|max:10000',
+            'pb_balke' => 'nullable|integer|min:0|max:10000',
+            'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
+            'physical_notes' => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = auth()->user();
+
+        // Capture old VDOT for improvement analysis
+        $oldVdot = (float) ($user->vdot ?? 0);
+        $oldEquivTimes = $user->equivalent_race_times ?? [];
+
+        $userPbUpdates = collect($validated)->only(['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm', 'pb_cooper', 'pb_balke'])->toArray();
+        if (!empty($userPbUpdates)) {
+            $user->update($userPbUpdates);
+        }
+        $user->refresh();
+
+        $notes = $validated['physical_notes'] ?? ($validated['notes'] ?? null);
+        $feeling = $validated['feeling'] ?? null;
+
+        // If runner has feeling or notes, save/update today's session tracking
+        if ($feeling || $notes) {
+            try {
+                $today = now()->toDateString();
+                $enrollment = \App\Models\ProgramEnrollment::where('runner_id', $user->id)
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->latest()
+                    ->first();
+
+                if ($enrollment && $enrollment->start_date) {
+                    $sessionDay = max(1, (int) $enrollment->start_date->diffInDays(now()->startOfDay()) + 1);
+                    $tracking = \App\Models\ProgramSessionTracking::firstOrNew([
+                        'enrollment_id' => $enrollment->id,
+                        'session_day' => $sessionDay,
+                    ]);
+                    if ($feeling) $tracking->feeling = $feeling;
+                    if ($notes) $tracking->notes = $notes;
+                    $tracking->save();
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to save session feeling in updatePb: ' . $e->getMessage());
+            }
+        }
+
+        $newVdot = (float) ($user->vdot ?? 0);
+        $newEquivTimes = $user->equivalent_race_times ?? [];
+
+        // Build improvement analysis
+        $improvementAnalysis = null;
+        if ($oldVdot > 0 && $newVdot > 0) {
+            $daniels = app(DanielsRunningService::class);
+            $vdotDiff = $newVdot - $oldVdot;
+            $vdotPct = $oldVdot > 0 ? round(($vdotDiff / $oldVdot) * 100, 1) : 0;
+
+            // Time improvements per distance
+            $timeImprovements = [];
+            $distLabels = ['5k' => '5K', '10k' => '10K', '21k' => 'Half Marathon', '42k' => 'Marathon'];
+            foreach ($distLabels as $key => $label) {
+                $oldTime = $oldEquivTimes[$key]['time'] ?? null;
+                $newTime = $newEquivTimes[$key]['time'] ?? null;
+                if ($oldTime && $newTime) {
+                    $oldSec = $this->timeToSeconds($oldTime);
+                    $newSec = $this->timeToSeconds($newTime);
+                    $diffSec = $oldSec - $newSec; // positive = improvement (faster)
+                    $pct = $oldSec > 0 ? round(abs($diffSec / $oldSec) * 100, 1) : 0;
+                    $timeImprovements[$key] = [
+                        'label' => $label,
+                        'old_time' => $oldTime,
+                        'new_time' => $newTime,
+                        'diff_seconds' => $diffSec,
+                        'improvement_pct' => $pct,
+                        'improved' => $diffSec > 0,
+                    ];
+                }
+            }
+
+            // Determine performance level
+            $level = $this->getVdotLevel($newVdot);
+            $changeLabel = $vdotDiff > 0 ? 'Meningkat' : ($vdotDiff < 0 ? 'Menurun' : 'Stabil');
+
+            // Training pace descriptions
+            $newPaces = $user->training_paces;
+            $paceInsights = [
+                [
+                    'type' => 'Easy (E)',
+                    'purpose' => 'Membangun aerobic base & pemulihan aktif',
+                    'contribution' => '80% dari total latihan',
+                    'color' => 'green',
+                ],
+                [
+                    'type' => 'Threshold (T)',
+                    'purpose' => 'Meningkatkan lactate threshold — kunci utama peningkatan kecepatan',
+                    'contribution' => '10-15% dari total latihan',
+                    'color' => 'yellow',
+                ],
+                [
+                    'type' => 'Interval (I)',
+                    'purpose' => 'Meningkatkan VO2Max — kapasitas aerobik maksimal',
+                    'contribution' => '5-8% dari total latihan',
+                    'color' => 'orange',
+                ],
+                [
+                    'type' => 'Repetition (R)',
+                    'purpose' => 'Meningkatkan speed economy & running form',
+                    'contribution' => '2-5% dari total latihan',
+                    'color' => 'red',
+                ],
+            ];
+
+            $improvementAnalysis = [
+                'old_vdot' => round($oldVdot, 1),
+                'new_vdot' => round($newVdot, 1),
+                'vdot_diff' => round($vdotDiff, 1),
+                'vdot_pct' => $vdotPct,
+                'change_label' => $changeLabel,
+                'level' => $level,
+                'time_improvements' => $timeImprovements,
+                'pace_insights' => $paceInsights,
+            ];
+        }
+
+        // Generate intelligent program adaptation recommendations
+        $adaptationRecommendation = null;
+        try {
+            $adaptationRecommendation = $adaptationService->generateFeedback(
+                $user,
+                $newVdot,
+                $oldVdot,
+                $feeling,
+                $notes
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Failed generating program adaptation recommendation: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Personal Best & Progress berhasil diperbarui.',
+            'vdot' => $user->vdot,
+            'paces' => $user->training_paces,
+            'equivalent_race_times' => $user->equivalent_race_times,
+            'improvement_analysis' => $improvementAnalysis,
+            'adaptation_recommendation' => $adaptationRecommendation,
+        ]);
+    }
+
+    /**
+     * Apply performance adaptation to active training program
+     */
+    public function applyProgramAdaptation(Request $request, ProgramAdaptationService $adaptationService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|integer|exists:program_enrollments,id',
+            'new_vdot' => 'required|numeric|min:10|max:85',
+            'adapt_volume' => 'nullable',
+            'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        try {
+            $adaptVolume = filter_var($validated['adapt_volume'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $result = $adaptationService->applyAdaptation(
+                $enrollment,
+                (float) $validated['new_vdot'],
+                [
+                    'adapt_volume' => $adaptVolume,
+                    'feeling' => $validated['feeling'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ]
+            );
+
+            return response()->json($result);
+        } catch (\Throwable $e) {
+            \Log::error('Error applying program adaptation: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menerapkan adaptasi program: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Convert HH:MM:SS time string to total seconds
+     */
+    private function timeToSeconds(string $time): int
+    {
+        $parts = explode(':', $time);
+        if (count($parts) === 3) {
+            return (int)$parts[0] * 3600 + (int)$parts[1] * 60 + (int)$parts[2];
+        } elseif (count($parts) === 2) {
+            return (int)$parts[0] * 60 + (int)$parts[1];
+        }
+        return 0;
+    }
+
+    /**
+     * Get runner level label based on VDOT score
+     */
+    private function getVdotLevel(float $vdot): array
+    {
+        if ($vdot >= 75) return ['label' => 'Elite', 'color' => 'yellow'];
+        if ($vdot >= 60) return ['label' => 'Sub-Elite', 'color' => 'purple'];
+        if ($vdot >= 50) return ['label' => 'Advanced', 'color' => 'orange'];
+        if ($vdot >= 40) return ['label' => 'Intermediate', 'color' => 'blue'];
+        if ($vdot >= 30) return ['label' => 'Beginner+', 'color' => 'green'];
+        return ['label' => 'Beginner', 'color' => 'slate'];
+    }
+
+    /**
+     * Update Runner Weekly Target
+     */
+    public function updateWeeklyTarget(Request $request)
+    {
+        $validated = $request->validate([
+            'weekly_km_target' => 'nullable|numeric|min:0|max:999.99',
+        ]);
+
+        $user = auth()->user();
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Weekly target updated',
+            'weekly_km_target' => $user->weekly_km_target,
+        ]);
+    }
+
+    /**
+     * Preview adaptive reschedule based on scientific calculations
+     */
+    public function previewAdaptiveReschedule(Request $request, AdaptiveRescheduleService $rescheduleService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'reason' => 'required|in:sick,busy,injury',
+            'days_missed' => 'required|integer|min:0',
+            'start_date' => 'required|date',
+            'injury_severity' => 'nullable|in:minor,moderate',
+            'body_part' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        $preview = $rescheduleService->reschedule($enrollment, $validated);
+
+        return response()->json([
+            'success' => true,
+            'preview' => $preview,
+        ]);
+    }
+
+    /**
+     * Apply adaptive reschedule to database
+     */
+    public function applyAdaptiveReschedule(Request $request, AdaptiveRescheduleService $rescheduleService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'reason' => 'required|in:sick,busy,injury',
+            'days_missed' => 'required|integer|min:0',
+            'start_date' => 'required|date',
+            'injury_severity' => 'nullable|in:minor,moderate',
+            'body_part' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        DB::transaction(function () use ($enrollment, $validated, $rescheduleService, $user) {
+            $result = $rescheduleService->reschedule($enrollment, $validated);
+
+            // Save history
+            $history = $enrollment->reschedule_history ?? [];
+            $history[] = [
+                'timestamp' => now()->toIso8601String(),
+                'reason' => $validated['reason'],
+                'days_missed' => $validated['days_missed'],
+                'previous_vdot' => $enrollment->current_vdot ?? $enrollment->program->vdot ?? $enrollment->runner->vdot ?? 40.0,
+                'new_vdot' => $result['adjusted_vdot'],
+            ];
+
+            // Update enrollment details
+            $enrollment->update([
+                'current_vdot' => $result['adjusted_vdot'],
+                'status_reason' => $validated['reason'],
+                'reschedule_history' => $history,
+            ]);
+
+            // Save new sessions into ProgramSessionTracking and CustomWorkout
+            foreach ($result['sessions'] as $session) {
+                if (isset($session['session_day'])) {
+                    // This is an original session shifted/rescheduled
+                    ProgramSessionTracking::updateOrCreate(
+                        [
+                            'enrollment_id' => $enrollment->id,
+                            'session_day' => $session['session_day'],
+                        ],
+                        [
+                            'rescheduled_date' => $session['date'],
+                        ]
+                    );
+                } else {
+                    // This is a recovery session: create as a CustomWorkout
+                    CustomWorkout::updateOrCreate(
+                        [
+                            'runner_id' => $user->id,
+                            'workout_date' => $session['date'],
+                        ],
+                        [
+                            'type' => $session['type'],
+                            'distance' => $session['distance'],
+                            'duration' => $session['duration'],
+                            'description' => $session['description'],
+                            'difficulty' => 'easy',
+                            'status' => 'pending',
+                        ]
+                    );
+                }
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program latihan berhasil di-reschedule secara ilmiah.',
+        ]);
+    }
+}
