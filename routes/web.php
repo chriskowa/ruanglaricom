@@ -9,7 +9,16 @@ use Illuminate\Support\Facades\Route;
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
 Route::post('/upload-image', [App\Http\Controllers\ImageUploadController::class, 'upload'])->name('image.upload');
 
+Route::get('/git-find-pb-fn', function () {
+    $git = '"C:\\Program Files\\Git\\cmd\\git.exe" --git-dir="' . base_path('.git') . '" --work-tree="' . base_path() . '" ';
+    $log = shell_exec($git . 'log -S "openGlobalPbModal" -p -n 3 2>&1');
+    return response($log, 200, ['Content-Type' => 'text/plain']);
+});
+
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
+
+
+
 
 
 
