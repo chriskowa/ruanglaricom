@@ -79,7 +79,7 @@
                 </button>
                 @if($event->start_time)
                     <span class="text-slate-600">•</span>
-                    <span class="font-mono text-slate-400">{{ $event->start_time->format('H:i') === '00:00' ? '05:00' : $event->start_time->format('H:i') }} WIB</span>
+                    <span class="text-slate-400">{{ $event->start_time->format('H:i') === '00:00' ? '05:00' : $event->start_time->format('H:i') }} WIB</span>
                 @endif
             </div>
 
@@ -87,7 +87,7 @@
             @if($event->raceDistances->isNotEmpty())
                 <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
                     @foreach($event->raceDistances as $distance)
-                        <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
+                        <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-300">
                             {{ $distance->name }}
                         </span>
                     @endforeach

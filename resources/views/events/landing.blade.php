@@ -98,7 +98,6 @@
         background: rgba(183, 255, 0, 0.12) !important;
         border: 1px solid rgba(183, 255, 0, 0.4) !important;
         color: #B7FF00 !important;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
@@ -1103,15 +1102,15 @@
                     <!-- Trust Statistics (500+ Event, 34 Provinsi, 10K+ Runner) -->
                     <div class="pt-8 mt-8 border-t border-slate-800/90 grid grid-cols-3 gap-4 max-w-[480px]">
                         <div>
-                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">500<span style="color: #B7FF00;">+</span></div>
+                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">500<span style="color: #B7FF00;">+</span></div>
                             <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Event</div>
                         </div>
                         <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
-                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">34</div>
+                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">34</div>
                             <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Provinsi</div>
                         </div>
                         <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
-                            <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight" style="color: #ffffff;">10K<span style="color: #B7FF00;">+</span></div>
+                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">10K<span style="color: #B7FF00;">+</span></div>
                             <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Runner</div>
                         </div>
                     </div>
@@ -1139,7 +1138,7 @@
                                 <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90 relative z-10">
                                     <div class="flex items-center gap-2">
                                         <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
-                                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
                                     </div>
 
                                     @if($upcomingRaceList->count() > 1)
@@ -1148,7 +1147,7 @@
                                                     class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
                                                 <i class="fas fa-chevron-left"></i>
                                             </button>
-                                            <span class="text-[10px] font-mono font-bold text-slate-400 px-1.5" x-text="(currentIndex + 1) + '/' + total"></span>
+                                            <span class="text-[10px] font-bold text-slate-400 px-1.5" x-text="(currentIndex + 1) + '/' + total"></span>
                                             <button type="button" @click="next()" aria-label="Next race" 
                                                     class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
                                                 <i class="fas fa-chevron-right"></i>
@@ -1177,7 +1176,7 @@
                                                 @if($race->distances && $race->distances->isNotEmpty())
                                                     <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
                                                         @foreach($race->distances->take(4) as $d)
-                                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow"
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold shadow"
                                                                   style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">
                                                                 {{ $d->name }}
                                                             </span>
@@ -1191,12 +1190,12 @@
                                                     @endphp
                                                     <div class="absolute top-2.5 right-2.5 z-10">
                                                         @if($daysUntil > 0)
-                                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow"
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold shadow"
                                                                   style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
                                                                 {{ (int)$daysUntil }} HARI LAGI
                                                             </span>
                                                         @elseif($daysUntil === 0)
-                                                            <span class="px-2 py-0.5 rounded bg-rose-950/90 border border-rose-700 text-rose-300 text-[10px] font-mono font-bold shadow">
+                                                            <span class="px-2 py-0.5 rounded bg-rose-950/90 border border-rose-700 text-rose-300 text-[10px] font-bold shadow">
                                                                 HARI INI
                                                             </span>
                                                         @endif
@@ -1245,9 +1244,9 @@
                                 <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90">
                                     <div class="flex items-center gap-2">
                                         <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
-                                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold"
                                           style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
                                         OPEN REGISTRATION
                                     </span>
@@ -1258,11 +1257,11 @@
                                         <img src="{{ $heroBgUrl }}" alt="Borobudur Marathon 2026" class="w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/95 via-transparent to-black/30"></div>
                                         <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
                                                   style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">42K FM</span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
                                                   style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">21K HM</span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
                                                   style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">10K</span>
                                         </div>
                                     </div>
@@ -1302,7 +1301,7 @@
     <section class="ep-shell mt-6">
         <div class="ep-ops">
             <div>
-                <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#ccff00] mb-1">Event Organizers</div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-[#ccff00] mb-1">Event Organizers</div>
                 <h2 class="text-base font-semibold text-white">Publikasikan event dan buka pendaftaran tanpa biaya awal</h2>
                 <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
                     Listing event, landing page pendaftaran mandiri, integrasi tiket QR, notifikasi WhatsApp, dan pembayaran online dalam satu alur terpusat.
@@ -1322,7 +1321,7 @@
                 <h2 class="text-lg font-semibold text-white">Peta Sebaran Event Lari Indonesia</h2>
                 <p class="ep-section-copy">Eksplorasi lokasi event berdasarkan kota dan kategori lomba.</p>
             </div>
-            <div id="events-map-count" class="text-xs font-mono font-semibold text-[#ccff00]">
+            <div id="events-map-count" class="text-xs font-semibold text-[#ccff00]">
                 {{ count($mapEvents ?? []) }} EVENT
             </div>
         </div>
@@ -1495,7 +1494,7 @@
 
         <div id="loading-indicator" class="hidden py-14 text-center">
             <div class="inline-block h-7 w-7 border-2 border-white/10 border-t-[#ccff00] rounded-full animate-spin"></div>
-            <p class="mt-2 text-slate-400 text-xs font-mono uppercase tracking-wider">Memuat jadwal...</p>
+            <p class="mt-2 text-slate-400 text-xs uppercase tracking-wider">Memuat jadwal...</p>
         </div>
     </section>
 
@@ -1669,7 +1668,7 @@
 
                                 <div id="banner-dropzone-preview" class="hidden">
                                     <img id="banner-preview-img" src="" class="max-h-36 mx-auto object-cover rounded-md">
-                                    <span id="banner-filename" class="block mt-2 text-xs text-slate-300 font-mono"></span>
+                                    <span id="banner-filename" class="block mt-2 text-xs text-slate-300"></span>
                                     <button type="button" id="btn-remove-banner" class="mt-2 text-xs font-semibold text-red-400 hover:text-red-300 transition">Ganti Banner</button>
                                 </div>
                             </div>
@@ -1709,7 +1708,7 @@
 
                             <div class="relative mb-3">
                                 <div id="event-map" class="w-full h-44 bg-[#080A0D]"></div>
-                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#080A0D]/90 text-[#ccff00]"></div>
+                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[10px] px-1.5 py-0.5 rounded bg-[#080A0D]/90 text-[#ccff00]"></div>
                             </div>
 
                             <div class="space-y-3">
