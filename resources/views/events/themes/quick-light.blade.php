@@ -378,7 +378,7 @@
     </header>
 
     <!-- Main Container -->
-    <main class="w-full max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 py-6 sm:py-10 max-w-full overflow-hidden">
+    <main class="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 py-6 sm:py-10 overflow-hidden">
         
         <!-- Alerts and Notices -->
         @if(session('success'))
