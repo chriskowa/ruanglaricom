@@ -1,0 +1,2 @@
+<?php
+// Removed temporary file
