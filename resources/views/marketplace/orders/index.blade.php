@@ -4,7 +4,7 @@
 
 @section('content')
 @php($withSidebar = true)
-<div class="pt-0 pt-4 md:pt-6 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen font-sans bg-[#090A0E] text-slate-200">
+<div class="pt-20 md:pt-6 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen font-sans bg-[#090A0E] text-slate-200">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
         <div>

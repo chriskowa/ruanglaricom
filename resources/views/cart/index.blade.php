@@ -4,7 +4,7 @@
 @section('title', 'Shopping Cart - RuangLari')
 
 @section('content')
-<div class="min-h-screen pt-0 pb-20 px-4 md:px-8 font-sans bg-[#090A0E] text-slate-200">
+<div class="min-h-screen pt-20 pb-20 px-4 md:px-8 font-sans bg-[#090A0E] text-slate-200">
     
     <div class="max-w-7xl mx-auto pt-4 md:pt-6">
         <!-- Header -->

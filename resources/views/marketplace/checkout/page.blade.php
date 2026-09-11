@@ -3,7 +3,7 @@
 @section('title', 'Checkout - Marketplace')
 
 @section('content')
-<div class="min-h-screen pt-0 pb-20 px-4 md:px-8 font-sans bg-[#090A0E] text-slate-200">
+<div class="min-h-screen pt-10 pb-20 px-4 md:px-8 font-sans bg-[#090A0E] text-slate-200">
     <div class="max-w-5xl mx-auto pt-4 md:pt-6">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8 pb-5 border-b border-zinc-800">

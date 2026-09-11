@@ -3,7 +3,7 @@
 @section('title', 'Pesanan #' . $order->invoice_number . ' - RuangLari Marketplace')
 
 @section('content')
-<div class="pt-0 pt-4 md:pt-6 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto min-h-screen font-sans bg-[#090A0E] text-slate-200">
+<div class="pt-0 pt-4 md:pt-20 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto min-h-screen font-sans bg-[#090A0E] text-slate-200">
     <!-- Breadcrumb -->
     <nav class="flex mb-6 text-xs text-zinc-300" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-2">
