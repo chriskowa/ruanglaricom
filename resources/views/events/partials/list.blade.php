@@ -97,7 +97,7 @@
 
         <!-- Action -->
         <div class="event-card-actions flex items-center md:self-center shrink-0 w-full md:w-auto mt-2 md:mt-0">
-            <a href="{{ $event->public_url }}" class="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 rounded-md bg-neon text-dark font-bold text-xs hover:bg-lime-300 transition-colors">
+            <a href="{{ $event->public_url }}" class="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 rounded-md bg-white text-dark font-bold text-xs hover:bg-lime-300 transition-colors">
                 Detail Event
             </a>
         </div>

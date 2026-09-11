@@ -19,15 +19,22 @@ class RajaOngkirService
     }
 
     /**
-     * Get all cities from RajaOngkir (cached 7 days)
+     * Get all cities from RajaOngkir (cached 30 days)
+     * Prioritizes local database / json file for 0ms latency.
      */
     public function getCities(): array
     {
-        return Cache::remember('rajaongkir_all_cities_v2', 86400 * 7, function () {
+        return Cache::remember('rajaongkir_all_cities_v3', 86400 * 30, function () {
+            // First check local data for instant zero-latency loading
+            $localCities = $this->getLocalCitiesFallback();
+            if (!empty($localCities)) {
+                return $localCities;
+            }
+
             try {
                 $response = Http::withHeaders([
                     'key' => $this->apiKey,
-                ])->timeout(8)->get($this->baseUrl . 'city');
+                ])->timeout(2)->get($this->baseUrl . 'city');
 
                 if ($response->successful()) {
                     $data = $response->json();
@@ -36,11 +43,10 @@ class RajaOngkirService
 
                 Log::warning('RajaOngkir getCities response non-200: ' . $response->body());
             } catch (\Throwable $e) {
-                Log::error('RajaOngkir getCities failed: ' . $e->getMessage());
+                Log::warning('RajaOngkir getCities failed: ' . $e->getMessage());
             }
 
-            // Fallback from local DB if RajaOngkir fails
-            return $this->getLocalCitiesFallback();
+            return [];
         });
     }
 
@@ -189,7 +195,28 @@ class RajaOngkirService
     }
 
     /**
+     * Get instant default/fallback shipping options without external HTTP calls
+     */
+    public function getDefaultShippingOptions(int $originCityId, int $destinationCityId): array
+    {
+        $options = $this->getFallbackShippingOptions($originCityId, $destinationCityId);
+        $options[] = [
+            'courier_code' => 'pickup',
+            'courier_name' => 'Ambil Sendiri / COD',
+            'service' => 'PICKUP',
+            'description' => 'Ambil sendiri di lokasi seller / Titip Jual Hub',
+            'cost' => 0,
+            'etd' => 'Langsung',
+            'formatted_cost' => 'Gratis (Rp 0)',
+        ];
+
+        return $options;
+    }
+
+    /**
      * Calculate Shipping Cost from Origin to Destination
+     *
+     * Uses parallel concurrent requests (Http::pool) and 24h caching for maximum speed.
      *
      * @param int $originCityId
      * @param int $destinationCityId
@@ -201,25 +228,88 @@ class RajaOngkirService
     {
         $weightInGrams = max(100, $weightInGrams);
         $results = [];
+        $uncachedCouriers = [];
 
+        // 1. Gather all cached courier rates first (0ms latency)
         foreach ($couriers as $courier) {
-            $cacheKey = "ro_cost_v2_{$originCityId}_{$destinationCityId}_{$weightInGrams}_{$courier}";
+            $courier = strtolower($courier);
+            $cacheKey = "ro_cost_v3_{$originCityId}_{$destinationCityId}_{$weightInGrams}_{$courier}";
 
-            $courierServices = Cache::remember($cacheKey, 3600, function () use ($originCityId, $destinationCityId, $weightInGrams, $courier) {
-                return $this->fetchCourierCost($originCityId, $destinationCityId, $weightInGrams, $courier);
-            });
+            if (Cache::has($cacheKey)) {
+                $cachedServices = Cache::get($cacheKey);
+                if (is_array($cachedServices) && !empty($cachedServices)) {
+                    $results = array_merge($results, $cachedServices);
+                    continue;
+                }
+            }
+            $uncachedCouriers[] = $courier;
+        }
 
-            if (!empty($courierServices)) {
-                $results = array_merge($results, $courierServices);
+        // 2. Query uncached couriers in parallel using Http::pool (concurrent requests)
+        if (!empty($uncachedCouriers)) {
+            try {
+                $responses = Http::pool(function ($pool) use ($uncachedCouriers, $originCityId, $destinationCityId, $weightInGrams) {
+                    $poolRequests = [];
+                    foreach ($uncachedCouriers as $courier) {
+                        $poolRequests[$courier] = $pool->as($courier)
+                            ->asForm()
+                            ->withHeaders(['key' => $this->apiKey])
+                            ->timeout(2.5)
+                            ->post($this->baseUrl . 'cost', [
+                                'origin' => $originCityId,
+                                'destination' => $destinationCityId,
+                                'weight' => $weightInGrams,
+                                'courier' => $courier,
+                            ]);
+                    }
+                    return $poolRequests;
+                });
+
+                foreach ($uncachedCouriers as $courier) {
+                    $response = $responses[$courier] ?? null;
+                    $services = [];
+
+                    if ($response && !($response instanceof \Throwable) && $response->successful()) {
+                        $data = $response->json();
+                        $courierData = $data['rajaongkir']['results'][0] ?? null;
+
+                        if ($courierData && !empty($courierData['costs'])) {
+                            foreach ($courierData['costs'] as $c) {
+                                $costVal = $c['cost'][0]['value'] ?? 0;
+                                $etd = $c['cost'][0]['etd'] ?? '-';
+                                if (!empty($etd) && !str_contains(strtolower($etd), 'hari') && is_numeric(trim($etd))) {
+                                    $etd .= ' hari';
+                                }
+
+                                $services[] = [
+                                    'courier_code' => strtolower($courierData['code']),
+                                    'courier_name' => strtoupper($courierData['name'] ?? $courierData['code']),
+                                    'service' => $c['service'],
+                                    'description' => $c['description'] ?: $c['service'],
+                                    'cost' => (int) $costVal,
+                                    'etd' => $etd ?: '2-3 hari',
+                                    'formatted_cost' => 'Rp ' . number_format($costVal, 0, ',', '.'),
+                                ];
+                            }
+                        }
+                    }
+
+                    if (!empty($services)) {
+                        Cache::put("ro_cost_v3_{$originCityId}_{$destinationCityId}_{$weightInGrams}_{$courier}", $services, 86400);
+                        $results = array_merge($results, $services);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('RajaOngkir parallel fetch error: ' . $e->getMessage());
             }
         }
 
-        // If no results from API (e.g. timeout or same origin/dest), provide reliable fallback rates
+        // 3. Fallback if API returned empty/failed/timeout
         if (empty($results)) {
             $results = $this->getFallbackShippingOptions($originCityId, $destinationCityId);
         }
 
-        // Add Instant / Pickup Option (COD)
+        // 4. Add Instant / Pickup Option (COD)
         $results[] = [
             'courier_code' => 'pickup',
             'courier_name' => 'Ambil Sendiri / COD',

@@ -1072,7 +1072,7 @@
 
                     <!-- Headline (64px, Line-height 1.05) -->
                     <h1 class="hero-headline">
-                        Temukan Race <span class="text-lime-highlight">Berikutnya</span> di Indonesia
+                        JADWAL LARI INDONESIA
                     </h1>
 
                     <!-- Subheadline -->
@@ -1085,8 +1085,8 @@
                         <a href="#filter-form"
                            onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
                            class="btn-hero-primary"
-                           style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
-                            <i class="fas fa-magnifying-glass text-xs" style="color: #08111F !important;"></i>
+                           style="background-color: #ffffffff !important; color: #08111F !important; border: 1px solid #ffffffff !important;">
+                            
                             <span style="color: #08111F !important; font-weight: 900;">Cari Event Lari</span>
                         </a>
 
@@ -1136,9 +1136,8 @@
 
                                 <!-- Card Header: Badge & Controls -->
                                 <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90 relative z-10">
-                                    <div class="flex items-center gap-2">
-                                        <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
-                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                    <div class="flex items-center gap-2">                                        
+                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #ffffffff;">UPCOMING RACE</span>
                                     </div>
 
                                     @if($upcomingRaceList->count() > 1)

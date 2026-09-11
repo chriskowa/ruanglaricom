@@ -3,8 +3,8 @@
 @section('title', 'Checkout - Marketplace')
 
 @section('content')
-<div class="min-h-screen pt-24 pb-20 px-4 md:px-8 font-sans bg-dark text-slate-200 relative overflow-hidden">
-    <div class="max-w-5xl mx-auto relative z-10">
+<div class="min-h-screen pt-0 pb-20 px-4 md:px-8 font-sans bg-dark text-slate-200 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto relative z-10 pt-4 md:pt-6">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-850">
             <div>
@@ -425,17 +425,27 @@
             cityAutoList.classList.remove('hidden');
         }
 
+        let activeShippingController = null;
+
         function fetchShippingRates(cityId) {
             if (!cityId) return;
 
+            if (activeShippingController) {
+                activeShippingController.abort();
+            }
+            activeShippingController = new AbortController();
+
+            const previousOptionsHtml = courierOptionsContainer.innerHTML;
+
             courierOptionsContainer.innerHTML = `
                 <div class="p-4 rounded-md border border-slate-800 bg-slate-950 text-center text-xs text-slate-300 animate-pulse">
-                    Menghitung ongkos kirim real-time RajaOngkir...
+                    Menghitung ongkos kirim real-time...
                 </div>
             `;
 
             fetch('{{ route("marketplace.checkout.shipping-cost") }}', {
                 method: 'POST',
+                signal: activeShippingController.signal,
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -487,10 +497,17 @@
                     if (firstRadio) {
                         firstRadio.dispatchEvent(new Event('change'));
                     }
+                } else {
+                    courierOptionsContainer.innerHTML = previousOptionsHtml;
+                    bindCourierRadios();
                 }
             })
             .catch(err => {
-                console.error('Shipping calculation error:', err);
+                if (err.name !== 'AbortError') {
+                    console.error('Shipping calculation error:', err);
+                    courierOptionsContainer.innerHTML = previousOptionsHtml;
+                    bindCourierRadios();
+                }
             });
         }
 
@@ -530,6 +547,24 @@
                 if (cityWrapper && !cityWrapper.contains(e.target)) {
                     closeCityAutocomplete();
                 }
+            });
+        }
+
+        const checkoutForm = document.getElementById('marketplace-checkout-form');
+        const submitBtn = document.getElementById('marketplace-checkout-submit');
+        if (checkoutForm && submitBtn) {
+            checkoutForm.addEventListener('submit', function () {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = `
+                    <span class="inline-flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memproses...
+                    </span>
+                `;
             });
         }
     });

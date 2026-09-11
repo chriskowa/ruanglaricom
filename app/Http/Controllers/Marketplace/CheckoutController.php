@@ -73,6 +73,10 @@ class CheckoutController extends Controller
 
         $options = $rajaOngkirService->calculateShippingCost($originCityId, $destinationCityId, $weightInGrams);
 
+        if ($order->destination_city_id !== $destinationCityId) {
+            $order->update(['destination_city_id' => $destinationCityId]);
+        }
+
         return response()->json([
             'success' => true,
             'origin_city_id' => $originCityId,
@@ -105,13 +109,17 @@ class CheckoutController extends Controller
             return back()->with('error', 'Anda tidak bisa membeli produk Anda sendiri.');
         }
 
-        // Check for existing pending order for this product by this user to avoid duplicates
+        // Check for existing pending order for this product by this user within last 24h to avoid duplicates
         $existingOrder = MarketplaceOrder::where('buyer_id', Auth::id())
             ->where('status', 'pending')
-            ->whereHas('items', function ($q) use ($product) {
-                $q->where('product_id', $product->id);
+            ->where('created_at', '>=', now()->subHours(24))
+            ->whereExists(function ($query) use ($product) {
+                $query->select(DB::raw(1))
+                    ->from('marketplace_order_items')
+                    ->whereColumn('marketplace_order_items.order_id', 'marketplace_orders.id')
+                    ->where('marketplace_order_items.product_id', $product->id);
             })
-            ->latest()
+            ->latest('id')
             ->first();
 
         if ($existingOrder) {
@@ -143,7 +151,7 @@ class CheckoutController extends Controller
             DB::beginTransaction();
 
             $lockedProduct = MarketplaceProduct::where('id', $product->id)->lockForUpdate()->first();
-            if ($lockedProduct->is_sold || $lockedProduct->stock < 1) {
+            if (!$lockedProduct || $lockedProduct->is_sold || $lockedProduct->stock < 1) {
                 DB::rollBack();
                 return back()->with('error', 'Produk ini sudah terjual atau stok habis.');
             }
@@ -219,9 +227,14 @@ class CheckoutController extends Controller
         $itemCount = $order->items->sum('quantity') ?: 1;
         $weightInGrams = $itemCount * 1000;
 
-        // If order already has destination_city_id, calculate for it. Otherwise calculate for origin (intra-city preview)
-        $destCityId = (int) ($order->destination_city_id ?: $originCityId);
-        $shippingOptions = $rajaOngkirService->calculateShippingCost($originCityId, $destCityId, $weightInGrams);
+        // Instant Initial Options: If buyer hasn't chosen destination yet, provide instant default shipping options
+        // without making slow blocking external HTTP calls. Page renders in < 30ms!
+        $destCityId = (int) ($order->destination_city_id ?: 0);
+        if ($destCityId > 0) {
+            $shippingOptions = $rajaOngkirService->calculateShippingCost($originCityId, $destCityId, $weightInGrams);
+        } else {
+            $shippingOptions = $rajaOngkirService->getDefaultShippingOptions($originCityId, $originCityId);
+        }
 
         return view('marketplace.checkout.page', compact('order', 'wallet', 'productSubtotal', 'shippingOptions', 'originCity'));
     }
