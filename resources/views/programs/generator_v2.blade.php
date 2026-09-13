@@ -421,14 +421,7 @@
                         <div class="text-[10px] text-slate-400 uppercase font-medium">Metode Ilmiah</div>
                         <div class="text-xs font-bold text-white mt-0.5">Jack Daniels VDOT</div>
                     </div>
-                    <div class="p-3 rounded-md bg-[#131B2D] border border-slate-800">
-                        <div class="text-[10px] text-slate-400 uppercase font-medium">Kalkulasi Presisi</div>
-                        <div class="text-xs font-bold text-[#CCFF00] mt-0.5">5 Zona Pace</div>
-                    </div>
-                    <div class="p-3 rounded-md bg-[#131B2D] border border-slate-800">
-                        <div class="text-[10px] text-slate-400 uppercase font-medium">Akses Platform</div>
-                        <div class="text-xs font-bold text-emerald-400 mt-0.5">100% Gratis</div>
-                    </div>
+                    
                 </div>
 
                 <!-- CTAs -->

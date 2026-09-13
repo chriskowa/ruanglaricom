@@ -73,7 +73,7 @@
 </div>
 
 @if($articles->hasPages())
-    <div class="mt-12 flex justify-center">
+    <div class="mt-12 flex justify-center w-full">
         {{ $articles->links('partials.pagination-circle') }}
     </div>
 @endif

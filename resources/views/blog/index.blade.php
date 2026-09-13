@@ -354,6 +354,12 @@
             if (push) {
                 history.pushState({}, '', url);
             }
+
+            if (page) {
+                const navOffset = 90;
+                const topPos = resultsEl.getBoundingClientRect().top + window.pageYOffset - navOffset;
+                window.scrollTo({ top: Math.max(0, topPos), behavior: 'smooth' });
+            }
         } catch (e) {
             if (e.name === 'AbortError') return;
             setStatus('Gagal memuat. Coba lagi.');

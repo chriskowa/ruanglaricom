@@ -13,17 +13,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 4-Tier Ergonomic Dark Mode Palette (Comfortable, Warm Slate, Anti-Glare) */
-            --rl-canvas: #0b111e;              /* Deep athletic midnight slate (not pitch black) */
-            --rl-panel: #131b2c;               /* Tier 1: Elevated card/container surface */
-            --rl-panel-raised: #182338;        /* Tier 2: Sub-cards, inner telemetry & filter boxes */
-            --rl-input-bg: #151f33;            /* Tier 2b: Form inputs & selects */
-            --rl-border: #1e293b;              /* Dark slate-800 border (soft, comfortable) */
+            /* 4-Tier Ergonomic Dark Mode Palette (Comfortable, Athletic Slate, Anti-Glare) */
+            --rl-canvas: #090A0E;              /* Deep athletic midnight slate */
+            --rl-panel: #12161F;               /* Tier 1: Elevated card/container surface */
+            --rl-panel-raised: #0E121B;        /* Tier 2: Sub-cards, inner telemetry & filter boxes */
+            --rl-input-bg: #0E121B;            /* Tier 2b: Form inputs & selects */
+            --rl-border: #1e293b;              /* Dark slate-800 border */
             --rl-border-field: #1e293b;        /* Dark field border */
             --rl-border-hover: #334155;        /* Subtle hover boundary */
-            --rl-accent: #FAF8F3;              /* Athletic performance orange */
-            --rl-accent-hover: #e04a12;
-            --rl-volt: #CCFF00;                /* Elite athletic marathon volt / neon green */
+            --rl-accent: #CCFF00;              /* Brand volt */
+            --rl-accent-hover: #b8e600;
+            --rl-volt: #CCFF00;                /* Elite athletic marathon volt */
             --rl-volt-hover: #b8e600;
             --rl-warm-white: #FAF8F3;
             --rl-text-muted: #94a3b8;          /* Slate 400 */
@@ -334,7 +334,7 @@
             <!-- Hidden input to preserve category selection across form submits -->
             <input type="hidden" name="category" id="catalog-category-input" value="{{ request('category') }}">
 
-            <div class="athletic-card p-4 sm:p-5 bg-[#131b2c] space-y-4">
+            <div class="rounded-lg border border-slate-800 bg-[#12161F] p-4 sm:p-5 space-y-4">
                 
                 <!-- Row 1: Category Filter Tabs -->
                 <div class="flex items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-none">
@@ -345,27 +345,27 @@
                         @endphp
                         <button type="button" 
                                 onclick="setCatalogCategory('')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-[#FAF8F3] text-white shadow-sm font-bold' : 'bg-[#182338] text-slate-300 hover:text-white hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Semua Jarak
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('5k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-[#FAF8F3] text-white shadow-sm font-bold' : 'bg-[#182338] text-slate-300 hover:text-white hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             5K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('10k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-[#FAF8F3] text-white shadow-sm font-bold' : 'bg-[#182338] text-slate-300 hover:text-white hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             10K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('21k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-[#FAF8F3] text-white shadow-sm font-bold' : 'bg-[#182338] text-slate-300 hover:text-white hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Half Marathon (21K)
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('42k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-[#FAF8F3] text-white shadow-sm font-bold' : 'bg-[#182338] text-slate-300 hover:text-white hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Marathon (42K)
                         </button>
                     </div>
@@ -443,32 +443,32 @@
                         <div class="flex flex-wrap items-center gap-1.5">
                             <span class="text-slate-400 mr-1">Filter Aktif:</span>
                             @if(request('search'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#182338] text-slate-200">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200">
                                     Pencarian: "{{ request('search') }}"
-                                    <a href="{{ route('programs.index', array_merge(request()->except(['search', 'page']))) }}#katalog-program-coach" class="hover:text-red-400">✕</a>
+                                    <a href="{{ route('programs.index', array_merge(request()->except(['search', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
                             @endif
                             @if(request('category'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#FAF8F3]/20 text-[#FAF8F3] font-bold uppercase">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white text-slate-950 font-bold uppercase">
                                     Jarak: {{ request('category') }}
-                                    <a href="{{ route('programs.index', array_merge(request()->except(['category', 'page']))) }}#katalog-program-coach" class="hover:text-white">✕</a>
+                                    <a href="{{ route('programs.index', array_merge(request()->except(['category', 'page']))) }}#katalog-program-coach" class="hover:text-slate-600 ml-1">✕</a>
                                 </span>
                             @endif
                             @if(request('difficulty'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#182338] text-slate-200 capitalize">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200 capitalize">
                                     Tingkat: {{ request('difficulty') }}
-                                    <a href="{{ route('programs.index', array_merge(request()->except(['difficulty', 'page']))) }}#katalog-program-coach" class="hover:text-red-400">✕</a>
+                                    <a href="{{ route('programs.index', array_merge(request()->except(['difficulty', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
                             @endif
                             @if(request('price_type'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#182338] text-slate-200 capitalize">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200 capitalize">
                                     Biaya: {{ request('price_type') === 'free' ? 'Gratis' : 'Berbayar' }}
-                                    <a href="{{ route('programs.index', array_merge(request()->except(['price_type', 'page']))) }}#katalog-program-coach" class="hover:text-red-400">✕</a>
+                                    <a href="{{ route('programs.index', array_merge(request()->except(['price_type', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
                             @endif
                         </div>
 
-                        <a href="{{ route('programs.index') }}#katalog-program-coach" class="text-[#FAF8F3] hover:text-white font-semibold transition">
+                        <a href="{{ route('programs.index') }}#katalog-program-coach" class="text-slate-400 hover:text-white font-medium transition">
                             Reset Semua Filter
                         </a>
                     </div>
@@ -539,81 +539,50 @@
                         };
                     @endphp
 
-                    <article class="athletic-card group overflow-hidden flex flex-col justify-between hover:-translate-y-1 transition duration-200">
+                    <article class="rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col justify-between">
                         <div class="flex flex-col flex-1">
-                            <!-- Featured Image with Category, Level & Duration Badges (Fixed 3:2 Aspect Ratio Cover) -->
-                            <div class="aspect-[3/2] w-full relative bg-[#0b111e] overflow-hidden border-b border-slate-800 shrink-0">
+                            <!-- Clean Photographic Cover (Fixed 3:2 Aspect Ratio, Zero Pill Badges) -->
+                            <a href="{{ url('/programs/' . $program->slug) }}" class="aspect-[3/2] w-full relative bg-[#0B0F17] overflow-hidden border-b border-slate-800 shrink-0 block group">
                                 <img src="{{ $featuredImg }}" 
                                      alt="{{ $program->title }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                      onerror="this.src='{{ asset('images/hero/runner-hero.jpg') }}'"
                                      loading="lazy">
-                                
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#131b2c] via-[#131b2c]/30 to-black/40"></div>
-
-                                <!-- Distance Target Badge (Top Left) -->
-                                <div class="absolute top-3 left-3">
-                                    <span class="px-2.5 py-1 rounded bg-[#0b111e]/95 border border-[#FAF8F3] text-white text-[11px] font-bold tracking-wider uppercase font-numeric">
-                                        {{ $distBadgeText }}
-                                    </span>
-                                </div>
-
-                                <!-- Difficulty Badge (Top Right) -->
-                                <div class="absolute top-3 right-3">
-                                    <span class="px-2.5 py-1 rounded border text-[11px] font-semibold tracking-wide font-numeric {{ $diffClass }}">
-                                        {{ $diffLabel }}
-                                    </span>
-                                </div>
-
-                                <!-- Duration Pill (Bottom Left) -->
-                                <div class="absolute bottom-3 left-3">
-                                    <span class="px-2 py-0.5 rounded bg-[#0b111e]/90 text-slate-300 text-[11px] font-numeric font-medium">
-                                        {{ $program->duration_weeks ?: 8 }} Minggu
-                                    </span>
-                                </div>
-
-                                <!-- Free / Featured Pill (Bottom Right) -->
-                                <div class="absolute bottom-3 right-3">
-                                    @if($program->isFree())
-                                        <span class="px-2 py-0.5 rounded bg-emerald-500/90 text-white text-[11px] font-bold uppercase tracking-wider font-numeric">
-                                            Gratis
-                                        </span>
-                                    @elseif($program->is_featured)
-                                        <span class="px-2 py-0.5 rounded bg-[#FAF8F3] text-white text-[11px] font-bold uppercase tracking-wider font-numeric">
-                                            ★ Pilihan Coach
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
+                            </a>
 
                             <!-- Program Content -->
-                            <div class="p-5 flex flex-col flex-1 space-y-4">
+                            <div class="p-5 flex flex-col flex-1 space-y-3.5">
                                 
-                                <!-- Coach Info Bar -->
-                                <div class="flex items-center gap-2.5 shrink-0">
-                                    <img src="{{ $coachAvatar }}" 
-                                         alt="{{ $program->coach->name ?? 'Coach' }}" 
-                                         class="w-7 h-7 rounded-full object-cover border border-slate-700 shrink-0"
-                                         onerror="this.src='{{ asset('images/profile/17.jpg') }}'">
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-1">
-                                            <span class="text-xs font-semibold text-white truncate">
-                                                {{ $program->coach->name ?? 'Coach Ruang Lari' }}
-                                            </span>
-                                            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="text-[11px] text-slate-400 truncate">
-                                            {{ $program->city->name ?? ($program->coach->city->name ?? 'Coach Terverifikasi') }}
-                                        </div>
-                                    </div>
+                                <!-- Metadata Line (Natural text, zero floating pills) -->
+                                <div class="flex items-center gap-2 text-xs text-slate-400 font-medium font-numeric">
+                                    <span class="text-white font-semibold">{{ $distBadgeText }}</span>
+                                    <span class="text-slate-600">•</span>
+                                    <span>{{ $program->duration_weeks ?: 8 }} Minggu</span>
+                                    <span class="text-slate-600">•</span>
+                                    <span>{{ $diffLabel }}</span>
                                 </div>
 
                                 <!-- Program Title -->
-                                <h3 class="text-base sm:text-lg font-bold font-editorial-heading text-white group-hover:text-[#FAF8F3] transition leading-snug line-clamp-2 min-h-[3rem] flex items-center">
+                                <h3 class="text-base sm:text-lg font-bold font-editorial-heading text-white hover:text-slate-200 transition leading-snug line-clamp-2 min-h-[3rem] flex items-center">
                                     <a href="{{ url('/programs/' . $program->slug) }}">{{ $program->title }}</a>
                                 </h3>
+
+                                <!-- Coach Info Bar -->
+                                <div class="flex items-center gap-2.5 shrink-0 pt-0.5">
+                                    <img src="{{ $coachAvatar }}" 
+                                         alt="{{ $program->coach->name ?? 'Coach' }}" 
+                                         class="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
+                                         onerror="this.src='{{ asset('images/profile/17.jpg') }}'">
+                                    <div class="min-w-0 flex items-center gap-1.5 text-xs">
+                                        <span class="font-medium text-slate-200 truncate">
+                                            {{ $program->coach->name ?? 'Coach Ruang Lari' }}
+                                        </span>
+                                        <span class="text-slate-600">•</span>
+                                        <span class="text-slate-400 text-[11px] truncate">
+                                            {{ $program->city->name ?? ($program->coach->city->name ?? 'Coach Terverifikasi') }}
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <!-- Short Description (Sanitized Excerpt) -->
                                 <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed font-body min-h-[2.5rem]">
@@ -621,18 +590,18 @@
                                 </p>
 
                                 <!-- Key Stats Strip -->
-                                <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-[#182338] border border-slate-800 text-center font-numeric shrink-0">
+                                <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric shrink-0">
                                     <div>
                                         <span class="text-[10px] text-slate-400 block uppercase font-medium">Frekuensi</span>
-                                        <span class="text-xs font-bold text-white">{{ $weeklySessions }} Sesi/Mgg</span>
+                                        <span class="text-xs font-bold text-slate-200">{{ $weeklySessions }} Sesi/Mgg</span>
                                     </div>
                                     <div>
                                         <span class="text-[10px] text-slate-400 block uppercase font-medium">Rating</span>
-                                        <span class="text-xs font-bold text-[#FAF8F3]">★ {{ number_format($program->average_rating ?: 4.9, 1) }}</span>
+                                        <span class="text-xs font-bold text-white"><span class="text-amber-400 mr-0.5">★</span>{{ number_format($program->average_rating ?: 4.9, 1) }}</span>
                                     </div>
                                     <div>
                                         <span class="text-[10px] text-slate-400 block uppercase font-medium">Peserta</span>
-                                        <span class="text-xs font-bold text-white">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
+                                        <span class="text-xs font-bold text-slate-200">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
                                     </div>
                                 </div>
 
@@ -643,12 +612,12 @@
                         <div class="px-5 pb-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-3 font-numeric shrink-0">
                             <div>
                                 <span class="text-[10px] text-slate-400 block uppercase font-normal">Biaya Program</span>
-                                <div class="text-base font-bold text-white">
+                                <div class="text-base font-bold {{ $program->isFree() ? 'text-emerald-400' : 'text-white' }}">
                                     {{ $program->isFree() ? 'Gratis' : 'Rp ' . number_format($program->price, 0, ',', '.') }}
                                 </div>
                             </div>
                             <a href="{{ url('/programs/' . $program->slug) }}" 
-                               class="px-4 py-2.5 rounded-md bg-[#FAF8F3] hover:bg-[#e04a12] text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-[#FAF8F3]/10">
+                               class="px-4 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm">
                                 Lihat Program
                             </a>
                         </div>
