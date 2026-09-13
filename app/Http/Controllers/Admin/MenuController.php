@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class MenuController extends Controller
@@ -108,6 +109,8 @@ class MenuController extends Controller
         DB::transaction(function () use ($items) {
             $this->updateTree($items);
         });
+
+        Cache::forget('nav.header_menu_v1');
 
         return response()->json(['status' => 'success']);
     }

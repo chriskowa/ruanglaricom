@@ -129,6 +129,26 @@
         writing-mode: vertical-lr;
         text-orientation: mixed;
     }
+    /* Share bar breakpoint logic:
+       At >= 1440px: Show Desktop Floating Sidebar, hide Mobile Share Bar.
+       At < 1440px: Hide Desktop Floating Sidebar, show Mobile Share Bar.
+    */
+    @media (min-width: 1440px) {
+        .desktop-floating-share {
+            display: flex !important;
+        }
+        .mobile-share-bar {
+            display: none !important;
+        }
+    }
+    @media (max-width: 1439.98px) {
+        .desktop-floating-share {
+            display: none !important;
+        }
+        .mobile-share-bar {
+            display: flex !important;
+        }
+    }
     /* Reader friendly blog & rich text prose styling */
     .prose p {
         font-size: 1.125rem !important;
@@ -481,12 +501,12 @@
     <!-- Title and Image will be rendered cleanly inside the content grid below -->
 
     <div class="relative z-20 mt-1 md:mt-4">
-        <!-- Desktop Floating Share Sidebar -->
+        <!-- Desktop Floating Share Sidebar (Only on screens >= 1440px) -->
         @php
             $shareUrl = urlencode(url()->current());
             $shareText = urlencode($article->localized_title);
         @endphp
-        <div class="hidden lg:flex flex-col items-center gap-2.5 fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 bg-[#080D17] border border-slate-800 p-2.5 rounded-lg shadow-xl">
+        <div class="desktop-floating-share hidden flex-col items-center gap-2.5 fixed left-4 min-[1600px]:left-8 top-1/2 -translate-y-1/2 z-40 bg-[#080D17] border border-slate-800 p-2.5 rounded-lg shadow-xl">
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest vertical-text mb-2 select-none">BAGIKAN</span>
             <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke Facebook">
                 <i class="fab fa-facebook-f text-xs"></i>
@@ -540,8 +560,8 @@
                             </span>
                         </div>
 
-                        <!-- Mobile Share Bar -->
-                        <div class="flex lg:hidden items-center gap-2 mt-4 pt-3 border-t border-slate-800">
+                        <!-- Mobile Share Bar (Shown on screens < 1440px) -->
+                        <div class="mobile-share-bar flex items-center gap-2 mt-4 pt-3 border-t border-slate-800">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Bagikan:</span>
                             <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke Facebook">
                                 <i class="fab fa-facebook-f text-xs"></i>

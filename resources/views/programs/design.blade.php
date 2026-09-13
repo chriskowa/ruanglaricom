@@ -335,7 +335,7 @@
             </div>
         </div>
 
-        <div class="mt-4 pt-3 border-t border-white/10 text-center relative z-10">
+        <div class="mt-4 pt-3 border-t border-slate-800 text-center relative z-10">
             <p class="text-sm font-medium text-slate-300">Setiap pemenang mendapatkan:</p>
             <p class="text-lg font-bold text-green-400 mt-1">Uang Tunai + Voucher 250K</p>
             <p class="text-xs text-slate-500 mt-1">Belanja di RuangLari Store</p>

@@ -25,14 +25,32 @@ class PublicProgramController extends Controller
             })
             ->with(['coach', 'city']);
 
-        // Filter by category (distance_target)
-        if ($request->has('category') && $request->category) {
-            $query->where('distance_target', $request->category);
+        // Filter by category (distance_target) with aliases support
+        if ($request->filled('category') && $request->category !== 'all') {
+            $cat = strtolower($request->category);
+            if ($cat === '21k' || $cat === 'hm') {
+                $query->whereIn('distance_target', ['21k', 'hm']);
+            } elseif ($cat === '42k' || $cat === 'fm') {
+                $query->whereIn('distance_target', ['42k', 'fm']);
+            } else {
+                $query->where('distance_target', $cat);
+            }
         }
 
         // Filter by difficulty
-        if ($request->has('difficulty') && $request->difficulty) {
+        if ($request->filled('difficulty') && $request->difficulty !== 'all') {
             $query->where('difficulty', $request->difficulty);
+        }
+
+        // Filter by price type (free or paid)
+        if ($request->filled('price_type') && $request->price_type !== 'all') {
+            if ($request->price_type === 'free') {
+                $query->where(function ($q) {
+                    $q->whereNull('price')->orWhere('price', 0);
+                });
+            } elseif ($request->price_type === 'paid') {
+                $query->where('price', '>', 0);
+            }
         }
 
         // Filter by price range
@@ -151,7 +169,7 @@ class PublicProgramController extends Controller
 
         return view('programs.index', [
             'programs' => $programs,
-            'filters' => $request->only(['category', 'difficulty', 'price_min', 'price_max', 'rating', 'search', 'sort']),
+            'filters' => $request->only(['category', 'difficulty', 'price_type', 'price_min', 'price_max', 'rating', 'search', 'sort']),
             'totalPrograms' => $totalPrograms,
             'totalCoaches' => $totalCoaches,
             'averageRating' => $averageRating,

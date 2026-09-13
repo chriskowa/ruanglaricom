@@ -23,6 +23,17 @@ class MenuItem extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('nav.header_menu_v1');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('nav.header_menu_v1');
+        });
+    }
+
     public function menu(): BelongsTo
     {
         return $this->belongsTo(Menu::class);

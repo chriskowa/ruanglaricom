@@ -344,7 +344,7 @@
                     Terms
                 </a>
                 <span class="text-slate-700" aria-hidden="true">&bull;</span>
-                <a href="<?php echo e(route('vcard.index')); ?>" class="hover:text-white transition-colors">
+                <a href="<?php echo e(Route::has('vcard.index') ? route('vcard.index') : url('/card')); ?>" class="hover:text-white transition-colors">
                     Contact
                 </a>
             </div>

@@ -17,6 +17,17 @@ class Menu extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('nav.header_menu_v1');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('nav.header_menu_v1');
+        });
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(MenuItem::class)->orderBy('order');

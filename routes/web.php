@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
 Route::post('/upload-image', [App\Http\Controllers\ImageUploadController::class, 'upload'])->name('image.upload');
 
-Route::get('/git-find-pb-fn', function () {
-    $git = '"C:\\Program Files\\Git\\cmd\\git.exe" --git-dir="' . base_path('.git') . '" --work-tree="' . base_path() . '" ';
-    $log = shell_exec($git . 'log -S "openGlobalPbModal" -p -n 3 2>&1');
-    return response($log, 200, ['Content-Type' => 'text/plain']);
-});
 
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
@@ -73,6 +68,7 @@ Route::get('/komunitas', [App\Http\Controllers\CommunityRegistrationController::
 Route::get('/komunitas/{slug}', [App\Http\Controllers\CommunityProfileController::class, 'show'])->name('community.profile');
 
 Route::get('/card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
+
 Route::get('/v-card', function () {
     return redirect()->route('vcard.index', [], 301);
 });

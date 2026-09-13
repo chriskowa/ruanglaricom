@@ -7,11 +7,11 @@
 @endphp
 @extends('layouts.pacerhub')
 
-@section('title', 'Buat Program Lari Gratis: Generator VDOT 5K, 10K, HM & Marathon - RuangLari')
+@section('title', 'Buat Program Lari Terstruktur: 5K, 10K, Half Marathon & Marathon Gratis | RuangLari')
 
-@section('meta_title', 'Buat Program Lari Gratis: Generator VDOT 5K, 10K, HM & Marathon - RuangLari')
-@section('meta_description', 'Buat program lari gratis berbasis formula VDOT untuk 5K, 10K, Half Marathon & Marathon. Lengkap dengan target pace, zona detak jantung, dan jadwal latihan.')
-@section('meta_keywords', 'buat program lari, generator program lari, program lari gratis, kalkulator vdot, program lari 5k, program lari 10k, program latihan half marathon, program marathon, jadwal latihan lari, run walk method, jack daniels running formula, pacerhub, ruang lari')
+@section('meta_title', 'Buat Program Lari Terstruktur: 5K, 10K, Half Marathon & Marathon Gratis | RuangLari')
+@section('meta_description', 'Buat program lari terstruktur dan gratis berbasis formula VDOT Jack Daniels untuk 5K, 10K, Half Marathon & Marathon. Lengkap dengan target pace dan jadwal latihan harian.')
+@section('meta_keywords', 'buat program lari, program lari, generator program lari, program lari gratis, kalkulator vdot, program lari 5k, program lari 10k, program latihan half marathon, program marathon, jadwal latihan lari, jack daniels running formula, pacerhub, ruang lari')
 @section('canonical_url', url('/buat-program-lari'))
 @section('meta_robots', 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1')
 
@@ -156,14 +156,66 @@
     </script>
     
     <style>
+        :root {
+            /* 4-Tier Ergonomic Dark Mode Palette (Warm Slate, Anti-Glare) */
+            --rl-canvas: #090D15;              /* Deep athletic midnight */
+            --rl-panel: #131B2D;               /* Tier 1: Elevated card container */
+            --rl-panel-raised: #182338;        /* Tier 2: Sub-cards & inner telemetry */
+            --rl-input-bg: #151F33;            /* Tier 2b: Form inputs */
+            --rl-border: #1E293B;              /* Dark slate-800 border (soft, comfortable) */
+            --rl-border-hover: #334155;        /* Subtle hover boundary */
+            --rl-volt: #CCFF00;                /* Volt neon green */
+            --rl-dark: #080A0D;                /* Athletic black */
+        }
+
+        /* Dark mode border hygiene: Never allow bright white or light wireframe outlines */
+        [class*="border-white"],
+        .border-white,
+        [class*="border-white/"] {
+            border-color: #1E293B !important;
+        }
+
         /* Brand Colors & Button Fallbacks */
-        .bg-brand-500 { background-color: #ccff00 !important; color: #08111f !important; }
-        .bg-brand-600 { background-color: #b8e600 !important; color: #08111f !important; }
-        .hover\:bg-brand-600:hover { background-color: #b8e600 !important; color: #08111f !important; }
-        .hover\:bg-brand-500:hover { background-color: #ccff00 !important; color: #08111f !important; }
-        .text-brand-500 { color: #ccff00 !important; }
-        .border-brand-500 { border-color: #ccff00 !important; }
-        .accent-brand-500 { accent-color: #ccff00 !important; }
+        .bg-brand-500 { background-color: #CCFF00 !important; color: #080A0D !important; }
+        .bg-brand-600 { background-color: #b8e600 !important; color: #080A0D !important; }
+        .hover\:bg-brand-600:hover { background-color: #b8e600 !important; color: #080A0D !important; }
+        .hover\:bg-brand-500:hover { background-color: #CCFF00 !important; color: #080A0D !important; }
+        .text-brand-500 { color: #CCFF00 !important; }
+        .border-brand-500 { border-color: #CCFF00 !important; }
+        .accent-brand-500 { accent-color: #CCFF00 !important; }
+
+        /* Direct Volt Fallbacks (Bypasses unbuilt Vite bundle) */
+        [class*="text-[#CCFF00]"], .text-volt { color: #CCFF00 !important; }
+        [class*="bg-[#CCFF00]"], .bg-volt { background-color: #CCFF00 !important; }
+        [class*="border-[#CCFF00]"], .border-volt { border-color: #CCFF00 !important; }
+        [class*="text-[#080A0D]"] { color: #080A0D !important; }
+
+        /* Hero & CTA Athletic Neon Volt Action Buttons */
+        .btn-volt-hero {
+            background-color: #CCFF00 !important;
+            color: #080A0D !important;
+            border: 1px solid #CCFF00 !important;
+            box-shadow: 0 8px 20px -4px rgba(204, 255, 0, 0.25) !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+        }
+
+        .btn-volt-hero:hover {
+            background-color: #080A0D !important;
+            color: #ffffff !important;
+            border-color: #CCFF00 !important;
+        }
+
+        .btn-volt-hero svg {
+            color: #080A0D !important;
+            stroke: currentColor !important;
+            transition: color 0.2s ease !important;
+        }
+
+        .btn-volt-hero:hover svg {
+            color: #ffffff !important;
+            stroke: currentColor !important;
+        }
 
         .generator-v2-wrapper { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
@@ -173,85 +225,25 @@
             position: relative;
         }
 
-        /* Hero Background Slider & Ken Burns Zoom Out */
-        .hero-title,
-        .hero-body,
-        .hero-label,
-        .hero-card {
-            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .hero-label {
-            letter-spacing: 0.12em;
-        }
-
-        .vdot-card {
-            background: #131B2D;
-            border: 1px solid #334155;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-        }
-
-        .vdot-card-header {
-            background: #172235;
-            border-bottom: 1px solid #334155;
-        }
-
-        .hero-slider-wrapper {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            user-select: none;
-            z-index: 0;
-            background-color: #090D15;
-            background-size: cover;
-            background-position: center center;
-        }
-
-        .hero-slide-item {
-            position: absolute;
-            inset: -4%;
-            width: 108%;
-            height: 108%;
-            background-size: cover;
-            background-position: center center;
-            opacity: 0;
-            transform: scale(1.15);
-            transition: opacity 1.5s ease-in-out, transform 0.1s ease;
-            will-change: transform, opacity;
-        }
-
-        .hero-slide-item.active-slide {
-            opacity: 1 !important;
-            transform: scale(1.0);
-            transition: opacity 1.5s ease-in-out, transform 8.5s cubic-bezier(0.2, 1, 0.3, 1);
-            z-index: 1;
-        }
-
-        .hero-slider-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: rgba(9, 13, 21, 0.78) !important; /* 50% overlay transparan */
-        }
-        
+        /* Ergonomic Cards with Unified Soft Border */
         .generator-v2-wrapper .card-dark {
-            background: #131B2D;
-            border: 1.5px solid #283750;
+            background: var(--rl-panel) !important;
+            border: 1px solid var(--rl-border) !important;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
 
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(4px); }
 
+        /* Ergonomic Form Fields (Zero harsh white wireframes) */
         .input-field {
             width: 100%;
-            padding: 0.6rem 0.85rem;
+            padding: 0.65rem 0.85rem;
             font-size: 0.875rem;
             border-radius: 0.375rem;
-            border: 1.5px solid #3A4C6D !important;
-            background-color: #1C273B !important;
+            border: 1px solid var(--rl-border) !important;
+            background-color: var(--rl-input-bg) !important;
             color: #ffffff !important;
             font-weight: 500;
             outline: none;
@@ -262,13 +254,13 @@
         }
 
         .input-field::placeholder {
-            color: #94a3b8 !important;
+            color: #64748b !important;
             opacity: 1;
         }
 
         /* Select styling with custom arrow */
         select.input-field {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
             background-position: right 0.75rem center !important;
             background-repeat: no-repeat !important;
             background-size: 1.25em 1.25em !important;
@@ -278,7 +270,7 @@
         /* Date input styling */
         input[type="date"].input-field {
             position: relative;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
             background-position: right 0.75rem center !important;
             background-repeat: no-repeat !important;
             background-size: 1.2em 1.2em !important;
@@ -299,16 +291,16 @@
         }
 
         .input-field:focus {
-            border-color: #ccff00 !important;
-            background-color: #223048 !important;
-            box-shadow: 0 0 0 2px rgba(204, 255, 0, 0.25) !important;
+            border-color: var(--rl-volt) !important;
+            background-color: #1A2740 !important;
+            box-shadow: 0 0 0 1px rgba(204, 255, 0, 0.35) !important;
         }
 
         .label-text {
             display: block;
             font-size: 11px;
             font-weight: 700;
-            color: #e2e8f0;
+            color: #cbd5e1;
             margin-bottom: 0.35rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -378,495 +370,592 @@
         </div>
     </transition>
 
-    <!-- Hero Section: Scientific VDOT Running Program Generator with Background Zoom-Out Slider -->
-<header v-show="step === 1" class="relative w-full overflow-hidden border-b border-slate-800/80 bg-[#090D15] text-white py-14 md:py-20 px-4 sm:px-6 lg:px-8 min-h-[580px] flex items-center">
-
-    <!-- Background Slider with Cinematic Ken Burns Zoom Out -->
-    <div class="hero-slider-wrapper" style="background-image: url('{{ asset('images/hero/vdot-runner-training.jpg') }}');">
-        <div v-for="(slide, idx) in heroSlides" :key="'hero-slide-' + idx"
-             class="hero-slide-item"
-             :class="{ 'active-slide': activeHeroSlide === idx }"
-             :style="{ backgroundImage: 'url(' + slide + ')' }">
-        </div>
-        <div class="hero-slider-overlay"></div>
-    </div>
-
-    <div class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-
-        <!-- Left Column -->
-        <div class="lg:col-span-7 space-y-5">
-
-            <!-- Category Kicker -->
-            <div class="hero-label text-xs uppercase tracking-widest text-brand-500 font-bold">
-                Kalkulator VDOT Jack Daniels • Program Latihan Lari Berbasis Pace
-            </div>
-
-            <!-- SEO H1 -->
-            <h1 class="hero-title text-3xl sm:text-4xl lg:text-[44px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-md">
-                Buat Program Latihan Lari Gratis untuk 5K, 10K, Half Marathon & Marathon dengan Kalkulator VDOT
-            </h1>
-
-            <!-- Value Proposition -->
-            <p class="hero-body text-sm sm:text-base text-slate-200 leading-8 max-w-2xl drop-shadow-sm">
-                Hitung pace latihan berdasarkan performa terbaikmu menggunakan metode VDOT Jack Daniels.
-                Dapatkan program latihan yang mencakup Easy Run, Threshold, Interval hingga Repetition
-                dengan intensitas yang sesuai untuk mencapai target lomba.
-            </p>
-
-            <!-- Feature Highlights -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-
-                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 uppercase">Metode</div>
-                    <div class="text-xs font-bold text-white mt-0.5">Jack Daniels VDOT</div>
-                </div>
-
-                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 uppercase">Perhitungan</div>
-                    <div class="text-xs font-bold text-brand-500 mt-0.5">5 Zona Pace</div>
-                </div>
-
-                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 uppercase">Program</div>
-                    <div class="text-xs font-bold text-emerald-400 mt-0.5">Sesuai Target</div>
-                </div>
-
-                <div class="p-3 rounded-md bg-[#131B2D]/95 border border-[#283750] shadow-sm backdrop-blur-sm">
-                    <div class="text-[10px] text-slate-400 uppercase">Akses</div>
-                    <div class="text-xs font-bold text-white mt-0.5">Gratis Selamanya</div>
-                </div>
-
-            </div>
-
-
-            <!-- CTA -->
-            <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
-
-                <div class="flex flex-wrap items-center gap-3">
-
-                    <a href="#generator-form"
-                       class="px-5 py-3 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-md transition shadow-md cursor-pointer inline-flex items-center gap-2">
-
-                        <span>Buat Program Lari Saya</span>
-                        <span class="text-base leading-none">&darr;</span>
-
-                    </a>
-
-
-                    <a href="#panduan-vdot"
-                       class="px-4 py-3 bg-[#1C273B]/90 hover:bg-[#283750] text-slate-200 hover:text-white font-semibold text-xs uppercase tracking-wider rounded-md border border-[#3A4C6D] transition cursor-pointer">
-
-                        Pelajari Cara Kerja VDOT
-
-                    </a>
-
-                </div>
-
-
-                <!-- Slider Indicator -->
-                <div class="flex items-center gap-2">
-
-                    <button v-for="(slide, idx) in heroSlides"
-                            :key="'slide-dot-' + idx"
-                            @click="setHeroSlide(idx)"
-                            type="button"
-                            :class="activeHeroSlide === idx ? 'w-6 bg-brand-500' : 'w-2 bg-slate-500/60 hover:bg-slate-300'"
-                            class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
-                            :title="'Slide ' + (idx + 1)">
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Right Column -->
-        <div class="lg:col-span-5">
-
-            <div class="vdot-card hero-card p-5 rounded-xl space-y-4">
-
-                <div class="vdot-card-header -mx-5 -mt-5 mb-4 px-5 py-4 rounded-t-xl flex items-center justify-between">
-
-                    <div>
-                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">
-                            Sistem Latihan
-                        </span>
-
-                        <h2 class="text-sm font-bold text-white">
-                            Generator Program Lari VDOT
-                        </h2>
-                    </div>
-
-
-                    <span class="text-[10px] font-bold text-brand-500 bg-brand-500/10 border border-brand-500/30 px-2 py-0.5 rounded">
-                        v2.0
-                    </span>
-
-                </div>
-
-
-                <div class="space-y-2.5 text-xs">
-
-
-                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
-                        <span class="text-slate-300">
-                            Target Lomba
-                        </span>
-
-                        <span class="font-bold text-white">
-                            5K • 10K • 21K • Marathon
-                        </span>
-                    </div>
-
-
-                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
-                        <span class="text-slate-300">
-                            Data Awal
-                        </span>
-
-                        <span class="font-bold text-slate-200">
-                            Personal Best / Tes Cooper
-                        </span>
-                    </div>
-
-
-                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
-                        <span class="text-slate-300">
-                            Zona Pace
-                        </span>
-
-                        <span class="font-bold text-brand-500">
-                            Easy • Tempo • Interval
-                        </span>
-                    </div>
-
-
-                    <div class="flex items-center justify-between p-2.5 rounded bg-[#1C273B] border border-[#2A3952]">
-                        <span class="text-slate-300">
-                            Pendukung
-                        </span>
-
-                        <span class="font-bold text-emerald-400">
-                            Strength • Recovery
-                        </span>
-                    </div>
-
-
-                </div>
-
-
-                <div class="p-3 rounded bg-[#0E1523] border border-[#23324A] text-[11px] text-slate-300 leading-relaxed">
-
-                    Program latihan dibuat berdasarkan data performa untuk membantu mengatur pace,
-                    intensitas, dan progres latihan menuju target lomba.
-
-                </div>
-
-
-            </div>
-
-        </div>
-
-    </div>
-
-</header>
-
-    <main id="generator-form" class="relative z-10 max-w-5xl mx-auto px-4 pt-10 pb-8">
+    <!-- Hero Section: Scientific VDOT Running Program Generator (Clean Athletic Canvas) -->
+    <header v-show="step === 1" class="relative w-full overflow-hidden border-b border-slate-800 bg-[#090D15] text-white py-10 sm:py-14 px-4 sm:px-6 lg:px-8 flex items-center">
         
-        <!-- Form Section Header in Step 1 -->
-        <div v-if="step === 1" class="mb-6 pb-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-                <h2 class="text-xl font-bold text-white tracking-tight">Formulir Parameter Program Latihan</h2>
-                <p class="text-xs text-slate-300 mt-1">Lengkapi data tolok ukur awal dan target lomba untuk menghasilkan periodisasi yang realistis.</p>
+        <!-- Subtle Athletic Route Track Canvas Background -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none opacity-20 sm:opacity-25" aria-hidden="true">
+            <svg class="w-full h-full object-cover min-w-[1000px]" viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="genRouteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#CCFF00" stop-opacity="0.8"/>
+                        <stop offset="50%" stop-color="#FF5A1F" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#FAF8F3" stop-opacity="0.2"/>
+                    </linearGradient>
+                    <pattern id="genGridLines" width="48" height="48" patternUnits="userSpaceOnUse">
+                        <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+                    </pattern>
+                </defs>
+                <rect width="1440" height="600" fill="url(#genGridLines)" />
+                <path d="M-80 200 C 220 100, 480 320, 820 180 C 1160 50, 1340 260, 1560 150" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1.5" stroke-dasharray="6 6"/>
+                <path d="M 40 440 C 160 360, 260 460, 420 400 C 560 340, 620 190, 780 210 C 940 230, 990 400, 1140 330 C 1280 270, 1360 140, 1480 160" 
+                      stroke="url(#genRouteGrad)" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="40" cy="440" r="5" fill="#22C55E"/>
+                <circle cx="420" cy="400" r="4" fill="#FAF8F3"/>
+                <circle cx="780" cy="210" r="4" fill="#FAF8F3"/>
+                <circle cx="1140" cy="330" r="4" fill="#FAF8F3"/>
+                <circle cx="1480" cy="160" r="6" fill="#CCFF00"/>
+            </svg>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+
+            <!-- Left Column: Editorial & Action -->
+            <div class="lg:col-span-7 space-y-5 text-left">
+
+                <!-- Kicker -->
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#182338] text-xs font-semibold text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></span>
+                    <span class="tracking-wide uppercase">Kalkulator VDOT & Jadwal Latihan Lari</span>
+                </div>
+
+                <!-- SEO H1 targeting 'Buat Program Lari' -->
+                <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-white tracking-tight leading-[1.1]">
+                    Buat Program Lari Terstruktur.<br>
+                    <span class="text-[#CCFF00]">Capai Target 5K, 10K, Half Marathon & Marathon.</span>
+                </h1>
+
+                <!-- Value Proposition -->
+                <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
+                    Susun jadwal latihan lari terukur berbasis formula VDOT Jack Daniels. Hitung 5 zona pace harian secara presisi (Easy, Marathon, Threshold, Interval) sesuai catatan waktu terbaikmu. Bebas cedera dan 100% gratis.
+                </p>
+
+                <!-- Feature Highlights -->
+                <div class="grid grid-cols-3 gap-3 pt-1">
+                    <div class="p-3 rounded-md bg-[#131B2D] border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-medium">Metode Ilmiah</div>
+                        <div class="text-xs font-bold text-white mt-0.5">Jack Daniels VDOT</div>
+                    </div>
+                    <div class="p-3 rounded-md bg-[#131B2D] border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-medium">Kalkulasi Presisi</div>
+                        <div class="text-xs font-bold text-[#CCFF00] mt-0.5">5 Zona Pace</div>
+                    </div>
+                    <div class="p-3 rounded-md bg-[#131B2D] border border-slate-800">
+                        <div class="text-[10px] text-slate-400 uppercase font-medium">Akses Platform</div>
+                        <div class="text-xs font-bold text-emerald-400 mt-0.5">100% Gratis</div>
+                    </div>
+                </div>
+
+                <!-- CTAs -->
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <a href="#generator-form"
+                       class="btn-volt-hero group px-6 py-3.5 rounded-md font-black text-xs sm:text-sm tracking-wider uppercase flex items-center gap-2 cursor-pointer">
+                        <span>Mulai Buat Program Lari</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </a>
+                    <a href="#panduan-vdot"
+                       class="px-5 py-3.5 bg-[#182338] hover:bg-[#1f2d47] text-slate-200 hover:text-white font-semibold text-xs sm:text-sm tracking-wide uppercase rounded-md border border-slate-800 transition cursor-pointer">
+                        Panduan Ilmiah VDOT
+                    </a>
+                </div>
+
             </div>
-            <div class="text-xs font-medium text-slate-300 bg-[#131B2D] px-3 py-1.5 rounded-md border border-[#283750] self-start sm:self-auto">
-                Langkah 1 dari 2
+
+            <!-- Right Column: Quick 3-Step Guide (Clean & Calm) -->
+            <div class="lg:col-span-5">
+                <div class="card-dark p-6 rounded-lg border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Alur Cepat</span>
+                            <h2 class="text-sm font-bold text-white">Cara Buat Program Lari</h2>
+                        </div>                        
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-start gap-3 p-3 rounded-md bg-[#182338] border border-slate-800">
+                            <div class="w-6 h-6 rounded bg-[#131B2D] text-[#CCFF00] font-bold flex items-center justify-center text-xs shrink-0">1</div>
+                            <div>
+                                <div class="font-bold text-white">Input Tolok Ukur Kebugaran</div>
+                                <div class="text-[11px] text-slate-300 mt-0.5">Catatan waktu PB terkini (5K, 10K, HM, FM) atau hasil Tes Cooper 12 menit.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 p-3 rounded-md bg-[#182338] border border-slate-800">
+                            <div class="w-6 h-6 rounded bg-[#131B2D] text-[#CCFF00] font-bold flex items-center justify-center text-xs shrink-0">2</div>
+                            <div>
+                                <div class="font-bold text-white">Tentukan Target & Kalender</div>
+                                <div class="text-[11px] text-slate-300 mt-0.5">Pilih jarak lomba sasaran, tanggal race, dan frekuensi latihan mingguan.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3 p-3 rounded-md bg-[#182338] border border-slate-800">
+                            <div class="w-6 h-6 rounded bg-[#131B2D] text-[#CCFF00] font-bold flex items-center justify-center text-xs shrink-0">3</div>
+                            <div>
+                                <div class="font-bold text-white">Jadwal & Pace Otomatis</div>
+                                <div class="text-[11px] text-slate-300 mt-0.5">Dapatkan kalender latihan harian lengkap dengan target pace Easy s/d Interval.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </header>
+
+    <main id="generator-form" class="relative z-10 max-w-5xl mx-auto px-4 pt-8 pb-12">
+        
+        <!-- Athletic Modern SVG Background (Subtle Curves, Telemetry Grid, No Glare) -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10 rounded-2xl">
+            <svg class="absolute w-full h-full opacity-20" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="curve-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#CCFF00" stop-opacity="0.35"/>
+                        <stop offset="50%" stop-color="#38BDF8" stop-opacity="0.2"/>
+                        <stop offset="100%" stop-color="#1E293B" stop-opacity="0.0"/>
+                    </linearGradient>
+                    <linearGradient id="curve-gradient-2" x1="100%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.25"/>
+                        <stop offset="60%" stop-color="#CCFF00" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#1E293B" stop-opacity="0.0"/>
+                    </linearGradient>
+                    <pattern id="telemetry-grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.75" stroke-opacity="0.3"/>
+                        <circle cx="40" cy="40" r="1.5" fill="#38BDF8" fill-opacity="0.3"/>
+                    </pattern>
+                </defs>
+                
+                <!-- Background Grid -->
+                <rect width="100%" height="100%" fill="url(#telemetry-grid)"/>
+                
+                <!-- Athletic Running Track Curves (Lanes 1 to 3) -->
+                <path d="M -100 200 C 300 120, 600 350, 1300 150" stroke="url(#curve-gradient-1)" stroke-width="2" stroke-dasharray="6 6"/>
+                <path d="M -100 260 C 300 180, 600 410, 1300 210" stroke="#CCFF00" stroke-opacity="0.15" stroke-width="1.5"/>
+                <path d="M -100 320 C 300 240, 600 470, 1300 270" stroke="#38BDF8" stroke-opacity="0.12" stroke-width="1.5"/>
+                
+                <!-- Elevation Topography Wave Lines -->
+                <path d="M -50 650 Q 250 500, 600 620 T 1250 520" stroke="url(#curve-gradient-2)" stroke-width="2"/>
+                <path d="M -50 710 Q 250 560, 600 680 T 1250 580" stroke="#1E293B" stroke-opacity="0.5" stroke-width="1"/>
+                
+                <!-- Stadium Turn Arcs -->
+                <ellipse cx="600" cy="450" rx="580" ry="320" stroke="#334155" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="8 8"/>
+                <ellipse cx="600" cy="450" rx="460" ry="240" stroke="#334155" stroke-opacity="0.15" stroke-width="1"/>
+            </svg>
+            <div class="absolute inset-0 bg-gradient-to-b from-[#101726]/50 via-transparent to-[#090D15]/90 pointer-events-none"></div>
+        </div>
+        
+        <!-- Form Section Header & Stepper in Step 1 -->
+        <div v-if="step === 1" class="space-y-4 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="text-xl font-bold text-white tracking-tight">Formulir Parameter Program Latihan</h2>
+                    <p class="text-xs text-slate-300 mt-0.5">Panduan bertahap untuk menghasilkan periodisasi yang presisi dan realistis.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span v-if="lastSavedTime" class="text-[11px] text-slate-300 flex items-center gap-1.5 bg-[#131B2D] px-2.5 py-1 rounded-md border border-slate-800">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Draf tersimpan @{{ lastSavedTime }}
+                    </span>
+                    <button type="button" @click="resetFormDraft" class="text-xs text-slate-300 hover:text-rose-400 py-1 px-2.5 rounded-md border border-slate-800 hover:border-rose-900/50 bg-[#131B2D] transition cursor-pointer flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Reset Draf</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4-Step Interactive Stepper Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <button v-for="s in [
+                            { step: 1, title: 'Kebugaran PB', sub: 'Tolok Ukur VDOT' },
+                            { step: 2, title: 'Target Lomba', sub: 'Jarak & Kalender' },
+                            { step: 3, title: 'Beban Latihan', sub: 'Mileage & Jadwal' },
+                            { step: 4, title: 'Profil & Review', sub: 'Konfirmasi Program' }
+                        ]" 
+                        :key="s.step"
+                        type="button"
+                        @click="goToWizardStep(s.step)"
+                        :class="[
+                            wizardStep === s.step 
+                                ? 'bg-[#CCFF00] text-[#080A0D] font-bold border-[#CCFF00] shadow-sm' 
+                                : (wizardStep > s.step 
+                                    ? 'bg-[#182338] text-[#CCFF00] border-slate-800 hover:border-slate-700' 
+                                    : 'bg-[#131B2D] text-slate-300 border-slate-800 hover:border-slate-700')
+                        ]"
+                        class="p-3 rounded-md border text-left transition cursor-pointer flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] uppercase font-bold tracking-wider opacity-80">Tahap 0@{{ s.step }}</span>
+                        <span v-if="wizardStep > s.step" class="text-xs font-black">✓</span>
+                        <span v-else-if="wizardStep === s.step" class="text-[10px] font-bold bg-[#080A0D] text-[#CCFF00] px-1.5 py-0.5 rounded">Aktif</span>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold truncate">@{{ s.title }}</div>
+                    <div class="text-[10px] sm:text-[11px] opacity-75 truncate mt-0.5">@{{ s.sub }}</div>
+                </button>
             </div>
         </div>
 
         <transition name="fade" mode="out-in">
             
-            <!-- Step 1: 2-Column Professional Athletic Form -->
+            <!-- Step 1: Step-by-Step Progressive Form -->
             <div v-if="step === 1" key="form" class="space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    
-                    <!-- Left Column: Benchmark & Target (7 cols) -->
-                    <div class="lg:col-span-7 space-y-6">
-                        
-                        <!-- Card 1: Benchmark & Parameter Test / PB -->
-                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/80">
-                                <div>
-                                    <h3 class="text-base font-semibold text-white">1. Tolok Ukur Kebugaran Awal</h3>
-                                    <p class="text-xs text-slate-300 mt-0.5">Hasil tes kebugaran atau PB terkini untuk kalkulasi VDOT</p>
-                                </div>
-                                <div v-if="current_vdot && current_vdot > 0" class="text-right">
-                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Estimasi VDOT</span>
-                                    <span class="text-sm font-bold text-brand-500 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
-                                        @{{ current_vdot.toFixed(1) }}
-                                    </span>
+
+                <!-- WIZARD STEP 1: Tolok Ukur Kebugaran Awal -->
+                <div v-show="wizardStep === 1" class="space-y-6">
+                    <div class="card-dark p-5 sm:p-6 rounded-lg border border-slate-800">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                            <div>
+                                <h3 class="text-base font-bold text-white">1. Tolok Ukur Kebugaran Awal (Benchmark / PB)</h3>
+                                <p class="text-xs text-slate-300 mt-0.5">Hasil tes kebugaran atau PB terkini untuk kalkulasi VDOT Jack Daniels</p>
+                            </div>
+                            <div v-if="current_vdot && current_vdot > 0" class="text-left sm:text-right bg-[#182338] sm:bg-transparent p-2.5 sm:p-0 rounded-md sm:rounded-none border border-slate-800 sm:border-0">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">Estimasi VDOT</span>
+                                <span class="text-base font-black text-[#080A0D] bg-[#CCFF00] px-2.5 py-0.5 rounded inline-block mt-0.5">
+                                    @{{ current_vdot.toFixed(1) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-5">
+                            <div>
+                                <label class="label-text">Pilih Jarak Parameter Test / Personal Best Terkini</label>
+                                <select v-model="form.pb_distance" class="input-field cursor-pointer text-sm">
+                                    <option value="5k">5 Kilometer (5K)</option>
+                                    <option value="10k">10 Kilometer (10K)</option>
+                                    <option value="21k">Half Marathon (21.1K)</option>
+                                    <option value="42k">Full Marathon (42.2K)</option>
+                                    <option value="cooper12">Cooper Test (Lari Maksimal 12 Menit)</option>
+                                    <option value="balke15">Balke Test (Lari Maksimal 15 Menit)</option>
+                                </select>
+                                <p class="text-[11px] text-slate-400 mt-1">Pilih jarak yang baru saja Anda selesaikan dengan upaya maksimal dalam 3-6 bulan terakhir.</p>
+                            </div>
+
+                            <!-- Standard Time Input -->
+                            <div v-if="form.pb_distance !== 'cooper12' && form.pb_distance !== 'balke15'">
+                                <label class="label-text">Waktu Tempuh Parameter Test (Jam : Menit : Detik)</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <input v-model.number="pb_hours" type="number" min="0" max="99" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Jam</span>
+                                    </div>
+                                    <div>
+                                        <input v-model.number="pb_minutes" type="number" min="0" max="59" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Menit</span>
+                                    </div>
+                                    <div>
+                                        <input v-model.number="pb_seconds" type="number" min="0" max="59" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Detik</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="label-text">Jarak Parameter Test / PB</label>
-                                    <select v-model="form.pb_distance" class="input-field cursor-pointer">
-                                        <option value="5k">5 Kilometer (5K)</option>
-                                        <option value="10k">10 Kilometer (10K)</option>
-                                        <option value="21k">Half Marathon (21.1K)</option>
-                                        <option value="42k">Full Marathon (42.2K)</option>
-                                        <option value="cooper12">Cooper Test (Lari Maksimal 12 Menit)</option>
-                                        <option value="balke15">Balke Test (Lari Maksimal 15 Menit)</option>
-                                    </select>
+                            <!-- Cooper/Balke Distance Input -->
+                            <div v-else>
+                                <label class="label-text">Jarak Tempuh Hasil Tes (Meter)</label>
+                                <div class="relative">
+                                    <input v-model.number="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-bold text-base sm:text-lg pr-16" placeholder="Contoh: 2400">
+                                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-300">meter</span>
                                 </div>
+                                <p class="text-[11px] text-slate-300 mt-1.5 leading-normal">Standar tes 12 menit: 2.000m - 2.800m untuk rekreasional, >3.000m untuk terlatih.</p>
+                            </div>
 
-                                <!-- Standard Time Input -->
-                                <div v-if="form.pb_distance !== 'cooper12' && form.pb_distance !== 'balke15'">
-                                    <label class="label-text">Waktu Tempuh Parameter Test (Jam : Menit : Detik)</label>
-                                    <div class="grid grid-cols-3 gap-2.5">
-                                        <div>
-                                            <input v-model.number="pb_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
-                                        </div>
-                                        <div>
-                                            <input v-model.number="pb_minutes" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
-                                        </div>
-                                        <div>
-                                            <input v-model.number="pb_seconds" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Cooper/Balke Distance Input -->
-                                <div v-else>
-                                    <label class="label-text">Jarak Tempuh Hasil Tes (Meter)</label>
-                                    <div class="relative">
-                                        <input v-model.number="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-bold" placeholder="Contoh: 2400">
-                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-300">meter</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-300 mt-1.5 leading-normal">Standar tes 12 menit: 2.000m - 2.800m untuk rekreasional, >3.000m untuk terlatih.</p>
+                            <!-- Informational Tip Box -->
+                            <div class="p-3.5 bg-[#182338] rounded-md border border-slate-800 flex items-start gap-3">
+                                <div class="w-6 h-6 rounded bg-[#131B2D] text-[#CCFF00] font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">i</div>
+                                <div class="text-xs text-slate-300 leading-relaxed">
+                                    <span class="font-semibold text-white">Prinsip Fisiologi:</span> Waktu tolok ukur digunakan untuk memetakan kapasitas VO2 Max fungsional (VDOT). Seluruh target pace latihan harian akan berpatokan dari data ini untuk mencegah kelelahan berlebih.
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Card 2: Target Lomba & Kalender -->
-                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/80">
+                        <!-- Next Button -->
+                        <div class="flex justify-end pt-5 mt-6 border-t border-slate-800">
+                            <button type="button" @click="nextWizardStep" class="btn-volt-hero px-6 py-2.5 rounded-md text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center gap-2 cursor-pointer">
+                                <span>Lanjut ke Target Lomba</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WIZARD STEP 2: Target Lomba & Kalender Persiapan -->
+                <div v-show="wizardStep === 2" class="space-y-6">
+                    <div class="card-dark p-5 sm:p-6 rounded-lg border border-slate-800">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+                            <div>
+                                <h3 class="text-base font-bold text-white">2. Target Lomba & Kalender Persiapan</h3>
+                                <p class="text-xs text-slate-300 mt-0.5">Jarak sasaran, batas waktu persiapan, dan estimasi waktu finish</p>
+                            </div>
+                            <span v-if="realism" :class="realism.color" class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider self-start sm:self-auto">
+                                @{{ realism.label }}
+                            </span>
+                        </div>
+
+                        <div class="space-y-5">
+                            <div>
+                                <label class="label-text">Target Jarak Lomba</label>
+                                <select v-model="form.target_distance" @change="recommendMileage" class="input-field cursor-pointer text-sm">
+                                    <option value="5k">5K (5 Kilometer)</option>
+                                    <option value="10k">10K (10 Kilometer)</option>
+                                    <option value="21k">Half Marathon (21.0975 Km)</option>
+                                    <option value="42k">Full Marathon (42.195 Km)</option>
+                                    <option value="cooper12">Cooper Test 12 Menit</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <h3 class="text-base font-semibold text-white">2. Target Lomba & Kalender</h3>
-                                    <p class="text-xs text-slate-300 mt-0.5">Jarak sasaran, waktu race, dan batas durasi persiapan</p>
+                                    <label class="label-text">Tanggal Mulai Latihan</label>
+                                    <input v-model="form.start_date" type="date" class="input-field">
                                 </div>
-                                <span v-if="realism" :class="realism.color" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border">
-                                    @{{ realism.label }}
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="label-text !mb-0">Tanggal Race / Target Selesai</label>
+                                        <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
+                                                @click="applyRecommendedTargetDate" 
+                                                type="button" 
+                                                class="text-[10px] font-semibold text-[#CCFF00] hover:underline cursor-pointer">
+                                            Set @{{ recommendedWeeks }} Mgg
+                                        </button>
+                                    </div>
+                                    <input v-model="form.target_date" type="date" class="input-field">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label-text">Target Waktu Finish (Jam : Menit : Detik)</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Jam</span>
+                                    </div>
+                                    <div>
+                                        <input v-model.number="goal_minutes" type="number" min="0" max="59" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Menit</span>
+                                    </div>
+                                    <div>
+                                        <input v-model.number="goal_seconds" type="number" min="0" max="59" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
+                                        <span class="text-[11px] text-slate-300 text-center block mt-1 font-medium">Detik</span>
+                                    </div>
+                                </div>
+                                <p v-if="realism" class="text-xs text-slate-200 mt-3 bg-[#182338] p-3.5 rounded-md border border-slate-800 leading-relaxed">
+                                    @{{ realism.description }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex items-center justify-between pt-5 mt-6 border-t border-slate-800">
+                            <button type="button" @click="prevWizardStep" class="px-5 py-2.5 rounded-md text-xs font-semibold text-slate-200 hover:text-white bg-[#182338] hover:bg-[#1f2d47] border border-slate-800 transition cursor-pointer flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                                <span>Kembali</span>
+                            </button>
+                            <button type="button" @click="nextWizardStep" class="btn-volt-hero px-6 py-2.5 rounded-md text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center gap-2 cursor-pointer">
+                                <span>Lanjut ke Beban Latihan</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WIZARD STEP 3: Beban & Jadwal Latihan -->
+                <div v-show="wizardStep === 3" class="space-y-6">
+                    <div class="card-dark p-5 sm:p-6 rounded-lg border border-slate-800">
+                        <div class="mb-5 pb-4 border-b border-slate-800">
+                            <h3 class="text-base font-bold text-white">3. Beban & Jadwal Latihan</h3>
+                            <p class="text-xs text-slate-300 mt-0.5">Alokasi volume mingguan, hari latihan, dan preferensi sesi penguatan</p>
+                        </div>
+
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="label-text !mb-0">Mileage Mingguan Puncak (Km)</label>
+                                    <span class="text-[11px] text-[#CCFF00] font-semibold">Saran: @{{ idealMileage }} km</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input v-model.number="form.weekly_mileage" type="number" min="15" max="150" step="1" class="input-field font-bold text-base">
+                                    <button type="button" @click="recommendMileage" class="px-3 py-2.5 bg-[#182338] hover:bg-[#1f2d47] text-slate-200 text-xs rounded-md border border-slate-800 whitespace-nowrap transition cursor-pointer">
+                                        Reset Saran
+                                    </button>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-1">Volume puncak pada fase transisi sebelum periode tapering perlombaan.</p>
+                            </div>
+
+                            <div>
+                                <label class="label-text">Frekuensi Latihan Mingguan</label>
+                                <div class="grid grid-cols-5 gap-2">
+                                    <button v-for="f in [3,4,5,6,7]" :key="f" type="button" @click="form.frequency = f" 
+                                            :class="form.frequency === f ? 'bg-[#CCFF00] text-[#080A0D] font-bold border-[#CCFF00]' : 'bg-[#182338] text-slate-200 border-slate-800 hover:border-slate-700'"
+                                            class="py-2.5 rounded-md text-xs sm:text-sm transition border text-center cursor-pointer font-medium">
+                                        @{{ f }} Hari
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="label-text">Level Pelari</label>
+                                    <select v-model="form.runner_level" class="input-field cursor-pointer text-sm">
+                                        <option value="beginner">Pemula (Beginner)</option>
+                                        <option value="intermediate">Menengah (Intermediate)</option>
+                                        <option value="advanced">Mahir (Advanced)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label-text">Hari Long Run</label>
+                                    <select v-model="form.long_run_day" class="input-field cursor-pointer text-sm">
+                                        <option value="saturday">Sabtu</option>
+                                        <option value="sunday">Minggu</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Strength Training -->
+                            <div class="p-4 bg-[#182338] rounded-md border border-slate-800 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                                        <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-[#CCFF00] rounded border-slate-700 bg-[#151F33]">
+                                        <span class="text-xs sm:text-sm font-semibold text-slate-200">Sertakan Strength Training</span>
+                                    </label>
+                                    <span v-if="form.include_strength" class="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded font-semibold border border-emerald-800/40">2x/Mgg</span>
+                                </div>
+                                <div v-if="form.include_strength" class="pt-1">
+                                    <select v-model="form.strength_type" class="input-field text-xs sm:text-sm cursor-pointer">
+                                        <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat - Calisthenics & Core)</option>
+                                        <option value="gym">Gym / Weighted (Beban Dumbbell, Squat & Deadlift)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Tropical Adjustment -->
+                            <div class="p-4 bg-[#182338] rounded-md border border-slate-800">
+                                <label class="flex items-start gap-3 cursor-pointer select-none">
+                                    <input type="checkbox" v-model="form.is_tropical" class="w-4 h-4 mt-0.5 accent-[#CCFF00] rounded border-slate-700 bg-[#151F33]">
+                                    <div>
+                                        <span class="text-xs sm:text-sm font-semibold text-slate-200 block">Adaptasi Iklim Tropis Indonesia</span>
+                                        <span class="text-[11px] text-slate-300 block mt-1 leading-relaxed">
+                                            Menyesuaikan target pace (+10 s/d 15 detik/km) untuk menjaga zona detak jantung dan toleransi kardiovaskular terhadap panas & kelembapan tinggi.
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex items-center justify-between pt-5 mt-6 border-t border-slate-800">
+                            <button type="button" @click="prevWizardStep" class="px-5 py-2.5 rounded-md text-xs font-semibold text-slate-200 hover:text-white bg-[#182338] hover:bg-[#1f2d47] border border-slate-800 transition cursor-pointer flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                                <span>Kembali</span>
+                            </button>
+                            <button type="button" @click="nextWizardStep" class="btn-volt-hero px-6 py-2.5 rounded-md text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center gap-2 cursor-pointer">
+                                <span>Lanjut ke Profil & Review</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WIZARD STEP 4: Profil Fisik & Konfirmasi Program -->
+                <div v-show="wizardStep === 4" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        
+                        <!-- Left Side: Physical Profile (6 cols) -->
+                        <div class="lg:col-span-6 card-dark p-5 sm:p-6 rounded-lg border border-slate-800 space-y-5">
+                            <div class="mb-4 pb-3 border-b border-slate-800">
+                                <h3 class="text-base font-bold text-white">4. Profil Fisik & Riwayat Cedera</h3>
+                                <p class="text-xs text-slate-300 mt-0.5">Penyesuaian nutrisi protein, indeks massa tubuh, dan rekomendasi protektif</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label-text">Jenis Kelamin</label>
+                                    <div class="grid grid-cols-2 gap-1 p-1 bg-[#182338] rounded-md border border-slate-800">
+                                        <button type="button" @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-[#151F33] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Laki-laki</button>
+                                        <button type="button" @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-[#151F33] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Perempuan</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="label-text">Usia (Tahun)</label>
+                                    <input v-model.number="form.age" type="number" min="12" max="99" class="input-field font-bold">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label-text">Tinggi Badan (cm)</label>
+                                    <input v-model.number="form.height_cm" type="number" min="100" max="230" class="input-field" placeholder="170">
+                                </div>
+                                <div>
+                                    <label class="label-text">Berat Badan (kg)</label>
+                                    <input v-model.number="form.weight_kg" type="number" min="30" max="200" class="input-field" placeholder="65">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label-text">Riwayat Cedera Terkini</label>
+                                <select v-model="form.injury_history" class="input-field cursor-pointer text-sm">
+                                    <option value="none">Tidak Ada (Sehat & Bugar)</option>
+                                    <option value="knee">Lutut (Runner's Knee / Patella)</option>
+                                    <option value="hamstring">Hamstring / Paha Belakang</option>
+                                    <option value="ankle">Pergelangan Kaki (Ankle / Tendon)</option>
+                                    <option value="shin">Shin Splints / Tulang Kering</option>
+                                    <option value="back">Punggung Bawah (Lower Back)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="p-3.5 bg-[#182338] rounded-md border border-slate-800 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2">
+                                <span>Indeks Massa Tubuh: <strong class="text-white">@{{ bmi || '-' }}</strong> <span v-if="bmiCategory" :class="bmiCategory.color" class="font-semibold">(@{{ bmiCategory.label }})</span></span>
+                                <span>Target Protein: <strong class="text-[#CCFF00]">@{{ proteinRecommendation ? (proteinRecommendation.min + '–' + proteinRecommendation.max + ' g/hari') : '-' }}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Program Snapshot Review & CTA (6 cols) -->
+                        <div class="lg:col-span-6 card-dark p-5 sm:p-6 rounded-lg border border-slate-800 space-y-5">
+                            <div class="mb-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-base font-bold text-white">Ringkasan Parameter Program</h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Tinjau seluruh data sebelum membuat jadwal latihan</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-dark bg-[#CCFF00]/10 px-2 py-0.5 rounded border border-[#CCFF00]/30 uppercase">
+                                    Siap Generate
                                 </span>
                             </div>
 
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="label-text">Target Jarak Lomba</label>
-                                    <select v-model="form.target_distance" @change="recommendMileage" class="input-field cursor-pointer">
-                                        <option value="5k">5K (5 Kilometer)</option>
-                                        <option value="10k">10K (10 Kilometer)</option>
-                                        <option value="21k">Half Marathon (21.0975 Km)</option>
-                                        <option value="42k">Full Marathon (42.195 Km)</option>
-                                        <option value="cooper12">Cooper Test 12 Menit</option>
-                                    </select>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-[#182338] rounded-md border border-slate-800 text-xs">
+                                    <span class="text-slate-400">Tolok Ukur / VDOT</span>
+                                    <span class="font-bold text-white text-right">@{{ formatPbDisplay }} (VDOT @{{ current_vdot?.toFixed(1) || '-' }})</span>
                                 </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="label-text">Tanggal Mulai Latihan</label>
-                                        <input v-model="form.start_date" type="date" class="input-field">
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center justify-between mb-1">
-                                            <label class="label-text !mb-0">Tanggal Race / Target Selesai</label>
-                                            <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
-                                                    @click="applyRecommendedTargetDate" 
-                                                    type="button" 
-                                                    class="text-[10px] font-semibold text-brand-500 hover:underline cursor-pointer">
-                                                Set @{{ recommendedWeeks }} Mgg
-                                            </button>
-                                        </div>
-                                        <input v-model="form.target_date" type="date" class="input-field">
-                                    </div>
+                                <div class="flex items-center justify-between p-3 bg-[#182338] rounded-md border border-slate-800 text-xs">
+                                    <span class="text-slate-400">Target Lomba & Waktu</span>
+                                    <span class="font-bold text-white text-right">@{{ form.target_distance.toUpperCase() }} (@{{ formatGoalTimeDisplay }})</span>
                                 </div>
-
-                                <div>
-                                    <label class="label-text">Target Waktu Finish (Jam : Menit : Detik)</label>
-                                    <div class="grid grid-cols-3 gap-2.5">
-                                        <div>
-                                            <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Jam</span>
-                                        </div>
-                                        <div>
-                                            <input v-model.number="goal_minutes" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Menit</span>
-                                        </div>
-                                        <div>
-                                            <input v-model.number="goal_seconds" type="number" min="0" max="59" class="input-field text-center font-bold" placeholder="00">
-                                            <span class="text-[10px] text-slate-300 text-center block mt-1">Detik</span>
-                                        </div>
-                                    </div>
-                                    <p v-if="realism" class="text-xs text-slate-200 mt-2.5 bg-[#0E1523] p-3 rounded-md border border-[#23324A] leading-relaxed">
-                                        @{{ realism.description }}
-                                    </p>
+                                <div class="flex items-center justify-between p-3 bg-[#182338] rounded-md border border-slate-800 text-xs">
+                                    <span class="text-slate-400">Durasi Kalender</span>
+                                    <span class="font-bold text-white text-right">@{{ calculatedDurationWeeks }} Pekan (@{{ form.start_date }} s/d @{{ form.target_date }})</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-[#182338] rounded-md border border-slate-800 text-xs">
+                                    <span class="text-slate-400">Alokasi Latihan</span>
+                                    <span class="font-bold text-white text-right">@{{ form.frequency }}x/minggu • Puncak @{{ form.weekly_mileage }} km</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-[#182338] rounded-md border border-slate-800 text-xs">
+                                    <span class="text-slate-400">Status Kelayakan</span>
+                                    <span class="font-bold text-right" :class="realism?.color || 'text-[#CCFF00]'">@{{ realism?.label || 'Realistis' }}</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Right Column: Training Load & Profile (5 cols) -->
-                    <div class="lg:col-span-5 space-y-6">
+                            <!-- Action Buttons -->
+                            <div class="pt-2 space-y-3">
+                                <button @click="generateProgram" :disabled="loading" 
+                                        class="btn-volt-hero w-full py-3.5 rounded-md font-black text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span v-if="!loading">Buat Program Latihan Sekarang</span>
+                                    <span v-else class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-[#080A0D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Memproses Perhitungan VDOT...
+                                    </span>
+                                </button>
 
-                        <!-- Card 3: Beban & Jadwal Latihan -->
-                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
-                            <div class="mb-4 pb-3 border-b border-slate-700/80">
-                                <h3 class="text-base font-semibold text-white">3. Beban & Jadwal Latihan</h3>
-                                <p class="text-xs text-slate-300 mt-0.5">Alokasi volume mingguan dan preferensi sesi</p>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="flex justify-between items-center mb-1">
-                                        <label class="label-text !mb-0">Mileage Mingguan Puncak (Km)</label>
-                                        <span class="text-[10px] text-brand-500">Saran: @{{ idealMileage }} km</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input v-model.number="form.weekly_mileage" type="number" min="15" max="150" step="1" class="input-field font-bold">
-                                        <button type="button" @click="recommendMileage" class="px-2.5 py-2 bg-[#1C273B] hover:bg-[#283750] text-slate-200 text-xs rounded-md border border-[#3A4C6D] whitespace-nowrap transition cursor-pointer">
-                                            Reset Saran
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="label-text">Frekuensi Latihan Mingguan</label>
-                                    <div class="grid grid-cols-5 gap-1.5">
-                                        <button v-for="f in [3,4,5,6,7]" :key="f" type="button" @click="form.frequency = f" 
-                                                :class="form.frequency === f ? 'bg-brand-500 text-slate-950 font-bold border-brand-500' : 'bg-[#1C273B] text-slate-200 border-[#3A4C6D] hover:border-slate-400'"
-                                                class="py-2 rounded-md text-xs transition border text-center cursor-pointer">
-                                            @{{ f }} Hari
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="label-text">Level Pelari</label>
-                                        <select v-model="form.runner_level" class="input-field cursor-pointer">
-                                            <option value="beginner">Pemula (Beginner)</option>
-                                            <option value="intermediate">Menengah (Intermediate)</option>
-                                            <option value="advanced">Mahir (Advanced)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="label-text">Hari Long Run</label>
-                                        <select v-model="form.long_run_day" class="input-field cursor-pointer">
-                                            <option value="saturday">Sabtu</option>
-                                            <option value="sunday">Minggu</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Strength Training -->
-                                <div class="p-3.5 bg-[#0E1523] rounded-md border border-[#23324A] space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                                            <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-brand-500 rounded border-slate-600 bg-[#1C273B]">
-                                            <span class="text-xs font-semibold text-slate-200">Sertakan Strength Training</span>
-                                        </label>
-                                        <span v-if="form.include_strength" class="text-[9px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-1.5 py-0.5 rounded">2x/Mgg</span>
-                                    </div>
-                                    <div v-if="form.include_strength">
-                                        <select v-model="form.strength_type" class="input-field text-xs cursor-pointer">
-                                            <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat)</option>
-                                            <option value="gym">Gym / Weighted (Beban & Dumbbell)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Tropical Adjustment -->
-                                <div class="p-3.5 bg-[#0E1523] rounded-md border border-[#23324A]">
-                                    <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                        <input type="checkbox" v-model="form.is_tropical" class="w-4 h-4 mt-0.5 accent-brand-500 rounded border-slate-600 bg-[#1C273B]">
-                                        <div>
-                                            <span class="text-xs font-semibold text-slate-200 block">Adaptasi Iklim Tropis</span>
-                                            <span class="text-[11px] text-slate-300 block mt-0.5 leading-normal">
-                                                Menyesuaikan pace +10–15s/km untuk menjaga kestabilan beban kardiovaskular di suhu dan kelembapan Indonesia.
-                                            </span>
-                                        </div>
-                                    </label>
-                                </div>
+                                <button type="button" @click="prevWizardStep" class="w-full py-2.5 rounded-md text-xs font-semibold text-slate-200 hover:text-white bg-[#182338] hover:bg-[#1f2d47] border border-slate-800 transition cursor-pointer flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                                    <span>Kembali ke Langkah Sebelumnya</span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Card 4: Profil Fisik & Riwayat Cedera -->
-                        <div class="card-dark p-5 rounded-lg border border-[#283750]">
-                            <div class="mb-4 pb-3 border-b border-slate-700/80">
-                                <h3 class="text-base font-semibold text-white">4. Profil Fisik & Riwayat Cedera</h3>
-                                <p class="text-xs text-slate-300 mt-0.5">Parameter nutrisi dan rekomendasi protektif</p>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="label-text">Jenis Kelamin</label>
-                                        <div class="grid grid-cols-2 gap-1 p-1 bg-[#0E1523] rounded-md border border-[#23324A]">
-                                            <button type="button" @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-[#283750] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Laki-laki</button>
-                                            <button type="button" @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-[#283750] text-white font-bold' : 'text-slate-300 hover:text-white'" class="py-1.5 rounded text-xs transition cursor-pointer">Perempuan</button>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="label-text">Usia (Tahun)</label>
-                                        <input v-model.number="form.age" type="number" min="12" max="99" class="input-field font-bold">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="label-text">Tinggi Badan (cm)</label>
-                                        <input v-model.number="form.height_cm" type="number" min="100" max="230" class="input-field" placeholder="170">
-                                    </div>
-                                    <div>
-                                        <label class="label-text">Berat Badan (kg)</label>
-                                        <input v-model.number="form.weight_kg" type="number" min="30" max="200" class="input-field" placeholder="65">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="label-text">Riwayat Cedera Terkini</label>
-                                    <select v-model="form.injury_history" class="input-field cursor-pointer">
-                                        <option value="none">Tidak Ada (Sehat & Bugar)</option>
-                                        <option value="knee">Lutut (Runner's Knee / Patella)</option>
-                                        <option value="hamstring">Hamstring / Paha Belakang</option>
-                                        <option value="ankle">Pergelangan Kaki (Ankle / Tendon)</option>
-                                        <option value="shin">Shin Splints / Tulang Kering</option>
-                                        <option value="back">Punggung Bawah (Lower Back)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Submit CTA -->
-                        <button @click="generateProgram" :disabled="loading" 
-                                class="w-full py-3.5 bg-brand-500 hover:bg-brand-600 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-sm rounded-md transition uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md">
-                            <span v-if="!loading">Buat Program Latihan</span>
-                            <span v-else class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Memproses Perhitungan VDOT...
-                            </span>
-                        </button>
                     </div>
                 </div>
+
             </div>
 
             <!-- Step 2: Results Display -->
@@ -876,7 +965,7 @@
                         <h2 class="text-xl font-bold text-white">Program Latihan @{{ form.target_distance.toUpperCase() }} Selesai Dirancang</h2>
                         <p class="text-xs text-slate-300 mt-0.5">Estimasi skor VDOT @{{ result?.vdot }} • Durasi @{{ result?.weeks }} pekan • @{{ form.frequency }} sesi/minggu</p>
                     </div>
-                    <button @click="step = 1" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold rounded-md border border-slate-700 transition cursor-pointer">
+                    <button @click="step = 1" class="px-3 py-1.5 bg-[#182338] hover:bg-[#1f2d47] text-slate-200 hover:text-white text-xs font-semibold rounded-md border border-slate-800 transition cursor-pointer">
                         Ubah Parameter
                     </button>
                 </div>
@@ -908,10 +997,10 @@
                             </div>
 
                             <button @click="saveAndOpenCalendar()" :disabled="saving" 
-                                    class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-md transition flex items-center justify-center gap-2 cursor-pointer mb-2">
+                                    class="btn-volt-hero w-full py-3 rounded-md font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer mb-2 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span>@{{ saving ? 'Menyimpan...' : 'Simpan ke Kalender Lari' }}</span>
                             </button>
-                            <button @click="step = 1" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold rounded-md border border-slate-800 transition cursor-pointer">
+                            <button @click="step = 1" class="w-full py-2 bg-[#182338] hover:bg-[#1f2d47] text-slate-300 hover:text-white text-xs font-semibold rounded-md border border-slate-800 transition cursor-pointer">
                                 Ubah Parameter
                             </button>
                         </div>
@@ -1295,28 +1384,9 @@
 
     createApp({
         setup() {
-            // Hero Background Slider (Ken Burns Zoom-Out effect)
-            const heroSlides = [
-                '{{ file_exists(public_path("images/hero/vdot-runner-training.jpg")) ? asset("images/hero/vdot-runner-training.jpg") : asset("images/hero/marathon-hero-cinematic.jpg") }}',
-                '{{ asset("images/hero/marathon-hero-cinematic.jpg") }}',
-                '{{ asset("images/hero/runner-hero.jpg") }}'
-            ];
-            const activeHeroSlide = ref(0);
-            let heroSlideTimer = null;
-
-            const startHeroSlideTimer = () => {
-                if (heroSlideTimer) clearInterval(heroSlideTimer);
-                heroSlideTimer = setInterval(() => {
-                    activeHeroSlide.value = (activeHeroSlide.value + 1) % heroSlides.length;
-                }, 8000);
-            };
-
-            const setHeroSlide = (idx) => {
-                activeHeroSlide.value = idx;
-                startHeroSlideTimer();
-            };
-
             const step = ref(1);
+            const wizardStep = ref(1);
+            const lastSavedTime = ref('');
             const loading = ref(false);
             const saving = ref(false);
             const result = ref(null);
@@ -1602,58 +1672,264 @@
                 recommendMileage();
             });
 
-            onMounted(() => {
-                startHeroSlideTimer();
+            // Snapshot review computed labels
+            const formatPbDisplay = computed(() => {
+                if (form.pb_distance === 'cooper12') {
+                    return `${pb_distance_meters.value || 0}m (Cooper 12 Menit)`;
+                }
+                if (form.pb_distance === 'balke15') {
+                    return `${pb_distance_meters.value || 0}m (Balke 15 Menit)`;
+                }
+                const h = String(pb_hours.value || 0).padStart(2, '0');
+                const m = String(pb_minutes.value || 0).padStart(2, '0');
+                const s = String(pb_seconds.value || 0).padStart(2, '0');
+                return `${form.pb_distance.toUpperCase()} (${h}:${m}:${s})`;
+            });
 
+            const formatGoalTimeDisplay = computed(() => {
+                const h = String(goal_hours.value || 0).padStart(2, '0');
+                const m = String(goal_minutes.value || 0).padStart(2, '0');
+                const s = String(goal_seconds.value || 0).padStart(2, '0');
+                return `${h}:${m}:${s}`;
+            });
+
+            const calculatedDurationWeeks = computed(() => {
+                if (!form.start_date || !form.target_date) return recommendedWeeks.value || 8;
+                const d1 = new Date(form.start_date);
+                const d2 = new Date(form.target_date);
+                const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+                return Math.max(1, Math.round(diff / 7));
+            });
+
+            // Wizard Step Navigation
+            const goToWizardStep = (n) => {
+                if (n >= 1 && n <= 4) {
+                    wizardStep.value = n;
+                    const el = document.getElementById('generator-form');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+
+            const nextWizardStep = () => {
+                if (wizardStep.value === 1) {
+                    if (form.pb_distance === 'cooper12' || form.pb_distance === 'balke15') {
+                        if (!pb_distance_meters.value || pb_distance_meters.value < 500) {
+                            showNotification('Masukkan jarak hasil tes minimal 500 meter.', 'error');
+                            return;
+                        }
+                    } else {
+                        const totalSec = (pb_hours.value * 3600) + (pb_minutes.value * 60) + pb_seconds.value;
+                        if (!totalSec || totalSec < 300) {
+                            showNotification('Masukkan waktu tempuh PB minimal 5 menit.', 'error');
+                            return;
+                        }
+                    }
+                    wizardStep.value = 2;
+                } else if (wizardStep.value === 2) {
+                    if (!form.start_date || !form.target_date) {
+                        showNotification('Tentukan tanggal mulai dan tanggal race / target.', 'error');
+                        return;
+                    }
+                    if (new Date(form.target_date) <= new Date(form.start_date)) {
+                        showNotification('Tanggal race harus setelah tanggal mulai latihan.', 'error');
+                        return;
+                    }
+                    const goalSec = (goal_hours.value * 3600) + (goal_minutes.value * 60) + goal_seconds.value;
+                    if (!goalSec || goalSec < 300) {
+                        showNotification('Tentukan target waktu finish yang valid.', 'error');
+                        return;
+                    }
+                    wizardStep.value = 3;
+                } else if (wizardStep.value === 3) {
+                    if (!form.weekly_mileage || form.weekly_mileage < 10) {
+                        showNotification('Mileage mingguan minimal 10 km.', 'error');
+                        return;
+                    }
+                    wizardStep.value = 4;
+                }
+                const el = document.getElementById('generator-form');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+
+            const prevWizardStep = () => {
+                if (wizardStep.value > 1) {
+                    wizardStep.value--;
+                    const el = document.getElementById('generator-form');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+
+            // LocalStorage Persistence
+            const STORAGE_KEY = 'ruanglari_vdot_form_v2';
+
+            const saveFormDraft = () => {
+                if (isInitializingFromParams) return;
+                try {
+                    const payload = {
+                        wizardStep: wizardStep.value,
+                        form: { ...form },
+                        pb_hours: pb_hours.value,
+                        pb_minutes: pb_minutes.value,
+                        pb_seconds: pb_seconds.value,
+                        pb_distance_meters: pb_distance_meters.value,
+                        goal_hours: goal_hours.value,
+                        goal_minutes: goal_minutes.value,
+                        goal_seconds: goal_seconds.value,
+                        saved_at: Date.now()
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                    const d = new Date();
+                    lastSavedTime.value = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                } catch (e) {
+                    console.warn('Gagal menyimpan draf ke localStorage:', e);
+                }
+            };
+
+            const loadFormDraft = () => {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return false;
+                    const data = JSON.parse(raw);
+                    if (data && data.form) {
+                        Object.assign(form, data.form);
+                        if (data.pb_hours !== undefined) pb_hours.value = data.pb_hours;
+                        if (data.pb_minutes !== undefined) pb_minutes.value = data.pb_minutes;
+                        if (data.pb_seconds !== undefined) pb_seconds.value = data.pb_seconds;
+                        if (data.pb_distance_meters !== undefined) pb_distance_meters.value = data.pb_distance_meters;
+                        if (data.goal_hours !== undefined) goal_hours.value = data.goal_hours;
+                        if (data.goal_minutes !== undefined) goal_minutes.value = data.goal_minutes;
+                        if (data.goal_seconds !== undefined) goal_seconds.value = data.goal_seconds;
+                        if (data.wizardStep && data.wizardStep >= 1 && data.wizardStep <= 4) {
+                            wizardStep.value = data.wizardStep;
+                        }
+                        if (data.saved_at) {
+                            const d = new Date(data.saved_at);
+                            lastSavedTime.value = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        }
+                        return true;
+                    }
+                } catch (e) {
+                    console.warn('Gagal memuat draf dari localStorage:', e);
+                }
+                return false;
+            };
+
+            const resetFormDraft = () => {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                } catch (e) {}
+                wizardStep.value = 1;
+                lastSavedTime.value = '';
+                form.pb_distance = '5k';
+                form.target_distance = '10k';
+                form.start_date = todayStr;
+                form.weekly_mileage = 50;
+                form.frequency = 4;
+                form.gender = 'male';
+                form.age = 25;
+                form.height_cm = 170;
+                form.weight_kg = 65;
+                form.injury_history = 'none';
+                form.include_strength = true;
+                form.strength_type = 'bodyweight';
+                form.runner_level = 'intermediate';
+                form.long_run_day = 'sunday';
+                form.is_tropical = false;
+                applyDefaultPbTime('5k');
+                applyRecommendedTargetDate();
+                suggestGoalTime();
+                recommendMileage();
+                showNotification('Draf formulir telah direset.', 'info');
+            };
+
+            // Auto-save form inputs & step changes
+            watch([
+                wizardStep,
+                () => form.pb_distance,
+                () => form.target_distance,
+                () => form.start_date,
+                () => form.target_date,
+                () => form.weekly_mileage,
+                () => form.frequency,
+                () => form.gender,
+                () => form.age,
+                () => form.height_cm,
+                () => form.weight_kg,
+                () => form.injury_history,
+                () => form.include_strength,
+                () => form.strength_type,
+                () => form.runner_level,
+                () => form.long_run_day,
+                () => form.is_tropical,
+                pb_hours, pb_minutes, pb_seconds, pb_distance_meters,
+                goal_hours, goal_minutes, goal_seconds
+            ], () => {
+                saveFormDraft();
+            });
+
+            onMounted(() => {
                 const params = new URLSearchParams(window.location.search);
                 let dist = params.get('distance');
                 const time = params.get('time');
                 const meters = params.get('meters');
 
-                if (dist || time || meters) {
+                const hasUrlParams = !!(dist || time || meters);
+
+                if (hasUrlParams) {
                     isInitializingFromParams = true;
-                    step.value = 1; // Automatically open form step when params are provided
+                    step.value = 1; // Open form step
+                    wizardStep.value = 1; // Prioritize step 1 for benchmark data from Home
+
+                    if (dist) {
+                        dist = dist.toLowerCase();
+                        if (['5k', '10k', '21k', '42k', 'cooper12', 'balke15'].includes(dist)) {
+                            form.pb_distance = dist;
+                            if (['5k', '10k', '21k', '42k'].includes(dist)) {
+                                form.target_distance = dist;
+                            }
+                        }
+                    }
+
+                    if (meters && (dist === 'cooper12' || dist === 'balke15')) {
+                        pb_distance_meters.value = parseInt(meters, 10) || 0;
+                    } else if (time) {
+                        const parts = time.split(':');
+                        if (parts.length === 3) {
+                            pb_hours.value = parseInt(parts[0], 10) || 0;
+                            pb_minutes.value = parseInt(parts[1], 10) || 0;
+                            pb_seconds.value = parseInt(parts[2], 10) || 0;
+                        }
+                    } else {
+                        applyDefaultPbTime(form.pb_distance);
+                    }
+
+                    if (!form.target_date) {
+                        applyRecommendedTargetDate();
+                    }
+
+                    suggestGoalTime();
+                    recommendMileage();
+
                     setTimeout(() => {
                         const el = document.getElementById('generator-form');
                         if (el) {
                             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    }, 300);
-                }
-
-                if (dist) {
-                    dist = dist.toLowerCase();
-                    if (['5k', '10k', '21k', '42k', 'cooper12', 'balke15'].includes(dist)) {
-                        form.pb_distance = dist;
-                        if (['5k', '10k', '21k', '42k'].includes(dist)) {
-                            form.target_distance = dist;
+                        isInitializingFromParams = false;
+                        saveFormDraft();
+                    }, 350);
+                } else {
+                    // No URL params, try loading saved draft from localStorage
+                    const restored = loadFormDraft();
+                    if (!restored) {
+                        applyDefaultPbTime(form.pb_distance);
+                        if (!form.target_date) {
+                            applyRecommendedTargetDate();
                         }
                     }
+                    suggestGoalTime();
+                    recommendMileage();
                 }
-
-                if (meters && (dist === 'cooper12' || dist === 'balke15')) {
-                    pb_distance_meters.value = parseInt(meters, 10) || 0;
-                } else if (time) {
-                    const parts = time.split(':');
-                    if (parts.length === 3) {
-                        pb_hours.value = parseInt(parts[0], 10) || 0;
-                        pb_minutes.value = parseInt(parts[1], 10) || 0;
-                        pb_seconds.value = parseInt(parts[2], 10) || 0;
-                    }
-                } else {
-                    applyDefaultPbTime(form.pb_distance);
-                }
-
-                if (!form.target_date) {
-                    applyRecommendedTargetDate();
-                }
-
-                suggestGoalTime();
-                recommendMileage();
-
-                setTimeout(() => {
-                    isInitializingFromParams = false;
-                }, 500);
             });
 
             const realism = computed(() => {
@@ -1993,7 +2269,6 @@
 
 
             return {
-                heroSlides, activeHeroSlide, setHeroSlide,
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
                 conflictModal, confirmConflictAction,
                 generateProgram, saveAndOpenCalendar,
@@ -2003,7 +2278,9 @@
                 idealMileage, recommendMileage, realism,
                 current_vdot, target_vdot, recommendedTargetDate, recommendedWeeks, applyRecommendedTargetDate, suggestGoalTime,
                 bmi, bmiCategory, proteinRecommendation,
-                showNotification
+                showNotification,
+                wizardStep, lastSavedTime, goToWizardStep, nextWizardStep, prevWizardStep, resetFormDraft,
+                formatPbDisplay, formatGoalTimeDisplay, calculatedDurationWeeks
             };
         }
     }).mount('#generator-v2-app');

@@ -66,3 +66,24 @@
 .leaflet-control-attribution {
     display: none !important;
 }
+
+/* Article Share Bar Responsive Behavior:
+   >= 1440px: Show Desktop Floating Sidebar, Hide Mobile Share Bar
+   < 1440px: Hide Desktop Floating Sidebar, Show Mobile Share Bar
+*/
+@media (min-width: 1440px) {
+    .desktop-floating-share {
+        display: flex !important;
+    }
+    .mobile-share-bar {
+        display: none !important;
+    }
+}
+@media (max-width: 1439.98px) {
+    .desktop-floating-share {
+        display: none !important;
+    }
+    .mobile-share-bar {
+        display: flex !important;
+    }
+}
