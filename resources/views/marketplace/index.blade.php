@@ -355,7 +355,7 @@ footer[aria-label="Footer Ruang Lari"] {
                     <svg id="theme-icon-moon" class="w-4 h-4 text-slate-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
-                    <span id="market-theme-text">Mode Terang</span>
+                    
                 </button>
 
                 <!-- Keranjang -->
@@ -369,7 +369,7 @@ footer[aria-label="Footer Ruang Lari"] {
 
                 <!-- Jual Gear -->
                 <a href="{{ auth()->check() ? route('marketplace.seller.products.create') : route('login', ['redirect' => route('marketplace.seller.products.create')]) }}" class="flex-1 sm:flex-initial px-4 py-2 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs transition-all flex items-center justify-center shadow-sm">
-                    <span>+ Jual Gear</span>
+                    <span>+ Jual</span>
                 </a>
             </div>
         </div>
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isLight) {
             if (sunIcon) sunIcon.classList.add('hidden');
             if (moonIcon) moonIcon.classList.remove('hidden');
-            if (themeText) themeText.innerText = 'Mode Gelap';
+            
             if (themeBtn) {
                 themeBtn.className = 'px-3 py-2 rounded-md border text-xs font-semibold transition-all flex items-center gap-2 bg-white border-slate-300 hover:border-slate-400 text-slate-800';
             }

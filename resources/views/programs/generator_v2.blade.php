@@ -403,11 +403,6 @@
             <!-- Left Column: Editorial & Action -->
             <div class="lg:col-span-7 space-y-5 text-left">
 
-                <!-- Kicker -->
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#182338] text-xs font-semibold text-slate-300">
-                    <span class="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse"></span>
-                    <span class="tracking-wide uppercase">Kalkulator VDOT & Jadwal Latihan Lari</span>
-                </div>
 
                 <!-- SEO H1 targeting 'Buat Program Lari' -->
                 <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-white tracking-tight leading-[1.1]">
