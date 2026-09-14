@@ -1462,18 +1462,6 @@
         await aaWrite();
     }
 
-    async function aaWrite() {
-        const status = document.getElementById('aa-write-status');
-        const preview = document.getElementById('aa-result-preview');
-        const btnApply = document.getElementById('aa-btn-apply');
-        const imgPanel = document.getElementById('aa-image-panel');
-        const imgList = document.getElementById('aa-image-list');
-        status.classList.remove('hidden');
-        preview.classList.add('hidden');
-        imgPanel.classList.add('hidden');
-        btnApply.classList.add('hidden');
-        status.textContent = 'Menulis artikel... (30-60 detik)';
-
     async function aaPollWriteStatus(uuid, maxSeconds = 180) {
         const timerEl = document.getElementById('aa-poll-timer');
         let elapsed = 0;
