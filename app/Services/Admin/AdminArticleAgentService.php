@@ -130,9 +130,9 @@ TEXT;
             $fullTopicInput .= ($fullTopicInput !== '' ? "\n\n" : "") . "[Cuplikan Berita Realtime / Threads / IG / Strava]:\n" . $rawNews;
         }
 
-        //? Get Top Articles as Reference (untuk strategi non-free)
+        //? Get Top Articles as Reference (untuk strategi non-free & non-threads)
         $topArticles = [];
-        if ($strategy !== 'free') {
+        if (!in_array($strategy, ['free', 'viral_threads', 'threads'])) {
             $site        = $input['site'] ?? 'all';
             $topArticles = $this->getTopArticles($site, 50);
         }
@@ -149,7 +149,7 @@ TEXT;
                   "Sebaliknya, artikel viral berkualitas menggabungkan:\n" .
                   "1. POLA PIKIR KONTRARIAN / TRUTH BOMB: Menantang mitos populer dengan data sains olahraga nyata (Contoh: 'Bukan Kurang Latihan: Alasan Ilmiah Mengapa Lari Tiap Hari Justru Membuat Pace Melambat').\n" .
                   "2. PAIN POINT & STRUGGLE NYATA PELARI: Membahas masalah spesifik yang dialami pelari tapi jarang diungkap secara tuntas (Contoh: 'Napas Tersengal di KM 3? 3 Kesalahan Irama Napas yang Sering Dilakukan Pelari Pemula').\n" .
-                  "3. ISU HANGAT & DISKURSUS KOMUNITAS (HIGH SHAREABILITY): Topik yang memicu diskusi sehat, perdebatan seru, dan dorongan untuk membagikan ke grup WhatsApp/Threads (Contoh: 'Tren Sepatu Karbon untuk Pace 7: Dongkrak Performa atau Mempercepat Cedera Betis?' atau 'Fenomena Joki Strava & FOMO Race: Ketika Medali Mengalahkan Nilai Kejujuran').\n" .
+                  "3. ISU HANGAT & DISKURSUS KOMUNITAS THREADS (HIGH SHAREABILITY): Topik yang memicu diskusi sehat, perdebatan seru, dan dorongan untuk membagikan ke grup WhatsApp/Threads. Eksplorasi perdebatan netizen/pelari di Threads (seperti: fenomena joki Strava/bib, cut-off time shaming, drama water station lomba, perdebatan sepatu karbon untuk pace 7, atau etika lari di GBK/CFD). Pastikan minimal 3 dari 10 ide secara spesifik membedah kasus/diskursus viral dari Threads yang relevan dengan topik ini.\n" .
                   "4. ANGKA & METODE TERUKUR (SPECIFICITY): Angka spesifik menaikkan CTR hingga 45% (Contoh: 'Aturan 10 Persen: Panduan Menambah Mileage Mingguan Tanpa Terkena Shin Splints').\n\n" .
                   "ATURAN MUTLAK GOOGLE DISCOVER & EEAT 2026:\n" .
                   "- 100% CONTENT MATCH: Judul harus jujur dan selaras dengan isi artikel. Dilarang menipu atau hoax.\n" .
@@ -157,7 +157,16 @@ TEXT;
                   "- ENTITAS SPESIFIK: Sebutkan entitas jelas (VO2 max, zone 2, pace, cadence, shin splints, carbo loading, nama race seperti Maybank Marathon / Borobudur Marathon, sepatu karbon, dll).\n\n";
 
         //* 2. Inject Referensi & Strategi
-        if ($strategy !== 'free' && !empty($topArticles)) {
+        if (in_array($strategy, ['viral_threads', 'threads'])) {
+            $prompt .= "STRATEGI KHUSUS: KASUS & ISU VIRAL THREADS (DISKURSUS KOMUNITAS):\n" .
+                       "Fokuskan 10 ide artikel ini untuk membedah KASUS NYATA, DRAMA, POLEMIK, ATAU PERDEBATAN SENGIT YANG VIRAL DI THREADS (Meta Threads) seputar dunia lari dan pelari di Indonesia.\n" .
+                       "Angle kasus Threads yang wajib dieksplorasi:\n" .
+                       "1. Integritas & Etika Race: Fenomena joki Strava/joki bib, calo slot maraton, potong rute lomba (course cutting), drama cut-off time & DNF shaming, arogansi pacer/road captain.\n" .
+                       "2. Etika Fasilitas Publik: Pelari bergerombol yang mendominasi trek lari GBK/lapangan, gesekan antara pelari vs pejalan kaki di CFD, rombongan lari yang menghalangi jalan pejalan kaki umum.\n" .
+                       "3. Tren & Dilema Gear: Debat sepatu super/karbon untuk pelari santai/pace 7-8 (manfaat vs risiko cedera), tren outfit/fashion mahal vs esensi performa lari, fenomena pelari konten vs pelari latihan sungguhan.\n" .
+                       "4. Krisis Event & Keselamatan: Drama water station habis di race maraton, peserta collapse di garis finish, bahaya memaksakan diri demi medali finisher.\n" .
+                       "Ubah topik viral Threads tersebut menjadi konten edukasi berbobot tinggi: bedah kasusnya secara objektif, ungkap data sains olahraga/fisiologi/etika resmi, dan berikan solusi bijak yang memicu diskusi positif serta dibagikan luas di Threads dan WhatsApp.\n\n";
+        } elseif ($strategy !== 'free' && !empty($topArticles)) {
             $prompt .= "REFERENSI 50 ARTIKEL TERPOPULER SAYA:\n";
             foreach ($topArticles as $index => $article) {
                 $num = $index + 1;
@@ -280,7 +289,7 @@ TEXT;
             ];
         }
 
-        //* 1. Tavily Search (General Web + Target Authority Outlets: Runner's World, CitiusMag, Marathon Handbook)
+        //* 1. Tavily Search (General Web + Target Authority Outlets + Threads & Social Pulse)
         $query = ($selectedData['title'] ?? "") . ". Keyword: " . $selectedData['keyword'];
         $authorityDomains = ['runnersworld.com', 'citiusmag.com', 'marathonhandbook.com'];
 
@@ -290,9 +299,14 @@ TEXT;
         // Targeted Search on Top Running Publications
         $nicheResult = $this->tavily->search($query, 5, [], $authorityDomains);
 
+        // Targeted Search on Threads & Social Discourse for Viral Cases & Community Sentiment
+        $threadsQuery = ($selectedData['title'] ?? "") . " (site:threads.net OR threads kasus viral pelari lari OR kontroversi pelari)";
+        $threadsResult = $this->tavily->search($threadsQuery, 4, ['youtube.com', 'tiktok.com']);
+
         $combinedResults = array_merge(
             $tavilyResult['results'] ?? [],
-            $nicheResult['results'] ?? []
+            $nicheResult['results'] ?? [],
+            $threadsResult['results'] ?? []
         );
 
         // Deduplicate results by URL
@@ -315,11 +329,11 @@ TEXT;
         //* 2. Extract text for Research
         $textForResearch = $this->cleanTavilyContext($uniqueResults, 14000);
 
-        $prompt = "Kamu adalah seorang analis riset profesional untuk blog lari. Analisis data riset mentah berikut yang berisi cuplikan dan konten dari hasil pencarian.\n" .
+        $prompt = "Kamu adalah seorang analis riset profesional untuk Ruang Lari (media & platform komunitas lari Indonesia). Analisis data riset mentah berikut yang berisi cuplikan hasil pencarian web otoritatif, jurnal/artikel lari, serta diskusi/kasus viral dari Threads dan media sosial.\n" .
                   "Tugas:\n" .
                   "1. Saring informasi yang tidak relevan atau duplikat.\n" .
                   "2. Sintesiskan poin-poin penting menjadi ringkasan yang komprehensif.\n" .
-                  "3. Sertakan fakta, statistik, dan wawasan yang relevan dengan lari/olahraga.\n" .
+                  "3. Sertakan fakta, statistik, data sains/fisiologi olahraga, serta rangkuman dinamika kasus nyata atau sudut pandang pro-kontra di Threads/komunitas lari jika ada.\n" .
                   "4. Cantumkan URL sumber untuk klaim utama jika memungkinkan.\n" .
                   "\nData Mentah:\n" . $textForResearch . "\n\n" .
                   "INSTRUKSI OUTPUT (PENTING):\n" .
@@ -384,7 +398,8 @@ TEXT;
                         "2. HIGH INFORMATION GAIN & DATA SPESIFIK (STANDAR EEAT 2026): Sajikan data angka konkret dan metrik fisiologis yang terukur (contoh: persentase detak jantung Zone 2 vs Zone 4, cadence ideal 170-180 spm, VO2 max, asam laktat, durasi carbo-loading 36-48 jam, gram karbohidrat per kg berat badan). Jangan hanya bicara teori umum yang sudah basi di Google.\n" .
                         "3. PERSPEKTIF NYATA PELARI INDONESIA (LOCAL RELEVANCE): Kaitkan selalu dengan kondisi nyata pelari di tanah air: iklim tropis panas dan lembab (28-32°C, kelembaban >80%), rute aspal perkotaan dan CFD, event maraton nasional (Maybank Marathon Bali, Borobudur Marathon, Pocari Run Bandung, Jakarta Marathon), serta kebiasaan nutrisi lokal (air kelapa murni, pisang, kurma).\n" .
                         "4. PANJANG & KETERBACAAN: 800 hingga 1500 kata yang padat informasi, tanpa kalimat berputar-putar. 1 paragraf terdiri dari 2-4 kalimat pendek yang enak dipindai di smartphone. Subjudul <h2> dan <h3> harus mencerminkan jawaban search intent pembaca.\n" .
-                        "5. ACTIONABLE TAKEAWAY: Jelang akhir artikel, berikan checklist taktis langkah demi langkah yang bisa langsung dipraktekkan pembaca saat sesi lari esok pagi (memicu pembaca menyimpan artikel dan membagikannya ke grup WhatsApp/Threads komunitas lari).\n\n" .
+                        "5. INTEGRASI KASUS VIRAL & SENTIMEN THREADS (COMMUNITY PULSE): Jika topik mengangkat polemik, tren, atau perdebatan komunitas (seperti isu yang ramai di Threads, Instagram, atau grup lari), bawa pembaca masuk lewat studi kasus atau fenomena percakapan tersebut secara objektif di awal atau sub-topik pertama. Uraikan sentimen pro dan kontra para pelari, lalu bedah menggunakan lensa sains olahraga objektif, etika komunitas, atau aturan resmi atletik (PASI/World Athletics). Berikan pencerahan berwibawa yang membuat pembaca merasa tercerahkan dan ingin membagikan artikel ini kembali ke Threads dan WhatsApp.\n" .
+                        "6. ACTIONABLE TAKEAWAY: Jelang akhir artikel, berikan checklist taktis langkah demi langkah yang bisa langsung dipraktekkan pembaca saat sesi lari esok pagi (memicu pembaca menyimpan artikel dan membagikannya ke grup WhatsApp/Threads komunitas lari).\n\n" .
                         "PEDOMAN JUDUL, META TITLE, & META DESCRIPTION:\n" .
                         "- Judul & Meta Title harus berdaya tarik tinggi (high CTR), tajam, tanpa clickbait palsu (100% selaras dengan isi tulisan).\n" .
                         "- Meta Title maksimal 60 karakter (mengandung Focus Keyword di depan, bernada persuasif).\n" .

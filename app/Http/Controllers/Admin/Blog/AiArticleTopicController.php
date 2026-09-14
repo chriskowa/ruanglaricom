@@ -80,6 +80,9 @@ class AiArticleTopicController extends Controller
             'Strategi pacing marathon untuk PB' => 'https://www.runnersworld.com/',
             'Cara menghindari cedera lari' => 'https://www.runnersworld.com/',
             'Latihan interval untuk meningkatkan kecepatan' => 'https://www.runnersworld.com/',
+            'Fenomena joki Strava dan integritas olahraga lari' => 'https://www.runnersworld.com/',
+            'Etika jalur lari dan aturan tidak tertulis di CFD dan GBK' => 'https://www.runnersworld.com/',
+            'Tren sepatu karbon untuk pemula: performa vs risiko cedera' => 'https://www.runnersworld.com/',
         ];
 
         $added = 0;
