@@ -1603,10 +1603,7 @@
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                                 <span class="px-2.5 py-0.5 rounded bg-[#182338] text-xs font-medium text-slate-300">
                                     Challenger Program Alumni • 12 Minggu Latihan
-                                </span>
-                                <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-bold uppercase font-numeric">
-                                    Verified Finisher
-                                </span>
+                                </span>                                
                             </div>
 
                             <!-- Official Split Timing Strip -->

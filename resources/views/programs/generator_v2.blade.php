@@ -481,7 +481,7 @@
 
     </header>
 
-    <main id="generator-form" class="relative z-10 max-w-5xl mx-auto px-4 pt-8 pb-12">
+    <main id="generator-form" class="relative z-10 max-w-7xl mx-auto px-8 pt-8 pb-12">
         
         <!-- Athletic Modern SVG Background (Subtle Curves, Telemetry Grid, No Glare) -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10 rounded-2xl">
