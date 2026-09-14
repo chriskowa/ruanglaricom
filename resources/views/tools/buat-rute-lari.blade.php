@@ -80,8 +80,44 @@
         .rl-clean-mode #rl-fit,
         .rl-clean-mode #rl-fullscreen,
         .rl-clean-mode #rl-search-q-wrap,
-        .rl-clean-mode .leaflet-control-layers {
+        .rl-clean-mode .leaflet-control-layers,
+        .rl-clean-mode .rl-location-marker-icon {
             display: none !important;
+        }
+
+        /* Custom Location Marker & Dark Popup */
+        @keyframes rlLocPulse {
+            0% {
+                transform: scale(0.85);
+                opacity: 0.85;
+            }
+            70% {
+                transform: scale(1.65);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1.65);
+                opacity: 0;
+            }
+        }
+        .rl-location-popup .leaflet-popup-content-wrapper {
+            background: #0b1320 !important;
+            color: #f8fafc !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 10px !important;
+            box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.6) !important;
+            padding: 4px 6px !important;
+        }
+        .rl-location-popup .leaflet-popup-tip {
+            background: #0b1320 !important;
+            border: 1px solid #1e293b !important;
+        }
+        .rl-location-popup .leaflet-popup-close-button {
+            color: #94a3b8 !important;
+            padding: 5px !important;
+        }
+        .rl-location-popup .leaflet-popup-close-button:hover {
+            color: #ffffff !important;
         }
 
 
@@ -1563,21 +1599,7 @@
                 initialQs.has('pts')
             );
 
-            // Auto center to real user location on load via Geolocation API only if no initial route requested
-            if (navigator.geolocation && !hasInitialRoute) {
-                navigator.geolocation.getCurrentPosition(function(pos) {
-                    if (points && points.length > 0) return;
-                    var userLat = pos.coords.latitude;
-                    var userLng = pos.coords.longitude;
-                    map.setView([userLat, userLng], 15);
-                }, function(err) {
-                    console.warn('GPS Geolocation warning:', err ? err.message : 'Denied/Failed');
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 60000
-                });
-            }
+            // Initial route detection flag
 
             var mapboxToken = window.RL_MAPBOX_TOKEN;
             
@@ -1639,6 +1661,112 @@
             var isUndoing = false;
 
             var customMarkers = []; // Array of {lat, lng, type, label, markerInstance}
+            var locationMarker = null; // Active marker for current location or searched location
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function updateLocationMarker(lat, lng, title, openPopupNow) {
+                lat = parseFloat(lat);
+                lng = parseFloat(lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                var displayName = title || 'Lokasi Terkini';
+                var shortName = displayName.split(',')[0].trim();
+
+                var iconHtml =
+                    '<div class="rl-loc-pin-wrapper" style="position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">' +
+                    '  <div style="position:absolute;width:34px;height:34px;border-radius:50%;background:rgba(14,165,233,0.35);animation:rlLocPulse 2s cubic-bezier(0,0,0.2,1) infinite;"></div>' +
+                    '  <div style="position:relative;width:22px;height:22px;border-radius:50%;background:#0284c7;border:2.5px solid #ffffff;box-shadow:0 4px 12px rgba(2,132,199,0.6),0 2px 4px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:10px;">' +
+                    '    <i class="fa-solid fa-location-dot"></i>' +
+                    '  </div>' +
+                    '</div>';
+
+                var locIcon = L.divIcon({
+                    className: 'rl-location-marker-icon',
+                    html: iconHtml,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17],
+                    popupAnchor: [0, -18],
+                });
+
+                var popupHtml =
+                    '<div style="font-family:Inter,sans-serif;min-width:180px;max-width:240px;color:#f8fafc;padding:2px 0;">' +
+                    '  <div style="font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#38bdf8;margin-bottom:2px;">Pin Lokasi</div>' +
+                    '  <div style="font-size:12px;font-weight:700;line-height:1.3;color:#ffffff;margin-bottom:4px;">' + escapeHtml(shortName) + '</div>' +
+                    '  <div style="font-size:10px;font-family:monospace;color:#94a3b8;margin-bottom:8px;">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>' +
+                    '  <button type="button" id="rl-btn-start-here" style="width:100%;padding:6px 10px;background:#0284c7;border:none;border-radius:6px;color:#ffffff;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">' +
+                    '    <i class="fa-solid fa-play" style="font-size:9px;"></i> ' + ((typeof points !== 'undefined' && points.length > 0) ? 'Tambah Titik ke Sini' : 'Mulai Rute di Sini') +
+                    '  </button>' +
+                    '</div>';
+
+                if (!locationMarker) {
+                    locationMarker = L.marker([lat, lng], {
+                        icon: locIcon,
+                        zIndexOffset: 1000,
+                        riseOnHover: true,
+                    }).addTo(map);
+
+                    locationMarker.bindPopup(popupHtml, {
+                        className: 'rl-location-popup',
+                        closeButton: true,
+                        autoPan: true,
+                    });
+
+                    locationMarker.on('popupopen', function () {
+                        var btn = document.getElementById('rl-btn-start-here');
+                        if (btn) {
+                            var curLen = (typeof points !== 'undefined' && Array.isArray(points)) ? points.length : 0;
+                            btn.innerHTML = curLen > 0 
+                                ? '<i class="fa-solid fa-plus" style="font-size:10px;"></i> Tambah Titik ke Sini'
+                                : '<i class="fa-solid fa-play" style="font-size:9px;"></i> Mulai Rute di Sini';
+                            btn.onclick = function () {
+                                var curPos = locationMarker.getLatLng();
+                                addPoint(curPos);
+                                locationMarker.closePopup();
+                            };
+                        }
+                    });
+                } else {
+                    locationMarker.setLatLng([lat, lng]);
+                    locationMarker.setIcon(locIcon);
+                    locationMarker.setPopupContent(popupHtml);
+                }
+
+                if (openPopupNow) {
+                    locationMarker.openPopup();
+                }
+            }
+
+            // Auto detect user location on initial load and display marker
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    var userLat = pos.coords.latitude;
+                    var userLng = pos.coords.longitude;
+                    if (!hasInitialRoute && (!points || points.length === 0)) {
+                        map.setView([userLat, userLng], 15);
+                    }
+                    updateLocationMarker(userLat, userLng, 'Lokasi Terkini', false);
+                }, function (err) {
+                    console.warn('GPS Geolocation warning:', err ? err.message : 'Denied/Failed');
+                    if (!hasInitialRoute) {
+                        getIpLocation(true);
+                    }
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                });
+            } else if (!hasInitialRoute) {
+                getIpLocation(true);
+            }
 
             function pushState() {
                 if (isUndoing) return;
@@ -2317,6 +2445,7 @@
                             var lat = pos.coords.latitude;
                             var lng = pos.coords.longitude;
                             map.setView([lat, lng], 16);
+                            updateLocationMarker(lat, lng, 'Lokasi Terkini', true);
                             setStatus('Lokasi ditemukan');
                         } else {
                             throw new Error('invalid_coords');
@@ -2333,12 +2462,18 @@
                 }
             }
 
-            function getIpLocation() {
+            function getIpLocation(onlyIfNoMarker) {
                 fetch('https://ipapi.co/json/')
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data && data.latitude && data.longitude) {
-                            map.setView([data.latitude, data.longitude], 13);
+                            var lat = parseFloat(data.latitude);
+                            var lng = parseFloat(data.longitude);
+                            if (!points || points.length === 0) {
+                                map.setView([lat, lng], 13);
+                            }
+                            var cityLabel = data.city ? ('Lokasi Terkini (' + data.city + ')') : 'Lokasi Terkini';
+                            updateLocationMarker(lat, lng, cityLabel, false);
                             setStatus('Lokasi IP ditemukan: ' + (data.city || ''));
                         } else {
                             throw new Error('invalid_data');
@@ -2346,8 +2481,10 @@
                     })
                     .catch(function(err) {
                         console.error('IP Geolocation failed:', err);
-                        map.setView([-6.200000, 106.816666], 12);
-                        setStatus('Lokasi default (Jakarta)');
+                        if (!onlyIfNoMarker && (!points || points.length === 0)) {
+                            map.setView([-6.200000, 106.816666], 12);
+                            setStatus('Lokasi default (Jakarta)');
+                        }
                     });
             }
 
@@ -3785,29 +3922,33 @@
             function showSearchResults(items) {
                 els.results.innerHTML = '';
                 if (!items || items.length === 0) {
-                    els.results.className = 'mt-2';
-                    els.results.innerHTML = '<div class="text-xs text-slate-500 font-bold">Tidak ada hasil.</div>';
+                    els.results.innerHTML = '<div class="p-3 text-xs text-slate-300 font-semibold text-center">Tidak ada hasil ditemukan.</div>';
                     els.results.classList.remove('hidden');
                     return;
                 }
                 var wrap = document.createElement('div');
-                wrap.className = 'bg-slate-900/60 border border-slate-700 rounded-xl overflow-hidden';
+                wrap.className = 'divide-y divide-slate-800';
                 items.slice(0, 6).forEach(function (it) {
                     var btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'w-full text-left px-4 py-3 hover:bg-slate-800 transition border-b border-slate-800 last:border-b-0';
+                    btn.className = 'w-full text-left px-3.5 py-2.5 hover:bg-slate-800/90 transition flex flex-col gap-0.5 cursor-pointer text-slate-200';
                     var title = document.createElement('div');
-                    title.className = 'text-sm font-black text-white';
+                    title.className = 'text-xs font-bold text-white truncate';
                     title.textContent = it.display_name || 'Lokasi';
                     var sub = document.createElement('div');
-                    sub.className = 'text-[11px] text-slate-500 font-bold';
+                    sub.className = 'text-[10px] text-slate-400 font-mono';
                     sub.textContent = (parseFloat(it.lat).toFixed(5) + ', ' + parseFloat(it.lon).toFixed(5));
                     btn.appendChild(title);
                     btn.appendChild(sub);
                     btn.addEventListener('click', function () {
                         els.results.classList.add('hidden');
-                        map.setView([parseFloat(it.lat), parseFloat(it.lon)], 15);
-                        setStatus('Lokasi dipilih');
+                        var lat = parseFloat(it.lat);
+                        var lon = parseFloat(it.lon);
+                        map.setView([lat, lon], 16);
+                        updateLocationMarker(lat, lon, it.display_name, true);
+                        var shortTitle = (it.display_name || '').split(',')[0].trim();
+                        els.q.value = shortTitle;
+                        setStatus('Lokasi dipilih: ' + shortTitle);
                     });
                     wrap.appendChild(btn);
                 });
@@ -3824,8 +3965,19 @@
                 })
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
-                        showSearchResults(Array.isArray(data) ? data : []);
-                        setStatus('Hasil pencarian');
+                        var items = Array.isArray(data) ? data : [];
+                        showSearchResults(items);
+                        if (items.length > 0) {
+                            var first = items[0];
+                            var lat = parseFloat(first.lat);
+                            var lon = parseFloat(first.lon);
+                            map.setView([lat, lon], 16);
+                            updateLocationMarker(lat, lon, first.display_name || q, true);
+                            var shortTitle = (first.display_name || q).split(',')[0].trim();
+                            setStatus('Lokasi ditemukan: ' + shortTitle);
+                        } else {
+                            setStatus('Lokasi tidak ditemukan');
+                        }
                     })
                     .catch(function () {
                         setStatus('Gagal mencari');
@@ -3837,6 +3989,14 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     searchLocation();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (els.results && !els.results.classList.contains('hidden')) {
+                    if (els.q && !els.q.contains(e.target) && !els.results.contains(e.target) && els.searchBtn && !els.searchBtn.contains(e.target)) {
+                        els.results.classList.add('hidden');
+                    }
                 }
             });
 
@@ -4702,6 +4862,9 @@
             }
 
             map.on('click', function (e) {
+                if (els.results && !els.results.classList.contains('hidden')) {
+                    els.results.classList.add('hidden');
+                }
                 if (viewOnlyMode) return;
                 if (freehandActive) return;
 
