@@ -291,7 +291,7 @@ TEXT;
 
         //* 1. Tavily Search (General Web + Target Authority Outlets + Threads & Social Pulse)
         $query = ($selectedData['title'] ?? "") . ". Keyword: " . $selectedData['keyword'];
-        $authorityDomains = ['runnersworld.com', 'citiusmag.com', 'marathonhandbook.com'];
+        $authorityDomains = ['runnersworld.com', 'citiusmag.com', 'marathonhandbook.com', 'www.flotrack.org'];
 
         // General Web Search
         $tavilyResult = $this->tavily->search($query, 5, ['youtube.com', 'tiktok.com']);
@@ -326,13 +326,13 @@ TEXT;
 
         $tavilyResult = ['results' => $uniqueResults];
 
-        //* 2. Extract text for Research
-        $textForResearch = $this->cleanTavilyContext($uniqueResults, 14000);
+        //* 2. Extract text for Research (dibatasi 9000 char agar prompt efisien & cepat diproses)
+        $textForResearch = $this->cleanTavilyContext($uniqueResults, 9000);
 
         $prompt = "Kamu adalah seorang analis riset profesional untuk Ruang Lari (media & platform komunitas lari Indonesia). Analisis data riset mentah berikut yang berisi cuplikan hasil pencarian web otoritatif, jurnal/artikel lari, serta diskusi/kasus viral dari Threads dan media sosial.\n" .
                   "Tugas:\n" .
                   "1. Saring informasi yang tidak relevan atau duplikat.\n" .
-                  "2. Sintesiskan poin-poin penting menjadi ringkasan yang komprehensif.\n" .
+                  "2. Sintesiskan poin-poin penting menjadi ringkasan yang padat, tajam, dan bernas (panjang sekitar 400-600 kata, fokus pada intisari data sains & sentimen komunitas Threads tanpa kalimat bertele-tele).\n" .
                   "3. Sertakan fakta, statistik, data sains/fisiologi olahraga, serta rangkuman dinamika kasus nyata atau sudut pandang pro-kontra di Threads/komunitas lari jika ada.\n" .
                   "4. Cantumkan URL sumber untuk klaim utama jika memungkinkan.\n" .
                   "\nData Mentah:\n" . $textForResearch . "\n\n" .
@@ -397,7 +397,7 @@ TEXT;
                         "1. HOOK 3 DETIK (FIRST PARAGRAPH): DILARANG membuka artikel dengan kalimat klise AI ('Di era modern ini...', 'Olahraga lari kian digemari...', 'Bukan rahasia lagi bahwa...', 'Tak dapat dimungkiri bahwa...', 'Sebuah perjalanan...'). Buka LANGSUNG dengan narasi situasional yang menyentuh emosi pembaca, paradoks sains yang mengejutkan, atau pertanyaan provokatif yang dialami pelari sehari-hari. Sisipkan Focus Keyword secara alami di 100 kata pertama.\n" .
                         "2. HIGH INFORMATION GAIN & DATA SPESIFIK (STANDAR EEAT 2026): Sajikan data angka konkret dan metrik fisiologis yang terukur (contoh: persentase detak jantung Zone 2 vs Zone 4, cadence ideal 170-180 spm, VO2 max, asam laktat, durasi carbo-loading 36-48 jam, gram karbohidrat per kg berat badan). Jangan hanya bicara teori umum yang sudah basi di Google.\n" .
                         "3. PERSPEKTIF NYATA PELARI INDONESIA (LOCAL RELEVANCE): Kaitkan selalu dengan kondisi nyata pelari di tanah air: iklim tropis panas dan lembab (28-32°C, kelembaban >80%), rute aspal perkotaan dan CFD, event maraton nasional (Maybank Marathon Bali, Borobudur Marathon, Pocari Run Bandung, Jakarta Marathon), serta kebiasaan nutrisi lokal (air kelapa murni, pisang, kurma).\n" .
-                        "4. PANJANG & KETERBACAAN: 800 hingga 1500 kata yang padat informasi, tanpa kalimat berputar-putar. 1 paragraf terdiri dari 2-4 kalimat pendek yang enak dipindai di smartphone. Subjudul <h2> dan <h3> harus mencerminkan jawaban search intent pembaca.\n" .
+                        "4. PANJANG & KETERBACAAN: 800 hingga 1200 kata yang padat informasi, lugas, dan to the point tanpa kalimat berulang atau filler berlebihan agar proses generasi cepat dan responsif. 1 paragraf terdiri dari 2-4 kalimat pendek yang enak dipindai di smartphone. Subjudul <h2> dan <h3> harus mencerminkan jawaban search intent pembaca.\n" .
                         "5. INTEGRASI KASUS VIRAL & SENTIMEN THREADS (COMMUNITY PULSE): Jika topik mengangkat polemik, tren, atau perdebatan komunitas (seperti isu yang ramai di Threads, Instagram, atau grup lari), bawa pembaca masuk lewat studi kasus atau fenomena percakapan tersebut secara objektif di awal atau sub-topik pertama. Uraikan sentimen pro dan kontra para pelari, lalu bedah menggunakan lensa sains olahraga objektif, etika komunitas, atau aturan resmi atletik (PASI/World Athletics). Berikan pencerahan berwibawa yang membuat pembaca merasa tercerahkan dan ingin membagikan artikel ini kembali ke Threads dan WhatsApp.\n" .
                         "6. ACTIONABLE TAKEAWAY: Jelang akhir artikel, berikan checklist taktis langkah demi langkah yang bisa langsung dipraktekkan pembaca saat sesi lari esok pagi (memicu pembaca menyimpan artikel dan membagikannya ke grup WhatsApp/Threads komunitas lari).\n\n" .
                         "PEDOMAN JUDUL, META TITLE, & META DESCRIPTION:\n" .

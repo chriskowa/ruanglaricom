@@ -1085,6 +1085,7 @@ Route::middleware('auth')->group(function () {
         Route::post('blog/articles/agent/research', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'research'])->name('blog.articles.agent.research');
         Route::post('blog/articles/agent/write', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'write'])->name('blog.articles.agent.write');
         Route::post('blog/articles/agent/write-en', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'writeEn'])->name('blog.articles.agent.write-en');
+        Route::get('blog/articles/agent/status/{uuid}', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'status'])->name('blog.articles.agent.status');
         Route::post('blog/articles/agent/translate', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'translate'])->name('blog.articles.agent.translate');
         Route::post('blog/articles/agent/apply', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'apply'])->name('blog.articles.agent.apply');
         Route::post('blog/articles/agent/search-images', [App\Http\Controllers\Admin\Blog\ArticleAgentController::class, 'searchImages'])->name('blog.articles.agent.search-images');

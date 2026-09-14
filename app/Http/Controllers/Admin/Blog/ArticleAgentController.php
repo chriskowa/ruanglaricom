@@ -75,12 +75,64 @@ class ArticleAgentController extends Controller
             'research_summary' => 'nullable|string',
         ]);
 
+        // Cloudflare memiliki batas timeout 100 detik (Error 524).
+        // ignore_user_abort(true) memastikan PHP di server tetap menyelesaikan proses
+        // dan menyimpan artikel ke database meski Cloudflare memutuskan koneksi HTTP.
+        ignore_user_abort(true);
+        set_time_limit(300);
+        ini_set('max_execution_time', 300);
+
+        // Jika artikel untuk sesi ini sudah pernah selesai digenerate, langsung kembalikan
+        $session = \App\Models\ArticleAgent::find($request->uuid);
+        if ($session && !empty($session->generated_article_content)) {
+            $generated = $session->generated_article_content;
+            $decoded = is_string($generated) ? (json_decode($generated, true) ?: ['content' => $generated]) : (array) $generated;
+            $imagePrompts = $this->service->parseImagePrompts($decoded['content'] ?? '');
+            return response()->json([
+                'success'       => true,
+                'uuid'          => $request->uuid,
+                'result'        => $decoded,
+                'image_prompts' => $imagePrompts,
+            ]);
+        }
+
         try {
             $result = $this->service->step3_doWrite($request->only('uuid', 'research_summary'));
             return response()->json(['success' => true, ...$result]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Cek status generate artikel (untuk polling dari browser jika request write terkena timeout Cloudflare 524).
+     */
+    public function status(string $uuid)
+    {
+        $session = \App\Models\ArticleAgent::find($uuid);
+        if (!$session) {
+            return response()->json(['success' => false, 'message' => 'Session tidak ditemukan.'], 404);
+        }
+
+        $generated = $session->generated_article_content;
+        if (!empty($generated)) {
+            $decoded = is_string($generated) ? (json_decode($generated, true) ?: ['content' => $generated]) : (array) $generated;
+            $imagePrompts = $this->service->parseImagePrompts($decoded['content'] ?? '');
+
+            return response()->json([
+                'success'       => true,
+                'completed'     => true,
+                'uuid'          => $uuid,
+                'result'        => $decoded,
+                'image_prompts' => $imagePrompts,
+            ]);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'completed' => false,
+            'uuid'      => $uuid,
+        ]);
     }
 
     /**
@@ -91,6 +143,23 @@ class ArticleAgentController extends Controller
         $request->validate([
             'uuid' => 'required|string',
         ]);
+
+        ignore_user_abort(true);
+        set_time_limit(300);
+        ini_set('max_execution_time', 300);
+
+        $session = \App\Models\ArticleAgent::find($request->uuid);
+        if ($session && !empty($session->generated_article_content_en)) {
+            $generatedEn = $session->generated_article_content_en;
+            $decoded = is_string($generatedEn) ? (json_decode($generatedEn, true) ?: ['content' => $generatedEn]) : (array) $generatedEn;
+            $imagePrompts = $this->service->parseImagePrompts($decoded['content'] ?? '');
+            return response()->json([
+                'success'       => true,
+                'uuid'          => $request->uuid,
+                'result'        => $decoded,
+                'image_prompts' => $imagePrompts,
+            ]);
+        }
 
         try {
             $result = $this->service->step3_doWriteEn($request->uuid);

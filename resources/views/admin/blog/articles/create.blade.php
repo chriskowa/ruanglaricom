@@ -597,7 +597,10 @@
 
             {{-- Step 3: Write --}}
             <div id="aa-panel-write" class="hidden space-y-4">
-                <div id="aa-write-status" class="text-slate-300 text-sm">Menulis artikel...</div>
+                <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+                    <div id="aa-write-status" class="text-slate-300 text-sm font-medium">Menulis artikel...</div>
+                    <button type="button" onclick="aaCheckStatusManually()" id="aa-btn-check-status" class="text-xs px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer">Cek Status Terkini</button>
+                </div>
                 <div id="aa-result-preview" class="hidden bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 max-h-72 overflow-y-auto"></div>
 
                 {{-- Panel upload & auto-fetch gambar per [Gambar: ...] --}}
@@ -1950,20 +1953,83 @@ function openMediaModal(onSelectCallback) {
         await aaWrite();
     }
 
+    async function aaPollWriteStatus(uuid, maxSeconds = 180) {
+        const timerEl = document.getElementById('aa-poll-timer');
+        let elapsed = 0;
+        const statusUrl = '{{ url("admin/blog/articles/agent/status") }}/' + uuid;
+
+        while (elapsed < maxSeconds) {
+            await new Promise(r => setTimeout(r, 4000));
+            elapsed += 4;
+            if (timerEl) timerEl.textContent = elapsed;
+
+            try {
+                const resp = await fetch(statusUrl, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.success && data.completed) {
+                        return data;
+                    }
+                }
+            } catch (e) {
+                // Network glitch, keep polling
+            }
+        }
+        return { success: false, message: 'Waktu tunggu habis. Artikel masih diproses di latar belakang, silakan gunakan tombol "Cek Status Artikel" di bawah.' };
+    }
+
+    async function aaCheckStatusManually() {
+        if (!aaUuid) return;
+        const status = document.getElementById('aa-write-status');
+        if (status) status.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Mengecek status artikel di server...</span>';
+        const res = await aaPollWriteStatus(aaUuid, 8);
+        if (res && res.success && res.completed) {
+            aaRenderWriteResult(res);
+        } else {
+            alert('Artikel belum selesai digenerate oleh server. Tunggu sebentar lalu klik tombol ini lagi.');
+            if (status) {
+                status.innerHTML = 'Artikel masih diproses di server. <button type="button" onclick="aaCheckStatusManually()" class="ml-2 px-2.5 py-1 text-xs rounded bg-neon text-dark font-bold hover:bg-neon/90">Cek Status Artikel</button>';
+            }
+        }
+    }
+
     async function aaWrite() {
         const status = document.getElementById('aa-write-status');
         const preview = document.getElementById('aa-result-preview');
         const btnApply = document.getElementById('aa-btn-apply');
         const imgPanel = document.getElementById('aa-image-panel');
-        const imgList = document.getElementById('aa-image-list');
         status.classList.remove('hidden');
         preview.classList.add('hidden');
         imgPanel.classList.add('hidden');
         btnApply.classList.add('hidden');
-        status.textContent = 'Menulis artikel... (30-60 detik)';
+        status.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Menulis artikel lengkap... (sedang diproses AI)</span>';
 
-        const res = await aaPost('{{ route("admin.blog.articles.agent.write") }}', { uuid: aaUuid });
-        if (!res.success) { status.textContent = 'Gagal: ' + (res.message || 'Unknown'); return; }
+        let res = await aaPost('{{ route("admin.blog.articles.agent.write") }}', { uuid: aaUuid });
+
+        // Jika request terkena timeout Cloudflare 524 atau network disconnect,
+        // jangan gagal! Polling status ke endpoint status/{uuid} karena PHP tetap berjalan di server (ignore_user_abort).
+        if (!res || !res.success) {
+            status.innerHTML = '<span class="inline-flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> AI masih menyelesaikan penulisan di server (Cloudflare timeout dicegah)... Mohon tunggu (<span id="aa-poll-timer">0</span>s)</span>';
+            res = await aaPollWriteStatus(aaUuid);
+        }
+
+        if (!res || !res.success) {
+            status.innerHTML = 'Gagal: ' + (res?.message || 'Server timeout.') + 
+                ' <button type="button" onclick="aaCheckStatusManually()" class="ml-2 px-2.5 py-1 text-xs rounded bg-neon text-dark font-bold hover:bg-neon/90">Cek Status Artikel</button>';
+            return;
+        }
+
+        aaRenderWriteResult(res);
+    }
+
+    function aaRenderWriteResult(res) {
+        const status = document.getElementById('aa-write-status');
+        const preview = document.getElementById('aa-result-preview');
+        const btnApply = document.getElementById('aa-btn-apply');
+        const imgPanel = document.getElementById('aa-image-panel');
+        const imgList = document.getElementById('aa-image-list');
 
         const result = res.result || {};
         // Fallback: jika AI mengembalikan teks mentah (bukan JSON ber-key content),
