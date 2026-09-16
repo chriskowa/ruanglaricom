@@ -25,6 +25,7 @@ class SitemapController extends Controller
             ['loc' => route('challenge.index'), 'priority' => '0.7', 'changefreq' => 'daily'],
             ['loc' => route('vcard.index'), 'priority' => '0.6', 'changefreq' => 'weekly'],
             ['loc' => route('eo.landing'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+            ['loc' => route('rekayasa-lalu-lintas-pelari'), 'priority' => '0.9', 'changefreq' => 'monthly'],
             ['loc' => route('gpx.index'), 'priority' => '0.9', 'changefreq' => 'daily'],
         ];
 

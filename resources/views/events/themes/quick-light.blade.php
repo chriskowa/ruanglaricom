@@ -1114,7 +1114,7 @@
                                                 <input type="radio" name="payment_method" value="midtrans" {{ $showMidtrans ? 'checked' : '' }} required>
                                                 <div class="choice-box flex items-center justify-between gap-2">
                                                     <div class="min-w-0">
-                                                        <div class="text-xs font-bold text-slate-900 truncate">Midtrans Payment Gateway</div>
+                                                        <div class="text-xs font-bold text-slate-900 truncate">Online Payment Gateway</div>
                                                         <div class="mt-0.5 text-[10px] text-slate-500 truncate">QRIS, GoPay, Virtual Account, Credit Card</div>
                                                     </div>
                                                     <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">

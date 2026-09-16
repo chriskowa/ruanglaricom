@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@paddlejs-models/ocr@1.2.4/lib/index.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -1332,7 +1332,7 @@
                             <span class="font-bold text-slate-600 dark:text-slate-400">Mode OCR:</span>
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold">
                                 <i class="fa-solid fa-bolt"></i>
-                                Global Full Frame • Fast Scan ~450 ms
+                                PaddleOCR AI • Global Full Frame • Fast Scan ~450 ms
                             </span>
                         </div>
                     </div>
@@ -1399,6 +1399,16 @@
                         <div class="flex items-center gap-2">
                             <span class="font-mono text-slate-400">@{{ camera.fps }} FPS</span>
                             <span class="font-mono text-emerald-400 font-bold">@{{ camera.crossingCount }} Crossings</span>
+
+                            <!-- OCR Test Mode Toggle -->
+                            <button type="button" @click="toggleOcrTestMode"
+                                class="px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-colors text-xs"
+                                :class="ocrTestMode ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'"
+                                title="Mode tes: lihat teks mentah OCR tanpa mencatat waktu">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <span>@{{ ocrTestMode ? 'Test ON' : 'OCR Test' }}</span>
+                            </button>
+
                             <button type="button" @click="cameraSettingsOpen = !cameraSettingsOpen" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center gap-1.5 transition-colors">
                                 <i class="fa-solid fa-sliders"></i>
                                 <span>Pengaturan</span>
@@ -1469,7 +1479,7 @@
                         <div v-if="raceSettings.enableOcr" class="sm:col-span-2 md:col-span-4 flex items-center justify-between flex-wrap gap-2 text-xs pt-1 border-t border-slate-800">
                             <span class="text-slate-400 font-bold text-[11px]">OCR Scanner:</span>
                             <span class="text-emerald-400 font-bold text-[11px]">
-                                Full Frame • Runtime Pattern • Fuzzy Top-1 • No Voting
+                                PaddleOCR AI • Full Frame • Runtime Pattern • Fuzzy Top-1
                             </span>
                         </div>
                     </div>
@@ -1553,6 +1563,48 @@
                     <div v-if="camera.lastScanMsg" class="absolute top-2 right-2 z-20 px-3 py-1.5 rounded-lg bg-slate-950/90 border border-slate-700 text-emerald-400 font-mono text-xs font-bold shadow-lg">
                         @{{ camera.lastScanMsg }}
                     </div>
+
+                    <!-- OCR TEST MODE DEBUG OVERLAY -->
+                    <transition name="fade">
+                        <div v-if="ocrTestMode"
+                             class="absolute bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-amber-700 p-3 pointer-events-none">
+                            <!-- Header badge -->
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 rounded bg-amber-600 text-white font-bold text-[10px] uppercase tracking-widest">OCR Test Mode</span>
+                                <span class="text-slate-500 text-[10px] font-mono">Tidak ada waktu yang dicatat</span>
+                                <span v-if="ocrTestResult" class="ml-auto text-slate-500 font-mono text-[10px]">@{{ ocrTestResult.ts }}</span>
+                            </div>
+
+                            <div v-if="!ocrTestResult" class="text-slate-500 text-xs text-center py-1">Menunggu hasil scan pertama...</div>
+
+                            <div v-if="ocrTestResult" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                                <!-- Raw OCR text full -->
+                                <div class="bg-slate-900 rounded p-2 sm:col-span-2 flex flex-col justify-center">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Teks Mentah Terdeteksi (Angka & Huruf)</div>
+                                    <div class="font-oswald text-3xl font-black leading-none" :class="ocrTestResult.rawText && ocrTestResult.rawText !== '(nothing detected)' ? 'text-amber-300' : 'text-slate-600'">
+                                        @{{ ocrTestResult.rawText }}
+                                    </div>
+                                    <div class="text-[9px] text-slate-500 font-mono mt-1 break-all">RAW AI: @{{ ocrTestResult.debugJson || 'null' }}</div>
+                                </div>
+                                <!-- Match result & metrics -->
+                                <div class="bg-slate-900 rounded p-2 space-y-1.5">
+                                    <!-- Pencocokan peserta (bonus) -->
+                                    <div>
+                                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-0.5">Cocok Peserta (Database)</div>
+                                        <div v-if="ocrTestResult.matchedBib !== null" class="flex items-baseline gap-1.5">
+                                            <span class="font-oswald text-base font-black text-emerald-400 leading-none">#@{{ ocrTestResult.matchedBib }}</span>
+                                            <span class="text-slate-300 text-[10px] truncate">@{{ ocrTestResult.matchedName }}</span>
+                                        </div>
+                                        <div v-else class="text-slate-600 text-[10px]">Tidak ada peserta terdaftar</div>
+                                    </div>
+                                    <div class="border-t border-slate-800 pt-1.5 flex gap-3 text-[10px] font-mono">
+                                        <span v-if="ocrTestResult.score !== null" :class="ocrTestResult.score >= 70 ? 'text-emerald-400' : 'text-amber-400'">Score: @{{ ocrTestResult.score }}</span>
+                                        <span v-if="ocrTestResult.latencyMs !== null" class="text-slate-400">@{{ ocrTestResult.latencyMs }}ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
                 </div>
 
                 <!-- BIB Scan Mode: Settings & Pattern Training Panel -->
@@ -2795,7 +2847,9 @@
     createApp({
         setup() {
             // Data
-            // Tesseract / OCR State
+            // PaddleOCR / OCR State
+            let paddleOcrInstance = null;
+            let paddleOcrInitPromise = null;
             let ocrWorker = null;
             let ocrWorkerInitPromise = null;
             let ocrBusy = false;
@@ -2840,6 +2894,10 @@
             // Tahap 2: Two-Stage RoI Accelerated Micro-Intervals & Canvas Max Widths
             const BIB_SCAN_INTERVALS   = { close: 140, auto: 180, far: 250 }; // ms (2x-3x accelerated)
             const BIB_SCAN_MAX_WIDTHS  = { close: 440, auto: 520, far: 640 }; // px (RoI micro-canvas)
+
+            // OCR Test Mode — shows raw PaddleOCR output live without recording any lap
+            const ocrTestMode   = ref(false);
+            const ocrTestResult = ref(null); // { rawText, matchedBib, matchedName, score, latencyMs, ts, previewSrc }
 
 
             const currentView = ref('setup'); // setup, bibs, race, results
@@ -5968,52 +6026,57 @@
                 return true;
             };
 
-            // Strong OCR Scanner for Race BIB ---------------------------------------
+            // Strong PaddleOCR Engine for Race BIB ---------------------------------------
+            const extractTextFromPaddleResult = (res) => {
+                if (!res) return '';
+                if (typeof res === 'string') return res.trim();
+                if (typeof res.text === 'string') return res.text.trim();
+                if (Array.isArray(res.text)) return res.text.filter(Boolean).join(' ').trim();
+                if (Array.isArray(res)) {
+                    return res.map(item => {
+                        if (typeof item === 'string') return item;
+                        if (item && typeof item.text === 'string') return item.text;
+                        return '';
+                    }).filter(Boolean).join(' ').trim();
+                }
+                return '';
+            };
+
             const buildRuntimeOcrWhitelist = (profile = getBibRuntimeProfile()) => {
                 const prefixChars = [...new Set(profile.prefixes.join('').split(''))].join('');
-                // Keep common OCR-confusion characters available because the fuzzy parser
-                // intentionally converts O/I/L/Q/etc. in numeric positions.
                 return `0123456789${prefixChars}OQDILZSGB-| `;
             };
 
-            const ensureOcrWorker = async () => {
-                if (ocrWorker) return ocrWorker;
-                if (ocrWorkerInitPromise) return ocrWorkerInitPromise;
+            const ensurePaddleOcr = async () => {
+                if (paddleOcrInstance) return paddleOcrInstance;
+                if (paddleOcrInitPromise) return paddleOcrInitPromise;
 
-                ocrWorkerInitPromise = (async () => {
-                    const worker = await Tesseract.createWorker('eng');
-                    const profile = getBibRuntimeProfile();
-                    await worker.setParameters({
-                        tessedit_char_whitelist: buildRuntimeOcrWhitelist(profile),
-                        tessedit_pageseg_mode: '11', // Sparse text: scan BIB anywhere in the full frame
-                        preserve_interword_spaces: '1',
-                        user_defined_dpi: '220',
-                    });
-                    ocrWorkerProfileSignature = profile.signature;
-                    ocrWorker = worker;
-                    return worker;
+                paddleOcrInitPromise = (async () => {
+                    const engine = (typeof window !== 'undefined' && window.paddlejs && window.paddlejs.ocr)
+                        ? window.paddlejs.ocr
+                        : (typeof ocr !== 'undefined' ? ocr : null);
+
+                    if (!engine) {
+                        throw new Error('PaddleOCR library tidak ditemukan di window.paddlejs.ocr.');
+                    }
+
+                    if (typeof engine.init === 'function') {
+                        await engine.init();
+                    }
+                    paddleOcrInstance = engine;
+                    return engine;
                 })();
 
                 try {
-                    return await ocrWorkerInitPromise;
+                    return await paddleOcrInitPromise;
                 } finally {
-                    ocrWorkerInitPromise = null;
+                    paddleOcrInitPromise = null;
                 }
             };
 
-            const syncOcrWorkerToParticipantData = async (worker) => {
-                const profile = getBibRuntimeProfile();
-                if (profile.signature !== ocrWorkerProfileSignature) {
-                    await worker.setParameters({
-                        tessedit_char_whitelist: buildRuntimeOcrWhitelist(profile),
-                        tessedit_pageseg_mode: '11',
-                        preserve_interword_spaces: '1',
-                        user_defined_dpi: '220',
-                    });
-                    ocrWorkerProfileSignature = profile.signature;
-                }
-                return profile;
-            };
+            // Backward compatibility aliases
+            const ensureOcrWorker = ensurePaddleOcr;
+            const syncOcrWorkerToParticipantData = async () => getBibRuntimeProfile();
 
             // Global Otsu Threshold Calculation (legacy helper for non-global OCR modes)
             const computeOtsuThreshold = (grayArray, totalPixels) => {
@@ -6146,34 +6209,10 @@
                 ctx.imageSmoothingQuality = 'medium';
                 ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight, 0, 0, targetW, targetH);
 
-                // One fast contrast-stretched grayscale pass. No dual-pass OCR and no per-person crop.
-                const imgData = ctx.getImageData(0, 0, targetW, targetH);
-                const data = imgData.data;
-                let minG = 255;
-                let maxG = 0;
-
-                for (let i = 0; i < data.length; i += 4) {
-                    const g = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-                    if (g < minG) minG = g;
-                    if (g > maxG) maxG = g;
-                    data[i] = g; // temporarily store gray in R channel
-                }
-
-                const range = Math.max(24, maxG - minG);
-                for (let i = 0; i < data.length; i += 4) {
-                    const g = data[i];
-                    let v = Math.round(((g - minG) / range) * 255);
-                    // Mild contrast boost, intentionally cheaper than adaptive thresholding.
-                    v = Math.max(0, Math.min(255, Math.round((v - 128) * 1.18 + 128)));
-                    data[i] = data[i + 1] = data[i + 2] = v;
-                    data[i + 3] = 255;
-                }
-
-                ctx.putImageData(imgData, 0, 0);
                 return canvas;
             };
 
-            // Serialize access to the single Tesseract worker. Crop is captured before entering this queue,
+            // Serialize access to the PaddleOCR engine. Crop is captured before entering this queue,
             // so queued OCR still processes the correct runner/frame.
             const runOcrQueued = async (task, force = false) => {
                 if (!force && ocrQueueDepth >= 2) return null;
@@ -6211,11 +6250,11 @@
             };
 
             const scanFullFrameOcr = async (video) => {
-                if (!raceSettings.value.enableOcr) return null;
-                if (typeof Tesseract === 'undefined') return null;
+                if (!raceSettings.value.enableOcr && !ocrTestMode.value) return null;
+                if (typeof window === 'undefined' || (!window.paddlejs?.ocr && typeof ocr === 'undefined')) return null;
                 if (!video?.videoWidth || !video?.videoHeight) return null;
 
-                // Lock the time of the FRAME before Tesseract starts.
+                // Lock the time of the FRAME before PaddleOCR starts.
                 const capturedAt = Date.now();
                 const elapsedMs = timer.value.running && timer.value.startTime
                     ? Math.max(0, capturedAt - timer.value.startTime)
@@ -6226,13 +6265,41 @@
 
                 return runOcrQueued(async () => {
                     try {
-                        const worker = await ensureOcrWorker();
-                        await syncOcrWorkerToParticipantData(worker);
+                        const paddleEngine = await ensurePaddleOcr();
+                        const t0  = performance.now();
+                        
+                        // Pass an HTMLImageElement to PaddleJS instead of a raw detached canvas 
+                        // to prevent its internal DOM manipulation bugs (e.g. appendChild on null)
+                        const img = new Image();
+                        img.src = frameCanvas.toDataURL('image/jpeg', 0.9);
+                        await new Promise(resolve => { img.onload = resolve; });
+                        
+                        const res = await paddleEngine.recognize(img);
+                        const latencyMs = Math.round(performance.now() - t0);
+                        const rawText = extractTextFromPaddleResult(res);
 
-                        // ONE OCR pass only. Speed is preferred over multi-pass accuracy.
-                        const res = await worker.recognize(frameCanvas);
-                        const rawText = String(res?.data?.text || '').trim();
+                        // Feed test overlay regardless of participant match
+                        if (ocrTestMode.value) {
+                            // Extract all digit sequences directly — no participant filter needed
+                            const digitMatches = rawText ? rawText.match(/\d+/g) || [] : [];
+                            const detectedNumbers = digitMatches.length ? digitMatches.join(', ') : null;
+                            // Participant match is bonus info — does not block display
+                            const best = rawText ? findBestOcrParticipantMatch(rawText) : null;
+                            ocrTestResult.value = {
+                                rawText:         rawText || '(nothing detected)',
+                                debugJson:       JSON.stringify(res).substring(0, 100), // Log first 100 chars
+                                detectedNumbers,
+                                matchedBib:      best?.participant?.bib  ?? null,
+                                matchedName:     best?.participant?.name ?? null,
+                                score:           best?.score ?? null,
+                                latencyMs,
+                                ts: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+                                previewSrc: frameCanvas.toDataURL('image/jpeg', 0.6),
+                            };
+                        }
+
                         if (!rawText) return null;
+                        if (!raceSettings.value.enableOcr) return null; // test mode only, skip recording
 
                         const best = findBestOcrParticipantMatch(rawText);
                         if (!best?.participant) return null;
@@ -6240,12 +6307,15 @@
                         return {
                             ...best,
                             rawText,
-                            confidence: Number(res?.data?.confidence || 0),
+                            confidence: Number(res?.confidence || 88),
                             capturedAt,
                             elapsedMs,
                         };
                     } catch (e) {
-                        console.warn('Global OCR BIB error:', e);
+                        console.warn('Global PaddleOCR BIB error:', e);
+                        if (ocrTestMode.value) {
+                            ocrTestResult.value = { rawText: `Error: ${e.message}`, matchedBib: null, matchedName: null, score: null, latencyMs: null, ts: new Date().toLocaleTimeString('id-ID', { hour12: false }), previewSrc: null };
+                        }
                         return null;
                     }
                 }, false);
@@ -6324,9 +6394,12 @@
 
             const runGlobalOcrTick = async () => {
                 if (globalOcrInFlight) return;
-                if (!camera.value.active || !raceSettings.value.enableOcr) return;
-                if (!timer.value.running) return;
-                if (!participants.value.length) return;
+                if (!camera.value.active) return;
+                // Allow test mode to scan regardless of race state / OCR toggle
+                const isTestRun = ocrTestMode.value;
+                if (!isTestRun && !raceSettings.value.enableOcr) return;
+                if (!isTestRun && !timer.value.running) return;
+                if (!participants.value.length && !isTestRun) return;
 
                 const video = getReaderVideo();
                 if (!video || video.readyState < 2 || !video.videoWidth) return;
@@ -6334,8 +6407,9 @@
                 globalOcrInFlight = true;
                 try {
                     const result = await scanFullFrameOcr(video);
-                    if (!camera.value.active || !timer.value.running) return;
-                    if (result?.participant) {
+                    if (!camera.value.active) return;
+                    // In test mode the overlay is updated inside scanFullFrameOcr; only record if real race
+                    if (!isTestRun && result?.participant) {
                         // Requirement: first valid pattern -> top-1 fuzzy match -> process immediately.
                         processGlobalOcrResult(video, result);
                     }
@@ -6349,7 +6423,7 @@
             const startGlobalOcrScanner = () => {
                 stopGlobalOcrScanner();
                 globalOcrTimer = setInterval(() => {
-                    // Do not queue overlapping Tesseract work. If one scan is still running,
+                    // Do not queue overlapping PaddleOCR work. If one scan is still running,
                     // this interval is simply skipped.
                     runGlobalOcrTick();
                 }, OCR_GLOBAL_INTERVAL_MS);
@@ -6576,19 +6650,18 @@
 
                     const result = await runOcrQueued(async () => {
                         try {
-                            const worker = await ensureOcrWorker();
-                            await syncOcrWorkerToParticipantData(worker);
-                            const res     = await worker.recognize(frameCanvas);
-                            const rawText = String(res?.data?.text || '').trim();
+                            const paddleEngine = await ensurePaddleOcr();
+                            const res     = await paddleEngine.recognize(frameCanvas);
+                            const rawText = extractTextFromPaddleResult(res);
                             if (!rawText) return null;
 
                             const best = findBestOcrParticipantMatch(rawText);
                             if (!best?.participant) return null;
                             if (best.score < bibScan.value.minScore) return null;
 
-                            return { ...best, rawText, confidence: Number(res?.data?.confidence || 0), capturedAt, elapsedMs };
+                            return { ...best, rawText, confidence: Number(res?.confidence || 88), capturedAt, elapsedMs };
                         } catch (e) {
-                            console.warn('[BibScan] OCR error:', e);
+                            console.warn('[BibScan] PaddleOCR error:', e);
                             return null;
                         }
                     }, false);
@@ -6774,8 +6847,8 @@
                     camera.value.active = true;
                     camera.value.lastScanMsg = 'BIB Scan aktif — Arahkan kamera ke nomor BIB pelari';
 
-                    // Pre-warm Tesseract in background (don't await — UI should not block)
-                    ensureOcrWorker().catch(() => {});
+                    // Pre-warm PaddleOCR in background (don't await — UI should not block)
+                    ensurePaddleOcr().catch(() => {});
 
                     startBibScanLoop();
                 } catch (err) {
@@ -6833,10 +6906,9 @@
                         const ctx     = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                        const worker = await ensureOcrWorker();
-                        await syncOcrWorkerToParticipantData(worker);
-                        const res    = await worker.recognize(canvas);
-                        const text   = String(res?.data?.text || '').trim();
+                        const paddleEngine = await ensurePaddleOcr();
+                        const res    = await paddleEngine.recognize(canvas);
+                        const text   = extractTextFromPaddleResult(res);
 
                         if (text) {
                             const best = findBestOcrParticipantMatch(text);
@@ -6848,7 +6920,7 @@
                             }
                         }
                     } catch (e) {
-                        console.warn('[BibScan] Training OCR error:', e);
+                        console.warn('[BibScan] Training PaddleOCR error:', e);
                     }
                 }
 
@@ -6920,8 +6992,8 @@
                     } catch (e) {}
                 }
 
-                // OCR is handled by the independent GLOBAL full-frame scanner.
-                // Do not block crossing handling with Tesseract or per-person OCR here.
+                // OCR is handled by the independent GLOBAL full-frame scanner (PaddleOCR).
+                // Do not block crossing handling with per-person OCR here.
 
                 // Engine 3: Face Recognition fallback.
                 if (!participant && raceSettings.value.enableFaceAi && faceModelsLoaded) {
@@ -7686,14 +7758,12 @@
                 window.removeEventListener('click', handleClickOutsideEo);
                 if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
                 if (sessionSyncTimer) clearInterval(sessionSyncTimer);
-                if (ocrWorker) {
-                    ocrWorker.terminate();
-                    ocrWorker = null;
+                if (paddleOcrInstance) {
+                    paddleOcrInstance = null;
                 }
-                ocrWorkerInitPromise = null;
+                paddleOcrInitPromise = null;
                 ocrQueue = Promise.resolve();
                 ocrQueueDepth = 0;
-                ocrWorkerProfileSignature = '';
             });
 
             // Race Tab Pagination & Fast Filter State
@@ -8158,6 +8228,25 @@
 
 
 
+            // Toggle OCR Test Mode — starts global OCR scanner when no race is running
+            const toggleOcrTestMode = () => {
+                ocrTestMode.value = !ocrTestMode.value;
+                ocrTestResult.value = null;
+
+                if (ocrTestMode.value) {
+                    // Start the global OCR loop in test mode so frames keep flowing
+                    // even without an active timer/race
+                    if (!camera.value.active) return;
+                    if (globalOcrTimer) clearInterval(globalOcrTimer);
+                    globalOcrTimer = setInterval(() => { runGlobalOcrTick(); }, OCR_GLOBAL_INTERVAL_MS);
+                    setTimeout(() => runGlobalOcrTick(), 100);
+                } else {
+                    // Only stop the timer if OCR recording is also off
+                    if (!raceSettings.value.enableOcr) stopGlobalOcrScanner();
+                }
+            };
+
+
             return {
                 currentView, isSessionHost, raceName, existingRaces, selectExistingRace, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
                 raceCategory, categories, raceDistanceKm, publicResultsUrl, sessionSlug, newName, newBib, newPredictedHH, newPredictedMM, newPredictedSS, mobileMenuOpen, inputName, inputBib,
@@ -8199,6 +8288,8 @@
                 initializingSession, initializeRaceSession,
                 openAssignBibModal, confirmAssignBib,
                 bibScan, onBibSampleUpload, getBibRuntimeProfile, activeBibPattern,
+                ocrTestMode, ocrTestResult, toggleOcrTestMode,
+
                 isRecordingVideo, recordingDuration, formatRecordingDuration, recordedVideoUrl, recordedVideoBlob,
                 videoReviewModalOpen, videoPlaybackRate,
                 startVideoRecording, stopVideoRecording, toggleVideoRecording,

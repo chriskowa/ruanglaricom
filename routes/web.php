@@ -24,6 +24,14 @@ Route::get('/about', function () {
     return view('pages.about');
 })->name('about');
 
+Route::get('/rekayasa-lalu-lintas-pelari', function () {
+    return view('pages.rekayasa-lalu-lintas-pelari');
+})->name('rekayasa-lalu-lintas-pelari');
+
+Route::get('/halaman-baru/rekayasa-lalu-lintas-pelari', function () {
+    return redirect()->route('rekayasa-lalu-lintas-pelari', [], 301);
+});
+
 Route::get('/legal', function (Illuminate\Http\Request $request) {
     return view('pages.legal', ['tab' => $request->query('tab', 'privacy')]);
 })->name('legal');
