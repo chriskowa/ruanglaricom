@@ -323,8 +323,8 @@
             </div>
             
             <div class="flex items-center gap-3 shrink-0">
-                <span class="text-xs text-slate-400 font-numeric font-medium">
-                    Total <strong class="text-white font-bold">{{ $programs->total() ?? $programs->count() }}</strong> Program Lari Tersedia
+                <span class="text-xs text-slate-300 font-numeric font-medium">
+                    Total <strong class="text-white font-semibold">{{ $programs->total() ?? $programs->count() }}</strong> Program Lari Tersedia
                 </span>
             </div>
         </div>
@@ -339,39 +339,39 @@
                 <!-- Row 1: Category Filter Tabs -->
                 <div class="flex items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-none">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Jarak:</span>
+                        <span class="text-xs text-slate-300 font-medium whitespace-nowrap hidden sm:inline">Jarak:</span>
                         @php
                             $curCat = strtolower(request('category', ''));
                         @endphp
                         <button type="button" 
                                 onclick="setCatalogCategory('')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Semua Jarak
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('5k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             5K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('10k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             10K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('21k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Half Marathon (21K)
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('42k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-white text-slate-950 shadow-sm font-bold' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
                             Marathon (42K)
                         </button>
                     </div>
                     
-                    <div class="hidden lg:block text-xs text-slate-400 font-numeric shrink-0">
-                        Menampilkan <span class="text-white font-bold">{{ $programs->count() }}</span> dari <span class="text-white font-bold">{{ $programs->total() }}</span> Program
+                    <div class="hidden lg:block text-xs text-slate-300 font-numeric shrink-0">
+                        Menampilkan <span class="text-white font-semibold">{{ $programs->count() }}</span> dari <span class="text-white font-semibold">{{ $programs->total() }}</span> Program
                     </div>
                 </div>
 
@@ -385,14 +385,14 @@
                                id="catalog-search-input"
                                value="{{ request('search') }}"
                                placeholder="Cari nama program atau nama coach..." 
-                               class="w-full pl-9 pr-8 py-2.5 rounded-md athletic-field text-xs placeholder-slate-400">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               class="w-full pl-9 pr-8 py-2.5 rounded-md athletic-field text-xs placeholder-slate-500 text-slate-200">
+                        <svg class="w-4 h-4 text-slate-300 absolute left-3 top-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         @if(request('search'))
                             <button type="button" 
                                     onclick="clearCatalogSearch()" 
-                                    class="absolute right-2.5 top-2.5 text-slate-400 hover:text-white transition text-xs" 
+                                    class="absolute right-2.5 top-2.5 text-slate-300 hover:text-white transition text-xs" 
                                     title="Hapus pencarian">
                                 ✕
                             </button>
@@ -403,7 +403,7 @@
                     <div class="lg:col-span-3">
                         <select name="difficulty" 
                                 onchange="document.getElementById('catalog-filter-form').submit()"
-                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs cursor-pointer">
+                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs text-slate-200 cursor-pointer">
                             <option value="" {{ !request('difficulty') ? 'selected' : '' }}>Semua Tingkat (Level)</option>
                             <option value="beginner" {{ request('difficulty') === 'beginner' ? 'selected' : '' }}>Pemula (Beginner)</option>
                             <option value="intermediate" {{ request('difficulty') === 'intermediate' ? 'selected' : '' }}>Menengah (Intermediate)</option>
@@ -415,7 +415,7 @@
                     <div class="lg:col-span-2">
                         <select name="price_type" 
                                 onchange="document.getElementById('catalog-filter-form').submit()"
-                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs cursor-pointer">
+                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs text-slate-200 cursor-pointer">
                             <option value="" {{ !request('price_type') ? 'selected' : '' }}>Semua Biaya</option>
                             <option value="free" {{ request('price_type') === 'free' ? 'selected' : '' }}>Program Gratis</option>
                             <option value="paid" {{ request('price_type') === 'paid' ? 'selected' : '' }}>Program Berbayar</option>
@@ -426,7 +426,7 @@
                     <div class="lg:col-span-3">
                         <select name="sort" 
                                 onchange="document.getElementById('catalog-filter-form').submit()"
-                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs cursor-pointer">
+                                class="w-full py-2.5 px-3 rounded-md athletic-field text-xs text-slate-200 cursor-pointer">
                             <option value="popular" {{ request('sort') === 'popular' ? 'selected' : '' }}>Urutkan: Paling Populer</option>
                             <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Urutkan: Program Terbaru</option>
                             <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>Urutkan: Rating Tertinggi</option>
@@ -441,7 +441,7 @@
                 @if(request()->hasAny(['search', 'category', 'difficulty', 'price_type']) || (request('sort') && request('sort') !== 'newest'))
                     <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex flex-wrap items-center gap-1.5">
-                            <span class="text-slate-400 mr-1">Filter Aktif:</span>
+                            <span class="text-slate-300 mr-1">Filter Aktif:</span>
                             @if(request('search'))
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200">
                                     Pencarian: "{{ request('search') }}"
@@ -449,9 +449,9 @@
                                 </span>
                             @endif
                             @if(request('category'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white text-slate-950 font-bold uppercase">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 text-slate-100 font-semibold border border-slate-700 capitalize">
                                     Jarak: {{ request('category') }}
-                                    <a href="{{ route('programs.index', array_merge(request()->except(['category', 'page']))) }}#katalog-program-coach" class="hover:text-slate-600 ml-1">✕</a>
+                                    <a href="{{ route('programs.index', array_merge(request()->except(['category', 'page']))) }}#katalog-program-coach" class="hover:text-slate-400 ml-1">✕</a>
                                 </span>
                             @endif
                             @if(request('difficulty'))
@@ -468,7 +468,7 @@
                             @endif
                         </div>
 
-                        <a href="{{ route('programs.index') }}#katalog-program-coach" class="text-slate-400 hover:text-white font-medium transition">
+                        <a href="{{ route('programs.index') }}#katalog-program-coach" class="text-slate-300 hover:text-white font-medium transition">
                             Reset Semua Filter
                         </a>
                     </div>
@@ -559,71 +559,71 @@
                             <!-- Program Content: Equalized internal heights via locked min-h containers + flex gap -->
                             <div class="p-5 flex flex-col flex-1 gap-3.5 min-h-0">
 
-                                <!-- Metadata Line (Natural text, zero floating pills) -->
-                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-medium font-numeric shrink-0">
+                                <!-- Metadata Line -->
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium font-numeric shrink-0">
                                     <span class="text-white font-semibold">{{ $distBadgeText }}</span>
-                                    <span class="text-slate-600">•</span>
+                                    <span class="text-slate-500">·</span>
                                     <span>{{ $program->duration_weeks ?: 8 }} Minggu</span>
-                                    <span class="text-slate-600">•</span>
+                                    <span class="text-slate-500">·</span>
                                     <span>{{ $diffLabel }}</span>
                                 </div>
 
-                                <!-- Program Title (Locked 2 lines for equal height across cards) -->
-                                <h3 class="text-base sm:text-lg font-bold font-editorial-heading text-white hover:text-slate-200 transition leading-snug shrink-0">
+                                <!-- Program Title -->
+                                <h3 class="text-base sm:text-lg font-semibold font-editorial-heading text-white hover:text-slate-100 transition leading-snug shrink-0">
                                     <a href="{{ url('/programs/' . $program->slug) }}" class="block line-clamp-2 h-14 sm:h-[3.5rem]">{{ $program->title }}</a>
                                 </h3>
 
-                                <!-- Coach Info Bar (Single row locked height) -->
+                                <!-- Coach Info Bar -->
                                 <div class="flex items-center gap-2.5 shrink-0 h-7 overflow-hidden">
                                     <img src="{{ $coachAvatar }}"
                                          alt="{{ $program->coach->name ?? 'Coach' }}"
                                          class="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
                                          onerror="this.src='{{ asset('images/profile/17.jpg') }}'">
                                     <div class="min-w-0 flex items-center gap-1.5 text-xs">
-                                        <span class="font-medium text-slate-200 truncate">
+                                        <span class="font-medium text-slate-100 truncate">
                                             {{ $program->coach->name ?? 'Coach Ruang Lari' }}
                                         </span>
-                                        <span class="text-slate-600 shrink-0">•</span>
-                                        <span class="text-slate-400 text-[11px] truncate">
+                                        <span class="text-slate-500 shrink-0">·</span>
+                                        <span class="text-slate-300 text-[11px] truncate">
                                             {{ $program->city->name ?? ($program->coach->city->name ?? 'Coach Terverifikasi') }}
                                         </span>
                                     </div>
                                 </div>
 
-                                <!-- Short Description (Locked 2 lines, equal height) -->
-                                <p class="text-xs text-slate-300 leading-relaxed font-body shrink-0 line-clamp-2 h-10">
+                                <!-- Short Description -->
+                                <p class="text-sm text-slate-300 leading-relaxed font-body shrink-0 line-clamp-2 h-10">
                                     {{ $cleanDesc ?: 'Program latihan lari bertahap dengan menu terstruktur untuk mencapai target waktu terbaik tanpa risiko cedera.' }}
                                 </p>
 
-                                <!-- Key Stats Strip (push to bottom with mt-auto + consistent content) -->
+                                <!-- Key Stats Strip -->
                                 <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric shrink-0">
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Frekuensi</span>
-                                        <span class="text-xs font-bold text-slate-200 mt-0.5 block">{{ $weeklySessions }} Sesi/Mgg</span>
+                                        <span class="text-[10px] text-slate-400 block font-medium leading-tight">Frekuensi</span>
+                                        <span class="text-xs font-semibold text-slate-200 mt-0.5 block">{{ $weeklySessions }} Sesi/Mgg</span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Rating</span>
-                                        <span class="text-xs font-bold text-white mt-0.5 block"><span class="text-amber-400 mr-0.5">★</span>{{ number_format($program->average_rating ?: 4.9, 1) }}</span>
+                                        <span class="text-[10px] text-slate-400 block font-medium leading-tight">Rating</span>
+                                        <span class="text-xs font-semibold text-white mt-0.5 block"><span class="text-amber-400 mr-0.5">★</span>{{ number_format($program->average_rating ?: 4.9, 1) }}</span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Peserta</span>
-                                        <span class="text-xs font-bold text-slate-200 mt-0.5 block">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
+                                        <span class="text-[10px] text-slate-400 block font-medium leading-tight">Peserta</span>
+                                        <span class="text-xs font-semibold text-slate-200 mt-0.5 block">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
                                     </div>
                                 </div>
 
                             </div>
                         </div>
 
-                        <!-- Card Footer (Price & Action) - consistent separator and footer block -->
+                        <!-- Card Footer (Price & Action) -->
                         <div class="px-5 py-3 border-t border-slate-800 flex items-center justify-between gap-3 font-numeric shrink-0">
                             <div class="min-w-0">
-                                <span class="text-[10px] text-slate-400 block uppercase font-normal leading-tight">Biaya Program</span>
-                                <div class="text-base font-bold mt-0.5 truncate {{ $program->isFree() ? 'text-emerald-400' : 'text-white' }}">
+                                <span class="text-[10px] text-slate-400 block font-normal leading-tight">Biaya Program</span>
+                                <div class="text-base font-semibold mt-0.5 truncate {{ $program->isFree() ? 'text-emerald-400' : 'text-white' }}">
                                     {{ $program->isFree() ? 'Gratis' : 'Rp ' . number_format($program->price, 0, ',', '.') }}
                                 </div>
                             </div>
                             <a href="{{ url('/programs/' . $program->slug) }}"
-                               class="shrink-0 px-4 py-2 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm">
+                               class="shrink-0 px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs sm:text-sm transition">
                                 Lihat Program
                             </a>
                         </div>
@@ -642,15 +642,15 @@
         @else
             <!-- Empty State -->
             <div class="text-center py-16 px-4 athletic-card max-w-lg mx-auto space-y-4">
-                <div class="w-12 h-12 rounded-full bg-[#182338] border border-slate-800 mx-auto flex items-center justify-center text-slate-400 text-lg font-bold">
+                <div class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 mx-auto flex items-center justify-center text-slate-300 text-lg font-semibold">
                     ✕
                 </div>
-                <h3 class="text-lg font-bold font-editorial-heading text-white">Tidak Ada Program yang Cocok</h3>
-                <p class="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed font-body">
+                <h3 class="text-lg font-semibold font-editorial-heading text-white">Tidak Ada Program yang Cocok</h3>
+                <p class="text-sm text-slate-300 max-w-sm mx-auto leading-relaxed font-body">
                     Tidak ditemukan program lari untuk kriteria filter atau kata kunci pencarian yang kamu pilih saat ini.
                 </p>
                 <a href="{{ route('programs.index') }}#katalog-program-coach" 
-                   class="inline-block px-5 py-2.5 rounded-md bg-[#182338] hover:bg-[#1f2d48] border border-slate-800 hover:border-slate-700 text-white font-semibold text-xs transition uppercase">
+                   class="inline-block px-5 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-white font-medium text-sm transition">
                     Reset Semua Filter
                 </a>
             </div>
@@ -1591,12 +1591,12 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch">
                     <!-- Authentic Post-Race Photo -->
                     <div class="lg:col-span-5 relative bg-[#0b111e]">
-                        <img src="{{ asset('images/testimonial/runner-finish-emotion.jpg') }}" 
+                        <img src="{{ asset('/storage/blog/media/e6aa9263-4a51-43e7-a42e-bb1c4d31d42c.webp') }}" 
                              alt="Authentic Indonesian runner catching breath after finishing race" 
                              class="w-full h-full object-cover min-h-[320px] lg:min-h-[440px]"
                              loading="lazy">
                         <div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-[#0b111e]/90 border border-slate-800 text-[10px] font-bold text-[#CCFF00] font-numeric tracking-wider">
-                            BIB #1042 • FINISHER
+                            Ramadhan
                         </div>
                         <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded bg-[#0b111e]/90 text-[11px] font-semibold text-slate-300 font-numeric">
                             Finisher 21K • Jakarta Half Marathon
