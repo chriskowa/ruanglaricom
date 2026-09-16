@@ -763,7 +763,7 @@
                             </div>
                         </div>
                         <span class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-xs font-medium">
-                            {{ auth()->user()->city ?? 'Indonesia' }}
+                            {{ auth()->user()->city?->name ?? 'Indonesia' }}
                         </span>
                     </div>
 
