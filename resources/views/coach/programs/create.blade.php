@@ -7,26 +7,44 @@
 
 @section('content')
 <style>
-.ck-editor__editable_inline {
+.ck-editor__editable_inline,
+.ck.ck-editor__editable:not(.ck-editor__nested-editable) {
     min-height: 280px !important;
-    background-color: #0f172a !important; /* matches dark theme input */
+    background-color: #0f172a !important;
     color: #ffffff !important;
     border-color: #334155 !important;
+    padding: 0.85rem 1rem !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
 }
 .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
     border-color: #334155 !important;
 }
 .ck.ck-editor__main>.ck-editor__editable.ck-focused {
-    border-color: #befd00 !important; /* neon border on focus */
+    border-color: #befd00 !important;
+    box-shadow: 0 0 0 2px rgba(190, 253, 0, 0.08) !important;
 }
-.ck-toolbar {
+.ck.ck-editor {
+    border: 1px solid #334155 !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
+}
+.ck.ck-toolbar {
     background-color: #1e293b !important;
     border-color: #334155 !important;
+    border-bottom: 1px solid #334155 !important;
+    padding: 0.35rem 0.35rem !important;
+}
+.ck.ck-toolbar .ck.ck-toolbar__separator {
+    background-color: #334155 !important;
+    margin: 0 0.25rem !important;
 }
 .ck.ck-button {
     color: #cbd5e1 !important;
+    border-radius: 6px !important;
 }
-.ck.ck-button:hover {
+.ck.ck-button:hover,
+.ck.ck-button.ck-off:hover {
     background-color: #334155 !important;
     color: #ffffff !important;
 }
@@ -34,8 +52,13 @@
     background-color: #befd00 !important;
     color: #0f172a !important;
 }
+.ck.ck-button.ck-on:hover {
+    background-color: #d4ff4d !important;
+    color: #0f172a !important;
+}
 .ck.ck-dropdown .ck-dropdown__panel {
     background-color: #1e293b !important;
+    border-color: #334155 !important;
 }
 .ck-list {
     background-color: #1e293b !important;
@@ -46,6 +69,21 @@
 .ck-list__item button {
     color: #ffffff !important;
 }
+.ck.ck-input-text,
+.ck.ck-input {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #334155 !important;
+}
+.ck p, .ck h1, .ck h2, .ck h3, .ck h4, .ck ul, .ck ol, .ck blockquote {
+    color: #ffffff !important;
+    margin-bottom: 0.75rem !important;
+}
+.ck strong { color: #ffffff !important; font-weight: 700 !important; }
+.ck em { color: #e2e8f0 !important; font-style: italic !important; }
+.ck ul li, .ck ol li { color: #f1f5f9 !important; margin-left: 1.25rem !important; margin-bottom: 0.25rem !important; }
+.ck a { color: #befd00 !important; text-decoration: underline !important; }
+.ck blockquote { border-left: 3px solid #befd00 !important; padding-left: 1rem !important; color: #cbd5e1 !important; font-style: normal !important; }
 </style>
 <main class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" id="program-builder-app" v-cloak>
     <div class="max-w-7xl mx-auto">
@@ -995,34 +1033,59 @@ createApp({
         });
 
         onMounted(() => {
-            if (window.ClassicEditor && document.querySelector('#program_description_editor')) {
+            const editorTarget = document.querySelector('#program_description_editor');
+            const descTextarea = document.querySelector('#program_description');
+            if (window.ClassicEditor && editorTarget) {
                 ClassicEditor
-                    .create(document.querySelector('#program_description_editor'), {
+                    .create(editorTarget, {
                         toolbar: [
                             'heading',
                             '|',
-                            'bold', 'italic', 'underline', 'link',
-                            'fontColor', 'fontBackgroundColor',
+                            'bold', 'italic', 'underline', 'strikethrough', 'link',
                             '|',
                             'bulletedList', 'numberedList',
                             'blockQuote',
-                            '|',
                             'insertTable',
-                            'imageUpload', 'imageInsert',
                             '|',
-                            'alignment',
+                            'alignment:left', 'alignment:center', 'alignment:right',
+                            '|',
                             'removeFormat',
                             '|',
                             'undo', 'redo'
-                        ]
+                        ],
+                        heading: {
+                            options: [
+                                { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                                { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                                { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' }
+                            ]
+                        },
+                        table: {
+                            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+                        }
                     })
                     .then(editor => {
-                        editor.setData(form.description || '');
+                        const initial = form.description || descTextarea?.value || '';
+                        editor.setData(initial);
+                        if (descTextarea) descTextarea.value = initial;
+
                         editor.model.document.on('change:data', () => {
-                            form.description = editor.getData();
+                            const html = editor.getData();
+                            form.description = html;
+                            if (descTextarea) descTextarea.value = html;
                         });
                     })
-                    .catch(error => console.error(error));
+                    .catch(error => {
+                        console.error('CKEditor init error:', error);
+                        if (editorTarget && descTextarea) {
+                            editorTarget.style.display = 'none';
+                            descTextarea.classList.remove('hidden');
+                            descTextarea.classList.add('w-full', 'bg-slate-900', 'border', 'border-slate-700', 'rounded-xl', 'px-4', 'py-3', 'text-white', 'text-sm', 'min-h-[280px]');
+                        }
+                    });
+            } else if (descTextarea) {
+                descTextarea.classList.remove('hidden');
+                descTextarea.classList.add('w-full', 'bg-slate-900', 'border', 'border-slate-700', 'rounded-xl', 'px-4', 'py-3', 'text-white', 'text-sm', 'min-h-[280px]');
             }
         });
 

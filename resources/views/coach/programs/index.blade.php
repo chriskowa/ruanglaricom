@@ -46,10 +46,10 @@
                             @foreach($programs as $program)
                             <tr class="hover:bg-slate-800/40 transition">
                                 <td class="py-3.5 px-3">
-                                    <div class="font-semibold text-white">
+                                    <div class="font-semibold text-white leading-tight">
                                         <a href="{{ route('programs.show', $program->slug) }}" class="hover:text-neon transition">{{ $program->title }}</a>
                                     </div>
-                                    <div class="text-[11px] text-slate-400 truncate max-w-[240px] mt-0.5">{!! strip_tags($program->description) !!}</div>
+                                    <div class="text-[11px] text-slate-400 line-clamp-2 h-5 overflow-hidden max-w-[280px] mt-0.5 leading-tight">{{ \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags($program->description ?? ''))), 120) }}</div>
                                 </td>
                                 <td class="py-3.5 px-3 font-mono text-xs text-white">
                                     <span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-[10px] uppercase font-bold">{{ strtoupper($program->distance_target) }}</span>

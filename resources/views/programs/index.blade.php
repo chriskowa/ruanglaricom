@@ -491,8 +491,23 @@
                             default => asset('images/hero/runner-hero.jpg'),
                         };
                         
-                        // Featured image resolution with verified asset fallbacks
-                        $featuredImg = $program->thumbnail_url ?: ($program->banner_url ?: $defaultFallback);
+                        // Featured image resolution: asset-wrap every candidate path (defensive in case accessor
+                        // returns raw relative path instead of full URL). Match coach-avatar pattern above.
+                        $candidates = [
+                            $program->thumbnail_url ?? null,
+                            $program->banner_url ?? null,
+                            $program->thumbnail ? asset('storage/' . ltrim($program->thumbnail, '/')) : null,
+                            $program->banner ? asset('storage/' . ltrim($program->banner, '/')) : null,
+                        ];
+                        $featuredImg = $defaultFallback;
+                        foreach ($candidates as $cand) {
+                            if ($cand && is_string($cand) && trim($cand) !== '') {
+                                $featuredImg = str_starts_with($cand, 'http')
+                                    ? $cand
+                                    : asset('storage/' . ltrim($cand, '/'));
+                                break;
+                            }
+                        }
 
                         // Coach Avatar Resolver
                         $coachAvatar = ($program->coach && $program->coach->avatar)
@@ -541,18 +556,15 @@
 
                     <article class="h-full rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
                         <div class="flex flex-col flex-1 min-h-0">
-                            <!-- Photographic Cover: Background Cover with Fixed Aspect Ratio.
-                                 Image source preserved 100% (no resize), cropped centered via background-size:cover. -->
+                            <!-- Photographic Cover: Native <img> object-cover (visual identical to background-size:cover,
+                                 zero risk of broken inline-style CSS from URL special chars, onerror fallback is direct & reliable). -->
                             <a href="{{ url('/programs/' . $program->slug) }}"
-                               class="relative block w-full aspect-[3/2] shrink-0 bg-[#0B0F17] bg-center bg-cover border-b border-slate-800 overflow-hidden group program-cover-bg"
-                               style="background-image: url('{{ $featuredImg }}');"
-                               data-fallback="{{ asset('images/hero/runner-hero.jpg') }}"
+                               class="relative block w-full aspect-[3/2] shrink-0 bg-[#0B0F17] border-b border-slate-800 overflow-hidden group"
                                aria-label="{{ $program->title }}">
-                                <!-- Hover zoom layer using pseudo background-image scaled via transform trick: overlay img -->
                                 <img src="{{ $featuredImg }}"
                                      alt="{{ $program->title }}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-                                     onerror="this.closest('.program-cover-bg')?.style && (this.closest('.program-cover-bg').style.backgroundImage = 'url(' + this.closest('.program-cover-bg').dataset.fallback + ')'); this.onerror = null;"
+                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                                     onerror="this.onerror=null; this.src='{{ $defaultFallback }}';"
                                      loading="lazy">
                             </a>
 
