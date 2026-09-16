@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PublicProgramController extends Controller
@@ -106,6 +107,18 @@ class PublicProgramController extends Controller
 
         $programs = $query->paginate(12);
 
+        // Load coaches for "Meet the Coach" section
+        $coaches = User::where('role', 'coach')
+            ->whereHas('programs', function ($q) {
+                $q->where('is_published', true)->where('is_active', true);
+            })
+            ->withCount(['programs as published_programs_count' => function ($q) {
+                $q->where('is_published', true)->where('is_active', true);
+            }])
+            ->orderByDesc('published_programs_count')
+            ->limit(6)
+            ->get();
+
         // Calculate real stats for Hero section
         $totalPrograms = Program::where('is_published', true)
             ->where('is_active', true)
@@ -174,6 +187,7 @@ class PublicProgramController extends Controller
             'totalCoaches' => $totalCoaches,
             'averageRating' => $averageRating,
             'featuredProgram' => $featuredProgram,
+            'coaches' => $coaches,
         ]);
     }
 

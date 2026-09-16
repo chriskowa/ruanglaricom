@@ -702,106 +702,6 @@
                 </p>
             </div>
 
-            <!-- Athletic Elevation & Training Volume Profile SVG -->
-            <div class="mb-10 athletic-card p-5 sm:p-6 relative overflow-hidden">
-                <!-- Header with Telemetry Stats -->
-                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-800 text-xs font-numeric">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#CCFF00]"></span>
-                        <span class="text-white font-bold tracking-wide uppercase">Profil Elevasi & Progresi Jarak Pelari</span>
-                    </div>
-                    <div class="flex items-center gap-4 text-slate-400">
-                        <span>Elevasi Akumulasi: <strong class="text-white">+280m</strong></span>
-                        <span>Jarak Puncak: <strong class="text-[#CCFF00]">21.1 KM</strong></span>
-                        <span class="hidden sm:inline">Metode: <strong class="text-white">Daniels' Running Formula</strong></span>
-                    </div>
-                </div>
-
-                <!-- SVG Elevation Graph -->
-                <div class="w-full overflow-x-auto">
-                    <svg class="w-full min-w-[640px] h-48 sm:h-56" viewBox="0 0 900 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="elevGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#CCFF00" stop-opacity="0.25"/>
-                                <stop offset="45%" stop-color="#FAF8F3" stop-opacity="0.12"/>
-                                <stop offset="100%" stop-color="#0b111e" stop-opacity="0"/>
-                            </linearGradient>
-                            <linearGradient id="elevStroke" x1="0" y1="0" x2="1" y2="0">
-                                <stop offset="0%" stop-color="#22C55E"/>
-                                <stop offset="35%" stop-color="#FAF8F3"/>
-                                <stop offset="75%" stop-color="#CCFF00"/>
-                                <stop offset="100%" stop-color="#FAF8F3"/>
-                            </linearGradient>
-                            <pattern id="elevGrid" width="60" height="30" patternUnits="userSpaceOnUse">
-                                <path d="M 60 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-                            </pattern>
-                        </defs>
-
-                        <!-- Background Grid -->
-                        <rect width="900" height="175" fill="url(#elevGrid)"/>
-
-                        <!-- Y-Axis Elevation Markers -->
-                        <line x1="40" y1="25" x2="880" y2="25" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                        <text x="32" y="29" fill="#64748b" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="end">200m</text>
-
-                        <line x1="40" y1="70" x2="880" y2="70" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                        <text x="32" y="74" fill="#64748b" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="end">120m</text>
-
-                        <line x1="40" y1="115" x2="880" y2="115" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                        <text x="32" y="119" fill="#64748b" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="end">50m</text>
-
-                        <line x1="40" y1="160" x2="880" y2="160" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
-                        <text x="32" y="164" fill="#64748b" font-size="9" font-family="'JetBrains Mono', monospace" text-anchor="end">0m</text>
-
-                        <!-- Elevation Shaded Area -->
-                        <path d="M 50 160 
-                                 C 120 155, 180 145, 260 140 
-                                 C 340 135, 400 110, 520 95 
-                                 C 620 80, 700 40, 800 35 
-                                 L 850 40 L 850 160 L 50 160 Z" 
-                              fill="url(#elevGrad)"/>
-
-                        <!-- Elevation Profile Stroke Line -->
-                        <path d="M 50 160 
-                                 C 120 155, 180 145, 260 140 
-                                 C 340 135, 400 110, 520 95 
-                                 C 620 80, 700 40, 800 35 
-                                 L 850 40" 
-                              stroke="url(#elevStroke)" stroke-width="3" stroke-linecap="round"/>
-
-                        <!-- Stage 1 Marker: 5K Foundation -->
-                        <line x1="260" y1="25" x2="260" y2="160" stroke="#22C55E" stroke-opacity="0.3" stroke-dasharray="2 4"/>
-                        <circle cx="260" cy="140" r="5" fill="#22C55E"/>
-                        <circle cx="260" cy="140" r="9" stroke="#22C55E" stroke-opacity="0.4" stroke-width="2"/>
-                        <rect x="215" y="100" width="90" height="28" rx="4" fill="#0e1626" stroke="#1e293b"/>
-                        <text x="260" y="113" fill="#22C55E" font-size="9" font-weight="700" text-anchor="middle" font-family="'Inter', sans-serif">5K FINISHER</text>
-                        <text x="260" y="123" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono', monospace">Aerobic Base +25m</text>
-
-                        <!-- Stage 2 Marker: 10K Builder -->
-                        <line x1="520" y1="25" x2="520" y2="160" stroke="#FAF8F3" stroke-opacity="0.3" stroke-dasharray="2 4"/>
-                        <circle cx="520" cy="95" r="5" fill="#FAF8F3"/>
-                        <circle cx="520" cy="95" r="9" stroke="#FAF8F3" stroke-opacity="0.4" stroke-width="2"/>
-                        <rect x="475" y="55" width="90" height="28" rx="4" fill="#0e1626" stroke="#1e293b"/>
-                        <text x="520" y="68" fill="#FAF8F3" font-size="9" font-weight="700" text-anchor="middle" font-family="'Inter', sans-serif">10K BUILDER</text>
-                        <text x="520" y="78" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono', monospace">Threshold +75m</text>
-
-                        <!-- Stage 3 Marker: 21.1K Half Marathon -->
-                        <line x1="800" y1="15" x2="800" y2="160" stroke="#CCFF00" stroke-opacity="0.4" stroke-dasharray="2 4"/>
-                        <circle cx="800" cy="35" r="6" fill="#CCFF00"/>
-                        <circle cx="800" cy="35" r="11" stroke="#CCFF00" stroke-opacity="0.5" stroke-width="2"/>
-                        <rect x="740" y="5" width="120" height="26" rx="4" fill="#0e1626" stroke="#CCFF00" stroke-opacity="0.4"/>
-                        <text x="800" y="17" fill="#CCFF00" font-size="9" font-weight="800" text-anchor="middle" font-family="'Inter Tight', sans-serif">21.1K HALF MARATHON</text>
-                        <text x="800" y="26" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono', monospace">Peak Incline +180m</text>
-
-                        <!-- X-Axis Distance Labels -->
-                        <text x="50" y="190" fill="#64748b" font-size="9" font-family="'JetBrains Mono', monospace">0 KM</text>
-                        <text x="260" y="190" fill="#22C55E" font-size="9" font-weight="bold" font-family="'JetBrains Mono', monospace" text-anchor="middle">5 KM</text>
-                        <text x="520" y="190" fill="#FAF8F3" font-size="9" font-weight="bold" font-family="'JetBrains Mono', monospace" text-anchor="middle">10 KM</text>
-                        <text x="800" y="190" fill="#CCFF00" font-size="9" font-weight="bold" font-family="'JetBrains Mono', monospace" text-anchor="middle">21.1 KM</text>
-                    </svg>
-                </div>
-            </div>
-
             <!-- Timeline Progression Bar (Start -> Build -> Conquer) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <button type="button" 
@@ -1977,6 +1877,130 @@
             </div>
         </div>
     </section>
+
+    <!-- ====================================================================
+         SECTION 8.7: MEET THE COACH
+         ==================================================================== -->
+    @if(isset($coaches) && $coaches->count() > 0)
+    <section id="meet-the-coach" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
+
+        <div class="relative z-10">
+            <!-- Section Header -->
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2 font-numeric">
+                    Pelatih Berlisensi Kami
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
+                    Meet the Coach
+                </h2>
+                <p class="text-slate-300 text-sm mt-2 leading-relaxed font-body">
+                    Setiap program lari dirancang dan dipandu langsung oleh coach berlisensi yang telah mendampingi ratusan pelari mencapai target 5K, 10K, dan Half Marathon.
+                </p>
+            </div>
+
+            <!-- Coach Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($coaches as $coach)
+                @php
+                    $coachAvatar = $coach->avatar_url ?? asset('images/profile/17.jpg');
+
+                    // Resolve specialty from coach's programs
+                    $programDistances = $coach->programs()
+                        ->where('is_published', true)
+                        ->where('is_active', true)
+                        ->pluck('distance_target')
+                        ->unique()
+                        ->filter()
+                        ->map(fn($d) => match(strtolower($d)) {
+                            '5k' => '5K',
+                            '10k' => '10K',
+                            '21k', 'hm' => 'Half Marathon',
+                            '42k', 'fm' => 'Full Marathon',
+                            default => strtoupper($d),
+                        })
+                        ->values();
+
+                    $coachCity = $coach->city?->name ?? ($coach->location ?? 'Indonesia');
+                    $programCount = $coach->published_programs_count ?? 0;
+                    $bio = \Illuminate\Support\Str::limit(strip_tags($coach->bio ?? 'Coach lari berpengalaman dengan metode pelatihan berbasis sports science untuk membantu pelari mencapai performa terbaik.'), 110);
+                @endphp
+                <article class="rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
+
+                    <!-- Coach Avatar Cover -->
+                    <div class="relative w-full aspect-[4/3] shrink-0 bg-[#0B0F17] overflow-hidden group">
+                        <img src="{{ $coachAvatar }}"
+                             alt="Coach {{ $coach->name }}"
+                             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                             onerror="this.src='{{ asset('images/profile/17.jpg') }}'"
+                             loading="lazy">
+
+                        <!-- Program Count Badge -->
+                        <div class="absolute top-3 right-3 px-2.5 py-1 rounded bg-[#0b111e]/90 border border-slate-700 text-[10px] font-bold text-[#CCFF00] font-numeric tracking-wider">
+                            {{ $programCount }} Program
+                        </div>
+
+                        <!-- Distance Specialty Badges -->
+                        @if($programDistances->isNotEmpty())
+                        <div class="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+                            @foreach($programDistances->take(3) as $dist)
+                                <span class="px-2 py-0.5 rounded bg-[#0b111e]/90 border border-slate-700 text-[10px] font-semibold text-slate-200">{{ $dist }}</span>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Coach Info -->
+                    <div class="p-5 flex flex-col flex-1 gap-3">
+
+                        <!-- Name & City -->
+                        <div>
+                            <h3 class="text-base font-semibold font-editorial-heading text-white leading-snug">
+                                {{ $coach->name }}
+                            </h3>
+                            <div class="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span>{{ $coachCity }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <p class="text-xs text-slate-300 leading-relaxed font-body flex-1">
+                            {{ $bio }}
+                        </p>
+
+                        <!-- Stats Strip -->
+                        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric mt-auto">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium leading-tight">Program Aktif</span>
+                                <span class="text-xs font-semibold text-white mt-0.5 block">{{ $programCount }} Program</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium leading-tight">Rating</span>
+                                <span class="text-xs font-semibold text-white mt-0.5 block">
+                                    <span class="text-amber-400 mr-0.5">★</span>
+                                    @php
+                                        $coachRating = $coach->programs()->where('is_published', true)->avg('average_rating');
+                                    @endphp
+                                    {{ $coachRating ? number_format($coachRating, 1) : '4.9' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- CTA -->
+                        <a href="{{ route('programs.index', ['search' => $coach->name]) }}#katalog-program-coach"
+                           class="block w-full text-center px-4 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-white font-medium text-xs sm:text-sm transition">
+                            Lihat Program Coach
+                        </a>
+                    </div>
+                </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
 
     <!-- ====================================================================
          SECTION 9: FINAL CTA (HERO BAWAH)
