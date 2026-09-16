@@ -87,12 +87,12 @@ class PageController extends Controller
 
                 $highlights->push([
                     'type'     => 'event',
-                    'tag'      => 'RACE',
+                    'tag'      => 'Event',
                     'meta'     => $ev->city ?? ($ev->location_name ?? 'Indonesia'),
                     'title'    => $ev->name ?? $ev->title,
                     'date'     => optional($ev->start_at)->translatedFormat('d M Y') ?? 'Segera Dibuka',
                     'url'      => route('events.show', $ev->slug ?? $ev->id),
-                    'cta'      => 'Detail Race',
+                    'cta'      => 'Detail Event',
                     'image'    => $evImg,
                     'is_event' => true,
                 ]);
