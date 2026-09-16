@@ -477,9 +477,9 @@
             </div>
         </form>
 
-        <!-- Pure Blade Coach Program Cards Grid -->
+        <!-- Pure Blade Coach Program Cards Grid (stretch untuk equal height per row) -->
         @if($programs->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch auto-rows-fr">
                 @foreach($programs as $program)
                     @php
                         // Distance Resolver
@@ -539,22 +539,28 @@
                         };
                     @endphp
 
-                    <article class="rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col justify-between">
-                        <div class="flex flex-col flex-1">
-                            <!-- Clean Photographic Cover (Fixed 3:2 Aspect Ratio, Zero Pill Badges) -->
-                            <a href="{{ url('/programs/' . $program->slug) }}" class="aspect-[3/2] w-full relative bg-[#0B0F17] overflow-hidden border-b border-slate-800 shrink-0 block group">
-                                <img src="{{ $featuredImg }}" 
-                                     alt="{{ $program->title }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                     onerror="this.src='{{ asset('images/hero/runner-hero.jpg') }}'"
+                    <article class="h-full rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
+                        <div class="flex flex-col flex-1 min-h-0">
+                            <!-- Photographic Cover: Background Cover with Fixed Aspect Ratio.
+                                 Image source preserved 100% (no resize), cropped centered via background-size:cover. -->
+                            <a href="{{ url('/programs/' . $program->slug) }}"
+                               class="relative block w-full aspect-[3/2] shrink-0 bg-[#0B0F17] bg-center bg-cover border-b border-slate-800 overflow-hidden group program-cover-bg"
+                               style="background-image: url('{{ $featuredImg }}');"
+                               data-fallback="{{ asset('images/hero/runner-hero.jpg') }}"
+                               aria-label="{{ $program->title }}">
+                                <!-- Hover zoom layer using pseudo background-image scaled via transform trick: overlay img -->
+                                <img src="{{ $featuredImg }}"
+                                     alt="{{ $program->title }}"
+                                     class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+                                     onerror="this.closest('.program-cover-bg')?.style && (this.closest('.program-cover-bg').style.backgroundImage = 'url(' + this.closest('.program-cover-bg').dataset.fallback + ')'); this.onerror = null;"
                                      loading="lazy">
                             </a>
 
-                            <!-- Program Content -->
-                            <div class="p-5 flex flex-col flex-1 space-y-3.5">
-                                
+                            <!-- Program Content: Equalized internal heights via locked min-h containers + flex gap -->
+                            <div class="p-5 flex flex-col flex-1 gap-3.5 min-h-0">
+
                                 <!-- Metadata Line (Natural text, zero floating pills) -->
-                                <div class="flex items-center gap-2 text-xs text-slate-400 font-medium font-numeric">
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-medium font-numeric shrink-0">
                                     <span class="text-white font-semibold">{{ $distBadgeText }}</span>
                                     <span class="text-slate-600">•</span>
                                     <span>{{ $program->duration_weeks ?: 8 }} Minggu</span>
@@ -562,62 +568,62 @@
                                     <span>{{ $diffLabel }}</span>
                                 </div>
 
-                                <!-- Program Title -->
-                                <h3 class="text-base sm:text-lg font-bold font-editorial-heading text-white hover:text-slate-200 transition leading-snug line-clamp-2 min-h-[3rem] flex items-center">
-                                    <a href="{{ url('/programs/' . $program->slug) }}">{{ $program->title }}</a>
+                                <!-- Program Title (Locked 2 lines for equal height across cards) -->
+                                <h3 class="text-base sm:text-lg font-bold font-editorial-heading text-white hover:text-slate-200 transition leading-snug shrink-0">
+                                    <a href="{{ url('/programs/' . $program->slug) }}" class="block line-clamp-2 h-14 sm:h-[3.5rem]">{{ $program->title }}</a>
                                 </h3>
 
-                                <!-- Coach Info Bar -->
-                                <div class="flex items-center gap-2.5 shrink-0 pt-0.5">
-                                    <img src="{{ $coachAvatar }}" 
-                                         alt="{{ $program->coach->name ?? 'Coach' }}" 
+                                <!-- Coach Info Bar (Single row locked height) -->
+                                <div class="flex items-center gap-2.5 shrink-0 h-7 overflow-hidden">
+                                    <img src="{{ $coachAvatar }}"
+                                         alt="{{ $program->coach->name ?? 'Coach' }}"
                                          class="w-6 h-6 rounded-full object-cover border border-slate-700 shrink-0"
                                          onerror="this.src='{{ asset('images/profile/17.jpg') }}'">
                                     <div class="min-w-0 flex items-center gap-1.5 text-xs">
                                         <span class="font-medium text-slate-200 truncate">
                                             {{ $program->coach->name ?? 'Coach Ruang Lari' }}
                                         </span>
-                                        <span class="text-slate-600">•</span>
+                                        <span class="text-slate-600 shrink-0">•</span>
                                         <span class="text-slate-400 text-[11px] truncate">
                                             {{ $program->city->name ?? ($program->coach->city->name ?? 'Coach Terverifikasi') }}
                                         </span>
                                     </div>
                                 </div>
 
-                                <!-- Short Description (Sanitized Excerpt) -->
-                                <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed font-body min-h-[2.5rem]">
+                                <!-- Short Description (Locked 2 lines, equal height) -->
+                                <p class="text-xs text-slate-300 leading-relaxed font-body shrink-0 line-clamp-2 h-10">
                                     {{ $cleanDesc ?: 'Program latihan lari bertahap dengan menu terstruktur untuk mencapai target waktu terbaik tanpa risiko cedera.' }}
                                 </p>
 
-                                <!-- Key Stats Strip -->
+                                <!-- Key Stats Strip (push to bottom with mt-auto + consistent content) -->
                                 <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric shrink-0">
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium">Frekuensi</span>
-                                        <span class="text-xs font-bold text-slate-200">{{ $weeklySessions }} Sesi/Mgg</span>
+                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Frekuensi</span>
+                                        <span class="text-xs font-bold text-slate-200 mt-0.5 block">{{ $weeklySessions }} Sesi/Mgg</span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium">Rating</span>
-                                        <span class="text-xs font-bold text-white"><span class="text-amber-400 mr-0.5">★</span>{{ number_format($program->average_rating ?: 4.9, 1) }}</span>
+                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Rating</span>
+                                        <span class="text-xs font-bold text-white mt-0.5 block"><span class="text-amber-400 mr-0.5">★</span>{{ number_format($program->average_rating ?: 4.9, 1) }}</span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 block uppercase font-medium">Peserta</span>
-                                        <span class="text-xs font-bold text-slate-200">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
+                                        <span class="text-[10px] text-slate-400 block uppercase font-medium leading-tight">Peserta</span>
+                                        <span class="text-xs font-bold text-slate-200 mt-0.5 block">{{ $program->enrolled_count ?: 12 }}+ Pelari</span>
                                     </div>
                                 </div>
 
                             </div>
                         </div>
 
-                        <!-- Card Footer (Price & Action) -->
-                        <div class="px-5 pb-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-3 font-numeric shrink-0">
-                            <div>
-                                <span class="text-[10px] text-slate-400 block uppercase font-normal">Biaya Program</span>
-                                <div class="text-base font-bold {{ $program->isFree() ? 'text-emerald-400' : 'text-white' }}">
+                        <!-- Card Footer (Price & Action) - consistent separator and footer block -->
+                        <div class="px-5 py-3 border-t border-slate-800 flex items-center justify-between gap-3 font-numeric shrink-0">
+                            <div class="min-w-0">
+                                <span class="text-[10px] text-slate-400 block uppercase font-normal leading-tight">Biaya Program</span>
+                                <div class="text-base font-bold mt-0.5 truncate {{ $program->isFree() ? 'text-emerald-400' : 'text-white' }}">
                                     {{ $program->isFree() ? 'Gratis' : 'Rp ' . number_format($program->price, 0, ',', '.') }}
                                 </div>
                             </div>
-                            <a href="{{ url('/programs/' . $program->slug) }}" 
-                               class="px-4 py-2.5 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm">
+                            <a href="{{ url('/programs/' . $program->slug) }}"
+                               class="shrink-0 px-4 py-2 rounded-md bg-white hover:bg-slate-200 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm">
                                 Lihat Program
                             </a>
                         </div>
