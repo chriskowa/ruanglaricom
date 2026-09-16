@@ -636,7 +636,7 @@ class StoreRegistrationAction
 
                     return $transaction;
                 } else {
-                    throw new \Exception($snapResult['error'] ?? 'Gagal membuat transaksi pembayaran');
+                    throw new \Exception($snapResult['message'] ?? $snapResult['error'] ?? 'Gagal membuat transaksi pembayaran');
                 }
             }
         } catch (\Exception $e) {

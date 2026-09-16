@@ -189,12 +189,19 @@ class EventRegistrationController extends Controller
 
         $event = Event::where('slug', $slug)->firstOrFail();
 
+        $wantsJson = $request->expectsJson()
+            || $request->ajax()
+            || $request->wantsJson()
+            || $request->header('Accept') === 'application/json'
+            || \Illuminate\Support\Str::contains((string) $request->header('Accept'), 'json')
+            || $request->header('X-Requested-With') === 'XMLHttpRequest';
+
         try {
             $transaction = $this->storeAction->execute($request, $event);
 
             // Handle Moota Redirect
             if ($transaction->payment_gateway === 'moota' && $transaction->payment_status === 'pending') {
-                if ($request->ajax() || $request->wantsJson()) {
+                if ($wantsJson) {
                     return response()->json([
                         'success' => true,
                         'message' => 'Registrasi berhasil! Silakan lakukan pembayaran.',
@@ -213,7 +220,7 @@ class EventRegistrationController extends Controller
 
             // Handle COD success (no payment gateway redirect)
             if ($transaction->payment_gateway === 'cod') {
-                if ($request->ajax() || $request->wantsJson()) {
+                if ($wantsJson) {
                     return response()->json([
                         'success' => true,
                         'message' => 'Registrasi COD berhasil dikirim! Menunggu verifikasi dan persetujuan (approval) panitia.',
@@ -229,7 +236,7 @@ class EventRegistrationController extends Controller
             }
 
             // If AJAX request, return JSON
-            if ($request->ajax() || $request->wantsJson()) {
+            if ($wantsJson) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Registrasi berhasil!',
@@ -237,6 +244,7 @@ class EventRegistrationController extends Controller
                     'snap_token' => $transaction->snap_token,
                     'transaction_id' => $transaction->id,
                     'registration_id' => $transaction->public_ref,
+                    'redirect_url' => route('events.show', $slug).'?payment=pending&tx='.$transaction->id.'&ref='.$transaction->public_ref,
                     'testing_mode' => config('midtrans.testing_mode', false),
                 ]);
             }
@@ -247,7 +255,7 @@ class EventRegistrationController extends Controller
                 ->with('snap_token', $transaction->snap_token);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first() ?? 'Data pendaftaran belum lengkap.';
-            if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json' || $request->expectsJson()) {
+            if ($wantsJson) {
                 return response()->json([
                     'success' => false,
                     'message' => $firstError,
@@ -264,7 +272,7 @@ class EventRegistrationController extends Controller
                 ->withInput();
         } catch (\Exception $e) {
             // If AJAX request, return JSON error
-            if ($request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json' || $request->expectsJson()) {
+            if ($wantsJson) {
                 return response()->json([
                     'success' => false,
                     'error' => $e->getMessage(),

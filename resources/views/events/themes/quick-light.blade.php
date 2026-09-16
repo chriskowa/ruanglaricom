@@ -2185,19 +2185,34 @@
                     return;
                 }
 
-                if (data.snap_token && window.snap) {
-                    window.snap.pay(data.snap_token, {
-                        onSuccess: function() { window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`; },
-                        onPending: function() { window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending`; },
-                        onError: function() {
-                            alert('Pembayaran gagal diproses.');
-                            setSubmittingState(false);
-                        },
-                        onClose: function() {
-                            window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending`;
+                if (data.snap_token) {
+                    const qs = new URLSearchParams();
+                    if (data.transaction_id) qs.set('tx', String(data.transaction_id));
+                    if (data.registration_id) qs.set('ref', String(data.registration_id));
+
+                    if (typeof window.snap !== 'undefined' && typeof window.snap.pay === 'function') {
+                        window.snap.pay(data.snap_token, {
+                            onSuccess: function() { window.location.href = `{{ route('events.show', $event->slug) }}?payment=success&` + qs.toString(); },
+                            onPending: function() { window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending&` + qs.toString(); },
+                            onError: function() {
+                                alert('Pembayaran gagal diproses.');
+                                setSubmittingState(false);
+                            },
+                            onClose: function() {
+                                window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending&` + qs.toString();
+                            }
+                        });
+                        return;
+                    } else {
+                        alert('Modul pembayaran Midtrans gagal dimuat di browser kamu. Pastikan koneksi internet lancar dan nonaktifkan adblocker/shield jika aktif.');
+                        setSubmittingState(false);
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending&` + qs.toString();
                         }
-                    });
-                    return;
+                        return;
+                    }
                 }
 
                 if ((data.payment_gateway === 'moota' || data.redirect_url) && window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
@@ -2260,13 +2275,28 @@
                     body: formData
                 })
                 .then(async function(response) {
-                    const contentType = response.headers.get('content-type') || '';
-                    let data = null;
-                    if (contentType.includes('application/json')) {
-                        try {
-                            data = await response.json();
-                        } catch (e) {}
+                    if (response.redirected && response.url) {
+                        window.location.href = response.url;
+                        return;
                     }
+
+                    let data = null;
+                    let rawText = '';
+                    try {
+                        rawText = await response.text();
+                        if (rawText) {
+                            data = JSON.parse(rawText);
+                        }
+                    } catch (e) {
+                        if (rawText && rawText.includes('{') && rawText.includes('}')) {
+                            try {
+                                const jsonStart = rawText.indexOf('{');
+                                const jsonEnd = rawText.lastIndexOf('}') + 1;
+                                data = JSON.parse(rawText.slice(jsonStart, jsonEnd));
+                            } catch (e2) {}
+                        }
+                    }
+
                     if (!response.ok) {
                         if (data && data.message) {
                             throw new Error(data.message);
@@ -2281,16 +2311,29 @@
                         if (response.status === 422) {
                             throw new Error('Data pendaftaran belum lengkap atau tidak valid.');
                         }
+                        if (response.status === 429) {
+                            throw new Error('Terlalu banyak percobaan pendaftaran. Silakan tunggu 1 menit lalu coba lagi.');
+                        }
                         throw new Error('Terjadi kesalahan pada server (Status ' + response.status + ').');
                     }
+
                     if (!data) {
-                        throw new Error('Respons server tidak valid.');
+                        if (rawText && (rawText.includes('<!DOCTYPE') || rawText.includes('<html'))) {
+                            if (rawText.includes('payment=success') || rawText.includes('Menunggu Pembayaran')) {
+                                window.location.reload();
+                                return;
+                            }
+                            throw new Error('Sesi pendaftaran berakhir atau terjadi pengalihan halaman. Silakan refresh dan coba lagi.');
+                        }
+                        throw new Error('Respons server tidak valid atau kosong.');
                     }
                     return data;
                 })
                 .then(handleSuccess)
                 .catch(function(err) {
-                    alert(err.message || 'Gagal menghubungi server.');
+                    if (err) {
+                        alert(err.message || 'Gagal menghubungi server.');
+                    }
                     setSubmittingState(false);
                 });
             }

@@ -76,7 +76,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 'request_token_hash' => $hash($requestToken),
             ]);
 
-            if ($request->expectsJson()) {
+            $wantsJson = $request->expectsJson()
+                || $request->ajax()
+                || $request->wantsJson()
+                || $request->header('Accept') === 'application/json'
+                || \Illuminate\Support\Str::contains((string) $request->header('Accept'), 'json')
+                || $request->header('X-Requested-With') === 'XMLHttpRequest';
+
+            if ($wantsJson) {
                 return response()->json([
                     'success' => false,
                     'code' => 'SESSION_EXPIRED',
