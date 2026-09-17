@@ -242,9 +242,10 @@ class EventRegistrationController extends Controller
                     'message' => 'Registrasi berhasil!',
                     'payment_gateway' => $transaction->payment_gateway,
                     'snap_token' => $transaction->snap_token,
+                    'payment_url' => $transaction->midtrans_redirect_url ?? ($transaction->snap_token ? ('https://app.midtrans.com/snap/v2/vtweb/'.$transaction->snap_token) : null),
+                    'redirect_url' => $transaction->midtrans_redirect_url ?? (route('events.show', $slug).'?payment=pending&tx='.$transaction->id.'&ref='.$transaction->public_ref),
                     'transaction_id' => $transaction->id,
                     'registration_id' => $transaction->public_ref,
-                    'redirect_url' => route('events.show', $slug).'?payment=pending&tx='.$transaction->id.'&ref='.$transaction->public_ref,
                     'testing_mode' => config('midtrans.testing_mode', false),
                 ]);
             }

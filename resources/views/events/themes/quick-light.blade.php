@@ -2203,14 +2203,13 @@
                             }
                         });
                         return;
+                    } else if (data.payment_url || data.redirect_url) {
+                        window.location.href = data.payment_url || data.redirect_url;
+                        return;
                     } else {
                         alert('Modul pembayaran Midtrans gagal dimuat di browser kamu. Pastikan koneksi internet lancar dan nonaktifkan adblocker/shield jika aktif.');
                         setSubmittingState(false);
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        } else {
-                            window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending&` + qs.toString();
-                        }
+                        window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending&` + qs.toString();
                         return;
                     }
                 }

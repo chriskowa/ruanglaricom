@@ -632,6 +632,7 @@ class StoreRegistrationAction
                         'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
                     ]);
 
+                    $transaction->midtrans_redirect_url = $snapResult['redirect_url'] ?? null;
                     Cache::put($idKey, $transaction->id, now()->addMinutes(10));
 
                     return $transaction;

@@ -387,12 +387,20 @@ class MidtransService
         try {
             $this->configureForMode($mode);
 
-            // Get Snap Token from Midtrans
-            $snapToken = Snap::getSnapToken($params);
+            // Get Snap Token and Redirect URL from Midtrans
+            $snapResponse = Snap::createTransaction($params);
+            $snapToken = is_object($snapResponse) ? ($snapResponse->token ?? null) : (is_array($snapResponse) ? ($snapResponse['token'] ?? null) : null);
+            $redirectUrl = is_object($snapResponse) ? ($snapResponse->redirect_url ?? null) : (is_array($snapResponse) ? ($snapResponse['redirect_url'] ?? null) : null);
+
+            if (! $redirectUrl && $snapToken) {
+                $baseUrl = $mode === 'sandbox' ? 'https://app.sandbox.midtrans.com' : 'https://app.midtrans.com';
+                $redirectUrl = $baseUrl.'/snap/v2/vtweb/'.$snapToken;
+            }
 
             return [
                 'success' => true,
                 'snap_token' => $snapToken,
+                'redirect_url' => $redirectUrl,
                 'order_id' => $params['transaction_details']['order_id'],
                 'midtrans_mode' => $mode,
             ];
