@@ -556,21 +556,16 @@
 
                     <article class="h-full rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
                         <div class="flex flex-col flex-1 min-h-0">
-                            <!-- Photographic Cover: Background-cover (crop centered, TIDAK resize/merusak aspect ratio gambar asli)
-                                 Tinggi cover DIKUNCI aspect-[3/2] pada wrapper anchor — 100% seragam tinggi semua card per row.
-                                 URL style di-escape via e(..., ENT_QUOTES) agar single/double quote di path tidak merusak CSS syntax.
-                                 Native <img opacity-0> di dalam = 2 fungsi: (a) trigger native lazy-loading browser, (b) onerror rewrite
-                                 background-url ke fallback jika URL thumbnail asli error 404/korup. -->
+                            <!-- Program Thumbnail Cover: Standard visible <img> with locked aspect-[3/2] and min-h -->
                             <a href="{{ url('/programs/' . $program->slug) }}"
-                               class="relative block w-full aspect-[3/2] shrink-0 bg-[#0B0F17] bg-center bg-cover border-b border-slate-800 overflow-hidden group program-cover-bg"
-                               style="background-image: url(&quot;{{ e($featuredImg, ENT_QUOTES) }}&quot;);"
-                               data-fallback="{{ e($defaultFallback, ENT_QUOTES) }}"
+                               class="relative block w-full aspect-[3/2] min-h-[160px] sm:min-h-[180px] shrink-0 bg-[#0B0F17] border-b border-slate-800 overflow-hidden group"
                                aria-label="{{ $program->title }}">
-                                <img src="{{ e($featuredImg, ENT_QUOTES) }}"
+                                <img src="{{ $featuredImg }}"
                                      alt="{{ $program->title }}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:scale-105 transition-transform duration-300 pointer-events-none"
-                                     onerror="var p=this.closest('.program-cover-bg'); if(p){var fb=p.dataset.fallback||''; p.style.backgroundImage='url('+fb+')';} this.onerror=null;"
-                                     loading="lazy">
+                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 block"
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.src='{{ $defaultFallback }}';">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
                             </a>
 
                             <!-- Program Content: Equalized internal heights via locked min-h containers + flex gap -->
