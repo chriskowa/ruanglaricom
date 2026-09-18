@@ -538,9 +538,9 @@
                     <input type="text" id="aa-topic" maxlength="255" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula atau Borobudur Marathon 2026">
                     <div class="flex flex-wrap items-center gap-1.5 mt-2">
                         <span class="text-[11px] text-slate-400 font-medium">Inspirasi Topik:</span>
+                        <button type="button" onclick="aaPickTopic('Rilis Sepatu Nike Alphafly 4: Review & Spesifikasi', 'latest_news')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-neon hover:text-white border border-slate-700/60 transition-colors">Rilis Alphafly 4 (Live Search)</button>
                         <button type="button" onclick="aaPickTopic('Panduan Lari Zone 2 dan Aerobic Base untuk Pemula', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Lari Zone 2</button>
                         <button type="button" onclick="aaPickTopic('Cara Menambah Jarak Mileage Mingguan Tanpa Shin Splints', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Cegah Shin Splints</button>
-                        <button type="button" onclick="aaPickTopic('Strategi Carbo Loading dan Hidrasi Menjelang Race Maraton', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Carbo Loading Maraton</button>
                         <button type="button" onclick="aaPickTopic('Perbedaan Sepatu Karbon vs Daily Trainer untuk Lari Harian', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Sepatu Karbon vs Daily</button>
                         <button type="button" onclick="aaPickTopic('Etika Berbagi Jalur Lari di GBK dan CFD Jakarta', 'viral_threads')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Etika Jalur GBK/CFD</button>
                     </div>
@@ -556,6 +556,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
                     <select id="aa-strategy" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
                         <option value="free">Bebas (10 Ide Variatif & Berkualitas)</option>
+                        <option value="latest_news">Berita & Rilis Produk Terbaru (Live Google Search)</option>
                         <option value="viral_threads">Isu & Diskursus Komunitas (Threads/Sosmed)</option>
                         <option value="gap">Cari Celah Baru (Hindari Topik Serupa)</option>
                         <option value="cluster">Pillar & Cluster (Topik Turunan)</option>

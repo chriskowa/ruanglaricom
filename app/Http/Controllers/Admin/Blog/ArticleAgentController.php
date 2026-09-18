@@ -29,7 +29,7 @@ class ArticleAgentController extends Controller
         $request->validate([
             'topic'    => 'nullable|string|max:255',
             'raw_news' => 'nullable|string|max:20000',
-            'strategy' => 'nullable|in:free,gap,cluster,formula,viral_threads,threads',
+            'strategy' => 'nullable|in:free,gap,cluster,formula,viral_threads,threads,latest_news',
         ]);
 
         if (empty($request->topic) && empty($request->raw_news)) {

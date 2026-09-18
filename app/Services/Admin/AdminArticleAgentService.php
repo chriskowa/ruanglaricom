@@ -106,7 +106,7 @@ TEXT;
         // `php artisan config:cache` di production, env() di luar file config
         // akan selalu return null meski .env masih ada nilainya — pastikan
         // config/services.php punya: 'tavily' => ['api_key' => env('TAVILY_API_KEY')].
-        $tavilyKey = config('services.tavily.api_key');
+        $tavilyKey = config('services.tavily.api_key') ?: env('TAVILY_API_KEY');
         $this->tavily = $tavilyKey ? new TavilyClient($tavilyKey) : null;
     }
 
@@ -130,9 +130,37 @@ TEXT;
             $fullTopicInput .= ($fullTopicInput !== '' ? "\n\n" : "") . "[Cuplikan Berita Realtime / Threads / IG / Strava]:\n" . $rawNews;
         }
 
-        //? Get Top Articles as Reference (untuk strategi non-free & non-threads)
+        //? Real-time Live Web Search untuk Strategi "Berita & Rilis Produk Terbaru"
+        $liveSearchContext = '';
+        if ($strategy === 'latest_news' && $topic !== '') {
+            if ($this->tavily) {
+                try {
+                    $searchQuery = "{$topic} rilis berita review terbaru spesifikasi tanggal rilis harga";
+                    $tavilyLive = $this->tavily->search($searchQuery, 6, ['youtube.com', 'tiktok.com']);
+                    if (!empty($tavilyLive['results'])) {
+                        $liveSearchContext = "=== HASIL PENCARIAN REALTIME GOOGLE / WEB TERKINI (FAKTA RILIS TERBARU) ===\n";
+                        foreach ($tavilyLive['results'] as $idx => $res) {
+                            $num      = $idx + 1;
+                            $rTitle   = $res['title'] ?? '';
+                            $rUrl     = $res['url'] ?? '';
+                            $rContent = $res['content'] ?? ($res['raw_content'] ?? '');
+                            if (is_array($rContent)) {
+                                $rContent = implode(' ', $rContent);
+                            }
+                            $rContent = \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', $rContent)), 500);
+                            $liveSearchContext .= "{$num}. {$rTitle} ({$rUrl})\nCuplikan Data: {$rContent}\n\n";
+                        }
+                        $liveSearchContext .= "=========================================================================\n\n";
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Tavily live search error on step1_inputTopic: " . $e->getMessage());
+                }
+            }
+        }
+
+        //? Get Top Articles as Reference (untuk strategi non-free & non-threads & non-latest-news)
         $topArticles = [];
-        if (!in_array($strategy, ['free', 'viral_threads', 'threads'])) {
+        if (!in_array($strategy, ['free', 'viral_threads', 'threads', 'latest_news'])) {
             $site        = $input['site'] ?? 'all';
             $topArticles = $this->getTopArticles($site, 50);
         }
@@ -142,8 +170,14 @@ TEXT;
                   "Input berikut berasal dari user berupa topik lari, kata kunci, catatan riset, atau referensi isu terkini:\n" .
                   "=== INPUT PENGGUNA ===\n" .
                   "{$fullTopicInput}\n" .
-                  "=====================\n\n" .
-                  "Tugasmu: Analisis input di atas dan ciptakan 10 ide artikel lari BERMUTU TINGGI, BERDAYA PIKAT KUAT (High-CTR Organic Interest), kaya wawasan praktis (High Information Gain), dan siap mendominasi Google Search & Google Discover.\n\n" .
+                  "=====================\n\n";
+
+        if ($liveSearchContext !== '') {
+            $prompt .= "{$liveSearchContext}" .
+                       "PENTING: Gunakan fakta, spesifikasi, dan data rilis terbaru dari hasil pencarian live web di atas agar 10 ide judul dan ringkasannya 100% akurat dan faktual.\n\n";
+        }
+
+        $prompt .= "Tugasmu: Analisis input di atas dan ciptakan 10 ide artikel lari BERMUTU TINGGI, BERDAYA PIKAT KUAT (High-CTR Organic Interest), kaya wawasan praktis (High Information Gain), dan siap mendominasi Google Search & Google Discover.\n\n" .
                   "PANDUAN VARIASI SUDUT PANDANG (10 IDE HARUS SEIMBANG, KAYA, & TIDAK MONOTON):\n" .
                   "Jangan membuat judul yang klise, membosankan, atau seragam. Sebarkan 10 ide ke berbagai sudut pandang atletik yang kaya:\n" .
                   "1. SAINS LATIHAN & BIOMEKANIKA (EVIDENCE-BASED): Menguji mitos populer dengan sains fisiologi nyata (contoh: VO2 max, detak jantung Zone 2, cadence, ambang laktat, efisiensi langkah, overtraining, adaptasi kardiorespirasi).\n" .
@@ -159,7 +193,17 @@ TEXT;
                   "- HINDARI POLA KLISE REPETITIF: Jangan menggunakan template yang sama berulang kali (misalnya jangan semua judul memakai pola 'Bukan X, Ini Y' atau semuanya pertanyaan retoris). Variasikan struktur judul.\n\n";
 
         //* 2. Inject Referensi & Strategi
-        if (in_array($strategy, ['viral_threads', 'threads'])) {
+        if ($strategy === 'latest_news') {
+            $prompt .= "STRATEGI KHUSUS: BERITA & RILIS PRODUK / EVENT TERBARU (LIVE SEARCH GROUNDING):\n" .
+                       "Fokuskan 10 ide artikel ini untuk meliput dan membedah RILISAN PRODUK, TEKNOLOGI BARU, ATAU BERITA TERHANGAT seputar '{$topic}'.\n" .
+                       "PANDUAN SUDUT PANDANG RILISAN TERBARU:\n" .
+                       "1. Bedah Spesifikasi & Peningkatan (Upgrade vs Generasi Sebelumnya): Apa yang berubah dari versi pendahulu (bobot, bahan midsole/upper, geometri pelat karbon, ketahanan sol)?\n" .
+                       "2. Uji Kelayakan & Target Pelari: Apakah sepadan dengan harganya? Cocok untuk race day elite, marathoner, atau pelari harian?\n" .
+                       "3. Komparasi Head-to-Head: Bandingkan secara objektif dengan rival terdekat di kelas yang sama.\n" .
+                       "4. Tanggal Rilis, Ketersediaan & Harga Resmi: Bahas ketersediaan di pasar Indonesia / global.\n" .
+                       "5. Sains & Fisiologi di Balik Teknologi Baru: Bagaimana inovasi tersebut mempengaruhi efisiensi energi (running economy) pelari.\n" .
+                       "WAJIB: Gunakan fakta, spesifikasi, dan data aktual dari hasil pencarian live web di atas jika tersedia. Dilarang keras mengarang spesifikasi atau harga palsu.\n\n";
+        } elseif (in_array($strategy, ['viral_threads', 'threads'])) {
             $prompt .= "STRATEGI KHUSUS: ISU & DISKURSUS KOMUNITAS LARI:\n" .
                        "Fokuskan 10 ide artikel ini untuk membedah TREN, ETIKA, ATAU DISKURSUS YANG HANGAT DIBICARAKAN DI KOMUNITAS LARI (termasuk percakapan di Threads, Instagram, atau komunitas lari lokal).\n" .
                        "Topik yang dapat dieksplorasi secara konstruktif:\n" .
@@ -302,18 +346,22 @@ TEXT;
         // Targeted Search on Top Running Authority Publications
         $nicheResult = $this->tavily->search($query, 5, [], $authorityDomains);
 
-        // Contextual Auxiliary Search (Science & Physiology vs. Community Discourse)
+        // Contextual Auxiliary Search (Product Launch Specs vs. Community Discourse vs. Science & Physiology)
+        $isLatestNews        = ($session->strategy ?? '') === 'latest_news';
         $isCommunityStrategy = in_array($session->strategy ?? '', ['viral_threads', 'threads']);
         $hasCommunityIntent  = preg_match('/(etika|joki|bib|komunitas|cfd|gbk|water station|marshal|calo|drama|polemik)/i', $title . ' ' . $keyword);
 
-        if ($isCommunityStrategy || $hasCommunityIntent) {
+        if ($isLatestNews) {
+            // Targeted search for detailed product release specs, review, and pricing
+            $auxQuery = "{$title} {$keyword} review spesifikasi harga rilis upgrade kelebihan kekurangan";
+        } elseif ($isCommunityStrategy || $hasCommunityIntent) {
             // Search community discussion cleanly without forcing toxic/sensational keywords
             $auxQuery = "{$title} diskusi pelari komunitas (site:threads.net OR forum pelari)";
         } else {
             // Search sports science & training evidence for authoritative depth
             $auxQuery = "{$keyword} sports science physiology training study runner";
         }
-        $auxResult = $this->tavily->search($auxQuery, 4, ['youtube.com', 'tiktok.com']);
+        $auxResult = $this->tavily->search($auxQuery, 5, ['youtube.com', 'tiktok.com']);
 
         $combinedResults = array_merge(
             $tavilyResult['results'] ?? [],
