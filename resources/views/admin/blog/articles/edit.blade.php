@@ -416,29 +416,29 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Topik / Keyword Utama (Maks. 255 Karakter)</label>
                     <input type="text" id="aa-topic" maxlength="255" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600" placeholder="e.g., Training lari 10K pemula atau Borobudur Marathon 2026">
                     <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                        <span class="text-[11px] text-slate-400 font-medium">Inspirasi Isu Threads:</span>
-                        <button type="button" onclick="aaPickTopic('Fenomena Joki Strava dan Bib Transfer di Kalangan Pelari')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Joki Strava & Bib</button>
-                        <button type="button" onclick="aaPickTopic('Etika Jalur Cepat dan Rombongan Lari di CFD / GBK')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Etika Jalur CFD/GBK</button>
-                        <button type="button" onclick="aaPickTopic('Tren Sepatu Karbon Pace 7: Efisiensi vs Resiko Cedera')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Sepatu Karbon Pace 7</button>
-                        <button type="button" onclick="aaPickTopic('Drama Water Station Habis dan Manajemen Race Maraton')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Drama Water Station</button>
-                        <button type="button" onclick="aaPickTopic('Pace Shaming vs Toxic Positivity di Komunitas Lari')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Pace Shaming</button>
+                        <span class="text-[11px] text-slate-400 font-medium">Inspirasi Topik:</span>
+                        <button type="button" onclick="aaPickTopic('Panduan Lari Zone 2 dan Aerobic Base untuk Pemula', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Lari Zone 2</button>
+                        <button type="button" onclick="aaPickTopic('Cara Menambah Jarak Mileage Mingguan Tanpa Shin Splints', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Cegah Shin Splints</button>
+                        <button type="button" onclick="aaPickTopic('Strategi Carbo Loading dan Hidrasi Menjelang Race Maraton', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Carbo Loading Maraton</button>
+                        <button type="button" onclick="aaPickTopic('Perbedaan Sepatu Karbon vs Daily Trainer untuk Lari Harian', 'free')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Sepatu Karbon vs Daily</button>
+                        <button type="button" onclick="aaPickTopic('Etika Berbagi Jalur Lari di GBK dan CFD Jakarta', 'viral_threads')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors">Etika Jalur GBK/CFD</button>
                     </div>
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1.5">
-                        <label class="block text-xs font-semibold text-slate-300">Cuplikan Berita Realtime / Isu Viral (Threads, Instagram, News Paste)</label>
-                        <span class="text-[10px] text-neon font-mono">Opsional / Berita Panjang</span>
+                        <label class="block text-xs font-semibold text-slate-300">Cuplikan Berita / Riset / Catatan / Isu Terkini</label>
+                        <span class="text-[10px] text-neon font-mono">Opsional / Referensi Tambahan</span>
                     </div>
-                    <textarea id="aa-raw-news" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed custom-scrollbar" placeholder="Tempelkan cuplikan post Threads, kasus viral, keluh kesah pelari, tweet/IG, atau artikel berita di sini..."></textarea>
+                    <textarea id="aa-raw-news" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors placeholder:text-slate-600 leading-relaxed custom-scrollbar" placeholder="Tempelkan cuplikan artikel, catatan riset, referensi jurnal, atau isu terkini dari berita/Threads/media sosial di sini..."></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Strategi Konten</label>
                     <select id="aa-strategy" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
-                        <option value="free">Bebas (langsung brainstorm)</option>
-                        <option value="viral_threads">Kasus & Isu Viral Threads (Diskursus Komunitas)</option>
-                        <option value="gap">Cari Celah Baru (hindari topik serupa)</option>
-                        <option value="cluster">Pillar & Cluster (topik turunan)</option>
-                        <option value="formula">Formula Google Discover 2026 (E-E-A-T & Anti-Clickbait)</option>
+                        <option value="free">Bebas (10 Ide Variatif & Berkualitas)</option>
+                        <option value="viral_threads">Isu & Diskursus Komunitas (Threads/Sosmed)</option>
+                        <option value="gap">Cari Celah Baru (Hindari Topik Serupa)</option>
+                        <option value="cluster">Pillar & Cluster (Topik Turunan)</option>
+                        <option value="formula">Formula Google Discover 2026 (E-E-A-T & High CTR)</option>
                     </select>
                 </div>
                 <button type="button" onclick="aaBrainstorm()" id="aa-btn-brainstorm" class="mt-2 w-full py-3 rounded-xl bg-neon text-dark font-bold hover:bg-neon/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-neon/10 text-sm">
@@ -1360,15 +1360,15 @@
         return resp.json().catch(() => ({ success: false, message: 'Invalid response' }));
     }
 
-    function aaPickTopic(text) {
+    function aaPickTopic(text, strat = null) {
         const input = document.getElementById('aa-topic');
         if (input) {
             input.value = text;
             input.focus();
         }
         const strategy = document.getElementById('aa-strategy');
-        if (strategy) {
-            strategy.value = 'viral_threads';
+        if (strategy && strat) {
+            strategy.value = strat;
         }
     }
 
