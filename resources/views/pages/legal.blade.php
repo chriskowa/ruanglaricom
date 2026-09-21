@@ -67,6 +67,10 @@
                             class="px-4 py-2 rounded-md text-xs uppercase tracking-wider transition cursor-pointer">
                         FAQ & Pusat Bantuan
                     </button>
+                    <a href="{{ route('marketplace.policy') }}"
+                       class="px-4 py-2 rounded-md text-xs uppercase tracking-wider transition text-slate-400 hover:text-white hover:bg-slate-800/80 font-bold inline-flex items-center gap-1.5">
+                        Kebijakan Marketplace &rarr;
+                    </a>
                 </div>
             </div>
         </div>

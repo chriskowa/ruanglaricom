@@ -295,4 +295,13 @@ class MarketplaceController extends Controller
 
         return view('marketplace.seller-store', compact('seller', 'products', 'salesCount', 'categories'));
     }
+
+    /**
+     * Display the Marketplace Terms, Safety & Rules policy page.
+     */
+    public function policy()
+    {
+        return view('marketplace.policy');
+    }
 }
+

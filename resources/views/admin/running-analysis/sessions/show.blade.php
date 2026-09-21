@@ -181,17 +181,18 @@
 </div>
 
 <!-- Add Runners Modal -->
-<div id="addRunnersModal" class="hidden fixed inset-0 z-[1100] overflow-y-auto">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-slate-950/80 backdrop-blur-sm" onclick="closeAddRunnersModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-[#0f172a] border border-slate-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+<div id="addRunnersModal" class="fixed inset-0 z-[1100] hidden overflow-y-auto" aria-labelledby="modal-add-runners" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm transition-opacity" onclick="closeAddRunnersModal()"></div>
+    <div class="flex min-h-screen items-center justify-center p-4 sm:p-6">
+        <div class="relative z-10 w-full max-w-2xl bg-[#0f172a] border border-slate-800 rounded-lg text-left overflow-hidden shadow-2xl transform transition-all">
             <form action="{{ route('admin.running-analysis.sessions.runners.add', $session) }}" method="POST" id="add-runners-form">
                 @csrf
-                <div class="px-6 py-5 border-b border-slate-800 flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-white uppercase italic tracking-wider">Add Runners</h3>
-                    <button type="button" class="text-slate-400 hover:text-white" onclick="closeAddRunnersModal()">
-                        <i class="fas fa-times"></i>
+                <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-white uppercase tracking-wider" id="modal-add-runners">Add Runners</h3>
+                    <button type="button" class="text-slate-400 hover:text-white p-1 rounded transition duration-150" onclick="closeAddRunnersModal()" aria-label="Close modal">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
                 <div class="p-6 space-y-4">
@@ -238,14 +239,28 @@
     let selectedRunners = [];
 
     function openAddRunnersModal() {
-        document.getElementById('addRunnersModal').classList.remove('hidden');
-        document.getElementById('runner-search-input').value = '';
-        searchRunners('');
+        const modal = document.getElementById('addRunnersModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('runner-search-input').value = '';
+            searchRunners('');
+        }
     }
 
     function closeAddRunnersModal() {
-        document.getElementById('addRunnersModal').classList.add('hidden');
+        const modal = document.getElementById('addRunnersModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
     }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAddRunnersModal();
+        }
+    });
 
     // Debounce helper
     function debounce(func, timeout = 300) {

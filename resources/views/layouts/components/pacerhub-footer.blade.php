@@ -211,6 +211,11 @@
                                 Marketplace Gear
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('marketplace.policy') }}" class="text-slate-300 hover:text-white hover:translate-x-1 inline-block transition-all duration-150">
+                                Kebijakan Marketplace
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -354,6 +359,10 @@
                 <span class="text-slate-700" aria-hidden="true">&bull;</span>
                 <a href="{{ route('legal', ['tab' => 'terms']) }}" class="hover:text-white transition-colors">
                     Terms
+                </a>
+                <span class="text-slate-700" aria-hidden="true">&bull;</span>
+                <a href="{{ route('marketplace.policy') }}" class="hover:text-white transition-colors">
+                    Kebijakan Marketplace
                 </a>
                 <span class="text-slate-700" aria-hidden="true">&bull;</span>
                 <a href="{{ Route::has('vcard.index') ? route('vcard.index') : url('/card') }}" class="hover:text-white transition-colors">
