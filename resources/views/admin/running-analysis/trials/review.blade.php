@@ -62,7 +62,7 @@
     if ($score === null) {
         $scoreCategory = 'Belum tersedia';
         $scoreDescription = 'Analisis belum menghasilkan skor form.';
-        $scoreAccent = 'text-slate-400';
+        $scoreAccent = 'text-slate-200';
         $scoreRing = 'border-white/10';
         $scoreBar = 'bg-slate-600';
     } elseif ($score >= 85) {
@@ -183,13 +183,13 @@
     <div class="relative max-w-[1500px] mx-auto px-4 md:px-8">
         {{-- Breadcrumb and context --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <a href="{{ $backUrl }}" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-[#ccff00] transition-colors w-fit">
+            <a href="{{ $backUrl }}" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-[#ccff00] transition-colors w-fit">
                 <span class="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center">
                     <i class="fas fa-arrow-left text-xs"></i>
                 </span>
                 Kembali ke sesi
             </a>
-            <div class="text-[10px] uppercase tracking-[0.24em] text-slate-600 font-bold">
+            <div class="text-[10px] uppercase tracking-[0.24em] text-slate-400 font-bold">
                 Running Analysis / Trial Review
             </div>
         </div>
@@ -227,11 +227,11 @@
                         <h1 class="text-2xl md:text-4xl font-bold tracking-[-0.035em] text-white truncate">
                             {{ $trial->runner->name }}
                         </h1>
-                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-slate-400">
-                            <span><i class="fas fa-hashtag mr-1.5 text-slate-600"></i>{{ $trial->attempt_no }}</span>
-                            <span><i class="far fa-calendar mr-1.5 text-slate-600"></i>{{ $trial->created_at->format('d M Y, H:i') }}</span>
+                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm text-slate-200">
+                            <span><i class="fas fa-hashtag mr-1.5 text-slate-400"></i>{{ $trial->attempt_no }}</span>
+                            <span><i class="far fa-calendar mr-1.5 text-slate-400"></i>{{ $trial->created_at->format('d M Y, H:i') }}</span>
                             @if($trial->camera_width)
-                                <span><i class="fas fa-camera mr-1.5 text-slate-600"></i>{{ $trial->camera_width }}×{{ $trial->camera_height }} @ {{ $trial->camera_fps }} fps</span>
+                                <span><i class="fas fa-camera mr-1.5 text-slate-400"></i>{{ $trial->camera_width }}×{{ $trial->camera_height }} @ {{ $trial->camera_fps }} fps</span>
                             @endif
                         </div>
                     </div>
@@ -281,11 +281,11 @@
         {{-- KPI strip --}}
         <section class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
             <div class="review-card-soft rounded-2xl p-4 col-span-2 lg:col-span-1">
-                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Form Score</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-bold mb-2">Form Score</div>
                 <div class="flex items-end justify-between gap-3">
                     <div>
                         <div class="text-3xl font-bold metric-value {{ $scoreAccent }}">{{ $score ?? '—' }}</div>
-                        <div class="text-[11px] text-slate-400 mt-1">{{ $scoreCategory }}</div>
+                        <div class="text-[11px] text-slate-200 mt-1">{{ $scoreCategory }}</div>
                     </div>
                     <div class="w-10 h-10 rounded-xl border {{ $scoreRing }} flex items-center justify-center {{ $scoreAccent }}">
                         <i class="fas fa-gauge-high"></i>
@@ -293,25 +293,25 @@
                 </div>
             </div>
             <div class="review-card-soft rounded-2xl p-4">
-                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Temuan Prioritas</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-bold mb-2">Temuan Prioritas</div>
                 <div class="text-3xl font-bold metric-value text-white">{{ $priorityIssueCount }}</div>
-                <div class="text-[11px] text-slate-500 mt-1">Significant + moderate</div>
+                <div class="text-[11px] text-slate-200 mt-1">Significant + moderate</div>
             </div>
             <div class="review-card-soft rounded-2xl p-4">
-                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Metrik</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-bold mb-2">Metrik</div>
                 <div class="text-3xl font-bold metric-value text-white">{{ $trial->metrics->count() }}</div>
-                <div class="text-[11px] text-slate-500 mt-1">Biomechanical values</div>
+                <div class="text-[11px] text-slate-200 mt-1">Biomechanical values</div>
             </div>
             <div class="review-card-soft rounded-2xl p-4">
-                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Gait Events</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-bold mb-2">Gait Events</div>
                 <div class="text-3xl font-bold metric-value text-white">{{ $trial->gaitEvents->count() }}</div>
-                <div class="text-[11px] text-slate-500 mt-1">Momen terdeteksi</div>
+                <div class="text-[11px] text-slate-200 mt-1">Momen terdeteksi</div>
             </div>
             <div class="review-card-soft rounded-2xl p-4">
-                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-2">Kelengkapan Data</div>
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-300 font-bold mb-2">Kelengkapan Data</div>
                 <div class="flex items-end justify-between gap-3">
                     <div class="text-3xl font-bold metric-value text-white">{{ $analysisReadiness }}%</div>
-                    <div class="text-[10px] text-slate-500">{{ collect($analysisChecks)->filter()->count() }}/{{ count($analysisChecks) }}</div>
+                    <div class="text-[10px] text-slate-300">{{ collect($analysisChecks)->filter()->count() }}/{{ count($analysisChecks) }}</div>
                 </div>
                 <div class="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                     <div class="h-full rounded-full bg-[#ccff00]" style="width: {{ $analysisReadiness }}%"></div>
@@ -328,11 +328,11 @@
                             <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ccff00]">Trial Playback</div>
                             <h2 class="text-lg font-bold text-white mt-1">Video dan Overlay Gerak</h2>
                         </div>
-                        <div class="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span class="px-2.5 py-1 rounded-full border {{ $videoArtifact ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-600' }}">
+                        <div class="flex items-center gap-2 text-[10px] text-slate-300 font-semibold">
+                            <span class="px-2.5 py-1 rounded-full border {{ $videoArtifact ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-400' }}">
                                 <i class="fas fa-video mr-1"></i>{{ $videoArtifact ? 'Video ready' : 'No video' }}
                             </span>
-                            <span class="px-2.5 py-1 rounded-full border {{ !empty($poseData) ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-600' }}">
+                            <span class="px-2.5 py-1 rounded-full border {{ !empty($poseData) ? 'border-white/10 bg-white/[0.035] text-slate-300' : 'border-white/[0.06] text-slate-400' }}">
                                 <i class="fas fa-person-running mr-1"></i>{{ !empty($poseData) ? 'Pose ready' : 'No pose' }}
                             </span>
                         </div>
@@ -348,7 +348,7 @@
                         @endif
                         @if($poseData)
                         <button onclick="switchView('skeleton')" id="tab-skeleton"
-                            class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 {{ $videoArtifact ? 'border-transparent text-slate-500 hover:text-white' : 'border-[#ccff00] text-[#ccff00]' }}">
+                            class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 {{ $videoArtifact ? 'border-transparent text-slate-300 hover:text-white' : 'border-[#ccff00] text-[#ccff00]' }}">
                             <i class="fas fa-project-diagram mr-1.5"></i> Skeleton
                         </button>
                         @endif
@@ -412,12 +412,12 @@
                         <div id="ai-moment-tooltip" class="absolute bottom-0 inset-x-0 sm:bottom-auto sm:top-4 sm:right-4 sm:left-auto z-30 w-full sm:max-w-[340px] bg-[#070b13] border-t border-x sm:border border-slate-700/80 rounded-t-xl sm:rounded-xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.9)] transition-all duration-300 opacity-0 pointer-events-none">
                             <div class="flex items-start justify-between gap-3 mb-2">
                                 <div class="min-w-0">
-                                    <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.14em] mb-0.5">Umpan Balik Biomekanik</div>
+                                    <div class="text-[9px] font-semibold text-slate-200 uppercase tracking-[0.14em] mb-0.5">Umpan Balik Biomekanik</div>
                                     <h4 id="tooltip-title" class="text-sm font-bold text-white tracking-tight truncate">Landing Position</h4>
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0">
                                     <span id="tooltip-status" class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border">OK</span>
-                                    <button type="button" onclick="window.hideGaitMomentTooltip()" class="text-slate-400 hover:text-white transition-colors text-xs p-1">
+                                    <button type="button" onclick="window.hideGaitMomentTooltip()" class="text-slate-200 hover:text-white transition-colors text-xs p-1">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -426,12 +426,12 @@
                             <p id="tooltip-summary" class="text-slate-200 text-xs mb-3 font-medium leading-relaxed"></p>
                             
                             <div id="tooltip-findings-container" class="mb-3">
-                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Temuan</div>
+                                <div class="text-[9px] font-bold text-slate-200 uppercase tracking-widest mb-1.5">Temuan</div>
                                 <ul id="tooltip-findings" class="space-y-1 text-slate-200 text-[11px] leading-relaxed"></ul>
                             </div>
                             
                             <div id="tooltip-actions-container">
-                                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tindakan Koreksi</div>
+                                <div class="text-[9px] font-bold text-slate-200 uppercase tracking-widest mb-1.5">Tindakan Koreksi</div>
                                 <ul id="tooltip-actions" class="space-y-1 text-slate-200 text-[11px] leading-relaxed"></ul>
                             </div>
                         </div>
@@ -439,7 +439,7 @@
                         {{-- Video error overlay --}}
                         <div id="video-error-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-3" style="display: none;">
                             <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
-                            <div class="text-slate-300 text-sm text-center px-4">
+                            <div class="text-slate-200 text-sm text-center px-4">
                                 <p class="font-bold text-white mb-1">Video gagal dimuat</p>
                                 <p class="text-xs">Video tidak dapat dimuat atau diputar. Muat ulang halaman lalu coba kembali.</p>
                             </div>
@@ -448,7 +448,7 @@
                         @if(!$poseData && !$videoArtifact)
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
                             <i class="fas fa-exclamation-triangle text-3xl text-yellow-500"></i>
-                            <div class="text-slate-400 font-mono text-sm text-center">
+                            <div class="text-slate-200 font-mono text-sm text-center">
                                 <p class="font-bold text-white mb-1">Data pose dan video tidak tersedia.</p>
                                 <p class="text-xs">Proses unggah mungkin gagal saat perekaman. Lakukan perekaman ulang untuk pelari ini.</p>
                             </div>
@@ -467,9 +467,9 @@
                             <input type="range" id="video-timeline" min="0" max="100" value="0" step="0.01"
                                 class="w-full accent-[#ccff00] h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer hover:bg-slate-500 transition-colors">
                         </div>
-                        <div class="text-xs font-mono text-slate-400 w-28 text-right">
+                        <div class="text-xs font-mono text-slate-200 w-28 text-right">
                             <span id="video-current-time" class="text-white">0:00</span>
-                            <span class="text-slate-600 mx-1">/</span>
+                            <span class="text-slate-400 mx-1">/</span>
                             <span id="video-duration">0:00</span>
                         </div>
                     </div>
@@ -484,7 +484,7 @@
                         <div class="flex-1">
                             <input type="range" id="timeline" min="0" max="100" value="0" class="w-full accent-[#ccff00] h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer hover:bg-slate-500 transition-colors">
                         </div>
-                        <div class="text-xs font-mono text-slate-400 w-24 text-right">
+                        <div class="text-xs font-mono text-slate-200 w-24 text-right">
                             <span id="current-frame" class="text-white">0</span> / <span id="total-frames">0</span>
                         </div>
                     </div>
@@ -500,20 +500,20 @@
                     <div class="border-t border-white/5 bg-[#080f1d]/90">
                         <!-- Header row -->
                         <div class="px-4 pt-3 pb-1 flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-200 uppercase tracking-widest">
                                 <i class="fas fa-camera text-[#ccff00]"></i>
                                 Momen Kunci Siklus Lari
-                                <span class="bg-slate-800 text-slate-400 border border-slate-700 rounded-full text-[9px] px-1.5 py-px font-bold">{{ $totalEvents }}</span>
+                                <span class="bg-slate-800 text-slate-200 border border-slate-700 rounded-full text-[9px] px-1.5 py-px font-bold">{{ $totalEvents }}</span>
                             </div>
                             <!-- Scroll nav arrows -->
                             <div class="flex items-center gap-1">
                                 <button id="gait-scroll-left" type="button"
-                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px] disabled:opacity-30"
+                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px] disabled:opacity-30"
                                     onclick="document.getElementById('gait-scroll-track').scrollBy({left:-220, behavior:'smooth'})">
                                     <i class="fas fa-chevron-left"></i>
                                 </button>
                                 <button id="gait-scroll-right" type="button"
-                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px]"
+                                    class="w-6 h-6 flex items-center justify-center rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-[#ccff00] hover:border-[#ccff00]/50 transition-all duration-200 text-[10px]"
                                     onclick="document.getElementById('gait-scroll-track').scrollBy({left:220, behavior:'smooth'})">
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
@@ -557,8 +557,8 @@
                                     default             => 'fa-stopwatch',
                                 };
                                 $phaseColor = 'bg-[#0a101a] border-white/10 hover:border-white/20 hover:bg-white/[0.025]';
-                                $iconColor = 'text-slate-400 group-hover:text-[#ccff00]';
-                                $sidePill = 'bg-white/[0.035] border-white/10 text-slate-400';
+                                $iconColor = 'text-slate-200 group-hover:text-[#ccff00]';
+                                $sidePill = 'bg-white/[0.035] border-white/10 text-slate-200';
                             @endphp
                             <button type="button"
                                 data-gait-card="{{ $idx }}"
@@ -580,12 +580,12 @@
 
                                 <!-- Phase name -->
                                 <div class="text-[11px] font-bold text-white leading-tight mb-px tracking-tight">{{ $label }}</div>
-                                <div class="text-[9px] font-medium text-slate-500 uppercase tracking-widest mb-2.5">{{ $subLabel }}</div>
+                                <div class="text-[9px] font-medium text-slate-300 uppercase tracking-widest mb-2.5">{{ $subLabel }}</div>
 
                                 <!-- Timestamp -->
                                 <div class="mt-auto w-full flex items-center justify-between border-t border-white/5 pt-2">
-                                    <span class="font-mono text-[10px] text-slate-400 font-bold">+{{ $relSec }}s</span>
-                                    <span class="text-[8px] uppercase tracking-wider font-bold text-slate-600 group-hover:text-[#ccff00] transition-colors duration-200 flex items-center gap-0.5">
+                                    <span class="font-mono text-[10px] text-slate-200 font-bold">+{{ $relSec }}s</span>
+                                    <span class="text-[8px] uppercase tracking-wider font-bold text-slate-400 group-hover:text-[#ccff00] transition-colors duration-200 flex items-center gap-0.5">
                                         Lihat <i class="fas fa-play text-[7px] ml-0.5"></i>
                                     </span>
                                 </div>
@@ -683,10 +683,10 @@
                     <div class="relative">
                         <div class="flex items-center justify-between gap-3 mb-5">
                             <div>
-                                <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Review Snapshot</div>
+                                <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-sky-300">Review Snapshot</div>
                                 <h2 class="text-base font-bold text-white mt-1">Ringkasan Analisis</h2>
                             </div>
-                            <span class="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#ccff00]">
+                            <span class="w-10 h-10 rounded-xl bg-sky-400/10 border border-sky-400/20 flex items-center justify-center text-sky-300">
                                 <i class="fas fa-chart-simple"></i>
                             </span>
                         </div>
@@ -695,11 +695,11 @@
                             <div class="flex items-end justify-between gap-4">
                                 <div>
                                     <div class="text-5xl font-bold tracking-[-0.06em] metric-value {{ $scoreAccent }}">{{ $score ?? '—' }}</div>
-                                    <div class="text-xs text-slate-500 mt-1">dari 100</div>
+                                    <div class="text-xs text-slate-200 mt-1">dari 100</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-xs font-bold uppercase tracking-wider {{ $scoreAccent }}">{{ $scoreCategory }}</div>
-                                    <div class="text-[10px] text-slate-500 mt-1 max-w-[150px]">{{ $scoreDescription }}</div>
+                                    <div class="text-[10px] text-slate-200 mt-1 max-w-[150px]">{{ $scoreDescription }}</div>
                                 </div>
                             </div>
                             <div class="mt-4 h-2 rounded-full bg-slate-800 overflow-hidden">
@@ -710,8 +710,8 @@
                         <div class="space-y-2.5">
                             @foreach($analysisChecks as $label => $ready)
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-slate-400">{{ $label }}</span>
-                                <span class="inline-flex items-center gap-1.5 {{ $ready ? 'text-[#ccff00]' : 'text-slate-600' }}">
+                                <span class="text-slate-200">{{ $label }}</span>
+                                <span class="inline-flex items-center gap-1.5 {{ $ready ? 'text-[#ccff00]' : 'text-slate-400' }}">
                                     <i class="fas {{ $ready ? 'fa-circle-check' : 'fa-circle-minus' }}"></i>
                                     {{ $ready ? 'Tersedia' : 'Belum ada' }}
                                 </span>
@@ -724,17 +724,17 @@
                 @if($coachMessageText || count($positives) > 0)
                 <section class="review-card rounded-2xl p-5">
                     <div class="flex items-center gap-2 mb-4">
-                        <span class="w-8 h-8 rounded-lg bg-[#ccff00]/10 border border-[#ccff00]/20 flex items-center justify-center text-[#ccff00] text-xs">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center text-emerald-300 text-xs">
                             <i class="fas fa-comment-dots"></i>
                         </span>
                         <div>
-                            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">Coach Feedback</div>
+                            <div class="text-[10px] uppercase tracking-[0.18em] font-bold text-emerald-300">Coach Feedback</div>
                             <div class="text-sm font-bold text-white">Catatan Utama</div>
                         </div>
                     </div>
 
                     @if($coachMessageText)
-                    <blockquote class="text-sm leading-relaxed text-slate-300 border-l-2 border-[#ccff00] pl-3 italic">
+                    <blockquote class="text-sm leading-relaxed text-slate-200 border-l-2 border-emerald-400 pl-3 italic">
                         “{{ $coachMessageText }}”
                     </blockquote>
                     @endif
@@ -743,17 +743,17 @@
                     <div class="mt-4 pt-4 border-t border-white/5 space-y-2.5">
                         @foreach(collect($positives)->take(3) as $positive)
                         <div class="flex items-start gap-2.5">
-                            <span class="w-5 h-5 mt-0.5 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/20 text-[#ccff00] flex items-center justify-center text-[9px] shrink-0">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 flex items-center justify-center text-[9px] shrink-0">
                                 <i class="fas fa-check"></i>
                             </span>
                             <div class="text-xs leading-relaxed min-w-0">
                                 @if(is_array($positive))
-                                    <div class="font-bold text-slate-200">{{ $positive['title'] ?? $toText($positive) }}</div>
+                                    <div class="font-bold text-slate-100">{{ $positive['title'] ?? $toText($positive) }}</div>
                                     @if(!empty($positive['description']))
-                                        <div class="text-slate-500 mt-0.5">{{ $positive['description'] }}</div>
+                                        <div class="text-slate-200 mt-0.5">{{ $positive['description'] }}</div>
                                     @endif
                                 @else
-                                    <div class="text-slate-300">{{ $positive }}</div>
+                                    <div class="text-slate-200">{{ $positive }}</div>
                                 @endif
                             </div>
                         </div>
@@ -768,14 +768,14 @@
                 <section class="review-card rounded-2xl p-5">
                     <div class="flex items-center justify-between gap-3 mb-4">
                         <div>
-                            <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">Admin Decision</div>
+                            <div class="text-[10px] uppercase tracking-[0.18em] font-bold text-violet-300">Admin Decision</div>
                             <div class="text-sm font-bold text-white mt-1">Keputusan Review</div>
                         </div>
-                        <i class="fas fa-user-shield text-slate-600"></i>
+                        <i class="fas fa-user-shield text-violet-300"></i>
                     </div>
 
                     @if(!$trial->isPublished() && $trial->status !== 'invalid')
-                    <p class="text-xs leading-relaxed text-slate-500 mb-4">Pastikan video, skeleton, temuan, dan rekomendasi sudah sesuai sebelum hasil dipublikasikan.</p>
+                    <p class="text-xs leading-relaxed text-slate-200 mb-4">Pastikan video, skeleton, temuan, dan rekomendasi sudah sesuai sebelum hasil dipublikasikan.</p>
                     <div class="space-y-2.5">
                         @if(in_array($trial->status, ['queued', 'analyzing', 'failed']))
                         <form action="{{ route('admin.running-analysis.trials.analyze-sync', $trial) }}" method="POST">
@@ -817,7 +817,7 @@
                             <i class="fas {{ $trial->isPublished() ? 'fa-circle-check text-[#ccff00]' : 'fa-circle-xmark text-rose-300' }} mt-0.5"></i>
                             <div>
                                 <div class="text-sm font-bold {{ $trial->isPublished() ? 'text-[#ccff00]' : 'text-rose-200' }}">{{ $statusLabel }}</div>
-                                <div class="text-xs text-slate-400 mt-1">
+                                <div class="text-xs text-slate-200 mt-1">
                                     {{ $trial->isPublished() ? 'Hasil sudah tersedia bagi pelari.' : 'Trial ditandai tidak valid dan tidak ditampilkan kepada pelari.' }}
                                 </div>
                             </div>
@@ -843,10 +843,10 @@
         {{-- In-page navigation --}}
         <nav class="section-anchor sticky top-16 z-20 mb-6 rounded-2xl bg-[#0a101a]/95 backdrop-blur-sm border border-white/10 p-2 overflow-x-auto hide-scrollbar">
             <div class="flex min-w-max gap-1">
-                <a href="#findings" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-crosshairs mr-2"></i>Temuan</a>
-                <a href="#metrics" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-chart-line mr-2"></i>Metrik</a>
-                <a href="#training" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-dumbbell mr-2"></i>Program Latihan</a>
-                <a href="#artifacts" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-folder-open mr-2"></i>Artefak</a>
+                <a href="#findings" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-crosshairs mr-2"></i>Temuan</a>
+                <a href="#metrics" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-chart-line mr-2"></i>Metrik</a>
+                <a href="#training" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-dumbbell mr-2"></i>Program Latihan</a>
+                <a href="#artifacts" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-[#ccff00] hover:bg-white/[0.04] transition-colors"><i class="fas fa-folder-open mr-2"></i>Artefak</a>
             </div>
         </nav>
 
@@ -856,12 +856,12 @@
                 <div>
                     <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ccff00]">Review Summary</div>
                     <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Temuan Biomekanik</h2>
-                    <p class="text-sm text-slate-500 mt-2">Diurutkan berdasarkan tingkat dampak agar reviewer dapat mengambil keputusan lebih cepat.</p>
+                    <p class="text-sm text-slate-200 mt-2">Diurutkan berdasarkan tingkat dampak agar reviewer dapat mengambil keputusan lebih cepat.</p>
                 </div>
                 <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
-                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'significant')->count() }} Significant</span>
-                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'moderate')->count() }} Moderate</span>
-                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-400">{{ $findings->where('severity', 'minor')->count() }} Minor</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-200">{{ $findings->where('severity', 'significant')->count() }} Significant</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-200">{{ $findings->where('severity', 'moderate')->count() }} Moderate</span>
+                    <span class="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 text-slate-200">{{ $findings->where('severity', 'minor')->count() }} Minor</span>
                 </div>
             </div>
 
@@ -887,9 +887,9 @@
                         default => [
                             'label' => 'Minor',
                             'icon' => 'fa-circle-info',
-                            'accent' => 'text-slate-400',
-                            'badge' => 'bg-white/[0.03] border-white/10 text-slate-400',
-                            'line' => 'bg-slate-500',
+                            'accent' => 'text-sky-300',
+                            'badge' => 'bg-white/[0.03] border-white/10 text-sky-300',
+                            'line' => 'bg-sky-400',
                         ],
                     };
                     $findingTitle = ucwords(str_replace('_', ' ', strtolower($finding->explanation_key ?? $finding->finding_code)));
@@ -903,7 +903,7 @@
                                 <i class="fas {{ $severityConfig['icon'] }}"></i>
                             </span>
                             <div class="min-w-0">
-                                <div class="text-[10px] font-mono text-slate-600 mb-1">{{ $finding->finding_code }}</div>
+                                <div class="text-[10px] font-mono text-slate-400 mb-1">{{ $finding->finding_code }}</div>
                                 <h3 class="text-sm md:text-base font-bold text-white leading-snug">{{ $findingTitle }}</h3>
                             </div>
                         </div>
@@ -914,8 +914,8 @@
                     <div class="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] divide-y divide-white/[0.05]">
                         @foreach(array_slice($evidenceRows, 0, 5) as $row)
                         <div class="px-3 py-2.5 flex items-start justify-between gap-4 text-xs">
-                            <span class="text-slate-500">{{ $row['label'] }}</span>
-                            <span class="font-mono text-slate-200 text-right break-all">{{ $row['value'] }}</span>
+                            <span class="text-slate-200">{{ $row['label'] }}</span>
+                            <span class="font-mono text-slate-100 text-right break-all">{{ $row['value'] }}</span>
                         </div>
                         @endforeach
                     </div>
@@ -929,7 +929,7 @@
                     <i class="fas fa-check"></i>
                 </span>
                 <div class="font-bold text-white">Tidak ada temuan biomekanik</div>
-                <div class="text-sm text-slate-500 mt-1">Temuan akan muncul setelah proses analisis selesai.</div>
+                <div class="text-sm text-slate-200 mt-1">Temuan akan muncul setelah proses analisis selesai.</div>
             </div>
             @endif
         </section>
@@ -937,9 +937,9 @@
         {{-- Metrics --}}
         <section id="metrics" class="section-anchor review-card rounded-2xl p-5 md:p-7 mb-6">
             <div class="mb-6">
-                <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Measurement Layer</div>
+                <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-sky-300">Measurement Layer</div>
                 <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Metrik Biomekanik</h2>
-                <p class="text-sm text-slate-500 mt-2">Nilai ditampilkan secara netral; interpretasi klinis atau performance range harus berasal dari rule backend.</p>
+                <p class="text-sm text-slate-200 mt-2">Nilai ditampilkan secara netral; interpretasi klinis atau performance range harus berasal dari rule backend.</p>
             </div>
 
             @if($trial->metrics->count() > 0)
@@ -947,25 +947,25 @@
                 @foreach($trial->metrics as $metric)
                 @php
                     $metricLabel = $metricLabels[$metric->metric_code] ?? ucwords(str_replace('_', ' ', $metric->metric_code));
-                    $sideClass = 'bg-white/[0.03] border-white/10 text-slate-400';
+                    $sideClass = 'bg-sky-400/10 border-sky-400/20 text-sky-300';
                 @endphp
                 <article class="rounded-2xl border border-white/[0.07] bg-black/15 p-4 hover:border-white/15 transition-colors">
                     <div class="flex items-start justify-between gap-3 mb-5">
-                        <div class="text-xs font-bold text-slate-300 leading-snug">{{ $metricLabel }}</div>
+                        <div class="text-xs font-bold text-slate-200 leading-snug">{{ $metricLabel }}</div>
                         <span class="px-2 py-0.5 rounded-full border text-[9px] uppercase font-bold tracking-wider {{ $sideClass }}">
                             {{ $metric->side ? ucfirst($metric->side) : 'General' }}
                         </span>
                     </div>
                     <div class="flex items-end gap-2">
                         <div class="text-3xl font-bold text-white metric-value tracking-tight">{{ round((float) $metric->value_decimal, 2) }}</div>
-                        <div class="text-xs text-slate-500 mb-1">{{ $metric->unit }}</div>
+                        <div class="text-xs text-slate-200 mb-1">{{ $metric->unit }}</div>
                     </div>
                     <div class="mt-4 h-px bg-white/[0.07]"></div>
                 </article>
                 @endforeach
             </div>
             @else
-            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-200">
                 Metrik belum dihasilkan untuk trial ini.
             </div>
             @endif
@@ -976,27 +976,27 @@
             <div class="mb-6">
                 <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ccff00]">Training Plan</div>
                 <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Program Latihan & Koreksi</h2>
-                <p class="text-sm text-slate-500 mt-2">Rekomendasi dipisahkan berdasarkan cue, drill teknik, dan latihan kekuatan.</p>
+                <p class="text-sm text-slate-200 mt-2">Rekomendasi dipisahkan berdasarkan cue, drill teknik, dan latihan kekuatan.</p>
             </div>
 
             @if($recommendations->count() > 0)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
                 @php
                     $trainingGroups = [
-                        ['title' => 'Running Cues', 'subtitle' => 'Pengingat singkat saat berlari', 'icon' => 'fa-comment-dots', 'accent' => 'text-slate-300', 'items' => $cues],
-                        ['title' => 'Technique Drills', 'subtitle' => 'Latihan pola gerak spesifik', 'icon' => 'fa-person-running', 'accent' => 'text-slate-300', 'items' => $drills],
-                        ['title' => 'Strength Exercises', 'subtitle' => 'Penguatan pendukung form', 'icon' => 'fa-dumbbell', 'accent' => 'text-slate-300', 'items' => $strengths],
+                        ['title' => 'Running Cues', 'subtitle' => 'Pengingat singkat saat berlari', 'icon' => 'fa-comment-dots', 'accent' => 'text-cyan-300', 'ring' => 'bg-cyan-400/10 border-cyan-400/20', 'items' => $cues],
+                        ['title' => 'Technique Drills', 'subtitle' => 'Latihan pola gerak spesifik', 'icon' => 'fa-person-running', 'accent' => 'text-orange-300', 'ring' => 'bg-orange-400/10 border-orange-400/20', 'items' => $drills],
+                        ['title' => 'Strength Exercises', 'subtitle' => 'Penguatan pendukung form', 'icon' => 'fa-dumbbell', 'accent' => 'text-rose-300', 'ring' => 'bg-rose-400/10 border-rose-400/20', 'items' => $strengths],
                     ];
                 @endphp
                 @foreach($trainingGroups as $group)
                 <div class="rounded-2xl border border-white/[0.07] bg-black/15 p-4">
                     <div class="flex items-start gap-3 mb-4">
-                        <span class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center {{ $group['accent'] }} shrink-0">
+                        <span class="w-9 h-9 rounded-xl {{ $group['ring'] }} flex items-center justify-center {{ $group['accent'] }} shrink-0">
                             <i class="fas {{ $group['icon'] }}"></i>
                         </span>
                         <div>
                             <h3 class="text-sm font-bold text-white">{{ $group['title'] }}</h3>
-                            <p class="text-[11px] text-slate-500 mt-0.5">{{ $group['subtitle'] }}</p>
+                            <p class="text-[11px] text-slate-200 mt-0.5">{{ $group['subtitle'] }}</p>
                         </div>
                     </div>
 
@@ -1004,19 +1004,19 @@
                     <div class="space-y-2.5">
                         @foreach($group['items'] as $item)
                         <article class="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3.5">
-                            <div class="font-bold text-sm text-slate-100">{{ $item->title }}</div>
-                            <div class="text-xs leading-relaxed text-slate-500 mt-1.5">{{ $item->description }}</div>
+                            <div class="font-bold text-sm text-white">{{ $item->title }}</div>
+                            <div class="text-xs leading-relaxed text-slate-200 mt-1.5">{{ $item->description }}</div>
                         </article>
                         @endforeach
                     </div>
                     @else
-                    <div class="rounded-xl border border-dashed border-white/[0.07] py-8 text-center text-xs text-slate-600">Belum ada rekomendasi.</div>
+                    <div class="rounded-xl border border-dashed border-white/[0.07] py-8 text-center text-xs text-slate-200">Belum ada rekomendasi.</div>
                     @endif
                 </div>
                 @endforeach
             </div>
             @else
-            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-200">
                 Program latihan belum tersedia.
             </div>
             @endif
@@ -1026,16 +1026,16 @@
         <section id="artifacts" class="section-anchor review-card rounded-2xl p-5 md:p-7">
             <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
                 <div>
-                    <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500">Analysis Files</div>
+                    <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-300">Analysis Files</div>
                     <h2 class="text-xl md:text-2xl font-bold text-white mt-1">Artefak Analisis</h2>
-                    <p class="text-sm text-slate-500 mt-2">Daftar file sumber dan keluaran yang digunakan pada trial.</p>
+                    <p class="text-sm text-slate-200 mt-2">Daftar file sumber dan keluaran yang digunakan pada trial.</p>
                 </div>
-                <span class="px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-xs font-bold text-slate-400">{{ $trial->artifacts->count() }} file</span>
+                <span class="px-3 py-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 text-xs font-bold text-amber-300">{{ $trial->artifacts->count() }} file</span>
             </div>
 
             @if($trial->artifacts->count() > 0)
             <div class="overflow-hidden rounded-2xl border border-white/[0.07]">
-                <div class="hidden md:grid grid-cols-[1fr_180px_120px] gap-4 px-4 py-3 bg-white/[0.035] text-[10px] uppercase tracking-[0.16em] font-bold text-slate-500">
+                <div class="hidden md:grid grid-cols-[1fr_180px_120px] gap-4 px-4 py-3 bg-white/[0.035] text-[10px] uppercase tracking-[0.16em] font-bold text-slate-200">
                     <div>Artifact</div>
                     <div>Format</div>
                     <div class="text-right">Ukuran</div>
@@ -1048,22 +1048,22 @@
                     @endphp
                     <div class="grid grid-cols-1 md:grid-cols-[1fr_180px_120px] gap-2 md:gap-4 px-4 py-3.5 items-center bg-black/10 hover:bg-white/[0.02] transition-colors">
                         <div class="flex items-center gap-3 min-w-0">
-                            <span class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 text-slate-400 flex items-center justify-center shrink-0">
+                            <span class="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
                                 <i class="fas {{ $artifact->type === 'video_clip' ? 'fa-video' : ($artifact->type === 'pose_landmarks' ? 'fa-person' : 'fa-file-code') }}"></i>
                             </span>
                             <div class="min-w-0">
-                                <div class="text-sm font-bold text-slate-200 truncate">{{ $artifactType }}</div>
-                                <div class="text-[10px] font-mono text-slate-600 truncate">{{ $artifact->path ?? 'Stored artifact' }}</div>
+                                <div class="text-sm font-bold text-white truncate">{{ $artifactType }}</div>
+                                <div class="text-[10px] font-mono text-slate-200 truncate">{{ $artifact->path ?? 'Stored artifact' }}</div>
                             </div>
                         </div>
-                        <div class="text-xs text-slate-500 md:text-slate-400">{{ $artifact->mime_type ?? '—' }}</div>
-                        <div class="text-xs font-mono text-slate-400 md:text-right">{{ number_format($artifactSizeKb, 1) }} KB</div>
+                        <div class="text-xs text-slate-200 md:text-slate-200">{{ $artifact->mime_type ?? '—' }}</div>
+                        <div class="text-xs font-mono text-slate-200 md:text-right">{{ number_format($artifactSizeKb, 1) }} KB</div>
                     </div>
                     @endforeach
                 </div>
             </div>
             @else
-            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-500">Belum ada artefak yang diunggah.</div>
+            <div class="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center text-sm text-slate-200">Belum ada artefak yang diunggah.</div>
             @endif
         </section>
     </div>
@@ -1080,17 +1080,17 @@
                 </span>
                 <div>
                     <h3 id="reject-modal-title" class="text-lg font-bold text-white">Tolak Trial</h3>
-                    <p class="text-slate-500 text-sm mt-1">Trial akan ditandai tidak valid dan tidak ditampilkan kepada pelari.</p>
+                    <p class="text-slate-200 text-sm mt-1">Trial akan ditandai tidak valid dan tidak ditampilkan kepada pelari.</p>
                 </div>
             </div>
             <form action="{{ route('admin.running-analysis.trials.reject', $trial) }}" method="POST">
                 @csrf
-                <label for="reject-reason" class="block text-[10px] font-bold text-slate-500 uppercase tracking-[0.16em] mb-2">Alasan penolakan</label>
+                <label for="reject-reason" class="block text-[10px] font-bold text-slate-200 uppercase tracking-[0.16em] mb-2">Alasan penolakan</label>
                 <textarea id="reject-reason" name="reason" rows="4" placeholder="Contoh: sudut kamera tidak sesuai, tubuh pelari keluar frame, atau video terhalang..."
-                    class="w-full bg-black/20 border border-white/10 text-white rounded-2xl px-4 py-3 text-sm outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/10 resize-none placeholder:text-slate-700"></textarea>
+                    class="w-full bg-black/20 border border-white/10 text-white rounded-2xl px-4 py-3 text-sm outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/10 resize-none placeholder:text-slate-400"></textarea>
                 <div class="grid grid-cols-2 gap-3 mt-5">
                     <button type="button" onclick="document.getElementById('reject-modal').classList.add('hidden')"
-                        class="h-11 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 hover:text-white hover:border-white/20 transition-colors text-sm font-bold">
+                        class="h-11 rounded-xl bg-white/[0.04] border border-white/10 text-slate-200 hover:text-white hover:border-white/20 transition-colors text-sm font-bold">
                         Batal
                     </button>
                     <button type="submit" class="h-11 rounded-xl bg-rose-500 text-white hover:bg-rose-400 transition-colors text-sm font-bold">
@@ -1122,8 +1122,8 @@ window.switchView = function(mode) {
         if (videoControls) videoControls.style.display = '';
         if (skeletonCanvas) skeletonCanvas.style.display = ''; // Overlay on top of video
         if (skeletonControls) skeletonControls.style.display = 'none';
-        if (tabVideo) { tabVideo.classList.add('border-[#ccff00]', 'text-[#ccff00]'); tabVideo.classList.remove('border-transparent', 'text-slate-500'); }
-        if (tabSkeleton) { tabSkeleton.classList.remove('border-[#ccff00]', 'text-[#ccff00]'); tabSkeleton.classList.add('border-transparent', 'text-slate-500'); }
+        if (tabVideo) { tabVideo.classList.add('border-[#ccff00]', 'text-[#ccff00]'); tabVideo.classList.remove('border-transparent', 'text-slate-300'); }
+        if (tabSkeleton) { tabSkeleton.classList.remove('border-[#ccff00]', 'text-[#ccff00]'); tabSkeleton.classList.add('border-transparent', 'text-slate-300'); }
     } else {
         if (videoPlayer) {
             videoPlayer.style.display = 'none';
@@ -1132,8 +1132,8 @@ window.switchView = function(mode) {
         if (videoControls) videoControls.style.display = 'none';
         if (skeletonCanvas) skeletonCanvas.style.display = '';
         if (skeletonControls) skeletonControls.style.display = '';
-        if (tabVideo) { tabVideo.classList.remove('border-[#ccff00]', 'text-[#ccff00]'); tabVideo.classList.add('border-transparent', 'text-slate-500'); }
-        if (tabSkeleton) { tabSkeleton.classList.add('border-[#ccff00]', 'text-[#ccff00]'); tabSkeleton.classList.remove('border-transparent', 'text-slate-500'); }
+        if (tabVideo) { tabVideo.classList.remove('border-[#ccff00]', 'text-[#ccff00]'); tabVideo.classList.add('border-transparent', 'text-slate-300'); }
+        if (tabSkeleton) { tabSkeleton.classList.add('border-[#ccff00]', 'text-[#ccff00]'); tabSkeleton.classList.remove('border-transparent', 'text-slate-300'); }
     }
     
     // Draw initial frame for mode
@@ -1944,7 +1944,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (phaseData.status === 'issue') {
                     statusEl.classList.add('bg-red-900/30', 'border-red-700', 'text-red-400');
                 } else {
-                    statusEl.classList.add('bg-white/[0.04]', 'border-white/10', 'text-slate-400');
+                    statusEl.classList.add('bg-white/[0.04]', 'border-white/10', 'text-slate-200');
                 }
             }
 
@@ -1961,7 +1961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     phaseData.findings.forEach(f => {
                         const li = document.createElement('li');
                         li.className = 'flex items-start gap-1.5 mb-1';
-                        li.innerHTML = `<span class="text-slate-400 mt-0.5 shrink-0">•</span> <span class="text-slate-200">${f}</span>`;
+                        li.innerHTML = `<span class="text-slate-200 mt-0.5 shrink-0">•</span> <span class="text-slate-200">${f}</span>`;
                         findingsListEl.appendChild(li);
                     });
                 } else {
@@ -2346,7 +2346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div>
             <h3 class="text-lg font-semibold text-white">Mengekspor Video</h3>
-            <p class="text-xs text-slate-400 mt-1">Menggabungkan video dengan skeleton overlay...</p>
+            <p class="text-xs text-slate-200 mt-1">Menggabungkan video dengan skeleton overlay...</p>
         </div>
         <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
             <div id="export-progress" class="bg-[#ccff00] h-full w-0 transition-all duration-200"></div>
