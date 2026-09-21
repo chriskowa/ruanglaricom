@@ -226,7 +226,7 @@ class ArticleAgentController extends Controller
     public function searchImages(Request $request, \App\Services\Blog\ArticleImageFetcherService $fetcher)
     {
         $request->validate([
-            'query'    => 'required|string|max:255',
+            'query'    => 'required|string|max:10000',
             'provider' => 'nullable|string|in:auto,tavily,unsplash,google,dalle',
             'limit'    => 'nullable|integer|min:1|max:10',
         ]);
@@ -251,7 +251,7 @@ class ArticleAgentController extends Controller
             'uuid'      => 'required|string',
             'marker'    => 'required|string',
             'image_url' => 'required|url',
-            'keyword'   => 'required|string|max:255',
+            'keyword'   => 'required|string|max:500',
         ]);
 
         try {

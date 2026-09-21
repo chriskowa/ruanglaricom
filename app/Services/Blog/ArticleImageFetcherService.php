@@ -234,21 +234,27 @@ class ArticleImageFetcherService
      */
     public function generateDalle(string $prompt): array
     {
-        $apiKey = config('services.openai.api_key');
+        $apiKey = config('services.openai.api_key') ?: env('OPENAI_API_KEY');
         if (empty($apiKey)) {
-            return [];
+            throw new Exception("OpenAI API Key belum dikonfigurasi di file .env (OPENAI_API_KEY).");
+        }
+
+        // Bersihkan pembungkus [Gambar: ...] bila ada
+        $cleanPrompt = trim($prompt);
+        if (preg_match('/^\[Gambar:\s*(.*?)\s*\]$/is', $cleanPrompt, $m)) {
+            $cleanPrompt = trim($m[1]);
         }
 
         // Refine prompt for realistic natural running photo
         $refinedPrompt = "A realistic, high-quality photograph for a running article: " .
-            trim($prompt) . ". Natural daylight, authentic Indonesian runners, candid athletic moment, 3:2 landscape aspect ratio, no text, no watermark, photorealistic style.";
+            $cleanPrompt . ". Natural daylight, authentic Indonesian runners, candid athletic moment, 3:2 landscape aspect ratio, no text, no watermark, photorealistic style.";
 
         $response = Http::withHeaders([
             'Authorization' => "Bearer {$apiKey}",
             'Content-Type'  => 'application/json',
         ])->timeout(120)->post('https://api.openai.com/v1/images/generations', [
             'model'   => 'dall-e-3',
-            'prompt'  => substr($refinedPrompt, 0, 950),
+            'prompt'  => mb_substr($refinedPrompt, 0, 3900),
             'n'       => 1,
             'size'    => '1792x1024',
             'quality' => 'standard',
@@ -256,13 +262,15 @@ class ArticleImageFetcherService
 
         if (!$response->successful()) {
             Log::error("OpenAI DALL-E 3 error: " . $response->body());
-            return [];
+            $errorData = $response->json();
+            $msg = $errorData['error']['message'] ?? ('HTTP ' . $response->status() . ': Gagal generate gambar DALL-E 3');
+            throw new Exception($msg);
         }
 
         $data = $response->json();
         $url = $data['data'][0]['url'] ?? null;
         if (!$url) {
-            return [];
+            throw new Exception("OpenAI DALL-E tidak mengembalikan URL gambar.");
         }
 
         return [
@@ -435,10 +443,20 @@ class ArticleImageFetcherService
             $searchQuery = !empty($prompt) ? $prompt : $seoKeyword;
 
             // Search candidates
-            $candidates = $this->search($searchQuery, $provider, 3);
+            try {
+                $candidates = $this->search($searchQuery, $provider, 3);
+            } catch (\Throwable $e) {
+                Log::warning("Auto-fetch search failed for '{$searchQuery}' with provider '{$provider}': " . $e->getMessage());
+                $candidates = [];
+            }
+
             if (empty($candidates)) {
                 // Fallback search using only the keyword
-                $candidates = $this->search($seoKeyword, 'auto', 3);
+                try {
+                    $candidates = $this->search($seoKeyword, 'auto', 3);
+                } catch (\Throwable $e) {
+                    $candidates = [];
+                }
             }
 
             if (!empty($candidates)) {

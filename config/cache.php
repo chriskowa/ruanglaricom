@@ -65,8 +65,8 @@ return [
             ],
             'servers' => [
                 [
-                    'host' => env('MEMCACHED_HOST', '127.0.0.1'),
-                    'port' => env('MEMCACHED_PORT', 11211),
+                    'host' => env('MEMCACHED_HOST', '/home/ruangdid/memcached.sock'),
+                    'port' => env('MEMCACHED_PORT', 0),
                     'weight' => 100,
                 ],
             ],
