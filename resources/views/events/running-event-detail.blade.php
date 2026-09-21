@@ -226,6 +226,16 @@
         border-top: 1px solid #28364F;
         margin: 2rem 0;
     }
+
+    /* Mobile Chatbox Toggle Anti-Collision */
+    @media (max-width: 1023px) {
+        #chatbox-toggle {
+            bottom: 5.5rem !important;
+        }
+        #ph-chatbox {
+            bottom: 9.5rem !important;
+        }
+    }
 </style>
 @endpush
 
@@ -249,7 +259,7 @@
     </div>
 
     <!-- Content Container -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-28 lg:pb-20">
         
         <!-- Breadcrumb -->
         <nav class="flex mb-8" aria-label="Breadcrumb">
@@ -348,7 +358,7 @@
                 <!-- Title Section -->
                 <header class="space-y-4">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2.5 py-1 rounded-sm text-xs font-bold bg-neon/10 text-neon border border-neon/30 uppercase tracking-wide">
+                        <span class="px-2.5 py-1 rounded-sm text-xs font-bold bg-[#1A2518] text-neon border border-[#2D4525] uppercase tracking-wide">
                             {{ $event->raceType->name ?? 'Running Event' }}
                         </span>
                         @if($event->is_featured)
@@ -362,7 +372,7 @@
 
                     <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-slate-300 border-l-2 border-neon pl-4 sm:pl-5 py-1">
                         <div class="flex items-center gap-2.5">
-                            <div class="p-2 rounded-md bg-slate-800/80 text-neon">
+                            <div class="p-2 rounded-md bg-[#1E2430] text-neon">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
                             <div>
@@ -372,7 +382,7 @@
                         </div>
                         <div class="hidden sm:block w-px h-8 bg-slate-800"></div>
                         <div class="flex items-center gap-2.5">
-                            <div class="p-2 rounded-md bg-slate-800/80 text-neon">
+                            <div class="p-2 rounded-md bg-[#1E2430] text-neon">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </div>
                             <div>
@@ -412,7 +422,7 @@
                     <div class="bg-[#12161F] border border-slate-800 rounded-lg p-6 shadow-xl">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3.5 mb-5">
                             <h3 class="text-base font-bold text-white uppercase tracking-tight">Kategori Jarak</h3>
-                            <span class="text-xs font-mono text-neon">{{ $event->raceDistances->count() }} Kategori</span>
+                            <span class="text-xs font-bold text-neon">{{ $event->raceDistances->count() }} Kategori</span>
                         </div>
                         
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -425,74 +435,6 @@
                         </div>
                     </div>
                 @endif
-
-                <!-- Related Events & Same Date Events -->
-                <div class="space-y-8 pt-4">
-                    @if(isset($relatedEvents) && $relatedEvents->count() > 0)
-                        <div>
-                            <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
-                                <h3 class="text-base font-bold text-white uppercase">Event Serupa</h3>
-                                <a href="{{ route('events.index') }}" class="text-xs font-bold text-neon hover:underline">LIHAT SEMUA</a>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                @foreach($relatedEvents as $related)
-                                    <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
-                                        <div class="aspect-video relative overflow-hidden bg-slate-950">
-                                            @if($related->hero_image_url)
-                                                <img src="{{ $related->hero_image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                            @else
-                                                <div class="w-full h-full bg-slate-900 flex items-center justify-center">
-                                                    <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                </div>
-                                            @endif
-                                            <div class="absolute top-2 right-2 bg-slate-950/90 px-2 py-0.5 rounded text-[10px] font-bold text-white border border-slate-800">
-                                                {{ $related->event_date->format('d M Y') }}
-                                            </div>
-                                        </div>
-                                        <div class="p-3.5">
-                                            <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $related->name }}</h4>
-                                            <p class="text-xs text-slate-400 truncate">
-                                                {{ $related->city ? $related->city->name : $related->location_name }}
-                                            </p>
-                                        </div>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    @if(isset($sameDateEvents) && $sameDateEvents->count() > 0)
-                        <div>
-                            <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
-                                <h3 class="text-base font-bold text-white uppercase">Event di Tanggal Sama</h3>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                @foreach($sameDateEvents as $sameDate)
-                                    <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
-                                        <div class="aspect-video relative overflow-hidden bg-slate-950">
-                                            @if($sameDate->hero_image_url)
-                                                <img src="{{ $sameDate->hero_image_url }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                            @else
-                                                <div class="w-full h-full bg-slate-900 flex items-center justify-center">
-                                                    <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                                </div>
-                                            @endif
-                                            <div class="absolute top-2 right-2 bg-neon text-dark px-2 py-0.5 rounded text-[10px] font-extrabold">
-                                                {{ $sameDate->event_date->format('d M Y') }}
-                                            </div>
-                                        </div>
-                                        <div class="p-3.5">
-                                            <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $sameDate->name }}</h4>
-                                            <p class="text-xs text-slate-400 truncate">
-                                                {{ $sameDate->city ? $sameDate->city->name : $sameDate->location_name }}
-                                            </p>
-                                        </div>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                </div>
             </div>
 
             <!-- Sidebar -->
@@ -501,26 +443,29 @@
                 <div class="bg-[#12161F] border border-slate-800 rounded-lg p-6 shadow-xl relative">
                     <h3 class="text-base font-bold text-white mb-5 flex items-center gap-2">
                         <span class="w-1 h-5 bg-neon rounded-sm"></span>
-                        <span>STATUS PENDAFTARAN</span>
+                        <span class="hidden lg:inline">STATUS PENDAFTARAN</span>
+                        <span class="lg:hidden">INFORMASI EVENT</span>
                     </h3>
                     
                     @if($event->external_registration_link)
-                        <a href="{{ $event->external_registration_link }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full py-3.5 px-4 rounded-md bg-neon text-dark font-black text-sm uppercase tracking-wider hover:bg-lime-300 transition-all shadow-md">
-                            <span>Daftar Sekarang</span>
-                            <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                        </a>
-                        <p class="text-center text-[11px] text-slate-400 mt-2.5">
-                            Membuka halaman registrasi resmi event
-                        </p>
+                        <div class="hidden lg:block">
+                            <a href="{{ $event->external_registration_link }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full py-3.5 px-4 rounded-md bg-neon text-dark font-black text-sm uppercase tracking-wider hover:bg-lime-300 transition-all shadow-md">
+                                <span>Daftar Sekarang</span>
+                                <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
+                            <p class="text-center text-[11px] text-slate-400 mt-2.5">
+                                Membuka halaman registrasi resmi event
+                            </p>
+                        </div>
                     @else
-                        <div class="w-full py-3 px-4 rounded-md bg-slate-800/80 text-slate-400 font-bold text-sm text-center border border-slate-700">
+                        <div class="hidden lg:block w-full py-3 px-4 rounded-md bg-[#1E2430] text-slate-300 font-bold text-sm text-center border border-slate-700">
                             Pendaftaran Belum Dibuka
                         </div>
                     @endif
 
-                    <div class="mt-6 pt-5 border-t border-slate-800 space-y-4">
+                    <div class="mt-0 lg:mt-6 pt-0 lg:pt-5 border-t-0 lg:border-t border-slate-800 space-y-4">
                         <div class="flex items-start gap-3">
-                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                            <div class="p-2 rounded-md bg-[#1E2430] text-neon shrink-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <div>
@@ -530,7 +475,7 @@
                         </div>
                         
                         <div class="flex items-start gap-3">
-                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                            <div class="p-2 rounded-md bg-[#1E2430] text-neon shrink-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </div>
                             <div>
@@ -540,7 +485,7 @@
                         </div>
 
                         <div class="flex items-start gap-3">
-                            <div class="p-2 rounded-md bg-slate-800 text-neon shrink-0">
+                            <div class="p-2 rounded-md bg-[#1E2430] text-neon shrink-0">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                             </div>
                             <div>
@@ -583,9 +528,9 @@
                                 <i class="fa-solid fa-crosshairs text-xs text-neon"></i>
                             </button>
                         </div>
-                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-300 font-semibold">
                             <span>{{ number_format($detailMapLat, 4) }}, {{ number_format($detailMapLng, 4) }}</span>
-                            <span class="text-slate-500">{{ $hasExactCoordinates ? 'Presisi GPS' : 'Estimasi Kota' }}</span>
+                            <span class="text-slate-400">{{ $hasExactCoordinates ? 'Presisi GPS' : 'Estimasi Kota' }}</span>
                         </div>
                     </div>
                 </div>
@@ -627,7 +572,7 @@
                         <span>RATING EVENT</span>
                     </h3>
                     <p class="text-slate-400 text-xs mb-3.5">
-                        Rata-rata <strong id="ph-event-rating-avg" class="text-white font-mono">{{ number_format($ratingAverage, 2) }}</strong> / 5 &bull; <span id="ph-event-rating-count">{{ $ratingCount }}</span> ulasan
+                        Rata-rata <strong id="ph-event-rating-avg" class="text-white font-bold">{{ number_format($ratingAverage, 2) }}</strong> / 5 &bull; <span id="ph-event-rating-count">{{ $ratingCount }}</span> ulasan
                     </p>
 
                     <div>
@@ -657,6 +602,111 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Related Events & Same Date Events (Full Width Section at Bottom) -->
+        @if((isset($relatedEvents) && $relatedEvents->count() > 0) || (isset($sameDateEvents) && $sameDateEvents->count() > 0))
+            <div class="mt-12 pt-8 border-t border-slate-800 space-y-10">
+                @if(isset($relatedEvents) && $relatedEvents->count() > 0)
+                    <div>
+                        <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
+                            <h3 class="text-base font-bold text-white uppercase tracking-tight">Event Serupa</h3>
+                            <a href="{{ route('events.index') }}" class="text-xs font-bold text-neon hover:underline">LIHAT SEMUA</a>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            @foreach($relatedEvents as $related)
+                                <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
+                                    <div class="aspect-video relative overflow-hidden bg-slate-950">
+                                        @if($related->hero_image_url)
+                                            <img src="{{ $related->hero_image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        @else
+                                            <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            </div>
+                                        @endif
+                                        <div class="absolute top-2 right-2 bg-[#090D16] px-2 py-0.5 rounded text-[10px] font-bold text-white border border-slate-800">
+                                            {{ $related->event_date->format('d M Y') }}
+                                        </div>
+                                    </div>
+                                    <div class="p-3.5">
+                                        <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $related->name }}</h4>
+                                        <p class="text-xs text-slate-400 truncate">
+                                            {{ $related->city ? $related->city->name : $related->location_name }}
+                                        </p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                @if(isset($sameDateEvents) && $sameDateEvents->count() > 0)
+                    <div>
+                        <div class="flex items-center justify-between gap-4 mb-4 pb-2 border-b border-slate-800">
+                            <h3 class="text-base font-bold text-white uppercase tracking-tight">Event di Tanggal Sama</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            @foreach($sameDateEvents as $sameDate)
+                                <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-[#12161F] border border-slate-800 hover:border-slate-700 rounded-lg overflow-hidden transition-all">
+                                    <div class="aspect-video relative overflow-hidden bg-slate-950">
+                                        @if($sameDate->hero_image_url)
+                                            <img src="{{ $sameDate->hero_image_url }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        @else
+                                            <div class="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                            </div>
+                                        @endif
+                                        <div class="absolute top-2 right-2 bg-neon text-dark px-2 py-0.5 rounded text-[10px] font-extrabold">
+                                            {{ $sameDate->event_date->format('d M Y') }}
+                                        </div>
+                                    </div>
+                                    <div class="p-3.5">
+                                        <h4 class="font-bold text-white text-sm group-hover:text-neon transition-colors line-clamp-1 mb-1">{{ $sameDate->name }}</h4>
+                                        <p class="text-xs text-slate-400 truncate">
+                                            {{ $sameDate->city ? $sameDate->city->name : $sameDate->location_name }}
+                                        </p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+    </div>
+</div>
+
+<!-- Mobile Floating Bottom Action Bar -->
+<div class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-dark border-t border-slate-800 shadow-2xl px-4 py-2.5" style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
+    <div class="flex items-center justify-between gap-3 max-w-lg mx-auto">
+        <!-- Left Info: Waktu & Lokasi -->
+        <div class="min-w-0 flex-1">
+            <div class="text-xs font-bold text-neon flex items-center gap-1.5 leading-tight">
+                <svg class="w-3.5 h-3.5 shrink-0 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span class="truncate">{{ $event->event_date->translatedFormat('d M Y') }} &bull; {{ $event->start_time ? $event->start_time->format('H:i') . ' WIB' : '05:00 WIB' }}</span>
+            </div>
+            <div class="text-xs font-semibold text-slate-200 flex items-center gap-1 mt-0.5 leading-tight">
+                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="truncate">{{ $event->location_name ?: ($event->city ? $event->city->name : 'TBA') }}</span>
+            </div>
+        </div>
+
+        <!-- Right Actions: Google Maps & Registration CTA -->
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="https://www.google.com/maps/search/?api=1&query={{ $detailMapLat }},{{ $detailMapLng }}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-md bg-[#1E2430] hover:bg-[#283244] text-slate-200 hover:text-neon border border-slate-700 transition flex items-center justify-center" title="Buka Peta Google Maps" aria-label="Buka Google Maps">
+                <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            </a>
+
+            @if($event->external_registration_link)
+                <a href="{{ $event->external_registration_link }}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-neon hover:bg-lime-300 text-dark font-black text-xs sm:text-sm uppercase tracking-wider rounded-md transition-all shadow-md inline-flex items-center gap-1.5 whitespace-nowrap">
+                    <span>Daftar</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </a>
+            @else
+                <span class="px-3 py-2 bg-[#1E2430] text-slate-300 font-bold text-xs rounded-md border border-slate-700 whitespace-nowrap">
+                    Belum Buka
+                </span>
+            @endif
         </div>
     </div>
 </div>
