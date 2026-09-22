@@ -381,38 +381,56 @@
     <main class="max-w-7xl mx-auto px-3.5 sm:px-6 md:px-8 py-6 sm:py-10 overflow-hidden">
         
         <!-- Alerts and Notices -->
-        @if(session('success'))
-            <div id="payment-notification-badge" class="mb-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
-                <div class="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+        @if(session('success') || request('payment') === 'success')
+            <div id="payment-notification-badge" class="mb-6 rounded-lg bg-emerald-50 border border-emerald-200 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
+                <div class="w-8 h-8 rounded-md bg-emerald-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
                     <i class="fa-solid fa-circle-check text-white"></i>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Pendaftaran Berhasil</h3>
-                    <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') }}</p>
+                    <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') ?? 'Terima kasih telah mendaftar. Silakan cek email Anda (inbox/spam) untuk melihat E-Ticket dan detail acara.' }}</p>
                 </div>
             </div>
         @endif
 
-        @if(session('payment') === 'pending')
-            <div id="payment-notification-badge" class="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
-                <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+        @if(session('payment') === 'pending' || request('payment') === 'pending')
+            <div id="payment-notification-badge" class="mb-6 rounded-lg bg-amber-50 border border-amber-200 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
+                <div class="w-8 h-8 rounded-md bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
                     <i class="fa-solid fa-clock text-white"></i>
                 </div>
-                <div>
+                <div class="flex-1">
                     <h3 class="text-sm font-bold text-amber-950">Menunggu Pembayaran</h3>
-                    <p class="text-xs text-amber-800 mt-0.5">Transaksi kamu telah dicatat. Silakan selesaikan pembayaran untuk mengonfirmasi pendaftaran.</p>
+                    <p class="text-xs text-amber-800 mt-0.5">Transaksi kamu telah dicatat. Jika popup pembayaran sebelumnya tertutup atau belum diselesaikan, kamu dapat melanjutkannya sekarang tanpa perlu mengisi data ulang.</p>
+                    <div class="mt-3">
+                        <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-md transition shadow-sm">
+                            <span>Lanjutkan Pembayaran</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         @endif
 
-        @if(session('payment') === 'cod_pending')
-            <div id="payment-notification-badge" class="mb-6 rounded-2xl bg-amber-50 border border-amber-300 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
-                <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+        @if(session('payment') === 'cod_pending' || request('payment') === 'cod_pending')
+            <div id="payment-notification-badge" class="mb-6 rounded-lg bg-amber-50 border border-amber-300 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
+                <div class="w-8 h-8 rounded-md bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
                     <i class="fa-solid fa-hourglass-half text-white"></i>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-amber-950">Pendaftaran COD Menunggu Persetujuan (Approval)</h3>
                     <p class="text-xs text-amber-800 mt-0.5">Data pendaftaran dan foto Anda telah tersimpan dan sedang diverifikasi oleh panitia EO. Setelah disetujui, e-Tiket resmi akan dikirim ke email Anda.</p>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error') || request('payment') === 'failed')
+            <div id="payment-notification-badge" class="mb-6 rounded-lg bg-rose-50 border border-rose-200 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
+                <div class="w-8 h-8 rounded-md bg-rose-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+                    <i class="fa-solid fa-circle-xmark text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-rose-950">Pembayaran Gagal</h3>
+                    <p class="text-xs text-rose-800 mt-0.5">{{ session('error') ?? 'Pembayaran belum berhasil diselesaikan. Silakan coba kembali atau gunakan metode pembayaran lain.' }}</p>
                 </div>
             </div>
         @endif
@@ -1378,6 +1396,9 @@
                     <div id="modalSuccessIconCod" class="hidden w-16 h-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto shadow-sm mb-4">
                         <i class="fa-solid fa-clock-rotate-left text-white"></i>
                     </div>
+                    <div id="modalSuccessIconPending" class="hidden w-16 h-16 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl mx-auto shadow-sm mb-4">
+                        <i class="fa-solid fa-clock text-white"></i>
+                    </div>
                     <h3 id="modalSuccessTitle" class="text-xl sm:text-2xl font-black text-slate-900">Pendaftaran Berhasil!</h3>
                     <p id="modalSuccessDesc" class="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
                         Terima kasih telah mendaftar di <strong>{{ $event->name }}</strong>. Konfirmasi pendaftaran dan e-Tiket resmi telah dikirim ke email kamu.
@@ -1390,6 +1411,16 @@
                         </div>
                         <p class="text-[11px] leading-relaxed">
                             Data pendaftaran dan foto Anda telah tersimpan. Panitia EO akan memverifikasi pendaftaran Anda. Setelah disetujui, e-Tiket resmi akan dikirim dan nama Anda akan masuk ke daftar peserta resmi.
+                        </p>
+                    </div>
+
+                    <div id="modalPendingAlert" class="hidden mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-left text-xs text-amber-900 space-y-1">
+                        <div class="font-bold text-amber-950 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-amber-700"></i>
+                            <span>Status: Menunggu Pembayaran</span>
+                        </div>
+                        <p class="text-[11px] leading-relaxed">
+                            Transaksi pendaftaran kamu telah dicatat. Jika popup pembayaran sebelumnya tertutup atau belum selesai, silakan klik tombol "Lanjutkan Pembayaran" di bawah ini.
                         </p>
                     </div>
 
@@ -1408,6 +1439,13 @@
                                 <span class="font-bold text-slate-900 truncate max-w-[240px]">{{ $event->location_name }}</span>
                             </div>
                         @endif
+                    </div>
+
+                    <div id="modalPendingAction" class="hidden mt-4">
+                        <a href="{{ route('events.payments.continue', $event->slug) }}" class="w-full inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors text-center shadow-sm">
+                            <span>Lanjutkan Pembayaran Sekarang</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
                     </div>
 
                     <div class="mt-6 flex flex-col sm:flex-row items-center gap-3">
@@ -1472,6 +1510,20 @@
             const urlParams = new URLSearchParams(window.location.search);
             const paymentStatus = urlParams.get('payment');
             if (paymentStatus === 'success') {
+                const normalIcon = document.getElementById('modalSuccessIconNormal');
+                const codIcon = document.getElementById('modalSuccessIconCod');
+                const pendingIcon = document.getElementById('modalSuccessIconPending');
+                const codAlert = document.getElementById('modalCodPendingAlert');
+                const pendingAlert = document.getElementById('modalPendingAlert');
+                const pendingAction = document.getElementById('modalPendingAction');
+
+                if (normalIcon) normalIcon.classList.remove('hidden');
+                if (codIcon) codIcon.classList.add('hidden');
+                if (pendingIcon) pendingIcon.classList.add('hidden');
+                if (codAlert) codAlert.classList.add('hidden');
+                if (pendingAlert) pendingAlert.classList.add('hidden');
+                if (pendingAction) pendingAction.classList.add('hidden');
+
                 openSuccessModal();
                 setTimeout(scrollToPaymentBadge, 200);
             } else if (paymentStatus === 'cod_pending') {
@@ -1479,17 +1531,42 @@
                 const descEl = document.getElementById('modalSuccessDesc');
                 const normalIcon = document.getElementById('modalSuccessIconNormal');
                 const codIcon = document.getElementById('modalSuccessIconCod');
+                const pendingIcon = document.getElementById('modalSuccessIconPending');
                 const codAlert = document.getElementById('modalCodPendingAlert');
+                const pendingAlert = document.getElementById('modalPendingAlert');
+                const pendingAction = document.getElementById('modalPendingAction');
 
                 if (titleEl) titleEl.textContent = 'Pendaftaran COD Berhasil Terkirim!';
                 if (descEl) descEl.innerHTML = 'Pendaftaran Anda di <strong>{{ $event->name }}</strong> telah kami terima dan sedang dalam tahap verifikasi panitia.';
                 if (normalIcon) normalIcon.classList.add('hidden');
                 if (codIcon) codIcon.classList.remove('hidden');
+                if (pendingIcon) pendingIcon.classList.add('hidden');
                 if (codAlert) codAlert.classList.remove('hidden');
+                if (pendingAlert) pendingAlert.classList.add('hidden');
+                if (pendingAction) pendingAction.classList.add('hidden');
 
                 openSuccessModal();
                 setTimeout(scrollToPaymentBadge, 200);
             } else if (paymentStatus === 'pending') {
+                const titleEl = document.getElementById('modalSuccessTitle');
+                const descEl = document.getElementById('modalSuccessDesc');
+                const normalIcon = document.getElementById('modalSuccessIconNormal');
+                const codIcon = document.getElementById('modalSuccessIconCod');
+                const pendingIcon = document.getElementById('modalSuccessIconPending');
+                const codAlert = document.getElementById('modalCodPendingAlert');
+                const pendingAlert = document.getElementById('modalPendingAlert');
+                const pendingAction = document.getElementById('modalPendingAction');
+
+                if (titleEl) titleEl.textContent = 'Menunggu Pembayaran';
+                if (descEl) descEl.innerHTML = 'Pendaftaran Anda di <strong>{{ $event->name }}</strong> telah dicatat. Silakan selesaikan pembayaran untuk mengonfirmasi pendaftaran.';
+                if (normalIcon) normalIcon.classList.add('hidden');
+                if (codIcon) codIcon.classList.add('hidden');
+                if (pendingIcon) pendingIcon.classList.remove('hidden');
+                if (codAlert) codAlert.classList.add('hidden');
+                if (pendingAlert) pendingAlert.classList.remove('hidden');
+                if (pendingAction) pendingAction.classList.remove('hidden');
+
+                openSuccessModal();
                 setTimeout(scrollToPaymentBadge, 200);
             }
         });
