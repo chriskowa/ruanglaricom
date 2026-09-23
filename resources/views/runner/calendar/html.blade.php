@@ -137,6 +137,365 @@
             </div>
         </div>
 
+        <transition name="fade">
+        <div v-if="showAdaptivePopup"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="adaptive-run-intel-title"
+             tabindex="0"
+             @keydown.escape.prevent.stop="closeAdaptivePopup"
+             class="fixed inset-0 z-[9998] overflow-y-auto overflow-x-hidden flex items-start md:items-center justify-center p-4 md:p-6">
+            <div class="fixed inset-0 bg-black/80"
+                 @click.self="closeAdaptivePopup"
+                 aria-hidden="true"></div>
+
+            <div class="relative z-[1] w-full max-w-3xl rounded-lg border border-slate-700 shadow-2xl shadow-black/50 bg-[#0b1220]">
+                <div class="border-b border-slate-800 rounded-t-lg px-4 sm:px-6 py-3.5 bg-[#0f172a]">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                
+                                <span v-if="adaptiveLoading" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-semibold uppercase tracking-wider">
+                                    <svg class="w-3 h-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Loading
+                                </span>
+                                <span v-else-if="adaptiveStatus.insufficient && !adaptiveStatus.has_active_program" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/35 text-[10px] font-semibold uppercase tracking-wider">
+                                    Data Kurang
+                                </span>
+                            </div>
+                            <h2 id="adaptive-run-intel-title" class="text-white font-bold text-base sm:text-lg leading-snug">
+                                Status Latihan Anda
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1 max-w-xl leading-relaxed">
+                                Program latihan Anda harus menyesuaikan kondisi tubuh, bukan sekadar mengikuti kalender.
+                                Fitur ini membantu Anda mengambil keputusan berdasarkan data dan kondisi tubuh aktual.
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                @click.stop.prevent="closeAdaptivePopup"
+                                aria-label="Tutup popup"
+                                class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center justify-center text-xs font-bold flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-neon/60">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-5 space-y-4">
+
+                    <div v-if="adaptiveLoading"
+                         class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div class="h-32 rounded-lg bg-slate-800/50 animate-pulse border border-slate-800"></div>
+                        <div v-for="n in 3" :key="n" class="h-32 rounded-lg bg-slate-800/50 animate-pulse border border-slate-800"></div>
+                        <div class="md:col-span-4 h-20 rounded-lg bg-slate-800/50 animate-pulse border border-slate-800"></div>
+                    </div>
+                    <template v-else>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-3.5">
+
+                            <!-- PHASE TILE -->
+                            <div class="lg:col-span-1 relative rounded-lg border p-3 sm:p-3.5 flex flex-col gap-2.5"
+                                 :class="[
+                                     `border-${adaptiveStatus.training_phase?.accent || 'slate'}-500/35`,
+                                     `bg-${adaptiveStatus.training_phase?.accent || 'slate'}-500/5`
+                                 ]">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider"
+                                          :class="`text-${adaptiveStatus.training_phase?.accent || 'slate'}-300`">
+                                        Fase Latihan
+                                    </span>
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0"
+                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"
+                                         :class="`text-${adaptiveStatus.training_phase?.accent || 'slate'}-400`">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                          :class="`bg-${adaptiveStatus.training_phase?.accent || 'slate'}-400`"></span>
+                                    <span class="text-xs font-bold uppercase tracking-wide leading-none"
+                                          :class="`text-${adaptiveStatus.training_phase?.accent || 'slate'}-200`">
+                                        @{{ adaptiveStatus.training_phase?.label || 'Unknown' }}
+                                    </span>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <p class="text-xs text-slate-200 font-semibold leading-snug">
+                                        @{{ adaptiveStatus.training_phase?.focus || 'Fokus program sedang dihitung…' }}
+                                    </p>
+                                    <p v-if="adaptiveStatus.training_phase?.week_current > 0"
+                                       class="text-[10px] text-slate-400">
+                                        Minggu ke-@{{ adaptiveStatus.training_phase.week_current }} dari @{{ adaptiveStatus.training_phase.week_total || '?' }}
+                                    </p>
+                                </div>
+
+                                <div class="mt-auto pt-1 space-y-1">
+                                    <div class="flex items-center justify-between text-[10px]">
+                                        <span class="text-slate-400 font-medium">Progress</span>
+                                        <span class="font-bold font-mono"
+                                              :class="`text-${adaptiveStatus.training_phase?.accent || 'slate'}-300`">
+                                            @{{ adaptiveStatus.training_phase?.progress_pct ?? 0 }}%
+                                        </span>
+                                    </div>
+                                    <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden border border-slate-800/70">
+                                        <div class="h-full rounded-full transition-all duration-700"
+                                             :class="`bg-${adaptiveStatus.training_phase?.accent || 'slate'}-400`"
+                                             :style="{ width: (adaptiveStatus.training_phase?.progress_pct || 0) + '%' }"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3 PILLARS -->
+                            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-3.5">
+
+                                <!-- VOLUME -->
+                                <div class="relative rounded-lg border p-3 sm:p-3.5 flex flex-col gap-2.5"
+                                     :class="[
+                                         adaptiveStatus.readiness_3tier?.badge === 'emerald' ? 'border-emerald-500/40 bg-emerald-500/[0.06]' :
+                                         adaptiveStatus.readiness_3tier?.badge === 'rose'    ? 'border-rose-500/40 bg-rose-500/[0.06]' :
+                                         'border-amber-500/40 bg-amber-500/[0.06]'
+                                     ]">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider"
+                                              :class="[
+                                                  adaptiveStatus.readiness_3tier?.badge === 'emerald' ? 'text-emerald-300' :
+                                                  adaptiveStatus.readiness_3tier?.badge === 'rose'    ? 'text-rose-300' :
+                                                  'text-amber-300'
+                                              ]">
+                                            Kesiapan Volume
+                                        </span>
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0"
+                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"
+                                             :class="[
+                                                 adaptiveStatus.readiness_3tier?.badge === 'emerald' ? 'text-emerald-400' :
+                                                 adaptiveStatus.readiness_3tier?.badge === 'rose'    ? 'text-rose-400' :
+                                                 'text-amber-400'
+                                             ]">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13h2v8H3v-8zm4-4h2v12H7V9zm4-5h2v17h-2V4zm4 8h2v9h-2v-9zm4-3h2v12h-2V9z" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                              :class="[
+                                                  adaptiveStatus.readiness_3tier?.badge === 'emerald' ? 'bg-emerald-400' :
+                                                  adaptiveStatus.readiness_3tier?.badge === 'rose'    ? 'bg-rose-400' :
+                                                  'bg-amber-400'
+                                              ]"></span>
+                                        <h3 class="text-xs font-bold text-white leading-tight">
+                                            @{{ adaptiveStatus.readiness_3tier?.title || 'Menghitung…' }}
+                                        </h3>
+                                    </div>
+
+                                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                                        @{{ adaptiveStatus.readiness_3tier?.volume_recommendation || 'Belum cukup data untuk mengevaluasi kesiapan volume mingguan.' }}
+                                    </p>
+
+                                    <div v-if="adaptiveStatus.readiness_3tier?.weekly_target_km || (adaptiveStatus.readiness_3tier?.delta_pct !== null && adaptiveStatus.readiness_3tier?.delta_pct !== undefined)"
+                                         class="rounded-md bg-slate-900/65 border border-slate-800 p-2 space-y-1 mt-auto">
+                                        <div v-if="adaptiveStatus.readiness_3tier?.weekly_target_km"
+                                             class="flex items-center justify-between text-[10px]">
+                                            <span class="text-slate-400 font-medium">Target Mingguan</span>
+                                            <span class="font-bold font-mono text-white">@{{ Number(adaptiveStatus.readiness_3tier.weekly_target_km).toFixed(1) }} km</span>
+                                        </div>
+                                        <div v-if="adaptiveStatus.readiness_3tier?.delta_pct !== null && adaptiveStatus.readiness_3tier?.delta_pct !== undefined"
+                                             class="flex items-center justify-between text-[10px]">
+                                            <span class="text-slate-400 font-medium">Delta Minggu Lalu</span>
+                                            <span class="font-bold font-mono"
+                                                  :class="[
+                                                      adaptiveStatus.readiness_3tier.delta_pct > 0 ? 'text-emerald-300' :
+                                                      adaptiveStatus.readiness_3tier.delta_pct < 0 ? 'text-rose-300' :
+                                                      'text-slate-200'
+                                                  ]">
+                                                @{{ adaptiveStatus.readiness_3tier.delta_pct > 0 ? '+' : '' }}@{{ Number(adaptiveStatus.readiness_3tier.delta_pct).toFixed(1) }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- INTENSITY -->
+                                <div class="relative rounded-lg border p-3 sm:p-3.5 flex flex-col gap-2.5"
+                                     :class="[
+                                         adaptiveStatus.intensity_decision?.add_quality
+                                             ? 'border-lime-500/45 bg-lime-500/[0.06]'
+                                             : 'border-slate-700 bg-slate-800/30'
+                                     ]">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider"
+                                              :class="adaptiveStatus.intensity_decision?.add_quality ? 'text-lime-300' : 'text-slate-400'">
+                                            Keputusan Intensitas
+                                        </span>
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0"
+                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"
+                                             :class="adaptiveStatus.intensity_decision?.add_quality ? 'text-lime-400' : 'text-slate-400'">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                              :class="adaptiveStatus.intensity_decision?.add_quality ? 'bg-lime-400' : 'bg-slate-500'"></span>
+                                        <h3 class="text-xs font-bold text-white leading-tight">
+                                            @{{ adaptiveStatus.intensity_decision?.title || (adaptiveStatus.intensity_decision?.add_quality ? 'Tambah Quality Session' : 'Fokus Easy Mileage') }}
+                                        </h3>
+                                    </div>
+
+                                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                                        @{{ adaptiveStatus.intensity_decision?.description || 'Belum cukup data untuk rekomendasi intensity.' }}
+                                    </p>
+
+                                    <div v-if="adaptiveStatus.intensity_decision?.add_quality && adaptiveStatus.intensity_decision?.quality_example"
+                                         class="rounded-md bg-slate-900/65 border border-slate-800 p-2 mt-auto">
+                                        <div class="text-[9px] font-bold uppercase tracking-wider text-lime-300 mb-0.5">
+                                            Contoh Quality Minggu Ini
+                                        </div>
+                                        <div class="text-[11px] text-slate-200 font-medium leading-relaxed">
+                                            @{{ adaptiveStatus.intensity_decision.quality_example }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- RECOVERY -->
+                                <div class="relative rounded-lg border p-3 sm:p-3.5 flex flex-col gap-2.5"
+                                     :class="[
+                                         adaptiveStatus.recovery_alert?.is_alert
+                                             ? 'border-rose-500/45 bg-rose-500/[0.06]'
+                                             : 'border-violet-500/35 bg-violet-500/[0.05]'
+                                     ]">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider"
+                                              :class="adaptiveStatus.recovery_alert?.is_alert ? 'text-rose-300' : 'text-violet-300'">
+                                            Status Pemulihan
+                                        </span>
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0"
+                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"
+                                             :class="adaptiveStatus.recovery_alert?.is_alert ? 'text-rose-400' : 'text-violet-400'">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                              :class="adaptiveStatus.recovery_alert?.is_alert ? 'bg-rose-400' : 'bg-violet-400'"></span>
+                                        <h3 class="text-xs font-bold text-white leading-tight">
+                                            @{{ adaptiveStatus.recovery_alert?.title || (adaptiveStatus.recovery_alert?.is_alert ? 'Pemulihan Diperlukan' : 'Pemulihan Stabil') }}
+                                        </h3>
+                                    </div>
+
+                                    <p class="text-[11px] text-slate-300 leading-relaxed">
+                                        @{{ adaptiveStatus.recovery_alert?.recommendation || 'Sinyal pemulihan tubuh Anda stabil.' }}
+                                    </p>
+
+                                    <div class="rounded-md bg-slate-900/65 border border-slate-800 p-2 space-y-1 mt-auto">
+                                        <div v-if="adaptiveStatus.recovery_alert?.training_streak > 0"
+                                             class="flex items-center justify-between text-[10px]">
+                                            <span class="text-slate-400 font-medium">Training Streak</span>
+                                            <span class="font-bold font-mono"
+                                                  :class="adaptiveStatus.recovery_alert?.training_streak >= 10 ? 'text-rose-300' : 'text-slate-200'">
+                                                @{{ adaptiveStatus.recovery_alert.training_streak }} hari
+                                            </span>
+                                        </div>
+                                        <div v-if="adaptiveStatus.recovery_alert?.rpe_avg_5d !== null && adaptiveStatus.recovery_alert?.rpe_avg_5d !== undefined"
+                                             class="flex items-center justify-between text-[10px]">
+                                            <span class="text-slate-400 font-medium">RPE Rata-rata</span>
+                                            <span class="font-bold font-mono"
+                                                  :class="adaptiveStatus.recovery_alert?.rpe_avg_5d >= 6.5 ? 'text-rose-300' : 'text-slate-200'">
+                                                @{{ Number(adaptiveStatus.recovery_alert.rpe_avg_5d).toFixed(1) }}/10
+                                            </span>
+                                        </div>
+                                        <div v-if="adaptiveStatus.recovery_alert?.breached_params && adaptiveStatus.recovery_alert.breached_params.length > 0"
+                                             class="flex items-start gap-1.5 text-[10px] mt-1 pt-1.5 border-t border-slate-800/80">
+                                            <span class="text-rose-400 font-bold shrink-0 mt-0.5">!</span>
+                                            <div class="text-slate-300 leading-snug">
+                                                <span v-for="(param, idx) in adaptiveStatus.recovery_alert.breached_params" :key="idx">
+                                                    @{{ param }}<span v-if="idx < adaptiveStatus.recovery_alert.breached_params.length - 1"><br></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- WHY SECTION -->
+                        <div class="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.05] p-3 sm:p-3.5">
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <svg class="w-7 h-7 rounded-md bg-cyan-500/15 border border-cyan-500/35 text-cyan-300 flex-shrink-0 p-1"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div class="flex-1 min-w-0 space-y-1.5">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                                            Alasan Rekomendasi Ini
+                                        </span>
+                                        <span v-if="adaptiveStatus.recovery_alert?.is_alert" class="text-[9px] px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/35 text-rose-300 font-semibold uppercase tracking-wider">
+                                            Recovery Alert
+                                        </span>
+                                    </div>
+                                    <div v-if="adaptiveStatus.why_section?.lines && adaptiveStatus.why_section.lines.length > 0"
+                                         class="space-y-1">
+                                        <p v-for="(line, idx) in adaptiveStatus.why_section.lines" :key="idx"
+                                           class="text-xs text-slate-200 leading-relaxed font-normal">
+                                            @{{ line }}
+                                        </p>
+                                    </div>
+                                    <div v-else-if="adaptiveStatus.insufficient"
+                                         class="text-xs text-amber-200 leading-relaxed font-normal">
+                                        @{{ adaptiveStatus.message || 'Belum cukup data latihan tersimpan. Selesaikan minimal 2-3 sesi dan catat RPE/feeling saat finish.' }}
+                                    </div>
+                                    <div v-else class="text-xs text-slate-300 leading-relaxed font-normal">
+                                        Sistem mempelajari pola latihan Anda. Lanjutkan logging konsisten untuk analisis yang lebih kaya.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </template>
+                </div>
+
+                <div class="border-t border-slate-800 px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-b-lg bg-[#0f172a]">
+                    <div class="text-[11px] text-slate-400 max-w-md leading-relaxed">
+                        <span v-if="!adaptiveStatus.has_active_program && !adaptiveLoading">
+                            Tidak ada program aktif. <a href="{{ route('programs.index') }}" class="text-neon hover:underline font-bold">Browse program</a>.
+                        </span>
+                        <span v-else-if="adaptiveStatus.insufficient && !adaptiveStatus.has_active_program">
+                            Status tidak dapat dihitung. Pastikan memiliki program aktif.
+                        </span>
+                        <span v-else-if="!adaptiveStatus.can_adapt_program">
+                            Adaptasi otomatis memerlukan enrollment program aktif. Rekomendasi tetap bisa diterapkan manual.
+                        </span>
+                        <span v-else>
+                            Klik <span class="text-slate-100 font-semibold">Terapkan ke Jadwal</span> untuk menyesuaikan jarak & intensitas mingguan otomatis.
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button"
+                                @click.stop.prevent="closeAdaptivePopup"
+                                class="flex-1 sm:flex-none px-3.5 py-2 rounded-md bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:bg-slate-700 transition text-xs font-semibold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-slate-500/60">
+                            Tutup
+                        </button>
+                        <button type="button"
+                                @click.stop.prevent="applyAdaptiveProgram"
+                                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md bg-neon text-dark font-bold text-xs uppercase tracking-wider hover:bg-lime-300 transition-all shadow shadow-neon/12 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none focus:outline-none focus:ring-2 focus:ring-neon"
+                                :disabled="adaptiveApplying || adaptiveLoading"
+                                :title="!adaptiveStatus.can_adapt_program ? 'Selesaikan 2-3 sesi latihan lagi agar data kesiapan terkumpul & dapat diterapkan ke jadwal.' : 'Terapkan rekomendasi jarak & intensity mingguan ke jadwal Anda secara otomatis.'">
+                            <svg v-if="adaptiveApplying" class="w-3.5 h-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Terapkan ke Jadwal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </transition>
+
         <!-- Weekly Volume Chart (Hidden per request) -->
         <div class="hidden glass-panel rounded-2xl p-6 mb-6" v-if="weeklyVolume.length > 0">
             <!-- content hidden -->
@@ -589,6 +948,32 @@
                             <span class="text-xs font-bold text-slate-350 uppercase tracking-widest font-mono">Program Aktif</span>
                         </div>
                         <div class="flex items-center gap-2">
+                            <!-- ========================================================= -->
+                            <!-- ADAPTIVE RUN INTELLIGENCE - FLOATING MINI BADGE PERSISTENT -->
+                            <!-- Selalu tampil: rose highlight jika recovery alert ON, default accent phase jika stabil -->
+                            <!-- ========================================================= -->
+                            <button
+                                type="button"
+                                v-if="adaptiveStatus.has_active_program || adaptiveStatus._raw"
+                                @click.stop.prevent="openAdaptivePopup(true)"
+                                class="group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all border shadow-sm z-[40] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900 focus:ring-neon"
+                                :class="[
+                                    adaptiveStatus.recovery_alert?.is_alert
+                                        ? 'border-rose-500/50 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
+                                        : `border-${adaptiveStatus.training_phase?.accent || 'slate'}-500/40 bg-${adaptiveStatus.training_phase?.accent || 'slate'}-500/10 text-${adaptiveStatus.training_phase?.accent === 'slate' ? 'slate' : adaptiveStatus.training_phase?.accent}-300 hover:bg-${adaptiveStatus.training_phase?.accent || 'slate'}-500/15`
+                                ]"
+                                :title="adaptiveStatus.recovery_alert?.is_alert ? (adaptiveStatus.recovery_alert?.title || 'Recovery Alert') : (adaptiveStatus.training_phase?.focus || adaptiveStatus.training_phase?.label || 'Adaptive Run Intelligence')"
+                            >
+                                <span class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                                      :class="adaptiveStatus.recovery_alert?.is_alert ? 'bg-rose-400' : `bg-${adaptiveStatus.training_phase?.accent || 'slate'}-400`"></span>
+                                <span v-if="adaptiveStatus.recovery_alert?.is_alert">Recovery</span>
+                                <span v-else>@{{ adaptiveStatus.training_phase?.label || 'ARI' }}</span>
+                                <span v-if="adaptiveStatus.training_phase?.progress_pct > 0 && !adaptiveStatus.recovery_alert?.is_alert"
+                                      class="ml-0.5 text-[9px] opacity-75 font-mono">
+                                    @{{ adaptiveStatus.training_phase.progress_pct }}%
+                                </span>
+                            </button>
+
                             <button @click="exportCalendar('image')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold uppercase transition flex items-center gap-1.5 shadow-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

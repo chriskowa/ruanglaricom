@@ -10,6 +10,7 @@ use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
 use App\Services\AdaptiveRescheduleService;
 use App\Services\ProgramAdaptationService;
+use App\Traits\TrainingPhaseAware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Notification;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 
 class CalendarController extends Controller
 {
+    use TrainingPhaseAware;
+
     public function index()
     {
         return redirect()->route('runner.dashboard', ['tab' => 'calendar']);
@@ -620,21 +623,14 @@ class CalendarController extends Controller
 
     /**
      * Get training phase based on day number
+     *
+     * ⚠️ RETURN STRINGS (foundation/early_quality/quality/final_prep) MUST REMAIN
+     * IDENTICAL — getEventColors() event tile color mapping depends on exact keys.
+     * Delegated to TrainingPhaseAware::legacyPhaseKey (single source of truth).
      */
     private function getTrainingPhase(int $day, int $totalWeeks): string
     {
-        $totalDays = $totalWeeks * 7;
-        $percentage = ($day / $totalDays) * 100;
-
-        if ($percentage <= 25) {
-            return 'foundation'; // Foundation phase
-        } elseif ($percentage <= 50) {
-            return 'early_quality'; // Early Quality phase
-        } elseif ($percentage <= 75) {
-            return 'quality'; // Quality phase
-        } else {
-            return 'final_prep'; // Final Preparation phase
-        }
+        return static::legacyPhaseKey($day, $totalWeeks);
     }
 
     /**
@@ -1069,6 +1065,37 @@ class CalendarController extends Controller
     }
 
     /**
+     * Adaptive Run Intelligence: on-demand training status summary
+     * for the calendar popup (4 pillars: Phase + Volume Readiness + Intensity + Recovery).
+     * Endpoint: GET /calendar/training-status
+     * Returns 200 always: {insufficient: true, message} OR {has_active_program: true ...full summary}
+     */
+    public function trainingStatus(Request $request)
+    {
+        try {
+            /** @var ProgramAdaptationService $service */
+            $service = app(ProgramAdaptationService::class);
+            $summary = $service->getCurrentTrainingStatus(auth()->user());
+
+            return response()->json($summary, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } catch (\Throwable $e) {
+            // Graceful fallback: frontend harus tetap render popup "Insufficient data / error"
+            // TIDAK lempar 500 ke UI (NFR-4 graceful).
+            report($e);
+
+            return response()->json([
+                'has_active_program' => false,
+                'insufficient'       => true,
+                'message'            => 'Gagal memuat status latihan: ' . $e->getMessage(),
+                '_debug'             => config('app.debug') ? [
+                    'file'  => $e->getFile(),
+                    'line'  => $e->getLine(),
+                ] : null,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
      * Get weekly volume data for chart
      */
     public function weeklyVolume(Request $request)
@@ -1496,7 +1523,7 @@ class CalendarController extends Controller
     {
         $validated = $request->validate([
             'enrollment_id' => 'required|integer|exists:program_enrollments,id',
-            'new_vdot' => 'required|numeric|min:10|max:85',
+            'new_vdot' => 'nullable|numeric|min:10|max:85',
             'adapt_volume' => 'nullable',
             'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
             'notes' => 'nullable|string|max:1000',
@@ -1508,10 +1535,14 @@ class CalendarController extends Controller
             ->firstOrFail();
 
         try {
+            $vdotRaw = $validated['new_vdot'] ?? $enrollment->current_vdot;
+            if ($vdotRaw === null || !is_numeric($vdotRaw) || (float)$vdotRaw < 10 || (float)$vdotRaw > 85) {
+                $vdotRaw = 40.0;
+            }
             $adaptVolume = filter_var($validated['adapt_volume'] ?? true, FILTER_VALIDATE_BOOLEAN);
             $result = $adaptationService->applyAdaptation(
                 $enrollment,
-                (float) $validated['new_vdot'],
+                (float) $vdotRaw,
                 [
                     'adapt_volume' => $adaptVolume,
                     'feeling' => $validated['feeling'] ?? null,

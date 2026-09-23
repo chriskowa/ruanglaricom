@@ -120,6 +120,152 @@ const runnerCalendarApp = createApp({
         const promoError = ref('');
         const checkingPromo = ref(false);
 
+        // ---------- ADAPTIVE RUN INTELLIGENCE (POPUP + BADGE) ----------
+        const showAdaptivePopup = ref(false);
+        const adaptiveHasBeenShown = ref(typeof window !== 'undefined' && sessionStorage.getItem('adaptive_popup_shown') === 'true'); // prevent auto-reopen after user close / page refresh
+        const adaptiveLoading = ref(false);
+        const adaptiveApplying = ref(false);
+        const adaptiveStatus = reactive({
+            // empty defaults — filled by fetchTrainingStatus()
+            has_active_program: false,
+            insufficient: false,
+            message: '',
+            training_phase: { key: null, label: null, accent: 'slate', focus: null, progress_pct: 0, week_current: 1, week_total: 0 },
+            readiness_3tier: { level: 'maintain', badge: 'amber', title: 'Tunggu Data', volume_recommendation: null, weekly_target_km: null, delta_pct: null },
+            intensity_decision: { add_quality: false, title: null, description: null, quality_example: null },
+            recovery_alert: { is_alert: false, breached_params: [], training_streak: 0, rpe_avg_5d: null, title: null, recommendation: null },
+            why_section: { lines: [] },
+            can_adapt_program: false,
+            active_enrollment_id: null,
+            active_vdot: null,
+            _raw: null
+        });
+
+        const fetchTrainingStatus = async () => {
+            adaptiveLoading.value = true;
+            try {
+                const trainingStatusUrl = {{ \Illuminate\Support\Facades\Route::has('calendar.training-status') ? Js::from(route('calendar.training-status')) : 'null' }}
+                                 ?? {{ \Illuminate\Support\Facades\Route::has('runner.calendar.training-status') ? Js::from(route('runner.calendar.training-status')) : 'null' }}
+                                 ?? '/runner/calendar/training-status';
+                const res = await fetch(trainingStatusUrl, {
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                // merge into reactive (preserve defaults untuk key undefined edge case)
+                Object.entries(data || {}).forEach(([k, v]) => {
+                    adaptiveStatus[k] = v;
+                });
+                adaptiveStatus._raw = data;
+
+                // Auto-open popup HANYA jika: (a) punya program aktif, (b) BELUM PERNAH ditampilkan di session ini
+                // (tersimpan di sessionStorage => tidak reopen saat refresh, tapi badge tetap persistent)
+                if (adaptiveStatus.has_active_program && !adaptiveHasBeenShown.value) {
+                    showAdaptivePopup.value = true;
+                    adaptiveHasBeenShown.value = true;
+                    try { sessionStorage.setItem('adaptive_popup_shown', 'true'); } catch (_) {}
+                }
+                return data;
+            } catch (e) {
+                console.error('[AdaptiveRunIntelligence] fetch failed', e);
+                adaptiveStatus.insufficient = true;
+                adaptiveStatus.message = 'Gagal memuat status latihan: ' + (e.message || String(e));
+            } finally {
+                adaptiveLoading.value = false;
+            }
+        };
+
+        const openAdaptivePopup = async (refetch = false) => {
+            if (refetch || !adaptiveStatus._raw) await fetchTrainingStatus();
+            showAdaptivePopup.value = true;
+            adaptiveHasBeenShown.value = true;
+            try { sessionStorage.setItem('adaptive_popup_shown', 'true'); } catch (_) {}
+        };
+
+        const closeAdaptivePopup = () => {
+            showAdaptivePopup.value = false;
+            adaptiveHasBeenShown.value = true;
+            try { sessionStorage.setItem('adaptive_popup_shown', 'true'); } catch (_) {}
+        };
+
+        const applyAdaptiveProgram = async () => {
+            if (adaptiveApplying.value) return;
+            if (!adaptiveStatus.active_enrollment_id && !adaptiveStatus.enrollment_id) {
+                showNotification('Belum ada program aktif. Silakan enrolling program terlebih dahulu.', 'error');
+                return;
+            }
+            if (!adaptiveStatus.can_adapt_program) {
+                const ok = window.confirm('Rekomendasi adaptasi untuk saat ini belum bisa diterapkan secara otomatis. Ingin refresh data & coba lagi?');
+                if (ok) {
+                    await fetchTrainingStatus();
+                }
+                return;
+            }
+            adaptiveApplying.value = true;
+            try {
+                const applyAdaptUrl = {{ \Illuminate\Support\Facades\Route::has('calendar.apply-program-adaptation') ? Js::from(route('calendar.apply-program-adaptation')) : 'null' }}
+                                   ?? {{ \Illuminate\Support\Facades\Route::has('runner.calendar.apply-program-adaptation') ? Js::from(route('runner.calendar.apply-program-adaptation')) : 'null' }}
+                                   ?? '/runner/calendar/apply-program-adaptation';
+                const enrollmentId = adaptiveStatus.active_enrollment_id ?? adaptiveStatus.enrollment_id;
+                const vdotCandidate = adaptiveStatus.new_vdot ?? adaptiveStatus.active_vdot ?? adaptiveStatus.current_vdot;
+                let vdotValue = Number(vdotCandidate);
+                if (!Number.isFinite(vdotValue) || vdotValue < 10 || vdotValue > 85) {
+                    vdotValue = 40;
+                }
+                const payload = {
+                    enrollment_id: enrollmentId,
+                    new_vdot: String(vdotValue),
+                    adapt_volume: true
+                };
+                const res = await fetch(applyAdaptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const text = await res.text();
+                let data = {};
+                try { data = text ? JSON.parse(text) : {}; } catch (e) { /* ignore parse error */ }
+                if (data.success || res.ok) {
+                    showNotification('Rekomendasi adaptasi berhasil diterapkan ke jadwal!', 'success');
+                    closeAdaptivePopup();
+                    // FullCalendar refetch — cari instance di window atau rerender melalui reload custom list
+                    try {
+                        if (window.runnerCalendarRefetchEvents) {
+                            window.runnerCalendarRefetchEvents();
+                        } else if (window.calendar) {
+                            window.calendar.refetchEvents && window.calendar.refetchEvents();
+                        } else {
+                            // Fallback: reload workout list
+                            await Promise.all([loadPlans(), fetchTrainingStatus()]);
+                        }
+                    } catch (_) { /* ignore */ }
+                    try { await loadPlans(); } catch (_) {}
+                    try { await fetchTrainingStatus(); } catch (_) {}
+                } else {
+                    let msg = data.message || 'Gagal menerapkan adaptasi';
+                    if (data.errors && Array.isArray(Object.values(data.errors))) {
+                        msg += ' — ' + Object.values(data.errors).flat().join(', ');
+                    } else if (res.status >= 400) {
+                        msg += ' (HTTP ' + res.status + ')';
+                    }
+                    showNotification(msg, 'error');
+                }
+            } catch (e) {
+                console.error('[AdaptiveRunIntelligence] apply failed', e);
+                showNotification('Gagal menerapkan adaptasi: ' + (e.message || String(e)), 'error');
+            } finally {
+                adaptiveApplying.value = false;
+            }
+        };
+        // ---------- END ADAPTIVE RUN INTELLIGENCE ----------
+
         const applyPromo = async () => {
             if (!promoCode.value) return;
             checkingPromo.value = true;
@@ -2742,6 +2888,10 @@ const runnerCalendarApp = createApp({
         onMounted(() => {
             console.log('[RunnerCalendar] onMounted');
 
+            // Adaptive Run Intelligence: fetch status latihan ASAP
+            // Non-blocking: fetch async, popup auto-open jika has_active_program
+            fetchTrainingStatus().catch(err => console.warn('[RunnerCalendar] Adaptive training status skipped', err));
+
             try {
                 initCalendar();
                 console.log('[RunnerCalendar] initCalendar done');
@@ -3210,7 +3360,10 @@ const runnerCalendarApp = createApp({
             showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,
             stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
             openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown,
-            ttsSupported, speakDetailDescription, truncatePlanDesc
+            ttsSupported, speakDetailDescription, truncatePlanDesc,
+            // Adaptive Run Intelligence
+            showAdaptivePopup, adaptiveHasBeenShown, adaptiveLoading, adaptiveApplying, adaptiveStatus,
+            fetchTrainingStatus, openAdaptivePopup, closeAdaptivePopup, applyAdaptiveProgram
         };
     }
 });

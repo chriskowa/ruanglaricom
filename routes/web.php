@@ -1213,6 +1213,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/restore-program', [CalendarController::class, 'restoreProgram'])->name('calendar.restore-program');
         Route::post('/calendar/update-pb', [CalendarController::class, 'updatePb'])->name('calendar.update-pb');
         Route::post('/calendar/apply-program-adaptation', [CalendarController::class, 'applyProgramAdaptation'])->name('calendar.apply-program-adaptation');
+        Route::get('/calendar/training-status', [CalendarController::class, 'trainingStatus'])->name('calendar.training-status');
         Route::post('/calendar/update-weekly-target', [CalendarController::class, 'updateWeeklyTarget'])->name('calendar.update-weekly-target');
         Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
         Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');

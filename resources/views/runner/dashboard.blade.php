@@ -2036,7 +2036,7 @@
         </div>
 
         <!-- Tab Content Marketplace (Purchases History & Wishlist) -->
-        <div id="tab-content-marketplace" class="tab-content mt-6 space-y-5 sm:space-y-6 hidden">
+        <div id="tab-content-marketplace" class="max-w-7xl mx-auto tab-content mt-6 space-y-5 sm:space-y-6 hidden">
             <!-- Marketplace Quick Header -->
             <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-lg p-3.5 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-sm overflow-hidden">
                 <div class="min-w-0">

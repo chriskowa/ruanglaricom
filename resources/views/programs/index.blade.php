@@ -1507,7 +1507,7 @@
                              alt="Authentic Indonesian runner catching breath after finishing race" 
                              class="w-full h-full object-cover min-h-[320px] lg:min-h-[440px]"
                              loading="lazy">
-                        <div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-[#0b111e]/90 border border-slate-800 text-[10px] font-bold text-[#CCFF00] font-numeric tracking-wider">
+                        <div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-white border border-slate-800 text-[10px] font-bold text-black font-numeric tracking-wider">
                             Ramadhan
                         </div>
                         <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded bg-[#0b111e]/90 text-[11px] font-semibold text-slate-300 font-numeric">

@@ -18,7 +18,7 @@
         color:var(--text);font-variant-numeric:tabular-nums;
     }
     #rl-calculator *{box-sizing:border-box}
-    #rl-calculator .rlc-wrap{max-width:1180px;margin:auto;padding:2.25rem 1rem 5rem}
+    #rl-calculator .rlc-wrap{margin:auto;padding:2.25rem 1rem 5rem}
     #rl-calculator .rlc-header{padding:1.8rem 0 2rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
     #rl-calculator .rlc-kicker{display:flex;align-items:center;gap:.7rem;color:var(--accent);font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
     #rl-calculator .rlc-kicker:before{content:"";width:30px;height:2px;background:var(--accent)}
@@ -116,7 +116,7 @@
 @endif
 
 <div id="rl-calculator" class="w-full pt-10">
-<div class="rlc-wrap">
+<div class="rlc-wrap max-w-7xl mx-auto">
     <header class="rlc-header">
         <div class="rlc-kicker">RuangLari / Performance Lab</div>
         <h1>Running Lab.</h1>

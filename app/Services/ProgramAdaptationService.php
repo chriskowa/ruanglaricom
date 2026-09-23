@@ -4,12 +4,17 @@ namespace App\Services;
 
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
+use App\Models\StravaActivity;
 use App\Models\User;
+use App\Models\UserActivity;
+use App\Traits\TrainingPhaseAware;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ProgramAdaptationService
 {
+    use TrainingPhaseAware;
+
     protected DanielsRunningService $daniels;
     protected ProgramBuilderService $builder;
 
@@ -555,5 +560,435 @@ class ProgramAdaptationService
             $s = 0;
         }
         return sprintf('%d:%02d', $m, $s);
+    }
+
+    // ============================================================
+    // ADAPTIVE RUN INTELLIGENCE: on-demand training status popup
+    // ============================================================
+
+    /**
+     * Compute on-demand training status summary for the calendar popup
+     * WITHOUT requiring a new PB / VDOT submission.
+     * Reuses existing battle-tested helpers (OptimalMileage, Quality,
+     * Daniels Paces) — 0 changes to adaptation rules for zero regression.
+     */
+    public function getCurrentTrainingStatus(User $user): array
+    {
+        $enrollment = ProgramEnrollment::where('runner_id', $user->id)
+            ->whereIn('status', ['active', 'in_progress'])
+            ->with('program')
+            ->latest()
+            ->first();
+
+        if (! $enrollment || ! $enrollment->program) {
+            return [
+                'has_active_program' => false,
+                'insufficient' => true,
+                'message' => 'Tidak ada program aktif untuk menampilkan Adaptive Run Intelligence.',
+            ];
+        }
+
+        $program = $enrollment->program;
+        $programVdot = (float) ($enrollment->current_vdot ?? ($program->vdot_score ?? 35.0));
+        if ($programVdot <= 0) {
+            $programVdot = 30.0;
+        }
+
+        // Session counters & completed days (reuse generateFeedback pattern)
+        $sessions = $program->program_json['sessions'] ?? [];
+        $completedDays = [];
+        if (! empty($enrollment->id)) {
+            $completedDays = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+                ->where('status', 'completed')
+                ->orderBy('completed_at', 'desc')
+                ->get(['session_day', 'completed_at', 'rpe', 'feeling'])
+                ->keyBy(fn($t) => (int) $t->session_day)
+                ->all();
+        }
+
+        $daysPassed = 0;
+        if ($enrollment->start_date) {
+            $daysPassed = max(0, (int) $enrollment->start_date->diffInDays(now()->startOfDay()));
+        }
+
+        $completedCount = 0;
+        $remainingCount = 0;
+        $currentWeeklyMileage = (float) ($program->daniels_params['weekly_mileage'] ?? 25.0);
+
+        foreach ($sessions as $s) {
+            $day = (int) ($s['day'] ?? 0);
+            if ($day <= $daysPassed || isset($completedDays[$day])) {
+                $completedCount++;
+            } else {
+                $remainingCount++;
+            }
+        }
+
+        $targetDistance = (string) ($program->distance_target ?? '10k');
+        $recommendedMileage = $this->calculateOptimalMileage($programVdot, $currentWeeklyMileage, $targetDistance);
+        $newPaces = $this->daniels->calculateTrainingPaces($programVdot);
+        $quality = $this->generateQualityRecommendations($programVdot, $programVdot, $targetDistance, $newPaces);
+        $level = $this->getLevelData($programVdot);
+        $totalWeeks = (int) ($program->duration_weeks ?? 12);
+        $currentSessionDay = max(1, min($totalWeeks * 7, $daysPassed + 1));
+
+        // ----------------------------
+        // NEW RECOVERY METRICS (popup only)
+        // ----------------------------
+        $recoveryMetrics = $this->currentCalculateRecoveryMetrics($enrollment, collect($completedDays));
+        $readiness = $this->evaluateReadiness(
+            $recoveryMetrics['feeling_latest'] ?? 'good',
+            0.0
+        );
+
+        // Override readiness jika recovery alert nyala (rose = reduce)
+        $recoveryBreached = $recoveryMetrics['recovery_alert'];
+        $badgeColor = $readiness['badge_color'] ?? 'blue';
+        if ($recoveryBreached) {
+            $badgeColor = 'rose';
+        }
+
+        // ----------------------------
+        // TRAINING PHASE — single source via TrainingPhaseAware trait
+        // ----------------------------
+        $phaseInfo = static::calculatePhase($currentSessionDay, $totalWeeks);
+
+        // ----------------------------
+        // 3-TIER VOLUME READINESS
+        // ----------------------------
+        $volumeDiffPct = $recommendedMileage > 0 ? (($recommendedMileage - $currentWeeklyMileage) / $currentWeeklyMileage) * 100 : 0;
+        $tierStatus = match(true) {
+            $recoveryBreached || $badgeColor === 'rose' || ($recoveryMetrics['rpe_avg_5d'] ?? 0) >= 6.5 => 'reduce',
+            $badgeColor === 'amber' || abs($volumeDiffPct) < 2 => 'maintain',
+            $badgeColor === 'emerald' || $volumeDiffPct >= 2 => 'ready',
+            default => 'maintain',
+        };
+        $tierAccent = match($tierStatus) {
+            'ready' => 'emerald',
+            'maintain' => 'amber',
+            'reduce' => 'rose',
+        };
+        $tierTitle = match($tierStatus) {
+            'ready' => 'Ready to increase volume',
+            'maintain' => 'Maintain current volume',
+            'reduce' => 'Reduce load · Recovery week',
+        };
+        $tierMessage = match($tierStatus) {
+            'ready' => sprintf('Tubuh Anda adaptasi dengan baik. Pertimbangkan kenaikan mileage mingguan +%.0f–%.0f%% (saat ini %.1f km → rekomendasi %.1f km).',
+                min(5, $volumeDiffPct * 0.6),
+                min(10, $volumeDiffPct * 1.1),
+                $currentWeeklyMileage,
+                $recommendedMileage
+            ),
+            'maintain' => 'Fitness Anda membaik, tapi sinyal recovery (RPE / feeling / pace trend) menyarankan mempertahankan volume minggu ini terlebih dahulu.',
+            'reduce' => sprintf('Kelelahan akumulasi terdeteksi. Disarankan recovery week: kurangi mileage sebesar 20–30%% (ke %.1f–%.1f km), tidak ada quality sessions.',
+                $currentWeeklyMileage * 0.8,
+                $currentWeeklyMileage * 0.7
+            ),
+        };
+        $suggestedVolumePctDiff = (int) round(min(10, max(-30, $volumeDiffPct)));
+
+        // ----------------------------
+        // INTENSITY DECISION ENGINE
+        // ----------------------------
+        $paceImproving = ($recoveryMetrics['pace_trend_pct'] ?? 0) >= 1.5; // 1.5%+ lebih cepat
+        $hrStable = ! $recoveryBreached;
+        $addQuality = $tierStatus === 'ready' && $paceImproving && $hrStable;
+        $intensityAccent = $addQuality ? 'lime' : 'slate';
+        $intensityTitle = $addQuality
+            ? '⚡ Add quality session minggu ini'
+            : 'Tahan speed work — focus easy mileage dulu';
+        $intensityMessage = $addQuality
+            ? sprintf('Aerobik foundation Anda membaik (pace ▽ %.2f%%). Minggu ini cocok tambahkan %s.',
+                abs($recoveryMetrics['pace_trend_pct'] ?? 0),
+                $quality['workout_type'] ?? 'Tempo training'
+            )
+            : 'Speed work dan interval saat ini dapat menyebabkan excessive stress. Fokus easy mileage untuk membangun aerobic base sebelum menambah intensity.';
+        $structureExample = $addQuality ? ($quality['structure'] ?? null) : null;
+
+        // ----------------------------
+        // RECOVERY ALERT CARD OUTPUT
+        // ----------------------------
+        $alertAccent = $recoveryBreached ? 'rose' : 'emerald';
+        $alertTitle = $recoveryBreached
+            ? '🛌 Recovery Week direkomendasikan'
+            : '✅ Sinyal pemulihan stabil';
+        $alertMessage = $recoveryBreached
+            ? '14 hari terakhir menunjukkan akumulasi kelelahan. Disarankan menurunkan volume, hilangkan quality sessions, dan prioritaskan tidur 7-9 jam.'
+            : 'Keseimbangan beban latihan & pemulihan terjaga minggu ini. Pertahankan pola tidur, hidrasi, dan nutrisi pasca-lari.';
+        $parametersBreached = $recoveryMetrics['breached_parameters'] ?? [];
+
+        // ----------------------------
+        // WHY SECTION: 2-3 kalimat narasi dengan ANGKA KONKRET
+        // ----------------------------
+        $whyLines = [];
+        $whyLines[] = sprintf(
+            'Anda sudah menyelesaikan %d dari %d total sesi (%d%% durasi program) di fase %s. Target race jarak %s.',
+            $completedCount,
+            max(1, $completedCount + $remainingCount),
+            $phaseInfo['progress_pct'],
+            strtoupper($phaseInfo['label']),
+            strtoupper($targetDistance)
+        );
+        $rpeLine = $recoveryMetrics['rpe_avg_5d'] > 0
+            ? sprintf('RPE rata-rata 5 hari terakhir = %.1f/10, feeling terbaru = "%s".',
+                $recoveryMetrics['rpe_avg_5d'],
+                $recoveryMetrics['feeling_latest'] ?? 'good'
+            )
+            : 'RPE log 5 hari terakhir belum cukup data.';
+        $whyLines[] = $rpeLine;
+        $paceLine = isset($recoveryMetrics['pace_trend_pct'])
+            ? sprintf(
+                'Pace trend 14-hari vs 30-hari: %s %.2f%% (%s).',
+                $recoveryMetrics['pace_trend_pct'] >= 0 ? 'membaik (lebih cepat)' : 'menurun (lebih lambat)',
+                abs($recoveryMetrics['pace_trend_pct']),
+                $level['name'] . ' VDOT ' . round($programVdot, 1)
+            )
+            : 'Belum cukup data pace untuk analisis trend.';
+        $whyLines[] = $paceLine;
+        if ($recoveryBreached && ! empty($parametersBreached)) {
+            $whyLines[] = sprintf(
+                'Parameter pemulihan yang dilanggar: %s.',
+                implode(', ', $parametersBreached)
+            );
+        }
+
+        $vdotDiffThreshold = 0.3;
+        $canAdapt = $remainingCount > 0 && (
+            $tierStatus !== 'maintain'
+            || $addQuality
+        );
+
+        return [
+            'has_active_program' => true,
+            'insufficient' => false,
+            'enrollment_id' => $enrollment->id,
+            'active_enrollment_id' => $enrollment->id,
+            'program_id' => $program->id,
+            'program_title' => $program->title,
+            'distance_target' => strtoupper($targetDistance),
+            'current_vdot' => round($programVdot, 1),
+            'new_vdot' => round($programVdot, 1),
+            'active_vdot' => round($programVdot, 1),
+            'vdot_diff' => 0.0,
+            'change_direction' => 'stable',
+            'level' => $level,
+            'completed_sessions_count' => $completedCount,
+            'remaining_sessions_count' => $remainingCount,
+
+            'training_phase' => $phaseInfo,
+
+            'readiness_3tier' => [
+                'level' => $tierStatus,
+                'badge' => $tierAccent,
+                'title' => $tierTitle,
+                'volume_recommendation' => $tierMessage,
+                'weekly_target_km' => round($recommendedMileage, 1),
+                'delta_pct' => $suggestedVolumePctDiff,
+                'status' => $tierStatus,
+                'accent' => $tierAccent,
+                'message' => $tierMessage,
+                'current_km' => round($currentWeeklyMileage, 1),
+                'recommended_km' => round($recommendedMileage, 1),
+                'diff_km' => round($recommendedMileage - $currentWeeklyMileage, 1),
+                'suggested_volume_pct_diff' => $suggestedVolumePctDiff,
+            ],
+
+            'intensity_decision' => [
+                'add_quality' => $addQuality,
+                'title' => $intensityTitle,
+                'description' => $intensityMessage,
+                'quality_example' => $structureExample,
+                'accent' => $intensityAccent,
+                'message' => $intensityMessage,
+                'structure_example' => $structureExample,
+                'interval_pace' => $quality['interval_pace'] ?? null,
+                'threshold_pace' => $quality['threshold_pace'] ?? null,
+            ],
+
+            'recovery_alert' => [
+                'is_alert' => $recoveryBreached,
+                'accent' => $alertAccent,
+                'title' => $alertTitle,
+                'recommendation' => $alertMessage,
+                'breached_params' => $parametersBreached,
+                'training_streak' => (int) ($recoveryMetrics['training_streak'] ?? 0),
+                'rpe_avg_5d' => round($recoveryMetrics['rpe_avg_5d'] ?? 0, 1),
+                'message' => $alertMessage,
+                'parameters_breached' => $parametersBreached,
+                'training_streak_days' => (int) ($recoveryMetrics['training_streak'] ?? 0),
+            ],
+
+            'why_section' => [
+                'lines' => $whyLines,
+            ],
+
+            'can_adapt_program' => $canAdapt,
+        ];
+    }
+
+    // ----------------------------
+    // Private helpers for Adaptive Run Intelligence (PREFIX current* — NEW)
+    // ----------------------------
+
+    /**
+     * Calculate: training_streak, rpe_avg_5d, feeling trend (latest + declining),
+     * pace_trend_pct, recovery_alert boolean, list breached_parameters.
+     */
+    private function currentCalculateRecoveryMetrics(ProgramEnrollment $enrollment, $completedTrackings): array
+    {
+        $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+            ->where(function ($q) {
+                $q->where('status', 'completed')->orWhereNotNull('completed_at');
+            })
+            ->orderByDesc('completed_at')
+            ->limit(20)
+            ->get(['session_day', 'completed_at', 'rpe', 'feeling']);
+
+        // --- Training streak (consecutive days with completed run) ---
+        $streak = 0;
+        $cursor = now()->startOfDay();
+        $completedDates = $trackings
+            ->filter(fn($t) => $t->completed_at !== null)
+            ->map(fn($t) => Carbon::parse($t->completed_at)->startOfDay()->toDateString())
+            ->unique()
+            ->flip();
+        for ($i = 0; $i < 60; $i++) {
+            $key = $cursor->toDateString();
+            if (isset($completedDates[$key])) {
+                $streak++;
+            } elseif ($i === 0) {
+                // Jika hari ini belum lari, coba kemarin sebagai start streak
+            } else {
+                break;
+            }
+            $cursor = $cursor->subDay();
+            if ($i >= 1 && ! isset($completedDates[$cursor->toDateString()])) {
+                break;
+            }
+        }
+
+        // --- RPE avg 5 day ---
+        $recentRpe = $trackings->take(5)->pluck('rpe')->filter(fn($v) => is_numeric($v) && $v > 0)->values();
+        $rpeAvg5d = $recentRpe->count() >= 2 ? (float) $recentRpe->avg() : 0.0;
+
+        // --- Feeling latest + trend declining ---
+        $feelingMap = ['strong' => 5, 'good' => 4, 'average' => 3, 'weak' => 2, 'terrible' => 1];
+        $feelings = $trackings->take(5)
+            ->pluck('feeling')
+            ->filter(fn($v) => is_string($v) && isset($feelingMap[$v]))
+            ->map(fn($v) => $feelingMap[$v])
+            ->values();
+        $latestFeeling = $trackings->firstWhere(fn($t) => is_string($t->feeling) && isset($feelingMap[$t->feeling]))->feeling ?? 'good';
+        $feelingDeclining = false;
+        if ($feelings->count() >= 3) {
+            $first = $feelings->take(ceil($feelings->count() / 2))->avg();
+            $last = $feelings->slice(floor($feelings->count() / 2))->avg();
+            $feelingDeclining = ($last - $first) <= -1.0; // turun 1+ poin
+        }
+
+        // --- Pace trend: 14 hari vs 30 hari avg_pace_sec LEBIL RENDAH = lebih cepat ---
+        [$paceTrendPct, $enoughPace] = $this->currentCalculatePaceTrend($enrollment->runner_id);
+
+        // --- Aggregate recovery_alert OR rules ---
+        $breached = [];
+        if ($streak >= 10) {
+            $breached[] = sprintf('training_streak (%d hr ≥ 10 hari)', $streak);
+        }
+        if ($rpeAvg5d >= 6.5) {
+            $breached[] = sprintf('rpe_avg_5d (%.1f ≥ 6.5)', $rpeAvg5d);
+        }
+        if ($feelingDeclining) {
+            $breached[] = 'feeling_declining (good → weak/tb 3hr terakhir)';
+        }
+        if ($paceTrendPct <= -7.0) {
+            $breached[] = sprintf('pace_decline (%.2f%% lebih lambat dari 30hr avg)', -$paceTrendPct);
+        }
+
+        return [
+            'training_streak' => $streak,
+            'rpe_avg_5d' => $rpeAvg5d,
+            'feeling_latest' => $latestFeeling,
+            'feeling_declining' => $feelingDeclining,
+            'pace_trend_pct' => $paceTrendPct,
+            'has_enough_pace_data' => $enoughPace,
+            'recovery_alert' => ! empty($breached),
+            'breached_parameters' => $breached,
+        ];
+    }
+
+    /**
+     * Pace trend: positif = lebih cepat (pace_sec menurun), negatif = lebih lambat.
+     * Return: [% change (0 = sama), enough data bool]
+     */
+    private function currentCalculatePaceTrend(int $userId): array
+    {
+        $now = now();
+        $cut14 = $now->copy()->subDays(14);
+        $cut30 = $now->copy()->subDays(30);
+
+        $candidates14 = collect();
+        $candidates30 = collect();
+
+        // 1) StravaActivity Run type
+        $s14 = StravaActivity::where('user_id', $userId)
+            ->where('start_date', '>=', $cut14)
+            ->where(function ($q) { $q->where('type', 'Run')->orWhere('type', 'like', '%Run%'); })
+            ->where('distance_m', '>=', 1500)
+            ->where('moving_time_s', '>=', 300)
+            ->get(['distance_m', 'moving_time_s', 'start_date']);
+        foreach ($s14 as $a) {
+            $paceSecPerKm = ((float) $a->moving_time_s) / max(1, ((float) $a->distance_m) / 1000.0);
+            $candidates14->push($paceSecPerKm);
+        }
+        // 2) UserActivity sport_type run
+        $u14 = UserActivity::where('user_id', $userId)
+            ->where('start_time', '>=', $cut14)
+            ->where(function ($q) { $q->where('sport_type', 'Run')->orWhere('sport_type', 'like', '%run%')->orWhere('avg_pace_sec', '>', 0); })
+            ->where('distance_km', '>=', 1.5)
+            ->get(['avg_pace_sec', 'start_time']);
+        foreach ($u14 as $a) {
+            if ($a->avg_pace_sec > 120 && $a->avg_pace_sec < 600) {
+                $candidates14->push((float) $a->avg_pace_sec);
+            }
+        }
+
+        // 30 days = 14 days + extra 16 days window
+        $s30 = StravaActivity::where('user_id', $userId)
+            ->whereBetween('start_date', [$cut30, $cut14])
+            ->where(function ($q) { $q->where('type', 'Run')->orWhere('type', 'like', '%Run%'); })
+            ->where('distance_m', '>=', 1500)
+            ->where('moving_time_s', '>=', 300)
+            ->get(['distance_m', 'moving_time_s', 'start_date']);
+        foreach ($s30 as $a) {
+            $paceSecPerKm = ((float) $a->moving_time_s) / max(1, ((float) $a->distance_m) / 1000.0);
+            $candidates30->push($paceSecPerKm);
+        }
+        $u30 = UserActivity::where('user_id', $userId)
+            ->whereBetween('start_time', [$cut30, $cut14])
+            ->where('distance_km', '>=', 1.5)
+            ->get(['avg_pace_sec', 'start_time']);
+        foreach ($u30 as $a) {
+            if ($a->avg_pace_sec > 120 && $a->avg_pace_sec < 600) {
+                $candidates30->push((float) $a->avg_pace_sec);
+            }
+        }
+        // 30d pool include 14d juga untuk baseline yang lebih stabil
+        $baseline30 = $candidates30->merge($candidates14);
+
+        $minSample = 2;
+        if ($candidates14->count() < $minSample || $baseline30->count() < $minSample) {
+            return [0.0, false];
+        }
+
+        $avg14 = (float) $candidates14->avg();
+        $avg30 = (float) $baseline30->avg();
+        if ($avg30 <= 0) {
+            return [0.0, false];
+        }
+
+        // Lower pace_sec_per_km = lebih cepat → POSITIVE percentage trend
+        $pct = (($avg30 - $avg14) / $avg30) * 100.0;
+        return [$pct, true];
     }
 }

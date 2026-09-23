@@ -5,6 +5,15 @@
 @section('meta_description', 'Ruang Lari adalah media dan platform lari Indonesia. Temukan berita running, program latihan gratis, kalender race, rute lari, komunitas, coach, dan running tools.')
 @section('canonical_url', url('/'))
 
+@push('styles')
+@php
+    $heroLcpUrl = (isset($homepageContent) && $homepageContent && !empty($homepageContent->hero_slides[0]))
+        ? $homepageContent->hero_slides[0]
+        : 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
+@endphp
+<link rel="preload" as="image" href="{{ $heroLcpUrl }}" fetchpriority="high" media="(min-width: 640px)">
+@endpush
+
 @section('content')
 <div class="rl-home">
 
