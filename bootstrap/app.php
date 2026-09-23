@@ -27,29 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(prepend: [
-            function (Request $request, \Closure $next) {
-                $host = $request->getHost();
-                if ($host === 'app.ruanglari.com' || str_starts_with($host, 'app.ruanglari.')) {
-                    $canonicalHost = 'ruanglari.com';
-                    $scheme = $request->isSecure() ||
-                        ($request->headers->get('X-Forwarded-Proto') === 'https') ||
-                        ($request->headers->get('X-Forwarded-Ssl') === 'on')
-                        ? 'https' : 'http';
-                    $uri = $request->getRequestUri();
-                    $qs = $request->getQueryString();
-                    $target = $scheme . '://' . $canonicalHost . $uri;
-                    if ($qs !== null && $qs !== '') {
-                        $target = $scheme . '://' . $canonicalHost . $request->getPathInfo() . '?' . $qs;
-                        if ($request->getPathInfo() === '' && !str_contains($uri, '?')) {
-                            $target = $scheme . '://' . $canonicalHost . '/';
-                        }
-                    } elseif ($request->getPathInfo() === '' || $request->getPathInfo() === '/') {
-                        $target = $scheme . '://' . $canonicalHost . '/';
-                    }
-                    return redirect()->away($target, 301);
-                }
-                return $next($request);
-            },
+            \App\Http\Middleware\RedirectAppToCanonicalDomain::class,
         ]);
 
         $middleware->web(append: [
