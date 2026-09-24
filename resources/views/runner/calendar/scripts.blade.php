@@ -1187,6 +1187,13 @@ const runnerCalendarApp = createApp({
                         trainingProfile.value.equivalent_race_times = data.equivalent_race_times;
                     }
                     showPbModal.value = false;
+
+                    // Immediately refetch calendar and plans to display updated paces
+                    if (calendar) calendar.refetchEvents();
+                    if (typeof loadPlans === 'function') await loadPlans();
+                    if (typeof loadWeeklyVolume === 'function') await loadWeeklyVolume();
+                    if (typeof fetchTrainingStatus === 'function') await fetchTrainingStatus();
+
                     // Show improvement insight modal if analysis available
                     if (data.improvement_analysis) {
                         insightData.value = data.improvement_analysis;
@@ -2728,6 +2735,7 @@ const runnerCalendarApp = createApp({
                     if (calendar) calendar.refetchEvents();
                     if (typeof loadPlans === 'function') await loadPlans();
                     if (typeof fetchPlans === 'function') await fetchPlans();
+                    if (typeof loadWeeklyVolume === 'function') await loadWeeklyVolume();
                 } else {
                     alert(data.error || 'Gagal menghapus aktivitas');
                 }
@@ -2735,6 +2743,52 @@ const runnerCalendarApp = createApp({
                 console.error(e);
                 alert('Terjadi kesalahan saat menghapus');
             }
+        };
+
+        const deleteProgramSession = async (enrollmentId, sessionDay) => {
+            if (!enrollmentId || !sessionDay) {
+                alert('Data sesi latihan tidak lengkap. Tidak dapat menghapus.');
+                return;
+            }
+
+            if (!confirm(`Hapus sesi latihan hari ke-${sessionDay} ini dari kalender Anda?`)) return;
+
+            try {
+                const res = await fetch(`{{ url('/runner/calendar/program-session') }}/${enrollmentId}/${sessionDay}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ _method: 'DELETE' })
+                });
+                const data = await res.json();
+                if (data.success || data.ok) {
+                    showDetailModal.value = false;
+                    if (calendar) calendar.refetchEvents();
+                    if (typeof loadPlans === 'function') await loadPlans();
+                    if (typeof fetchPlans === 'function') await fetchPlans();
+                    if (typeof loadWeeklyVolume === 'function') await loadWeeklyVolume();
+                } else {
+                    alert(data.message || data.error || 'Gagal menghapus sesi latihan');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Terjadi kesalahan saat menghapus sesi latihan');
+            }
+        };
+
+        const deleteWorkout = async (item) => {
+            if (!item) return;
+
+            if (item.source === 'custom' || item.workout_id) {
+                await deleteCustomWorkout(item.workout_id);
+                return;
+            }
+
+            if (item.enrollment_id && item.session_day) {
+                await deleteProgramSession(item.enrollment_id, item.session_day);
+                return;
+            }
+
+            alert('Tidak dapat mengidentifikasi workout yang akan dihapus.');
         };
 
         const updateSessionStatus = async (plan, status, stravaLink = null, notes = null, rpe = null, feeling = null) => {
@@ -3332,7 +3386,7 @@ const runnerCalendarApp = createApp({
         };
 
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
-            showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout, exportCalendar,
+            showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout, deleteProgramSession, deleteWorkout, exportCalendar,
             showFormModal, form, openFormForToday, closeForm, saveCustomWorkout, showPlanDetail, updateSessionStatus, deleteEnrollment,
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, openPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,

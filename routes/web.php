@@ -1205,6 +1205,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/update-session-status', [CalendarController::class, 'updateSessionStatus'])->name('calendar.update-session-status');
         Route::post('/calendar/custom-workout', [CalendarController::class, 'storeCustomWorkout'])->name('calendar.custom-workout.store');
         Route::delete('/calendar/custom-workout/{customWorkout}', [CalendarController::class, 'deleteCustomWorkout'])->name('calendar.custom-workout.delete');
+        Route::post('/calendar/custom-workout/{customWorkout}/delete', [CalendarController::class, 'deleteCustomWorkout'])->name('calendar.custom-workout.delete.post');
+        Route::delete('/calendar/program-session/{enrollment}/{sessionDay}', [CalendarController::class, 'deleteProgramSession'])->name('calendar.program-session.delete');
+        Route::post('/calendar/program-session/{enrollment}/{sessionDay}/delete', [CalendarController::class, 'deleteProgramSession'])->name('calendar.program-session.delete.post');
         Route::delete('/calendar/enrollment/{enrollment}', [CalendarController::class, 'deleteEnrollment'])->name('calendar.enrollment.delete');
         Route::post('/calendar/enrollment/{enrollment}/delete', [CalendarController::class, 'deleteEnrollment'])->name('calendar.enrollment.delete.post');
         Route::post('/calendar/reset-plan', [CalendarController::class, 'resetPlan'])->name('calendar.reset-plan');

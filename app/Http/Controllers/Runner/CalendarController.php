@@ -122,8 +122,8 @@ class CalendarController extends Controller
 
                 $sessionType = $session['type'] ?? 'Run';
                 $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
-                $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
-                $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
+                $dynamicPace = $isRest ? null : $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
+                $paceInfo = $dynamicPace ?: ($session['target_pace'] ?? null);
 
                 $freeWeeks = max(1, floor($totalWeeks / 2));
                 $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
@@ -466,6 +466,8 @@ class CalendarController extends Controller
                 }
 
                 $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+                $runnerResHistory = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+                $runnerDeletedDays = $runnerResHistory['deleted_session_days'] ?? [];
 
                 foreach ($sessions as $index => $session) {
                     // Skip if session doesn't have 'day' field
@@ -474,6 +476,10 @@ class CalendarController extends Controller
                     }
 
                     $day = (int) $session['day'];
+
+                    if (in_array($day, $runnerDeletedDays, true)) {
+                        continue;
+                    }
 
                     try {
                         $sessionDate = $startDate->copy()->addDays($day - 1);
@@ -512,8 +518,8 @@ class CalendarController extends Controller
 
                     $sessionType = $session['type'] ?? 'run';
                     $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
-                    $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
-                    $paceInfo = $isRest ? null : ($session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null));
+                    $dynamicPace = $isRest ? null : $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
+                    $paceInfo = $dynamicPace ?: ($session['target_pace'] ?? null);
                     $description = $session['description'] ?? null;
                     if ($paceInfo) {
                         $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;
@@ -820,22 +826,65 @@ class CalendarController extends Controller
     /**
      * Delete custom workout
      */
-    public function deleteCustomWorkout(CustomWorkout $customWorkout)
+    public function deleteCustomWorkout($customWorkout)
     {
         $user = auth()->user();
+        $workout = $customWorkout instanceof CustomWorkout ? $customWorkout : CustomWorkout::find($customWorkout);
 
-        if ((int) $customWorkout->runner_id !== (int) $user->id) {
+        if (! $workout || (int) $workout->runner_id !== (int) $user->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized',
+                'message' => 'Workout tidak ditemukan atau tidak memiliki akses.',
             ], 403);
         }
 
-        $customWorkout->delete();
+        $workout->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Workout berhasil dihapus',
+        ]);
+    }
+
+    /**
+     * Delete a single program session day from runner's calendar
+     */
+    public function deleteProgramSession(Request $request, $enrollment, $sessionDay)
+    {
+        $user = auth()->user();
+        $enrollmentId = $enrollment instanceof ProgramEnrollment ? $enrollment->id : $enrollment;
+
+        $enrollmentRecord = ProgramEnrollment::where('id', $enrollmentId)
+            ->where('runner_id', $user->id)
+            ->first();
+
+        if (! $enrollmentRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Program enrollment tidak ditemukan atau tidak memiliki akses.',
+            ], 404);
+        }
+
+        $day = (int) $sessionDay;
+        if ($day <= 0) {
+            return response()->json(['success' => false, 'message' => 'Hari sesi tidak valid.'], 422);
+        }
+
+        $history = is_array($enrollmentRecord->reschedule_history) ? $enrollmentRecord->reschedule_history : [];
+        $deletedDays = $history['deleted_session_days'] ?? [];
+        if (! in_array($day, $deletedDays, true)) {
+            $deletedDays[] = $day;
+            $history['deleted_session_days'] = array_values($deletedDays);
+            $enrollmentRecord->update(['reschedule_history' => $history]);
+        }
+
+        ProgramSessionTracking::where('enrollment_id', $enrollmentRecord->id)
+            ->where('session_day', $day)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sesi latihan hari ke-{$day} berhasil dihapus dari kalender.",
         ]);
     }
 
@@ -910,6 +959,7 @@ class CalendarController extends Controller
                 'status' => 'purchased',
                 'start_date' => null,
                 'end_date' => null,
+                'reschedule_history' => null,
             ]);
         });
 
@@ -1143,6 +1193,8 @@ class CalendarController extends Controller
 
             // Get trackings for this enrollment
             $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+            $resHistory = is_array($enrollment->reschedule_history) ? $enrollment->reschedule_history : [];
+            $deletedDays = $resHistory['deleted_session_days'] ?? [];
 
             foreach ($sessions as $session) {
                 if (! isset($session['day'])) {
@@ -1150,6 +1202,9 @@ class CalendarController extends Controller
                 }
 
                 $day = (int) $session['day'];
+                if (in_array($day, $deletedDays, true)) {
+                    continue;
+                }
                 try {
                     $sessionDate = $startDate->copy()->addDays($day - 1);
                 } catch (\Exception $e) {
@@ -1501,8 +1556,29 @@ class CalendarController extends Controller
                 $feeling,
                 $notes
             );
+
+            // Automatically adapt remaining future sessions of active program to the new VDOT & pace
+            if ($newVdot > 0) {
+                $activeEnrollment = \App\Models\ProgramEnrollment::where('runner_id', $user->id)
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->with('program')
+                    ->latest()
+                    ->first();
+
+                if ($activeEnrollment && $activeEnrollment->program) {
+                    $adaptationService->applyAdaptation(
+                        $activeEnrollment,
+                        $newVdot,
+                        [
+                            'adapt_volume' => false, // Preserve original distance/volume structure, update target paces and descriptions
+                            'feeling' => $feeling,
+                            'notes' => $notes,
+                        ]
+                    );
+                }
+            }
         } catch (\Throwable $e) {
-            \Log::warning('Failed generating program adaptation recommendation: ' . $e->getMessage());
+            \Log::warning('Failed generating/applying program adaptation recommendation on updatePb: ' . $e->getMessage());
         }
 
         return response()->json([

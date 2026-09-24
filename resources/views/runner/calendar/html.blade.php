@@ -183,7 +183,7 @@
                     </div>
                 </div>
 
-                <div class="p-4 sm:p-5 space-y-4">
+                <div class="p-4 sm:p-5 space-y-4 bg-dark">
 
                     <div v-if="adaptiveLoading"
                          class="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -1024,7 +1024,13 @@
                                     <span class="text-[9px] font-black uppercase tracking-widest" :class="plan.is_locked ? 'text-slate-600' : 'text-neon'">@{{ dayName(plan.date) }}</span>
                                     <span class="text-[9px] text-slate-500 font-mono">@{{ formatDate(plan.date) }}</span>
                                 </div>
-                                <div>
+                                <div class="flex items-center gap-1.5">
+                                    <button v-if="!plan.is_locked && ((plan.source === 'custom' || plan.workout_id) || (plan.enrollment_id && plan.session_day))"
+                                            class="text-[10px] text-slate-500 hover:text-red-400 p-0.5 rounded transition cursor-pointer"
+                                            title="Hapus workout ini"
+                                            @click.stop="deleteWorkout(plan)">
+                                        ✕
+                                    </button>
                                     <span v-if="plan.is_locked" class="text-[8px] font-bold px-1.5 py-0.5 rounded-[4px] bg-slate-900 text-slate-500 border border-slate-800 uppercase">Locked</span>
                                     <span v-else class="text-[8px] font-bold px-1.5 py-0.5 rounded-[4px] border uppercase" :class="[plan.status === 'completed' || plan.status === 'imported' ? 'bg-green-500/10 text-green-400 border-green-500/20' : (plan.status === 'started' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20')]">
                                         @{{ statusText(plan.status) }}
@@ -1823,9 +1829,16 @@
                     </div>
                 </div>
 
-                <div class="mt-3.5 flex justify-between items-center">
-                    <button v-if="detail.source === 'custom' || detail.workout_id" class="text-[11px] text-slate-400 hover:text-red-400" @click="deleteCustomWorkout(detail.workout_id)">Delete</button>
-                    <button class="px-2.5 py-1.5 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-[11px] ml-auto font-bold uppercase tracking-wider" @click="closeDetail">Close</button>
+                <div class="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center">
+                    <button v-if="!detail.session?.is_locked && ((detail.source === 'custom' || detail.workout_id) || (detail.enrollment_id && detail.session_day))" 
+                            class="px-2.5 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold transition" 
+                            @click="deleteWorkout(detail)">
+                        Hapus Sesi
+                    </button>
+                    <button class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs ml-auto font-semibold uppercase tracking-wider transition" 
+                            @click="closeDetail">
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
