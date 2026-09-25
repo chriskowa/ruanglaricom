@@ -1001,21 +1001,37 @@ const runnerCalendarApp = createApp({
                 }));
             }
             
-            // 2. Try parsing description text (Simple Heuristic)
-            // Assumes lines like: "3x15 Squats" or "Pushups: 3 sets of 10"
+            // 2. Try parsing description text
             if (d.description) {
-                const lines = d.description.split('\n').filter(l => l.trim().length > 0);
+                const lines = d.description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 const exercises = [];
                 
                 lines.forEach(line => {
-                    // Very basic parser: look for digits
-                    const hasNumbers = /\d/.test(line);
-                    if (hasNumbers) {
+                    // Skip header, focus, injury advice and structural lines
+                    if (/^(Warm Up|Cool Down|Main Set|Focus|TUJUAN|Catatan|\[Catatan|Intensity|Reason)/i.test(line)) {
+                        return;
+                    }
+
+                    // Look for bullet lines or lines indicating exercise sets
+                    if (line.startsWith('-') || line.startsWith('•') || /\d+\s*(?:sets?|set|x)/i.test(line)) {
+                        let cleanName = line.replace(/^[-•*]\s*/, '').trim();
+                        let notes = line;
+
+                        // Check if sets/reps format exists after colon or parentheses
+                        const colonMatch = cleanName.match(/^(.*?):\s*(\d+\s*sets?.*)$/i);
+                        if (colonMatch) {
+                            cleanName = colonMatch[1].trim();
+                            notes = colonMatch[2].trim();
+                        }
+
+                        const setsMatch = line.match(/(\d+)\s*(?:sets?|set|x)/i);
+                        const repsMatch = line.match(/(?:x|of)\s*(\d+(?:-\d+)?(?:\s*(?:detik|s|reps?|m|meter))?)/i);
+
                         exercises.push({
-                            name: line.replace(/^\d+x\d+\s*/, '').trim(), // Remove "3x10 " prefix if present
-                            sets: (line.match(/(\d+)\s*(?:sets|x)/i) || ['','3'])[1],
-                            reps: (line.match(/(?:x|of)\s*(\d+)/i) || ['','10'])[1],
-                            notes: line
+                            name: cleanName,
+                            sets: setsMatch ? setsMatch[1] : '3',
+                            reps: repsMatch ? repsMatch[1] : '10',
+                            notes: notes
                         });
                     }
                 });
@@ -1034,9 +1050,12 @@ const runnerCalendarApp = createApp({
         const getExerciseIcon = (name) => {
             const n = String(name || '').toLowerCase();
             if (n.includes('squat')) return '<i class="fa-solid fa-dumbbell"></i>';
+            if (n.includes('deadlift') || n.includes('rdl')) return '<i class="fa-solid fa-weight-hanging"></i>';
             if (n.includes('push')) return '<i class="fa-solid fa-hand-fist"></i>';
-            if (n.includes('plank') || n.includes('core')) return '<i class="fa-solid fa-cubes"></i>';
-            if (n.includes('lunge')) return '<i class="fa-solid fa-shoe-prints"></i>';
+            if (n.includes('plank') || n.includes('core') || n.includes('deadbug') || n.includes('hollow')) return '<i class="fa-solid fa-cubes"></i>';
+            if (n.includes('lunge') || n.includes('calf') || n.includes('step')) return '<i class="fa-solid fa-shoe-prints"></i>';
+            if (n.includes('hop') || n.includes('jump') || n.includes('skip') || n.includes('bound') || n.includes('plyo')) return '<i class="fa-solid fa-bolt"></i>';
+            if (n.includes('iso') || n.includes('wall sit') || n.includes('hold') || n.includes('bridge')) return '<i class="fa-solid fa-anchor"></i>';
             if (n.includes('run') || n.includes('warm')) return '<i class="fa-solid fa-person-running"></i>';
             if (n.includes('yoga') || n.includes('stretch')) return '<i class="fa-solid fa-child-reaching"></i>';
             return '<i class="fa-solid fa-bolt"></i>';

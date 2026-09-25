@@ -1084,6 +1084,9 @@
                                         <select v-if="aiProgramForm.include_strength" v-model="aiProgramForm.strength_type" class="bg-slate-900 border border-slate-700 text-white text-xs rounded p-1">
                                             <option value="bodyweight">Bodyweight</option>
                                             <option value="gym">Gym / Beban</option>
+                                            <option value="plyometric">Plyometric</option>
+                                            <option value="isometric">Isometric</option>
+                                            <option value="hybrid">Hybrid</option>
                                         </select>
                                         <input type="checkbox" v-model="aiProgramForm.include_strength" class="w-4 h-4 rounded text-neon focus:ring-0 bg-slate-900 border-slate-700">
                                     </div>

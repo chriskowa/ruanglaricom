@@ -186,7 +186,7 @@ class SelfGeneratedProgramController extends Controller
             'weight_kg' => 'nullable|numeric|min:30|max:200',
             'injury_history' => 'nullable|string|in:none,knee,hamstring,ankle,shin,back',
             'include_strength' => 'nullable|boolean',
-            'strength_type' => 'nullable|string|in:bodyweight,gym',
+            'strength_type' => 'nullable|string|in:bodyweight,gym,plyometric,isometric,hybrid',
             'is_tropical' => 'nullable|boolean',
             'use_ai' => 'nullable|boolean',
         ], [

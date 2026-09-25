@@ -482,6 +482,13 @@ class ProgramBuilderService
                     $session['type'] = 'strength';
                     $session['distance'] = 0;
                     $session['duration'] = ($phase === 'Taper') ? '00:25:00' : '00:40:00';
+                    $session['workout_name'] = match($strengthType) {
+                        'plyometric' => 'Plyometric Training',
+                        'isometric'  => 'Isometric Training',
+                        'hybrid'     => 'Hybrid Strength & Plyo',
+                        'gym'        => 'Gym Strength Training',
+                        default      => 'Bodyweight Strength',
+                    };
                     $session['description'] = $this->getStrengthDescription($strengthType, $phase, $injuryHistory);
                 } else {
                     // Rest day
@@ -1136,45 +1143,151 @@ class ProgramBuilderService
     private function getStrengthDescription(string $strengthType, string $phase, string $injuryHistory): string
     {
         $isTaper = ($phase === 'Taper');
-        $isBodyweight = ($strengthType === 'bodyweight');
+        $type = in_array($strengthType, ['bodyweight', 'gym', 'plyometric', 'isometric', 'hybrid']) 
+            ? $strengthType 
+            : 'bodyweight';
 
-        $injuryAdvice = match($injuryHistory) {
-            'knee' => "\n[Catatan Cedera Lutut: Hindari jump squat/deep squat berlebihan. Fokus isometric glute & quad!]",
-            'hamstring' => "\n[Catatan Cedera Hamstring: Lakukan RDL dengan beban ringan, fokus eccentric control!]",
-            'ankle' => "\n[Catatan Cedera Ankle: Lakukan single-leg balance & calf raise secara terkontrol!]",
-            'shin' => "\n[Catatan Cedera Shin Splints: Penguatan tibialis anterior & soleus calf raise!]",
-            'back' => "\n[Catatan Cedera Punggung: Jaga postur netral, kencangkan core (no heavy spinal loading)!]",
-            default => "",
-        };
+        $injuryAdvice = $this->getStrengthInjuryAdvice($injuryHistory, $type);
 
         if ($isTaper) {
-            return "Strength & Mobility (Taper) - Sesi penguatan ringan untuk menjaga tonus otot tanpa kelelahan.\n" .
-                "Warm Up: 5 min dynamic stretching & mobility\n" .
-                "Main Set: 2 set x 10 reps (Bodyweight Squat, Glute Bridge, Plank 30s, Standing Calf Raise)\n" .
-                "Focus: Otot aktif, postur rileks, mobilitas sendi." . $injuryAdvice;
+            return match($type) {
+                'plyometric' => "Plyometric Activation (Taper) - Aktivasi neuromuscular & elastisitas tendon tanpa kelelahan otot.\n" .
+                    "Warm Up: 5 min dynamic mobility & ankle rolls\n" .
+                    "Main Set: 2 set (intensitas terkontrol, jeda istirahat penuh 90 detik antar set)\n" .
+                    "- Light Pogo Hops (Reaktivitas Tendon): 2 sets x 15 reps\n" .
+                    "- Low-amplitude A-Skips (Knee Drive & Ritme): 2 sets x 15 meter\n" .
+                    "- Single-Leg Balance Hops (Mendarat Lembut): 2 sets x 6 reps/sisi\n" .
+                    "Focus: Kontak tanah seringkas mungkin, tubuh terasa pegas dan tajam untuk race." . $injuryAdvice,
+
+                'isometric' => "Isometric Tendon Maintenance (Taper) - Tahanan statis terkontrol untuk menjaga kekakuan tendon tanpa nyeri sendi.\n" .
+                    "Warm Up: 5 min mobilitas panggul & pergelangan kaki\n" .
+                    "Main Set: 2 set x 20-30 detik tahanan statis\n" .
+                    "- Wall Sit Hold (Tendon Patella & Quad): 2 sets x 25 detik\n" .
+                    "- Single-Leg Isometric Calf Hold (Tendon Achilles): 2 sets x 20 detik/sisi\n" .
+                    "- Isometric Glute Bridge Hold: 2 sets x 30 detik\n" .
+                    "- Plank Pillar Hold: 2 sets x 30 detik\n" .
+                    "Focus: Bernapas teratur saat tahanan, aktivasi tendon tanpa kelelahan sistem saraf." . $injuryAdvice,
+
+                'gym' => "Strength & Mobility (Taper) - Sesi beban ringan untuk menjaga rekrutmen serat otot.\n" .
+                    "Warm Up: 5 min dynamic mobility\n" .
+                    "Main Set: 2 set x 8-10 reps (Beban ringan ~40-50% 1RM)\n" .
+                    "- Goblet Squat: 2 sets x 8 reps\n" .
+                    "- Dumbbell Romanian Deadlift: 2 sets x 8 reps\n" .
+                    "- Standing Calf Raise: 2 sets x 10 reps\n" .
+                    "- Pallof Press: 2 sets x 8 reps/sisi\n" .
+                    "Focus: Gerakan bersih, kecepatan eksentrik terkontrol, tanpa DOMS." . $injuryAdvice,
+
+                'hybrid' => "Hybrid Runner Primer (Taper) - Paduan aktivasi tendon dan neuromuskular ringan menjelang race.\n" .
+                    "Warm Up: 5 min mobility\n" .
+                    "Main Set: 2 set x sirkuit ringan\n" .
+                    "- Bodyweight Squat: 2 sets x 8 reps disusul Wall Sit Hold 20 detik\n" .
+                    "- Light Pogo Hops: 2 sets x 15 reps\n" .
+                    "- Single-Leg Calf Hold: 2 sets x 20 detik/sisi\n" .
+                    "- High Plank: 2 sets x 30 detik\n" .
+                    "Focus: Kaki terasa ringan dan siap berlari kencang." . $injuryAdvice,
+
+                default => "Strength & Mobility (Taper) - Sesi penguatan ringan untuk menjaga tonus otot tanpa kelelahan.\n" .
+                    "Warm Up: 5 min dynamic stretching & mobility\n" .
+                    "Main Set: 2 set x 10 reps (Bodyweight Squat, Glute Bridge, Plank 30s, Standing Calf Raise)\n" .
+                    "Focus: Otot aktif, postur rileks, mobilitas sendi." . $injuryAdvice,
+            };
         }
 
-        if ($isBodyweight) {
-            return "Strength Training (Bodyweight / Home) - Penguatan otot pendukung lari & core.\n" .
+        return match($type) {
+            'plyometric' => "Plyometric Training for Runners - Melatih elastisitas tendon, perpendekan Ground Contact Time (GCT), dan running economy.\n" .
+                "Warm Up: 6-8 min dynamic warm-up (leg swings, ankle mobility drills, calf activation)\n" .
+                "Main Set: 3 set (Fokus kualitas eksplosif, istirahat 60-90 detik antar set)\n" .
+                "- Pogo Hops (Elastisitas Achilles & Rekoil Betis): 3 sets x 20-25 reps (kontak tanah kilat, lutut sedikit ditekuk)\n" .
+                "- A-Skips & B-Skips (Biomekanika Langkah & Knee Drive): 3 sets x 20 meter\n" .
+                "- Split Squat Jumps (Daya Ledak & Deselerasi): 3 sets x 6-8 reps/sisi (mendarat lembut di ball of foot)\n" .
+                "- Single-Leg Lateral Bounds (Stabilitas Frontal & Panggul): 3 sets x 8 reps/sisi\n" .
+                "- Box / Step Jump-Ups (Triple Extension & Hip Drive): 3 sets x 6-8 reps (mendarat lembut, melangkah turun)\n" .
+                "- Core: Hollow Body Hold & Deadbug: 3 sets x 30-40 detik\n" .
+                "Cool Down: 5 min foam rolling betis, IT band & hamstring." . $injuryAdvice,
+
+            'isometric' => "Isometric Training for Runners - Penguatan tendon spesifik (patella & achilles), stabilitas sendi statis, dan resistensi cedera.\n" .
+                "Warm Up: 5-8 min mobilitas panggul, pergelangan kaki, dan peregangan dinamis\n" .
+                "Main Set: 3-4 set x Time-Under-Tension (Istirahat 45-60 detik)\n" .
+                "- Single-Leg Wall Sit (Tendon Patella & Kekuatan Quad): 3-4 sets x 35-45 detik/sisi (sudut lutut 60-90 derajat)\n" .
+                "- Single-Leg Isometric Calf Raise Hold (Tendon Achilles & Soleus): 3-4 sets x 35-45 detik/sisi (mid-range)\n" .
+                "- Isometric Split Squat Hold (Stabilitas Pelvis & Psoas): 3 sets x 30-40 detik/sisi\n" .
+                "- Single-Leg Glute Bridge Hold (Rantai Posterior & Glute Max): 3 sets x 35-45 detik/sisi\n" .
+                "- Copenhagen Plank (Stabilitas Adductor & Proteksi Pangkal Paha): 3 sets x 20-30 detik/sisi\n" .
+                "- Extended Plank Pillar Hold (Kekuatan Core Longitudinal): 3 sets x 45-60 detik\n" .
+                "Cool Down: 5 min mobility release & gentle static stretch." . $injuryAdvice,
+
+            'hybrid' => "Hybrid Strength & Plyo - Program komprehensif memadukan kekuatan beban, tahanan tendon, dan daya ledak elastis.\n" .
+                "Warm Up: 6-8 min dynamic mobility & neuromuscular activation\n" .
+                "Main Set: 3 set (Kombinasi kompleks)\n" .
+                "- Paha & Patella: Bodyweight/Goblet Squat (3 sets x 10 reps) disusul Wall Sit Hold (3 sets x 30 detik)\n" .
+                "- Betis & Achilles: Standing Calf Raise (3 sets x 12 reps) disusul Pogo Hops (3 sets x 20 detik)\n" .
+                "- Pelvis & Glutes: Reverse Lunge (3 sets x 8 reps/sisi) disusul Single-Leg Glute Bridge Hold (3 sets x 30 detik/sisi)\n" .
+                "- Reaktivitas & Mekanika: A-Skips (3 sets x 20 meter) untuk koordinasi langkah cepat\n" .
+                "- Core Anti-Rotasi: Side Plank with Leg Lift (3 sets x 30 detik/sisi) & Bird-Dog Hold (3 sets x 10 reps/sisi)\n" .
+                "Cool Down: 5-8 min foam rolling & static stretching." . $injuryAdvice,
+
+            'gym' => "Strength Training (Gym / Weighted) - Latihan beban terstruktur untuk running economy & daya tahan.\n" .
+                "Warm Up: 8 min dynamic warmup & mobility\n" .
+                "Main Set: 3 set x 8-10 reps\n" .
+                "- Goblet / Barbell Squat (Daya tahan paha & glutes): 3 sets x 8-10 reps\n" .
+                "- Dumbbell Romanian Deadlift (Hamstring & Rantai Posterior): 3 sets x 8-10 reps\n" .
+                "- Step-Up / Walking Lunge (Stabilitas tunggal kaki): 3 sets x 8 reps/sisi\n" .
+                "- Standing Weighted Calf Raise (Kekuatan tendon Achilles): 3 sets x 12 reps\n" .
+                "- Core: Pallof Press (3 sets x 10 reps/sisi) & Farmer's Walk (3 sets x 30 detik)\n" .
+                "Cool Down: 5 min static stretching." . $injuryAdvice,
+
+            default => "Strength Training (Bodyweight / Home) - Penguatan otot pendukung lari & core.\n" .
                 "Warm Up: 5-8 min mobilitas sendi & dynamic stretch\n" .
                 "Main Set: 3 set x 10-12 reps\n" .
-                "- Bodyweight Squat (Paha & Glutes)\n" .
-                "- Reverse Lunge (Keseimbangan & Stabilitas Kaki)\n" .
-                "- Glute Bridge (Ekstensi Panggul & Hamstring)\n" .
-                "- Single-Leg Calf Raise (Betis & Tendon Achilles)\n" .
-                "- Core: Plank (3x45 detik) & Bird-Dog (3x10/sisi)\n" .
-                "Cool Down: 5 min static stretching." . $injuryAdvice;
+                "- Bodyweight Squat (Paha & Glutes): 3 sets x 12 reps\n" .
+                "- Reverse Lunge (Keseimbangan & Stabilitas Kaki): 3 sets x 10 reps/sisi\n" .
+                "- Glute Bridge (Ekstensi Panggul & Hamstring): 3 sets x 12 reps\n" .
+                "- Single-Leg Calf Raise (Betis & Tendon Achilles): 3 sets x 15 reps/sisi\n" .
+                "- Core: Plank (3 sets x 45 detik) & Bird-Dog (3 sets x 10 reps/sisi)\n" .
+                "Cool Down: 5 min static stretching." . $injuryAdvice,
+        };
+    }
+
+    private function getStrengthInjuryAdvice(string $injuryHistory, string $strengthType): string
+    {
+        if ($injuryHistory === 'knee') {
+            return match($strengthType) {
+                'plyometric' => "\n[Catatan Cedera Lutut: Hindari jump squat tinggi / box drop jump. Lakukan low-amplitude pogo hops di atas rumput/matras dan mendarat lembut!]",
+                'isometric' => "\n[Catatan Cedera Lutut: Sangat disarankan untuk tendon patella! Tahan sudut lutut 60-90° pada wall sit yang bebas dari rasa nyeri.]",
+                'hybrid' => "\n[Catatan Cedera Lutut: Pada sesi plyo ganti jump dengan low hops di rumput, utamakan isometrik wall sit untuk menguatkan kuadrisep & tendon.]",
+                default => "\n[Catatan Cedera Lutut: Hindari jump squat/deep squat berlebihan. Fokus isometric glute & quad!]",
+            };
         }
 
-        return "Strength Training (Gym / Weighted) - Latihan beban terstruktur untuk running economy & daya tahan.\n" .
-            "Warm Up: 8 min dynamic warmup & mobility\n" .
-            "Main Set: 3 set x 8-10 reps\n" .
-            "- Goblet / Barbell Squat (Daya tahan paha & glutes)\n" .
-            "- Dumbbell Romanian Deadlift (Hamstring & Rantai Posterior)\n" .
-            "- Step-Up / Walking Lunge (Stabilitas tunggal kaki)\n" .
-            "- Standing Weighted Calf Raise (Kekuatan tendon Achilles)\n" .
-            "- Core: Pallof Press (3x10/sisi) & Farmer's Walk (3x30 detik)\n" .
-            "Cool Down: 5 min static stretching." . $injuryAdvice;
+        if ($injuryHistory === 'hamstring') {
+            return match($strengthType) {
+                'plyometric' => "\n[Catatan Cedera Hamstring: Hindari bounding dengan langkah over-striding. Fokus reaktivitas telapak kaki pada A-skips!]",
+                'isometric' => "\n[Catatan Cedera Hamstring: Lakukan Single-Leg Glute/Hamstring Bridge Hold dengan lutut ditekuk 60-90° secara terkontrol.]",
+                default => "\n[Catatan Cedera Hamstring: Lakukan RDL dengan beban ringan, fokus eccentric control!]",
+            };
+        }
+
+        if ($injuryHistory === 'ankle') {
+            return match($strengthType) {
+                'plyometric' => "\n[Catatan Cedera Ankle: Awali dengan double-leg hops sebelum single-leg. Jaga ankle tetap kaku (stiff dorsiflexion), jangan biarkan tumit kolaps!]",
+                'isometric' => "\n[Catatan Cedera Ankle: Sangat baik untuk tendon Achilles! Lakukan isometric calf hold di lantai datar (mid-range) 35-45 detik.]",
+                default => "\n[Catatan Cedera Ankle: Lakukan single-leg balance & calf raise secara terkontrol!]",
+            };
+        }
+
+        if ($injuryHistory === 'shin') {
+            return match($strengthType) {
+                'plyometric' => "\n[Catatan Cedera Shin Splints: Kurangi repetisi hentakan, lakukan hanya di permukaan empuk dengan sepatu empuk / tanpa hentakan keras!]",
+                'isometric' => "\n[Catatan Cedera Shin Splints: Penguatan isometrik soleus & tibialis anterior sangat aman dan efektif meredakan stres tulang kering.]",
+                default => "\n[Catatan Cedera Shin Splints: Penguatan tibialis anterior & soleus calf raise!]",
+            };
+        }
+
+        if ($injuryHistory === 'back') {
+            return "\n[Catatan Cedera Punggung: Jaga postur netral, kencangkan core (no heavy spinal loading)!]";
+        }
+
+        return "";
     }
 
     private function loadLibrary(): array

@@ -3078,7 +3078,7 @@ class AthleteController extends Controller
             'starting_phase'  => 'required|in:base,build,peak',
             'intensity_tone'  => 'required|in:standard,sharp,conservative',
             'include_strength'=> 'nullable|boolean',
-            'strength_type'   => 'nullable|in:bodyweight,gym',
+            'strength_type'   => 'nullable|in:bodyweight,gym,plyometric,isometric,hybrid',
             'is_tropical'     => 'nullable|boolean',
         ]);
 

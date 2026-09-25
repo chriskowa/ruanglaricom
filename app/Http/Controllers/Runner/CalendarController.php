@@ -122,6 +122,7 @@ class CalendarController extends Controller
 
                 $sessionType = $session['type'] ?? 'Run';
                 $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
                 $dynamicPace = $isRest ? null : $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
                 $paceInfo = $dynamicPace ?: ($session['target_pace'] ?? null);
 
@@ -135,7 +136,8 @@ class CalendarController extends Controller
                     continue;
                 }
 
-                $title = $sessionType.($paceInfo ? " ({$paceInfo})" : '');
+                $displayType = ($sessionTypeLower === 'strength' && !empty($session['workout_name'])) ? $session['workout_name'] : $sessionType;
+                $title = $displayType.($paceInfo ? " ({$paceInfo})" : '');
 
                 $events[] = [
                     'id' => "program_{$enrollment->id}_session_{$index}",
@@ -518,6 +520,7 @@ class CalendarController extends Controller
 
                     $sessionType = $session['type'] ?? 'run';
                     $sessionTypeLower = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                    $isRest = in_array($sessionTypeLower, ['rest', 'rest_day', 'strength', 'yoga', 'cycling', 'cross_training']) || str_contains($sessionTypeLower, 'rest');
                     $dynamicPace = $isRest ? null : $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
                     $paceInfo = $dynamicPace ?: ($session['target_pace'] ?? null);
                     $description = $session['description'] ?? null;

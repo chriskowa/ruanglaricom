@@ -795,11 +795,23 @@
                                     </label>
                                     <span v-if="form.include_strength" class="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded font-semibold border border-emerald-800/40">2x/Mgg</span>
                                 </div>
-                                <div v-if="form.include_strength" class="pt-1">
+                                <div v-if="form.include_strength" class="pt-1 space-y-2">
                                     <select v-model="form.strength_type" class="input-field text-xs sm:text-sm cursor-pointer">
                                         <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat - Calisthenics & Core)</option>
                                         <option value="gym">Gym / Weighted (Beban Dumbbell, Squat & Deadlift)</option>
+                                        <option value="plyometric">Plyometric (Daya Ledak, Reaktivitas & Tendon Achilles)</option>
+                                        <option value="isometric">Isometric (Stabilitas Sendi, Patella & Core Hold)</option>
+                                        <option value="hybrid">Hybrid Runner (Kombinasi Strength, Isometric & Plyo)</option>
                                     </select>
+                                    <p v-if="form.strength_type === 'plyometric'" class="text-[11px] text-slate-300 leading-relaxed">
+                                        Fokus pada elastisitas tendon, reaktivitas otot, dan perpendekan ground contact time melalui pogo hops, skips, dan jumping drills.
+                                    </p>
+                                    <p v-else-if="form.strength_type === 'isometric'" class="text-[11px] text-slate-300 leading-relaxed">
+                                        Fokus pada time-under-tension statis untuk memperkuat tendon patella & achilles, stabilitas sendi, dan reduksi risiko cedera tanpa hentakan sendi.
+                                    </p>
+                                    <p v-else-if="form.strength_type === 'hybrid'" class="text-[11px] text-slate-300 leading-relaxed">
+                                        Paduan komprehensif antara kekuatan otot (squat/lunge), isometric tendon hold (wall sit), dan plyometric ringan (pogo hops).
+                                    </p>
                                 </div>
                             </div>
 
@@ -1077,7 +1089,7 @@
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Hari @{{ day.day }}</span>
                                     </div>
                                     <div>
-                                        <h4 class="text-[10px] font-bold text-white leading-tight mb-1 uppercase tracking-tight">@{{ day.type.replace('_', ' ') }}</h4>
+                                        <h4 class="text-[10px] font-bold text-white leading-tight mb-1 uppercase tracking-tight">@{{ day.workout_name || day.type.replace('_', ' ') }}</h4>
                                         <p class="text-xs font-bold text-white">@{{ day.distance }} <span class="text-[9px] font-normal text-slate-400">KM</span></p>
                                         <p v-if="day.target_pace" class="text-[9px] text-brand-500 mt-0.5">@{{ day.target_pace }}</p>
                                     </div>
