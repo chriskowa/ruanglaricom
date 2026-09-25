@@ -1439,7 +1439,38 @@ class CalendarController extends Controller
         $oldVdot = (float) ($user->vdot ?? 0);
         $oldEquivTimes = $user->equivalent_race_times ?? [];
 
-        $userPbUpdates = collect($validated)->only(['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm', 'pb_cooper', 'pb_balke'])->toArray();
+        // Update PB fields. Aturan clear: jika field ada di validated BAIK null/'' (user sengaja kosongkan)
+        // atau terisi value → update. Clear = null (jika string kosong) / 0 jika integer dan user set 0.
+        $userPbUpdates = [];
+        $pbStringFields = ['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm'];
+        foreach ($pbStringFields as $f) {
+            if (array_key_exists($f, $validated)) {
+                $raw = $validated[$f];
+                $userPbUpdates[$f] = ($raw === null || trim((string) $raw) === '') ? null : $raw;
+            }
+        }
+        $pbIntFields = ['pb_cooper', 'pb_balke'];
+        foreach ($pbIntFields as $f) {
+            if (array_key_exists($f, $validated)) {
+                $raw = $validated[$f];
+                if ($raw === null || $raw === '' || (is_numeric($raw) && (int) $raw <= 0)) {
+                    $userPbUpdates[$f] = null;
+                } else {
+                    $userPbUpdates[$f] = (int) $raw;
+                }
+            }
+        }
+        // Juga periksa request body raw (bukan hanya validated): jika frontend kirim explicit null (karena user clear)
+        // tapi validation regex/int tidak menangkap null string → harus tetap clear.
+        $rawRequest = $request->all();
+        foreach (array_merge($pbStringFields, $pbIntFields) as $f) {
+            if (!array_key_exists($f, $userPbUpdates) && array_key_exists($f, $rawRequest)) {
+                $v = $rawRequest[$f];
+                if ($v === null || (is_string($v) && trim($v) === '') || (is_numeric($v) && (int) $v <= 0)) {
+                    $userPbUpdates[$f] = null;
+                }
+            }
+        }
         if (!empty($userPbUpdates)) {
             $user->update($userPbUpdates);
         }

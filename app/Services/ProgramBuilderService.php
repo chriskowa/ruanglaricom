@@ -20,10 +20,12 @@ use Illuminate\Support\Facades\Log;
 class ProgramBuilderService
 {
     protected DanielsRunningService $danielsService;
+    protected CoachFeasibilityService $coachFeasibility;
 
-    public function __construct(DanielsRunningService $danielsService)
+    public function __construct(DanielsRunningService $danielsService, CoachFeasibilityService $coachFeasibility)
     {
         $this->danielsService = $danielsService;
+        $this->coachFeasibility = $coachFeasibility;
     }
 
     /**
@@ -59,8 +61,74 @@ class ProgramBuilderService
         $includeStrength = filter_var($config['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
         $strengthType = $config['strength_type'] ?? 'bodyweight';
         $injuryHistory = $config['injury_history'] ?? 'none';
-        $startingPhase = $config['starting_phase'] ?? 'base'; // 'base' | 'build' | 'peak'
-        $intensityTone = $config['intensity_tone'] ?? ($config['aggressiveness'] ?? 'standard'); // 'standard' | 'sharp' | 'conservative'
+        $startingPhase = $config['starting_phase'] ?? 'base';
+        $intensityTone = $config['intensity_tone'] ?? ($config['aggressiveness'] ?? 'standard');
+
+        $preAssess = $config['feasibility_assess'] ?? null;
+        $forceAck = (bool) ($config['force_infeasible_ack'] ?? false);
+        $adjustmentsApplied = [];
+
+        $assess = is_array($preAssess) ? $preAssess : $this->coachFeasibility->assess([
+            'target_distance' => $targetDistance,
+            'goal_time_sec' => (int) ($config['goal_time_sec'] ?? 0),
+            'runner_level' => $runnerLevel,
+            'weekly_mileage' => (float) $targetMileage,
+            'frequency' => (int) $frequency,
+            'weeks' => (int) $weeks,
+            'initial_vdot' => (float) $initialVdot,
+            'target_vdot' => (float) $targetVdot,
+            'injury_history' => $injuryHistory,
+            'aggressiveness' => $config['aggressiveness'] ?? 'standard',
+        ]);
+
+        $minMileage = (float) ($assess['min_required_peak_mileage'] ?? 0);
+        $idealMileage = (float) ($assess['ideal_peak_mileage'] ?? 0);
+        $minFreq = (int) ($assess['min_frequency'] ?? 3);
+        $minWeeks = (int) ($assess['min_weeks'] ?? 8);
+
+        if ($minMileage > 0 && $targetMileage < $minMileage * 0.85) {
+            $newMileage = (int) round($idealMileage > 0 ? $idealMileage : $minMileage);
+            $adjustmentsApplied[] = [
+                'field' => 'weekly_mileage',
+                'from' => (float) $targetMileage,
+                'to' => (float) $newMileage,
+                'reason' => ($assess['reason'] ?? 'Beban latihan di bawah minimum fisiologis untuk target ini.') . ' Disesuaikan ke puncak aman ' . $newMileage . ' km/minggu.',
+            ];
+            $targetMileage = $newMileage;
+        }
+        if ($minFreq > 0 && $frequency < $minFreq) {
+            $adjustmentsApplied[] = [
+                'field' => 'frequency',
+                'from' => (int) $frequency,
+                'to' => (int) $minFreq,
+                'reason' => 'Frekuensi latih minimal untuk target ini adalah ' . $minFreq . ' hari/minggu.',
+            ];
+            $frequency = $minFreq;
+        }
+        if ($minWeeks > 0 && $weeks < $minWeeks && !$forceAck) {
+            $adjustmentsApplied[] = [
+                'field' => 'weeks',
+                'from' => (int) $weeks,
+                'to' => (int) $minWeeks,
+                'reason' => 'Minimum timeline untuk target ini adalah ' . $minWeeks . ' pekan.',
+            ];
+            $weeks = $minWeeks;
+        }
+
+        #region debug-point vdot-target-clamp-45min [T8] Builder guardrail pre-validation result + VDOT received
+        Log::info('[DBG-VT45 T8] Builder buildPeriodizedProgram guardrail applied + VDOT inputs', [
+            'input_initialVdot' => round($initialVdot, 4),
+            'input_targetVdot' => round($targetVdot, 4),
+            'input_targetDistance' => $targetDistance,
+            'targetVdot_LT_initialVdot' => $targetVdot < $initialVdot,
+            'targetVdot_minus_initialVdot_delta' => round($targetVdot - $initialVdot, 4),
+            'adjustmentsApplied_count_guardrail' => count($adjustmentsApplied),
+            'adjustmentsApplied_guardrail' => $adjustmentsApplied,
+            'final_weekly_mileage_after_guard' => $targetMileage,
+            'final_frequency_after_guard' => $frequency,
+            'final_weeks_after_guard' => $weeks,
+        ]);
+        #endregion
 
         $library = $this->loadLibrary();
 
@@ -106,6 +174,17 @@ class ProgramBuilderService
 
         // ===== VDOT PROGRESSION =====
         $deltaVdot = $targetVdot - $initialVdot;
+
+        #region debug-point vdot-target-clamp-45min [T9] VDOT progression builder
+        Log::info('[DBG-VT45 T9] VDOT progression builder — delta target vs initial', [
+            'initialVdot' => round($initialVdot, 4),
+            'targetVdot' => round($targetVdot, 4),
+            'deltaVdot' => round($deltaVdot, 4),
+            'deltaVdot_NEGATIVE' => $deltaVdot < 0,
+            'phases_count' => is_array($phases ?? null) ? count($phases) : 0,
+            'taperWeeks' => $taperWeeks,
+        ]);
+        #endregion
 
         // ===== MILEAGE PROGRESSION =====
         $mileageSchedule = $this->buildMileageSchedule($weeks, $targetMileage, $taperConfig, $runnerLevel);
@@ -508,11 +587,16 @@ class ProgramBuilderService
 
         return [
             'sessions' => $sessions,
+            'adjustments_applied' => $adjustmentsApplied,
+            'feasibility' => $assess,
             'summary' => [
                 'total_weeks' => $weeks,
                 'target' => strtoupper($config['target_distance']),
                 'vdot' => round($initialVdot, 1),
                 'target_vdot' => round($targetVdot, 1),
+                'adjustments_applied' => $adjustmentsApplied,
+                'weekly_mileage_applied' => (float) $targetMileage,
+                'frequency_applied' => (int) $frequency,
             ],
         ];
     }
@@ -537,7 +621,6 @@ class ProgramBuilderService
         $taperWeeks = $taperConfig['weeks'];
         $taperFactors = $taperConfig['factors'];
 
-        // Starting mileage percentage based on level
         $startPercent = match ($runnerLevel) {
             'beginner' => 0.65,
             'advanced' => 0.80,
@@ -546,37 +629,61 @@ class ProgramBuilderService
 
         $startMileage = round($targetMileage * $startPercent, 1);
         $buildWeeks = max(1, $totalWeeks - $taperWeeks);
-        $peakWeek = $buildWeeks; // Last build week = peak
+        $peakWeek = $buildWeeks;
+
+        $rawBuildValues = [];
+        for ($w = 1; $w <= $buildWeeks; $w++) {
+            if ($buildWeeks <= 1) {
+                $rawBuildValues[$w] = $targetMileage;
+            } else {
+                $progress = ($w - 1) / ($buildWeeks - 1);
+                $easedProgress = pow($progress, 0.85);
+                $rawBuildValues[$w] = $startMileage + ($targetMileage - $startMileage) * $easedProgress;
+            }
+        }
 
         $schedule = [];
+        $prevMileage = null;
 
         for ($w = 1; $w <= $totalWeeks; $w++) {
             if ($w > $buildWeeks) {
-                // TAPER phase
                 $taperIndex = $w - $buildWeeks - 1;
                 $factor = $taperFactors[$taperIndex] ?? end($taperFactors);
-                $schedule[] = round($targetMileage * $factor, 1);
-            } else {
-                // BUILD phase — smooth progression from start to target
-                if ($buildWeeks <= 1) {
-                    $weekMileage = $targetMileage;
-                } else {
-                    // Use a smooth curve: linear interpolation with a slight ease-in
-                    $progress = ($w - 1) / ($buildWeeks - 1); // 0 → 1
-                    // Ease-in curve: slightly slower start, faster ramp at end
-                    $easedProgress = pow($progress, 0.85);
-                    $weekMileage = $startMileage + ($targetMileage - $startMileage) * $easedProgress;
-                }
-
-                // Enforce max 10% increase from previous week
-                if ($w > 1 && count($schedule) > 0) {
-                    $prevMileage = $schedule[$w - 2];
-                    $maxAllowed = $prevMileage * 1.10;
-                    $weekMileage = min($weekMileage, $maxAllowed);
-                }
-
-                $schedule[] = round($weekMileage, 1);
+                $planned = (float) round($targetMileage * $factor, 1);
+                $schedule[] = $planned;
+                $prevMileage = $planned;
+                continue;
             }
+
+            $weekMileage = (float) $rawBuildValues[$w];
+            $isPeakBuildWeek = ($w === $peakWeek);
+            $isDeloadWeek = ($w > 1 && !$isPeakBuildWeek && $w % 4 === 0);
+
+            if ($prevMileage !== null) {
+                $maxAllowedIncrease = $prevMileage * 1.10;
+                $weekMileage = min($weekMileage, $maxAllowedIncrease);
+            }
+
+            if ($isDeloadWeek) {
+                $deloadFactor = 0.80;
+                if ($prevMileage !== null) {
+                    $deloadBaseline = max($weekMileage, $prevMileage * 0.95);
+                    $weekMileage = (float) round($deloadBaseline * $deloadFactor, 1);
+                } else {
+                    $weekMileage = (float) round($weekMileage * $deloadFactor, 1);
+                }
+            }
+
+            if ($prevMileage !== null && !$isDeloadWeek) {
+                $dropRatio = $prevMileage > 0 ? ($weekMileage / $prevMileage) : 1;
+                if ($dropRatio < 0.88) {
+                    $weekMileage = max($weekMileage, (float) round($prevMileage * 0.90, 1));
+                }
+            }
+
+            $finalVal = (float) round($weekMileage, 1);
+            $schedule[] = $finalVal;
+            $prevMileage = $finalVal;
         }
 
         return $schedule;
@@ -1126,12 +1233,31 @@ class ProgramBuilderService
 
         return [
             'sessions' => $sessions,
+            'adjustments_applied' => [],
+            'feasibility' => [
+                'feasibility' => 'FEASIBLE',
+                'score' => 100,
+                'min_required_peak_mileage' => round($peakMileage, 1),
+                'ideal_peak_mileage' => round($peakMileage, 1),
+                'max_safe_peak_mileage' => round($peakMileage * 1.1, 1),
+                'min_weeks' => (int) $weeks,
+                'max_weeks' => (int) ($weeks + 6),
+                'min_frequency' => (int) $frequency,
+                'color' => 'emerald',
+                'label' => 'Realistis',
+                'reason' => 'Program Cooper 12 Menit dibangun secara default sesuai prinsip aerobic base safe.',
+                'options' => [],
+                'vdot_rate_per_week' => 0.5,
+                'required_weeks_by_vdot' => (int) $weeks,
+                'violations' => [],
+            ],
             'summary' => [
                 'total_weeks' => $weeks,
                 'total_distance' => round($totalDistance, 1),
                 'total_sessions' => $totalSessions,
                 'max_long_run' => round($maxLongRun, 1),
                 'peak_mileage' => round($peakMileage, 1),
+                'adjustments_applied' => [],
             ],
         ];
     }

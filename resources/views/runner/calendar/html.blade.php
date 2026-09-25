@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="hidden md:flex gap-2 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
-                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm">Generate VDOT</button>
+                    <a href="/buat-program-lari" class="relative z-[5001] no-underline inline-flex items-center px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm">Generate VDOT</a>
                     <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition text-[11px] font-semibold shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400"></i> Analisis My Training</button>
                     <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-2.5 py-1.5 rounded-[4px] bg-orange-600 text-white hover:bg-orange-500 transition text-[11px] font-semibold shadow flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
                         <span v-if="isSyncingStrava" class="animate-spin text-[10px]">⟳</span>
@@ -81,10 +81,10 @@
                     <button type="button" class="w-7 h-7 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold transition hover:bg-slate-700" @click="showHeaderActions = false">✕</button>
                 </div>
                 <div class="grid grid-cols-1 gap-2">
-                    <button type="button" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between" @click="showHeaderActions = false; openVdotModal();">
+                    <a href="/buat-program-lari" class="w-full no-underline px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between">
                         <span>Generate VDOT</span>
                         <span class="text-slate-400">›</span>
-                    </button>
+                    </a>
                     <button type="button" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between" @click="showHeaderActions = false; openStravaAnalysisModal();">
                         <span>Analisis My Training (AI)</span>
                         <span class="text-slate-400">›</span>
@@ -1892,7 +1892,8 @@
             </div>
         </div>
 
-        <div v-if="showVdotModal" class="fixed inset-0 z-[1050] overflow-y-auto">
+        <!-- LEGACY Generate VDOT Program - DISABLED (diganti redirect ke /buat-program-lari) -->
+        <div v-if="false && showVdotModal" class="fixed inset-0 z-[1050] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-2xl mx-auto my-10 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
                 <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">

@@ -39,24 +39,26 @@ AI generators default to a predictable formula: dark background + purple-to-blue
 - ❌ Neon glowing outlines (`shadow-[0_0_20px_rgba(168,85,247,0.5)]`)
 - ❌ Rainbow status badges without semantic meaning (using green, yellow, blue, red simultaneously without hierarchy)
 - ❌ Washed-out pastel text on dark background (`text-slate-500` on black)
+- ❌ **Dilarang memakai arbitrary hex Tailwind classes**: seperti `bg-[#090A0E]`, `bg-[#090A0E]/90`, `bg-[#12161F]`, `from-[#090A0E]`, dll. Utility class arbitrary ini sering tidak ter-compile pada berbagai halaman dan merusak layout.
 
 ### Human-Crafted Color Principles:
 - **Maximum 2–3 Brand Colors**: One primary identity color, one supporting neutral scale, one accent for primary CTA only.
 - **High Contrast Ratio**: Minimum 4.5:1 (WCAG AA) for all body text (`text-white`, `text-slate-200`, `text-slate-900`).
-- **Solid, Crisp Backgrounds**: Use rich, solid dark tones (`#080A0D`, `#12161D`) or clean crisp light tones (`#F8FAFC`, `#FFFFFF`), never muddy translucent layers.
+- **Standard Tailwind Palette for Dark Surfaces**: Wajib gunakan skala Tailwind teruji (`bg-slate-950` untuk kanvas/background utama, `bg-slate-900` untuk elevated card/container, `bg-slate-800` untuk sub-elemen/inner card/border `border-slate-800`). Jangan gunakan arbitrary `bg-[#...]`.
+- **Solid, Crisp Backgrounds**: Never use muddy translucent layers.
 
 ================================================
 
 # PHASE 3 — TYPOGRAPHY WITH CHARACTER
 
-AI generators almost exclusively default to `Inter`, `Geist`, or `Space Grotesk` with `uppercase tracking-widest` for every label.
-
-## 1. Domain-Specific Typography
-Choose font pairings that reflect the actual product:
-- **Athletic / Sports**: Condensed, strong, energetic titles (*Oswald*, *Bebas Neue*, *Barlow Condensed*) + Clean legible body (*Inter*, *Plus Jakarta Sans*) + Monospace for telemetry/times (*JetBrains Mono*, *Roboto Mono*).
-- **Fintech / Corporate**: Authoritative, stable sans/serif (*Plus Jakarta Sans*, *Instrument Sans*, *Source Serif*).
-- **Editorial / Premium**: High-contrast serif headlines (*Playfair Display*, *Cinzel*) + Utilitarian body.
-- **Data & Telemetry**: Always format timestamps, BIB numbers, currency, and IDs in **Monospace** font for instant visual scanning.
+## 1. Pakem Tipografi Resmi Ruang Lari (Strictly Mandatory)
+Semua halaman dan komponen di Ruang Lari WAJIB mematuhi pakem tipografi yang selaras dengan halaman utama (Home):
+- **Heading / Titles (H1, H2, H3, H4)**:
+  `font-family: 'Inter Tight', 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;`
+  `font-weight: 800; letter-spacing: -0.03em; line-height: 1.05 - 1.15;`
+  *(DILARANG menggunakan Oswald, Bebas Neue, atau sans-serif generik untuk judul umum platform).*
+- **Body Text**: `'Plus Jakarta Sans', 'Inter', sans-serif;` (`text-sm text-slate-200 leading-relaxed`).
+- **Telemetry / Timers / Metrics**: Monospace atau tabular-nums (`font-mono`, `font-feature-settings: "tnum"`) untuk BIB, split times, dan kalkulasi pace.
 
 ## 2. Typographic Hierarchy Scale
 - **H1 (Page Title)**: `text-2xl font-bold text-white tracking-tight` (Avoid over-stylized `font-black italic tracking-tighter`).

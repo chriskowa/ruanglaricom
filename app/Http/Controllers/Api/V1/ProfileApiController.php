@@ -97,13 +97,17 @@ class ProfileApiController extends BaseApiController
             return $this->errorResponse('Validasi PB lari gagal', 422, $validator->errors());
         }
 
-        $user->update([
-            'pb_5k' => $request->pb_5k ?: $user->pb_5k,
-            'pb_10k' => $request->pb_10k ?: $user->pb_10k,
-            'pb_hm' => $request->pb_hm ?: $user->pb_hm,
-            'pb_fm' => $request->pb_fm ?: $user->pb_fm,
-            'pb_balke' => $request->pb_balke ?: $user->pb_balke,
-        ]);
+        $pbUpdate = [];
+        foreach (['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm', 'pb_balke'] as $field) {
+            if ($request->has($field)) {
+                $raw = $request->input($field);
+                $value = is_string($raw) ? trim($raw) : $raw;
+                $pbUpdate[$field] = ($value === null || $value === '') ? null : $value;
+            }
+        }
+        if (!empty($pbUpdate)) {
+            $user->update($pbUpdate);
+        }
 
         return $this->successResponse(new UserResource($user->fresh()), 'Personal Best (PB) berhasil diperbarui');
     }

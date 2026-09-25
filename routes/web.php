@@ -502,6 +502,7 @@ use App\Http\Controllers\SelfGeneratedProgramController;
 // Running Program Generator V2 (SEO Optimized Slug: /buat-program-lari)
 Route::redirect('/realistic-running-program', '/buat-program-lari', 301);
 Route::redirect('/tools/realistic-running-program', '/buat-program-lari', 301);
+Route::redirect('/buat-program', '/buat-program-lari?start=1', 301);
 Route::get('/buat-program-lari', [SelfGeneratedProgramController::class, 'index'])->name('programs.realistic');
 Route::post('/api/programs/generate', [SelfGeneratedProgramController::class, 'generate'])->name('generator.generate');
 Route::post('/api/programs/store-pending', [SelfGeneratedProgramController::class, 'storePending'])->name('generator.store-pending');

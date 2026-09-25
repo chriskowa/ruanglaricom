@@ -10,7 +10,7 @@
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter+Tight:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             /* 4-Tier Ergonomic Dark Mode Palette (Comfortable, Athletic Slate, Anti-Glare) */
@@ -43,10 +43,11 @@
             scroll-behavior: smooth;
         }
 
-        /* Editorial Athletic Headings (Inter Tight / Sora / Sans-Serif - No Monospace) */
+        /* Editorial Athletic Headings (Home Official Pakem: 'Inter Tight', 'Sora', sans-serif) */
         .font-editorial-heading {
-            font-family: 'Inter Tight', 'Sora', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            letter-spacing: -0.025em;
+            font-family: 'Inter Tight', 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            letter-spacing: -0.03em;
+            font-weight: 800;
         }
 
         .font-sub-heading {
@@ -62,6 +63,17 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             font-feature-settings: "tnum";
             font-variant-numeric: tabular-nums;
+        }
+
+        /* Direct CSS Fallbacks for dark surfaces */
+        .bg-canvas {
+            background-color: var(--rl-canvas);
+        }
+        .bg-panel {
+            background-color: var(--rl-panel);
+        }
+        .bg-panel-raised {
+            background-color: var(--rl-panel-raised);
         }
 
         /* Subtle athletic surface background */
@@ -135,7 +147,7 @@
             border-color: #CCFF00 !important;
         }
 
-        [class*="text-[#080A0D]"] {
+        [class*="text-slate-950"] {
             color: #080A0D !important;
         }
 
@@ -172,120 +184,180 @@
 <div class="min-h-screen pt-0 pb-20 font-body bg-athletic-surface text-slate-200">
 
     <!-- ====================================================================
-         SECTION 1: HERO SECTION (WITH SVG RUNNING ROUTE TRACK BACKGROUND)
+         SECTION 1: HERO SECTION (EDITORIAL ASYMMETRIC ATHLETIC SPLIT)
          ==================================================================== -->
-    <section class="border-b border-slate-800 bg-[#0b111e] relative overflow-hidden">
-        
-        <!-- SVG Running Route Track Background -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none opacity-20 sm:opacity-30" aria-hidden="true">
-            <svg class="w-full h-full object-cover min-w-[1100px]" viewBox="0 0 1440 720" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="heroRouteTrackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#FAF8F3" stop-opacity="0.85"/>
-                        <stop offset="50%" stop-color="#FAF8F3" stop-opacity="0.45"/>
-                        <stop offset="100%" stop-color="#FAF8F3" stop-opacity="0.25"/>
-                    </linearGradient>
-                    <pattern id="athleticGridLines" width="48" height="48" patternUnits="userSpaceOnUse">
-                        <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
-                    </pattern>
-                </defs>
-
-                <!-- Athletic Grid Canvas -->
-                <rect width="1440" height="720" fill="url(#athleticGridLines)" />
-
-                <!-- Topographic Elevation Contours -->
-                <path d="M-80 260 C 220 140, 480 370, 820 220 C 1160 80, 1340 310, 1560 190" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1.5" stroke-dasharray="6 6"/>
-                <path d="M-80 340 C 240 220, 500 450, 840 300 C 1180 160, 1360 390, 1560 270" stroke="rgba(255, 255, 255, 0.035)" stroke-width="1.5"/>
-                <path d="M-80 420 C 260 300, 520 530, 860 380 C 1200 240, 1380 470, 1560 350" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1.5"/>
-
-                <!-- Secondary Track Loops (Athletic Stadium Oval) -->
-                <ellipse cx="260" cy="460" rx="140" ry="70" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" stroke-dasharray="4 4" transform="rotate(-12 260 460)"/>
-                <ellipse cx="260" cy="460" rx="120" ry="55" stroke="rgba(255, 90, 31, 0.15)" stroke-width="1.5" transform="rotate(-12 260 460)"/>
-
-                <!-- Primary GPS Running Route Track -->
-                <path d="M 60 520 C 160 450, 240 540, 380 480 C 500 420, 560 260, 700 280 C 840 300, 890 460, 1020 400 C 1150 340, 1200 180, 1340 220 C 1410 240, 1460 210, 1500 190" 
-                      stroke="url(#heroRouteTrackGrad)" stroke-width="4" stroke-linecap="round"/>
-
-                <!-- Running Route Dashed Pacing Line -->
-                <path d="M 60 520 C 160 450, 240 540, 380 480 C 500 420, 560 260, 700 280 C 840 300, 890 460, 1020 400 C 1150 340, 1200 180, 1340 220 C 1410 240, 1460 210, 1500 190" 
-                      stroke="#FAF8F3" stroke-width="1.5" stroke-dasharray="8 12" stroke-linecap="round"/>
-
-                <!-- Waypoint 0K START -->
-                <circle cx="60" cy="520" r="14" stroke="#22C55E" stroke-width="2" stroke-opacity="0.4" fill="none"/>
-                <circle cx="60" cy="520" r="6" fill="#22C55E"/>
-                <rect x="25" y="542" width="70" height="20" rx="4" fill="#0b111e" stroke="#1e293b"/>
-                <text x="60" y="556" fill="#22C55E" font-size="10" font-weight="700" text-anchor="middle" font-family="'Inter Tight', sans-serif" letter-spacing="1">START 0K</text>
-
-                <!-- Waypoint 5K -->
-                <circle cx="380" cy="480" r="4" fill="#FAF8F3"/>
-                <rect x="350" y="502" width="60" height="18" rx="4" fill="#0b111e" stroke="#1e293b"/>
-                <text x="380" y="515" fill="#FAF8F3" font-size="9" font-weight="600" text-anchor="middle" font-family="'Inter', sans-serif">5.0 KM</text>
-
-                <!-- Waypoint 10K -->
-                <circle cx="700" cy="280" r="4" fill="#FAF8F3"/>
-                <rect x="670" y="250" width="60" height="18" rx="4" fill="#0b111e" stroke="#1e293b"/>
-                <text x="700" y="263" fill="#FAF8F3" font-size="9" font-weight="600" text-anchor="middle" font-family="'Inter', sans-serif">10.0 KM</text>
-
-                <!-- Waypoint 15K -->
-                <circle cx="1020" cy="400" r="4" fill="#FAF8F3"/>
-                <rect x="990" y="420" width="60" height="18" rx="4" fill="#0b111e" stroke="#1e293b"/>
-                <text x="1020" y="433" fill="#FAF8F3" font-size="9" font-weight="600" text-anchor="middle" font-family="'Inter', sans-serif">15.0 KM</text>
-
-                <!-- Waypoint 21.1K FINISH -->
-                <circle cx="1340" cy="220" r="16" stroke="#FAF8F3" stroke-width="2" stroke-opacity="0.5" fill="none"/>
-                <circle cx="1340" cy="220" r="7" fill="#FAF8F3"/>
-                <rect x="1295" y="244" width="90" height="20" rx="4" fill="#0b111e" stroke="#FAF8F3" stroke-opacity="0.5"/>
-                <text x="1340" y="258" fill="#FAF8F3" font-size="10" font-weight="800" text-anchor="middle" font-family="'Inter Tight', sans-serif" letter-spacing="1">FINISH 21.1K</text>
-            </svg>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24 relative z-10">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <section class="border-b border-slate-800 bg-slate-950 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
-                <!-- Left Side: Editorial Athletic Statement & CTAs -->
-                <div class="lg:col-span-7 space-y-6 text-left">
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold font-editorial-heading text-white leading-[1.04] tracking-tight">
+                <!-- Left Column: Bold Athletic Statement, Copy & CTAs (6 cols) -->
+                <div class="lg:col-span-6 space-y-6 text-left">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-bold font-editorial-heading text-white leading-[1.06] tracking-tight uppercase">
                         Program Lari Terstruktur.<br>
-                        <span class="text-[#CCFF00]">Capai Finish & Waktu Terbaikmu.</span>
+                        <span class="text-[#CCFF00]">Dari 5K Hingga Marathon.</span>
                     </h1>
 
-                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl font-body">
-                        Temukan <strong>program lari</strong> yang dirancang oleh pelatih berlisensi untuk menyelesaikan 5K, 10K, Half Marathon hingga Marathon. Didukung jadwal latihan lari terukur, panduan pace VDOT akurat, dan metode perlindungan cedera.
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-body">
+                        Raih target finish dan catatan waktu terbaik Anda melalui rancangan program latihan dari pelatih lari berlisensi. Mengintegrasikan periodisasi ilmiah, kalkulasi pace VDOT personal, dan panduan proteksi cedera untuk iklim Indonesia.
                     </p>
 
                     <!-- CTAs -->
-                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <div class="flex flex-wrap items-center gap-3 pt-1">
                         <a href="#katalog-program-coach" 
-                           class="btn-volt-hero group px-6 py-3.5 rounded-md font-black text-xs sm:text-sm tracking-wider uppercase flex items-center gap-2 cursor-pointer">
-                            <span>Pilih Program Coach</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                           class="btn-volt-hero px-6 py-3.5 rounded-md font-bold text-xs sm:text-sm tracking-wider uppercase inline-flex items-center justify-center cursor-pointer transition">
+                            Pilih Program Pelatih
                         </a>
-                        <!--<a href="#running-levels" 
-                           class="btn-volt-hero group px-6 py-3.5 rounded-md font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2 cursor-pointer">
-                            <span>Panduan Program Lari</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                        </a>-->
-                    </div>
-
-                    <!-- Trust Pillars -->
-                    <div class="grid grid-cols-3 gap-3 pt-6 border-t border-slate-800 font-numeric">
-                        <div>
-                            <div class="text-xs text-slate-400 font-medium">Program Terverifikasi</div>
-                            <div class="text-base sm:text-lg font-bold text-white mt-0.5">{{ $totalPrograms ?? 12 }}+ Program</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-400 font-medium">Pelatih Berlisensi</div>
-                            <div class="text-base sm:text-lg font-bold text-white mt-0.5">{{ $totalCoaches ?? 6 }}+ Coach Aktif</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-400 font-medium">Kepuasan Pelari</div>
-                            <div class="text-base sm:text-lg font-bold text-[#FAF8F3] mt-0.5">★ {{ $averageRating ?? 4.9 }} / 5.0</div>
-                        </div>
+                        <a href="{{ route('programs.realistic') }}" 
+                           class="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-md font-semibold text-xs sm:text-sm tracking-wider uppercase inline-flex items-center justify-center transition cursor-pointer">
+                            Buat Rencana AI Gratis
+                        </a>
                     </div>
                 </div>
 
-                <!-- Right Side: Authentic Runner Photo with Performance Metrics -->
-                
+                <!-- Right Column: Interactive Training Lab (VDOT Pace Calculator) -->
+                <div class="lg:col-span-6 relative">
+                    <div class="rounded-lg border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden border-t-2 border-t-[#CCFF00]">
+                        <!-- Card Header -->
+                        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                            <div>
+                                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase block">Performance Lab / VDOT</span>
+                                <h2 class="text-base sm:text-lg font-bold font-editorial-heading text-white mt-0.5">Kalkulator Pace & Target Lari</h2>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold text-[#CCFF00]">RL-01</span>
+                        </div>
+
+                        <!-- Form Input Body -->
+                        <div class="p-5 sm:p-6 space-y-4">
+                            <!-- Distance Parameter Selection -->
+                            <div>
+                                <label for="hero_vdot_distance" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    Jarak Parameter / PB Terakhir
+                                </label>
+                                <select id="hero_vdot_distance" 
+                                        class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-[#CCFF00] transition">
+                                    <option value="5K">5K (5 Kilometer)</option>
+                                    <option value="10K">10K (10 Kilometer)</option>
+                                    <option value="21K" selected>Half Marathon (21.1K)</option>
+                                    <option value="42K">Full Marathon (42.2K)</option>
+                                </select>
+                            </div>
+
+                            <!-- Time Input (Jam, Menit, Detik) -->
+                            <div id="hero_vdot_time_group">
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                                    Catatan Waktu PB
+                                </label>
+                                <div class="grid grid-cols-3 gap-2.5 font-numeric">
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="hero_vdot_h" min="0" max="23" value="1" 
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 block text-center mt-1">Jam</span>
+                                    </div>
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="hero_vdot_m" min="0" max="59" value="55" 
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 block text-center mt-1">Menit</span>
+                                    </div>
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="hero_vdot_s" min="0" max="59" value="00" 
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 block text-center mt-1">Detik</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Calculate Button -->
+                            <button type="button" id="btn-hero-vdot-calculate" 
+                                    class="w-full btn-volt-hero py-3 rounded-md font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition">
+                                <span>Hitung VDOT & Target Pace</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Result Display Box (Revealed on click) -->
+                        <div id="hero_vdot_result" class="hidden border-t border-slate-800 bg-slate-950/80 p-5 space-y-4">
+                            <!-- VDOT Score Strip -->
+                            <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between font-numeric">
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
+                                    <span id="hero_vdot_score_display" class="text-2xl font-black text-[#CCFF00] mt-0.5 block">42.5</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
+                                    <span id="hero_vdot_fitness_level" class="text-xs sm:text-sm font-bold text-white mt-0.5 block">Intermediate</span>
+                                </div>
+                            </div>
+
+                            <!-- Tab Buttons (Pace Latihan vs Target Race) -->
+                            <div class="grid grid-cols-2 gap-1.5 p-1 rounded-md bg-slate-900 border border-slate-800 text-xs font-semibold">
+                                <button type="button" id="hero_vdot_tab_paces_btn" class="py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold">
+                                    Pace Latihan
+                                </button>
+                                <button type="button" id="hero_vdot_tab_races_btn" class="py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white">
+                                    Prediksi Race
+                                </button>
+                            </div>
+
+                            <!-- Tab 1: Paces Content -->
+                            <div id="hero_vdot_tab_paces_content" class="space-y-2 text-xs font-numeric">
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
+                                    <strong id="hero_vdot_easy_pace" class="text-white font-bold">05:50 - 06:25/km</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Marathon Pace</span>
+                                    <strong id="hero_vdot_marathon_pace" class="text-white font-bold">05:15/km</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Threshold / Tempo</span>
+                                    <strong id="hero_vdot_tempo_pace" class="text-white font-bold">04:55/km</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Interval (VO2max)</span>
+                                    <strong class="text-white font-bold"><span id="hero_vdot_interval_pace">04:30/km</span> <span id="hero_vdot_interval_400m" class="text-slate-400 font-normal text-[11px]">(108s/400m)</span></strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Repetition (Speed Form)</span>
+                                    <strong class="text-white font-bold"><span id="hero_vdot_repetition_pace">04:12/km</span> <span id="hero_vdot_repetition_400m" class="text-slate-400 font-normal text-[11px]">(100s/400m)</span></strong>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Races Content -->
+                            <div id="hero_vdot_tab_races_content" class="hidden space-y-2 text-xs font-numeric">
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">5K Race Target</span>
+                                    <strong id="hero_vdot_race_5k" class="text-white font-bold">—</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">10K Race Target</span>
+                                    <strong id="hero_vdot_race_10k" class="text-white font-bold">—</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Half Marathon (21.1K)</span>
+                                    <strong id="hero_vdot_race_21k" class="text-white font-bold">—</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Marathon (42.2K)</span>
+                                    <strong id="hero_vdot_race_42k" class="text-white font-bold">—</strong>
+                                </div>
+                            </div>
+
+                            <!-- Action Button to Programs -->
+                            <a id="hero_vdot_action_btn" href="#katalog-program-coach" 
+                               class="block w-full text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition">
+                                Lihat Program Coach Sesuai VDOT Anda
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -334,7 +406,7 @@
             <!-- Hidden input to preserve category selection across form submits -->
             <input type="hidden" name="category" id="catalog-category-input" value="{{ request('category') }}">
 
-            <div class="rounded-lg border border-slate-800 bg-[#12161F] p-4 sm:p-5 space-y-4">
+            <div class="rounded-lg border border-slate-800 bg-slate-900 p-4 sm:p-5 space-y-4">
                 
                 <!-- Row 1: Category Filter Tabs -->
                 <div class="flex items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-none">
@@ -345,27 +417,27 @@
                         @endphp
                         <button type="button" 
                                 onclick="setCatalogCategory('')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '' || $curCat === 'all' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700' }}">
                             Semua Jarak
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('5k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '5k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700' }}">
                             5K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('10k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '10k' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700' }}">
                             10K
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('21k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '21k' || $curCat === 'hm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700' }}">
                             Half Marathon (21K)
                         </button>
                         <button type="button" 
                                 onclick="setCatalogCategory('42k')"
-                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-[#0E121B] text-slate-300 hover:text-white hover:bg-[#161F2E] border border-slate-800 hover:border-slate-700' }}">
+                                class="px-3.5 py-2 rounded-md text-xs font-semibold whitespace-nowrap transition cursor-pointer {{ $curCat === '42k' || $curCat === 'fm' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-slate-950 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700' }}">
                             Marathon (42K)
                         </button>
                     </div>
@@ -443,7 +515,7 @@
                         <div class="flex flex-wrap items-center gap-1.5">
                             <span class="text-slate-300 mr-1">Filter Aktif:</span>
                             @if(request('search'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-slate-200">
                                     Pencarian: "{{ request('search') }}"
                                     <a href="{{ route('programs.index', array_merge(request()->except(['search', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
@@ -455,13 +527,13 @@
                                 </span>
                             @endif
                             @if(request('difficulty'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200 capitalize">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-slate-200 capitalize">
                                     Tingkat: {{ request('difficulty') }}
                                     <a href="{{ route('programs.index', array_merge(request()->except(['difficulty', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
                             @endif
                             @if(request('price_type'))
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0E121B] border border-slate-800 text-slate-200 capitalize">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-slate-200 capitalize">
                                     Biaya: {{ request('price_type') === 'free' ? 'Gratis' : 'Berbayar' }}
                                     <a href="{{ route('programs.index', array_merge(request()->except(['price_type', 'page']))) }}#katalog-program-coach" class="hover:text-red-400 ml-1">✕</a>
                                 </span>
@@ -554,11 +626,11 @@
                         };
                     @endphp
 
-                    <article class="h-full rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
+                    <article class="h-full rounded-lg border border-slate-800 bg-slate-900 hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
                         <div class="flex flex-col flex-1 min-h-0">
                             <!-- Program Thumbnail Cover: Standard visible <img> with locked aspect-[3/2] and min-h -->
                             <a href="{{ url('/programs/' . $program->slug) }}"
-                               class="relative block w-full aspect-[3/2] min-h-[160px] sm:min-h-[180px] shrink-0 bg-[#0B0F17] border-b border-slate-800 overflow-hidden group"
+                               class="relative block w-full aspect-[3/2] min-h-[160px] sm:min-h-[180px] shrink-0 bg-slate-950 border-b border-slate-800 overflow-hidden group"
                                aria-label="{{ $program->title }}">
                                 <img src="{{ $featuredImg }}"
                                      alt="{{ $program->title }}"
@@ -608,7 +680,7 @@
                                 </p>
 
                                 <!-- Key Stats Strip -->
-                                <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric shrink-0">
+                                <div class="mt-auto grid grid-cols-3 gap-2 p-2.5 rounded-md bg-slate-950 border border-slate-800 text-center font-numeric shrink-0">
                                     <div>
                                         <span class="text-[10px] text-slate-400 block font-medium leading-tight">Frekuensi</span>
                                         <span class="text-xs font-semibold text-slate-200 mt-0.5 block">{{ $weeklySessions }} Sesi/Mgg</span>
@@ -686,7 +758,7 @@
 
         <div class="relative z-10">
             <div class="text-center max-w-2xl mx-auto mb-10">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2">
                     Panduan Level Program Lari
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -702,11 +774,11 @@
                 <button type="button" 
                         onclick="setRunningLevel('starter')" 
                         id="level-btn-starter"
-                        class="journey-step-btn is-active ring-1 ring-[#FAF8F3] p-5 text-left flex flex-col justify-between cursor-pointer">
+                        class="journey-step-btn is-active ring-1 ring-slate-300 p-5 text-left flex flex-col justify-between cursor-pointer">
                     <div>
                         <div class="flex items-center justify-between mb-3 font-numeric">
                             <span class="text-xs font-bold text-slate-400 uppercase">Tahap 01 • Start</span>
-                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-[#FAF8F3] text-white">5K</span>
+                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-white">5K</span>
                         </div>
                         <div class="text-2xl font-bold font-editorial-heading text-white">STARTER</div>
                         <div class="text-xs text-slate-300 mt-1">5K Foundation Program</div>
@@ -724,14 +796,14 @@
                     <div>
                         <div class="flex items-center justify-between mb-3 font-numeric">
                             <span class="text-xs font-bold text-slate-400 uppercase">Tahap 02 • Build</span>
-                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-[#182338] text-slate-400">10K</span>
+                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400">10K</span>
                         </div>
                         <div class="text-2xl font-bold font-editorial-heading text-white">BUILDER</div>
                         <div class="text-xs text-slate-300 mt-1">10K Performance Program</div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between font-numeric">
                         <span>Goal: <strong class="text-white font-medium">Endurance & Tempo</strong></span>
-                        <span class="text-[#FAF8F3] font-mono text-[11px]">4x / Mgg</span>
+                        <span class="text-slate-100 font-mono text-[11px]">4x / Mgg</span>
                     </div>
                 </button>
 
@@ -742,7 +814,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-3 font-numeric">
                             <span class="text-xs font-bold text-slate-400 uppercase">Tahap 03 • Conquer</span>
-                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-[#182338] text-slate-400">21.1K</span>
+                            <span class="level-tag px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400">21.1K</span>
                         </div>
                         <div class="text-2xl font-bold font-editorial-heading text-white">CHALLENGER</div>
                         <div class="text-xs text-slate-300 mt-1">Half Marathon Program</div>
@@ -760,17 +832,17 @@
                 <div id="level-pane-starter" class="level-detail-pane space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
                         <div>
-                            <div class="text-xs text-[#FAF8F3] uppercase font-bold tracking-wider">Fokus Program: Fondasi & Konsistensi</div>
+                            <div class="text-xs text-slate-100 uppercase font-bold tracking-wider">Fokus Program: Fondasi & Konsistensi</div>
                             <h3 class="text-2xl font-bold font-editorial-heading text-white mt-1">Starter: 5K Foundation Program</h3>
                         </div>
                         <a href="{{ route('programs.index', ['category' => '5k']) }}#katalog-program-coach" 
-                           class="px-5 py-2.5 bg-[#FAF8F3] hover:bg-[#e04a12] text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
+                           class="px-5 py-2.5 bg-slate-100 hover:bg-slate-700 text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
                             Lihat Program Coach 5K
                         </a>
                     </div>
 
                     <!-- Telemetry Target Bar Starter -->
-                    <div class="p-3 bg-[#141d2e] rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
+                    <div class="p-3 bg-slate-900 rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             <span class="text-white font-bold uppercase tracking-wider">Target Metrik Starter</span>
@@ -805,24 +877,24 @@
                     </div>
                 </div>
 
-                <div class="p-4 bg-[#182338] rounded-md border border-slate-800 font-numeric">
+                <div class="p-4 bg-slate-800 rounded-md border border-slate-800 font-numeric">
                     <div class="text-xs font-bold text-slate-400 mb-3 uppercase">Contoh Jadwal Mingguan Starter</div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Selasa</span>
                             <span class="font-bold text-white">25m Run-Walk Interval</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Kamis</span>
                             <span class="font-bold text-white">20m Easy Aerobic Run</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Sabtu</span>
                             <span class="font-bold text-white">Core & Mobility Drills</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Minggu</span>
-                            <span class="font-bold text-[#FAF8F3]">3.5 KM Continuous Run</span>
+                            <span class="font-bold text-slate-100">3.5 KM Continuous Run</span>
                         </div>
                     </div>
                 </div>
@@ -832,19 +904,19 @@
             <div id="level-pane-builder" class="level-detail-pane hidden space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
                     <div>
-                        <div class="text-xs text-[#FAF8F3] uppercase font-bold tracking-wider">Fokus Program: Kapasitas Laktat & Kecepatan</div>
+                        <div class="text-xs text-slate-100 uppercase font-bold tracking-wider">Fokus Program: Kapasitas Laktat & Kecepatan</div>
                         <h3 class="text-2xl font-bold font-editorial-heading text-white mt-1">Builder: 10K Performance Program</h3>
                     </div>
                     <a href="{{ route('programs.index', ['category' => '10k']) }}#katalog-program-coach" 
-                       class="px-5 py-2.5 bg-[#FAF8F3] hover:bg-[#e04a12] text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
+                       class="px-5 py-2.5 bg-slate-100 hover:bg-slate-700 text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
                         Lihat Program Coach 10K
                     </a>
                 </div>
 
                 <!-- Telemetry Target Bar Builder -->
-                <div class="p-3 bg-[#141d2e] rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
+                <div class="p-3 bg-slate-900 rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#FAF8F3]"></span>
+                        <span class="w-2 h-2 rounded-full bg-slate-100"></span>
                         <span class="text-white font-bold uppercase tracking-wider">Target Metrik Builder</span>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px] text-slate-300">
@@ -852,7 +924,7 @@
                         <span class="text-slate-600 hidden sm:inline">•</span>
                         <span>Cadence: <strong class="text-white">172-178 SPM</strong></span>
                         <span class="text-slate-600 hidden sm:inline">•</span>
-                        <span>Zona HR: <strong class="text-[#FAF8F3]">Zone 3-4 Threshold (75-88%)</strong></span>
+                        <span>Zona HR: <strong class="text-slate-100">Zone 3-4 Threshold (75-88%)</strong></span>
                     </div>
                 </div>
 
@@ -877,24 +949,24 @@
                     </div>
                 </div>
 
-                <div class="p-4 bg-[#182338] rounded-md border border-slate-800 font-numeric">
+                <div class="p-4 bg-slate-800 rounded-md border border-slate-800 font-numeric">
                     <div class="text-xs font-bold text-slate-400 mb-3 uppercase">Contoh Jadwal Mingguan Builder</div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Selasa</span>
                             <span class="font-bold text-white">5 KM Easy Recovery Run</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Kamis</span>
                             <span class="font-bold text-white">6x400m Track Intervals</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Jumat</span>
                             <span class="font-bold text-white">4 KM Threshold Tempo</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Minggu</span>
-                            <span class="font-bold text-[#FAF8F3]">8-10 KM Aerobic Long Run</span>
+                            <span class="font-bold text-slate-100">8-10 KM Aerobic Long Run</span>
                         </div>
                     </div>
                 </div>
@@ -904,17 +976,17 @@
             <div id="level-pane-challenger" class="level-detail-pane hidden space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
                     <div>
-                        <div class="text-xs text-[#FAF8F3] uppercase font-bold tracking-wider">Fokus Program: Ketahanan Jarak & Manajemen Race</div>
+                        <div class="text-xs text-slate-100 uppercase font-bold tracking-wider">Fokus Program: Ketahanan Jarak & Manajemen Race</div>
                         <h3 class="text-2xl font-bold font-editorial-heading text-white mt-1">Challenger: Half Marathon 21.1K Preparation</h3>
                     </div>
                     <a href="{{ route('programs.index', ['category' => '21k']) }}#katalog-program-coach" 
-                       class="px-5 py-2.5 bg-[#FAF8F3] hover:bg-[#e04a12] text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
+                       class="px-5 py-2.5 bg-slate-100 hover:bg-slate-700 text-white font-bold rounded-md text-xs uppercase tracking-wider text-center shrink-0">
                         Lihat Program Coach 21K
                     </a>
                 </div>
 
                 <!-- Telemetry Target Bar Challenger -->
-                <div class="p-3 bg-[#141d2e] rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
+                <div class="p-3 bg-slate-900 rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-numeric">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-[#CCFF00]"></span>
                         <span class="text-white font-bold uppercase tracking-wider">Target Metrik Challenger</span>
@@ -949,24 +1021,24 @@
                     </div>
                 </div>
 
-                <div class="p-4 bg-[#182338] rounded-md border border-slate-800 font-numeric">
+                <div class="p-4 bg-slate-800 rounded-md border border-slate-800 font-numeric">
                     <div class="text-xs font-bold text-slate-400 mb-3 uppercase">Contoh Jadwal Mingguan Challenger</div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Selasa</span>
                             <span class="font-bold text-white">7 KM Easy Recovery Run</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Rabu</span>
                             <span class="font-bold text-white">5x1000m Threshold Repeats</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Jumat</span>
                             <span class="font-bold text-white">6 KM Progressive Pace</span>
                         </div>
-                        <div class="p-2.5 bg-[#131b2c] rounded border border-slate-800">
+                        <div class="p-2.5 bg-slate-900 rounded border border-slate-800">
                             <span class="text-slate-400 block">Minggu</span>
-                            <span class="font-bold text-[#FAF8F3]">14-16 KM Long Run Aerobik</span>
+                            <span class="font-bold text-slate-100">14-16 KM Long Run Aerobik</span>
                         </div>
                     </div>
                 </div>
@@ -991,7 +1063,7 @@
 
         <div class="relative z-10">
             <div class="text-center max-w-2xl mx-auto mb-10">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2 font-numeric">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2 font-numeric">
                     Metodologi Pelatihan
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1003,16 +1075,16 @@
             </div>
 
             <!-- Athletic Cadence & Telemetry Process Ribbon -->
-            <div class="hidden lg:flex items-center justify-between mb-8 p-4 rounded-lg bg-[#0e1626] border border-slate-800 font-numeric text-xs">
+            <div class="hidden lg:flex items-center justify-between mb-8 p-4 rounded-lg bg-slate-950 border border-slate-800 font-numeric text-xs">
                 <div class="flex items-center gap-2.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-[#FAF8F3] animate-pulse"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-100 animate-pulse"></span>
                     <span class="text-white font-bold uppercase tracking-wider">Siklus Periodisasi Terukur</span>
                 </div>
                 
                 <!-- Cadence Waveform & Track Line -->
                 <div class="flex items-center gap-3 flex-1 max-w-md mx-6">
                     <span class="text-[10px] text-slate-400 font-mono">160 SPM</span>
-                    <svg class="h-6 flex-1 text-[#FAF8F3]" viewBox="0 0 220 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="h-6 flex-1 text-slate-100" viewBox="0 0 220 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M0 12 Q 12 3, 24 12 T 48 12 T 72 12 T 96 7 T 120 17 T 144 5 T 168 19 T 192 4 T 220 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <circle cx="218" cy="12" r="3" fill="#CCFF00"/>
                     </svg>
@@ -1020,7 +1092,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 text-slate-400 text-[11px]">
-                    <span class="px-2.5 py-0.5 rounded bg-[#182338] text-slate-200">Siklus 8 - 16 Minggu</span>
+                    <span class="px-2.5 py-0.5 rounded bg-slate-800 text-slate-200">Siklus 8 - 16 Minggu</span>
                     <span class="text-white font-bold">100% Berbasis Progres</span>
                 </div>
             </div>
@@ -1030,8 +1102,8 @@
                 <div class="athletic-card p-6 flex flex-col justify-between relative">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="text-2xl font-bold font-editorial-heading text-[#FAF8F3]">01</div>
-                            <div class="w-10 h-10 rounded-md bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                            <div class="text-2xl font-bold font-editorial-heading text-slate-100">01</div>
+                            <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                                 <!-- Biometric Assessment Radar SVG -->
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.75"/><circle cx="12" cy="12" r="4" stroke-width="1.75"/><path stroke-linecap="round" stroke-width="2" d="M12 3v4m0 10v4m-9-9h4m10 0h4"/></svg>
                             </div>
@@ -1042,15 +1114,15 @@
                         </p>
                         <ul class="space-y-2 text-xs text-slate-300">
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Current ability</strong> (Pace & jarak terjauh)</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Running history</strong> & riwayat cedera</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Target race</strong> & tanggal perlombaan</span>
                             </li>
                         </ul>
@@ -1064,8 +1136,8 @@
                 <div class="athletic-card p-6 flex flex-col justify-between relative">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="text-2xl font-bold font-editorial-heading text-[#FAF8F3]">02</div>
-                            <div class="w-10 h-10 rounded-md bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                            <div class="text-2xl font-bold font-editorial-heading text-slate-100">02</div>
+                            <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                                 <!-- Pacing Matrix Calendar SVG -->
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/><path stroke-linecap="round" stroke-width="2" d="M8 15h2m4 0h2"/></svg>
                             </div>
@@ -1076,19 +1148,19 @@
                         </p>
                         <ul class="space-y-2 text-xs text-slate-300">
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Easy run</strong> zona aerobik untuk pemulihan</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Interval speed</strong> untuk kapasitas paru</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Tempo run</strong> untuk ketahanan laktat</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Long run</strong> terstruktur akhir pekan</span>
                             </li>
                         </ul>
@@ -1102,8 +1174,8 @@
                 <div class="athletic-card p-6 flex flex-col justify-between relative">
                     <div>
                         <div class="flex items-center justify-between mb-4">
-                            <div class="text-2xl font-bold font-editorial-heading text-[#FAF8F3]">03</div>
-                            <div class="w-10 h-10 rounded-md bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                            <div class="text-2xl font-bold font-editorial-heading text-slate-100">03</div>
+                            <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                                 <!-- Heart Rate & Cadence Pulse SVG -->
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 13h4l3-7 4 14 3-7h4"/></svg>
                             </div>
@@ -1114,15 +1186,15 @@
                         </p>
                         <ul class="space-y-2 text-xs text-slate-300">
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Distance improvement</strong> & volume mingguan</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Pace development</strong> pada HR stabil</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Training consistency</strong> streak & feedback</span>
                             </li>
                         </ul>
@@ -1137,7 +1209,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <div class="text-2xl font-bold font-editorial-heading text-[#CCFF00]">04</div>
-                            <div class="w-10 h-10 rounded-md bg-[#182338] border border-slate-800 flex items-center justify-center text-[#CCFF00]">
+                            <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-800 flex items-center justify-center text-[#CCFF00]">
                                 <!-- Finish Line Ribbon / Timing Gate Flag SVG -->
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V14"/></svg>
                             </div>
@@ -1174,7 +1246,7 @@
          ==================================================================== -->
     <section class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-slate-800">
         <div class="text-center max-w-2xl mx-auto mb-12">
-            <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2">
+            <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2">
                 Pelacakan Sesi & Telemetri
             </span>
             <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1188,42 +1260,42 @@
         <!-- Realistic Athlete App Window -->
         <div class="athletic-card overflow-hidden shadow-2xl max-w-5xl mx-auto">
             <!-- App Navigation Bar Header -->
-            <div class="px-5 py-3.5 bg-[#0b111e] border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex items-center gap-2 font-numeric">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
                     <span class="font-editorial-heading font-bold text-sm text-white tracking-wide">Ruang Lari Athlete Lab</span>
                     <span class="text-slate-400 hidden sm:inline">• Siklus Minggu 6 dari 12</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded bg-[#182338] text-slate-300 text-[11px] font-semibold">
+                    <span class="px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-semibold">
                         Target: Jakarta Half Marathon
                     </span>
                 </div>
             </div>
 
             <!-- Dashboard Main Screen -->
-            <div class="p-6 sm:p-8 bg-[#0e1626] space-y-6">
+            <div class="p-6 sm:p-8 bg-slate-950 space-y-6">
                 <!-- 4 Core Required Telemetry Indicators -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 font-numeric">
-                    <div class="p-4 rounded-md bg-[#141d2e] border border-slate-800">
+                    <div class="p-4 rounded-md bg-slate-900 border border-slate-800">
                         <div class="text-xs text-slate-400 font-medium">Weekly Mileage</div>
                         <div class="text-2xl sm:text-3xl font-bold text-white mt-1">32.5 <span class="text-xs font-normal text-slate-400">KM</span></div>
                         <div class="text-[11px] text-emerald-400 mt-1">+2.8 KM dari minggu lalu</div>
                     </div>
 
-                    <div class="p-4 rounded-md bg-[#141d2e] border border-slate-800">
+                    <div class="p-4 rounded-md bg-slate-900 border border-slate-800">
                         <div class="text-xs text-slate-400 font-medium">Current Pace</div>
                         <div class="text-2xl sm:text-3xl font-bold text-white mt-1">6:05 <span class="text-xs font-normal text-slate-400">/km</span></div>
                         <div class="text-[11px] text-slate-400 mt-1">Zona Aerobik Terjaga</div>
                     </div>
 
-                    <div class="p-4 rounded-md bg-[#141d2e] border border-slate-800">
+                    <div class="p-4 rounded-md bg-slate-900 border border-slate-800">
                         <div class="text-xs text-slate-400 font-medium">Training Status</div>
-                        <div class="text-base sm:text-lg font-bold text-[#FAF8F3] font-editorial-heading mt-1.5 uppercase">Building Endurance</div>
+                        <div class="text-base sm:text-lg font-bold text-slate-100 font-editorial-heading mt-1.5 uppercase">Building Endurance</div>
                         <div class="text-[11px] text-slate-400 mt-0.5">Fase Base Periodization</div>
                     </div>
 
-                    <div class="p-4 rounded-md bg-[#141d2e] border border-slate-800">
+                    <div class="p-4 rounded-md bg-slate-900 border border-slate-800">
                         <div class="text-xs text-slate-400 font-medium">Next Session</div>
                         <div class="text-base sm:text-lg font-bold text-white font-editorial-heading mt-1.5">Long Run — 12 KM</div>
                         <div class="text-[11px] text-slate-400 mt-0.5">Minggu • 05:45 WIB</div>
@@ -1233,14 +1305,14 @@
                 <!-- Structured Sessions Telemetry Row -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Left 2 Cols: Weekly Training Log -->
-                    <div class="lg:col-span-2 p-5 rounded-md bg-[#141d2e] border border-slate-800 space-y-3">
+                    <div class="lg:col-span-2 p-5 rounded-md bg-slate-900 border border-slate-800 space-y-3">
                         <div class="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800 font-numeric">
                             <span class="font-bold text-white">Distribusi Sesi Minggu Ini</span>
                             <span>4 Sesi • 1 Rest • 2 Cross-Training</span>
                         </div>
 
                         <div class="space-y-2 text-xs font-numeric">
-                            <div class="p-2.5 rounded bg-[#182338] border border-slate-800 flex items-center justify-between">
+                            <div class="p-2.5 rounded bg-slate-800 border border-slate-800 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="w-1.5 h-6 rounded-sm bg-emerald-500"></span>
                                     <div>
@@ -1251,7 +1323,7 @@
                                 <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-bold">Tuntas</span>
                             </div>
 
-                            <div class="p-2.5 rounded bg-[#182338] border border-slate-800 flex items-center justify-between">
+                            <div class="p-2.5 rounded bg-slate-800 border border-slate-800 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="w-1.5 h-6 rounded-sm bg-emerald-500"></span>
                                     <div>
@@ -1262,7 +1334,7 @@
                                 <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-bold">Tuntas</span>
                             </div>
 
-                            <div class="p-2.5 rounded bg-[#182338] border border-slate-800 flex items-center justify-between">
+                            <div class="p-2.5 rounded bg-slate-800 border border-slate-800 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="w-1.5 h-6 rounded-sm bg-amber-500"></span>
                                     <div>
@@ -1273,15 +1345,15 @@
                                 <span class="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-bold">Tuntas</span>
                             </div>
 
-                            <div class="p-2.5 rounded bg-[#1c2942] border border-[#FAF8F3]/30 flex items-center justify-between">
+                            <div class="p-2.5 rounded bg-slate-800 border border-slate-700 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-1.5 h-6 rounded-sm bg-[#FAF8F3]"></span>
+                                    <span class="w-1.5 h-6 rounded-sm bg-slate-100"></span>
                                     <div>
                                         <div class="font-bold text-white">Sunday Long Run • 12.0 KM</div>
                                         <div class="text-slate-300 text-[11px]">Target Pace 6:25/km • Fokus Fueling KM 6 & 10</div>
                                     </div>
                                 </div>
-                                <span class="px-2 py-0.5 rounded bg-[#FAF8F3]/20 border border-[#FAF8F3]/40 text-[#FAF8F3] text-[10px] font-bold">Besok</span>
+                                <span class="px-2 py-0.5 rounded bg-slate-100/20 border border-slate-700 text-slate-100 text-[10px] font-bold">Besok</span>
                             </div>
                         </div>
 
@@ -1292,42 +1364,42 @@
                                 <span class="text-emerald-400 font-bold">Negative Split (-28 dtk)</span>
                             </div>
                             <div class="grid grid-cols-6 gap-1.5 font-numeric text-center">
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 1</span>
                                     <span class="text-[11px] font-bold text-slate-200">6:18</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-slate-400 h-full" style="width: 55%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-slate-400 h-full" style="width: 55%"></div></div>
                                 </div>
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 2</span>
                                     <span class="text-[11px] font-bold text-slate-200">6:12</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-slate-400 h-full" style="width: 62%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-slate-400 h-full" style="width: 62%"></div></div>
                                 </div>
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 3</span>
                                     <span class="text-[11px] font-bold text-white">6:05</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-emerald-500 h-full" style="width: 70%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-emerald-500 h-full" style="width: 70%"></div></div>
                                 </div>
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 4</span>
                                     <span class="text-[11px] font-bold text-white">6:02</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-emerald-500 h-full" style="width: 74%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-emerald-500 h-full" style="width: 74%"></div></div>
                                 </div>
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 5</span>
                                     <span class="text-[11px] font-bold text-[#CCFF00]">5:58</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-[#CCFF00] h-full" style="width: 82%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-[#CCFF00] h-full" style="width: 82%"></div></div>
                                 </div>
-                                <div class="p-1.5 rounded bg-[#0b111e] border border-slate-800">
+                                <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
                                     <span class="text-[9px] text-slate-400 block">KM 6</span>
                                     <span class="text-[11px] font-bold text-[#CCFF00]">5:50</span>
-                                    <div class="w-full bg-[#1e293b] h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-[#CCFF00] h-full" style="width: 92%"></div></div>
+                                    <div class="w-full bg-slate-800 h-1 rounded-sm mt-1 overflow-hidden"><div class="bg-[#CCFF00] h-full" style="width: 92%"></div></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Right Col: Heart Rate Zone Summary -->
-                    <div class="p-5 rounded-md bg-[#141d2e] border border-slate-800 space-y-4">
+                    <div class="p-5 rounded-md bg-slate-900 border border-slate-800 space-y-4">
                         <div class="text-xs font-bold text-white pb-2 border-b border-slate-800">
                             Intensitas Aerobik (HR Zone)
                         </div>
@@ -1338,7 +1410,7 @@
                                     <span>Zone 2 (Aerobic Base)</span>
                                     <span class="text-white font-bold">72%</span>
                                 </div>
-                                <div class="w-full bg-[#0b111e] h-2 rounded-sm overflow-hidden">
+                                <div class="w-full bg-slate-950 h-2 rounded-sm overflow-hidden">
                                     <div class="bg-emerald-500 h-full" style="width: 72%"></div>
                                 </div>
                             </div>
@@ -1348,7 +1420,7 @@
                                     <span>Zone 3 (Tempo Threshold)</span>
                                     <span class="text-white font-bold">18%</span>
                                 </div>
-                                <div class="w-full bg-[#0b111e] h-2 rounded-sm overflow-hidden">
+                                <div class="w-full bg-slate-950 h-2 rounded-sm overflow-hidden">
                                     <div class="bg-amber-500 h-full" style="width: 18%"></div>
                                 </div>
                             </div>
@@ -1358,8 +1430,8 @@
                                     <span>Zone 4/5 (Speed Peak)</span>
                                     <span class="text-white font-bold">10%</span>
                                 </div>
-                                <div class="w-full bg-[#0b111e] h-2 rounded-sm overflow-hidden">
-                                    <div class="bg-[#FAF8F3] h-full" style="width: 10%"></div>
+                                <div class="w-full bg-slate-950 h-2 rounded-sm overflow-hidden">
+                                    <div class="bg-slate-100 h-full" style="width: 10%"></div>
                                 </div>
                             </div>
                         </div>
@@ -1376,7 +1448,7 @@
     <!-- ====================================================================
          SECTION 6: COACHING PHILOSOPHY (EDITORIAL SPORTS SCIENCE)
          ==================================================================== -->
-    <section class="py-16 sm:py-24 bg-[#0e1524] border-b border-slate-800 relative overflow-hidden">
+    <section class="py-16 sm:py-24 bg-slate-950 border-b border-slate-800 relative overflow-hidden">
         
         <!-- Stadium Track Curves & Technical Typography Watermark -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none opacity-20" aria-hidden="true">
@@ -1393,12 +1465,12 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
             
             <div class="text-center space-y-4">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block">
                     Filosofi & Metode Pelatihan
                 </span>
                 
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold font-editorial-heading text-white leading-tight">
-                    Prinsip Sports Science di Balik <span class="text-[#FAF8F3]">Program Lari</span> Kami
+                    Prinsip Sports Science di Balik <span class="text-slate-100">Program Lari</span> Kami
                 </h2>
 
                 <blockquote class="text-xl sm:text-2xl font-semibold text-slate-200 italic max-w-2xl mx-auto pt-1 font-editorial-heading">
@@ -1414,8 +1486,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
                 <div class="athletic-card p-6 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wide">01. Fisiologi Aerobik yang Terukur</div>
-                        <div class="w-8 h-8 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                        <div class="text-xs font-bold text-slate-100 uppercase tracking-wide">01. Fisiologi Aerobik yang Terukur</div>
+                        <div class="w-8 h-8 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                             <!-- Mitochondria / Cellular Respiration Icon -->
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                         </div>
@@ -1428,8 +1500,8 @@
 
                 <div class="athletic-card p-6 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wide">02. Aturan Kenaikan Maksimal 10%</div>
-                        <div class="w-8 h-8 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                        <div class="text-xs font-bold text-slate-100 uppercase tracking-wide">02. Aturan Kenaikan Maksimal 10%</div>
+                        <div class="w-8 h-8 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                             <!-- Progressive Incline Overload Icon -->
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                         </div>
@@ -1442,8 +1514,8 @@
 
                 <div class="athletic-card p-6 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wide">03. Adaptasi Terjadi Saat Istirahat</div>
-                        <div class="w-8 h-8 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-[#FAF8F3]">
+                        <div class="text-xs font-bold text-slate-100 uppercase tracking-wide">03. Adaptasi Terjadi Saat Istirahat</div>
+                        <div class="w-8 h-8 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-100">
                             <!-- Deload & Muscle Recovery Icon -->
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                         </div>
@@ -1457,7 +1529,7 @@
                 <div class="athletic-card p-6 space-y-3">
                     <div class="flex items-center justify-between">
                         <div class="text-xs font-bold text-[#CCFF00] uppercase tracking-wide">04. Bebas Cedera Adalah Kunci Konsistensi</div>
-                        <div class="w-8 h-8 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-[#CCFF00]">
+                        <div class="w-8 h-8 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-[#CCFF00]">
                             <!-- Biomechanics Protection Shield Icon -->
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                         </div>
@@ -1487,7 +1559,7 @@
 
         <div class="relative z-10">
             <div class="text-center max-w-2xl mx-auto mb-12">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2">
                     Testimoni & Kisah Sukses
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1502,7 +1574,7 @@
             <div class="athletic-card overflow-hidden mb-10">
                 <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch">
                     <!-- Authentic Post-Race Photo -->
-                    <div class="lg:col-span-5 relative bg-[#0b111e]">
+                    <div class="lg:col-span-5 relative bg-slate-950">
                         <img src="{{ asset('/storage/blog/media/e6aa9263-4a51-43e7-a42e-bb1c4d31d42c.webp') }}" 
                              alt="Authentic Indonesian runner catching breath after finishing race" 
                              class="w-full h-full object-cover min-h-[320px] lg:min-h-[440px]"
@@ -1510,7 +1582,7 @@
                         <div class="absolute top-3 left-3 px-2.5 py-1 rounded bg-white border border-slate-800 text-[10px] font-bold text-black font-numeric tracking-wider">
                             Ramadhan
                         </div>
-                        <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded bg-[#0b111e]/90 text-[11px] font-semibold text-slate-300 font-numeric">
+                        <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded bg-slate-950 text-[11px] font-semibold text-slate-300 font-numeric">
                             Finisher 21K • Jakarta Half Marathon
                         </div>
                     </div>
@@ -1519,13 +1591,13 @@
                     <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between space-y-6">
                         <div>
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                <span class="px-2.5 py-0.5 rounded bg-[#182338] text-xs font-medium text-slate-300">
+                                <span class="px-2.5 py-0.5 rounded bg-slate-800 text-xs font-medium text-slate-300">
                                     Challenger Program Alumni • 12 Minggu Latihan
                                 </span>                                
                             </div>
 
                             <!-- Official Split Timing Strip -->
-                            <div class="mb-4 p-3 bg-[#131b2c] rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-numeric">
+                            <div class="mb-4 p-3 bg-slate-900 rounded-md border border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-numeric">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                                     <span class="text-white font-bold uppercase tracking-wider text-[10px]">Official Split Telemetry</span>
@@ -1546,22 +1618,22 @@
                             </blockquote>
 
                             <div class="space-y-3.5 text-xs sm:text-sm">
-                                <div class="p-3.5 bg-[#182338] rounded-md border border-slate-800">
+                                <div class="p-3.5 bg-slate-800 rounded-md border border-slate-800">
                                     <span class="font-bold text-slate-400 block text-xs uppercase mb-1">Before:</span>
                                     <p class="text-slate-300 leading-relaxed font-body">
                                         Napas selalu tersengal di KM 3, sering terserang shin splints karena memaksakan pace kencang, dan tidak punya rencana latihan yang terstruktur.
                                     </p>
                                 </div>
 
-                                <div class="p-3.5 bg-[#182338] rounded-md border border-slate-800">
+                                <div class="p-3.5 bg-slate-800 rounded-md border border-slate-800">
                                     <span class="font-bold text-slate-400 block text-xs uppercase mb-1">Training Journey:</span>
                                     <p class="text-slate-300 leading-relaxed font-body">
                                         Disiplin menjalani 12 minggu Half Marathon Program. 80% lari di zona 2, membenahi cadence lari menjadi 174 SPM, serta simulasi nutrisi energi saat long run 16K.
                                     </p>
                                 </div>
 
-                                <div class="p-3.5 bg-[#182338] rounded-md border border-slate-800 font-numeric">
-                                    <span class="font-bold text-[#FAF8F3] block text-xs uppercase mb-1">Achievement:</span>
+                                <div class="p-3.5 bg-slate-800 rounded-md border border-slate-800 font-numeric">
+                                    <span class="font-bold text-slate-100 block text-xs uppercase mb-1">Achievement:</span>
                                     <p class="text-white font-semibold leading-relaxed">
                                         Berhasil finish 21.1K dengan catatan waktu resmi 2:08:45 dalam kondisi bugar tanpa kram dan tanpa cedera.
                                     </p>
@@ -1574,7 +1646,7 @@
                                 <div class="font-bold text-white text-sm">Aditya Pratama</div>
                                 <div class="text-slate-400">Pegawai Swasta • Jakarta Selatan</div>
                             </div>
-                            <div class="text-[#FAF8F3] font-bold text-sm">PB: 2:08:45</div>
+                            <div class="text-slate-100 font-bold text-sm">PB: 2:08:45</div>
                         </div>
                     </div>
                 </div>
@@ -1584,7 +1656,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="athletic-card p-6 space-y-4">
                     <div class="flex items-center justify-between font-numeric">
-                        <span class="px-2.5 py-0.5 rounded bg-[#182338] text-xs text-slate-300 font-medium">Starter 5K Program</span>
+                        <span class="px-2.5 py-0.5 rounded bg-slate-800 text-xs text-slate-300 font-medium">Starter 5K Program</span>
                         <span class="text-xs text-emerald-400 font-bold">5K Non-Stop • Pace 6:16</span>
                     </div>
                     <p class="text-sm text-slate-300 leading-relaxed italic font-body">
@@ -1601,7 +1673,7 @@
 
                 <div class="athletic-card p-6 space-y-4">
                     <div class="flex items-center justify-between font-numeric">
-                        <span class="px-2.5 py-0.5 rounded bg-[#182338] text-xs text-slate-300 font-medium">Builder 10K Program</span>
+                        <span class="px-2.5 py-0.5 rounded bg-slate-800 text-xs text-slate-300 font-medium">Builder 10K Program</span>
                         <span class="text-xs text-emerald-400 font-bold">Pace Sub-55 • 5:18 /km</span>
                     </div>
                     <p class="text-sm text-slate-300 leading-relaxed italic font-body">
@@ -1622,7 +1694,7 @@
     <!-- ====================================================================
          SECTION 8: TIER REKOMENDASI & PERBANDINGAN FITUR
          ==================================================================== -->
-    <section id="pricing-section" class="py-16 sm:py-20 bg-[#0e1524] border-b border-slate-800 relative overflow-hidden">
+    <section id="pricing-section" class="py-16 sm:py-20 bg-slate-950 border-b border-slate-800 relative overflow-hidden">
         
         <!-- Athletic Stadium Curves Background -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none opacity-15" aria-hidden="true">
@@ -1634,7 +1706,7 @@
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="max-w-2xl mx-auto text-center mb-14">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2">
                     Pilihan Paket Pelatihan
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1647,20 +1719,20 @@
 
             <!-- Comparison Table -->
             <div class="athletic-card overflow-hidden">
-                <div class="p-4 bg-[#151f33] border-b border-slate-800 text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
+                <div class="p-4 bg-slate-900 border-b border-slate-800 text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
                     <span>Tabel Perbandingan Fitur Paket</span>
                     <span class="text-[11px] text-slate-400 font-normal">Garansi Periodisasi Terukur</span>
                 </div>
                 <div class="overflow-x-auto font-numeric">
                     <table class="w-full text-left text-xs">
                         <thead>
-                            <tr class="border-b border-slate-800 bg-[#182338] text-slate-300 font-medium">
+                            <tr class="border-b border-slate-800 bg-slate-800 text-slate-300 font-medium">
                                 <th class="p-4">Fitur Program</th>
                                 <th class="p-4">Start (5K Foundation)</th>
                                 <th class="p-4 text-[#CCFF00] font-bold">
                                     <div class="flex items-center gap-2">
                                         <span>Build (10K Performance)</span>
-                                        <span class="px-2 py-0.5 rounded bg-[#CCFF00] text-[#080A0D] text-[10px] font-black uppercase tracking-wider">Populer</span>
+                                        <span class="px-2 py-0.5 rounded bg-[#CCFF00] text-slate-950 text-[10px] font-black uppercase tracking-wider">Populer</span>
                                     </div>
                                 </th>
                                 <th class="p-4">Advance (Half Marathon)</th>
@@ -1700,18 +1772,18 @@
                             <tr>
                                 <td class="p-4 font-medium text-white">Aksi Rekomendasi</td>
                                 <td class="p-4">
-                                    <a href="{{ route('programs.index', ['category' => '5k']) }}#katalog-program-coach" class="inline-block px-3 py-1.5 rounded-md bg-[#182338] hover:bg-[#1f2d48] border border-slate-800 text-white font-bold text-xs uppercase tracking-wide transition">
+                                    <a href="{{ route('programs.index', ['category' => '5k']) }}#katalog-program-coach" class="inline-block px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-800 text-white font-bold text-xs uppercase tracking-wide transition">
                                         Pilih 5K
                                     </a>
                                 </td>
                                 <td class="p-4">
-                                    <a href="{{ route('programs.index', ['category' => '10k']) }}#katalog-program-coach" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#CCFF00] hover:bg-[#b8e600] text-[#080A0D] font-black text-xs uppercase tracking-wide transition shadow-sm shadow-[#CCFF00]/20">
+                                    <a href="{{ route('programs.index', ['category' => '10k']) }}#katalog-program-coach" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#CCFF00] hover:bg-[#b8e600] text-slate-950 font-black text-xs uppercase tracking-wide transition shadow-sm shadow-md">
                                         <span>Pilih 10K</span>
-                                        <svg class="w-3.5 h-3.5 text-[#080A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        <svg class="w-3.5 h-3.5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                                     </a>
                                 </td>
                                 <td class="p-4">
-                                    <a href="{{ route('programs.index', ['category' => '21k']) }}#katalog-program-coach" class="inline-block px-3 py-1.5 rounded-md bg-[#182338] hover:bg-[#1f2d48] border border-slate-800 text-white font-bold text-xs uppercase tracking-wide transition">
+                                    <a href="{{ route('programs.index', ['category' => '21k']) }}#katalog-program-coach" class="inline-block px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-800 text-white font-bold text-xs uppercase tracking-wide transition">
                                         Pilih 21K
                                     </a>
                                 </td>
@@ -1727,7 +1799,7 @@
     <!-- ====================================================================
          SECTION 8.5: FAQ PROGRAM LARI (GOOGLE SEO & HELPFUL CONTENT)
          ==================================================================== -->
-    <section id="faq-program-lari" class="py-16 sm:py-20 bg-[#0e1626] border-b border-slate-800 relative overflow-hidden">
+    <section id="faq-program-lari" class="py-16 sm:py-20 bg-slate-950 border-b border-slate-800 relative overflow-hidden">
         <!-- Subtle Track Oval Background Line -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none opacity-10" aria-hidden="true">
             <svg class="w-full h-full object-cover" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1738,7 +1810,7 @@
 
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center max-w-2xl mx-auto mb-12">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2 font-numeric">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2 font-numeric">
                     Pertanyaan Umum
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1752,10 +1824,10 @@
             <!-- FAQ List using Semantic Accordion (Details / Summary) -->
             <div class="space-y-4">
                 <!-- Q1 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Apa itu program lari terstruktur dan mengapa pelari membutuhkannya?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1770,10 +1842,10 @@
                 </details>
 
                 <!-- Q2 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Berapa lama durasi program lari untuk pemula (5K)?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1788,10 +1860,10 @@
                 </details>
 
                 <!-- Q3 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Bagaimana cara memilih program lari antara 5K, 10K, atau Half Marathon?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1801,15 +1873,15 @@
                         </p>
                         <ul class="space-y-1.5 text-slate-300">
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Program Lari 5K:</strong> Jika Anda baru mulai berlari atau belum mampu berlari 20 menit terus-menerus.</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Program Lari 10K:</strong> Jika Anda sudah mampu berlari 5K non-stop dan ingin menaikkan ambang batas laktat serta memangkas waktu (target sub-60 atau sub-50 menit).</span>
                             </li>
                             <li class="flex items-start gap-2">
-                                <span class="text-[#FAF8F3]">•</span>
+                                <span class="text-slate-100">•</span>
                                 <span><strong>Program Lari Half Marathon (21.1K):</strong> Jika Anda memiliki target finis race 21K dalam 12–16 minggu ke depan dengan fondasi lari mingguan minimal 15–20 KM.</span>
                             </li>
                         </ul>
@@ -1817,10 +1889,10 @@
                 </details>
 
                 <!-- Q4 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Apakah program lari ini aman untuk pelari dengan riwayat cedera?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1835,10 +1907,10 @@
                 </details>
 
                 <!-- Q5 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Berapa hari dalam seminggu jadwal latihan lari dijalankan?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1853,10 +1925,10 @@
                 </details>
 
                 <!-- Q6 -->
-                <details class="group athletic-card p-5 cursor-pointer open:bg-[#121c2e] transition-colors duration-150">
+                <details class="group athletic-card p-5 cursor-pointer open:bg-slate-900 transition-colors duration-150">
                     <summary class="flex items-center justify-between text-base font-bold text-white list-none font-editorial-heading select-none">
                         <span>Apakah saya wajib memiliki jam tangan GPS pintar?</span>
-                        <span class="w-7 h-7 rounded bg-[#182338] border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
+                        <span class="w-7 h-7 rounded bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300 group-open:rotate-180 group-open:text-[#CCFF00] transition-transform duration-200 ml-3 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </span>
                     </summary>
@@ -1882,7 +1954,7 @@
         <div class="relative z-10">
             <!-- Section Header -->
             <div class="text-center max-w-2xl mx-auto mb-12">
-                <span class="text-xs font-bold text-[#FAF8F3] uppercase tracking-wider block mb-2 font-numeric">
+                <span class="text-xs font-bold text-slate-100 uppercase tracking-wider block mb-2 font-numeric">
                     Pelatih Berlisensi Kami
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold font-editorial-heading text-white tracking-tight">
@@ -1919,10 +1991,10 @@
                     $programCount = $coach->published_programs_count ?? 0;
                     $bio = \Illuminate\Support\Str::limit(strip_tags($coach->bio ?? 'Coach lari berpengalaman dengan metode pelatihan berbasis sports science untuk membantu pelari mencapai performa terbaik.'), 110);
                 @endphp
-                <article class="rounded-lg border border-slate-800 bg-[#12161F] hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
+                <article class="rounded-lg border border-slate-800 bg-slate-900 hover:border-slate-700 transition duration-150 overflow-hidden flex flex-col">
 
                     <!-- Coach Avatar Cover -->
-                    <div class="relative w-full aspect-[4/3] shrink-0 bg-[#0B0F17] overflow-hidden group">
+                    <div class="relative w-full aspect-[4/3] shrink-0 bg-slate-950 overflow-hidden group">
                         <img src="{{ $coachAvatar }}"
                              alt="Coach {{ $coach->name }}"
                              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
@@ -1930,7 +2002,7 @@
                              loading="lazy">
 
                         <!-- Program Count Badge -->
-                        <div class="absolute top-3 right-3 px-2.5 py-1 rounded bg-[#0b111e]/90 border border-slate-700 text-[10px] font-bold text-[#CCFF00] font-numeric tracking-wider">
+                        <div class="absolute top-3 right-3 px-2.5 py-1 rounded bg-slate-950 border border-slate-700 text-[10px] font-bold text-[#CCFF00] font-numeric tracking-wider">
                             {{ $programCount }} Program
                         </div>
 
@@ -1938,7 +2010,7 @@
                         @if($programDistances->isNotEmpty())
                         <div class="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
                             @foreach($programDistances->take(3) as $dist)
-                                <span class="px-2 py-0.5 rounded bg-[#0b111e]/90 border border-slate-700 text-[10px] font-semibold text-slate-200">{{ $dist }}</span>
+                                <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-[10px] font-semibold text-slate-200">{{ $dist }}</span>
                             @endforeach
                         </div>
                         @endif
@@ -1967,7 +2039,7 @@
                         </p>
 
                         <!-- Stats Strip -->
-                        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-md bg-[#0E121B] border border-slate-800 text-center font-numeric mt-auto">
+                        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-md bg-slate-950 border border-slate-800 text-center font-numeric mt-auto">
                             <div>
                                 <span class="text-[10px] text-slate-400 block font-medium leading-tight">Program Aktif</span>
                                 <span class="text-xs font-semibold text-white mt-0.5 block">{{ $programCount }} Program</span>
@@ -2000,7 +2072,7 @@
     <!-- ====================================================================
          SECTION 9: FINAL CTA (HERO BAWAH)
          ==================================================================== -->
-    <section class="py-20 sm:py-28 bg-[#0b111e] text-center relative overflow-hidden border-t border-slate-800">
+    <section class="py-20 sm:py-28 bg-slate-950 text-center relative overflow-hidden border-t border-slate-800">
         
         <!-- Athletic Stadium Track Oval Curves Graphic -->
         <div class="absolute inset-0 pointer-events-none overflow-hidden select-none opacity-25" aria-hidden="true">
@@ -2170,11 +2242,11 @@
     function setRunningLevel(level) {
         // Reset all buttons
         document.querySelectorAll('.journey-step-btn').forEach(function(btn) {
-            btn.classList.remove('is-active', 'ring-1', 'ring-[#FAF8F3]');
+            btn.classList.remove('is-active', 'ring-1', 'ring-slate-300');
             var tag = btn.querySelector('.level-tag');
             if (tag) {
-                tag.classList.remove('bg-[#FAF8F3]', 'text-white');
-                tag.classList.add('bg-[#182338]', 'text-slate-400');
+                tag.classList.remove('bg-slate-100', 'text-white');
+                tag.classList.add('bg-slate-800', 'text-slate-400');
             }
         });
 
@@ -2188,11 +2260,11 @@
         var activePane = document.getElementById('level-pane-' + level);
 
         if (activeBtn) {
-            activeBtn.classList.add('is-active', 'ring-1', 'ring-[#FAF8F3]');
+            activeBtn.classList.add('is-active', 'ring-1', 'ring-slate-300');
             var activeTag = activeBtn.querySelector('.level-tag');
             if (activeTag) {
-                activeTag.classList.remove('bg-[#182338]', 'text-slate-400');
-                activeTag.classList.add('bg-[#FAF8F3]', 'text-white');
+                activeTag.classList.remove('bg-slate-800', 'text-slate-400');
+                activeTag.classList.add('bg-slate-100', 'text-white');
             }
         }
 
@@ -2200,6 +2272,165 @@
             activePane.classList.remove('hidden');
         }
     }
+
+    // Hero Training Lab VDOT Calculation Engine (100% Pure Vanilla JS, Jack Daniels Regression)
+    function initHeroVdotWidget() {
+        var distanceEl = document.getElementById('hero_vdot_distance');
+        var hEl = document.getElementById('hero_vdot_h');
+        var mEl = document.getElementById('hero_vdot_m');
+        var sEl = document.getElementById('hero_vdot_s');
+        var btnCalc = document.getElementById('btn-hero-vdot-calculate');
+        var resultBox = document.getElementById('hero_vdot_result');
+
+        var tabPacesBtn = document.getElementById('hero_vdot_tab_paces_btn');
+        var tabRacesBtn = document.getElementById('hero_vdot_tab_races_btn');
+        var tabPacesContent = document.getElementById('hero_vdot_tab_paces_content');
+        var tabRacesContent = document.getElementById('hero_vdot_tab_races_content');
+
+        var scoreDisplay = document.getElementById('hero_vdot_score_display');
+        var fitnessLevelDisplay = document.getElementById('hero_vdot_fitness_level');
+        var easyPaceDisplay = document.getElementById('hero_vdot_easy_pace');
+        var marathonPaceDisplay = document.getElementById('hero_vdot_marathon_pace');
+        var tempoPaceDisplay = document.getElementById('hero_vdot_tempo_pace');
+        var intervalPaceDisplay = document.getElementById('hero_vdot_interval_pace');
+        var interval400mDisplay = document.getElementById('hero_vdot_interval_400m');
+        var repetitionPaceDisplay = document.getElementById('hero_vdot_repetition_pace');
+        var repetition400mDisplay = document.getElementById('hero_vdot_repetition_400m');
+
+        var race5kDisplay = document.getElementById('hero_vdot_race_5k');
+        var race10kDisplay = document.getElementById('hero_vdot_race_10k');
+        var race21kDisplay = document.getElementById('hero_vdot_race_21k');
+        var race42kDisplay = document.getElementById('hero_vdot_race_42k');
+        var actionBtn = document.getElementById('hero_vdot_action_btn');
+
+        if (!distanceEl || !btnCalc || !resultBox) return;
+
+        function selectTab(type) {
+            var pacesActive = type === 'paces';
+            if (tabPacesBtn && tabRacesBtn && tabPacesContent && tabRacesContent) {
+                if (pacesActive) {
+                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold';
+                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white';
+                    tabPacesContent.classList.remove('hidden');
+                    tabRacesContent.classList.add('hidden');
+                } else {
+                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold';
+                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white';
+                    tabRacesContent.classList.remove('hidden');
+                    tabPacesContent.classList.add('hidden');
+                }
+            }
+        }
+
+        tabPacesBtn?.addEventListener('click', function() { selectTab('paces'); });
+        tabRacesBtn?.addEventListener('click', function() { selectTab('races'); });
+
+        btnCalc.addEventListener('click', function () {
+            var dist = distanceEl.value;
+            var h = parseInt(hEl.value || '0', 10);
+            var m = parseInt(mEl.value || '0', 10);
+            var s = parseInt(sEl.value || '0', 10);
+
+            var totalSeconds = (h * 3600) + (m * 60) + s;
+            if (totalSeconds <= 60) {
+                alert('Silakan masukkan catatan waktu yang valid.');
+                return;
+            }
+
+            var timeMinutes = totalSeconds / 60;
+            var distMeters = 5000;
+            if (dist === '5K') distMeters = 5000;
+            else if (dist === '10K') distMeters = 10000;
+            else if (dist === '21K') distMeters = 21097.5;
+            else if (dist === '42K') distMeters = 42195;
+
+            var velocity = distMeters / timeMinutes;
+            var vo2 = -4.60 + 0.182258 * velocity + 0.000104 * Math.pow(velocity, 2);
+            var percentMax = 0.8 + 0.1894393 * Math.exp(-0.012778 * timeMinutes) + 0.2989558 * Math.exp(-0.1932605 * timeMinutes);
+            var vdotVal = Math.max(15, Math.min(85, vo2 / percentMax));
+
+            var a = 0.000104;
+            var b = 0.182258;
+            var c = -4.6 - vdotVal;
+            var vVO2max = (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a);
+
+            var eHighVelocity = vVO2max * 0.72;
+            var eLowVelocity = vVO2max * 0.66;
+            var eHighSecPerKm = Math.round((1000 / eHighVelocity) * 60);
+            var eLowSecPerKm = Math.round((1000 / eLowVelocity) * 60);
+
+            var mVelocity = vVO2max * 0.82;
+            var mSecPerKm = Math.round((1000 / mVelocity) * 60);
+
+            var tVelocity = vVO2max * 0.88;
+            var tSecPerKm = Math.round((1000 / tVelocity) * 60);
+
+            var iVelocity = vVO2max * 0.97;
+            var iSecPerKm = Math.round((1000 / iVelocity) * 60);
+            var iSec400m = Math.round(iSecPerKm * 0.4);
+
+            var rVelocity = vVO2max * 1.05;
+            var rSecPerKm = Math.round((1000 / rVelocity) * 60);
+            var rSec400m = Math.round(rSecPerKm * 0.4);
+
+            function formatSecToMinKm(sec) {
+                var min = Math.floor(sec / 60);
+                var seconds = Math.round(sec % 60);
+                return (min < 10 ? '0' : '') + min + ':' + (seconds < 10 ? '0' : '') + seconds + '/km';
+            }
+
+            function formatTimeFromSec(sec) {
+                var hours = Math.floor(sec / 3600);
+                var mins = Math.floor((sec % 3600) / 60);
+                var secs = Math.round(sec % 60);
+                if (hours > 0) {
+                    return hours + ':' + (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+                }
+                return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+            }
+
+            var level = 'Beginner';
+            if (vdotVal >= 60) level = 'Elite / Advanced';
+            else if (vdotVal >= 48) level = 'Advanced';
+            else if (vdotVal >= 38) level = 'Intermediate';
+
+            scoreDisplay.innerText = vdotVal.toFixed(1);
+            fitnessLevelDisplay.innerText = level;
+            easyPaceDisplay.innerText = formatSecToMinKm(eHighSecPerKm) + ' - ' + formatSecToMinKm(eLowSecPerKm);
+
+            if (marathonPaceDisplay) marathonPaceDisplay.innerText = formatSecToMinKm(mSecPerKm);
+            tempoPaceDisplay.innerText = formatSecToMinKm(tSecPerKm);
+            intervalPaceDisplay.innerText = formatSecToMinKm(iSecPerKm);
+            interval400mDisplay.innerText = '(' + iSec400m + 's/400m)';
+            repetitionPaceDisplay.innerText = formatSecToMinKm(rSecPerKm);
+            repetition400mDisplay.innerText = '(' + rSec400m + 's/400m)';
+
+            [
+                { el: race5kDisplay, distM: 5000, ratio: 0.957 },
+                { el: race10kDisplay, distM: 10000, ratio: 0.915 },
+                { el: race21kDisplay, distM: 21097.5, ratio: 0.865 },
+                { el: race42kDisplay, distM: 42195, ratio: 0.815 }
+            ].forEach(function(item) {
+                var raceVelocity = vVO2max * item.ratio;
+                var raceSeconds = (item.distM / raceVelocity) * 60;
+                var racePace = (1000 / raceVelocity) * 60;
+                if (item.el) {
+                    item.el.innerText = formatTimeFromSec(raceSeconds) + ' (' + formatSecToMinKm(racePace) + ')';
+                }
+            });
+
+            var catMap = { '5K': '5k', '10K': '10k', '21K': '21k', '42K': '42k' };
+            var selectedCat = catMap[dist] || 'all';
+            actionBtn.href = "{{ route('programs.index') }}?category=" + selectedCat + "#katalog-program-coach";
+            actionBtn.innerText = 'Lihat Program ' + dist + ' Sesuai VDOT ' + vdotVal.toFixed(1);
+
+            resultBox.classList.remove('hidden');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initHeroVdotWidget();
+    });
 </script>
 <!-- Blade View Compiled Fresh -->
 @endpush

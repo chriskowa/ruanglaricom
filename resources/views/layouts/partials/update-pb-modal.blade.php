@@ -1035,20 +1035,43 @@
 
         const feeling = document.getElementById('global_pb_feeling')?.value || 'good';
         const notes = document.getElementById('global_pb_notes')?.value || '';
-        const pb5k = normalizeTimeFormat(document.getElementById('global_pb_5k')?.value);
-        const pb10k = normalizeTimeFormat(document.getElementById('global_pb_10k')?.value);
-        const pbHm = normalizeTimeFormat(document.getElementById('global_pb_hm')?.value);
-        const pbFm = normalizeTimeFormat(document.getElementById('global_pb_fm')?.value);
-        const pbCooper = document.getElementById('global_pb_cooper')?.value ? parseInt(document.getElementById('global_pb_cooper').value) : null;
-        const pbBalke = document.getElementById('global_pb_balke')?.value ? parseInt(document.getElementById('global_pb_balke').value) : null;
 
-        const payload = { feeling, physical_notes: notes };
-        if (pb5k) payload.pb_5k = pb5k;
-        if (pb10k) payload.pb_10k = pb10k;
-        if (pbHm) payload.pb_hm = pbHm;
-        if (pbFm) payload.pb_fm = pbFm;
-        if (pbCooper) payload.pb_cooper = pbCooper;
-        if (pbBalke) payload.pb_balke = pbBalke;
+        const normalizeClearable = (v) => {
+            if (v === null || v === undefined) return null;
+            if (typeof v === 'string') {
+                const t = v.trim();
+                if (t === '') return null;
+                return t;
+            }
+            if (typeof v === 'number' && !isNaN(v)) {
+                if (v <= 0) return null;
+                return v;
+            }
+            return null;
+        };
+
+        const pb5k  = normalizeClearable(normalizeTimeFormat(document.getElementById('global_pb_5k')?.value));
+        const pb10k = normalizeClearable(normalizeTimeFormat(document.getElementById('global_pb_10k')?.value));
+        const pbHm  = normalizeClearable(normalizeTimeFormat(document.getElementById('global_pb_hm')?.value));
+        const pbFm  = normalizeClearable(normalizeTimeFormat(document.getElementById('global_pb_fm')?.value));
+
+        const rawCooper = document.getElementById('global_pb_cooper')?.value;
+        const rawBalke  = document.getElementById('global_pb_balke')?.value;
+        const pbCooper = normalizeClearable(rawCooper && String(rawCooper).trim() !== '' ? parseInt(String(rawCooper), 10) : null);
+        const pbBalke  = normalizeClearable(rawBalke  && String(rawBalke).trim()  !== '' ? parseInt(String(rawBalke),  10) : null);
+
+        // SELALU kirim SEMUA field PB dengan nilai: jika kosong = null,
+        // sehingga backend TAHU user sengaja clear → tidak ambil nilai lama.
+        const payload = {
+            feeling,
+            physical_notes: notes,
+            pb_5k:  pb5k,
+            pb_10k: pb10k,
+            pb_hm:  pbHm,
+            pb_fm:  pbFm,
+            pb_cooper: pbCooper,
+            pb_balke:  pbBalke,
+        };
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Menyimpan...</span>';

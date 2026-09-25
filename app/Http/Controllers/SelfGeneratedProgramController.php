@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
+use App\Services\CoachFeasibilityService;
 use App\Services\DanielsRunningService;
 use App\Services\MidtransService;
 use App\Services\OpenAiService;
@@ -24,13 +25,15 @@ class SelfGeneratedProgramController extends Controller
     protected $midtransService;
     protected $openAiService;
     protected $builderService;
+    protected $coachFeasibility;
 
-    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService, ProgramBuilderService $builderService)
+    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService, ProgramBuilderService $builderService, CoachFeasibilityService $coachFeasibility)
     {
         $this->danielsService = $danielsService;
         $this->midtransService = $midtransService;
         $this->openAiService = $openAiService;
         $this->builderService = $builderService;
+        $this->coachFeasibility = $coachFeasibility;
     }
 
     public function index()
@@ -189,15 +192,112 @@ class SelfGeneratedProgramController extends Controller
             'strength_type' => 'nullable|string|in:bodyweight,gym,plyometric,isometric,hybrid',
             'is_tropical' => 'nullable|boolean',
             'use_ai' => 'nullable|boolean',
+            'force_infeasible_ack' => 'nullable|boolean',
+            'aggressiveness' => 'nullable|string|in:conservative,standard,sharp',
         ], [
             'goal_time.regex' => 'Format waktu Goal harus HH:MM:SS atau MM:SS.',
             'target_date.after_or_equal' => 'Tanggal race harus hari ini atau di masa depan.',
         ]);
 
         try {
+            #region debug-point vdot-target-clamp-45min [T1] validated raw input + pb/goal parse
+            Log::info('[DBG-VT45 T1] Validated raw input parsed', [
+                'pb_time_raw' => $validated['pb_time'] ?? null,
+                'pb_distance' => $validated['pb_distance'] ?? null,
+                'goal_time_raw' => $validated['goal_time'] ?? null,
+                'target_distance' => $validated['target_distance'] ?? null,
+                'weekly_mileage' => $validated['weekly_mileage'] ?? null,
+                'frequency' => $validated['frequency'] ?? null,
+                'runner_level' => $validated['runner_level'] ?? null,
+            ]);
+            #endregion
+
             $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
             $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
-            
+
+            #region debug-point vdot-target-clamp-45min [T2] after daniels calculateVDOT
+            Log::info('[DBG-VT45 T2] Daniels calculateVDOT result', [
+                'currentVdot' => round($currentVdot, 4),
+                'targetVdot' => round($targetVdot, 4),
+                'currentVdot_gt_targetVdot' => $currentVdot > $targetVdot,
+                'currentVdot_targetVdot_delta' => round($targetVdot - $currentVdot, 4),
+            ]);
+            #endregion
+
+            $targetDate = Carbon::parse($validated['target_date']);
+            if (!empty($validated['start_date'])) {
+                $startDate = Carbon::parse($validated['start_date']);
+                $diffDays = max(1, $startDate->diffInDays($targetDate, false));
+                $weeksUntilRace = max(8, min(24, (int) ceil($diffDays / 7)));
+            } else {
+                $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+            }
+
+            $aggressiveness = $validated['aggressiveness'] ?? 'standard';
+            if (!in_array($aggressiveness, ['conservative','standard','sharp'], true)) {
+                $aggressiveness = 'standard';
+            }
+            $injuryHistory = $validated['injury_history'] ?? 'none';
+            $goalTimeSec = $this->parseTimeToSeconds($validated['goal_time']);
+            $weeklyMileageInput = (float) $validated['weekly_mileage'];
+            $frequencyInput = (int) $validated['frequency'];
+            $runnerLevelInput = $validated['runner_level'];
+
+            #region debug-point vdot-target-clamp-45min [T3] parseTimeToSeconds goal + assess input
+            Log::info('[DBG-VT45 T3] parseTimeToSeconds goal + runner context', [
+                'goal_time_str' => $validated['goal_time'] ?? null,
+                'goalTimeSec_return' => $goalTimeSec,
+                'goalTimeSec_expectedIf_00_37_00' => 37 * 60,
+                'goalTimeSec_expectedIf_00_19_35' => (19 * 60) + 35,
+                'weeksUntilRace' => $weeksUntilRace,
+                'aggressiveness' => $aggressiveness,
+                'injury_history' => $injuryHistory,
+            ]);
+            #endregion
+
+            $assess = $this->coachFeasibility->assess([
+                'target_distance' => $validated['target_distance'],
+                'goal_time_sec' => $goalTimeSec,
+                'runner_level' => $runnerLevelInput,
+                'weekly_mileage' => $weeklyMileageInput,
+                'frequency' => $frequencyInput,
+                'weeks' => $weeksUntilRace,
+                'initial_vdot' => $currentVdot,
+                'target_vdot' => $targetVdot,
+                'injury_history' => $injuryHistory,
+                'aggressiveness' => $aggressiveness,
+            ]);
+
+            #region debug-point vdot-target-clamp-45min [T4] coach assess result
+            Log::info('[DBG-VT45 T4] CoachFeasibilityService assess output', [
+                'feasibility' => $assess['feasibility'] ?? null,
+                'score' => $assess['score'] ?? null,
+                'min_required_peak_mileage' => $assess['min_required_peak_mileage'] ?? null,
+                'ideal_peak_mileage' => $assess['ideal_peak_mileage'] ?? null,
+                'vdot_rate_per_week' => $assess['vdot_rate_per_week'] ?? null,
+                'required_weeks_by_vdot' => $assess['required_weeks_by_vdot'] ?? null,
+                'min_weeks' => $assess['min_weeks'] ?? null,
+                'violations_count' => isset($assess['violations']) ? count($assess['violations']) : 0,
+                'violations' => $assess['violations'] ?? [],
+            ]);
+            #endregion
+
+            $forceAck = (bool) ($validated['force_infeasible_ack'] ?? false);
+
+            if ($assess['feasibility'] === 'INFEASIBLE' && !$forceAck) {
+                #region debug-point vdot-target-clamp-45min [T4B] 422 infeasible return
+                Log::info('[DBG-VT45 T4B] Returning HTTP 422 INFEASIBLE', [
+                    'forceAck' => $forceAck,
+                    'message' => $assess['reason'] ?? 'N/A',
+                ]);
+                #endregion
+                return response()->json([
+                    'success' => false,
+                    'message' => $assess['reason'],
+                    'feasibility' => $assess,
+                ], 422);
+            }
+
             // Limit the improvement to a realistic level based on percentage of current VDOT
             $maxVdotImprovementPercent = 0.08; // 8% for intermediate
             if ($validated['runner_level'] === 'beginner') {
@@ -205,7 +305,29 @@ class SelfGeneratedProgramController extends Controller
             } elseif ($validated['runner_level'] === 'advanced') {
                 $maxVdotImprovementPercent = 0.10;
             }
-            $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $maxVdotImprovementPercent));
+            $vdotRate = $assess['vdot_rate_per_week'] ?? 0.5;
+            $maxAllowedByRate = $vdotRate * $weeksUntilRace;
+            $maxByRatePercent = $currentVdot > 0 ? ($maxAllowedByRate / $currentVdot) : $maxVdotImprovementPercent;
+            $effectiveMaxPercent = min($maxVdotImprovementPercent, $maxByRatePercent);
+            $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $effectiveMaxPercent));
+
+            #region debug-point vdot-target-clamp-45min [T5] safeTargetVdot clamp math
+            Log::info('[DBG-VT45 T5] safeTargetVdot clamp breakdown — MOST SUSPECT AREA', [
+                'runner_level' => $runnerLevelInput,
+                'maxVdotImprovementPercent_static' => $maxVdotImprovementPercent,
+                'vdotRate' => $vdotRate,
+                'weeksUntilRace' => $weeksUntilRace,
+                'maxAllowedByRate_vdotValue' => round($maxAllowedByRate, 4),
+                'maxByRatePercent' => round($maxByRatePercent, 6),
+                'effectiveMaxPercent' => round($effectiveMaxPercent, 6),
+                'A_targetVdot_raw' => round($targetVdot, 4),
+                'B_currentVdot_times_1plus_pct' => round($currentVdot * (1 + $effectiveMaxPercent), 4),
+                'safeTargetVdot = min(A,B)' => round($safeTargetVdot, 4),
+                'safeTargetVdot_LT_targetVdot' => $safeTargetVdot < $targetVdot,
+                'safeTargetVdot_LT_currentVdot' => $safeTargetVdot < $currentVdot,
+                'safeTargetVdot_downgrade_pct_from_targetVdot' => $targetVdot > 0 ? round((($safeTargetVdot - $targetVdot)/$targetVdot)*100, 2) : null,
+            ]);
+            #endregion
 
             $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
             $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -279,29 +401,35 @@ class SelfGeneratedProgramController extends Controller
                 ]
             ];
             
-            // Generate sessions based on distance and duration
-            $targetDate = Carbon::parse($validated['target_date']);
-            if (!empty($validated['start_date'])) {
-                $startDate = Carbon::parse($validated['start_date']);
-                $diffDays = max(1, $startDate->diffInDays($targetDate, false));
-                $weeksUntilRace = max(8, min(24, (int) ceil($diffDays / 7)));
-            } else {
-                $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
-            }
-            
+            #region debug-point vdot-target-clamp-45min [T6] payload to ProgramBuilderService
+            Log::info('[DBG-VT45 T6] Payload dikirim ke ProgramBuilderService->build', [
+                'input_target_distance' => $validated['target_distance'],
+                'passed_initial_vdot' => round($currentVdot, 4),
+                'passed_target_vdot_safe' => round($safeTargetVdot, 4),
+                'user_goal_time_raw' => $validated['goal_time'],
+                'user_weekly_mileage' => $weeklyMileageInput,
+                'user_frequency' => $frequencyInput,
+                'user_weeks' => $weeksUntilRace,
+                'user_runner_level' => $runnerLevelInput,
+            ]);
+            #endregion
+
             $programData = $this->builderService->build([
                 'target_distance' => $validated['target_distance'],
-                'weekly_mileage' => $validated['weekly_mileage'],
-                'frequency' => $validated['frequency'],
+                'weekly_mileage' => $weeklyMileageInput,
+                'frequency' => $frequencyInput,
                 'weeks' => $weeksUntilRace,
                 'initial_vdot' => $currentVdot,
                 'target_vdot' => $safeTargetVdot,
-                'runner_level' => $validated['runner_level'],
+                'runner_level' => $runnerLevelInput,
                 'long_run_day' => $validated['long_run_day'],
                 'is_tropical' => $isTropical,
                 'include_strength' => $includeStrength,
                 'strength_type' => $strengthType,
                 'injury_history' => $injuryHistory,
+                'aggressiveness' => $aggressiveness,
+                'feasibility_assess' => $assess,
+                'force_infeasible_ack' => $forceAck,
             ]);
 
             $sessions = $programData['sessions'] ?? [];
@@ -322,6 +450,31 @@ class SelfGeneratedProgramController extends Controller
                 ]);
             }
 
+            $adjustments = $programData['adjustments_applied'] ?? [];
+            $feasibilityWarnings = array_values(array_filter([
+                !empty($adjustments) ? 'Beban latihan disesuaikan otomatis agar aman dan memadai.' : null,
+                (!empty($assess['feasibility']) && $assess['feasibility'] !== 'FEASIBLE') ? $assess['reason'] : null,
+            ]));
+
+            #region debug-point vdot-target-clamp-45min [T7] Builder output summary + response JSON target
+            $builderSummary = $programData['summary'] ?? [];
+            Log::info('[DBG-VT45 T7] Builder output + response final target VDOT values', [
+                'builder_summary_total_weeks' => $builderSummary['total_weeks'] ?? null,
+                'builder_summary_vdot' => isset($builderSummary['vdot']) ? round($builderSummary['vdot'], 4) : null,
+                'builder_summary_target_vdot' => isset($builderSummary['target_vdot']) ? round($builderSummary['target_vdot'], 4) : null,
+                'builder_summary_adjustments_count' => is_array($builderSummary['adjustments_applied'] ?? null) ? count($builderSummary['adjustments_applied']) : 0,
+                'builder_summary_adjustments_applied' => $builderSummary['adjustments_applied'] ?? [],
+                'builder_weekly_mileage_applied' => $builderSummary['weekly_mileage_applied'] ?? null,
+                'builder_frequency_applied' => $builderSummary['frequency_applied'] ?? null,
+                'RESPONSE_FINAL_data.summary.vdot' => round($currentVdot, 1),
+                'RESPONSE_FINAL_data.summary.target_vdot' => round($safeTargetVdot, 1),
+                'RESPONSE_FINAL_data.feasibility.label' => $assess['label'] ?? null,
+                'RESPONSE_FINAL_data.feasibility.score' => $assess['score'] ?? null,
+                'adjustments_applied_TOP_LEVEL_count' => is_array($adjustments) ? count($adjustments) : 0,
+                'adjustments_applied_TOP_LEVEL' => $adjustments ?? [],
+            ]);
+            #endregion
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -335,19 +488,65 @@ class SelfGeneratedProgramController extends Controller
                     'strength_type' => $strengthType,
                     'weeks' => $weeksUntilRace,
                     'sessions' => $sessions,
+                    'feasibility' => $assess,
+                    'adjustments_applied' => $adjustments,
+                    'feasibility_warnings' => $feasibilityWarnings,
                     'summary' => [
                         'total_weeks' => $weeksUntilRace,
                         'target' => strtoupper($validated['target_distance']),
                         'vdot' => round($currentVdot, 1),
                         'target_vdot' => round($safeTargetVdot, 1),
+                        'adjustments_applied' => $adjustments,
+                        'feasibility' => [
+                            'label' => $assess['label'] ?? 'Realistis',
+                            'color' => $assess['color'] ?? 'emerald',
+                            'score' => $assess['score'] ?? 100,
+                        ],
                     ],
                 ],
             ]);
 
         } catch (\Exception $e) {
             Log::error('Generator Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Gagal generate program.'], 500);
+            $safeAssess = [
+                'feasibility' => 'HIGH_RISK',
+                'score' => 30,
+                'min_required_peak_mileage' => 30,
+                'ideal_peak_mileage' => 40,
+                'max_safe_peak_mileage' => 60,
+                'min_weeks' => 10,
+                'max_weeks' => 24,
+                'min_frequency' => 4,
+                'color' => 'orange',
+                'label' => 'Risiko Kesalahan Sistem',
+                'reason' => 'Terdapat kesalahan saat membangun program. Silakan coba beberapa saat lagi atau sesuaikan parameter beban/target.',
+                'options' => [],
+                'vdot_rate_per_week' => 0.5,
+                'required_weeks_by_vdot' => 12,
+                'violations' => ['Internal error: '.$e->getMessage()],
+            ];
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate program. Silakan coba lagi.',
+                'feasibility' => $safeAssess,
+            ], 500);
         }
+    }
+
+    private function parseTimeToSeconds(string $timeStr): int
+    {
+        $t = trim($timeStr);
+        if ($t === '') return 0;
+        $parts = explode(':', $t);
+        $parts = array_map('intval', $parts);
+        $n = count($parts);
+        if ($n === 3) {
+            return max(0, ($parts[0] * 3600) + ($parts[1] * 60) + $parts[2]);
+        }
+        if ($n === 2) {
+            return max(0, ($parts[0] * 60) + $parts[1]);
+        }
+        return 0;
     }
 
     /**

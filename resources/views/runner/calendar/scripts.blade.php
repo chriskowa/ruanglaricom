@@ -708,22 +708,12 @@ const runnerCalendarApp = createApp({
         const insightData = ref(null);
         const insightType = ref('generate'); // 'generate' | 'pb'
 
-        const openVdotModal = async () => {
-            console.log('Button Clicked: openVdotModal');
-            try {
-                console.log('[RunnerCalendar] openVdotModal');
-                showDetailModal.value = false;
-                showFormModal.value = false;
-                showRaceModal.value = false;
-                // force close first so Vue applies DOM updates before re-opening
-                showVdotModal.value = false;
-                await nextTick();
-                showVdotModal.value = true;
-            } catch (e) {
-                console.error('[RunnerCalendar] openVdotModal failed', e);
-                // fallback: try to show anyway
-                showVdotModal.value = true;
-            }
+        // Legacy Generate VDOT Program modal dinonaktifkan.
+        // User sekarang diarahkan langsung ke Generator Program V2 (/buat-program-lari)
+        // supaya UI & logic 100% sama dengan wizard public, tidak terpisah & buggy.
+        const openVdotModal = () => {
+            console.log('[RunnerCalendar] Redirect ke Generator Program V2 /buat-program-lari');
+            window.location.href = '/buat-program-lari';
         };
 
         let calendar = null;
