@@ -874,25 +874,25 @@ Route::middleware('guest')->group(function () {
     // Strava Auth (Login / Register using Strava)
     Route::get('auth/strava', [App\Http\Controllers\Auth\AuthController::class, 'redirectToStrava'])->name('auth.strava');
     Route::get('auth/strava/callback', [App\Http\Controllers\Auth\AuthController::class, 'handleStravaCallback'])->name('auth.strava.callback');
-
-    // Public Pages
-    Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
-
-    // User directory routes (Public)
-    Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
-    Route::get('/runners', function (Illuminate\Http\Request $request) {
-        $request->merge(['role' => 'runner']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('runners.index');
-    Route::get('/users/runners', function (Illuminate\Http\Request $request) {
-        $request->merge(['role' => 'runner']);
-
-        return app(App\Http\Controllers\UserController::class)->index($request);
-    })->name('users.runners');
-    Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
-    Route::get('/users/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('users.coaches');
 });
+
+// Public Pages
+Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
+
+// User directory routes (Public)
+Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+Route::get('/runners', function (Illuminate\Http\Request $request) {
+    $request->merge(['role' => 'runner']);
+
+    return app(App\Http\Controllers\UserController::class)->index($request);
+})->name('runners.index');
+Route::get('/users/runners', function (Illuminate\Http\Request $request) {
+    $request->merge(['role' => 'runner']);
+
+    return app(App\Http\Controllers\UserController::class)->index($request);
+})->name('users.runners');
+Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
+Route::get('/users/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('users.coaches');
 
 Route::get('/login/token/{user}', [App\Http\Controllers\Auth\AuthController::class, 'autoLogin'])
     ->name('login.token')

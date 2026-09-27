@@ -167,7 +167,8 @@
 
                     <!-- CTAs -->
                     <div class="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
-                        <a href="#search-section" 
+                        <a href="#coaches-directory" 
+                           onclick="event.preventDefault(); scrollToCoachesDirectory();"
                            class="inline-flex items-center justify-center px-6 py-3 rounded-md bg-slate-900 hover:bg-slate-800 text-white dark:bg-orange-600 dark:hover:bg-orange-500 text-sm font-bold tracking-wide transition-colors">
                             Cari Coach Lari
                         </a>
@@ -312,7 +313,7 @@
          ================================================ -->
     <section id="search-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 sm:p-6 shadow-sm transition-colors duration-200">
-            <form id="filterForm" onsubmit="event.preventDefault(); applyFilters();" class="space-y-4">
+            <form id="filterForm" onsubmit="event.preventDefault(); applyFilters(null, true);" class="space-y-4">
                 
                 <!-- Quick Segmented Method Control -->
                 <div class="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -382,7 +383,7 @@
                         </label>
                         <select id="cityFilter" 
                                 name="city_id" 
-                                onchange="applyFilters()" 
+                                onchange="applyFilters(null, true)" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                             <option value="">Semua Kota</option>
                             <optgroup label="Kota Populer & Aktif">
@@ -411,7 +412,7 @@
                         </label>
                         <select id="distanceFilter" 
                                 name="distance" 
-                                onchange="syncGoalSelect(); applyFilters();" 
+                                onchange="syncGoalSelect(); applyFilters(null, true);" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                             <option value="">Semua Target</option>
                             <option value="mulai_lari" {{ request('distance') === 'mulai_lari' ? 'selected' : '' }}>Mulai Lari</option>
@@ -431,7 +432,7 @@
                         </label>
                         <select id="difficultyFilter" 
                                 name="difficulty" 
-                                onchange="applyFilters()" 
+                                onchange="applyFilters(null, true)" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                             <option value="">Semua Level</option>
                             <option value="beginner" {{ request('difficulty') === 'beginner' ? 'selected' : '' }}>Beginner</option>
@@ -447,7 +448,7 @@
                         </label>
                         <select id="methodFilter" 
                                 name="method" 
-                                onchange="syncMethodSelect(); applyFilters();" 
+                                onchange="syncMethodSelect(); applyFilters(null, true);" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                             <option value="">Semua Metode</option>
                             <option value="offline" {{ request('method') === 'offline' ? 'selected' : '' }}>Offline (Tatap Muka)</option>
@@ -478,7 +479,7 @@
          SECTION 3: COACH CARD DIRECTORY (MAX-W-7XL)
          Clean directory with saved switcher & quick theme toggle
          ================================================ -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+    <section id="coaches-directory" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 scroll-mt-24">
         <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div>
                 <h2 class="font-heading text-xl sm:text-2xl text-slate-900 dark:text-white">
@@ -530,7 +531,7 @@
                     <label for="sortFilter" class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">Urutkan:</label>
                     <select id="sortFilter" 
                             name="sort" 
-                            onchange="applyFilters()" 
+                            onchange="applyFilters(null, true)" 
                             class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                         <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Terbaru</option>
                         <option value="popular" {{ request('sort') === 'popular' ? 'selected' : '' }}>Program Terbanyak</option>
@@ -1240,8 +1241,7 @@
             if (cityFilter) cityFilter.value = matcherState.city;
         }
 
-        applyFilters();
-        scrollToSection('coaches-list-container');
+        applyFilters(null, true);
     }
 
     // Segmented Method Controls
@@ -1258,7 +1258,7 @@
             btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-900', 'dark:text-white', 'shadow-xs');
             btn.classList.remove('text-slate-600', 'dark:text-slate-400');
         }
-        applyFilters();
+        applyFilters(null, true);
     }
 
     function syncMethodSelect() {
@@ -1295,7 +1295,7 @@
         btn.classList.add('bg-slate-900', 'text-white', 'border-slate-900', 'dark:bg-orange-600', 'dark:border-orange-600');
         btn.classList.remove('bg-white', 'dark:bg-slate-950', 'text-slate-700', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700');
 
-        applyFilters();
+        applyFilters(null, true);
     }
 
     function syncGoalSelect() {
@@ -1326,8 +1326,7 @@
         if (distanceFilter) {
             distanceFilter.value = goal;
             syncGoalSelect();
-            applyFilters();
-            scrollToSection('search-section');
+            applyFilters(null, true);
         }
     }
 
@@ -1348,8 +1347,14 @@
         searchInput.addEventListener('input', function () {
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = setTimeout(function() {
-                applyFilters();
+                applyFilters(null, false);
             }, debounceInterval);
+        });
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyFilters(null, true);
+            }
         });
     }
 
@@ -1434,15 +1439,19 @@
             syncMethodSelect();
         }
         if (field === 'difficulty') document.getElementById('difficultyFilter').value = '';
-        applyFilters();
+        applyFilters(null, true);
     }
 
     // AJAX Filter Fetching
-    function applyFilters(pageUrl = null) {
+    function applyFilters(pageUrl = null, shouldScroll = true) {
         const container = document.getElementById('coaches-list-container');
         if (!container) return;
 
         container.innerHTML = renderSkeletonLoader();
+
+        if (shouldScroll) {
+            scrollToCoachesDirectory();
+        }
 
         const search = document.getElementById('searchInput')?.value.trim() || '';
         const city_id = document.getElementById('cityFilter')?.value || '';
@@ -1511,7 +1520,7 @@
             c.classList.remove('border-orange-500', 'ring-2', 'ring-orange-400', 'bg-orange-50/20', 'dark:bg-orange-950/20');
         });
 
-        applyFilters();
+        applyFilters(null, true);
     }
 
     function filterByCity(cityName) {
@@ -1529,15 +1538,39 @@
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.value = cityName;
             }
-            applyFilters();
-            scrollToSection('search-section');
+            applyFilters(null, true);
+        }
+    }
+
+    function scrollToCoachesDirectory() {
+        const el = document.getElementById('coaches-directory') || document.getElementById('coaches-list-container');
+        if (el) {
+            const navbarHeight = 85;
+            const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - navbarHeight;
+
+            window.scrollTo({
+                top: Math.max(0, offsetPosition),
+                behavior: 'smooth'
+            });
         }
     }
 
     function scrollToSection(id) {
+        if (id === 'coaches-directory' || id === 'coaches-list-container' || id === 'search-section') {
+            scrollToCoachesDirectory();
+            return;
+        }
         const el = document.getElementById(id);
         if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const navbarHeight = 85;
+            const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - navbarHeight;
+
+            window.scrollTo({
+                top: Math.max(0, offsetPosition),
+                behavior: 'smooth'
+            });
         }
     }
 
@@ -1589,11 +1622,7 @@
         if (link) {
             e.preventDefault();
             const url = link.getAttribute('href');
-            applyFilters(url);
-            const listEl = document.getElementById('coaches-list-container');
-            if (listEl) {
-                listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            applyFilters(url, true);
         }
     });
 
