@@ -10,39 +10,56 @@ class CoachListController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where(function ($q) {
-            $q->where('role', 'coach')
-              ->orWhereHas('programs', function ($sub) {
-                  $sub->where('is_published', true);
+        // Scope for real, human-curated programs (excluding AI VDOT generator plans)
+        $nonAiProgramFilter = function ($q) {
+            $q->where('is_published', true)
+              ->where('is_active', true)
+              ->where(function ($sq) {
+                  $sq->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+              })
+              ->where(function ($sq) {
+                  $sq->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
               });
-        })
-        ->where('is_active', true)
-        ->with([
-            'city.province',
-            'programs' => function ($q) {
-                $q->where('is_published', true)->select('id', 'coach_id', 'title', 'slug', 'distance_target', 'difficulty', 'price');
-            }
-        ])
-        ->withAvg('programs', 'average_rating')
-        ->withCount(['programs' => function ($q) {
-            $q->where('is_published', true);
-        }]);
+        };
 
-        // Smart Search: Name, Username, City Name, or Program Topic
+        // Query only real coaches (exclude runners who generated AI plans, Coach AI chatbot, and test accounts)
+        $query = User::where('role', 'coach')
+            ->where('is_active', true)
+            ->whereNotIn('email', ['ai-coach@ruanglari.com', 'testcoach@ruanglari.com'])
+            ->where('username', '!=', 'coach-ai')
+            ->where('username', '!=', 'test-coach')
+            ->where('name', 'not like', '%Coach AI%')
+            ->where('name', 'not like', '%AI Coach%')
+            ->where('name', 'not like', '%Test Coach%')
+            ->with([
+                'city.province',
+                'programs' => function ($q) use ($nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
+                    $q->select('id', 'coach_id', 'title', 'slug', 'distance_target', 'difficulty', 'price');
+                }
+            ])
+            ->withAvg(['programs' => function ($q) use ($nonAiProgramFilter) {
+                $nonAiProgramFilter($q);
+            }], 'average_rating')
+            ->withCount(['programs' => function ($q) use ($nonAiProgramFilter) {
+                $nonAiProgramFilter($q);
+            }]);
+
+        // Smart Search: Name, Username, City Name, or Non-AI Program Topic
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search, $nonAiProgramFilter) {
                 $q->where('name', 'like', '%'.$search.'%')
                   ->orWhere('username', 'like', '%'.$search.'%')
                   ->orWhereHas('city', function ($cq) use ($search) {
                       $cq->where('name', 'like', '%'.$search.'%');
                   })
-                  ->orWhereHas('programs', function ($pq) use ($search) {
-                      $pq->where('is_published', true)
-                        ->where(function ($sub) use ($search) {
-                            $sub->where('title', 'like', '%'.$search.'%')
-                                ->orWhere('description', 'like', '%'.$search.'%');
-                        });
+                  ->orWhereHas('programs', function ($pq) use ($search, $nonAiProgramFilter) {
+                      $nonAiProgramFilter($pq);
+                      $pq->where(function ($sub) use ($search) {
+                          $sub->where('title', 'like', '%'.$search.'%')
+                              ->orWhere('description', 'like', '%'.$search.'%');
+                      });
                   });
             });
         }
@@ -77,31 +94,31 @@ class CoachListController extends Controller
         if ($request->filled('distance')) {
             $dist = strtolower(trim($request->distance));
             if ($dist === 'mulai_lari' || $dist === 'mulai-lari') {
-                $query->where(function ($q) {
-                    $q->whereHas('programs', function ($sub) {
-                        $sub->where('is_published', true)
-                            ->where(function ($s) {
-                                $s->where('difficulty', 'beginner')
-                                  ->orWhere('distance_target', '5k')
-                                  ->orWhere('title', 'like', '%pemula%')
-                                  ->orWhere('title', 'like', '%mulai%');
-                            });
-                    })->orWhere('role', 'coach');
+                $query->where(function ($q) use ($nonAiProgramFilter) {
+                    $q->whereHas('programs', function ($sub) use ($nonAiProgramFilter) {
+                        $nonAiProgramFilter($sub);
+                        $sub->where(function ($s) {
+                            $s->where('difficulty', 'beginner')
+                              ->orWhere('distance_target', '5k')
+                              ->orWhere('title', 'like', '%pemula%')
+                              ->orWhere('title', 'like', '%mulai%');
+                        });
+                    });
                 });
             } elseif ($dist === 'performance') {
-                $query->whereHas('programs', function ($q) {
-                    $q->where('is_published', true)
-                      ->where(function ($sub) {
-                          $sub->where('difficulty', 'advanced')
-                              ->orWhere('title', 'like', '%speed%')
-                              ->orWhere('title', 'like', '%performance%')
-                              ->orWhere('title', 'like', '%pace%')
-                              ->orWhere('title', 'like', '%pb%');
-                      });
+                $query->whereHas('programs', function ($q) use ($nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
+                    $q->where(function ($sub) {
+                        $sub->where('difficulty', 'advanced')
+                            ->orWhere('title', 'like', '%speed%')
+                            ->orWhere('title', 'like', '%performance%')
+                            ->orWhere('title', 'like', '%pace%')
+                            ->orWhere('title', 'like', '%pb%');
+                    });
                 });
             } else {
-                $query->whereHas('programs', function ($q) use ($dist) {
-                    $q->where('is_published', true);
+                $query->whereHas('programs', function ($q) use ($dist, $nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
                     if (in_array($dist, ['21k', 'hm', 'half_marathon', 'half-marathon'])) {
                         $q->whereIn('distance_target', ['21k', 'hm', 'half_marathon']);
                     } elseif (in_array($dist, ['42k', 'fm', 'marathon', 'full_marathon'])) {
@@ -116,9 +133,9 @@ class CoachListController extends Controller
         // Filter by Experience Level (Difficulty)
         if ($request->filled('difficulty')) {
             $diff = strtolower(trim($request->difficulty));
-            $query->whereHas('programs', function ($q) use ($diff) {
-                $q->where('is_published', true)
-                  ->where('difficulty', $diff);
+            $query->whereHas('programs', function ($q) use ($diff, $nonAiProgramFilter) {
+                $nonAiProgramFilter($q);
+                $q->where('difficulty', $diff);
             });
         }
 
@@ -128,10 +145,11 @@ class CoachListController extends Controller
             if ($method === 'offline') {
                 $query->whereNotNull('city_id');
             } elseif ($method === 'online') {
-                $query->where(function ($q) {
+                $query->where(function ($q) use ($nonAiProgramFilter) {
                     $q->whereNull('city_id')
-                      ->orWhereHas('programs', function ($pq) {
-                          $pq->where('is_published', true)->whereNull('city_id');
+                      ->orWhereHas('programs', function ($pq) use ($nonAiProgramFilter) {
+                          $nonAiProgramFilter($pq);
+                          $pq->whereNull('city_id');
                       });
                 });
             }
@@ -141,17 +159,19 @@ class CoachListController extends Controller
         // Filter by Program Pricing
         if ($request->filled('pricing')) {
             if ($request->pricing === 'free') {
-                $query->whereHas('programs', function ($q) {
-                    $q->where('is_published', true)->where('price', 0);
+                $query->whereHas('programs', function ($q) use ($nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
+                    $q->where('price', 0);
                 });
             } elseif ($request->pricing === 'paid') {
-                $query->whereHas('programs', function ($q) {
-                    $q->where('is_published', true)->where('price', '>', 0);
+                $query->whereHas('programs', function ($q) use ($nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
+                    $q->where('price', '>', 0);
                 });
             }
         }
 
-        // Sorting
+        // Sorting (Default: prioritize coaches with published programs, then latest)
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'popular':
@@ -161,10 +181,10 @@ class CoachListController extends Controller
                     $query->orderBy('name');
                     break;
                 default:
-                    $query->latest();
+                    $query->orderByDesc('programs_count')->latest();
             }
         } else {
-            $query->latest();
+            $query->orderByDesc('programs_count')->latest();
         }
 
         $coaches = $query->paginate(12)->withQueryString();
