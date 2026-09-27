@@ -385,7 +385,9 @@
                                 onchange="applyFilters()" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-slate-900 dark:focus:border-orange-500 focus:outline-none">
                             <option value="">Semua Kota</option>
-                            <optgroup label="Kota Populer">
+                            <optgroup label="Kota Populer & Aktif">
+                                <option value="Malang" {{ request('city_id') === 'Malang' ? 'selected' : '' }}>Malang (Jawa Timur)</option>
+                                <option value="Tasikmalaya" {{ request('city_id') === 'Tasikmalaya' ? 'selected' : '' }}>Tasikmalaya (Jawa Barat)</option>
                                 <option value="Jakarta" {{ request('city_id') === 'Jakarta' ? 'selected' : '' }}>Jakarta</option>
                                 <option value="Surabaya" {{ request('city_id') === 'Surabaya' ? 'selected' : '' }}>Surabaya</option>
                                 <option value="Bandung" {{ request('city_id') === 'Bandung' ? 'selected' : '' }}>Bandung</option>
@@ -415,8 +417,9 @@
                             <option value="mulai_lari" {{ request('distance') === 'mulai_lari' ? 'selected' : '' }}>Mulai Lari</option>
                             <option value="5k" {{ request('distance') === '5k' ? 'selected' : '' }}>5K</option>
                             <option value="10k" {{ request('distance') === '10k' ? 'selected' : '' }}>10K</option>
-                            <option value="21k" {{ request('distance') === '21k' ? 'selected' : '' }}>Half Marathon</option>
-                            <option value="42k" {{ request('distance') === '42k' ? 'selected' : '' }}>Marathon</option>
+                            <option value="21k" {{ request('distance') === '21k' ? 'selected' : '' }}>Half Marathon (21K)</option>
+                            <option value="race" {{ request('distance') === 'race' ? 'selected' : '' }}>Persiapan Race (10K - 42K)</option>
+                            <option value="42k" {{ request('distance') === '42k' ? 'selected' : '' }}>Marathon (42K)</option>
                             <option value="performance" {{ request('distance') === 'performance' ? 'selected' : '' }}>Performance Training</option>
                         </select>
                     </div>
@@ -602,8 +605,8 @@
 
             <!-- 3. Persiapan Race -->
             <button type="button" 
-                    data-goal-val="42k"
-                    onclick="filterByGoalCard('42k', this)"
+                    data-goal-val="race"
+                    onclick="filterByGoalCard('race', this)"
                     class="goal-card text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 rounded-lg p-5 transition-all group focus-ring">
                 <div class="w-10 h-10 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 mb-4 group-hover:bg-slate-900 dark:group-hover:bg-orange-600 group-hover:text-white transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -617,7 +620,7 @@
                     Pendampingan menuju 5K, 10K, Half Marathon, dan Marathon.
                 </p>
                 <span class="text-[11px] font-semibold text-orange-600 dark:text-orange-400 group-hover:underline">
-                    Lihat pelatih marathon →
+                    Lihat pelatih race →
                 </span>
             </button>
 

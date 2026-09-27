@@ -31,6 +31,7 @@ class CoachListController extends Controller
             ->where('name', 'not like', '%Coach AI%')
             ->where('name', 'not like', '%AI Coach%')
             ->where('name', 'not like', '%Test Coach%')
+            ->whereHas('programs', $nonAiProgramFilter)
             ->with([
                 'city.province',
                 'programs' => function ($q) use ($nonAiProgramFilter) {
@@ -82,9 +83,13 @@ class CoachListController extends Controller
                         });
                     });
                 } else {
-                    $query->whereHas('city', function ($cq) use ($cityParam) {
-                        $cq->where('name', 'like', '%'.$cityParam.'%')
-                          ->orWhere('seourl', 'like', '%'.$cityParam.'%');
+                    $query->where(function ($q) use ($cityParam) {
+                        $q->whereHas('city', function ($cq) use ($cityParam) {
+                            $cq->where('name', 'like', '%'.$cityParam.'%')
+                              ->orWhere('seourl', 'like', '%'.$cityParam.'%');
+                        })->orWhereHas('city.province', function ($pq) use ($cityParam) {
+                            $pq->where('name', 'like', '%'.$cityParam.'%');
+                        });
                     });
                 }
             }
@@ -116,13 +121,26 @@ class CoachListController extends Controller
                             ->orWhere('title', 'like', '%pb%');
                     });
                 });
+            } elseif (in_array($dist, ['race', 'race_prep', 'race-prep'])) {
+                $query->whereHas('programs', function ($q) use ($nonAiProgramFilter) {
+                    $nonAiProgramFilter($q);
+                    $q->where(function ($sub) {
+                        $sub->whereIn('distance_target', ['10k', '21k', 'hm', 'half_marathon', '42k', 'fm', 'marathon'])
+                            ->orWhere('title', 'like', '%race%')
+                            ->orWhere('title', 'like', '%finisher%')
+                            ->orWhere('title', 'like', '%marathon%');
+                    });
+                });
             } else {
                 $query->whereHas('programs', function ($q) use ($dist, $nonAiProgramFilter) {
                     $nonAiProgramFilter($q);
                     if (in_array($dist, ['21k', 'hm', 'half_marathon', 'half-marathon'])) {
                         $q->whereIn('distance_target', ['21k', 'hm', 'half_marathon']);
                     } elseif (in_array($dist, ['42k', 'fm', 'marathon', 'full_marathon'])) {
-                        $q->whereIn('distance_target', ['42k', 'fm', 'marathon']);
+                        $q->where(function ($sq) {
+                            $sq->whereIn('distance_target', ['42k', 'fm', 'marathon'])
+                               ->orWhere('title', 'like', '%marathon%');
+                        });
                     } else {
                         $q->where('distance_target', $dist);
                     }
@@ -196,13 +214,12 @@ class CoachListController extends Controller
         $cities = City::orderBy('name')->get();
 
         $featuredCities = [
-            ['name' => 'Jakarta', 'slug' => 'jakarta', 'desc' => 'Temukan coach lari Jakarta untuk latihan track GBK Senayan, Monas, hingga persiapan marathon.'],
-            ['name' => 'Surabaya', 'slug' => 'surabaya', 'desc' => 'Temukan coach lari Surabaya untuk latihan pemula hingga persiapan marathon.'],
-            ['name' => 'Bandung', 'slug' => 'bandung', 'desc' => 'Pelatih lari Bandung untuk latihan elevasi, trail, track Saparua, dan endurance jalan raya.'],
-            ['name' => 'Yogyakarta', 'slug' => 'yogyakarta', 'desc' => 'Bimbingan teknik lari dan program marathon di Yogyakarta bersama pelatih berpengalaman.'],
-            ['name' => 'Bali', 'slug' => 'bali', 'desc' => 'Program coaching lari di Bali untuk road running, beach run, dan persiapan Maybank Marathon.'],
-            ['name' => 'Medan', 'slug' => 'medan', 'desc' => 'Pelatih lari di Medan untuk pembentukan fundamental, interval training, dan personal best.'],
-            ['name' => 'Makassar', 'slug' => 'makassar', 'desc' => 'Coach lari di Makassar untuk latihan endurance di Pantai Losari dan program 5K hingga 42K.'],
+            ['name' => 'Malang', 'slug' => 'malang', 'desc' => 'Pelatih lari berlisensi di Malang untuk pembentukan fundamental, 5K hingga Half Marathon.'],
+            ['name' => 'Tasikmalaya', 'slug' => 'tasikmalaya', 'desc' => 'Program coaching lari terstruktur di Tasikmalaya & Jawa Barat untuk persiapan half marathon.'],
+            ['name' => 'Jakarta', 'slug' => 'jakarta', 'desc' => 'Bimbingan online coaching intensif untuk pelari Jakarta dengan simulasi target pace.'],
+            ['name' => 'Surabaya', 'slug' => 'surabaya', 'desc' => 'Mentoring lari online & pendampingan target race untuk pelari di area Surabaya & Jawa Timur.'],
+            ['name' => 'Bandung', 'slug' => 'bandung', 'desc' => 'Program latihan elevasi, endurance, dan form lari efisien untuk pelari area Bandung.'],
+            ['name' => 'Bali', 'slug' => 'bali', 'desc' => 'Program coaching lari online untuk road running, beach run, dan persiapan race di Bali.'],
         ];
 
         return view('coaches.index', compact('coaches', 'cities', 'featuredCities'));

@@ -107,14 +107,28 @@ class PublicProgramController extends Controller
 
         $programs = $query->paginate(12);
 
-        // Load coaches for "Meet the Coach" section
+        // Load coaches for "Meet the Coach" section (only coaches with published non-AI programs)
+        $nonAiCoachProgramScope = function ($q) {
+            $q->where('is_published', true)
+              ->where('is_active', true)
+              ->where(function ($sq) {
+                  $sq->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+              })
+              ->where(function ($sq) {
+                  $sq->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+              });
+        };
+
         $coaches = User::where('role', 'coach')
-            ->whereHas('programs', function ($q) {
-                $q->where('is_published', true)->where('is_active', true);
-            })
-            ->withCount(['programs as published_programs_count' => function ($q) {
-                $q->where('is_published', true)->where('is_active', true);
-            }])
+            ->where('is_active', true)
+            ->whereNotIn('email', ['ai-coach@ruanglari.com', 'testcoach@ruanglari.com'])
+            ->where('username', '!=', 'coach-ai')
+            ->where('username', '!=', 'test-coach')
+            ->where('name', 'not like', '%Coach AI%')
+            ->where('name', 'not like', '%AI Coach%')
+            ->where('name', 'not like', '%Test Coach%')
+            ->whereHas('programs', $nonAiCoachProgramScope)
+            ->withCount(['programs as published_programs_count' => $nonAiCoachProgramScope])
             ->orderByDesc('published_programs_count')
             ->limit(6)
             ->get();
