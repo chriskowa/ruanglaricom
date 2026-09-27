@@ -175,6 +175,23 @@ class PublicProgramController extends Controller
             ->orderByDesc('average_rating')
             ->first();
 
+        // Calculate count per distance category for filter tabs
+        $categoryCounts = Program::where('is_published', true)
+            ->where('is_active', true)
+            ->whereHas('coach', function ($q) {
+                $q->where('role', 'coach');
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+            })
+            ->selectRaw('LOWER(distance_target) as dist, count(*) as total')
+            ->groupBy('dist')
+            ->pluck('total', 'dist')
+            ->toArray();
+
         // If AJAX request, return JSON
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json($programs);
@@ -188,6 +205,7 @@ class PublicProgramController extends Controller
             'averageRating' => $averageRating,
             'featuredProgram' => $featuredProgram,
             'coaches' => $coaches,
+            'categoryCounts' => $categoryCounts,
         ]);
     }
 

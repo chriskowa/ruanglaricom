@@ -24,6 +24,9 @@ AGENTS.md
 ├── frontend-quality (.agents/skills/frontend-quality)
 │   → Memastikan kualitas kode, arsitektur komponen, responsivitas mobile-first, dan state handling
 │
+├── web-design-guidelines (.agents/skills/web-design-guidelines)
+│   → Audit kepatuhan standar Vercel Web Interface: WCAG, focus states, CLS image, tabular nums, dan motion
+│
 └── ux-review (.agents/skills/ux-review)
     → Mengaudit hasil akhir, mendeteksi friksi usability, dan memastikan standard anti-AI terpenuhi
 ```
