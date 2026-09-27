@@ -76,6 +76,9 @@ class ProfileController extends Controller
             'pb_10k' => 'nullable|string|max:20',
             'pb_hm' => 'nullable|string|max:20',
             'pb_fm' => 'nullable|string|max:20',
+            'bio' => 'nullable|string|max:1000',
+            'certifications' => 'nullable|string|max:500',
+            'coaching_experience' => 'nullable|string|max:1000',
             'pacer_nickname' => 'nullable|string|max:100',
             'pacer_category' => 'nullable|string|max:50',
             'pacer_pace' => 'nullable|string|max:20',
@@ -96,6 +99,15 @@ class ProfileController extends Controller
         $user->gender = $validated['gender'] ?? null;
         $user->weight = $validated['weight'] ?? null;
         $user->height = $validated['height'] ?? null;
+        $user->bio = $validated['bio'] ?? null;
+        if ($user->role === 'coach') {
+            $user->coaching_experience = $validated['coaching_experience'] ?? null;
+            if (!empty($validated['certifications'])) {
+                $user->certifications = array_values(array_filter(array_map('trim', preg_split('/[,;\n]+/', $validated['certifications']))));
+            } else {
+                $user->certifications = null;
+            }
+        }
         $user->strava_url = $validated['strava_url'] ?? null;
         $user->instagram_url = $validated['instagram_url'] ?? null;
         $user->facebook_url = $validated['facebook_url'] ?? null;

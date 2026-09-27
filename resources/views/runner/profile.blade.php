@@ -16,9 +16,8 @@
 </script>
 <style>
     .glass-panel {
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: #0f172a;
+        border: 1px solid #1e293b;
     }
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -35,7 +34,7 @@
     <div class="max-w-5xl mx-auto">
         
         <!-- Header / Banner -->
-        <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl mb-8 relative group">
+        <div class="glass-panel rounded-lg overflow-hidden shadow-xl mb-8 relative group">
             <div class="h-48 md:h-64 bg-slate-800 relative overflow-hidden">
                 @if($user->banner)
                     <img src="{{ asset('storage/' . $user->banner) }}" class="w-full h-full object-cover">
@@ -47,7 +46,7 @@
 
             <div class="px-6 pb-6 relative -mt-20 flex flex-col md:flex-row items-end gap-6">
                 <div class="relative group">
-                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-slate-900 shadow-xl bg-slate-800">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border-4 border-slate-900 shadow-xl bg-slate-800">
                         <img loading="lazy" decoding="async" src="{{ $user->avatar_url }}" class="w-full h-full object-cover">
                     </div>
                     @if($user->role === 'coach')
@@ -136,39 +135,52 @@
             <!-- Left Column: About & Stats -->
             <div class="space-y-6">
                 <!-- Stats -->
-                <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Community Stats</h3>
+                <div class="glass-panel rounded-lg p-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Statistik Komunitas</h3>
                     <div class="grid grid-cols-3 gap-2 text-center">
                         <div>
-                            <p class="text-xl font-black text-white">{{ $user->posts()->count() }}</p>
-                            <p class="text-[10px] text-slate-500 uppercase">Posts</p>
+                            <p class="text-xl font-bold font-mono text-white">{{ $user->posts()->count() }}</p>
+                            <p class="text-[10px] text-slate-400 uppercase">Posts</p>
                         </div>
                         <div>
-                            <p class="text-xl font-black text-white">{{ $user->followers()->count() }}</p>
-                            <p class="text-[10px] text-slate-500 uppercase">Followers</p>
+                            <p class="text-xl font-bold font-mono text-white">{{ $user->followers()->count() }}</p>
+                            <p class="text-[10px] text-slate-400 uppercase">Followers</p>
                         </div>
                         <div>
-                            <p class="text-xl font-black text-white">{{ $user->following()->count() }}</p>
-                            <p class="text-[10px] text-slate-500 uppercase">Following</p>
+                            <p class="text-xl font-bold font-mono text-white">{{ $user->following()->count() }}</p>
+                            <p class="text-[10px] text-slate-400 uppercase">Following</p>
                         </div>
                     </div>
                 </div>
 
                 @if($user->role === 'coach')
-                <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Coach Stats</h3>
+                @php
+                    $coachPublishedPrograms = $user->programs()
+                        ->where('is_published', true)
+                        ->where('is_active', true)
+                        ->where(function ($q) {
+                            $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+                        })
+                        ->where(function ($q) {
+                            $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+                        })
+                        ->latest()
+                        ->get();
+                @endphp
+                <div class="glass-panel rounded-lg p-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Statistik Pelatih</h3>
                     <div class="text-center">
-                        <p class="text-xl font-black text-white">{{ $user->programs()->count() }}</p>
-                        <p class="text-[10px] text-slate-500 uppercase">Programs</p>
+                        <p class="text-xl font-bold font-mono text-white">{{ $coachPublishedPrograms->count() }}</p>
+                        <p class="text-[10px] text-slate-400 uppercase">Program Terbit</p>
                     </div>
-                    @if($user->programs()->exists())
+                    @if($coachPublishedPrograms->isNotEmpty())
                     <div class="mt-4 pt-4 border-t border-slate-800">
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Related Programs</h4>
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Program Unggulan</h4>
                         <div class="space-y-2">
-                            @foreach($user->programs()->latest()->take(3)->get() as $program)
-                            <a href="{{ route('programs.show', $program->slug) }}" class="block p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
-                                <p class="text-sm font-bold text-white">{{ $program->title }}</p>
-                                <p class="text-[10px] text-slate-500">{{ $program->distance_target }} • {{ ucfirst($program->difficulty) }}</p>
+                            @foreach($coachPublishedPrograms->take(3) as $program)
+                            <a href="{{ route('programs.show', $program->slug) }}" class="block p-2.5 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors">
+                                <p class="text-sm font-semibold text-white">{{ $program->title }}</p>
+                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">{{ strtoupper($program->distance_target ?: 'General') }} • {{ ucfirst($program->difficulty) }}</p>
                             </a>
                             @endforeach
                         </div>
@@ -178,18 +190,18 @@
                 @endif
 
                 <!-- Bio / Info -->
-                <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">About</h3>
+                <div class="glass-panel rounded-lg p-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Tentang</h3>
                     @if($user->bio)
                         <p class="text-sm text-slate-300 leading-relaxed">{{ $user->bio }}</p>
                     @else
-                        <p class="text-sm text-slate-500 italic">No bio added yet.</p>
+                        <p class="text-sm text-slate-400 italic">Belum ada bio yang ditambahkan.</p>
                     @endif
                     
                     <div class="mt-4 pt-4 border-t border-slate-800 space-y-2">
-                        <div class="flex items-center gap-2 text-sm text-slate-400">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            <span>Joined {{ $user->created_at->format('M Y') }}</span>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span>Bergabung {{ $user->created_at->format('M Y') }}</span>
                         </div>
                     </div>
                 </div>
@@ -200,167 +212,205 @@
                 
                 @if($user->role === 'coach')
                 @php
-                $coachDetails = [
-                    'coach-raka' => [
-                        'certifications' => ['PASI Athletics Coach Level 1', 'World Athletics Coach Education Level 1', 'Physiotherapy & Sports Injury Certified'],
-                        'experience' => 'Mulai melatih sejak tahun 2018. Telah membimbing lebih dari 150+ pelari pemula hingga berhasil finish marathon pertama mereka tanpa cedera.',
-                        'specialties' => ['Marathon Training Plan', '5K & 10K Speed Development', 'Injury Prevention & Recovery'],
-                        'races' => ['Borobudur Marathon 2023 (Full Marathon)', 'Jakarta Marathon 2022', 'Maybank Marathon Bali 2023'],
-                        'testimonials' => [
-                            ['name' => 'Aditya Pratama', 'text' => 'Coach Raka sangat detail memantau heart rate saya. Berkat dia, saya berhasil finish Maybank Marathon sub-4 jam!', 'rating' => 5],
-                            ['name' => 'Siti Aminah', 'text' => 'Program Couch to 5K dari Coach Raka gampang banget diikutin, bebas cedera shin splints!', 'rating' => 5]
-                        ]
-                    ],
-                    'jefri-angga' => [
-                        'certifications' => ['World Athletics Coach Level 2', 'Certified Strength & Conditioning Specialist (CSCS)'],
-                        'experience' => 'Berpengalaman melatih atlet daerah dan pelari komunitas sejak tahun 2019, berfokus pada mekanika biomekanik lari efisien.',
-                        'specialties' => ['10K Speed Performance', 'Half Marathon Strategy', 'Strength Training for Runners'],
-                        'races' => ['Pocari Sweat Run 2023 (Half Marathon)', 'Singapore Marathon 2022'],
-                        'testimonials' => [
-                            ['name' => 'Budi Santoso', 'text' => 'Program strength trainingnya luar biasa, lutut saya ga pernah sakit lagi pas tanjakan!', 'rating' => 5]
-                        ]
-                    ]
-                ];
+                    // Dynamic certifications from user profile (never hardcoded)
+                    $rawCerts = $user->certifications;
+                    if (is_string($rawCerts)) {
+                        $certs = json_decode($rawCerts, true) ?: array_filter(array_map('trim', explode(',', $rawCerts)));
+                    } elseif (is_array($rawCerts)) {
+                        $certs = $rawCerts;
+                    } else {
+                        $certs = [];
+                    }
+                    $certs = array_values(array_filter($certs));
 
-                $currentCoach = $coachDetails[$user->username] ?? [
-                    'certifications' => ['Certified Athletic Coach', 'Running Specialist'],
-                    'experience' => 'Berpengalaman membimbing pelari komunitas dalam menyusun program latihan terstruktur baik jarak pendek maupun maraton.',
-                    'specialties' => ['5K & 10K Training', 'Heart Rate Zone Training', 'Running Form Analysis'],
-                    'races' => ['Maybank Marathon Bali', 'Pocari Sweat Run', 'Borobudur Marathon'],
-                    'testimonials' => [
-                        ['name' => 'Rian H.', 'text' => 'Program latihannya sangat terstruktur dan mudah diikuti via aplikasi.', 'rating' => 5]
-                    ]
-                ];
+                    // Dynamic non-AI published programs
+                    $coachPrograms = $user->programs()
+                        ->where('is_published', true)
+                        ->where('is_active', true)
+                        ->where(function ($q) {
+                            $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+                        })
+                        ->where(function ($q) {
+                            $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+                        })
+                        ->latest()
+                        ->get();
+
+                    // Derive real specialties from published programs
+                    $programSpecialties = $coachPrograms->pluck('distance_target')->filter()->unique()->map(function($dt) {
+                        $dt = strtolower($dt);
+                        if (in_array($dt, ['21k', 'hm', 'half_marathon'])) return 'Half Marathon Preparation';
+                        if (in_array($dt, ['42k', 'fm', 'marathon'])) return 'Marathon Preparation';
+                        if ($dt === '5k') return '5K / Speed Development';
+                        if ($dt === '10k') return '10K Endurance';
+                        return ucfirst($dt) . ' Training';
+                    })->values();
+
+                    // Real verified reviews from platform
+                    $realReviews = \App\Models\ProgramReview::whereIn('program_id', $coachPrograms->pluck('id'))
+                        ->with('runner')
+                        ->latest()
+                        ->take(5)
+                        ->get();
                 @endphp
 
                 <!-- Coach Professional Profile Details -->
-                <div class="glass-panel rounded-3xl p-6 space-y-6">
-                    <h2 class="text-xl font-black text-white italic uppercase tracking-tight pb-2 border-b border-slate-800">
-                        Professional Coaching Profile
-                    </h2>
+                <div class="glass-panel rounded-lg p-6 space-y-6">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div>
+                            <h2 class="text-lg font-bold text-white tracking-tight">
+                                Profil Pelatih Profesional
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Kualifikasi resmi, spesialisasi, dan program latihan</p>
+                        </div>
+                        @if(auth()->id() === $user->id)
+                            <a href="{{ route('profile.show') }}" class="text-xs text-[#CCFF00] hover:underline font-semibold flex items-center gap-1">
+                                <i class="fas fa-edit"></i> Edit Lisensi
+                            </a>
+                        @endif
+                    </div>
                     
                     <!-- Certifications -->
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Sertifikasi & Lisensi Resmi</h4>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($currentCoach['certifications'] as $cert)
-                                <span class="px-3 py-1.5 bg-slate-900/90 text-neon border border-slate-800 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5">
-                                    <i class="fas fa-certificate text-neon"></i> {{ $cert }}
-                                </span>
-                            @endforeach
-                        </div>
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Sertifikasi & Lisensi Resmi</h4>
+                        @if(!empty($certs))
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($certs as $cert)
+                                    <span class="px-3 py-1.5 bg-slate-900 text-white border border-slate-800 rounded-md text-xs font-mono font-medium flex items-center gap-1.5 shadow-sm">
+                                        <i class="fas fa-certificate text-[#CCFF00]"></i> {{ $cert }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-md">
+                                <p class="text-xs text-slate-400">
+                                    Belum ada sertifikasi resmi yang dilampirkan pada profil ini.
+                                    @if(auth()->id() === $user->id)
+                                        <a href="{{ route('profile.show') }}" class="text-[#CCFF00] hover:underline ml-1 font-semibold">Tambahkan di Pengaturan Profil &rarr;</a>
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Specialties -->
+                    @if($programSpecialties->isNotEmpty())
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Spesialisasi Program</h4>
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Spesialisasi Program Latihan</h4>
                         <div class="flex flex-wrap gap-2">
-                            @foreach($currentCoach['specialties'] as $spec)
-                                <span class="px-3 py-1.5 bg-neon/10 text-white border border-neon/20 rounded-xl text-xs font-bold">
+                            @foreach($programSpecialties as $spec)
+                                <span class="px-3 py-1.5 bg-slate-900 text-[#CCFF00] border border-slate-800 rounded-md text-xs font-medium">
                                     {{ $spec }}
                                 </span>
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
-                    <!-- Experience & Bio -->
+                    <!-- Experience & Coaching Bio -->
+                    @if(!empty($user->coaching_experience) || !empty($user->bio))
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Pengalaman Melatih</h4>
-                        <p class="text-sm text-slate-300 leading-relaxed">
-                            {{ $currentCoach['experience'] }}
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Pengalaman & Pendekatan Melatih</h4>
+                        <p class="text-sm text-slate-200 leading-relaxed">
+                            {{ $user->coaching_experience ?? $user->bio }}
                         </p>
                     </div>
+                    @endif
 
-                    <!-- Race Experience -->
+                    <!-- Race Portfolio (Real only, if available) -->
+                    @if($user->is_pacer && $user->pacerProfile && !empty($user->pacerProfile->race_portfolio))
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Pengalaman Race Utama</h4>
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Portofolio Race & Pacing</h4>
                         <div class="space-y-1.5">
-                            @foreach($currentCoach['races'] as $race)
-                                <div class="flex items-center gap-2 text-sm text-slate-400">
-                                    <i class="fas fa-running text-slate-500"></i>
+                            @foreach($user->pacerProfile->race_portfolio as $race)
+                                <div class="flex items-center gap-2 text-sm text-slate-300">
+                                    <i class="fas fa-running text-[#CCFF00]"></i>
                                     <span>{{ $race }}</span>
                                 </div>
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <!-- Personal Bests (PB) -->
                     @if($user->pb_5k || $user->pb_10k || $user->pb_hm || $user->pb_fm)
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Personal Bests (PB)</h4>
-                        <div class="grid grid-cols-4 gap-2">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Personal Bests (PB)</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             @if($user->pb_5k)
-                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
-                                <p class="text-[10px] text-slate-500 uppercase">5K</p>
-                                <p class="text-sm font-bold text-white">{{ $user->pb_5k }}</p>
+                            <div class="bg-slate-900 rounded-md p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">5K</p>
+                                <p class="text-sm font-mono font-bold text-white mt-0.5">{{ $user->pb_5k }}</p>
                             </div>
                             @endif
                             @if($user->pb_10k)
-                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
-                                <p class="text-[10px] text-slate-500 uppercase">10K</p>
-                                <p class="text-sm font-bold text-white">{{ $user->pb_10k }}</p>
+                            <div class="bg-slate-900 rounded-md p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">10K</p>
+                                <p class="text-sm font-mono font-bold text-white mt-0.5">{{ $user->pb_10k }}</p>
                             </div>
                             @endif
                             @if($user->pb_hm)
-                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
-                                <p class="text-[10px] text-slate-500 uppercase">HM (21K)</p>
-                                <p class="text-sm font-bold text-white">{{ $user->pb_hm }}</p>
+                            <div class="bg-slate-900 rounded-md p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Half Marathon (21K)</p>
+                                <p class="text-sm font-mono font-bold text-white mt-0.5">{{ $user->pb_hm }}</p>
                             </div>
                             @endif
                             @if($user->pb_fm)
-                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
-                                <p class="text-[10px] text-slate-500 uppercase">FM (42K)</p>
-                                <p class="text-sm font-bold text-white">{{ $user->pb_fm }}</p>
+                            <div class="bg-slate-900 rounded-md p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase">Full Marathon (42K)</p>
+                                <p class="text-sm font-mono font-bold text-white mt-0.5">{{ $user->pb_fm }}</p>
                             </div>
                             @endif
                         </div>
                     </div>
                     @endif
 
-                    <!-- Testimonials -->
+                    <!-- Real Verified Reviews -->
+                    @if($realReviews->isNotEmpty())
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Testimoni Peserta Program</h4>
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Ulasan Peserta Program</h4>
                         <div class="space-y-3">
-                            @foreach($currentCoach['testimonials'] as $testi)
-                                <div class="bg-slate-950/40 p-4 border border-slate-900 rounded-xl space-y-2">
+                            @foreach($realReviews as $rev)
+                                <div class="bg-slate-900 p-4 border border-slate-800 rounded-md space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-bold text-white">{{ $testi['name'] }}</span>
-                                        <div class="flex text-yellow-500 text-[10px]">
-                                            @for($i=1; $i<=5; $i++)
+                                        <span class="text-xs font-semibold text-white">{{ $rev->runner?->name ?? 'Pelari' }}</span>
+                                        <div class="flex text-amber-400 text-xs">
+                                            @for($i=1; $i<=(int)$rev->rating; $i++)
                                                 <i class="fas fa-star"></i>
                                             @endfor
                                         </div>
                                     </div>
-                                    <p class="text-xs text-slate-400 leading-relaxed italic">
-                                        "{{ $testi['text'] }}"
+                                    <p class="text-xs text-slate-300 leading-relaxed italic">
+                                        "{{ $rev->review }}"
                                     </p>
                                 </div>
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <!-- Active Created Programs -->
-                    @if($user->programs()->exists())
+                    @if($coachPrograms->isNotEmpty())
                     <div>
-                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Daftar Program Latihan yang Dibuat</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($user->programs()->where('is_published', true)->get() as $p)
-                                <div class="bg-slate-900/30 hover:bg-slate-900/60 p-4 border border-slate-800 hover:border-neon/30 rounded-xl flex flex-col justify-between transition-colors">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Daftar Program Latihan yang Dibuat</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            @foreach($coachPrograms as $p)
+                                <div class="bg-slate-900/90 hover:bg-slate-900 p-4 border border-slate-800 hover:border-slate-700 rounded-md flex flex-col justify-between transition-colors group">
                                     <div>
-                                        <span class="px-2 py-0.5 rounded bg-slate-800 text-[9px] font-bold text-slate-300 border border-slate-700">
-                                            {{ strtoupper($p->distance_target) }}
+                                        <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-mono font-semibold text-slate-300 border border-slate-700">
+                                            {{ strtoupper($p->distance_target ?: 'GENERAL') }}
                                         </span>
-                                        <h5 class="text-sm font-bold text-white mt-2 mb-1 group-hover:text-neon">
-                                            <a href="{{ url('/programs/' . $p->slug) }}" class="hover:text-neon transition-colors">{{ $p->title }}</a>
+                                        <h5 class="text-sm font-bold text-white mt-2 mb-1 group-hover:text-[#CCFF00] transition-colors">
+                                            <a href="{{ route('programs.show', $p->slug) }}">{{ $p->title }}</a>
                                         </h5>
-                                        <p class="text-xs text-slate-500 mb-3">{{ $p->duration_weeks }} Minggu • {{ $p->sessions_per_week }} Sesi/Minggu</p>
+                                        <p class="text-xs text-slate-400 mb-3">{{ $p->duration_weeks }} Minggu • {{ $p->sessions_per_week }} Sesi/Minggu</p>
                                     </div>
-                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/80">
-                                        <span class="text-sm font-black text-white">
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800">
+                                        <span class="text-sm font-bold font-mono text-white">
                                             {{ $p->price > 0 ? 'Rp ' . number_format($p->price, 0, ',', '.') : 'GRATIS' }}
                                         </span>
-                                        <a href="{{ url('/programs/' . $p->slug) }}" class="text-xs text-neon font-bold hover:underline">
-                                            Detail Program →
+                                        <a href="{{ route('programs.show', $p->slug) }}" class="text-xs text-[#CCFF00] font-semibold hover:underline flex items-center gap-1">
+                                            Detail Program &rarr;
                                         </a>
                                     </div>
                                 </div>
@@ -374,12 +424,12 @@
 
                 <!-- Gallery Carousel -->
                 @if($user->profile_images && count($user->profile_images) > 0)
-                <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Gallery</h3>
+                <div class="glass-panel rounded-lg p-6">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Galeri Foto</h3>
                     <div class="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory pb-2">
                         @foreach($user->profile_images as $image)
-                            <div class="flex-none w-48 h-48 rounded-xl overflow-hidden border border-slate-700 snap-center">
-                                <img src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                            <div class="flex-none w-48 h-48 rounded-md overflow-hidden border border-slate-800 snap-center">
+                                <img src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                             </div>
                         @endforeach
                     </div>
@@ -388,10 +438,10 @@
 
                 <!-- Recent Posts -->
                 <div>
-                    <h3 class="text-lg font-bold text-white mb-4">Recent Activity</h3>
+                    <h3 class="text-base font-bold text-white mb-4">Aktivitas Terbaru</h3>
                     <div class="space-y-4">
                         @forelse($user->posts()->latest()->take(5)->get() as $post)
-                            <div class="glass-panel rounded-2xl p-4">
+                            <div class="glass-panel rounded-lg p-4">
                                 <div class="flex items-start gap-4">
                                     <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : ($user->gender === 'female' ? 'https://avatar.iran.liara.run/public/girl' : 'https://avatar.iran.liara.run/public/boy') }}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
                                     <div class="flex-grow">

@@ -95,6 +95,9 @@ class User extends Authenticatable
         'buddy_rating',
         'is_receive_wa',
         'last_performance_checkin_at',
+        'bio',
+        'certifications',
+        'coaching_experience',
     ];
 
     public function tokens(): \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -191,6 +194,7 @@ class User extends Authenticatable
             'membership_expires_at' => 'datetime',
             'is_receive_wa' => 'boolean',
             'last_performance_checkin_at' => 'datetime',
+            'certifications' => 'array',
         ];
     }
 

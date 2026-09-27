@@ -256,11 +256,37 @@
                             </div>
                             
                             <div class="space-y-2 mt-4">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Bio / Tentang Saya</label>
+                                <textarea name="bio" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Ceritakan latar belakang, fokus olahraga, dan filosofi latihan Anda...">{{ old('bio', $user->bio) }}</textarea>
+                                @error('bio') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="space-y-2 mt-4">
                                 <label class="text-xs font-bold text-slate-400 uppercase">Full Address</label>
                                 <textarea name="address" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">{{ old('address', $user->address) }}</textarea>
                                 @error('address') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
                             </div>
                         </div>
+
+                        @if($user->role === 'coach')
+                        <!-- Section: Coach Profile & Credentials -->
+                        <div class="space-y-6 pt-6">
+                            <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Profil Pelatih & Lisensi</h3>
+                            
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Sertifikasi & Lisensi Resmi</label>
+                                <input type="text" name="certifications" value="{{ old('certifications', is_array($user->certifications) ? implode(', ', $user->certifications) : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Contoh: World Athletics Coach Level 1, PASI Athletics Coach, APKI Coach (pisahkan dengan koma)">
+                                <p class="text-[11px] text-slate-500">Hanya cantumkan sertifikasi resmi yang valid. Pisahkan dengan tanda koma.</p>
+                                @error('certifications') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Pengalaman Melatih</label>
+                                <textarea name="coaching_experience" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Ringkasan pengalaman melatih atlet atau komunitas lari...">{{ old('coaching_experience', $user->coaching_experience) }}</textarea>
+                                @error('coaching_experience') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- Section 4: Running Profile (PB) -->
                         <div class="space-y-6 pt-6">

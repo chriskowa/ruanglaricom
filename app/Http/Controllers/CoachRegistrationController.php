@@ -43,6 +43,10 @@ class CoachRegistrationController extends Controller
             return back()->withErrors(['phone' => 'Nomor WhatsApp sudah terdaftar.'])->withInput();
         }
 
+        $certs = !empty($data['certifications'])
+            ? array_values(array_filter(array_map('trim', explode(',', $data['certifications']))))
+            : null;
+
         // Create user as coach
         $user = User::create([
             'name' => $data['name'],
@@ -51,7 +55,9 @@ class CoachRegistrationController extends Controller
             'password' => bcrypt(str()->random(12)),
             'role' => 'coach',
             'is_active' => ! env('LOGIN_OTP_ENABLED', true),
-            'city' => $data['city'],
+            'bio' => $data['bio'] ?? null,
+            'certifications' => $certs,
+            'coaching_experience' => isset($data['experience_years']) ? $data['experience_years'] . ' tahun pengalaman melatih' : null,
         ]);
 
         // Handle image upload and convert to webp using ImageUploadService
