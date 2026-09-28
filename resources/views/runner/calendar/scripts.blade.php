@@ -810,6 +810,8 @@ const runnerCalendarApp = createApp({
                 showFormModal.value = false;
                 showRaceModal.value = false;
                 showRescheduleModal.value = false;
+                showConfirmReplace.value = false;
+                activeConflictTitle.value = '';
                 showApplyModal.value = false;
                 await nextTick();
                 applyTarget.value = target || { id: enrollmentId };
@@ -1124,18 +1126,46 @@ const runnerCalendarApp = createApp({
 
         // Apply Program Logic (Modal)
         const showApplyModal = ref(false);
+        const showConfirmReplace = ref(false);
+        const activeConflictTitle = ref('');
+        const currentActiveProgram = computed(() => {
+            return (enrollments.value && enrollments.value.length > 0) ? enrollments.value[0] : null;
+        });
         const applyLoading = ref(false);
         const applyTarget = ref(null);
         const applyForm = reactive({
             start_date: ''
         });
-        const submitApply = async (overrideAction = null) => {
+
+        const closeApplyModal = () => {
+            showApplyModal.value = false;
+            showConfirmReplace.value = false;
+            activeConflictTitle.value = '';
+        };
+
+        const handleApplySubmit = () => {
             if (!applyTarget.value || !applyTarget.value.id) {
-                alert('Invalid program');
+                alert('Program tidak valid');
                 return;
             }
             if (!applyForm.start_date) {
-                alert('Please select a start date');
+                alert('Silakan tentukan tanggal mulai program');
+                return;
+            }
+            if (currentActiveProgram.value) {
+                showConfirmReplace.value = true;
+                return;
+            }
+            submitApply();
+        };
+
+        const submitApply = async (overrideAction = null) => {
+            if (!applyTarget.value || !applyTarget.value.id) {
+                alert('Program tidak valid');
+                return;
+            }
+            if (!applyForm.start_date) {
+                alert('Silakan tentukan tanggal mulai program');
                 return;
             }
             applyLoading.value = true;
@@ -1146,6 +1176,8 @@ const runnerCalendarApp = createApp({
                 };
                 if (overrideAction) {
                     payload.action = overrideAction;
+                } else if (currentActiveProgram.value) {
+                    payload.action = 'replace';
                 }
 
                 const res = await fetch(`{{ route('runner.calendar.apply-program') }}`, {
@@ -1154,22 +1186,55 @@ const runnerCalendarApp = createApp({
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (data.has_active_program && !overrideAction) {
-                    const choice = confirm(`Program Aktif Terdeteksi:\n"${data.active_program_title}" (${data.active_start_date} - ${data.active_end_date})\n\nKlik OK untuk Ganti Program (Replace)\nKlik CANCEL untuk Tambahkan Saja (Add).`);
-                    if (choice) {
-                        return submitApply('replace');
-                    } else {
-                        return submitApply('add');
-                    }
+
+                if (data.has_active_program && !payload.action) {
+                    activeConflictTitle.value = data.active_program_title || 'Program Aktif';
+                    showConfirmReplace.value = true;
+                    return;
                 }
 
                 if (data.success) {
-                    window.location.reload();
+                    showApplyModal.value = false;
+                    showConfirmReplace.value = false;
+
+                    const appliedId = applyTarget.value.id;
+                    const appliedIdx = programBag.value.findIndex(e => e.id === appliedId);
+                    let activatedItem = null;
+                    if (appliedIdx !== -1) {
+                        activatedItem = programBag.value.splice(appliedIdx, 1)[0];
+                        activatedItem.status = 'active';
+                        activatedItem.start_date = applyForm.start_date;
+                    } else if (applyTarget.value) {
+                        activatedItem = { ...applyTarget.value, status: 'active', start_date: applyForm.start_date };
+                    }
+
+                    // If replacing active program, move previous active program back to programBag!
+                    if (payload.action === 'replace' && enrollments.value && enrollments.value.length > 0) {
+                        const oldActive = { ...enrollments.value[0], status: 'purchased', start_date: null, end_date: null };
+                        programBag.value.unshift(oldActive);
+                    }
+
+                    if (activatedItem) {
+                        enrollments.value = [activatedItem];
+                    }
+
+                    if (calendar) calendar.refetchEvents();
+                    if (typeof loadPlans === 'function') await loadPlans();
+                    if (typeof loadWeeklyVolume === 'function') await loadWeeklyVolume();
+
+                    const successMsg = (payload.action === 'replace')
+                        ? 'Program aktif berhasil diganti! Program sebelumnya telah dipindahkan ke Program Bag.'
+                        : 'Program berhasil diaktifkan di kalender!';
+
+                    if (typeof notification !== 'undefined') {
+                        notification.value = { type: 'success', message: successMsg };
+                    }
                 } else {
-                    alert(data.message || 'Failed to apply program');
+                    alert(data.message || 'Gagal mengaktifkan program');
                 }
             } catch (e) {
-                alert('An error occurred');
+                console.error(e);
+                alert('Terjadi kesalahan saat memproses program');
             } finally {
                 applyLoading.value = false;
             }
@@ -3412,6 +3477,7 @@ const runnerCalendarApp = createApp({
             rescheduleTab, adaptiveRescheduleForm, adaptivePreview, previewLoading, getAdaptivePreview, submitAdaptiveReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
+            currentActiveProgram, showConfirmReplace, activeConflictTitle, closeApplyModal, handleApplySubmit,
             countExercises, parseStrengthExercises, getExerciseIcon, previewExercise, startGuidedWorkout,
             showGuidedPlayer, guidedExercises, currentExerciseIndex, currentExercise, isPlaying, timerSeconds, togglePlay, nextExercise, prevExercise, resetTimer,
             stopGuidedWorkout, finishGuidedWorkout, exitGuidedWorkout, formatTimer,

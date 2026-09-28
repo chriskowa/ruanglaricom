@@ -295,15 +295,27 @@
                         </div>
 
                         @if($isEnrolled)
-                            <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-md p-3 text-center mb-3">
-                                <p class="text-emerald-400 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                    Anda sudah terdaftar di program ini
-                                </p>
-                            </div>
-                            <a href="{{ route('runner.calendar') }}" class="block w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-center rounded-md text-xs sm:text-sm transition-colors mb-3">
-                                Buka Jadwal Latihan
-                            </a>
+                            @if(isset($userEnrollment) && $userEnrollment->status === 'purchased')
+                                <div class="bg-amber-500/10 border border-amber-500/30 rounded-md p-3 text-center mb-3">
+                                    <p class="text-amber-400 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                        Program Tersimpan di Program Bag
+                                    </p>
+                                </div>
+                                <a href="{{ route('runner.dashboard', ['activate_program' => $userEnrollment->id]) }}" class="block w-full py-2.5 bg-neon hover:bg-white text-slate-950 font-bold text-center rounded-md text-xs sm:text-sm transition-colors mb-3">
+                                    Aktifkan / Pasang Program
+                                </a>
+                            @else
+                                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-md p-3 text-center mb-3">
+                                    <p class="text-emerald-400 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                        Program Sedang Aktif di Kalender
+                                    </p>
+                                </div>
+                                <a href="{{ route('runner.calendar') }}" class="block w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-center rounded-md text-xs sm:text-sm transition-colors mb-3">
+                                    Buka Jadwal Latihan
+                                </a>
+                            @endif
                         @else
                             @if($program->isFree())
                                 <form action="{{ route('runner.programs.enroll-free', $program->id) }}" method="POST">
@@ -393,9 +405,15 @@
             </div>
             <div>
                 @if($isEnrolled)
-                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-md text-xs sm:text-sm transition-colors">
-                        Buka Program
-                    </a>
+                    @if(isset($userEnrollment) && $userEnrollment->status === 'purchased')
+                        <a href="{{ route('runner.dashboard', ['activate_program' => $userEnrollment->id]) }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-neon hover:bg-white text-slate-950 font-bold rounded-md text-xs sm:text-sm transition-colors">
+                            Aktifkan Program
+                        </a>
+                    @else
+                        <a href="{{ route('runner.calendar') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-md text-xs sm:text-sm transition-colors">
+                            Buka Kalender
+                        </a>
+                    @endif
                 @else
                     @if($program->isFree())
                         <form action="{{ route('runner.programs.enroll-free', $program->id) }}" method="POST">

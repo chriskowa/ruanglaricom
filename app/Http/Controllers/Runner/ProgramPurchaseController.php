@@ -8,6 +8,7 @@ use App\Models\ProgramEnrollment;
 use App\Models\WalletTransaction;
 use App\Models\Notification;
 use App\Helpers\WhatsApp;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -20,14 +21,41 @@ class ProgramPurchaseController extends Controller
     {
         $user = auth()->user();
 
-        // Check if already enrolled and active
-        $hasActiveEnrollment = $program->enrollments()
+        $hasActiveProgram = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->exists();
+
+        // Check if already enrolled
+        $existingEnrollment = $program->enrollments()
             ->where('runner_id', $user->id)
             ->whereIn('status', ['purchased', 'active'])
-            ->exists();
-        if ($hasActiveEnrollment) {
-            return redirect()->route('runner.calendar')
-                ->with('error', 'Anda sudah terdaftar di program ini.');
+            ->first();
+
+        if ($existingEnrollment) {
+            if ($existingEnrollment->status === 'purchased') {
+                if (! $hasActiveProgram) {
+                    $startDate = Carbon::today();
+                    $durationWeeks = $program->duration_weeks ?? 12;
+                    $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+                    $existingEnrollment->update([
+                        'status' => 'active',
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                    ]);
+
+                    return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
+                        ->with('success', 'Program ' . $program->title . ' berhasil diaktifkan di kalender latihan Anda!');
+                }
+
+                return redirect()->route('runner.dashboard', ['activate_program' => $existingEnrollment->id])
+                    ->with('new_program_bag_id', $existingEnrollment->id)
+                    ->with('show_replace_modal', true)
+                    ->with('info', 'Program ini sudah ada di Program Bag Anda. Silakan tentukan apakah ingin mengganti program aktif atau tetap menyimpannya di Program Bag.');
+            }
+
+            return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
+                ->with('info', 'Program ini sudah aktif di kalender latihan Anda.');
         }
 
         // Check if program can be purchased
@@ -53,13 +81,18 @@ class ProgramPurchaseController extends Controller
             $wallet->decrement('balance', $program->price);
             $balanceAfter = $wallet->balance;
 
+            $startDate = ! $hasActiveProgram ? Carbon::today() : null;
+            $durationWeeks = $program->duration_weeks ?? 12;
+            $endDate = (! $hasActiveProgram && $startDate) ? $startDate->copy()->addWeeks($durationWeeks) : null;
+            $status = ! $hasActiveProgram ? 'active' : 'purchased';
+
             // Create enrollment
             $enrollment = ProgramEnrollment::create([
                 'program_id' => $program->id,
                 'runner_id' => $user->id,
-                'start_date' => null,
-                'end_date' => null,
-                'status' => 'purchased',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => $status,
                 'payment_status' => 'paid',
             ]);
 
@@ -87,7 +120,7 @@ class ProgramPurchaseController extends Controller
 
             DB::commit();
 
-            // Notify Coach (order)
+            // Notify Coach (in-app notification)
             try {
                 $coach = $program->coach;
                 if ($coach) {
@@ -100,28 +133,20 @@ class ProgramPurchaseController extends Controller
                         'reference_id' => $enrollment->id,
                         'is_read' => false,
                     ]);
-                    if ($coach->email) {
-                        Mail::raw('Ada pesanan program baru dari '.$user->name.' untuk program "'.$program->title.'".', function ($m) use ($coach, $program) {
-                            $m->to($coach->email)->subject('Pesanan Program Baru: '.$program->title);
-                        });
-                    }
-                    $phone = $coach->phone ?? null;
-                    if ($phone) {
-                        $normalized = preg_replace('/\D+/', '', $phone);
-                        if (str_starts_with($normalized, '0')) {
-                            $normalized = '62'.substr($normalized, 1);
-                        } elseif (! str_starts_with($normalized, '62')) {
-                            $normalized = '62'.$normalized;
-                        }
-                        WhatsApp::send($normalized, "*Pesanan Program Baru*\nRunner: ".$user->name."\nProgram: ".$program->title);
-                    }
                 }
             } catch (\Throwable $e) {
                 // swallow notification errors
             }
 
-            return redirect()->route('runner.calendar')
-                ->with('success', 'Program berhasil dibeli! Program telah ditambahkan ke Program Bag Anda.');
+            if ($hasActiveProgram) {
+                return redirect()->route('runner.dashboard', ['activate_program' => $enrollment->id])
+                    ->with('new_program_bag_id', $enrollment->id)
+                    ->with('show_replace_modal', true)
+                    ->with('info', 'Program berhasil dibeli! Karena Anda sedang menjalankan program aktif, silakan tentukan apakah ingin mengganti program aktif atau menyimpannya di Program Bag.');
+            }
+
+            return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
+                ->with('success', 'Program ' . $program->title . ' berhasil dibeli dan langsung diaktifkan di kalender latihan Anda!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -137,18 +162,27 @@ class ProgramPurchaseController extends Controller
     {
         $user = auth()->user();
 
+        $hasActiveProgram = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->exists();
+
+        $startDate = ! $hasActiveProgram ? Carbon::today() : null;
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $endDate = (! $hasActiveProgram && $startDate) ? $startDate->copy()->addWeeks($durationWeeks) : null;
+        $status = ! $hasActiveProgram ? 'active' : 'purchased';
+
         $enrollment = ProgramEnrollment::create([
             'program_id' => $program->id,
             'runner_id' => $user->id,
-            'start_date' => null,
-            'end_date' => null,
-            'status' => 'purchased',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => $status,
             'payment_status' => 'paid', // Free programs are considered paid
         ]);
 
         $program->increment('enrolled_count');
 
-        // Notify Coach (order - free)
+        // Notify Coach (in-app notification)
         try {
             $coach = $program->coach;
             if ($coach) {
@@ -161,27 +195,19 @@ class ProgramPurchaseController extends Controller
                     'reference_id' => $enrollment->id,
                     'is_read' => false,
                 ]);
-                if ($coach->email) {
-                    Mail::raw('Ada pendaftaran program gratis dari '.$user->name.' untuk program "'.$program->title.'".', function ($m) use ($coach, $program) {
-                        $m->to($coach->email)->subject('Pendaftaran Program (Free): '.$program->title);
-                    });
-                }
-                $phone = $coach->phone ?? null;
-                if ($phone) {
-                    $normalized = preg_replace('/\D+/', '', $phone);
-                    if (str_starts_with($normalized, '0')) {
-                        $normalized = '62'.substr($normalized, 1);
-                    } elseif (! str_starts_with($normalized, '62')) {
-                        $normalized = '62'.$normalized;
-                    }
-                    WhatsApp::send($normalized, "*Pendaftaran Program (Free)*\nRunner: ".$user->name."\nProgram: ".$program->title);
-                }
             }
         } catch (\Throwable $e) {
             // swallow notification errors
         }
 
-        return redirect()->route('runner.calendar')
-            ->with('success', 'Program berhasil didaftarkan! Program telah ditambahkan ke Program Bag Anda.');
+        if ($hasActiveProgram) {
+            return redirect()->route('runner.dashboard', ['activate_program' => $enrollment->id])
+                ->with('new_program_bag_id', $enrollment->id)
+                ->with('show_replace_modal', true)
+                ->with('info', 'Program berhasil didaftarkan! Karena Anda sedang menjalankan program aktif, silakan tentukan apakah ingin mengganti program aktif atau menyimpannya di Program Bag.');
+        }
+
+        return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
+            ->with('success', 'Program ' . $program->title . ' berhasil diaktifkan di kalender latihan Anda!');
     }
 }

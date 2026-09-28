@@ -8,10 +8,11 @@ use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $user->load('wallet');
@@ -124,8 +125,13 @@ class DashboardController extends Controller
 
         $stravaConnected = (bool) $user->strava_access_token;
 
-        // 3. Optimize Strava Queries into a single collection retrieval
+        // 3. Optimize Strava Queries: select only lightweight attributes to avoid loading huge raw JSON
         $recentStravaActivities = StravaActivity::where('user_id', $user->id)
+            ->select([
+                'id', 'user_id', 'strava_activity_id', 'name', 'type', 'start_date', 
+                'distance_m', 'moving_time_s', 'elapsed_time_s', 'average_speed', 'total_elevation_gain',
+                'created_at', 'updated_at'
+            ])
             ->orderByDesc('start_date')
             ->take(5)
             ->get();
@@ -403,12 +409,66 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Check for program activation or conflict modal trigger
+        $targetActivateId = $request->query('activate_program') ?: request('activate_program', session('new_program_bag_id'));
+        $pendingProgramToActivate = null;
+        if ($targetActivateId) {
+            $pendingProgramToActivate = $programBag->firstWhere('id', (int) $targetActivateId);
+        }
+        if (! $pendingProgramToActivate && session('show_replace_modal') && $programBag->isNotEmpty()) {
+            $pendingProgramToActivate = $programBag->first();
+        }
+        if (! $pendingProgramToActivate && $programBag->isNotEmpty()) {
+            $recentBagItem = $programBag->first(function ($item) {
+                return $item->created_at && $item->created_at->diffInMinutes(now()) <= 10;
+            });
+            if ($recentBagItem && ($request->has('activate_program') || session()->has('new_program_bag_id') || session('show_replace_modal'))) {
+                $pendingProgramToActivate = $recentBagItem;
+            }
+        }
+        $hasActiveProgram = $activeEnrollments->isNotEmpty();
+        $shouldShowConflictModal = $hasActiveProgram && ($pendingProgramToActivate !== null);
+
+        // If runner has NO active program and requested to activate a program from bag, activate immediately!
+        if (! $hasActiveProgram && $targetActivateId && $pendingProgramToActivate) {
+            $startDate = Carbon::today();
+            $durationWeeks = $pendingProgramToActivate->program?->duration_weeks ?? 12;
+            $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+            $pendingProgramToActivate->update([
+                'status' => 'active',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]);
+
+            return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
+                ->with('success', 'Program ' . ($pendingProgramToActivate->program?->title ?? '') . ' berhasil diaktifkan di kalender latihan Anda!');
+        }
+
         // Get Cancelled Programs (History/Archive)
         $cancelledPrograms = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'cancelled')
             ->with(['program.coach'])
             ->orderBy('updated_at', 'desc')
             ->get();
+
+        // Strip heavy JSON bloat (program_json, faq_json, prerequisites_json) before passing to views
+        // to prevent 1.5MB+ HTML serialization and FastCGI 503 timeouts
+        $hideProgramBloat = ['program_json', 'description', 'faq_json', 'prerequisites_json'];
+        $cleanProgramModel = function ($enrollment) use ($hideProgramBloat) {
+            if ($enrollment && $enrollment->program) {
+                $enrollment->program->makeHidden($hideProgramBloat);
+            }
+            return $enrollment;
+        };
+
+        $programBag->each($cleanProgramModel);
+        $cancelledPrograms->each($cleanProgramModel);
+        $enrollments->each($cleanProgramModel);
+        $activeEnrollments->each($cleanProgramModel);
+        if ($pendingProgramToActivate) {
+            $cleanProgramModel($pendingProgramToActivate);
+        }
 
         // Training Profile Data via service
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($user);
@@ -479,6 +539,8 @@ class DashboardController extends Controller
             // Calendar fields
             'enrollments' => $enrollments,
             'programBag' => $programBag,
+            'pendingProgramToActivate' => $pendingProgramToActivate,
+            'shouldShowConflictModal' => $shouldShowConflictModal,
             'cancelledPrograms' => $cancelledPrograms,
             'trainingProfile' => $trainingProfile,
             'isEnrolled40Days' => $isEnrolled40Days,

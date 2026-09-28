@@ -236,11 +236,13 @@ class PublicProgramController extends Controller
 
         // Check if user is enrolled (if authenticated)
         $isEnrolled = false;
+        $userEnrollment = null;
         if (auth()->check() && auth()->user()->role === 'runner') {
-            $isEnrolled = $program->enrollments()
+            $userEnrollment = $program->enrollments()
                 ->where('runner_id', auth()->id())
                 ->whereIn('status', ['purchased', 'active'])
-                ->exists();
+                ->first();
+            $isEnrolled = (bool) $userEnrollment;
         }
 
         // Get reviews with pagination
@@ -284,6 +286,7 @@ class PublicProgramController extends Controller
         return view('programs.show', [
             'program' => $program,
             'isEnrolled' => $isEnrolled,
+            'userEnrollment' => $userEnrollment,
             'reviews' => $reviews,
             'seoTitle' => $seoTitle,
             'seoDesc' => $seoDesc,

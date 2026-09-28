@@ -944,6 +944,22 @@
 
                     <div x-show="!collapsed" x-transition class="mt-5">
 
+                        @if($activeEnrollments->count() > 0 && $programBag->count() > 0)
+                            <div class="mb-4 p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-neon shrink-0"></span>
+                                    <div class="text-xs text-slate-300">
+                                        Anda memiliki <strong class="text-white">{{ $programBag->count() }} program</strong> di Program Bag (termasuk <em>{{ $programBag->first()->program->title }}</em>).
+                                    </div>
+                                </div>
+                                <button type="button" 
+                                        onclick="triggerApplyProgram({{ $programBag->first()->id }}, {{ Js::from($programBag->first()->program->title) }}, {{ Js::from($programBag->first()->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($programBag->first()->program->duration_weeks ?? 12) }})"
+                                        class="shrink-0 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:text-white text-xs font-semibold transition cursor-pointer">
+                                    Kelola / Ganti Program Aktif
+                                </button>
+                            </div>
+                        @endif
+
                     @if(!empty($todayWorkout))
                         @php($todayStatus = $todayWorkout['status'] ?? 'pending')
                         <div class="mt-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1027,7 +1043,7 @@
                                         </div>
                                     </div>
                                     <div class="shrink-0 w-full md:w-auto">
-                                        <button onclick="triggerApplyProgram({{ $pendingProgram->id }})" class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-[#ccff00] text-dark font-black hover:bg-white transition-all shadow-lg shadow-[#ccff00]/20 text-center text-sm uppercase italic tracking-wider flex items-center justify-center gap-2">
+                                        <button onclick="triggerApplyProgram({{ $pendingProgram->id }}, {{ Js::from($pendingProgram->program->title) }}, {{ Js::from($pendingProgram->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($pendingProgram->program->duration_weeks ?? 12) }})" class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-[#ccff00] text-dark font-black hover:bg-white transition-all shadow-lg shadow-[#ccff00]/20 text-center text-sm uppercase italic tracking-wider flex items-center justify-center gap-2">
                                             Aktifkan Sekarang <i class="fas fa-arrow-right"></i>
                                         </button>
                                     </div>
@@ -1318,7 +1334,7 @@
                                         <div class="text-white font-bold text-xs truncate">{{ $bg->program->title }}</div>
                                         <div class="text-[10px] text-slate-400 mt-0.5">Coach {{ $bg->program->coach->name }}</div>
                                     </div>
-                                    <button onclick="triggerApplyProgram({{ $bg->id }})" class="shrink-0 px-3 py-1.5 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition">
+                                    <button onclick="triggerApplyProgram({{ $bg->id }}, {{ Js::from($bg->program->title) }}, {{ Js::from($bg->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($bg->program->duration_weeks ?? 12) }})" class="shrink-0 px-3 py-1.5 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition cursor-pointer">
                                         Aktifkan
                                     </button>
                                 </div>
@@ -2172,6 +2188,118 @@
             </div>
         </div>
 
+    <!-- Program Conflict / Replacement Confirmation Modal (Global Shell Level) -->
+    <div x-show="showConflictModal" 
+         x-cloak
+         class="fixed inset-0 z-[160] overflow-y-auto flex items-center justify-center p-4"
+         @keydown.escape.window="closeConflictModal()">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-950/80 transition-opacity" 
+             @click="closeConflictModal()"></div>
+
+        <!-- Modal Box -->
+        <div class="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6 shadow-2xl z-10 space-y-4"
+             @click.stop>
+            
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-semibold uppercase tracking-wider mb-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Program Aktif Terdeteksi
+                    </div>
+                    <h3 class="text-lg font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
+                        Konfirmasi Pergantian Program
+                    </h3>
+                </div>
+                <button @click="closeConflictModal()" 
+                        class="p-1.5 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+                        title="Tutup">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Description -->
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Anda saat ini sedang memiliki program latihan aktif. Tentukan apakah Anda ingin mengganti program aktif dengan program baru ini, atau tetap menyimpannya di <strong class="text-white">Program Bag</strong>.
+            </p>
+
+            <!-- Comparison Cards -->
+            <div class="space-y-2.5">
+                <!-- Active Program Card -->
+                <div class="p-3 rounded-md bg-slate-950 border border-slate-800">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Program Aktif Saat Ini</span>
+                        <span class="px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px] font-semibold">Sedang Berjalan</span>
+                    </div>
+                    <div class="text-sm font-bold text-white truncate" x-text="conflictData.activeTitle"></div>
+                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                        <span x-show="conflictData.activeCoach">Coach: <span class="text-slate-200" x-text="conflictData.activeCoach"></span></span>
+                        <span x-show="conflictData.activePeriod">Periode: <span class="text-slate-200" x-text="conflictData.activePeriod"></span></span>
+                    </div>
+                </div>
+
+                <!-- New Program Card -->
+                <div class="p-3 rounded-md bg-slate-950 border border-slate-800">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[10px] font-bold text-neon uppercase tracking-wider">Program Baru</span>
+                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-semibold">Dari Program Bag</span>
+                    </div>
+                    <div class="text-sm font-bold text-white truncate" x-text="conflictData.newTitle"></div>
+                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                        <span x-show="conflictData.newCoach">Coach: <span class="text-slate-200" x-text="conflictData.newCoach"></span></span>
+                        <span x-show="conflictData.newDuration">Durasi: <span class="text-slate-200" x-text="conflictData.newDuration + ' Minggu'"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Date Selector for New Program -->
+            <div class="p-3 rounded-md bg-slate-950 border border-slate-800">
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Tanggal Mulai Program Baru:
+                </label>
+                <input type="date" 
+                       x-model="conflictStartDate" 
+                       class="w-full px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-slate-500 font-mono">
+                <p class="text-[11px] text-slate-400 mt-1">
+                    Jadwal latihan program baru akan disusun mulai tanggal ini.
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+                <!-- Option 1: Replace Active Program -->
+                <button type="button"
+                        @click="executeConflictAction('replace')"
+                        :disabled="conflictLoading"
+                        class="w-full py-2.5 px-4 rounded-md bg-neon hover:bg-white text-dark font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                    <span x-show="!conflictLoading">Ganti Program Aktif (Replace)</span>
+                    <span x-show="conflictLoading">Memproses Pergantian...</span>
+                </button>
+                <p class="text-[11px] text-slate-400 text-center -mt-1 mb-2">
+                    Program aktif saat ini akan disimpan kembali ke Program Bag dan digantikan dengan program baru.
+                </p>
+
+                <!-- Option 2: Keep in Bag -->
+                <button type="button"
+                        @click="executeConflictAction('keep_bag')"
+                        :disabled="conflictLoading"
+                        class="w-full py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition border border-slate-700 cursor-pointer disabled:opacity-50">
+                    Simpan Dulu dalam Program Bag
+                </button>
+                <p class="text-[11px] text-slate-400 text-center -mt-1">
+                    Program aktif Anda tetap berjalan saat ini. Program baru tetap tersimpan di Program Bag untuk diaktifkan nanti.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
     </div> <!-- closes max-w-7xl mx-auto -->
 </div> <!-- closes wrapper -->
 @push('scripts')
@@ -2215,6 +2343,21 @@
             saving: false,
             notification: null,
             isReceiveWa: {{ auth()->user()->is_receive_wa ? 'true' : 'false' }},
+
+            // Conflict / Replace Program Modal State
+            conflictData: {
+                activeEnrollmentId: {{ $activeEnrollments->first()?->id ?? 'null' }},
+                activeTitle: {{ Js::from($activeEnrollments->first()?->program?->title ?? 'Program Aktif') }},
+                activeCoach: {{ Js::from($activeEnrollments->first()?->program?->coach?->name ?? 'Coach') }},
+                activePeriod: {{ Js::from(($activeEnrollments->first()?->start_date ? \Carbon\Carbon::parse($activeEnrollments->first()->start_date)->format('d M Y') : '') . ($activeEnrollments->first()?->end_date ? ' s/d ' . \Carbon\Carbon::parse($activeEnrollments->first()->end_date)->format('d M Y') : '')) }},
+                newEnrollmentId: {{ $pendingProgramToActivate?->id ?? ($programBag->first()?->id ?? 'null') }},
+                newTitle: {{ Js::from($pendingProgramToActivate?->program?->title ?? ($programBag->first()?->program?->title ?? '')) }},
+                newCoach: {{ Js::from($pendingProgramToActivate?->program?->coach?->name ?? ($programBag->first()?->program?->coach?->name ?? '')) }},
+                newDuration: {{ (int) ($pendingProgramToActivate?->program?->duration_weeks ?? ($programBag->first()?->program?->duration_weeks ?? 12)) }},
+            },
+            showConflictModal: {{ $shouldShowConflictModal ? 'true' : 'false' }},
+            conflictStartDate: new Date().toISOString().slice(0, 10),
+            conflictLoading: false,
 
             card_pb_distance: '5k',
             card_pb_hours: '',
@@ -2407,6 +2550,78 @@
                 }, 5000);
             },
 
+            openProgramConflictModal(newEnrollmentId, newTitle = '', newCoach = '', newDuration = 12) {
+                if (newEnrollmentId) {
+                    this.conflictData.newEnrollmentId = newEnrollmentId;
+                    try { sessionStorage.removeItem('dismiss_conflict_' + newEnrollmentId); } catch (e) {}
+                }
+                if (newTitle) this.conflictData.newTitle = newTitle;
+                if (newCoach) this.conflictData.newCoach = newCoach;
+                if (newDuration) this.conflictData.newDuration = newDuration;
+                this.conflictStartDate = new Date().toISOString().slice(0, 10);
+                this.showConflictModal = true;
+            },
+
+            closeConflictModal() {
+                this.showConflictModal = false;
+                if (this.conflictData && this.conflictData.newEnrollmentId) {
+                    try { sessionStorage.setItem('dismiss_conflict_' + this.conflictData.newEnrollmentId, 'true'); } catch (e) {}
+                }
+                const url = new URL(window.location);
+                if (url.searchParams.has('activate_program')) {
+                    url.searchParams.delete('activate_program');
+                    window.history.replaceState({}, '', url);
+                }
+            },
+
+            async executeConflictAction(actionType) {
+                if (actionType === 'keep_bag') {
+                    this.closeConflictModal();
+                    this.showNotification('Program tetap tersimpan di Program Bag. Anda dapat mengaktifkannya kapan saja.', 'success');
+                    return;
+                }
+
+                if (actionType === 'replace') {
+                    if (!this.conflictData.newEnrollmentId) {
+                        this.showNotification('ID Program tidak ditemukan.', 'error');
+                        return;
+                    }
+                    if (!this.conflictStartDate) {
+                        this.showNotification('Silakan pilih tanggal mulai program.', 'error');
+                        return;
+                    }
+
+                    this.conflictLoading = true;
+                    try {
+                        const res = await fetch('{{ route("runner.calendar.apply-program") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                enrollment_id: this.conflictData.newEnrollmentId,
+                                start_date: this.conflictStartDate,
+                                action: 'replace'
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (data.success) {
+                            window.location.href = '{{ route("runner.dashboard", ["tab" => "calendar"]) }}';
+                        } else {
+                            this.showNotification(data.message || 'Gagal mengganti program aktif.', 'error');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showNotification('Terjadi kesalahan saat memproses pergantian program.', 'error');
+                    } finally {
+                        this.conflictLoading = false;
+                    }
+                }
+            },
+
             init() {
                 this.onCardPbDistanceChange();
                 this.$watch('card_pb_distance', () => this.onCardPbDistanceChange());
@@ -2423,6 +2638,20 @@
                 if (sessionStorage.getItem('dismiss_profile_modal') === 'true') {
                     this.showProfileCompletionModal = false;
                 }
+
+                // Check conflict modal dismissal state in session storage (only if not explicit URL param activate_program)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (!urlParams.has('activate_program') && this.showConflictModal && this.conflictData && this.conflictData.newEnrollmentId) {
+                    if (sessionStorage.getItem('dismiss_conflict_' + this.conflictData.newEnrollmentId) === 'true') {
+                        this.showConflictModal = false;
+                    }
+                }
+
+                // Listen for program conflict modal open requests
+                window.addEventListener('open-program-conflict-modal', (e) => {
+                    const d = e.detail || {};
+                    this.openProgramConflictModal(d.id, d.title, d.coach, d.duration);
+                });
             },
 
             get distanceKm() {
@@ -2800,7 +3029,20 @@
 </script>
 
 <script>
-    function triggerApplyProgram(enrollmentId) {
+    function triggerApplyProgram(enrollmentId, title = '', coach = '', duration = 12) {
+        const hasActive = {{ $activeEnrollments->count() > 0 ? 'true' : 'false' }};
+        if (hasActive) {
+            window.dispatchEvent(new CustomEvent('open-program-conflict-modal', {
+                detail: {
+                    id: enrollmentId,
+                    title: title,
+                    coach: coach,
+                    duration: duration
+                }
+            }));
+            return;
+        }
+
         switchTab('calendar');
         // Wait a brief moment for the tab to transition and Vue to render
         setTimeout(() => {

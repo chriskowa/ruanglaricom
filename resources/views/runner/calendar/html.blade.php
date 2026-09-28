@@ -105,35 +105,79 @@
 
         <!-- Apply Program Modal -->
         <div v-if="showApplyModal" class="fixed inset-0 z-[250] overflow-y-auto flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showApplyModal = false"></div>
-            <div class="relative z-10 max-w-sm w-full glass-panel rounded-2xl p-5 border border-slate-800 shadow-2xl shadow-neon/5 bg-[#0a1020]/95 backdrop-blur-md">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-white font-black text-lg italic uppercase tracking-tight">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="closeApplyModal"></div>
+            <div class="relative z-10 max-w-sm w-full rounded-lg p-5 border border-slate-800 shadow-2xl bg-slate-900">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+                    <h3 class="text-white font-bold text-base">
                         Mulai Program
                     </h3>
-                    <button class="w-6 h-6 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-400 hover:text-white text-xs flex items-center justify-center transition" @click="showApplyModal = false">✕</button>
+                    <button class="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-white text-xs flex items-center justify-center transition" @click="closeApplyModal">✕</button>
                 </div>
-                <div class="mb-4">
-                    <p class="text-slate-400 text-xs leading-relaxed mb-3 font-sans">Aktifkan program dari Program Bag dengan memilih tanggal mulai.</p>
-                    <div class="bg-[#ccff00]/5 border border-[#ccff00]/25 rounded-xl p-3" v-if="applyTarget">
-                        <div class="text-[9px] text-[#ccff00] font-bold uppercase tracking-wider font-mono">Program Pilihan</div>
-                        <div class="text-xs font-black text-white mt-0.5">@{{ applyTarget?.program?.title }}</div>
+
+                <!-- State 1: Konfirmasi Ganti Program Aktif -->
+                <div v-if="showConfirmReplace" class="space-y-4">
+                    <div class="p-3.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs">
+                        <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider font-mono mb-1">Konfirmasi Ganti Program</div>
+                        <p class="text-slate-200 text-xs leading-relaxed">
+                            Saat ini Anda sedang menjalankan program <strong class="text-white">@{{ currentActiveProgram?.program?.title || activeConflictTitle }}</strong>.
+                        </p>
+                        <p class="text-slate-300 text-xs mt-2 leading-relaxed">
+                            Apakah Anda ingin mengganti program aktif dengan <strong class="text-white">@{{ applyTarget?.program?.title }}</strong> mulai tanggal <strong class="text-neon">@{{ applyForm.start_date }}</strong>?
+                        </p>
+                        <div class="mt-2.5 pt-2 border-t border-amber-500/20 text-[11px] text-slate-400">
+                            Program aktif sebelumnya akan dinonaktifkan dan otomatis disimpan kembali ke Program Bag.
+                        </div>
                     </div>
-                </div>
-                <form @submit.prevent="submitApply" class="space-y-4">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5 font-mono">Start Date</label>
-                        <input type="date" v-model="applyForm.start_date" required class="w-full bg-slate-900/80 border border-slate-750 rounded-xl px-3 py-2 text-xs text-white focus:border-neon focus:outline-none transition">
-                    </div>
-                    
-                    <div class="flex justify-end gap-2 pt-3.5 border-t border-slate-800">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60 text-xs font-bold hover:text-white transition" @click="showApplyModal = false">Batal</button>
-                        <button type="submit" :disabled="applyLoading" class="px-5 py-2 rounded-xl bg-neon text-dark font-black text-xs uppercase italic tracking-wider hover:bg-white transition shadow-lg shadow-neon/10 flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+
+                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                        <button type="button" class="px-3.5 py-2 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold hover:text-white transition" @click="showConfirmReplace = false">
+                            Kembali
+                        </button>
+                        <button type="button" @click="submitApply('replace')" :disabled="applyLoading" class="px-4 py-2 rounded-md bg-neon text-slate-950 font-bold text-xs hover:bg-white transition flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
                             <span v-if="applyLoading" class="animate-spin text-[10px]">⟳</span>
-                            <span>Aktifkan</span>
+                            <span>Ya, Ganti Program</span>
                         </button>
                     </div>
-                </form>
+                </div>
+
+                <!-- State 2: Form Input Mulai Program -->
+                <div v-else>
+                    <div class="mb-4 space-y-3">
+                        <p class="text-slate-400 text-xs leading-relaxed">Aktifkan program dari Program Bag dengan menentukan tanggal mulai latihan.</p>
+                        
+                        <div class="bg-slate-950 border border-slate-800 rounded-md p-3" v-if="applyTarget">
+                            <div class="text-[10px] text-neon font-bold uppercase tracking-wider font-mono">Program Pilihan</div>
+                            <div class="text-xs font-bold text-white mt-0.5">@{{ applyTarget?.program?.title }}</div>
+                        </div>
+
+                        <!-- Notifikasi jika sudah ada program aktif berjalan -->
+                        <div v-if="currentActiveProgram" class="p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-xs">
+                            <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider font-mono mb-1">Ada Program Aktif</div>
+                            <p class="text-slate-300 text-xs leading-relaxed">
+                                Anda sedang menjalankan <strong class="text-white">@{{ currentActiveProgram?.program?.title }}</strong>.
+                            </p>
+                            <p class="text-slate-400 text-[11px] mt-1 leading-normal">
+                                Mengaktifkan program ini akan menggantikan program aktif lama dan memindahkannya kembali ke Program Bag.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="handleApplySubmit" class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-300 block mb-1.5">Tanggal Mulai Program</label>
+                            <input type="date" v-model="applyForm.start_date" required class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:border-neon focus:outline-none transition">
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-3.5 border-t border-slate-800">
+                            <button type="button" class="px-4 py-2 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold hover:text-white transition" @click="closeApplyModal">Batal</button>
+                            <button type="submit" :disabled="applyLoading" class="px-5 py-2 rounded-md bg-neon text-slate-950 font-bold text-xs hover:bg-white transition flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+                                <span v-if="applyLoading" class="animate-spin text-[10px]">⟳</span>
+                                <span v-if="currentActiveProgram">Ganti & Aktifkan</span>
+                                <span v-else>Aktifkan Program</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 

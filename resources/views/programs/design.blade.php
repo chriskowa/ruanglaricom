@@ -1122,7 +1122,8 @@
                             }
                         });
                         if (resp.ok) {
-                            window.location.href = '{{ route("runner.calendar") }}';
+                            const j = await resp.json().catch(() => ({}));
+                            window.location.href = j.redirect_url || '{{ route("runner.dashboard") }}';
                         } else {
                             const j = await resp.json();
                             alert(j.message || 'Gagal join challenge.');

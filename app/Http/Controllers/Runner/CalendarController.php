@@ -22,9 +22,10 @@ class CalendarController extends Controller
 {
     use TrainingPhaseAware;
 
-    public function index()
+    public function index(Request $request)
     {
-        return redirect()->route('runner.dashboard', ['tab' => 'calendar']);
+        $params = array_merge(['tab' => 'calendar'], $request->query());
+        return redirect()->route('runner.dashboard', $params);
     }
 
     /**
@@ -1007,7 +1008,11 @@ class CalendarController extends Controller
         if ($activeEnrollment && $action === 'replace') {
             ProgramEnrollment::where('runner_id', $user->id)
                 ->where('status', 'active')
-                ->update(['status' => 'cancelled']);
+                ->update([
+                    'status' => 'purchased',
+                    'start_date' => null,
+                    'end_date' => null,
+                ]);
         }
 
         $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
@@ -1026,7 +1031,7 @@ class CalendarController extends Controller
             'end_date' => $endDate,
         ]);
 
-        // Notify Coach (program applied)
+        // Notify Coach (in-app notification)
         try {
             $coach = $program->coach;
             if ($coach) {
@@ -1039,22 +1044,6 @@ class CalendarController extends Controller
                     'reference_id' => $enrollment->id,
                     'is_read' => false,
                 ]);
-                if ($coach->email) {
-                    Mail::raw('Runner '.$user->name.' mengaktifkan program "'.$program->title.'" mulai '.$startDate->format('d M Y').'.', function ($m) use ($coach, $program) {
-                        $m->to($coach->email)->subject('Program Diaktifkan: '.$program->title);
-                    });
-                }
-                $phone = $coach->phone ?? null;
-                if ($phone) {
-                    $normalized = preg_replace('/\D+/', '', $phone);
-                    if (str_starts_with($normalized, '0')) {
-                        $normalized = '62'.substr($normalized, 1);
-                    } elseif (! str_starts_with($normalized, '62')) {
-                        $normalized = '62'.$normalized;
-                    }
-                    $runnerPhone = $user->phone ?? '-';
-                    WhatsApp::send($normalized, "*Program Diaktifkan*\nRunner: ".$user->name."\nNo. HP: ".$runnerPhone."\nProgram: ".$program->title."\nMulai: ".$startDate->format('d M Y'));
-                }
             }
         } catch (\Throwable $e) {
         }
