@@ -82,11 +82,11 @@
                 </div>
                 <div class="grid grid-cols-1 gap-2">
                     <a href="/buat-program-lari" class="w-full no-underline px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between">
-                        <span>Generate VDOT</span>
+                        <span>Buat Program</span>
                         <span class="text-slate-400">›</span>
                     </a>
                     <button type="button" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between" @click="showHeaderActions = false; openStravaAnalysisModal();">
-                        <span>Analisis My Training (AI)</span>
+                        <span>Analisis Strava</span>
                         <span class="text-slate-400">›</span>
                     </button>
                     <a href="{{ route('programs.index') }}" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between">

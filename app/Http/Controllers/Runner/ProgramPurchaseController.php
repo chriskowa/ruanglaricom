@@ -201,10 +201,10 @@ class ProgramPurchaseController extends Controller
         }
 
         if ($hasActiveProgram) {
-            return redirect()->route('runner.dashboard', ['activate_program' => $enrollment->id])
-                ->with('new_program_bag_id', $enrollment->id)
-                ->with('show_replace_modal', true)
-                ->with('info', 'Program berhasil didaftarkan! Karena Anda sedang menjalankan program aktif, silakan tentukan apakah ingin mengganti program aktif atau menyimpannya di Program Bag.');
+            return redirect()->route('runner.dashboard', [
+                'tab' => 'calendar',
+                'apply_enrollment' => $enrollment->id,
+            ])->with('info', 'Program berhasil didaftarkan! Karena Anda sedang menjalankan program aktif, silakan konfirmasi untuk mengganti program aktif.');
         }
 
         return redirect()->route('runner.dashboard', ['tab' => 'calendar'])

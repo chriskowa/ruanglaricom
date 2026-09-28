@@ -67,10 +67,10 @@ class ProgramEnrollmentController extends Controller
                     ]);
                 }
 
-                return redirect()->route('runner.dashboard', ['activate_program' => $existingEnrollment->id])
-                    ->with('new_program_bag_id', $existingEnrollment->id)
-                    ->with('show_replace_modal', true)
-                    ->with('info', 'Program ini sudah ada di Program Bag Anda. Silakan tentukan apakah ingin mengganti program aktif atau tetap menyimpannya di Program Bag.');
+                return redirect()->route('runner.dashboard', [
+                    'tab' => 'calendar',
+                    'apply_enrollment' => $existingEnrollment->id,
+                ])->with('info', 'Program ini sudah ada di Program Bag Anda. Silakan tentukan tanggal mulai untuk mengaktifkannya.');
             }
 
             // If already active in calendar
@@ -137,7 +137,7 @@ class ProgramEnrollmentController extends Controller
                 'success' => true,
                 'has_active_program' => $hasActiveProgram,
                 'redirect_url' => $hasActiveProgram 
-                    ? route('runner.dashboard', ['activate_program' => $enrollment->id])
+                    ? route('runner.dashboard', ['tab' => 'calendar', 'apply_enrollment' => $enrollment->id])
                     : route('runner.dashboard', ['tab' => 'calendar']),
                 'message' => $hasActiveProgram 
                     ? 'Program berhasil didaftarkan ke Program Bag!' 
@@ -146,10 +146,10 @@ class ProgramEnrollmentController extends Controller
         }
 
         if ($hasActiveProgram) {
-            return redirect()->route('runner.dashboard', ['activate_program' => $enrollment->id])
-                ->with('new_program_bag_id', $enrollment->id)
-                ->with('show_replace_modal', true)
-                ->with('info', 'Program berhasil didaftarkan! Karena Anda sedang menjalankan program aktif, silakan tentukan apakah ingin mengganti program aktif atau menyimpannya di Program Bag.');
+            return redirect()->route('runner.dashboard', [
+                'tab' => 'calendar',
+                'apply_enrollment' => $enrollment->id,
+            ])->with('info', 'Program berhasil didaftarkan! Karena Anda sedang menjalankan program aktif, silakan konfirmasi untuk mengganti program aktif.');
         }
 
         return redirect()->route('runner.dashboard', ['tab' => 'calendar'])

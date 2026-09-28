@@ -427,7 +427,7 @@ class DashboardController extends Controller
             }
         }
         $hasActiveProgram = $activeEnrollments->isNotEmpty();
-        $shouldShowConflictModal = $hasActiveProgram && ($pendingProgramToActivate !== null);
+        $shouldShowConflictModal = false;
 
         // If runner has NO active program and requested to activate a program from bag, activate immediately!
         if (! $hasActiveProgram && $targetActivateId && $pendingProgramToActivate) {
@@ -443,6 +443,15 @@ class DashboardController extends Controller
 
             return redirect()->route('runner.dashboard', ['tab' => 'calendar'])
                 ->with('success', 'Program ' . ($pendingProgramToActivate->program?->title ?? '') . ' berhasil diaktifkan di kalender latihan Anda!');
+        }
+
+        // If runner HAS an active program and requested activation from overview, redirect directly to calendar tab
+        if ($hasActiveProgram && ($targetActivateId || $request->query('apply_enrollment')) && $request->query('tab') !== 'calendar') {
+            $enrollmentId = $targetActivateId ?: $request->query('apply_enrollment');
+            return redirect()->route('runner.dashboard', [
+                'tab' => 'calendar',
+                'apply_enrollment' => $enrollmentId,
+            ]);
         }
 
         // Get Cancelled Programs (History/Archive)

@@ -953,7 +953,7 @@
                                     </div>
                                 </div>
                                 <button type="button" 
-                                        onclick="triggerApplyProgram({{ $programBag->first()->id }}, {{ Js::from($programBag->first()->program->title) }}, {{ Js::from($programBag->first()->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($programBag->first()->program->duration_weeks ?? 12) }})"
+                                        onclick="triggerApplyProgram({{ $programBag->first()->id }})"
                                         class="shrink-0 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:text-white text-xs font-semibold transition cursor-pointer">
                                     Kelola / Ganti Program Aktif
                                 </button>
@@ -1043,7 +1043,7 @@
                                         </div>
                                     </div>
                                     <div class="shrink-0 w-full md:w-auto">
-                                        <button onclick="triggerApplyProgram({{ $pendingProgram->id }}, {{ Js::from($pendingProgram->program->title) }}, {{ Js::from($pendingProgram->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($pendingProgram->program->duration_weeks ?? 12) }})" class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-[#ccff00] text-dark font-black hover:bg-white transition-all shadow-lg shadow-[#ccff00]/20 text-center text-sm uppercase italic tracking-wider flex items-center justify-center gap-2">
+                                        <button onclick="triggerApplyProgram({{ $pendingProgram->id }})" class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-[#ccff00] text-dark font-black hover:bg-white transition-all shadow-lg shadow-[#ccff00]/20 text-center text-sm uppercase italic tracking-wider flex items-center justify-center gap-2">
                                             Aktifkan Sekarang <i class="fas fa-arrow-right"></i>
                                         </button>
                                     </div>
@@ -1334,7 +1334,7 @@
                                         <div class="text-white font-bold text-xs truncate">{{ $bg->program->title }}</div>
                                         <div class="text-[10px] text-slate-400 mt-0.5">Coach {{ $bg->program->coach->name }}</div>
                                     </div>
-                                    <button onclick="triggerApplyProgram({{ $bg->id }}, {{ Js::from($bg->program->title) }}, {{ Js::from($bg->program->coach->name ?? 'Ruang Lari') }}, {{ (int) ($bg->program->duration_weeks ?? 12) }})" class="shrink-0 px-3 py-1.5 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition cursor-pointer">
+                                    <button onclick="triggerApplyProgram({{ $bg->id }})" class="shrink-0 px-3 py-1.5 rounded-md bg-neon text-dark font-bold text-xs hover:bg-white transition cursor-pointer">
                                         Aktifkan
                                     </button>
                                 </div>
@@ -3029,29 +3029,19 @@
 </script>
 
 <script>
-    function triggerApplyProgram(enrollmentId, title = '', coach = '', duration = 12) {
-        const hasActive = {{ $activeEnrollments->count() > 0 ? 'true' : 'false' }};
-        if (hasActive) {
-            window.dispatchEvent(new CustomEvent('open-program-conflict-modal', {
-                detail: {
-                    id: enrollmentId,
-                    title: title,
-                    coach: coach,
-                    duration: duration
-                }
-            }));
-            return;
-        }
-
+    function triggerApplyProgram(enrollmentId) {
         switchTab('calendar');
-        // Wait a brief moment for the tab to transition and Vue to render
-        setTimeout(() => {
+        // Give time for calendar tab to show and Vue instance to mount/be ready
+        const tryApply = (attempts = 0) => {
             if (window.runnerCalendarInstance && typeof window.runnerCalendarInstance.applyProgram === 'function') {
                 window.runnerCalendarInstance.applyProgram(enrollmentId);
+            } else if (attempts < 20) {
+                setTimeout(() => tryApply(attempts + 1), 100);
             } else {
-                console.error("Vue calendar instance not ready or applyProgram method not found.");
+                console.warn("Runner calendar instance not ready or applyProgram method not found.");
             }
-        }, 300);
+        };
+        tryApply();
     }
 
     function switchTab(tabName) {
@@ -3092,7 +3082,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
-        if (tab === 'calendar') {
+        if (tab === 'calendar' || urlParams.has('apply_enrollment') || urlParams.has('activate_program')) {
             switchTab('calendar');
         } else if (tab === 'calculator') {
             switchTab('calculator');

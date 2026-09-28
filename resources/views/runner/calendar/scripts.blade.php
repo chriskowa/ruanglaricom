@@ -804,7 +804,8 @@ const runnerCalendarApp = createApp({
 
         const applyProgram = async (enrollmentId) => {
             try {
-                const target = programBag.value.find(e => e.id === enrollmentId);
+                const target = programBag.value.find(e => Number(e.id) === Number(enrollmentId)) ||
+                               enrollments.value.find(e => Number(e.id) === Number(enrollmentId));
                 showDetailModal.value = false;
                 showVdotModal.value = false;
                 showFormModal.value = false;
@@ -814,7 +815,7 @@ const runnerCalendarApp = createApp({
                 activeConflictTitle.value = '';
                 showApplyModal.value = false;
                 await nextTick();
-                applyTarget.value = target || { id: enrollmentId };
+                applyTarget.value = target || { id: enrollmentId, program: { title: 'Program Latihan' } };
                 const d = new Date();
                 const yyyy = d.getFullYear();
                 const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -822,7 +823,8 @@ const runnerCalendarApp = createApp({
                 applyForm.start_date = `${yyyy}-${mm}-${dd}`;
                 showApplyModal.value = true;
             } catch (e) {
-                alert('An error occurred');
+                console.error(e);
+                alert('Terjadi kesalahan saat membuka program');
             }
         };
 
@@ -1141,6 +1143,14 @@ const runnerCalendarApp = createApp({
             showApplyModal.value = false;
             showConfirmReplace.value = false;
             activeConflictTitle.value = '';
+            try {
+                const url = new URL(window.location);
+                if (url.searchParams.has('apply_enrollment') || url.searchParams.has('activate_program')) {
+                    url.searchParams.delete('apply_enrollment');
+                    url.searchParams.delete('activate_program');
+                    window.history.replaceState({}, '', url);
+                }
+            } catch (e) {}
         };
 
         const handleApplySubmit = () => {
@@ -1196,6 +1206,15 @@ const runnerCalendarApp = createApp({
                 if (data.success) {
                     showApplyModal.value = false;
                     showConfirmReplace.value = false;
+
+                    try {
+                        const url = new URL(window.location);
+                        if (url.searchParams.has('apply_enrollment') || url.searchParams.has('activate_program')) {
+                            url.searchParams.delete('apply_enrollment');
+                            url.searchParams.delete('activate_program');
+                            window.history.replaceState({}, '', url);
+                        }
+                    } catch (e) {}
 
                     const appliedId = applyTarget.value.id;
                     const appliedIdx = programBag.value.findIndex(e => e.id === appliedId);
@@ -3032,6 +3051,22 @@ const runnerCalendarApp = createApp({
                 openStravaAnalysisModal();
                 // Clear the hash so it doesn't reopen on refresh if not intended
                 history.replaceState(null, null, ' ');
+            }
+
+            // Auto-open applyProgram modal if apply_enrollment or activate_program is in URL
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetEnrollmentId = urlParams.get('apply_enrollment') || urlParams.get('activate_program');
+                if (targetEnrollmentId) {
+                    const eid = parseInt(targetEnrollmentId, 10);
+                    if (eid) {
+                        setTimeout(() => {
+                            applyProgram(eid);
+                        }, 350);
+                    }
+                }
+            } catch (e) {
+                console.warn('[RunnerCalendar] Error auto-triggering applyProgram', e);
             }
 
             try {
